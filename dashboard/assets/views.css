@@ -419,6 +419,93 @@
   margin-top: 16px;
 }
 
+/* --- news ---------------------------------------------------------------- */
+
+/* Cards share the height evenly, so dropping an empty group lets the rest
+   expand rather than leaving a gap. */
+.groups {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-card);
+  margin-bottom: var(--gap-card);   /* keeps the last card off the footer */
+}
+
+.groups > .card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* The flex gap already spaces these; the generic sibling margin would double it. */
+.groups > .card + .card { margin-top: 0; }
+
+
+.new-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  padding: 5px 10px;
+}
+
+.items {
+  margin-top: 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.item + .item { border-top: 1px solid var(--hairline); }
+
+.item {
+  padding: 7px 0;
+  /* Tap target for save-to-Readeck. Generous on a 7" panel — the whole row,
+     not just the headline text. */
+  border-radius: var(--radius-tile);
+  margin: 0 -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  transition: background-color 140ms ease;
+}
+
+.item-title {
+  font-size: 23px;
+  font-weight: 500;
+  line-height: 1.32;
+  /* Titles are truncated server-side to 70 chars at a word boundary; this is a
+     backstop so an over-long one can never push the card out of shape. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.item-meta {
+  margin-top: 7px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.source {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  background: var(--chip);
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: var(--text-2);
+}
+
+.item-age { font-size: 13px; color: var(--text-muted); }
+
 /* --- footer -------------------------------------------------------------- */
 
 .view-foot {

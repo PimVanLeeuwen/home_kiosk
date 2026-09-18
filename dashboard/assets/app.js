@@ -12,7 +12,7 @@ const POLL_SECONDS = 30;
 const API_BASE = new URLSearchParams(location.search).get('api') || './fixtures';
 const USING_FIXTURES = !API_BASE.startsWith('http');
 
-const ALL_VIEWS = ['portfolio', 'spotlight', 'nas'];
+const ALL_VIEWS = ['portfolio', 'spotlight', 'news', 'nas'];
 
 // ?view=<name> pins a single view and stops the rotation — for working on one
 // screen without waiting for it to come round.
@@ -346,9 +346,55 @@ function renderSpotlight(root, d) {
   }
 }
 
+/* --- news view ----------------------------------------------------------- */
+
+// Titles and source names come from third-party feeds, so they are inserted as
+// text rather than markup.
+const esc = (s) =>
+  String(s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function renderNews(root, d) {
+  const $ = (name) => root.querySelector(`[data-f="${name}"]`);
+  $('clock').textContent = fmt.clock(new Date());
+
+  // §8: a group with no items is omitted entirely rather than rendered empty.
+  const groups = d.groups.filter((g) => g.items.length > 0);
+
+  $('groups').innerHTML = groups
+    .map((g) => `
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">${esc(g.title)}</div>
+          ${g.new_count > 0 ? `<div class="new-pill">${g.new_count} NEW</div>` : ''}
+        </div>
+        <div class="items">
+          ${g.items.map((it) => `
+            <div class="item" data-url="${esc(it.url)}">
+              <div class="item-title">${esc(it.title)}</div>
+              <div class="item-meta">
+                <span class="source">${esc(it.source).toUpperCase()}</span>
+                <span class="item-age">${esc(it.meta || it.age_label)}</span>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`)
+    .join('');
+
+  const pulled = $('pulled');
+  const feeds = d.feed_count ? `${d.feed_count} FEEDS · ` : '';
+  pulled.textContent = `${feeds}PULLED ${fmt.time(new Date(d.as_of))}`;
+  pulled.className = 'foot-status';
+  if (d.stale) {
+    pulled.textContent = `STALE · ${pulled.textContent}`;
+    pulled.classList.add('is-stale');
+  }
+}
+
 const RENDERERS = {
   portfolio: renderPortfolio,
   spotlight: renderSpotlight,
+  news: renderNews,
   nas: renderNas,
 };
 

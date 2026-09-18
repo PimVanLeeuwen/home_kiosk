@@ -1,15 +1,16 @@
 {
   "as_of": "2026-09-18T21:12:00+02:00",
   "stale": false,
+  "feed_count": 9,
   "groups": [
     {
-      "id": "semis",
-      "title": "Semiconductors & AI",
+      "id": "tech",
+      "title": "Tech",
       "new_count": 3,
       "items": [
         {
           "title": "ASML lifts full-year guidance on stronger EUV demand",
-          "source": "Reuters",
+          "source": "Bloomberg",
           "published": "2026-09-18T20:54:00+02:00",
           "age_label": "18 min ago",
           "url": "https://example.com/1",
@@ -17,14 +18,14 @@
         },
         {
           "title": "TSMC starts risk production on its 2nm node in Hsinchu",
-          "source": "Bloomberg",
+          "source": "Tom's Hardware",
           "published": "2026-09-18T20:20:00+02:00",
           "age_label": "52 min ago",
           "url": "https://example.com/2",
           "meta": null
         },
         {
-          "title": "Nvidia and partners detail next-gen rack-scale systems",
+          "title": "Nvidia details next-generation rack-scale systems",
           "source": "The Verge",
           "published": "2026-09-18T18:58:00+02:00",
           "age_label": "2 hr ago",
@@ -39,7 +40,7 @@
       "new_count": 1,
       "items": [
         {
-          "title": "Kabinet presenteert plannen voor energienetwerk in 2027",
+          "title": "Kabinet presenteert plannen voor het energienetwerk in 2027",
           "source": "NOS",
           "published": "2026-09-18T20:45:00+02:00",
           "age_label": "27 min ago",
@@ -56,7 +57,7 @@
         },
         {
           "title": "AEX sluit hoger na sterke cijfers uit de chipsector",
-          "source": "FD",
+          "source": "NU.nl",
           "published": "2026-09-18T18:04:00+02:00",
           "age_label": "3 hr ago",
           "url": "https://example.com/6",
@@ -65,12 +66,12 @@
       ]
     },
     {
-      "id": "tech",
-      "title": "Self-hosted & tech",
+      "id": "home",
+      "title": "Self-hosted, Apple & Linux",
       "new_count": 2,
       "items": [
         {
-          "title": "Show HN: A tiny dashboard for your home server",
+          "title": "Show HN: A tiny status dashboard for your home server",
           "source": "Hacker News",
           "published": "2026-09-18T20:31:00+02:00",
           "age_label": "41 min ago",
@@ -78,15 +79,15 @@
           "meta": "214 points"
         },
         {
-          "title": "Immich brings faster machine-learning search to v2",
-          "source": "Hacker News",
+          "title": "Phoronix benchmarks the new kernel scheduler on Alder Lake",
+          "source": "Phoronix",
           "published": "2026-09-18T19:12:00+02:00",
           "age_label": "2 hr ago",
           "url": "https://example.com/8",
-          "meta": "96 points"
+          "meta": null
         },
         {
-          "title": "Review: nieuwe NAS-systemen voor thuisgebruik",
+          "title": "Review: nieuwe NAS-systemen voor thuisgebruik getest",
           "source": "Tweakers",
           "published": "2026-09-18T17:47:00+02:00",
           "age_label": "3 hr ago",

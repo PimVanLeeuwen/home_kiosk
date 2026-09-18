@@ -130,6 +130,10 @@ class NewsGroup(BaseModel):
 
 class News(Envelope):
     groups: list[NewsGroup] = []
+    # Total feeds polled, for the "N FEEDS · PULLED HH:MM" footer. Counted from
+    # config rather than derived from groups, so feeds that returned nothing are
+    # still reflected.
+    feed_count: int = 0
 
 
 # --- /api/nas ----------------------------------------------------------------
