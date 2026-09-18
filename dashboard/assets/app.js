@@ -12,7 +12,12 @@ const POLL_SECONDS = 30;
 const API_BASE = new URLSearchParams(location.search).get('api') || './fixtures';
 const USING_FIXTURES = !API_BASE.startsWith('http');
 
-const VIEWS = ['portfolio', 'nas'];
+const ALL_VIEWS = ['portfolio', 'spotlight', 'nas'];
+
+// ?view=<name> pins a single view and stops the rotation — for working on one
+// screen without waiting for it to come round.
+const PINNED = new URLSearchParams(location.search).get('view');
+const VIEWS = PINNED && ALL_VIEWS.includes(PINNED) ? [PINNED] : ALL_VIEWS;
 
 /* --- formatting ---------------------------------------------------------- */
 
@@ -254,7 +259,98 @@ function renderPortfolio(root, d) {
   }
 }
 
-const RENDERERS = { portfolio: renderPortfolio, nas: renderNas };
+/* --- spotlight view ------------------------------------------------------ */
+
+const MONTHS_TITLE = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// "2023-03" -> "Mar 2023"
+function heldSince(value) {
+  const [year, month] = String(value).split('-');
+  return month ? `${MONTHS_TITLE[Number(month) - 1]} ${year}` : value;
+}
+
+// "2026-10-15" -> "15 Oct"
+function earningsDate(value) {
+  const [, month, day] = String(value).split('-');
+  return day ? `${Number(day)} ${MONTHS_TITLE[Number(month) - 1]}` : value;
+}
+
+const price = (n, currency) =>
+  new Intl.NumberFormat('en-GB', { style: 'currency', currency }).format(n);
+
+function renderSpotlight(root, d) {
+  const $ = (name) => root.querySelector(`[data-f="${name}"]`);
+  const down = d.day_pct < 0;
+
+  $('clock').textContent = fmt.clock(new Date());
+  $('symbol').textContent = d.symbol;
+  $('meta').textContent = `${d.name} · ${d.exchange}`;
+  $('price').textContent = price(d.price, d.currency);
+
+  $('day-pill').textContent =
+    `${signed(d.day_pct)} · ${down ? '−' : '+'}${price(Math.abs(d.day_abs), d.currency)}`;
+  $('day-pill').classList.toggle('is-neg', down);
+
+  const svg = root.querySelector('.spark');
+  const box = svg.getBoundingClientRect();
+  const w = Math.round(box.width) || 592;
+  const h = Math.round(box.height) || 236;
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  const paths = sparkPaths(d.history.map((p) => p.v), w, h, 10, { zeroBased: false });
+  $('spark-area').setAttribute('d', paths.area);
+  $('spark-line').setAttribute('d', paths.line);
+  $('spark-dot').setAttribute('cx', paths.last.x);
+  $('spark-dot').setAttribute('cy', paths.last.y);
+
+  $('range52').textContent =
+    `${price(d.range_52w.low, d.currency)} — ${price(d.range_52w.high, d.currency)}`;
+
+  const p = d.position;
+  $('shares').textContent = p.shares;
+  $('avg-cost').textContent = price(p.avg_cost, d.currency);
+  $('market-value').textContent = money(p.value, d.currency);
+  const lost = p.unrealised_abs < 0;
+  $('unrealised').textContent =
+    `${lost ? '−' : '+'}${money(Math.abs(p.unrealised_abs), d.currency)}`;
+  $('unrealised').style.color = lost ? 'var(--red)' : 'var(--accent)';
+
+  $('weight').textContent = `${p.weight_pct.toFixed(1)}%`;
+  $('weight-bar').style.width = `${p.weight_pct}%`;
+
+  // next_earnings is absent, not null, when the source has no date — the cell is
+  // dropped and the grid reflows to the remaining facts.
+  const facts = [
+    ['Day range', `${Math.round(d.day_range.low)} — ${Math.round(d.day_range.high)}`],
+    ['Held since', heldSince(p.held_since)],
+  ];
+  if (d.next_earnings !== undefined) {
+    facts.push(['Next earnings', earningsDate(d.next_earnings)]);
+  }
+  const grid = $('facts');
+  grid.style.gridTemplateColumns = `repeat(${facts.length}, minmax(0, 1fr))`;
+  grid.innerHTML = facts
+    .map(([label, value]) => `
+      <div>
+        <div class="fact-label">${label}</div>
+        <div class="fact-value">${value}</div>
+      </div>`)
+    .join('');
+
+  const updated = $('updated');
+  updated.textContent = `UPDATED ${fmt.time(new Date(d.as_of))}`;
+  updated.className = 'foot-status';
+  if (d.stale) {
+    updated.textContent = `STALE · ${updated.textContent}`;
+    updated.classList.add('is-stale');
+  }
+}
+
+const RENDERERS = {
+  portfolio: renderPortfolio,
+  spotlight: renderSpotlight,
+  nas: renderNas,
+};
 
 /* --- shell --------------------------------------------------------------- */
 

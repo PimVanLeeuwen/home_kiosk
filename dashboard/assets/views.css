@@ -211,6 +211,73 @@
   color: var(--accent);
 }
 
+/* --- spotlight ----------------------------------------------------------- */
+
+.spot-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.spot-symbol {
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.spot-meta { margin-top: 10px; font-size: 15px; color: var(--text-muted); }
+
+.spot-price {
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.spot-pill-row { margin-top: 10px; display: flex; justify-content: flex-end; }
+.spot-pill-row .pill { font-size: 15px; }
+
+.spark-foot {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.range-52w { font-size: 14px; color: var(--text-muted); }
+
+.position-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 26px 32px;
+}
+
+.pos-label { font-size: 14px; color: var(--text-muted); }
+
+.pos-value {
+  margin-top: 7px;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.share-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.share-label { font-size: 15px; color: var(--text-2); }
+.share-value { font-size: 17px; font-weight: 600; }
+
+/* Columns are set at render time: the cell is dropped entirely when the source
+   has no earnings date, per §5, rather than rendering a dash. */
+.facts { display: grid; gap: 20px; }
+.fact-label { font-size: 13px; color: var(--text-muted); }
+.fact-value { margin-top: 7px; font-size: 18px; font-weight: 500; }
+
 /* --- allocation ---------------------------------------------------------- */
 
 .alloc-bar {

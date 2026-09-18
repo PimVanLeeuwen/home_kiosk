@@ -1,0 +1,79 @@
+<section class="view" data-view="spotlight">
+
+  <div class="view-head">
+    <div class="host">
+      <span class="dot-accent"></span>
+      <span class="mono">In focus · biggest mover</span>
+    </div>
+    <div class="mono" data-f="clock"></div>
+  </div>
+
+  <div class="card grow">
+    <div class="spot-head">
+      <div>
+        <div class="spot-symbol" data-f="symbol"></div>
+        <div class="spot-meta" data-f="meta"></div>
+      </div>
+      <div style="text-align:right">
+        <div class="spot-price" data-f="price"></div>
+        <div class="spot-pill-row">
+          <div class="pill" data-f="day-pill"></div>
+        </div>
+      </div>
+    </div>
+
+    <svg class="spark" xmlns="http://www.w3.org/2000/svg"
+         aria-label="Share price, last twelve months">
+      <path data-f="spark-area" fill="var(--accent-soft)"></path>
+      <path data-f="spark-line" fill="none" stroke="var(--accent)"
+            stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
+      <circle data-f="spark-dot" r="5" fill="var(--accent)"></circle>
+    </svg>
+
+    <div class="spark-foot">
+      <!-- The artboard had 1D/1M/1Y/MAX chips here; /api/spotlight serves ~52
+           weekly points and nothing is interactive, so a static label is honest. -->
+      <div class="mono card-note">LAST 12 MONTHS</div>
+      <div class="range-52w" data-f="range52"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Your position</div>
+    <div class="position-grid">
+      <div>
+        <div class="pos-label">Shares</div>
+        <div class="pos-value" data-f="shares"></div>
+      </div>
+      <div>
+        <div class="pos-label">Average cost</div>
+        <div class="pos-value" data-f="avg-cost"></div>
+      </div>
+      <div>
+        <div class="pos-label">Market value</div>
+        <div class="pos-value" data-f="market-value"></div>
+      </div>
+      <div>
+        <div class="pos-label">Unrealised</div>
+        <div class="pos-value" data-f="unrealised"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="share-row">
+      <div class="share-label">Share of portfolio</div>
+      <div class="share-value" data-f="weight"></div>
+    </div>
+    <div class="bar"><span data-f="weight-bar"></span></div>
+  </div>
+
+  <div class="card">
+    <div class="facts" data-f="facts"></div>
+  </div>
+
+  <div class="view-foot">
+    <div class="foot-status" data-f="updated"></div>
+  </div>
+
+</section>
