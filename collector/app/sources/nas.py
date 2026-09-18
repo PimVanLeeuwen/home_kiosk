@@ -215,6 +215,34 @@ def _backup(marker_path: str) -> Backup:
         return Backup(status="unknown", at=None)
 
 
+HISTORY_POINTS = 144  # 24h in 10-minute buckets — more than a 592px sparkline resolves
+
+
+def _downsample(points: list[NetworkPoint], target: int = HISTORY_POINTS) -> list[NetworkPoint]:
+    """Average into at most `target` buckets.
+
+    A 60s cadence over 24h is 1440 points, roughly 100 KB of JSON per poll for a
+    sparkline barely 600px wide. Averaging rather than picking every Nth point
+    keeps brief spikes visible instead of dropping them between samples.
+    """
+    if len(points) <= target:
+        return points
+    size = len(points) / target
+    out: list[NetworkPoint] = []
+    for i in range(target):
+        bucket = points[int(i * size) : max(int((i + 1) * size), int(i * size) + 1)]
+        if not bucket:
+            continue
+        out.append(
+            NetworkPoint(
+                t=bucket[-1].t,
+                rx=round(sum(p.rx for p in bucket) / len(bucket), 2),
+                tx=round(sum(p.tx for p in bucket) / len(bucket), 2),
+            )
+        )
+    return out
+
+
 def _network_history(rows: list[Any]) -> list[NetworkPoint]:
     """Turn the stored cumulative byte counters into per-interval throughput.
 
@@ -240,7 +268,7 @@ def _network_history(rows: list[Any]) -> list[NetworkPoint]:
                 tx=round(tx_delta * 8 / 1e6 / elapsed, 2),
             )
         )
-    return points
+    return _downsample(points)
 
 
 async def collect(cfg: dict[str, Any], store: Store) -> Nas:

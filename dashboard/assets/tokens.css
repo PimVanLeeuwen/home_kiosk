@@ -1,0 +1,87 @@
+/* Design tokens — plan.md §7. Lifted from the approved artboards. */
+
+:root {
+  --bg:          #0A0B0D;
+  --surface:     #121417;
+  --surface-2:   #16191D;
+  --chip:        #1A1D22;
+  --border:      #1E2126;
+  --hairline:    #191C20;
+
+  --text:        #F2F4F6;
+  --text-2:      #B9BEC5;
+  --text-muted:  #8B9199;
+  --inactive:    #2B3037;
+  --inactive-2:  #3A4048;
+
+  --green:       #46D68F;   /* portfolio accent, positive */
+  --blue:        #5C7CFA;   /* NAS accent */
+  --amber:       #E8B84B;   /* news accent, warn state */
+  --red:         #F2555A;   /* negative */
+
+  --radius-card: 20px;
+  --radius-sm:   16px;
+  --radius-tile: 12px;
+  --radius-chip: 7px;
+  --radius-pill: 999px;
+
+  --pad-page-x:  40px;
+  --pad-page-t:  40px;
+  --pad-page-b:  36px;
+  --pad-card:    24px;
+  --gap-card:    14px;
+
+  --font-sans: 'Instrument Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Overridden per view. The artboards carried these as {{accent}} and
+     {{accentSoft}} placeholders; soft is the accent at 13% alpha per §7. */
+  --accent:      var(--green);
+  --accent-soft: rgba(70, 214, 143, 0.13);
+}
+
+[data-view="portfolio"] { --accent: var(--green); --accent-soft: rgba(70, 214, 143, 0.13); }
+[data-view="spotlight"] { --accent: var(--green); --accent-soft: rgba(70, 214, 143, 0.13); }
+[data-view="news"]      { --accent: var(--amber); --accent-soft: rgba(232, 184, 75, 0.13); }
+[data-view="nas"]       { --accent: var(--blue);  --accent-soft: rgba(92, 124, 250, 0.13); }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 720px;
+  height: 1280px;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  /* §7: non-tabular digits jitter on a screen that refreshes in place. */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+.view {
+  width: 720px;
+  height: 1280px;
+  padding: var(--pad-page-t) var(--pad-page-x) var(--pad-page-b);
+  display: flex;
+  flex-direction: column;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--pad-card);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.14em;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Negative tracking on large figures, §7. */
+.fig-hero    { font-size: 76px; font-weight: 600; line-height: 1; letter-spacing: -0.035em; }
+.fig-section { font-size: 44px; font-weight: 600; line-height: 1; letter-spacing: -0.03em; }
+.fig-mid     { font-size: 32px; font-weight: 600; line-height: 1; letter-spacing: -0.02em; }

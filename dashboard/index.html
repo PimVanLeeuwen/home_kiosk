@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=720, height=1280, initial-scale=1">
+<title>Desk dashboard</title>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/views.css">
+<style>
+  #stage { position: relative; width: 720px; height: 1280px; }
+
+  /* Cross-fade only — no sliding or scaling, per §8. */
+  .slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 400ms ease;
+    pointer-events: none;
+  }
+  .slide.is-active { opacity: 1; }
+
+  /* Lives in the shell, not the views: it must not cross-fade with them.
+     Positioned to sit on the same baseline as each view's footer. */
+  #dots {
+    position: absolute;
+    right: var(--pad-page-x);
+    bottom: var(--pad-page-b);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  #dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--inactive);
+    transition: width 300ms ease, background-color 300ms ease;
+  }
+  /* The pill fills over the view's duration as a progress indicator. */
+  #dots span.is-active {
+    width: 20px;
+    background: linear-gradient(to right, var(--text) 0 var(--fill, 0%), var(--inactive-2) var(--fill, 0%) 100%);
+  }
+</style>
+</head>
+<body>
+  <div id="stage"></div>
+  <div id="dots"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

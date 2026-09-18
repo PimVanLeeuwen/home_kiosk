@@ -1,0 +1,219 @@
+/* Component styles lifted from the artboards. The artboards used inline styles
+   with literal hex values; these are the same numbers expressed as tokens. */
+
+.view-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.view-head .host {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot-accent {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+}
+
+.view-head .mono { text-transform: uppercase; }
+
+.card + .card,
+.card + .tiles,
+.tiles + .card { margin-top: var(--gap-card); }
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title { font-size: 17px; font-weight: 600; }
+
+.card-note {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+/* --- storage: one bar per pool ------------------------------------------- */
+
+.pool + .pool { margin-top: 20px; }
+
+.pool-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.pool-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.pool-pct {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.bar {
+  margin-top: 10px;
+  height: 10px;
+  background: var(--chip);
+  border-radius: var(--radius-chip);
+  overflow: hidden;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--radius-chip);
+}
+
+.pool-foot {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* A pool near capacity is the thing this card exists to surface. */
+.pool.is-warn  .bar > span,
+.pool.is-crit  .bar > span { background: var(--warn-colour); }
+.pool.is-warn  { --warn-colour: var(--amber); }
+.pool.is-crit  { --warn-colour: var(--red); }
+.pool.is-warn .pool-pct, .pool.is-warn .pool-foot .runway { color: var(--amber); }
+.pool.is-crit .pool-pct, .pool.is-crit .pool-foot .runway { color: var(--red); }
+
+/* --- tile row ------------------------------------------------------------ */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+}
+
+.tile-label { font-size: 13px; color: var(--text-muted); }
+
+.tile-value {
+  margin-top: 8px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tile-bar {
+  margin-top: 12px;
+  height: 4px;
+  background: var(--chip);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.tile-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.tile.is-warn .tile-value { color: var(--amber); }
+.tile.is-warn .tile-bar > span { background: var(--amber); }
+
+/* --- disks --------------------------------------------------------------- */
+
+.disks {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.disk {
+  background: var(--surface-2);
+  border-radius: var(--radius-tile);
+  padding: 14px 4px;
+  text-align: center;
+}
+
+.disk-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin: 0 auto;
+}
+
+.disk-name {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.disk-temp { margin-top: 5px; font-size: 15px; font-weight: 500; }
+
+.disk.is-warn .disk-dot { background: var(--amber); }
+.disk.is-warn .disk-temp { color: var(--amber); }
+.disk.is-crit .disk-dot { background: var(--red); }
+.disk.is-crit .disk-temp { color: var(--red); }
+
+/* --- network ------------------------------------------------------------- */
+
+.net-rate { font-size: 15px; color: var(--text-2); }
+.spark-label { margin-top: 8px; }
+
+/* These two cards absorb whatever vertical space is left, so the layout fills
+   1280px regardless of how many pools or disks the NAS reports. */
+.card.grow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.card.grow .spark {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  margin-top: 16px;
+  display: block;
+}
+
+/* --- footer -------------------------------------------------------------- */
+
+.view-foot {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.foot-status {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.foot-status.is-stale { color: var(--amber); }
+.foot-status.is-fail  { color: var(--red); }

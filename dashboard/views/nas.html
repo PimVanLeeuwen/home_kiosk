@@ -1,0 +1,64 @@
+<section class="view" data-view="nas">
+
+  <div class="view-head">
+    <div class="host">
+      <span class="dot-accent"></span>
+      <span class="mono" data-f="host"></span>
+    </div>
+    <div class="mono" data-f="clock"></div>
+  </div>
+
+  <!-- One bar per pool rather than a single aggregate: an aggregate hides a
+       single pool filling up, which is exactly what this card is for. -->
+  <div class="card grow" data-f="pools"></div>
+
+  <div class="tiles">
+    <div class="tile" data-tile="cpu">
+      <div class="tile-label">CPU</div>
+      <div class="tile-value" data-f="cpu"></div>
+      <div class="tile-bar"><span data-f="cpu-bar"></span></div>
+    </div>
+    <div class="tile" data-tile="ram">
+      <div class="tile-label">RAM</div>
+      <div class="tile-value" data-f="ram"></div>
+      <div class="tile-bar"><span data-f="ram-bar"></span></div>
+    </div>
+    <div class="tile" data-tile="temp">
+      <div class="tile-label">CPU temp</div>
+      <div class="tile-value" data-f="temp"></div>
+      <div class="tile-bar"><span data-f="temp-bar"></span></div>
+    </div>
+    <div class="tile" data-tile="containers">
+      <div class="tile-label">Containers</div>
+      <div class="tile-value" data-f="containers"></div>
+      <div class="tile-bar"><span data-f="containers-bar"></span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">Disks</div>
+      <div class="card-note" data-f="smart"></div>
+    </div>
+    <div class="disks" data-f="disks"></div>
+  </div>
+
+  <div class="card grow">
+    <div class="card-head">
+      <div class="card-title">Network</div>
+      <div class="net-rate" data-f="net"></div>
+    </div>
+    <svg class="spark" xmlns="http://www.w3.org/2000/svg"
+         aria-label="Network throughput over the last 24 hours">
+      <path data-f="spark-area" fill="var(--accent-soft)"></path>
+      <path data-f="spark-line" fill="none" stroke="var(--accent)"
+            stroke-width="2" stroke-linejoin="round"></path>
+    </svg>
+    <div class="mono card-note spark-label">LAST 24 HOURS</div>
+  </div>
+
+  <div class="view-foot">
+    <div class="foot-status" data-f="backup"></div>
+  </div>
+
+</section>
