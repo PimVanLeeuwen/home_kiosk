@@ -231,6 +231,21 @@ view hides that cell rather than showing a dash.
   for Hacker News), otherwise null and the view falls back to `age_label`.
 - `new_count` = items first seen since the previous fetch.
 - Group order and item limits come from `config.yaml`.
+- `feed_count` is the number of feeds polled, for the footer. Counted from
+  config, so a feed that returned nothing is still reflected.
+
+**Feed fairness.** A group has more feeds than slots — "Self-hosted, Apple &
+Linux" has five feeds and three slots. Sorting the union by recency lets one
+prolific feed take the whole card: 9to5Mac publishes on the order of a hundred
+items a day against a handful from It's FOSS, and in testing it filled all three
+slots outright.
+
+Selection is therefore round-robin across feeds — every feed offers its newest
+unused item before any feed offers a second, so no feed appears twice while
+enough feeds have items. The starting feed advances each fetch (offset stored in
+`cache` under `news_offsets`), so a feed starved on one fetch leads the next.
+Over five fetches of that five-feed group, each feed appears exactly three times.
+The chosen items are then re-sorted newest-first for display.
 
 **`GET /api/nas`**
 ```json
@@ -310,7 +325,9 @@ news:
       feeds:
         - https://hnrss.org/frontpage
         - https://feeds.feedburner.com/tweakers/mixed
-        # TODO: confirm Apple and Linux feeds (9to5Mac / MacRumors, Phoronix / LWN)
+        - https://9to5mac.com/feed/
+        - https://www.omgubuntu.co.uk/feed
+        - https://itsfoss.com/rss/
 
 readeck:
   # Readeck defaults to :8000, which the collector already uses — mapped to 8084.
