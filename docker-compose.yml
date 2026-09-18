@@ -1,0 +1,24 @@
+# Desk dashboard stack — deploy to /volume1/docker/home_kiosk/ on the NAS.
+#
+# Follows the nas-docker conventions: restart: unless-stopped, TZ=Europe/Amsterdam.
+# Disk SMART data comes from the existing Scrutiny container on :8080, so no
+# smartctl_exporter here.
+
+services:
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    # Host namespaces are required for real CPU, memory, uptime and network
+    # figures — in a bridge network it would report the container's own stats.
+    pid: host
+    network_mode: host
+    command:
+      - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /:/host:ro,rslave
+
+  # collector: added in the next step, once node-exporter is confirmed up.
