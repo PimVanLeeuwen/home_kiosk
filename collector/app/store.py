@@ -35,6 +35,15 @@ CREATE TABLE IF NOT EXISTS cache (
     payload_json TEXT NOT NULL,
     fetched_at   TEXT NOT NULL
 );
+
+-- One row per pool per day, for the "months at current rate" projection.
+-- nas_sample's 24h window is far too short to fit a trend to.
+CREATE TABLE IF NOT EXISTS storage_sample (
+    date       TEXT NOT NULL,
+    mountpoint TEXT NOT NULL,
+    used_bytes INTEGER NOT NULL,
+    PRIMARY KEY (date, mountpoint)
+);
 """
 
 NAS_SAMPLE_RETENTION = timedelta(hours=24)
@@ -119,6 +128,26 @@ class Store:
                 "SELECT * FROM nas_sample WHERE ts >= ? ORDER BY ts", (since.isoformat(),)
             ).fetchall()
         return list(rows)
+
+    # --- storage_sample: daily per-pool usage for the runway projection ------
+
+    def put_storage_sample(self, date: str, mountpoint: str, used_bytes: int) -> None:
+        """Record today's usage, overwriting any earlier reading for the day."""
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT INTO storage_sample (date, mountpoint, used_bytes) VALUES (?, ?, ?) "
+                "ON CONFLICT(date, mountpoint) DO UPDATE SET used_bytes = excluded.used_bytes",
+                (date, mountpoint, used_bytes),
+            )
+
+    def storage_history(self, mountpoint: str, limit: int = 60) -> list[sqlite3.Row]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT date, used_bytes FROM storage_sample WHERE mountpoint = ? "
+                "ORDER BY date DESC LIMIT ?",
+                (mountpoint, limit),
+            ).fetchall()
+        return list(reversed(rows))
 
     def prune_nas_samples(self, retention: timedelta = NAS_SAMPLE_RETENTION) -> int:
         cutoff = (datetime.now(UTC) - retention).isoformat()

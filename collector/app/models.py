@@ -135,11 +135,32 @@ class News(Envelope):
 # --- /api/nas ----------------------------------------------------------------
 
 
+class Pool(BaseModel):
+    """One UGOS volume. The view renders a bar per pool.
+
+    An aggregate alone would hide a single pool filling up, which is the case
+    the storage card exists to catch.
+    """
+
+    name: str
+    used_bytes: int
+    total_bytes: int
+    used_pct: float
+    free_bytes: int
+    projection_months: float | None = None
+
+    @model_serializer(mode="wrap")
+    def _serialize(self, handler: SerializerFunctionWrapHandler) -> dict:
+        # Omitted when there is under a week of history, or usage is flat.
+        return _drop_none(handler(self), "projection_months")
+
+
 class Storage(BaseModel):
     used_bytes: int
     total_bytes: int
     used_pct: float
     free_bytes: int
+    pools: list[Pool] = []
     projection_months: float | None = None
 
     @model_serializer(mode="wrap")

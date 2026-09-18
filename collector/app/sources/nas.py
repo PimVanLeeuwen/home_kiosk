@@ -10,13 +10,13 @@ from __future__ import annotations
 
 import logging
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 import httpx
 
-from ..models import Backup, Containers, Disk, Nas, Network, NetworkPoint, Storage
+from ..models import Backup, Containers, Disk, Nas, Network, NetworkPoint, Pool, Storage
 from ..store import Store
 
 log = logging.getLogger(__name__)
@@ -83,27 +83,71 @@ def _cpu_temp(metrics: dict[str, list[tuple[dict[str, str], float]]]) -> float |
     return max(cores) if cores else None
 
 
+MIN_PROJECTION_DAYS = 7
+DAYS_PER_MONTH = 30.44
+
+
+def _projection_months(rows: list[Any], free_bytes: float) -> float | None:
+    """Months until full at the mean daily growth rate.
+
+    Returns None when there is too little history to mean anything, or when
+    usage is flat or shrinking — in which case there is no runway to report and
+    the view hides the line rather than printing an implausible number.
+    """
+    if len(rows) < MIN_PROJECTION_DAYS:
+        return None
+    first, last = rows[0], rows[-1]
+    span_days = (date.fromisoformat(last["date"]) - date.fromisoformat(first["date"])).days
+    if span_days < MIN_PROJECTION_DAYS:
+        return None
+    growth_per_day = (last["used_bytes"] - first["used_bytes"]) / span_days
+    if growth_per_day <= 0:
+        return None
+    return round(free_bytes / growth_per_day / DAYS_PER_MONTH, 1)
+
+
 def _storage(
-    metrics: dict[str, list[tuple[dict[str, str], float]]], mountpoints: list[str]
+    metrics: dict[str, list[tuple[dict[str, str], float]]],
+    mountpoints: list[str],
+    store: Store,
+    today: str,
 ) -> Storage:
     total = avail = 0.0
+    pools: list[Pool] = []
+
     for mp in mountpoints:
         size = _first(metrics, "node_filesystem_size_bytes", mountpoint=mp)
         free = _first(metrics, "node_filesystem_avail_bytes", mountpoint=mp)
         if size is None or free is None:
             log.warning("mountpoint %s missing from node_exporter", mp)
             continue
+        used = size - free
         total += size
         avail += free
-    used = total - avail
+
+        store.put_storage_sample(today, mp, int(used))
+        pools.append(
+            Pool(
+                name=mp.lstrip("/"),
+                used_bytes=int(used),
+                total_bytes=int(size),
+                used_pct=round(used / size * 100, 1) if size else 0.0,
+                free_bytes=int(free),
+                projection_months=_projection_months(store.storage_history(mp), free),
+            )
+        )
+
+    # Fullest pool first: the one at risk should lead, not the biggest.
+    pools.sort(key=lambda p: p.used_pct, reverse=True)
+
+    used_total = total - avail
     return Storage(
-        used_bytes=int(used),
+        used_bytes=int(used_total),
         total_bytes=int(total),
-        used_pct=round(used / total * 100, 1) if total else 0.0,
+        used_pct=round(used_total / total * 100, 1) if total else 0.0,
         free_bytes=int(avail),
-        # projection_months needs daily storage history, which nas_sample's 24h
-        # window cannot provide. Omitted until a daily table exists.
-        projection_months=None,
+        pools=pools,
+        projection_months=None,  # per-pool is the meaningful figure; see Pool
     )
 
 
@@ -250,7 +294,7 @@ async def collect(cfg: dict[str, Any], store: Store) -> Nas:
         stale=False,
         host=uname.get("nodename", "nas"),
         uptime_seconds=int(now.timestamp() - boot) if boot else 0,
-        storage=_storage(metrics, nas_cfg["storage_mountpoints"]),
+        storage=_storage(metrics, nas_cfg["storage_mountpoints"], store, now.date().isoformat()),
         cpu_pct=cpu_pct,
         ram_pct=ram_pct,
         cpu_temp_c=cpu_temp,
