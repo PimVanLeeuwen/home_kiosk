@@ -1,0 +1,18 @@
+# Editors
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Local state
+*.db
+*.db-journal
+.env
+
+# macOS
+.DS_Store

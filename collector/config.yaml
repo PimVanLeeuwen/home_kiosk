@@ -1,0 +1,350 @@
+# An example config. The household's own lives in config.local.yaml beside this
+# file (never in git; on the NAS mounted into the container), which wins when
+# present: copy this file there and fill in your own hosts, addresses and places.
+timezone: Europe/Amsterdam
+currency: EUR
+
+# Where the SQLite file lives. Mounted as a volume in Docker.
+database: ./data/collector.db
+# A consistent copy of it in data/backup/ for the nightly Hetzner backup.
+# Local time; keep it before BACKUP_AT in the rclone stack (03:00).
+database_copy:
+  at: "02:45"
+
+ghostfolio:
+  # Compose service name inside the stack; the default is the published port so
+  # the collector also runs from a laptop. Same pattern as readeck below.
+  base_url: ${GHOSTFOLIO_URL:-http://100.70.0.10:3333}
+  # Ghostfolio -> your account -> Security token. The hub only reads, except for
+  # DEGIRO imports you confirm on the Portfolio page.
+  security_token: ${GHOSTFOLIO_TOKEN}
+
+portfolio:
+  # Yahoo symbols for the index line on the Portfolio page and in the daily report.
+  indices: ["^GSPC", "^NDX", "^AEX"]
+  report:
+    enabled: true
+    # Crontab in the timezone above. Use day names: APScheduler counts weekday
+    # numbers from Monday = 0, so stock-bot's "1-5" would mean Tuesday to Saturday.
+    schedule: "30 8,18 * * mon-fri"
+
+prices:
+  provider: twelvedata
+  api_key: ${TWELVEDATA_API_KEY}
+  fallback: yfinance
+
+news:
+  max_per_group: 3
+  title_max_chars: 70
+  # `name` is the chip on the card. Set explicitly rather than derived from the
+  # feed's own title, which ranges from "9to5Mac" to "Tweakers Mixed RSS Feed".
+  # A feed may also be a bare URL, in which case the feed title is used.
+  groups:
+    - id: tech
+      title: "Tech"
+      feeds:
+        - { url: "https://www.theverge.com/rss/index.xml", name: "The Verge" }
+        - { url: "https://feeds.arstechnica.com/arstechnica/index", name: "Ars Technica" }
+        - { url: "https://www.tomshardware.com/feeds/all", name: "Tom's Hardware" }
+        - { url: "https://feeds.bloomberg.com/technology/news.rss", name: "Bloomberg" }
+    - id: nl
+      title: "Nederland"
+      feeds:
+        - { url: "https://feeds.nos.nl/nosnieuwsalgemeen", name: "NOS" }
+        - { url: "https://www.nu.nl/rss/Algemeen", name: "NU.nl" }
+        - { url: "https://www.nu.nl/rss/Economie", name: "NU.nl" }
+    - id: home
+      title: "Self-hosted, Apple & Linux"
+      feeds:
+        - { url: "https://hnrss.org/frontpage", name: "Hacker News" }
+        # tweakers.net directly: the feedburner mirror stopped updating in 2025.
+        - { url: "https://tweakers.net/feeds/mixed.xml", name: "Tweakers" }
+        - { url: "https://9to5mac.com/feed/", name: "9to5Mac" }
+        - { url: "https://www.omgubuntu.co.uk/feed/", name: "OMG! Ubuntu" }
+        - { url: "https://itsfoss.com/rss/", name: "It's FOSS" }
+
+# Read-later target for tap-to-save on the news view.
+# In the stack this is the compose service name on its internal port, so it does
+# not depend on the published mapping. The default is the host's published port
+# (Readeck listens on 8000, which the collector uses, hence 8084) so the
+# collector also runs from a laptop unchanged.
+readeck:
+  base_url: ${READECK_URL:-http://100.70.0.10:8084}
+  api_token: ${READECK_TOKEN}
+
+nas:
+  # NAS_HOST is set to 127.0.0.1 in the deployed container (node-exporter and
+  # scrutiny both publish on the host network); the default is the Tailscale
+  # address so the collector also runs from a laptop unchanged.
+  node_exporter: http://${NAS_HOST:-100.70.0.10}:9100/metrics
+  # Disk temps and SMART come from the Scrutiny container already on the NAS,
+  # which is why there is no smartctl_exporter here.
+  scrutiny: http://${NAS_HOST:-100.70.0.10}:8080
+  docker_socket: /var/run/docker.sock
+  backup_marker: /volume1/docker/rclone/config/.backup_status
+  # One JSON line per backup run, written by the same backup.sh.
+  backup_runs: /volume1/docker/rclone/config/backup-runs.jsonl
+  # One JSON line per run of nas-docker's host-jobs/dump-databases.sh (02:30),
+  # next to the dumps in /volume3/backups/databases (mounted read-only).
+  dump_runs: /backups/databases/dump-runs.jsonl
+  # The monthly restore check's results (host-jobs/restore-check.sh), same folder.
+  restore_checks: /backups/databases/restore-checks.jsonl
+  # When the nightly backup starts; keep equal to BACKUP_AT in the rclone stack.
+  backup_at: ${BACKUP_AT:-03:00}
+
+  # Aggregated for the storage hero. These are the UGOS pools as node_exporter
+  # sees them; ugosbridge is deliberately not used.
+  storage_mountpoints: ["/volume1", "/volume2", "/volume3", "/volume4"]
+  network_interface: eth0
+
+# Weather on Home, from Buienradar: rain in the next 2 hours at this spot and the
+# current measurements of this station (a name from their feed). Set
+# `enabled: false` to switch it off.
+weather:
+  lat: 52.11
+  lon: 5.18
+  station: Meetstation De Bilt
+
+# The owner's weekday morning train (Home card, Now panel, Telegram on problems).
+# NS API portal (apiportal.ns.nl), product Ns-App: the key is NAS-only in .env.
+# Station codes as NS uses them; leave api_key empty to switch it off.
+train:
+  api_key: ${NS_API_KEY}
+  from: LEDN         # Leiden Centraal
+  to: RTD            # Rotterdam Centraal
+  departure: "08:04"
+  watch_from: "06:00"
+  evening: ["20:00", "22:00"]  # the evening before a weekday, for tomorrow's train
+
+# My sites (Services page, House panel): Uptime Kuma's status page for the owner's
+# own websites, its groups and names as shown there. Public, no key; Kuma is found
+# through the service catalog. Leave kuma_slug empty to switch it off.
+my_sites:
+  kuma_slug: sites
+
+# Today's calendar (Home card, Now panel): iCloud over CalDAV with an app-specific
+# password (account.apple.com > Sign-In and Security > App-Specific Passwords),
+# NAS-only in .env. Subscribed calendars are read from their own feeds. Which
+# calendars show is set in Settings. Leave the password empty to switch it off.
+calendar:
+  username: ${ICLOUD_USERNAME}
+  app_password: ${ICLOUD_APP_PASSWORD}
+
+# Laundry (Home card, Home panel): the Hisense washer and dryer through the
+# ConnectLife cloud (no local API), read every minute with a ConnectLife account
+# of its own that the machines are shared with. NAS-only in .env. Unofficial:
+# ConnectLife can change it. Leave the password empty to switch it off.
+connectlife:
+  username: ${CONNECTLIFE_USERNAME}
+  password: ${CONNECTLIFE_PASSWORD}
+
+# Lights: the living room through the Hue Bridge's local API (plan.md M17), at
+# its reserved address. bridge_id is the name in its certificate (checked against
+# Signify's roots). The key is NAS-only in .env; without it Lights is off.
+hue:
+  bridge: 192.168.1.20
+  bridge_id: 001788fffe123456
+  key: ${HUE_APPLICATION_KEY}
+  room: Living room
+  groups:
+    - { id: kitchen, name: Kitchen spots, lights: [Keuken 1, Keuken 2, Keuken 3] }
+    - { id: ceiling, name: Ceiling lamps, lights: [Plafondlamp Bank, Plafondlamp Tafel] }
+
+# Music: Spotify for the owner's account (plan.md M18). Sign in once from Settings →
+# Music on the ts.net address (PKCE, no client secret). A favourite starts on the
+# device that plays, else on default_device (its name in Spotify).
+music:
+  client_id: ${SPOTIFY_CLIENT_ID}
+  redirect_uri: https://dev-minotaur.tail1234.ts.net/api/music/callback
+  # Spotify names every Apple TV "Apple TV"; the hub learns which one is the
+  # living room's (its Spotify id) while it is the only one listed.
+  default_device: Apple TV
+  default_label: Apple TV Living Room
+  # Wakes that Apple TV and opens Spotify when Spotify does not list it (pyatv
+  # Companion, a one-time PIN pairing; credentials NAS-only in .env).
+  wake:
+    address: 192.168.1.31
+    credentials: ${APPLE_TV_LIVING_ROOM_COMPANION}
+
+# Apple TVs and HomePods per room, at the addresses reserved on the router
+# (Statische DHCP). Asked directly, so the collector needs no multicast. A paired
+# Apple TV gets `credentials` (from .env); without them it only shows online.
+apple:
+  rooms:
+    - name: Living room
+      devices:
+        # In this order on Home: the Apple TV between its two speakers.
+        - { name: Woonkamer, address: 192.168.1.32 }
+        - { name: Apple TV Living Room, address: 192.168.1.31 }
+        - { name: Woonkamer (2), address: 192.168.1.33 }
+    - name: Bedroom
+      devices:
+        - { name: Apple TV Bedroom, address: 192.168.1.41,
+            credentials: "${APPLE_TV_BEDROOM_CREDENTIALS}" }
+        - { name: Slaapkamer, address: 192.168.1.42 }
+    - name: Bathroom
+      devices:
+        - { name: Badkamer, address: 192.168.1.51 }
+
+# Outside services the house depends on, from their public status pages (every
+# 5 minutes). Only the listed components (Statuspage) or systems (Hetzner) count;
+# a watched group covers its members. Leave the list empty to switch it off.
+outside_services:
+  - key: github
+    name: GitHub
+    url: https://www.githubstatus.com
+    components: [Git Operations, API Requests, Actions]
+  - key: cloudflare
+    name: Cloudflare
+    url: https://www.cloudflarestatus.com
+    components: [Authoritative DNS, Tunnel, CDN/Cache, SSL Certificate Provisioning,
+                 "Amsterdam, Netherlands - (AMS)"]
+  - key: docker
+    name: Docker Hub
+    url: https://www.dockerstatus.com
+    components: [Docker Hub Registry, Docker Authentication]
+  - key: tailscale
+    name: Tailscale
+    url: https://status.tailscale.com
+    components: [Coordination service, DERP relay servers, Certificates,
+                 "API (api.tailscale.com)"]
+  - key: hetzner
+    name: Hetzner
+    kind: hetzner
+    url: https://status.hetzner.com
+    # The Storage Box and a Cloud Server in Germany: incidents on these systems or
+    # the German locations, minus those whose title names another location.
+    systems: [Storage Box, Cloud Server, FSN1, NBG1, Network-FSN1, Network-NBG1]
+    skip_titles: [HEL1, Helsinki, ASH, Ashburn, HIL, Hillsboro, SIN, Singapore]
+  - key: transip
+    name: TransIP
+    kind: transnoc
+    url: https://www.transnoc.nl
+    ok_text: Al onze diensten zijn beschikbaar
+  - key: proton
+    name: Proton
+    url: https://status.proton.me
+    components: [Proton Mail]
+
+# Exposure audit (NAS page): every name in the zone that leads to the house, from
+# Cloudflare's API, each requested over HTTPS from outside. Anything not in
+# `allowed` is an error alert. The token is read-only (Zone DNS Read, Account
+# Cloudflare Tunnel Read), NAS-only in .env. Leave `zone` empty to switch it off
+# (as here), or name yours, for example example.com.
+exposure:
+  cloudflare_token: ${CLOUDFLARE_API_TOKEN}
+  zone: ""
+  allowed:
+    - jellyfin.example.com
+    - status.example.com  # Uptime Kuma
+
+# The UPS (UGREEN US3000 on USB), read over the NUT server UGOS runs on port
+# 3493 (Control Panel -> Hardware & Power -> UPS -> NUT Server: Enable). Reading
+# needs no login. Leave `host` empty to switch the UPS card off.
+ups:
+  host: ${NAS_HOST:-100.70.0.10}
+  port: 3493
+  name: ups0
+
+# Where the NAS is reached, for service links. The LAN address is fixed here;
+# the Tailscale name and IP are read from tailscaled (socket mounted from the
+# tailscale stack, see docker-compose.yml).
+hosts:
+  lan: ${LAN_HOST:-192.168.1.10}
+tailscale:
+  socket: /var/run/tailscale/tailscaled.sock
+
+# Live stats on service tiles. Each app is reached on this host at the port in
+# the catalog; the API keys live in the NAS-only .env (see .env.example).
+widgets:
+  host: ${NAS_HOST:-100.70.0.10}
+  keys:
+    jellyfin: ${JELLYFIN_API_KEY}
+    immich: ${IMMICH_API_KEY}
+    jellyseerr: ${JELLYSEERR_API_KEY}
+    sonarr: ${SONARR_API_KEY}
+    radarr: ${RADARR_API_KEY}
+    bazarr: ${BAZARR_API_KEY}
+    prowlarr: ${PROWLARR_API_KEY}
+    sabnzbd: ${SABNZBD_API_KEY}
+    # Not a tile widget: the Media page's watch stats and library (Settings > Data & API).
+    tracearr: ${TRACEARR_API_KEY}
+  # Settings for widgets that need more than a key.
+  options:
+    uptimekuma:
+      slug: nas  # the Kuma status page whose monitors are counted
+
+# Repos page. Tokens are fine-grained, read-only, NAS-only (see .env.example).
+# A fine-grained token covers one owner, so Hubble has its own; owners without
+# one use `token`, which also reads every public repo.
+#
+# `mirror: true` also backs the owner up: a nightly bare git mirror of every repo
+# it owns (no forks; archived ones too) in `mirror.dir`, which is
+# /volume3/backups/github on the NAS, so the 03:00 rclone run takes it to
+# Hetzner. An exact copy: a repo deleted on GitHub is deleted there too. The
+# token must cover all of the owner's repos with Contents: read.
+github:
+  token: ${GITHUB_TOKEN}
+  # Whose contribution calendar the Code card shows (read with the token above).
+  contributions: PimVanLeeuwen
+  owners:
+    - { login: PimVanLeeuwen, label: Mine, mirror: true }
+    - { login: Hubble-Community-Cafe, label: Hubble, token: "${GITHUB_TOKEN_HUBBLE}", mirror: true }
+    # Only the GEWIS repos with your pull requests or commits.
+    - { login: GEWIS, label: GEWIS, only_contributed_by: PimVanLeeuwen }
+  mirror:
+    dir: /backups/github
+    # Local time; keep it before BACKUP_AT in the rclone stack (03:00).
+    at: "02:00"
+
+# Telegram: the hub is the one sender (alerts, reports, the bot). All values
+# NAS-only, see .env.example. Senders on the NAS post to /api/notify with the
+# X-Notify-Key header.
+telegram:
+  token: ${TELEGRAM_BOT_TOKEN}
+  notify_key: ${NOTIFY_KEY}
+  chats:
+    nas: { id: "${TELEGRAM_CHAT_NAS}", label: NAS alerts }
+    portfolio: { id: "${TELEGRAM_CHAT_PORTFOLIO}", label: Portfolio }
+
+# Home hub service catalog. Only seeds the database on the first start; after
+# that the catalog is edited in the app and this list is ignored. Links are
+# built in the browser as <scheme>://<LAN or Tailscale host>:<port><path>.
+# `container` drives the status dot; `widget` names the stats adapter; `icon`
+# names a file in web/src/assets/icons (letters when unset).
+services:
+  - group: Media
+    items:
+      - { id: jellyfin, name: Jellyfin, description: Media server, port: 8096, container: jellyfin, widget: jellyfin, icon: jellyfin }
+      - { id: immich, name: Immich, description: Photos, port: 2283, container: immich_server, widget: immich, icon: immich }
+      # Seerr (was Jellyseerr): same API, so the id, widget and JELLYSEERR_API_KEY stay.
+      - { id: jellyseerr, name: Seerr, description: Requests, port: 5055, container: seerr, widget: jellyseerr, icon: jellyseerr }
+  - group: Arr stack
+    items:
+      - { id: sonarr, name: Sonarr, description: TV, port: 8989, container: sonarr, widget: sonarr, icon: sonarr }
+      - { id: radarr, name: Radarr, description: Movies, port: 7878, container: radarr, widget: radarr, icon: radarr }
+      - { id: bazarr, name: Bazarr, description: Subtitles, port: 6767, container: bazarr, widget: bazarr, icon: bazarr }
+      - { id: prowlarr, name: Prowlarr, description: Indexers, port: 9696, container: prowlarr, widget: prowlarr, icon: prowlarr }
+  - group: Downloads
+    items:
+      - { id: transmission, name: Transmission, description: Torrents via VPN, port: 9091, container: transmission, widget: transmission, icon: transmission }
+      - { id: sabnzbd, name: SABnzbd, description: Usenet, port: 8085, container: sabnzbd, widget: sabnzbd, icon: sabnzbd }
+  - group: Monitoring
+    items:
+      - { id: uptime-kuma, name: Uptime Kuma, description: Uptime and backup heartbeat, port: 3001, container: uptime-kuma, widget: uptimekuma, icon: uptime-kuma }
+      - { id: scrutiny, name: Scrutiny, description: Disk health, port: 8080, container: scrutiny, widget: scrutiny, icon: scrutiny-light }
+      - { id: dozzle, name: Dozzle, description: Container logs, port: 8081, container: dozzle, icon: dozzle }
+      - { id: tracearr, name: Tracearr, description: Streaming stats, port: 3000, container: tracearr, icon: tracearr }
+      - { id: dockge, name: Dockge, description: Stack manager, port: 5001, container: dockge, icon: dockge }
+  - group: Apps
+    items:
+      - { id: tandoor, name: Tandoor, description: Recipes, port: 8090, container: tandoor, icon: tandoor-recipes }
+      - { id: couchdb, name: CouchDB, description: Obsidian LiveSync, port: 5984, path: /_utils, container: couchdb, icon: couchdb }
+      - { id: ghostfolio, name: Ghostfolio, description: Portfolio, port: 3333, container: ghostfolio, icon: ghostfolio }
+      - { id: readeck, name: Readeck, description: Read later, port: 8084, container: readeck, icon: readeck }
+  # External links (from homepage's bookmarks): a url instead of a port.
+  - group: Links
+    items:
+      - { id: nas-docker-repo, name: nas-docker repo, description: GitHub, url: "https://github.com/PimVanLeeuwen/nas-docker", icon: github-light }
+      - { id: trash-guides, name: TRaSH Guides, description: Arr quality profiles, url: "https://trash-guides.info", icon: trash-guides }
+      - { id: hetzner-robot, name: Hetzner Robot, description: Backup storage box, url: "https://robot.hetzner.com", icon: hetzner }
