@@ -26,15 +26,21 @@ https://claude.ai/artifact/4T9cYJPuaWamJic3aBfspz
 
 These block specific tasks but not the overall build. Marked `TODO(user)` where they appear.
 
-1. **Ugreen model** — exact model, Intel or ARM, disk count, RAID level.
-   ARM models cannot pull x86 images; verify before choosing image tags.
-2. **Existing services on the NAS** — Portainer, reverse proxy, Tailscale,
-   and anything already bound to ports 3000 / 8080 / 9090.
-3. **Holdings** — entered into Ghostfolio by the user, not by this project.
-4. **Broker CSV export** — used for the initial Ghostfolio import.
-5. **RSS feed URLs** — grouped by topic. See `collector/config.yaml` schema below.
-6. **Night behaviour** — dim / off / always on, and at what times.
-7. **Hardware owned?** — if not, see shopping list in §3.
+1. **Holdings** — entered into Ghostfolio by the user, not by this project.
+2. **Broker CSV export** — used for the initial Ghostfolio import.
+3. **Night behaviour** — dim / off / always on, and at what times.
+4. **Hardware owned?** — if not, see shopping list in §3.
+
+### Resolved
+
+| Was open | Answer |
+|---|---|
+| Ugreen model | **DXP4800 Plus**, Intel Pentium Gold 8505 → `linux/amd64` images. 5 SATA disks visible to Scrutiny, 2 NVMe. Four btrfs pools `/volume1`–`/volume4`. |
+| RAID level | `md1`, `md2`, `md4` are single-disk arrays, `md3` has two. Most pools have **no parity** — a failure means restoring from Hetzner. |
+| Existing services | Documented in `PimVanLeeuwen/nas-docker`. Taken: 2283, 3000, 3001, 5055, 5984, 6767, 7878, 8080, 8081, 8082, 8085, 8090, 8096, 8888, 8989, 9091, 9696. |
+| Dashboard port | **8083** — 8080 is Scrutiny. Collector on 8000, both previously free. |
+| RSS feeds | Three groups: Tech, Nederland, Self-hosted / Apple / Linux. See `config.yaml` in §5. |
+| Read-later service | **Readeck**, self-hosted on the NAS. See §8. |
 
 ---
 
@@ -63,11 +69,12 @@ node at setup time, it varies.
 │  postgres     │                                                    │
 │  redis        │                                                    │
 │               ├──► collector (Python) ──► SQLite ──┐               │
-│  node_exporter│         │                          │               │
-│  smartctl_exp ┘         └──► /api/*.json ──────────┤               │
-│  ugosbridge                                        │               │
-│                                                    ▼               │
+│  node_exporter│      :8000  │                      │               │
+│  scrutiny ────┘             └──► /api/*.json ──────┤               │
+│  (already running)                                 │               │
+│  readeck ◄── tap-to-save                           ▼               │
 │                                          caddy ──► dashboard/      │
+│                                           :8083                    │
 └────────────────────────────────────────────────────┬───────────────┘
                                                      │ LAN
                                           ┌──────────▼──────────┐
@@ -98,15 +105,19 @@ desk-dashboard/
 │           └── nas.py           # exporter scraping
 ├── dashboard/
 │   ├── index.html               # carousel shell
-│   ├── views/
+│   ├── views/                   # one HTML fragment per view
 │   │   ├── portfolio.html
 │   │   ├── spotlight.html
 │   │   ├── news.html
 │   │   └── nas.html
+│   ├── fixtures/                # M2 test data, also the schema contract
 │   └── assets/
-│       ├── tokens.css
+│       ├── tokens.css           # §7 tokens, per-view accent
+│       ├── views.css            # component styles from the artboards
+│       ├── fonts.css
 │       ├── app.js
-│       └── fonts/               # self-hosted woff2, see §8
+│       └── fonts/               # self-hosted woff2, see §7
+├── .github/workflows/           # ruff lint, then build and push the image
 ├── caddy/Caddyfile
 └── kiosk/                       # Pi-side setup, see §9
     ├── setup.sh
@@ -135,7 +146,12 @@ No auth — LAN only, bound to the Docker network.
 
 - `portfolio_snapshot(date PK, total_value, currency)` — 30+ daily rows for the chart
 - `nas_sample(ts PK, rx_bytes, tx_bytes, cpu_pct, ram_pct, cpu_temp)` — 24h rolling, prune beyond
-- `cache(key PK, payload_json, fetched_at)` — last-good response per endpoint
+- `storage_sample(date, mountpoint, used_bytes)` — one row per pool per day, for
+  the runway projection. `nas_sample`'s 24h window is far too short to fit a
+  trend to, so this is a separate table.
+- `cache(key PK, payload_json, fetched_at)` — last-good response per endpoint.
+  Also holds `nas_counters`, the previous raw CPU and network counters. Rates
+  need two readings, and keeping them here means they survive a restart.
 
 ### Staleness rule
 
@@ -197,7 +213,7 @@ view hides that cell rather than showing a dash.
   "stale": false,
   "groups": [
     {
-      "id": "semis", "title": "Semiconductors & AI", "new_count": 3,
+      "id": "tech", "title": "Tech", "new_count": 3,
       "items": [
         { "title": "…", "source": "Reuters",
           "published": "2026-09-18T20:56:00+02:00",
@@ -221,10 +237,14 @@ view hides that cell rather than showing a dash.
 {
   "as_of": "2026-09-18T21:14:00+02:00",
   "stale": false,
-  "host": "tower", "uptime_seconds": 3650400,
+  "host": "dev-minotaur", "uptime_seconds": 3650400,
   "storage": {
-    "used_bytes": 15613000000000, "total_bytes": 23970000000000,
-    "used_pct": 65, "free_bytes": 8357000000000, "projection_months": 14
+    "used_bytes": 8785411117056, "total_bytes": 14436769202176,
+    "used_pct": 60.9, "free_bytes": 5651358085120,
+    "pools": [
+      { "name": "volume2", "used_bytes": 5897747951616, "total_bytes": 5984651051008,
+        "used_pct": 98.5, "free_bytes": 86903099392, "projection_months": 0.6 }
+    ]
   },
   "cpu_pct": 12, "ram_pct": 41, "cpu_temp_c": 38,
   "containers": { "running": 14, "total": 15 },
@@ -237,8 +257,21 @@ view hides that cell rather than showing a dash.
 }
 ```
 `disks[].smart` is one of `ok` | `warn` | `fail`, driving the chip colour.
-`projection_months` = free space ÷ mean daily growth over the snapshot window;
-omit if there is under a week of history.
+
+**The view renders one bar per pool, not the aggregate.** The aggregate is kept
+in the payload but is misleading on its own: at the time of writing it reads a
+comfortable 60.9% while `/volume2` sits at 98.5% with 87 GB free. Pools are
+sorted fullest-first so the one at risk leads the card.
+
+`projection_months` is per pool: free space ÷ mean daily growth from the
+`storage_sample` table. Omitted entirely when there is under a week of history,
+or when usage is flat or shrinking. The aggregate's own `projection_months` is
+always omitted — only the per-pool figure is meaningful.
+
+`network.history` is downsampled server-side to 144 points (10-minute buckets).
+At the 60s sample cadence the raw 24h series is 1440 points, roughly 100 KB of
+JSON per poll for a sparkline under 600px wide. Buckets are averaged rather than
+sampled so brief spikes survive. Rates are **megabits** per second.
 
 ### config.yaml
 
@@ -259,23 +292,48 @@ news:
   max_per_group: 3
   title_max_chars: 70
   groups:
-    - id: semis
-      title: "Semiconductors & AI"
+    - id: tech
+      title: "Tech"
       feeds:
-        - https://…   # TODO(user)
+        - https://www.theverge.com/rss/index.xml
+        - https://feeds.arstechnica.com/arstechnica/index
+        - https://www.tomshardware.com/feeds/all
+        - https://feeds.bloomberg.com/technology/news.rss
     - id: nl
       title: "Nederland"
-      feeds: []       # TODO(user) — NOS, NU.nl, FD
-    - id: tech
-      title: "Self-hosted & tech"
-      feeds: []       # TODO(user) — HN, Tweakers
+      feeds:
+        - https://feeds.nos.nl/nosnieuwsalgemeen
+        - https://www.nu.nl/rss/Algemeen
+        - https://www.nu.nl/rss/Economie
+    - id: home
+      title: "Self-hosted, Apple & Linux"
+      feeds:
+        - https://hnrss.org/frontpage
+        - https://feeds.feedburner.com/tweakers/mixed
+        # TODO: confirm Apple and Linux feeds (9to5Mac / MacRumors, Phoronix / LWN)
+
+readeck:
+  # Readeck defaults to :8000, which the collector already uses — mapped to 8084.
+  base_url: http://${NAS_HOST:-100.70.0.10}:8084
+  api_token: ${READECK_TOKEN}
 
 nas:
-  node_exporter: http://node-exporter:9100/metrics
-  smartctl_exporter: http://smartctl-exporter:9633/metrics
-  ugosbridge: http://ugosbridge:9105/metrics
-  backup_marker: /data/backup/.last_success   # TODO(user) — confirm path
+  # NAS_HOST is 127.0.0.1 in the deployed container, the Tailscale address when
+  # the collector runs from a laptop.
+  node_exporter: http://${NAS_HOST:-100.70.0.10}:9100/metrics
+  # Disk temps and SMART come from the Scrutiny container already on the NAS.
+  # smartctl_exporter is therefore not deployed, and ugosbridge is not used —
+  # node_exporter sees the UGOS pools as ordinary btrfs filesystems.
+  scrutiny: http://${NAS_HOST:-100.70.0.10}:8080
+  docker_socket: /var/run/docker.sock
+  backup_marker: /volume1/docker/rclone/config/.backup_status
+  storage_mountpoints: ["/volume1", "/volume2", "/volume3", "/volume4"]
+  network_interface: eth0
 ```
+
+`FD` and the Reuters agency feeds were in the original draft but return 404 —
+FD has no free RSS. Bloomberg Technology serves headlines but paywalled bodies,
+so tap-to-save will fail on those; that is expected, not a bug.
 
 ---
 
@@ -325,15 +383,26 @@ under `/volume1/docker` so they survive UI changes.
 
 | Metric | Source |
 |---|---|
-| CPU, RAM, network, uptime | `node_exporter` (needs host PID/net namespaces and `/host` mounts) |
-| Disk temps, SMART status | `smartctl_exporter` (privileged, device access) |
-| Pool usage, RAID state | `ugosbridge` — unofficial UGOS exporter, not affiliated with Ugreen |
+| CPU, RAM, network, uptime, pool usage | `node_exporter` (needs host PID/net namespaces and `/host` mounts) |
+| Disk temps, SMART status | **Scrutiny**, already running on `:8080` — `GET /api/summary`, no auth |
 | Container counts | Docker socket, read-only mount |
-| Backup status | mtime of a marker file — `TODO(user)` confirm path |
+| Backup status | `/volume1/docker/rclone/config/.backup_status`, written by `rclone/config/backup.sh` |
 
-Generic `node_exporter` sees filesystems, not UGOS's pool abstraction, which is
-why ugosbridge is in the stack. If it proves unreliable, fall back to
-filesystem-level numbers for the storage hero and accept they are approximate.
+`smartctl_exporter` and `ugosbridge` were both in the original draft and neither
+is deployed. Scrutiny already collects SMART data for all five SATA disks, which
+removes the need for a second privileged container. And `node_exporter` does see
+the UGOS pools — they appear as ordinary btrfs mounts on `/dev/mapper/ug_*`, so
+the unofficial ugosbridge is unnecessary.
+
+Two gaps this leaves: the **two NVMe drives are invisible to Scrutiny**, though
+node_exporter reports their temperature via hwmon; and `sde` is a USB-attached
+WD drive mounted at `/mnt/@usb`, so it is counted as a disk but is not a bay disk.
+
+The backup marker is written by a `write_marker()` helper added to the existing
+`backup.sh`, in the same success/failure branches that already notify Telegram
+and Uptime Kuma. It lives under `/config/rclone` because that is the only
+writable mount in the rclone container — `/data/docker` is `:ro`. The collector
+needs that directory mounted read-only or the tile silently reads "unknown".
 
 ---
 
@@ -409,8 +478,34 @@ HTML fragment fetched by the shell.
 
 ### Touch
 
-The panel is capacitive. Tap left third = previous, right third = next,
-centre = pause/resume with the pill frozen. Nothing else is interactive.
+**No navigation.** The rotation is entirely automatic — there is no previous,
+next, or pause. Views are given a long enough dwell time to act on what is on
+screen. Touch exists only for per-view *actions*, so a tap is never ambiguous
+between "page" and "do something".
+
+| View | Tap target | Action |
+|---|---|---|
+| News | A headline | Save the article to Readeck to read later |
+| Portfolio | — | none yet |
+| Spotlight | — | none yet |
+| NAS | — | none yet |
+
+Tapping must give immediate visual feedback — the row acknowledges the touch and
+reports success or failure in place. A save that fails silently is worse than no
+tap target at all, because the article is then lost rather than deferred.
+
+Open question for the news step: whether a tap should briefly hold the current
+view, so the rotation does not move on mid-interaction.
+
+### Readeck
+
+Self-hosted read-later service on the NAS. The collector exposes a small write
+endpoint; the frontend posts the article URL to it and the collector forwards it
+to Readeck's API with a token from the environment. Readeck does its own article
+extraction, so the collector does not need a readability library.
+
+This is the **only** write path in the project, and it is LAN-only and triggered
+by a physical tap. Paywalled sources (Bloomberg) will save a stub — expected.
 
 ### States every view must handle
 
@@ -429,7 +524,7 @@ centre = pause/resume with the pill frozen. Nothing else is interactive.
   Raspberry Pi OS is Wayland now — X11 guides (`xset s off`, `unclutter`) do not apply.
 - Chromium flags:
   `--kiosk --noerrdialogs --disable-infobars --disable-session-crashed-bubble
-   --incognito --check-for-update-interval=31536000 --app=http://<nas>:8080/`
+   --incognito --check-for-update-interval=31536000 --app=http://<nas>:8083/`
 - `kiosk.service`: systemd unit, `Restart=always`.
 - Nightly Chromium restart via systemd timer at 04:00 — it leaks memory over days.
 - `brightness.py`: writes `/sys/class/backlight/*/brightness` on a schedule.
@@ -440,23 +535,34 @@ centre = pause/resume with the pill frozen. Nothing else is interactive.
 
 ## 10. Build order
 
-| Milestone | Deliverable |
-|---|---|
-| M1 | Collector skeleton + `/api/nas` from exporters. No API keys needed — fastest path to real data. |
-| M2 | Four static views rendering against fixture JSON, carousel working, viewed in a desktop browser at 720×1280. |
-| M3 | Ghostfolio wired up, `/api/portfolio` live. |
-| M4 | `/api/spotlight` with the price API, `/api/news` with feeds. |
-| M5 | Pi flashed, kiosk running, display mounted. |
-| M6 | Dimming, watchdog, stale and fallback states, touch controls. |
+| Milestone | Deliverable | Status |
+|---|---|---|
+| M1 | Collector skeleton + `/api/nas` from exporters. No API keys needed — fastest path to real data. | **done** — deployed on the NAS, image published to Docker Hub via GitHub Actions |
+| M2 | Four static views rendering against fixture JSON, carousel working, viewed in a desktop browser at 720×1280. | in progress — fixtures, shell, rotation, NAS and portfolio views done; spotlight and news to go |
+| M3 | Ghostfolio wired up, `/api/portfolio` live. | |
+| M4 | `/api/spotlight` with the price API, `/api/news` with feeds. | |
+| M5 | Pi flashed, kiosk running, display mounted. | |
+| M6 | Dimming, watchdog, stale and fallback states, tap-to-save. | |
 
 M1 and M2 are independent — the fixture JSON in M2 doubles as the schema
 contract and as test data.
+
+### Deployment
+
+The collector image is built and pushed by GitHub Actions on every push to
+`main`, tagged `:latest` and `:<sha>`, following the same pattern as `stock-bot`
+in the `nas-docker` repo. Watchtower picks up new tags, so a merge eventually
+becomes a running container with no manual step. `config.yaml` is baked into the
+image, which keeps git authoritative but means a feed change needs a CI round
+trip rather than an edit on the NAS.
 
 ---
 
 ## 11. Non-goals
 
 - No internet exposure, no TLS, no auth. LAN-only.
+- No writes anywhere, with one deliberate exception: tapping a headline saves it
+  to Readeck on the same LAN. See §8.
 - No alerting, no historical analytics beyond the two sparklines.
 - No writes to Ghostfolio.
 - No trading, no order entry, no recommendations.
