@@ -8,15 +8,19 @@ a cold start with nothing cached yet, which the frontend renders with its
 
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from . import config
+from . import config, scheduler
 from .store import Store
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
 CACHE_KEYS = {
     "portfolio": "portfolio",
@@ -30,7 +34,18 @@ CACHE_KEYS = {
 async def lifespan(app: FastAPI):
     app.state.config = config.load()
     app.state.store = Store(app.state.config.get("database", "./data/collector.db"))
-    yield
+
+    app.state.scheduler = scheduler.build(app.state.config, app.state.store)
+    app.state.scheduler.start()
+    # Populate the cache immediately rather than leaving the screen blank for a
+    # full interval after a restart.
+    for job in app.state.scheduler.get_jobs():
+        job.modify(next_run_time=datetime.now(UTC))
+
+    try:
+        yield
+    finally:
+        app.state.scheduler.shutdown(wait=False)
 
 
 app = FastAPI(title="Desk Dashboard Collector", version="0.1.0", lifespan=lifespan)
