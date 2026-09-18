@@ -12,7 +12,7 @@ const POLL_SECONDS = 30;
 const API_BASE = new URLSearchParams(location.search).get('api') || './fixtures';
 const USING_FIXTURES = !API_BASE.startsWith('http');
 
-const VIEWS = ['nas'];
+const VIEWS = ['portfolio', 'nas'];
 
 /* --- formatting ---------------------------------------------------------- */
 
@@ -56,17 +56,28 @@ const level = (value, warn, crit) =>
 
 /* --- sparkline ----------------------------------------------------------- */
 
-function sparkPaths(points, width, height, pad = 6) {
-  if (points.length < 2) return { line: '', area: '' };
-  const max = Math.max(...points, 0.001);
+function sparkPaths(points, width, height, pad = 6, { zeroBased = true } = {}) {
+  if (points.length < 2) return { line: '', area: '', last: { x: 0, y: height } };
+
+  // Throughput reads naturally from zero; portfolio values sit far above zero,
+  // where a zero-based axis would flatten the whole series into a straight line.
+  const hi = Math.max(...points);
+  const lo = zeroBased ? 0 : Math.min(...points);
+  const span = hi - lo || 1;
+
   const step = width / (points.length - 1);
-  const coords = points.map((v, i) => {
-    const x = Math.round(i * step);
-    const y = Math.round(height - pad - (v / max) * (height - pad * 2));
-    return `${x},${y}`;
+  const at = (v, i) => ({
+    x: Math.round(i * step),
+    y: Math.round(height - pad - ((v - lo) / span) * (height - pad * 2)),
   });
-  const line = `M${coords.join(' L')}`;
-  return { line, area: `${line} L${width},${height} L0,${height} Z` };
+
+  const coords = points.map(at);
+  const line = `M${coords.map((c) => `${c.x},${c.y}`).join(' L')}`;
+  return {
+    line,
+    area: `${line} L${width},${height} L0,${height} Z`,
+    last: coords[coords.length - 1],
+  };
 }
 
 /* --- NAS view ------------------------------------------------------------ */
@@ -169,7 +180,81 @@ function renderNas(root, d) {
   }
 }
 
-const RENDERERS = { nas: renderNas };
+/* --- portfolio view ------------------------------------------------------ */
+
+const HOLDINGS_SHOWN = 5;   // §5: list is sorted by value, the view shows the top 5
+const ALLOC_COLOURS = ['var(--accent)', 'var(--blue)', 'var(--inactive-2)'];
+
+const money = (n, currency) =>
+  new Intl.NumberFormat('en-GB', {
+    style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0,
+  }).format(n);
+
+const signed = (n, digits = 1) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(digits)}%`;
+
+function renderPortfolio(root, d) {
+  const $ = (name) => root.querySelector(`[data-f="${name}"]`);
+
+  $('clock').textContent = fmt.clock(new Date());
+  $('total').textContent = money(d.total_value, d.currency);
+
+  const down = d.change.day_pct < 0;
+  $('day-pct').textContent = signed(d.change.day_pct, 2);
+  $('day-pill').classList.toggle('is-neg', down);
+  $('day-abs').textContent =
+    `${down ? '−' : '+'}${money(Math.abs(d.change.day_abs), d.currency)} today`;
+
+  for (const [field, value] of [['month', d.change.month_pct],
+                                ['year', d.change.year_pct],
+                                ['all', d.change.all_pct]]) {
+    $(field).textContent = signed(value);
+    $(field).classList.toggle('is-neg', value < 0);
+  }
+
+  const svg = root.querySelector('.spark');
+  const box = svg.getBoundingClientRect();
+  const w = Math.round(box.width) || 592;
+  const h = Math.round(box.height) || 170;
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  const values = d.history.map((p) => p.v);
+  // Portfolio values sit far above zero, so a zero-based axis would flatten the
+  // line into a straight edge. Scale to the observed range instead.
+  const paths = sparkPaths(values, w, h, 10, { zeroBased: false });
+  $('spark-area').setAttribute('d', paths.area);
+  $('spark-line').setAttribute('d', paths.line);
+  const dot = $('spark-dot');
+  dot.setAttribute('cx', paths.last.x);
+  dot.setAttribute('cy', paths.last.y);
+
+  $('positions').textContent = `${d.holdings.length} POSITIONS`;
+  $('holdings').innerHTML = d.holdings
+    .slice(0, HOLDINGS_SHOWN)
+    .map((h) => `
+      <div class="holding">
+        <div class="ticker">${h.symbol}</div>
+        <div class="holding-name">${h.name}</div>
+        <div class="holding-value">${money(h.value, d.currency)}</div>
+        <div class="holding-pct ${h.day_pct < 0 ? 'is-neg' : ''}">${signed(h.day_pct)}</div>
+      </div>`)
+    .join('');
+
+  $('alloc-bar').innerHTML = d.allocation
+    .map((a, i) => `<div style="width:${a.pct}%;background:${ALLOC_COLOURS[i % ALLOC_COLOURS.length]}"></div>`)
+    .join('');
+  $('alloc-legend').innerHTML = d.allocation
+    .map((a, i) => `<div><i style="background:${ALLOC_COLOURS[i % ALLOC_COLOURS.length]}"></i>${a.label} ${a.pct}%</div>`)
+    .join('');
+
+  const updated = $('updated');
+  updated.textContent = `UPDATED ${fmt.time(new Date(d.as_of))}`;
+  updated.className = 'foot-status';
+  if (d.stale) {
+    updated.textContent = `STALE · ${updated.textContent}`;
+    updated.classList.add('is-stale');
+  }
+}
+
+const RENDERERS = { portfolio: renderPortfolio, nas: renderNas };
 
 /* --- shell --------------------------------------------------------------- */
 

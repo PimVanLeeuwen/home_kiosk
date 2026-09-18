@@ -98,6 +98,151 @@
 .pool.is-warn .pool-pct, .pool.is-warn .pool-foot .runway { color: var(--amber); }
 .pool.is-crit .pool-pct, .pool.is-crit .pool-foot .runway { color: var(--red); }
 
+/* --- portfolio hero ------------------------------------------------------ */
+
+.hero-label { font-size: 14px; color: var(--text-muted); }
+
+.hero-row {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero-value {
+  font-size: 76px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.hero-sub { margin-top: 10px; font-size: 17px; color: var(--text-muted); }
+
+/* Losses are red regardless of the view's accent. */
+.is-neg { color: var(--red) !important; }
+.pill.is-neg { background: rgba(242, 85, 90, 0.13); }
+
+/* --- stat tiles (month / year / all time) -------------------------------- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gap-card);
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+}
+
+.stat-label { font-size: 13px; color: var(--text-muted); }
+
+.stat-value {
+  margin-top: 8px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+/* --- holdings ------------------------------------------------------------ */
+
+/* §8: with fewer than 5 holdings the list shrinks — rows keep their height and
+   the remaining space stays empty rather than stretching each row. */
+.holdings-list {
+  margin-top: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.holding {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.holding:last-child { border-bottom: none; }
+
+.ticker {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--chip);
+  border-radius: var(--radius-chip);
+  padding: 6px 9px;
+  min-width: 54px;
+  text-align: center;
+}
+
+.holding-name {
+  flex-grow: 1;
+  font-size: 15px;
+  color: var(--text-2);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.holding-value { font-size: 16px; font-weight: 500; }
+
+.holding-pct {
+  width: 68px;
+  text-align: right;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* --- allocation ---------------------------------------------------------- */
+
+.alloc-bar {
+  margin-top: 16px;
+  display: flex;
+  gap: 4px;
+  height: 10px;
+}
+
+.alloc-bar > div { border-radius: 5px; }
+
+.alloc-legend {
+  margin-top: 16px;
+  display: flex;
+  gap: 24px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.alloc-legend > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alloc-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
 /* --- tile row ------------------------------------------------------------ */
 
 .tiles {
@@ -182,21 +327,29 @@
 .net-rate { font-size: 15px; color: var(--text-2); }
 .spark-label { margin-top: 8px; }
 
-/* These two cards absorb whatever vertical space is left, so the layout fills
-   1280px regardless of how many pools or disks the NAS reports. */
+/* Default sparkline height, matching the artboards. */
+.spark {
+  display: block;
+  width: 100%;
+  height: 170px;
+  margin-top: 22px;
+}
+
+/* A card marked `grow` absorbs whatever vertical space is left, so the layout
+   fills 1280px regardless of how many rows the data produces. Only mark cards
+   whose content genuinely benefits from the room. */
 .card.grow {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  min-height: 0;
 }
 
 .card.grow .spark {
   flex: 1;
-  width: 100%;
   min-height: 0;
   margin-top: 16px;
-  display: block;
 }
 
 /* --- footer -------------------------------------------------------------- */

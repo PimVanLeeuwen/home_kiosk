@@ -1,0 +1,67 @@
+<section class="view" data-view="portfolio">
+
+  <div class="view-head">
+    <div class="host">
+      <span class="dot-accent"></span>
+      <span class="mono">Portfolio</span>
+    </div>
+    <div class="mono" data-f="clock"></div>
+  </div>
+
+  <div class="card">
+    <div class="hero-label">Total value</div>
+    <div class="hero-row">
+      <div class="hero-value" data-f="total"></div>
+      <div class="pill" data-f="day-pill"><span data-f="day-pct"></span></div>
+    </div>
+    <div class="hero-sub" data-f="day-abs"></div>
+
+    <svg class="spark" xmlns="http://www.w3.org/2000/svg"
+         aria-label="Portfolio value, last 30 days">
+      <path data-f="spark-area" fill="var(--accent-soft)"></path>
+      <path data-f="spark-line" fill="none" stroke="var(--accent)"
+            stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
+      <circle data-f="spark-dot" r="5" fill="var(--accent)"></circle>
+    </svg>
+
+    <!-- The artboard had 1D/1W/1M/1Y/MAX chips here. /api/portfolio serves 30
+         daily points and nothing is interactive, so a static label is honest. -->
+    <div class="mono card-note spark-label">LAST 30 DAYS</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Month</div>
+      <div class="stat-value" data-f="month"></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Year</div>
+      <div class="stat-value" data-f="year"></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">All time</div>
+      <div class="stat-value" data-f="all"></div>
+    </div>
+  </div>
+
+  <!-- Absorbs the leftover height: the rows space out rather than leaving a
+       gap above the footer, and it copes if fewer than 5 holdings exist. -->
+  <div class="card grow">
+    <div class="card-head">
+      <div class="card-title">Holdings</div>
+      <div class="card-note" data-f="positions"></div>
+    </div>
+    <div class="holdings-list" data-f="holdings"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Allocation</div>
+    <div class="alloc-bar" data-f="alloc-bar"></div>
+    <div class="alloc-legend" data-f="alloc-legend"></div>
+  </div>
+
+  <div class="view-foot">
+    <div class="foot-status" data-f="updated"></div>
+  </div>
+
+</section>
