@@ -3,6 +3,10 @@
 # Follows the nas-docker conventions: restart: unless-stopped, TZ=Europe/Amsterdam.
 # Disk SMART data comes from the existing Scrutiny container on :8080, so no
 # smartctl_exporter here.
+#
+# The collector image is built and pushed by GitHub Actions, the same pattern as
+# stock-bot. Watchtower picks up new tags automatically, so a push to main
+# eventually becomes a running container with no manual step.
 
 services:
   node-exporter:
@@ -21,4 +25,26 @@ services:
     volumes:
       - /:/host:ro,rslave
 
-  # collector: added in the next step, once node-exporter is confirmed up.
+  collector:
+    image: pimvanleeuwen/home-kiosk-collector:latest
+    container_name: home-kiosk-collector
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Amsterdam
+      # node-exporter and scrutiny both listen on the host, not on this network.
+      - NAS_HOST=host.docker.internal
+    ports:
+      - 8000:8000
+    volumes:
+      # SQLite: daily storage samples and the payload cache must outlive the
+      # container, or the storage projection restarts from zero on every update.
+      - /volume1/docker/home_kiosk/data:/app/data
+      # Container counts.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # The backup marker written by rclone's backup.sh. Without this mount the
+      # backup tile silently reads "unknown".
+      - /volume1/docker/rclone/config:/volume1/docker/rclone/config:ro
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      - node-exporter

@@ -2,11 +2,13 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# app/ is copied before the install because pyproject declares it as a package —
+# pip install . cannot resolve it otherwise.
 COPY pyproject.toml ./
+COPY app ./app
 RUN pip install --no-cache-dir .
 
 COPY config.yaml ./
-COPY app ./app
 
 # SQLite lives here; mount a volume so it survives container replacement.
 VOLUME ["/app/data"]
