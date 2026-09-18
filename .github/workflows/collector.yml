@@ -41,3 +41,17 @@ jobs:
             pimvanleeuwen/home-kiosk-collector:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Context is the repo root: the image needs both dashboard/ and the
+      # Caddyfile, which live in different directories.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./dashboard/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            pimvanleeuwen/home-kiosk-dashboard:latest
+            pimvanleeuwen/home-kiosk-dashboard:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,0 +1,22 @@
+# Serves the dashboard and proxies the collector on one origin, so the frontend
+# uses relative URLs and needs no CORS. LAN-only: no TLS, no auth, per §11.
+
+:8083 {
+	encode gzip
+
+	# /api/* is the collector. Kept on the same origin so the kiosk only ever
+	# talks to one host and port.
+	handle /api/* {
+		reverse_proxy collector:8000
+	}
+
+	handle {
+		root * /srv
+		file_server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

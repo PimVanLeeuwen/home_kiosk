@@ -8,9 +8,11 @@
 const VIEW_SECONDS = 20;
 const POLL_SECONDS = 30;
 
-// Fixtures during M2; the collector once it is reachable.
-const API_BASE = new URLSearchParams(location.search).get('api') || './fixtures';
-const USING_FIXTURES = !API_BASE.startsWith('http');
+// Fixtures are the default while M3/M4 are outstanding — only /api/nas is live.
+// `?data=api` switches to the collector, which Caddy serves on the same origin.
+const USING_FIXTURES = new URLSearchParams(location.search).get('data') !== 'api';
+const sourceUrl = (name) =>
+  USING_FIXTURES ? `./fixtures/${name}.json` : `/api/${name}`;
 
 const ALL_VIEWS = ['portfolio', 'spotlight', 'news', 'nas'];
 
@@ -415,8 +417,7 @@ async function boot() {
   async function refresh() {
     for (const name of VIEWS) {
       try {
-        const url = USING_FIXTURES ? `${API_BASE}/${name}.json` : `${API_BASE}/api/${name}`;
-        const res = await fetch(url, { cache: 'no-store' });
+        const res = await fetch(sourceUrl(name), { cache: 'no-store' });
         if (!res.ok) throw new Error(res.status);
         const slide = stage.querySelector(`.slide[data-name="${name}"]`);
         RENDERERS[name](slide, await res.json());

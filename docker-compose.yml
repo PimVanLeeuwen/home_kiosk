@@ -48,3 +48,15 @@ services:
       - host.docker.internal:host-gateway
     depends_on:
       - node-exporter
+
+  dashboard:
+    image: pimvanleeuwen/home-kiosk-dashboard:latest
+    container_name: home-kiosk-dashboard
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Amsterdam
+    ports:
+      # 8080 is Scrutiny; this is the port the Pi kiosk points at.
+      - 8083:8083
+    depends_on:
+      - collector
