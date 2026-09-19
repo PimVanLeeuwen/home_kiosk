@@ -308,28 +308,31 @@ prices:
 news:
   max_per_group: 3
   title_max_chars: 70
+  # `name` is the chip on the card, set explicitly rather than derived from the
+  # feed's own title — those range from "9to5Mac" to "Tweakers Mixed RSS Feed".
+  # A bare URL is also accepted, in which case the feed title is used.
   groups:
     - id: tech
       title: "Tech"
       feeds:
-        - https://www.theverge.com/rss/index.xml
-        - https://feeds.arstechnica.com/arstechnica/index
-        - https://www.tomshardware.com/feeds/all
-        - https://feeds.bloomberg.com/technology/news.rss
+        - { url: "https://www.theverge.com/rss/index.xml", name: "The Verge" }
+        - { url: "https://feeds.arstechnica.com/arstechnica/index", name: "Ars Technica" }
+        - { url: "https://www.tomshardware.com/feeds/all", name: "Tom's Hardware" }
+        - { url: "https://feeds.bloomberg.com/technology/news.rss", name: "Bloomberg" }
     - id: nl
       title: "Nederland"
       feeds:
-        - https://feeds.nos.nl/nosnieuwsalgemeen
-        - https://www.nu.nl/rss/Algemeen
-        - https://www.nu.nl/rss/Economie
+        - { url: "https://feeds.nos.nl/nosnieuwsalgemeen", name: "NOS" }
+        - { url: "https://www.nu.nl/rss/Algemeen", name: "NU.nl" }
+        - { url: "https://www.nu.nl/rss/Economie", name: "NU.nl" }
     - id: home
       title: "Self-hosted, Apple & Linux"
       feeds:
-        - https://hnrss.org/frontpage
-        - https://feeds.feedburner.com/tweakers/mixed
-        - https://9to5mac.com/feed/
-        - https://www.omgubuntu.co.uk/feed
-        - https://itsfoss.com/rss/
+        - { url: "https://hnrss.org/frontpage", name: "Hacker News" }
+        - { url: "https://tweakers.net/feeds/mixed.xml", name: "Tweakers" }
+        - { url: "https://9to5mac.com/feed/", name: "9to5Mac" }
+        - { url: "https://www.omgubuntu.co.uk/feed/", name: "OMG! Ubuntu" }
+        - { url: "https://itsfoss.com/rss/", name: "It's FOSS" }
 
 readeck:
   # In the stack, the compose service name on its internal port. The default is
@@ -354,7 +357,14 @@ nas:
 
 `FD` and the Reuters agency feeds were in the original draft but return 404 —
 FD has no free RSS. Bloomberg Technology serves headlines but paywalled bodies,
-so tap-to-save will fail on those; that is expected, not a bug.
+so tap-to-save will save a stub for those; that is expected, not a bug.
+
+Two feeds needed replacing after checking **freshness**, not just that they
+returned items: the Tweakers feedburner mirror had not updated since April 2025
+(newest entry ~12,000 hours old) and is replaced by `tweakers.net` directly.
+OMG! Ubuntu returns **429** under rapid polling — fine at the 10-minute cadence,
+but worth remembering if it ever goes quiet. A feed that fails is logged and
+skipped; one dead source never blanks the view.
 
 ---
 

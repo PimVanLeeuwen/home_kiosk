@@ -443,6 +443,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 20px var(--pad-card);
 }
 
 /* The flex gap already spaces these; the generic sibling margin would double it. */
@@ -460,7 +461,7 @@
 }
 
 .items {
-  margin-top: 12px;
+  margin-top: 8px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -470,7 +471,7 @@
 .item + .item { border-top: 1px solid var(--hairline); }
 
 .item {
-  padding: 7px 0;
+  padding: 4px 0;
   /* Tap target for save-to-Readeck. Generous on a 7" panel — the whole row,
      not just the headline text. */
   border-radius: var(--radius-tile);
@@ -483,7 +484,7 @@
 .item-title {
   font-size: 23px;
   font-weight: 500;
-  line-height: 1.32;
+  line-height: 1.26;
   /* Titles are truncated server-side to 70 chars at a word boundary; this is a
      backstop so an over-long one can never push the card out of shape. */
   display: -webkit-box;
@@ -493,7 +494,7 @@
 }
 
 .item-meta {
-  margin-top: 7px;
+  margin-top: 5px;
   display: flex;
   align-items: center;
   gap: 10px;
