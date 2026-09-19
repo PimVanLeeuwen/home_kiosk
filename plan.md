@@ -129,7 +129,9 @@ desk-dashboard/
 
 ## 5. Collector
 
-Python 3.12, FastAPI + APScheduler, SQLite via plain `sqlite3`.
+Python 3.14, FastAPI + APScheduler, SQLite via plain `sqlite3`.
+(`requires-python` stays `>=3.12`; the image and dev venv both run 3.14 so the
+runtime is the same everywhere.)
 No auth — LAN only, bound to the Docker network.
 
 ### Refresh cadences
