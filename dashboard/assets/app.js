@@ -402,6 +402,46 @@ const RENDERERS = {
 
 /* --- shell --------------------------------------------------------------- */
 
+/* --- collector reachability ---------------------------------------------- */
+
+// Two consecutive failed cycles before the overlay appears, so a single dropped
+// request during a collector restart does not flash a full-screen error.
+const UNREACHABLE_CYCLES = 2;
+
+let lastDataAt = null;
+let failedCycles = 0;
+
+/* Is the collector itself answering? Only `{"status":"ok"}` from /api/health
+   counts — a proxy error page or a static server's 404 must not pass. */
+async function collectorReachable() {
+  if (USING_FIXTURES) return true;   // no collector expected in fixtures mode
+  try {
+    const res = await fetch('/api/health', { cache: 'no-store' });
+    if (!res.ok) return false;
+    return (await res.json())?.status === 'ok';
+  } catch {
+    return false;
+  }
+}
+
+function setOffline(isOffline) {
+  const panel = document.getElementById('offline');
+  if (!panel) return;
+
+  if (!isOffline) {
+    panel.hidden = true;
+    return;
+  }
+
+  const since = panel.querySelector('[data-f="offline-since"]');
+  const note = panel.querySelector('[data-f="offline-note"]');
+  since.textContent = lastDataAt
+    ? `Last data at ${fmt.time(lastDataAt)}`
+    : 'No data received yet';
+  note.textContent = `RETRYING EVERY ${POLL_SECONDS} S`;
+  panel.hidden = false;
+}
+
 /* --- tap to save --------------------------------------------------------- */
 
 // Long enough to read the outcome before the view moves on.
@@ -504,13 +544,25 @@ async function boot() {
     for (const name of VIEWS) {
       try {
         const res = await fetch(sourceUrl(name), { cache: 'no-store' });
-        if (!res.ok) throw new Error(res.status);
+        if (!res.ok) {
+          // The collector answered but has nothing for this endpoint yet — a
+          // cold start before M3/M4 are wired. Keep the last good render.
+          console.warn(`${name}: no data yet (${res.status})`);
+          continue;
+        }
         const slide = stage.querySelector(`.slide[data-name="${name}"]`);
         RENDERERS[name](slide, await res.json());
+        lastDataAt = new Date();
       } catch (err) {
         console.warn(`${name} refresh failed`, err);
       }
     }
+
+    // Reachability is decided by the health probe, not by the data fetches: a
+    // 404 from a static server and a 502 from the proxy are both responses, so
+    // status codes cannot distinguish "collector down" from "no data yet".
+    failedCycles = (await collectorReachable()) ? 0 : failedCycles + 1;
+    setOffline(failedCycles >= UNREACHABLE_CYCLES);
   }
 
   await refresh();

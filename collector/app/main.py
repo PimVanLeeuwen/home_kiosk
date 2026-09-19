@@ -79,7 +79,16 @@ def _serve(key: str) -> Any:
 
 
 @app.get("/health")
+@app.get("/api/health")
 def health() -> dict[str, str]:
+    """Liveness probe.
+
+    Also exposed under /api so the dashboard can reach it through Caddy's
+    `/api/*` proxy rule. The frontend needs a signal that distinguishes "the
+    collector is down" from "something answered" — a 404 from a static server or
+    a 502 from the proxy are both HTTP responses, so status codes alone cannot
+    tell the two apart.
+    """
     return {"status": "ok"}
 
 

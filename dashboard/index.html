@@ -61,6 +61,17 @@
 <body>
   <div id="stage">
     <div id="dots"></div>
+
+    <!-- §8: when the collector cannot be reached the screen must still render
+         something in the same design language, never a browser error page. -->
+    <div id="offline" hidden>
+      <div class="offline-inner">
+        <span class="offline-dot"></span>
+        <div class="offline-title">Collector unreachable</div>
+        <div class="offline-sub" data-f="offline-since"></div>
+        <div class="mono offline-note" data-f="offline-note"></div>
+      </div>
+    </div>
   </div>
   <script src="assets/app.js"></script>
 </body>

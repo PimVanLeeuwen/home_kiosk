@@ -559,3 +559,53 @@
 
 .foot-status.is-stale { color: var(--amber); }
 .foot-status.is-fail  { color: var(--red); }
+
+/* --- collector unreachable ----------------------------------------------- */
+
+/* Covers the whole board, above the views and the progress dots. Amber rather
+   than red: the collector being down is a degraded, self-recovering state, and
+   red is reserved for losses and hard failures elsewhere in the design. */
+#offline {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--pad-page-x);
+}
+
+#offline[hidden] { display: none; }
+
+.offline-inner {
+  text-align: center;
+  max-width: 520px;
+}
+
+.offline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--amber);
+  display: inline-block;
+  margin-bottom: 28px;
+}
+
+.offline-title {
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.offline-sub {
+  margin-top: 14px;
+  font-size: 17px;
+  color: var(--text-2);
+}
+
+.offline-note {
+  margin-top: 32px;
+  color: var(--text-muted);
+}
