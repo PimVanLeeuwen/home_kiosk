@@ -49,6 +49,23 @@ services:
     depends_on:
       - node-exporter
 
+  # Read-later target for tap-to-save on the news view. Readeck does its own
+  # article extraction, so the collector only forwards the URL.
+  readeck:
+    image: codeberg.org/readeck/readeck:latest
+    container_name: readeck
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Amsterdam
+      - READECK_SERVER_HOST=0.0.0.0
+      - READECK_SERVER_PORT=8000
+    ports:
+      # Readeck listens on 8000 internally, which the collector already
+      # publishes on the host, so it is mapped to 8084.
+      - 8084:8000
+    volumes:
+      - /volume1/docker/readeck/data:/readeck
+
   dashboard:
     image: pimvanleeuwen/home-kiosk-dashboard:latest
     container_name: home-kiosk-dashboard

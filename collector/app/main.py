@@ -16,8 +16,10 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, HttpUrl
 
 from . import config, scheduler
+from .sources import readeck
 from .store import Store
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -55,7 +57,7 @@ app = FastAPI(title="Desk Dashboard Collector", version="0.1.0", lifespan=lifesp
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -93,3 +95,22 @@ def news() -> Any:
 @app.get("/api/nas")
 def nas() -> Any:
     return _serve(CACHE_KEYS["nas"])
+
+
+class SaveRequest(BaseModel):
+    url: HttpUrl
+    title: str | None = None
+
+
+@app.post("/api/save")
+async def save(req: SaveRequest) -> Any:
+    """Queue an article in Readeck. The only write path in the project.
+
+    Errors are returned as 502 with a short human message: the screen shows it
+    verbatim, so it has to read as a sentence rather than a stack trace.
+    """
+    try:
+        bookmark_id = await readeck.save(app.state.config, str(req.url), req.title)
+    except readeck.SaveError as exc:
+        return JSONResponse(status_code=502, content={"detail": str(exc)})
+    return {"saved": True, "bookmark_id": bookmark_id}

@@ -372,7 +372,7 @@ function renderNews(root, d) {
         </div>
         <div class="items">
           ${g.items.map((it) => `
-            <div class="item" data-url="${esc(it.url)}">
+            <div class="item" data-url="${esc(it.url)}" data-title="${esc(it.title)}">
               <div class="item-title">${esc(it.title)}</div>
               <div class="item-meta">
                 <span class="source">${esc(it.source).toUpperCase()}</span>
@@ -402,6 +402,78 @@ const RENDERERS = {
 
 /* --- shell --------------------------------------------------------------- */
 
+/* --- tap to save --------------------------------------------------------- */
+
+// Long enough to read the outcome before the view moves on.
+const SAVE_HOLD_SECONDS = 12;
+const STATUS_VISIBLE_MS = 7000;
+
+// Rotation is paused until this timestamp. There is no manual navigation, so a
+// tap has to buy its own time to show a result.
+let holdUntil = 0;
+const holdRotation = (seconds) =>
+  (holdUntil = Math.max(holdUntil, performance.now() + seconds * 1000));
+
+function setStatus(item, state, text) {
+  item.classList.remove('is-saving', 'is-saved', 'is-error', 'is-pressed');
+  if (state) item.classList.add(`is-${state}`);
+  const age = item.querySelector('.item-age');
+  if (age.dataset.original === undefined) age.dataset.original = age.textContent;
+  if (text === null) {
+    age.textContent = age.dataset.original;
+    age.classList.remove('item-status');
+  } else {
+    age.textContent = text;
+    age.classList.add('item-status');
+  }
+}
+
+async function saveArticle(item) {
+  if (item.dataset.busy) return;
+  item.dataset.busy = '1';
+
+  holdRotation(SAVE_HOLD_SECONDS);
+  setStatus(item, 'saving', 'Saving…');
+
+  try {
+    const res = await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: item.dataset.url, title: item.dataset.title }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.detail || `Save failed (${res.status})`);
+    setStatus(item, 'saved', 'Saved to Readeck');
+  } catch (err) {
+    // Shown verbatim on screen — the collector's messages are written to read
+    // as sentences for exactly this reason.
+    setStatus(item, 'error', err.message || 'Save failed');
+    holdRotation(SAVE_HOLD_SECONDS);
+  } finally {
+    setTimeout(() => {
+      setStatus(item, null, null);
+      delete item.dataset.busy;
+    }, STATUS_VISIBLE_MS);
+  }
+}
+
+function wireTapToSave(stage) {
+  stage.addEventListener('pointerdown', (e) => {
+    const item = e.target.closest('.item[data-url]');
+    if (item && !item.dataset.busy) item.classList.add('is-pressed');
+  });
+  for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) {
+    stage.addEventListener(ev, (e) => {
+      const item = e.target.closest?.('.item[data-url]');
+      if (item && !item.dataset.busy) item.classList.remove('is-pressed');
+    });
+  }
+  stage.addEventListener('click', (e) => {
+    const item = e.target.closest('.item[data-url]');
+    if (item) saveArticle(item);
+  });
+}
+
 /* Scales the fixed 720x1280 board to fit the viewport. On the Pi's panel the
    factor is exactly 1; elsewhere the board is letterboxed so the layout can be
    checked on a phone or laptop without the bottom being cut off. */
@@ -417,6 +489,7 @@ async function boot() {
   const stage = document.getElementById('stage');
   fitStage(stage);
   window.addEventListener('resize', () => fitStage(stage));
+  wireTapToSave(stage);
 
   for (const name of VIEWS) {
     const markup = await (await fetch(`./views/${name}.html`)).text();
@@ -461,7 +534,17 @@ async function boot() {
     });
   }
 
+  let lastFrame = performance.now();
+
   function tick(now) {
+    const delta = now - lastFrame;
+    lastFrame = now;
+
+    // While held, push the start time along by the frame delta so elapsed time
+    // stands still — the progress pill freezes rather than jumping when the
+    // hold expires.
+    if (now < holdUntil) startedAt += delta;
+
     const elapsed = (now - startedAt) / 1000;
     const active = dots.children[index];
     if (active) active.style.setProperty('--fill', `${Math.min(100, (elapsed / VIEW_SECONDS) * 100)}%`);

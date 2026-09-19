@@ -511,6 +511,31 @@
 
 .item-age { font-size: 13px; color: var(--text-muted); }
 
+/* --- tap to save --------------------------------------------------------- */
+
+/* Immediate acknowledgement on touch-down, before the network is involved:
+   on a kiosk a tap that does nothing for a second reads as a dead screen. */
+.item.is-pressed { background: var(--chip); }
+
+.item.is-saving { background: var(--chip); }
+.item.is-saved  { background: var(--accent-soft); }
+.item.is-error  { background: rgba(242, 85, 90, 0.13); }
+
+.item-status {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.is-saving .item-status { color: var(--text-muted); }
+.is-saved  .item-status { color: var(--accent); }
+.is-error  .item-status { color: var(--red); }
+
+/* The saved row keeps its accent tint until the status clears. */
+.item.is-saved .source,
+.item.is-saving .source { background: var(--surface-2); }
+
 /* --- footer -------------------------------------------------------------- */
 
 .view-foot {
