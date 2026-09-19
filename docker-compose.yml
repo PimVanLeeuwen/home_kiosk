@@ -41,6 +41,7 @@ services:
       # Readeck is on this network, so reach it by service name and internal
       # port rather than back out through the published one.
       - READECK_URL=http://readeck:8000
+      - GHOSTFOLIO_URL=http://ghostfolio:3333
     ports:
       - 8000:8000
     volumes:
@@ -57,6 +58,55 @@ services:
     depends_on:
       - node-exporter
       - readeck
+      - ghostfolio
+
+  # --- Ghostfolio (M3) -----------------------------------------------------
+  # Portfolio source. Holdings are entered in its own UI or imported from a
+  # broker CSV; this project only ever reads.
+
+  ghostfolio-db:
+    image: postgres:16-alpine
+    container_name: ghostfolio-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=ghostfolio
+      - POSTGRES_USER=ghostfolio
+      - POSTGRES_PASSWORD=${GHOSTFOLIO_DB_PASSWORD}
+    volumes:
+      - /volume1/docker/ghostfolio/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ghostfolio"]
+      interval: 10s
+      retries: 10
+
+  ghostfolio-redis:
+    image: redis:alpine
+    container_name: ghostfolio-redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${GHOSTFOLIO_REDIS_PASSWORD}"]
+
+  ghostfolio:
+    image: ghostfolio/ghostfolio:latest
+    container_name: ghostfolio
+    restart: unless-stopped
+    environment:
+      # sslmode=disable, not prefer: Ghostfolio's Prisma adapter fails TLS
+      # negotiation against this postgres image and the seed step dies.
+      - DATABASE_URL=postgresql://ghostfolio:${GHOSTFOLIO_DB_PASSWORD}@ghostfolio-db:5432/ghostfolio?connect_timeout=300&sslmode=disable
+      - REDIS_HOST=ghostfolio-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${GHOSTFOLIO_REDIS_PASSWORD}
+      - ACCESS_TOKEN_SALT=${GHOSTFOLIO_ACCESS_TOKEN_SALT}
+      - JWT_SECRET_KEY=${GHOSTFOLIO_JWT_SECRET}
+      - NODE_ENV=production
+      - TZ=Europe/Amsterdam
+    ports:
+      - 3333:3333
+    depends_on:
+      ghostfolio-db:
+        condition: service_healthy
+      ghostfolio-redis:
+        condition: service_started
 
   # Read-later target for tap-to-save on the news view. Readeck does its own
   # article extraction, so the collector only forwards the URL.

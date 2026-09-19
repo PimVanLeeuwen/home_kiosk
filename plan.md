@@ -377,10 +377,34 @@ Auth: `POST /api/v1/auth/anonymous` with the account's security token returns a
 bearer token; send it as `Authorization: Bearer …` on every request.
 Cache the token and refresh on 401.
 
-**Discover the exact portfolio endpoints against the running instance** rather
-than hardcoding paths from documentation — they have moved between versions.
-Ghostfolio supplies total value, day change, performance figures and holdings
-with weights, which covers nearly all of `/api/portfolio`.
+**Endpoints discovered against a running instance**, as warned — several paths
+in the older documentation are gone:
+
+| Path | Status |
+|---|---|
+| `POST /api/v1/user` | creates an account, returns the security token |
+| `POST /api/v1/auth/anonymous` | security token → bearer JWT. Works as described |
+| `GET /api/v1/portfolio/details` | ✅ `summary` + `holdings` |
+| `GET /api/v2/portfolio/performance?range=…` | ✅ `performance` + daily `chart` |
+| `POST /api/v1/import` | bulk activity import |
+| `GET /api/v1/portfolio/performance` | **404 — v1 is gone, use v2** |
+| `GET /api/v1/portfolio/positions` | **404 — gone** |
+| `GET /api/v1/order` | **404 — gone** |
+
+`holdings` is a **list**, not a symbol-keyed object as older versions returned,
+and identity lives in a nested `assetProfile` (`symbol`, `name`, `currency`,
+`assetClass`). Per-holding figures are `valueInBaseCurrency`,
+`allocationInPercentage`, `quantity`, `marketPrice`, `netPerformancePercent`.
+
+Ranges for `change`: `1d`, `1mo`, `1y`, `max` against the v2 performance
+endpoint; its `chart` array (`date`, `value`) supplies `history`.
+
+**Ghostfolio does not expose a per-holding daily change.** It reports
+performance since purchase only, and passing `range=1d` to
+`/portfolio/details` or `/portfolio/holdings` changes nothing — verified
+identical values for `1d`, `1y` and no range. This matters because
+`/api/portfolio` specifies `holdings[].day_pct`, and the spotlight selection
+rule depends on it.
 
 The user enters holdings and transactions in Ghostfolio's own UI, or imports a
 broker CSV. This project never writes to Ghostfolio.
