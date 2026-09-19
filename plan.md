@@ -399,6 +399,17 @@ and identity lives in a nested `assetProfile` (`symbol`, `name`, `currency`,
 Ranges for `change`: `1d`, `1mo`, `1y`, `max` against the v2 performance
 endpoint; its `chart` array (`date`, `value`) supplies `history`.
 
+**Base currency must be set in the UI, not the environment.** Ghostfolio is
+fully multi-currency and converts with an FX effect (`valueInBaseCurrency`,
+`netPerformancePercentWithCurrencyEffect`), and its built-in default is
+`DEFAULT_CURRENCY = 'USD'`. Six of the eleven holdings are USD-quoted, so this
+has to be EUR or every figure on the screen is in dollars.
+
+The `BASE_CURRENCY` environment variable **no longer exists** — it is listed as
+a removed breaking change in Ghostfolio's own CHANGELOG, and the only mention
+left in the image is that changelog entry. Set it under
+**Settings → Base Currency** instead; it is a per-user setting.
+
 **Ghostfolio does not expose a per-holding daily change.** It reports
 performance since purchase only, and passing `range=1d` to
 `/portfolio/details` or `/portfolio/holdings` changes nothing — verified
@@ -408,6 +419,32 @@ rule depends on it.
 
 The user enters holdings and transactions in Ghostfolio's own UI, or imports a
 broker CSV. This project never writes to Ghostfolio.
+
+### Setting it up, and keeping it current
+
+`tools/degiro_to_ghostfolio.py` converts a DEGIRO **Transacties** export (not
+the Portfolio export — that has no cost basis) into Ghostfolio's import format.
+
+Two things bite on a fresh instance, both verified against a running copy:
+
+1. **The base currency list is built from your data.** A new instance offers
+   only `USD` and `USX`; `EUR` appears once an EUR-denominated activity exists.
+   So import first, then set Settings → Base Currency.
+2. **Exchange rates are not fetched until something asks for them.** Until then
+   Ghostfolio adds USD and EUR as if 1:1 — a portfolio of EUR 8,362 reads as
+   8,953. Fix with **Admin → Gather all data** once; `MarketData` then gains
+   `USDEUR` rows and conversion works. Scheduled jobs (`EVERY_HOUR`,
+   `EVERY_DAY_AT_MIDNIGHT`, weekly) keep it current afterwards.
+
+**Ongoing workflow: re-export everything and re-import the whole file.**
+Ghostfolio deduplicates on import — verified: importing the identical file
+twice adds zero activities, and a file with one new trade appended adds exactly
+that one. No need to track deltas.
+
+Instruments that cannot be resolved by the data source are skipped with a
+warning rather than silently dropped. Delisted holdings are the usual cause —
+Just Eat Takeaway survives only as a USD ADR, whose price history would not
+match EUR trades.
 
 ### Prices (spotlight only)
 
