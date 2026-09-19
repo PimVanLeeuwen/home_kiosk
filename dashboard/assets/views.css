@@ -23,9 +23,15 @@
 
 .view-head .mono { text-transform: uppercase; }
 
-.card + .card,
-.card + .tiles,
-.tiles + .card { margin-top: var(--gap-card); }
+/* Vertical rhythm for every direct child of a view.
+   This was previously a list of class pairs (.card + .card, .card + .tiles,
+   .tiles + .card) which silently missed .stats — the portfolio's
+   Month/Year/All-time row ended up flush against the cards above and below it.
+   Matching on position rather than class cannot miss a new component. */
+.view > * + * { margin-top: var(--gap-card); }
+
+/* The artboards set 24px between the header strip and the first card. */
+.view > .view-head + * { margin-top: 24px; }
 
 .card-head {
   display: flex;
