@@ -203,8 +203,20 @@ the screen must always render something.
   "next_earnings": "2026-10-15"
 }
 ```
-Selection rule: largest absolute `day_pct` among holdings, cash excluded,
-ties broken by position value. `history` is ~52 weekly points.
+**Selection rule: a random holding, re-picked on every rotation** — cash
+excluded. Not the biggest mover: that tends to be the same name for days at a
+time, which makes the view static and predictable.
+
+"Every rotation" is roughly every 80 seconds, far faster than the 15-minute
+refresh, so the collector cannot do the choosing. `/api/spotlight` therefore
+returns **one entry per holding** and the frontend picks at random each time the
+view comes round. At eleven holdings and ~52 weekly points each this is on the
+order of 25 KB — fetched once per refresh, not per rotation.
+
+Avoid repeating the previous pick when more than one holding exists, so the
+same stock does not appear twice in a row.
+
+`history` is ~52 weekly points per holding.
 `next_earnings` is optional — omit the field entirely if unavailable, and the
 view hides that cell rather than showing a dash.
 

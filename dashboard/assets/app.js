@@ -26,6 +26,17 @@ const VIEWS = PINNED && ALL_VIEWS.includes(PINNED) ? [PINNED] : ALL_VIEWS;
 const TB = 1e12;
 const GB = 1e9;
 
+// Dutch conventions throughout: period groups thousands, comma marks decimals,
+// so 8350.12 reads as "8.350,12". Applies to every figure, not just currency.
+const LOCALE = 'nl-NL';
+
+// Fixed number of decimals, locale-formatted. Replaces toFixed(), which always
+// emits a period.
+const dec = (n, digits = 1) =>
+  new Intl.NumberFormat(LOCALE, {
+    minimumFractionDigits: digits, maximumFractionDigits: digits,
+  }).format(n);
+
 // Locale month/day names vary by ICU version ("Sept" vs "Sep"), and the design
 // depends on a fixed three-letter width.
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -34,8 +45,8 @@ const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
 
 const fmt = {
   // Sub-terabyte values read as nonsense in TB ("0.08 TB"), so switch unit.
-  size: (b) => (b >= TB ? `${(b / TB).toFixed(1)} TB` : `${Math.round(b / GB)} GB`),
-  pct: (n) => `${Math.round(n)}%`,
+  size: (b) => (b >= TB ? `${dec(b / TB, 1)} TB` : `${dec(b / GB, 0)} GB`),
+  pct: (n) => `${dec(n, 0)}%`,
   uptime(seconds) {
     const d = Math.floor(seconds / 86400);
     const h = Math.floor((seconds % 86400) / 3600);
@@ -156,7 +167,7 @@ function renderNas(root, d) {
     .join('');
 
   // Mbps, not MB/s — the artboard label was inconsistent with the payload.
-  $('net').textContent = `↓ ${d.network.rx_mbps.toFixed(1)} · ↑ ${d.network.tx_mbps.toFixed(1)} Mbps`;
+  $('net').textContent = `↓ ${dec(d.network.rx_mbps)} · ↑ ${dec(d.network.tx_mbps)} Mbps`;
   // Measured rather than fixed: the card grows to fill the page, and scaling a
   // fixed viewBox to fit would distort the stroke.
   const svg = root.querySelector('.spark');
@@ -193,11 +204,11 @@ const HOLDINGS_SHOWN = 5;   // §5: list is sorted by value, the view shows the 
 const ALLOC_COLOURS = ['var(--accent)', 'var(--blue)', 'var(--inactive-2)'];
 
 const money = (n, currency) =>
-  new Intl.NumberFormat('en-GB', {
+  new Intl.NumberFormat(LOCALE, {
     style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0,
   }).format(n);
 
-const signed = (n, digits = 1) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(digits)}%`;
+const signed = (n, digits = 1) => `${n >= 0 ? '+' : '−'}${dec(Math.abs(n), digits)}%`;
 
 function renderPortfolio(root, d) {
   const $ = (name) => root.querySelector(`[data-f="${name}"]`);
@@ -249,7 +260,7 @@ function renderPortfolio(root, d) {
     .map((a, i) => `<div style="width:${a.pct}%;background:${ALLOC_COLOURS[i % ALLOC_COLOURS.length]}"></div>`)
     .join('');
   $('alloc-legend').innerHTML = d.allocation
-    .map((a, i) => `<div><i style="background:${ALLOC_COLOURS[i % ALLOC_COLOURS.length]}"></i>${a.label} ${a.pct}%</div>`)
+    .map((a, i) => `<div><i style="background:${ALLOC_COLOURS[i % ALLOC_COLOURS.length]}"></i>${a.label} ${dec(a.pct)}%</div>`)
     .join('');
 
   const updated = $('updated');
@@ -279,7 +290,7 @@ function earningsDate(value) {
 }
 
 const price = (n, currency) =>
-  new Intl.NumberFormat('en-GB', { style: 'currency', currency }).format(n);
+  new Intl.NumberFormat(LOCALE, { style: 'currency', currency }).format(n);
 
 function renderSpotlight(root, d) {
   const $ = (name) => root.querySelector(`[data-f="${name}"]`);
@@ -309,7 +320,7 @@ function renderSpotlight(root, d) {
     `${price(d.range_52w.low, d.currency)} — ${price(d.range_52w.high, d.currency)}`;
 
   const p = d.position;
-  $('shares').textContent = p.shares;
+  $('shares').textContent = dec(p.shares, 0);
   $('avg-cost').textContent = price(p.avg_cost, d.currency);
   $('market-value').textContent = money(p.value, d.currency);
   const lost = p.unrealised_abs < 0;
@@ -317,13 +328,13 @@ function renderSpotlight(root, d) {
     `${lost ? '−' : '+'}${money(Math.abs(p.unrealised_abs), d.currency)}`;
   $('unrealised').style.color = lost ? 'var(--red)' : 'var(--accent)';
 
-  $('weight').textContent = `${p.weight_pct.toFixed(1)}%`;
+  $('weight').textContent = `${dec(p.weight_pct)}%`;
   $('weight-bar').style.width = `${p.weight_pct}%`;
 
   // next_earnings is absent, not null, when the source has no date — the cell is
   // dropped and the grid reflows to the remaining facts.
   const facts = [
-    ['Day range', `${Math.round(d.day_range.low)} — ${Math.round(d.day_range.high)}`],
+    ['Day range', `${dec(d.day_range.low, 0)} — ${dec(d.day_range.high, 0)}`],
     ['Held since', heldSince(p.held_since)],
   ];
   if (d.next_earnings !== undefined) {
