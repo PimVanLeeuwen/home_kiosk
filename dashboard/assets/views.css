@@ -560,6 +560,32 @@
 .foot-status.is-stale { color: var(--amber); }
 .foot-status.is-fail  { color: var(--red); }
 
+/* --- view has no data yet ------------------------------------------------ */
+
+/* The collector is reachable but this endpoint has nothing cached — a cold
+   start, or an endpoint not wired up yet. Without this the slide renders
+   completely blank, which reads as a broken screen. */
+.view-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  text-align: center;
+}
+
+.view-empty[hidden] { display: none; }
+
+.view-empty-title {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-2);
+}
+
+.view-empty-note { margin-top: 14px; color: var(--text-muted); }
+
 /* --- collector unreachable ----------------------------------------------- */
 
 /* Covers the whole board, above the views and the progress dots. Amber rather

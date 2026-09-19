@@ -29,9 +29,15 @@
     inset: 0;
     opacity: 0;
     transition: opacity 400ms ease;
+    /* Inactive slides are stacked on top of each other, so they must not
+       intercept taps meant for the visible one. */
     pointer-events: none;
   }
-  .slide.is-active { opacity: 1; }
+  /* The active slide has to take taps back, or nothing on screen is tappable. */
+  .slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
 
   /* Lives in the shell, not the views: it must not cross-fade with them.
      Positioned to sit on the same baseline as each view's footer. */

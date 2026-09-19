@@ -537,6 +537,15 @@ async function boot() {
     holder.className = 'slide';
     holder.dataset.name = name;
     holder.innerHTML = markup;
+
+    // Shown until this view renders real data at least once.
+    const empty = document.createElement('div');
+    empty.className = 'view-empty';
+    empty.innerHTML =
+      `<div><div class="view-empty-title">No ${name} data yet</div>` +
+      `<div class="mono view-empty-note">WAITING FOR THE COLLECTOR</div></div>`;
+    holder.appendChild(empty);
+
     stage.appendChild(holder);
   }
 
@@ -552,6 +561,7 @@ async function boot() {
         }
         const slide = stage.querySelector(`.slide[data-name="${name}"]`);
         RENDERERS[name](slide, await res.json());
+        slide.querySelector('.view-empty').hidden = true;
         lastDataAt = new Date();
       } catch (err) {
         console.warn(`${name} refresh failed`, err);
