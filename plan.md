@@ -332,8 +332,10 @@ news:
         - https://itsfoss.com/rss/
 
 readeck:
-  # Readeck defaults to :8000, which the collector already uses — mapped to 8084.
-  base_url: http://${NAS_HOST:-100.70.0.10}:8084
+  # In the stack, the compose service name on its internal port. The default is
+  # the published one (Readeck listens on 8000, taken by the collector, so it is
+  # mapped to 8084) for running the collector off-NAS.
+  base_url: ${READECK_URL:-http://100.70.0.10:8084}
   api_token: ${READECK_TOKEN}
 
 nas:
@@ -518,10 +520,27 @@ view, so the rotation does not move on mid-interaction.
 
 ### Readeck
 
-Self-hosted read-later service on the NAS. The collector exposes a small write
-endpoint; the frontend posts the article URL to it and the collector forwards it
-to Readeck's API with a token from the environment. Readeck does its own article
-extraction, so the collector does not need a readability library.
+Self-hosted read-later service on the NAS. The collector exposes `POST /api/save`;
+the frontend posts the article URL to it and the collector forwards it to
+Readeck's API with a token from the environment (`.env`, loaded via `env_file`).
+Readeck does its own article extraction, so the collector needs no readability
+library.
+
+Contract, verified against Readeck 0.23.4 — **not** what older documentation
+describes, which is why it was probed against a running instance:
+
+- `POST /api/bookmarks`, `Authorization: Bearer <token>`, body `{"url", "title", "labels"}`
+- **`202 Accepted`** on success, with a `Bookmark-Id` header. Readeck *queues*
+  the link and fetches it afterwards, so a save means accepted, not extracted —
+  a paywalled page still returns 202 and fails later, out of view of the screen.
+- `401` invalid token, `422` missing url.
+- There is no `/api/auth` in this version; tokens are created in the web UI
+  under Profile → API tokens. The token needs **only** the `bookmarks:write`
+  role — confirmed by getting 403 when listing bookmarks with a write-only token.
+
+The collector logs a warning at startup when `READECK_TOKEN` is unset, since an
+unset `${VAR}` expands to an empty string and would otherwise only surface as a
+failed tap much later.
 
 This is the **only** write path in the project, and it is LAN-only and triggered
 by a physical tap. Paywalled sources (Bloomberg) will save a stub — expected.

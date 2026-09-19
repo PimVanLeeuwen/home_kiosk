@@ -23,6 +23,7 @@ from .sources import readeck
 from .store import Store
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+log = logging.getLogger(__name__)
 
 CACHE_KEYS = {
     "portfolio": "portfolio",
@@ -36,6 +37,11 @@ CACHE_KEYS = {
 async def lifespan(app: FastAPI):
     app.state.config = config.load()
     app.state.store = Store(app.state.config.get("database", "./data/collector.db"))
+
+    # Unset ${VAR} references expand to "", which would otherwise only surface
+    # as a failed save long after startup.
+    if not (app.state.config.get("readeck") or {}).get("api_token"):
+        log.warning("READECK_TOKEN is not set — tap-to-save will fail until it is")
 
     app.state.scheduler = scheduler.build(app.state.config, app.state.store)
     app.state.scheduler.start()

@@ -29,10 +29,18 @@ services:
     image: pimvanleeuwen/home-kiosk-collector:latest
     container_name: home-kiosk-collector
     restart: unless-stopped
+    # Secrets referenced as ${VAR} in config.yaml: READECK_TOKEN now, plus
+    # GHOSTFOLIO_TOKEN and TWELVEDATA_API_KEY for M3/M4. See .env.example.
+    env_file:
+      - path: .env
+        required: false
     environment:
       - TZ=Europe/Amsterdam
       # node-exporter and scrutiny both listen on the host, not on this network.
       - NAS_HOST=host.docker.internal
+      # Readeck is on this network, so reach it by service name and internal
+      # port rather than back out through the published one.
+      - READECK_URL=http://readeck:8000
     ports:
       - 8000:8000
     volumes:
@@ -48,6 +56,7 @@ services:
       - host.docker.internal:host-gateway
     depends_on:
       - node-exporter
+      - readeck
 
   # Read-later target for tap-to-save on the news view. Readeck does its own
   # article extraction, so the collector only forwards the URL.
