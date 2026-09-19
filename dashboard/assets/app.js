@@ -402,8 +402,21 @@ const RENDERERS = {
 
 /* --- shell --------------------------------------------------------------- */
 
+/* Scales the fixed 720x1280 board to fit the viewport. On the Pi's panel the
+   factor is exactly 1; elsewhere the board is letterboxed so the layout can be
+   checked on a phone or laptop without the bottom being cut off. */
+function fitStage(stage) {
+  // documentElement.client* is the layout viewport. window.inner* includes the
+  // visual viewport and disagrees under browser zoom and device emulation.
+  const doc = document.documentElement;
+  const scale = Math.min(doc.clientWidth / 720, doc.clientHeight / 1280);
+  stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+}
+
 async function boot() {
   const stage = document.getElementById('stage');
+  fitStage(stage);
+  window.addEventListener('resize', () => fitStage(stage));
 
   for (const name of VIEWS) {
     const markup = await (await fetch(`./views/${name}.html`)).text();

@@ -47,10 +47,14 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* The design is a fixed 720x1280 board. The page fills whatever viewport it is
+   opened in and the board is scaled to fit inside it — exactly 1:1 on the Pi's
+   panel, letterboxed on a phone or laptop. */
 html, body {
-  width: 720px;
-  height: 1280px;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
+  position: relative;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);

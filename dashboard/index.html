@@ -2,13 +2,26 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=720, height=1280, initial-scale=1">
+<!-- device-width, not a hardcoded 720: forcing the layout viewport to the board
+     width overflows any narrower screen. fitStage() scales the board instead. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Desk dashboard</title>
 <link rel="stylesheet" href="assets/fonts.css">
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/views.css">
 <style>
-  #stage { position: relative; width: 720px; height: 1280px; }
+  /* Absolutely centred rather than flex-centred: the board is 720px wide and a
+     flex item wider than its container overflows to one side instead of
+     centring. fitStage() sets the scale; the translate keeps it centred. */
+  #stage {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 720px;
+    height: 1280px;
+    transform: translate(-50%, -50%);
+    transform-origin: center center;
+  }
 
   /* Cross-fade only — no sliding or scaling, per §8. */
   .slide {
@@ -29,6 +42,7 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    z-index: 2;
   }
   #dots span {
     width: 6px;
@@ -45,8 +59,9 @@
 </style>
 </head>
 <body>
-  <div id="stage"></div>
-  <div id="dots"></div>
+  <div id="stage">
+    <div id="dots"></div>
+  </div>
   <script src="assets/app.js"></script>
 </body>
 </html>
