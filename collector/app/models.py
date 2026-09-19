@@ -81,6 +81,7 @@ class Range(BaseModel):
 class Position(BaseModel):
     shares: float
     avg_cost: float
+    invested: float | None = None
     value: float
     unrealised_abs: float
     unrealised_pct: float
@@ -97,7 +98,9 @@ class Spotlight(Envelope):
     day_abs: float
     day_pct: float
     history: list[HistoryPoint] = []
-    day_range: Range
+    # Intraday high/low. Ghostfolio only stores daily closes, so this is absent
+    # when it is the source — omitted rather than faked from the close.
+    day_range: Range | None = None
     range_52w: Range
     position: Position
     next_earnings: str | None = None
@@ -106,7 +109,7 @@ class Spotlight(Envelope):
     def _serialize(self, handler: SerializerFunctionWrapHandler) -> dict:
         # Omitted entirely when unknown so the view hides the cell rather than
         # rendering a dash.
-        return _drop_none(handler(self), "next_earnings")
+        return _drop_none(handler(self), "next_earnings", "day_range")
 
 
 # --- /api/news ---------------------------------------------------------------

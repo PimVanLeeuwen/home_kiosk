@@ -203,20 +203,24 @@ the screen must always render something.
   "next_earnings": "2026-10-15"
 }
 ```
-**Selection rule: a random holding, re-picked on every rotation** — cash
-excluded. Not the biggest mover: that tends to be the same name for days at a
-time, which makes the view static and predictable.
+**Selection rule: a random holding, re-picked on each 15-minute refresh** —
+cash excluded. Not the biggest mover: that tends to be the same name for days at
+a time, which makes the view static. The previous pick is stored under
+`spotlight_last` so the same holding is never featured twice running.
 
-"Every rotation" is roughly every 80 seconds, far faster than the 15-minute
-refresh, so the collector cannot do the choosing. `/api/spotlight` therefore
-returns **one entry per holding** and the frontend picks at random each time the
-view comes round. At eleven holdings and ~52 weekly points each this is on the
-order of 25 KB — fetched once per refresh, not per rotation.
+`history` is ~52 weekly points, taken as every 7th of a year of daily closes.
 
-Avoid repeating the previous pick when more than one holding exists, so the
-same stock does not appear twice in a row.
+**Everything in this payload is in the asset's own currency.** Ghostfolio mixes
+them — `marketPrice` is native, while `investment`, `valueInBaseCurrency` and
+the performance figures are in the portfolio's base currency. Reporting both
+under one label turns a EUR amount into a dollar one. The conversion is derived
+from the two prices (`marketPrice` ÷ `valueInBaseCurrency/quantity`), needing no
+FX lookup. Verified: avg cost comes out at USD 105.40 for TSM, matching DEGIRO's
+GAK exactly, and `shares × price` equals market value to the cent.
 
-`history` is ~52 weekly points per holding.
+`day_range` and `next_earnings` are **always omitted** with Ghostfolio as the
+source: it stores daily closes, so there is no intraday high/low, and it has no
+earnings calendar. The facts row falls back to invested and held-since.
 `next_earnings` is optional — omit the field entirely if unavailable, and the
 view hides that cell rather than showing a dash.
 

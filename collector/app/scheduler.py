@@ -13,7 +13,7 @@ from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from .sources import feeds, ghostfolio, nas
+from .sources import feeds, ghostfolio, nas, spotlight
 from .store import Store
 
 log = logging.getLogger(__name__)
@@ -71,6 +71,17 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         seconds=PORTFOLIO_INTERVAL_SECONDS,
         args=[store, "portfolio", lambda: ghostfolio.collect(cfg, cfg.get("currency", "EUR"))],
         id="portfolio",
+        next_run_time=None,
+        max_instances=1,
+        coalesce=True,
+    )
+
+    scheduler.add_job(
+        _run,
+        "interval",
+        seconds=PORTFOLIO_INTERVAL_SECONDS,
+        args=[store, "spotlight", lambda: spotlight.collect(cfg, store)],
+        id="spotlight",
         next_run_time=None,
         max_instances=1,
         coalesce=True,

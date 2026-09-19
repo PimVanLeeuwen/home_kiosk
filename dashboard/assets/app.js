@@ -331,12 +331,18 @@ function renderSpotlight(root, d) {
   $('weight').textContent = `${dec(p.weight_pct)}%`;
   $('weight-bar').style.width = `${p.weight_pct}%`;
 
-  // next_earnings is absent, not null, when the source has no date — the cell is
-  // dropped and the grid reflows to the remaining facts.
-  const facts = [
-    ['Day range', `${dec(d.day_range.low, 0)} — ${dec(d.day_range.high, 0)}`],
-    ['Held since', heldSince(p.held_since)],
-  ];
+  // Optional fields are absent rather than null when the source cannot supply
+  // them, and each cell is dropped so the grid reflows to what is left.
+  // Ghostfolio has no intraday high/low and no earnings calendar, so in
+  // practice only invested and held-since appear.
+  const facts = [];
+  if (p.invested !== undefined && p.invested !== null) {
+    facts.push(['Invested', money(p.invested, d.currency)]);
+  }
+  if (d.day_range !== undefined) {
+    facts.push(['Day range', `${dec(d.day_range.low, 0)} — ${dec(d.day_range.high, 0)}`]);
+  }
+  facts.push(['Held since', heldSince(p.held_since)]);
   if (d.next_earnings !== undefined) {
     facts.push(['Next earnings', earningsDate(d.next_earnings)]);
   }
