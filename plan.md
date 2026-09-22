@@ -46,17 +46,57 @@ These block specific tasks but not the overall build. Marked `TODO(user)` where 
 
 ## 3. Hardware
 
-| Item | Spec | Note |
-|---|---|---|
-| Raspberry Pi 5 | 4GB | Pi 4 2GB also fine; Pi Zero 2 W is not |
-| Raspberry Pi Touch Display 2 | 7", 720 × 1280 | Natively portrait, matches the design 1:1 |
-| PSU | Official 27W USB-C | Display draws power from the Pi's GPIO header |
-| Storage | 32GB A2 microSD, or small USB SSD | SSD preferred for write endurance |
-| Stand | SmartiPi or 3D print | — |
+Verified against Raspberry Pi's own documentation, not from memory — two details
+in the original draft were wrong (see the notes).
 
-Display connects by DSI ribbon plus a 3-pin GPIO power lead. Backlight
-brightness is a writable file under `/sys/class/backlight/` — locate the exact
-node at setup time, it varies.
+### Required
+
+| Item | Spec | Why / note |
+|---|---|---|
+| Raspberry Pi 5 | 4GB | Pi 4 works too, but needs a **different display cable** — see below. Zero series is explicitly incompatible with the display. |
+| Raspberry Pi Touch Display 2 | 7", 720 × 1280 | Natively portrait, matches the design 1:1. Ships with the FFC cable, a 3-pin GPIO power cable and 8× M2.5 screws. |
+| Official 27W USB-C PSU | 5V / 5A | **Not optional.** The Pi 5 wants 5V/5A; on a 15W supply it caps *all* peripherals at 600mA, and the display draws its power from the GPIO 5V pins. |
+| Active Cooler | official, 4-pin JST-SH PWM | This runs 24/7 behind a display. The fan idles below 50°C and ramps to 100% at 75°C. |
+| Storage | 32GB A2 microSD, or small USB SSD | SSD preferred for write endurance; pair with `log2ram` either way (§9). |
+| Stand or case | **must be Touch Display 2 compatible** | See the compatibility warning below. |
+
+### Display cable — depends on the Pi
+
+The Touch Display 2 ships with the right cable *for the device you specify*, so
+say which Pi when ordering:
+
+| Pi | 7" display cable |
+|---|---|
+| Raspberry Pi 5 | **22-way to 15-way** FFC (Standard–Mini) |
+| Pi 4 and earlier | 15-way to 15-way FFC |
+
+The display is powered by the host — no separate PSU — via the included 3-pin
+cable from the display's J1 port to 5V and ground on the GPIO header.
+
+### Case compatibility warning
+
+The original draft suggested "SmartiPi", but **SmartiPi Touch 2 fits the
+first-generation 7" display (800 × 480), not this one**. Panel size and rear
+mounting holes differ. Options that do fit Touch Display 2:
+
+- **SmartiPi Touch Pro 3** — desk stand, explicitly lists 7" Touch Display 2
+- **KKSB Display Stand** — metal, adjustable angle, external power button
+- **The Pi Hut Panel Mounting Enclosure** — wall/panel mount, 7" only
+- **Waveshare PI5-CASE-TD2** — budget enclosure
+- 3D print — parametric design on Printables, uses the included M2.5 screws
+
+Avoid anything listing 800 × 480 or the "1st gen" 7" screen.
+
+### Useful but not required
+
+| Item | When you need it |
+|---|---|
+| microSD card reader | Flashing the card, if the machine has no slot |
+| micro-HDMI → HDMI cable | Debugging if the DSI display does not come up at first boot |
+| Ethernet cable | Optional; Wi-Fi is fine for a LAN-only dashboard |
+
+Backlight brightness is a writable file under `/sys/class/backlight/` — locate
+the exact node at setup time, it varies.
 
 ---
 

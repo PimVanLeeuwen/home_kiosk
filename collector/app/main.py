@@ -19,7 +19,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, HttpUrl
 
 from . import config, scheduler
-from .sources import readeck
+from .sources import feeds, readeck
 from .store import Store
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -105,6 +105,17 @@ def spotlight() -> Any:
 @app.get("/api/news")
 def news() -> Any:
     return _serve(CACHE_KEYS["news"])
+
+
+@app.get("/api/news/full")
+def news_full() -> Any:
+    """Everything the feeds returned, newest first — for reading on a phone.
+
+    The kiosk view shows a handful of interleaved headlines per group, which is
+    right on a screen you glance at and far too thin to read. Written by the
+    same job from the same fetch, so this costs no extra requests.
+    """
+    return _serve(feeds.FULL_CACHE_KEY)
 
 
 @app.get("/api/nas")

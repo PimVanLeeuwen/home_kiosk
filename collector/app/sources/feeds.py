@@ -13,6 +13,7 @@ the starting feed advances each fetch so the ones that missed out get a turn.
 from __future__ import annotations
 
 import asyncio
+import html
 import logging
 import re
 from datetime import UTC, datetime
@@ -29,6 +30,16 @@ log = logging.getLogger(__name__)
 
 OFFSET_KEY = "news_offsets"
 SEEN_KEY = "news_seen"
+
+# Reading view, served at /api/news/full. Cached alongside the kiosk payload
+# from the same fetch.
+FULL_CACHE_KEY = "news_full"
+FULL_MAX_PER_GROUP = 40
+# Per-feed ceiling inside the reading view. Without it, pure recency lets the
+# loudest feed bury the rest: measured on real data, Bloomberg took 20 of 40
+# Tech slots, and Hacker News, OMG Ubuntu and It's FOSS vanished from the
+# five-feed group entirely.
+FULL_MAX_PER_FEED = 10
 
 FETCH_TIMEOUT_SECONDS = 20
 # Feeds are read, never rendered; a plain identifying agent is enough. Some
@@ -135,7 +146,9 @@ def _meta(entry: Any) -> str | None:
 
 
 def _normalise(entry: Any, source: str, cfg: dict[str, Any], now: datetime) -> NewsItem | None:
-    title = (entry.get("title") or "").strip()
+    # Feeds escape their titles ("Apple&#8217;s"); decode before truncating so
+    # the entity is not counted toward the character limit or split in half.
+    title = html.unescape(entry.get("title") or "").strip()
     link = (entry.get("link") or "").strip()
     if not title or not link:
         return None
@@ -167,7 +180,9 @@ async def _fetch_feed(
         resp = await client.get(url, timeout=FETCH_TIMEOUT_SECONDS)
         resp.raise_for_status()
     except Exception as exc:
-        log.warning("feed %s failed: %s", url, exc)
+        # Include the exception class: timeouts stringify to an empty message,
+        # so "feed X failed: " on its own says nothing about why.
+        log.warning("feed %s failed: %s: %s", url, type(exc).__name__, exc or "(no detail)")
         return []
 
     # feedparser is synchronous and does real parsing work; keep it off the loop.
@@ -186,6 +201,13 @@ async def _fetch_feed(
 
 
 async def collect(cfg: dict[str, Any], store: Store) -> News:
+    """Fetch every feed once and cache two views of the same data.
+
+    Returns the kiosk payload — a few interleaved headlines per group — and
+    additionally writes a `news_full` payload holding everything, newest first,
+    for reading on a phone. Both come from one set of requests: the full lists
+    are already in memory and were previously thrown away.
+    """
     news_cfg = cfg["news"]
     tz = ZoneInfo(cfg.get("timezone", "UTC"))
     now = datetime.now(tz)
@@ -193,6 +215,7 @@ async def collect(cfg: dict[str, Any], store: Store) -> News:
 
     seen_all: dict[str, list[str]] = store.get_cache(SEEN_KEY) or {}
     groups: list[NewsGroup] = []
+    full_groups: list[NewsGroup] = []
     feed_count = 0
 
     async with httpx.AsyncClient(
@@ -217,6 +240,16 @@ async def collect(cfg: dict[str, Any], store: Store) -> News:
             previously = set(seen_all.get(group["id"], []))
             new_count = sum(1 for i in chosen if i.url not in previously)
 
+            # Reading view: everything this group returned, newest first. No
+            # interleaving — with the whole list on screen there is nothing for
+            # fair rotation to protect against.
+            merged: dict[str, NewsItem] = {}
+            for feed in per_feed:
+                for item in feed[:FULL_MAX_PER_FEED]:
+                    merged.setdefault(item.url, item)   # same story via two feeds
+            ordered = sorted(merged.values(), key=lambda i: i.published, reverse=True)
+            full_items = ordered[:FULL_MAX_PER_GROUP]
+
             everything = [i.url for feed in per_feed for i in feed]
             seen_all[group["id"]] = (everything + list(previously))[:SEEN_PER_GROUP]
 
@@ -228,6 +261,20 @@ async def collect(cfg: dict[str, Any], store: Store) -> News:
                     items=chosen,
                 )
             )
+            full_groups.append(
+                NewsGroup(
+                    id=group["id"],
+                    title=group["title"],
+                    new_count=sum(1 for i in full_items if i.url not in previously),
+                    items=full_items,
+                )
+            )
 
     store.put_cache(SEEN_KEY, seen_all)
+    store.put_cache(
+        FULL_CACHE_KEY,
+        News(as_of=now, stale=False, groups=full_groups, feed_count=feed_count).model_dump(
+            mode="json"
+        ),
+    )
     return News(as_of=now, stale=False, groups=groups, feed_count=feed_count)
