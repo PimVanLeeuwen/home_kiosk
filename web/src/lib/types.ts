@@ -33,7 +33,12 @@ export interface Hosts {
   as_of: string
   stale: boolean
   lan: string
-  tailscale: { dns_name: string; ip: string | null } | null
+  tailscale: {
+    dns_name: string
+    ip: string | null
+    /** tailscale serve HTTPS port by local port, e.g. { "8096": 18096 }. */
+    https_ports?: Record<string, number>
+  } | null
 }
 
 /** A catalog entry as edited in Settings (no status or stats). */

@@ -1,12 +1,14 @@
-"""The NAS's own Tailscale name and IP, from tailscaled's LocalAPI.
+"""The NAS's own Tailscale name, IP and HTTPS ports, from tailscaled's LocalAPI.
 
 The tailscale container shares its control socket through a bind mount (see
-the compose file). Only `GET /localapi/v0/status` is used: a read.
+the compose file). Only reads: `GET /localapi/v0/status` and
+`GET /localapi/v0/serve-config`.
 """
 
 from __future__ import annotations
 
 import logging
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -30,6 +32,26 @@ def parse_status(status: dict[str, Any]) -> TailscaleHost:
     return TailscaleHost(dns_name=dns_name, ip=ipv4)
 
 
+_LOCAL_TARGET = re.compile(r"^(?:https?|https\+insecure)://(?:127\.0\.0\.1|localhost):(\d+)/?$")
+
+
+def parse_serve_config(config: dict[str, Any]) -> dict[str, int]:
+    """Map each proxied local port to the HTTPS port it is served on.
+
+    Reads the `Web` section of ipn.ServeConfig, keyed "<host>:<port>" with a
+    "/" handler proxying to http://127.0.0.1:<local port>. Other handlers
+    (paths, files, text) are not service links and are skipped.
+    """
+    served: dict[str, int] = {}
+    for host_port, web in (config.get("Web") or {}).items():
+        _, _, port = host_port.rpartition(":")
+        root = ((web or {}).get("Handlers") or {}).get("/") or {}
+        match = _LOCAL_TARGET.match(root.get("Proxy") or "")
+        if port.isdigit() and match:
+            served[match.group(1)] = int(port)
+    return served
+
+
 async def status(socket_path: str) -> TailscaleHost:
     if not Path(socket_path).exists():
         raise FileNotFoundError(f"tailscaled socket {socket_path} not present")
@@ -37,7 +59,15 @@ async def status(socket_path: str) -> TailscaleHost:
     async with httpx.AsyncClient(transport=transport, base_url=LOCALAPI_BASE) as client:
         resp = await client.get("/localapi/v0/status", timeout=5)
         resp.raise_for_status()
-        return parse_status(resp.json())
+        host = parse_status(resp.json())
+        try:
+            serve = await client.get("/localapi/v0/serve-config", timeout=5)
+            serve.raise_for_status()
+            host.https_ports = parse_serve_config(serve.json() or {})
+        except Exception as exc:
+            # Links then fall back to plain HTTP; the name and IP still count.
+            log.warning("tailscale serve config unreadable: %s", type(exc).__name__)
+        return host
 
 
 async def collect(cfg: dict[str, Any]) -> Hosts:

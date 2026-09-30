@@ -1,6 +1,6 @@
 import { uniqueMonograms } from '../../lib/monogram'
 import type { Service } from '../../lib/types'
-import { useServiceHost } from '../../lib/useServiceHost'
+import { useServiceLinks } from '../../lib/useServiceLinks'
 import { ServiceTile } from '../ServiceTile'
 import { Card, Loading, Unavailable } from './Card'
 
@@ -10,7 +10,7 @@ interface Props {
 }
 
 export function ServicesCard({ services, error }: Props) {
-  const host = useServiceHost()
+  const linkFor = useServiceLinks()
   const labels = uniqueMonograms((services ?? []).map((s) => s.name))
 
   return (
@@ -20,7 +20,7 @@ export function ServicesCard({ services, error }: Props) {
         <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
           {services.map((service, i) => (
             <li key={service.id}>
-              <ServiceTile service={service} host={host} label={labels[i]} index={i} />
+              <ServiceTile service={service} href={linkFor(service)} label={labels[i]} index={i} />
             </li>
           ))}
         </ul>

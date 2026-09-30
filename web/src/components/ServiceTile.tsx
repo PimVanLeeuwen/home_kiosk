@@ -1,19 +1,18 @@
 import { TriangleAlert } from 'lucide-react'
 import { tileColour } from '../lib/monogram'
-import { serviceUrl } from '../lib/links'
 import { statsSummary } from '../lib/stats'
 import type { Service } from '../lib/types'
 import { StatusDot } from './StatusDot'
 
 interface Props {
   service: Service
-  host: string
+  href: string
   /** Tile letters and position in the catalog; see uniqueMonograms and tileColour. */
   label: string
   index: number
 }
 
-export function ServiceTile({ service, host, label, index }: Props) {
+export function ServiceTile({ service, href, label, index }: Props) {
   const colour = tileColour(index)
   // Live stats replace the description when the widget delivers them. Two fit
   // on a tile; the tooltip has them all.
@@ -23,7 +22,7 @@ export function ServiceTile({ service, host, label, index }: Props) {
 
   return (
     <a
-      href={serviceUrl(service, host)}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-center gap-3 rounded-[10px] border border-transparent bg-raised px-3 py-2.75 transition-colors hover:border-line"

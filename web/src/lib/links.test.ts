@@ -1,4 +1,4 @@
-import { serviceHost, serviceUrl } from './links'
+import { serviceHost, serviceHref, serviceUrl } from './links'
 import type { Hosts } from './types'
 
 const HOSTS: Hosts = {
@@ -35,5 +35,41 @@ describe('serviceUrl', () => {
 
   it('brackets IPv6 hosts', () => {
     expect(serviceUrl({ port: 80, path: '/' }, 'fd7a::1')).toBe('http://[fd7a::1]:80/')
+  })
+})
+
+describe('serviceHref', () => {
+  const SERVED: Hosts = {
+    ...HOSTS,
+    tailscale: { ...HOSTS.tailscale!, https_ports: { '8096': 18096, '8083': 443, '5984': 15984 } },
+  }
+  const jellyfin = { port: 8096, path: '/' }
+
+  it('uses the HTTPS tailnet address on Tailscale when the service is served', () => {
+    expect(serviceHref(jellyfin, 'dev-minotaur.tail1234.ts.net', SERVED)).toBe(
+      'https://dev-minotaur.tail1234.ts.net:18096/',
+    )
+    // Also when the hub itself was opened on the Tailscale IP.
+    expect(serviceHref({ port: 5984, path: '/_utils' }, '100.70.0.10', SERVED)).toBe(
+      'https://dev-minotaur.tail1234.ts.net:15984/_utils',
+    )
+  })
+
+  it('leaves out the default HTTPS port', () => {
+    expect(serviceHref({ port: 8083, path: '/' }, '100.70.0.10', SERVED)).toBe(
+      'https://dev-minotaur.tail1234.ts.net/',
+    )
+  })
+
+  it('keeps plain HTTP for services that are not served', () => {
+    expect(serviceHref({ port: 8989, path: '/' }, 'dev-minotaur.tail1234.ts.net', SERVED)).toBe(
+      'http://dev-minotaur.tail1234.ts.net:8989/',
+    )
+  })
+
+  it('keeps LAN links at home and when nothing is known', () => {
+    expect(serviceHref(jellyfin, '192.168.1.10', SERVED)).toBe('http://192.168.1.10:8096/')
+    expect(serviceHref(jellyfin, '100.70.0.10', undefined)).toBe('http://100.70.0.10:8096/')
+    expect(serviceHref(jellyfin, '100.70.0.10', HOSTS)).toBe('http://100.70.0.10:8096/')
   })
 })

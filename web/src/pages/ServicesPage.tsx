@@ -4,13 +4,13 @@ import { ServiceTile } from '../components/ServiceTile'
 import { uniqueMonograms } from '../lib/monogram'
 import type { ServicesResponse } from '../lib/types'
 import { useApi } from '../lib/useApi'
-import { useServiceHost } from '../lib/useServiceHost'
+import { useServiceLinks } from '../lib/useServiceLinks'
 
 const REFRESH_MS = 30_000
 
 export function ServicesPage() {
   const services = useApi<ServicesResponse>('/api/services', REFRESH_MS)
-  const host = useServiceHost()
+  const linkFor = useServiceLinks()
 
   const all = services.data?.groups.flatMap((g) => g.services) ?? []
   const running = all.filter((s) => s.status === 'up').length
@@ -75,7 +75,7 @@ export function ServicesPage() {
                   <li key={service.id}>
                     <ServiceTile
                       service={service}
-                      host={host}
+                      href={linkFor(service)}
                       label={labels[position.get(service.id)!]}
                       index={position.get(service.id)!}
                     />

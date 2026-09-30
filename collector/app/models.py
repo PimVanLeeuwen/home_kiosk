@@ -224,6 +224,9 @@ class Nas(Envelope):
 class TailscaleHost(BaseModel):
     dns_name: str  # e.g. "dev-minotaur.tail1234.ts.net", no trailing dot
     ip: str | None  # the node's IPv4 in 100.64.0.0/10
+    # `tailscale serve` HTTPS ports by the local port they proxy to, e.g.
+    # {"8096": 18096, "8083": 443}. Empty when nothing is served.
+    https_ports: dict[str, int] = {}
 
 
 class Hosts(Envelope):
