@@ -14,6 +14,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from .models import Service
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS portfolio_snapshot (
     date        TEXT PRIMARY KEY,
@@ -43,6 +45,19 @@ CREATE TABLE IF NOT EXISTS storage_sample (
     mountpoint TEXT NOT NULL,
     used_bytes INTEGER NOT NULL,
     PRIMARY KEY (date, mountpoint)
+);
+
+-- Home hub service catalog. Seeded from config.yaml once, then edited in the app.
+CREATE TABLE IF NOT EXISTS service (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    grp         TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    port        INTEGER NOT NULL,
+    path        TEXT NOT NULL DEFAULT '/',
+    container   TEXT,
+    widget      TEXT,
+    sort        INTEGER NOT NULL
 );
 """
 
@@ -154,3 +169,39 @@ class Store:
         with self._connect() as conn:
             cur = conn.execute("DELETE FROM nas_sample WHERE ts < ?", (cutoff,))
             return cur.rowcount
+
+    # --- service: the Home hub catalog ---------------------------------------
+
+    def seed_services(self, services: list[Service]) -> bool:
+        """Insert the default catalog, but only into an empty table: once the
+        catalog has been edited in the app, config.yaml no longer applies."""
+        with self._connect() as conn:
+            if conn.execute("SELECT 1 FROM service LIMIT 1").fetchone():
+                return False
+            conn.executemany(
+                "INSERT INTO service (id, name, grp, description, port, path, container, "
+                "widget, sort) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [
+                    (s.id, s.name, s.group, s.description, s.port, s.path, s.container,
+                     s.widget, i)
+                    for i, s in enumerate(services)
+                ],
+            )
+        return True
+
+    def list_services(self) -> list[Service]:
+        with self._connect() as conn:
+            rows = conn.execute("SELECT * FROM service ORDER BY sort, name").fetchall()
+        return [
+            Service(
+                id=r["id"],
+                name=r["name"],
+                group=r["grp"],
+                description=r["description"],
+                port=r["port"],
+                path=r["path"],
+                container=r["container"],
+                widget=r["widget"],
+            )
+            for r in rows
+        ]

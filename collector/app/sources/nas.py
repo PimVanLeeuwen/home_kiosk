@@ -19,6 +19,7 @@ import httpx
 
 from ..models import Backup, Containers, Disk, Nas, Network, NetworkPoint, Pool, Storage
 from ..store import Store
+from . import docker
 
 log = logging.getLogger(__name__)
 
@@ -190,18 +191,12 @@ async def _containers(socket_path: str) -> Containers:
     Unavailable when the collector runs off-NAS; reported as 0/0 rather than
     failing the whole payload.
     """
-    if not Path(socket_path).exists():
-        log.info("docker socket %s not present; container counts unavailable", socket_path)
+    containers = await docker.list_containers(socket_path)
+    if containers is None:
         return Containers(running=0, total=0)
-    try:
-        transport = httpx.AsyncHTTPTransport(uds=socket_path)
-        async with httpx.AsyncClient(transport=transport, base_url="http://docker") as client:
-            running = await client.get("/containers/json", timeout=5)
-            everything = await client.get("/containers/json", params={"all": "1"}, timeout=5)
-            return Containers(running=len(running.json()), total=len(everything.json()))
-    except Exception as exc:
-        log.warning("docker socket read failed: %s", exc)
-        return Containers(running=0, total=0)
+    return Containers(
+        running=sum(1 for c in containers if c.state == "running"), total=len(containers)
+    )
 
 
 def _backup(marker_path: str) -> Backup:

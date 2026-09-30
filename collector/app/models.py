@@ -1,7 +1,8 @@
-"""Response models for the four endpoints.
+"""Response models for the API.
 
-These mirror the payloads in docs/kiosk-build-spec.md §5 exactly — they are the schema contract
-the frontend fixtures are written against, so change them deliberately.
+The kiosk models mirror the payloads in docs/kiosk-build-spec.md §5 exactly — they are the schema
+contract the kiosk fixtures are written against, so change them deliberately. The Home hub models
+follow at the end.
 """
 
 from __future__ import annotations
@@ -215,3 +216,47 @@ class Nas(Envelope):
     disks: list[Disk] = []
     network: Network
     backup: Backup
+
+
+# --- Home hub: containers and services ----------------------------------------
+
+
+class ContainerState(BaseModel):
+    name: str
+    state: str  # Docker's State: running, exited, restarting, paused, created, dead
+    health: Literal["healthy", "unhealthy", "starting"] | None = None
+
+
+class ContainerList(Envelope):
+    containers: list[ContainerState]
+
+
+ServiceStatus = Literal["up", "starting", "unhealthy", "down", "missing", "unknown"]
+
+
+class Service(BaseModel):
+    id: str
+    name: str
+    group: str
+    description: str = ""
+    port: int
+    path: str = "/"
+    container: str | None = None
+    widget: str | None = None
+
+
+class ServiceWithStatus(Service):
+    status: ServiceStatus
+
+
+class ServiceGroup(BaseModel):
+    name: str
+    services: list[ServiceWithStatus]
+
+
+class Services(BaseModel):
+    # Status comes from the container list, which may not exist yet on a cold
+    # start; the catalog itself is always there.
+    as_of: datetime | None
+    stale: bool
+    groups: list[ServiceGroup]

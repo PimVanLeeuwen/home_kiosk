@@ -13,12 +13,13 @@ from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from .sources import feeds, ghostfolio, nas, spotlight
+from .sources import docker, feeds, ghostfolio, nas, spotlight
 from .store import Store
 
 log = logging.getLogger(__name__)
 
 NAS_INTERVAL_SECONDS = 60
+CONTAINERS_INTERVAL_SECONDS = 30  # status dots on the Services page
 NEWS_INTERVAL_SECONDS = 600       # §5: feeds every 10 minutes
 PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
 
@@ -50,6 +51,17 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         args=[store, "nas", lambda: nas.collect(cfg, store)],
         id="nas",
         next_run_time=None,  # first run is triggered explicitly at startup
+        max_instances=1,
+        coalesce=True,
+    )
+
+    scheduler.add_job(
+        _run,
+        "interval",
+        seconds=CONTAINERS_INTERVAL_SECONDS,
+        args=[store, "containers", lambda: docker.collect(cfg)],
+        id="containers",
+        next_run_time=None,
         max_instances=1,
         coalesce=True,
     )

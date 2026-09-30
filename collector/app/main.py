@@ -20,6 +20,7 @@ from pydantic import BaseModel, HttpUrl
 
 from . import config, scheduler
 from .sources import feeds, readeck
+from .sources import services as service_catalog
 from .store import Store
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -37,6 +38,8 @@ CACHE_KEYS = {
 async def lifespan(app: FastAPI):
     app.state.config = config.load()
     app.state.store = Store(app.state.config.get("database", "./data/collector.db"))
+    if app.state.store.seed_services(service_catalog.seed(app.state.config)):
+        log.info("service catalog seeded from config.yaml")
 
     # Unset ${VAR} references expand to "", which would otherwise only surface
     # as a failed save long after startup.
@@ -121,6 +124,14 @@ def news_full() -> Any:
 @app.get("/api/nas")
 def nas() -> Any:
     return _serve(CACHE_KEYS["nas"])
+
+
+@app.get("/api/services")
+def services() -> Any:
+    """The service catalog with a status per service. Always 200: the catalog
+    is local, and without a container list every status reads "unknown"."""
+    store = app.state.store
+    return service_catalog.build(store.list_services(), store.get_cache("containers"))
 
 
 class SaveRequest(BaseModel):

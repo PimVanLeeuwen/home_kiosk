@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import main
+from app.models import Service
 from app.sources import feeds
 
 
@@ -49,3 +50,39 @@ def test_serves_the_cached_payload_including_stale_flag(client, store, path, key
 
 def test_save_rejects_a_non_url(client):
     assert client.post("/api/save", json={"url": "not a url"}).status_code == 422
+
+
+def test_services_without_container_list_reads_unknown(client, store):
+    store.seed_services([Service(id="jellyfin", name="Jellyfin", group="Media", port=8096,
+                                 container="jellyfin")])
+
+    body = client.get("/api/services").json()
+
+    assert body["stale"] is True
+    assert body["as_of"] is None
+    assert body["groups"][0]["services"][0] == {
+        "id": "jellyfin",
+        "name": "Jellyfin",
+        "group": "Media",
+        "description": "",
+        "port": 8096,
+        "path": "/",
+        "container": "jellyfin",
+        "widget": None,
+        "status": "unknown",
+    }
+
+
+def test_services_with_container_list(client, store):
+    store.seed_services([Service(id="sonarr", name="Sonarr", group="Arr", port=8989,
+                                 container="sonarr")])
+    store.put_cache("containers", {
+        "as_of": "2026-09-30T12:00:00+00:00",
+        "stale": False,
+        "containers": [{"name": "sonarr", "state": "exited", "health": None}],
+    })
+
+    body = client.get("/api/services").json()
+
+    assert body["stale"] is False
+    assert body["groups"][0]["services"][0]["status"] == "down"
