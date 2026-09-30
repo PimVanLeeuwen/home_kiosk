@@ -1,17 +1,36 @@
-# Serves the dashboard and proxies the collector on one origin, so the frontend
-# uses relative URLs and needs no CORS. LAN-only: no TLS, no auth, per §11.
+# One origin for everything: the Home hub app, the old kiosk carousel and the
+# collector API. The frontends use relative URLs and need no CORS. No TLS and no
+# auth here: the network is the boundary, and HTTPS comes from tailscale serve.
 
 :8083 {
 	encode gzip
 
-	# /api/* is the collector. Kept on the same origin so the kiosk only ever
-	# talks to one host and port.
 	handle /api/* {
 		reverse_proxy collector:8000
 	}
 
+	# The Pi's kiosk carousel. Its asset paths are relative, so it needs the
+	# trailing slash.
+	redir /kiosk /kiosk/ permanent
+	handle_path /kiosk/* {
+		root * /srv/kiosk
+		file_server
+	}
+
+	# The phone reading view lived at the root before the hub took it over.
+	redir /read.html /kiosk/read.html permanent
+
+	# Home hub: a single-page app, so unknown paths fall back to index.html and
+	# the router decides. Hashed assets can be cached for good; index.html not.
 	handle {
-		root * /srv
+		root * /srv/web
+		# Headers run before try_files rewrites the path, so match on "not a
+		# hashed asset" rather than on /index.html.
+		@hashed path /assets/*
+		@page not path /assets/*
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+		header @page Cache-Control "no-cache"
+		try_files {path} /index.html
 		file_server
 	}
 

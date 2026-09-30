@@ -113,8 +113,9 @@ Order: M1, M2, M3 + M4, M5, M6, M7, M8.
 
 ## 4. Open items
 
-- Pi kiosk URL: moving the carousel to `/kiosk/` needs a one-time change of the Chromium `--app`
-  URL on the Pi (see M1).
+- Pi kiosk URL: the carousel now lives at `/kiosk/`, so the Pi's Chromium `--app` URL becomes
+  `http://<nas>:8083/kiosk/?data=api`. Without `?data=api` the carousel shows its fixture data.
+  `/kiosk` and the old `/read.html` redirect.
 - Tailscale serve configuration lives in the tailscale container's state; decide in M2 whether it
   is scripted in nas-docker.
 

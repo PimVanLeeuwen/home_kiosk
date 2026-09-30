@@ -1,0 +1,10 @@
+# The dashboard image builds from the repo root; keep local installs and
+# build output out of the context.
+.git
+**/node_modules
+**/.venv
+**/__pycache__
+web/dist
+collector/data
+*.db
+.env
