@@ -43,6 +43,9 @@ uvicorn app.main:app --reload --port 8000
 cd web && npm install && npm run test:run && npm run build && npm run lint
 npm run dev
 
+# e2e: builds and runs the dashboard image, so Docker must be running
+cd e2e && npm ci && npx playwright test
+
 # old kiosk against fixtures
 python3 dashboard/serve.py
 ```
