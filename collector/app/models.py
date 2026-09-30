@@ -260,6 +260,8 @@ class Service(BaseModel):
     url: str | None = None
     container: str | None = None
     widget: str | None = None
+    # A bundled icon (web/src/assets/icons/<icon>.svg or .png); letters when unset.
+    icon: str | None = None
 
 
 class Stat(BaseModel):

@@ -1,7 +1,7 @@
 import { ExternalLink, TriangleAlert } from 'lucide-react'
-import { tileColour } from '../lib/monogram'
 import { statsSummary } from '../lib/stats'
 import type { Service } from '../lib/types'
+import { ServiceIcon } from './ServiceIcon'
 import { StatusDot } from './StatusDot'
 
 interface Props {
@@ -13,7 +13,6 @@ interface Props {
 }
 
 export function ServiceTile({ service, href, label, index }: Props) {
-  const colour = tileColour(index)
   // Live stats replace the description when the widget delivers them. Two fit
   // on a tile; the tooltip has them all.
   const stats = service.stats?.length ? service.stats : null
@@ -27,13 +26,7 @@ export function ServiceTile({ service, href, label, index }: Props) {
       rel="noopener noreferrer"
       className="flex items-center gap-3 rounded-[10px] border border-transparent bg-raised px-3 py-2.75 transition-colors hover:border-line"
     >
-      <span
-        aria-hidden="true"
-        className="grid size-[30px] shrink-0 place-items-center rounded-lg text-xs font-bold"
-        style={{ backgroundColor: colour.bg, color: colour.fg }}
-      >
-        {label}
-      </span>
+      <ServiceIcon icon={service.icon} label={label} index={index} />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[13.5px] font-medium">{service.name}</span>
         {detail && (

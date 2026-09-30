@@ -73,6 +73,7 @@ def test_services_without_container_list_reads_unknown(client, store):
         "url": None,
         "container": "jellyfin",
         "widget": None,
+        "icon": None,
         "status": "unknown",
         "stats": None,
         "stats_error": None,

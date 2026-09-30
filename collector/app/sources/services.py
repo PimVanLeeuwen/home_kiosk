@@ -96,7 +96,12 @@ def prepare(store: Store, cfg: dict[str, Any]) -> str:
     defaults = seed(cfg)
     if store.seed_services(defaults):
         return "service catalog seeded from config.yaml"
+    notes = []
     if store.catalog_upgraded:
         added = store.add_missing_services([s for s in defaults if s.url])
-        return f"service catalog upgraded for links; added {', '.join(added) or 'none'}"
-    return "service catalog unchanged"
+        notes.append(f"upgraded for links; added {', '.join(added) or 'none'}")
+    if store.catalog_icons_added:
+        filled = store.fill_missing_icons(defaults)
+        if filled:
+            notes.append(f"icons added for {len(filled)} entries")
+    return f"service catalog {'; '.join(notes)}" if notes else "service catalog unchanged"

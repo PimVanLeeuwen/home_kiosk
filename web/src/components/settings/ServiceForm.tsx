@@ -1,5 +1,6 @@
 import { useId, useState, type FormEvent } from 'react'
 import { ApiError } from '../../lib/api'
+import { ICON_NAMES, iconUrl } from '../../lib/icons'
 import type { CatalogService, ServiceInput } from '../../lib/types'
 import { buttonClass, inputClass, primaryButtonClass } from './fields'
 
@@ -25,6 +26,7 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
     path: service?.path ?? '/',
     container: service?.container ?? '',
     widget: service?.widget ?? '',
+    icon: service?.icon ?? '',
   })
   const [error, setError] = useState<string>()
   const [saving, setSaving] = useState(false)
@@ -47,6 +49,7 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
         url: link ? values.url.trim() : null,
         container: link ? null : values.container.trim() || null,
         widget: link ? null : values.widget || null,
+        icon: values.icon || null,
       })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Saving failed.')
@@ -98,7 +101,23 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
             ))}
           </datalist>
         </label>
-        <label className="block sm:col-span-2">
+        <label className="block">
+          <span className="mb-1 block text-[12.5px] text-muted">Icon</span>
+          <span className="flex items-center gap-2">
+            <select value={values.icon} onChange={set('icon')} className={inputClass}>
+              <option value="">Letters</option>
+              {ICON_NAMES.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            {iconUrl(values.icon) && (
+              <img src={iconUrl(values.icon)} alt="" className="size-6 shrink-0 object-contain" />
+            )}
+          </span>
+        </label>
+        <label className="block">
           <span className="mb-1 block text-[12.5px] text-muted">Description</span>
           <input maxLength={80} value={values.description} onChange={set('description')} className={inputClass} />
         </label>

@@ -41,6 +41,8 @@ class ServiceInput(BaseModel):
     url: Annotated[str | None, Field(max_length=500)] = None
     container: Annotated[str | None, Field(max_length=128)] = None
     widget: str | None = None
+    # Name of a bundled icon; the web app falls back to letters if it has none.
+    icon: Annotated[str | None, Field(max_length=40)] = None
 
     @field_validator("name", "group", "description")
     @classmethod
@@ -95,6 +97,15 @@ class ServiceInput(BaseModel):
             return None
         if not _CONTAINER.match(value):
             raise ValueError("must be a Docker container name")
+        return value
+
+    @field_validator("icon")
+    @classmethod
+    def _icon(cls, value: str | None) -> str | None:
+        if not value:
+            return None
+        if not _ID.match(value):
+            raise ValueError("must be an icon name like jellyfin or uptime-kuma")
         return value
 
     @field_validator("widget")

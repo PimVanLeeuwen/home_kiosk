@@ -19,6 +19,8 @@ export interface Service {
   url?: string | null
   container: string | null
   widget: string | null
+  /** Name of a bundled icon (lib/icons.ts); letters when unset. */
+  icon?: string | null
   status: ServiceStatus
   /** Live stats from the service's widget; null without a widget or when it failed. */
   stats?: Stat[] | null
@@ -67,6 +69,7 @@ export interface ServiceInput {
   url: string | null
   container: string | null
   widget: string | null
+  icon: string | null
 }
 
 // Kiosk payloads, reused by the Home page. Mirrors collector/app/models.py.

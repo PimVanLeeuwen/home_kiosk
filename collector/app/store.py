@@ -62,11 +62,12 @@ CREATE TABLE IF NOT EXISTS {name} (
     url         TEXT,
     container   TEXT,
     widget      TEXT,
+    icon        TEXT,
     sort        INTEGER NOT NULL
 );
 """
 
-SERVICE_COLUMNS = "id, name, grp, description, port, path, url, container, widget, sort"
+SERVICE_COLUMNS = "id, name, grp, description, port, path, url, container, widget, icon, sort"
 
 NAS_SAMPLE_RETENTION = timedelta(hours=24)
 
@@ -79,6 +80,11 @@ class Store:
             conn.executescript(SCHEMA + SERVICE_TABLE.format(name="service"))
             # True when this start upgraded a catalog from before links existed.
             self.catalog_upgraded = self._add_link_support(conn)
+            # True when this start added icons to an existing catalog. The links
+            # rebuild above already creates the icon column, so it counts too.
+            self.catalog_icons_added = (
+                self._add_icon_support(conn) or self.catalog_upgraded
+            )
 
     @staticmethod
     def _add_link_support(conn: sqlite3.Connection) -> bool:
@@ -93,6 +99,14 @@ class Store:
             + f"INSERT INTO service_new ({old}) SELECT {old} FROM service;"
             + "DROP TABLE service; ALTER TABLE service_new RENAME TO service;"
         )
+        return True
+
+    @staticmethod
+    def _add_icon_support(conn: sqlite3.Connection) -> bool:
+        columns = {r["name"] for r in conn.execute("PRAGMA table_info(service)")}
+        if "icon" in columns:
+            return False
+        conn.execute("ALTER TABLE service ADD COLUMN icon TEXT")
         return True
 
     @contextmanager
@@ -203,10 +217,24 @@ class Store:
             if conn.execute("SELECT 1 FROM service LIMIT 1").fetchone():
                 return False
             conn.executemany(
-                f"INSERT INTO service ({SERVICE_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                f"INSERT INTO service ({SERVICE_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [(*self._values(s), i) for i, s in enumerate(services)],
             )
         return True
+
+    def fill_missing_icons(self, defaults: list[Service]) -> list[str]:
+        """Give entries without an icon the default icon for their id; returns
+        the ids updated. Used once, when icons arrive in an existing catalog."""
+        icons = {s.id: s.icon for s in defaults if s.icon}
+        with self._connect() as conn:
+            updated = []
+            for service_id, icon in icons.items():
+                cur = conn.execute(
+                    "UPDATE service SET icon = ? WHERE id = ? AND icon IS NULL", (icon, service_id)
+                )
+                if cur.rowcount:
+                    updated.append(service_id)
+        return updated
 
     def add_missing_services(self, services: list[Service]) -> list[str]:
         """Add entries whose id is not in the catalog yet; returns their ids.
@@ -220,7 +248,7 @@ class Store:
     @staticmethod
     def _values(s: Service) -> tuple[Any, ...]:
         return (s.id, s.name, s.group, s.description, s.port, s.path, s.url, s.container,
-                s.widget)
+                s.widget, s.icon)
 
     def list_services(self) -> list[Service]:
         with self._connect() as conn:
@@ -236,6 +264,7 @@ class Store:
                 url=r["url"],
                 container=r["container"],
                 widget=r["widget"],
+                icon=r["icon"],
             )
             for r in rows
         ]
@@ -246,7 +275,7 @@ class Store:
             sort = self._sort_after_group(conn, service.group)
             conn.execute("UPDATE service SET sort = sort + 1 WHERE sort >= ?", (sort,))
             conn.execute(
-                f"INSERT INTO service ({SERVICE_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                f"INSERT INTO service ({SERVICE_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (*self._values(service), sort),
             )
 
@@ -259,7 +288,7 @@ class Store:
                 return False
             conn.execute(
                 "UPDATE service SET name = ?, grp = ?, description = ?, port = ?, path = ?, "
-                "url = ?, container = ?, widget = ? WHERE id = ?",
+                "url = ?, container = ?, widget = ?, icon = ? WHERE id = ?",
                 (*self._values(service)[1:], service.id),
             )
             if row["grp"] != service.group:

@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
 import { fireEvent, screen, within } from '@testing-library/react'
+import { iconUrl } from '../lib/icons'
 import type { CatalogService, SettingsCatalog } from '../lib/types'
 import { renderRoute } from '../test/renderRoute'
 import { failWith, sentBody, stubApi } from '../test/stubApi'
@@ -75,6 +76,7 @@ describe('SettingsPage services', () => {
       url: null,
       container: 'uptime-kuma',
       widget: null,
+      icon: null,
     })
   })
 
@@ -104,7 +106,22 @@ describe('SettingsPage services', () => {
       url: 'https://trash-guides.info',
       container: null,
       widget: null,
+      icon: null,
     })
+  })
+
+  it('picks an icon, with a preview', async () => {
+    const fetchMock = setup({ [`PUT ${ENDPOINT}/immich`]: CATALOG })
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit Immich' }))
+
+    const form = screen.getByRole('form', { name: 'Edit Immich' })
+    fireEvent.change(within(form).getByLabelText('Icon'), { target: { value: 'immich' } })
+    expect(form.querySelector('img')).toHaveAttribute('src', iconUrl('immich'))
+    fireEvent.submit(form)
+
+    await vi.waitFor(() =>
+      expect(sentBody(fetchMock, 'PUT', `${ENDPOINT}/immich`)).toMatchObject({ icon: 'immich' }),
+    )
   })
 
   it('keeps the form open with the reason when the hub refuses it', async () => {

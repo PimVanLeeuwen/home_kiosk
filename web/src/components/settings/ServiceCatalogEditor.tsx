@@ -2,9 +2,10 @@ import { ChevronDown, ChevronUp, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { ApiError, sendJson } from '../../lib/api'
 import { groupEntries, moveGroup, moveService, type Direction } from '../../lib/catalogOrder'
-import { tileColour, uniqueMonograms } from '../../lib/monogram'
+import { uniqueMonograms } from '../../lib/monogram'
 import type { CatalogService, ContainerList, ServiceInput, SettingsCatalog } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
+import { ServiceIcon } from '../ServiceIcon'
 import { ServiceForm } from './ServiceForm'
 import { buttonClass, iconButtonClass, inputClass, primaryButtonClass } from './fields'
 
@@ -201,16 +202,9 @@ export function ServiceCatalogEditor() {
 }
 
 function ServiceSummary({ service, label, index }: { service: CatalogService; label: string; index: number }) {
-  const colour = tileColour(index)
   return (
     <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
-      <span
-        aria-hidden="true"
-        className="grid size-[30px] shrink-0 place-items-center rounded-lg text-xs font-bold"
-        style={{ backgroundColor: colour.bg, color: colour.fg }}
-      >
-        {label}
-      </span>
+      <ServiceIcon icon={service.icon} label={label} index={index} />
       <div className="min-w-0">
         <p className="truncate font-medium">{service.name}</p>
         <p className="truncate text-[12px] text-muted">
