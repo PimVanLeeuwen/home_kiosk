@@ -9,6 +9,7 @@ table under `nas_counters`. That survives a restart, unlike an in-memory value.
 from __future__ import annotations
 
 import logging
+import math
 import re
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -42,7 +43,11 @@ def parse_metrics(text: str) -> dict[str, list[tuple[dict[str, str], float]]]:
         try:
             value = float(m.group("value"))
         except ValueError:
-            continue  # NaN and friends
+            continue
+        # float() accepts "NaN" and "+Inf", and either would end up in the cached
+        # JSON as a bare NaN/Infinity token that browsers refuse to parse.
+        if not math.isfinite(value):
+            continue
         labels = dict(_LABEL.findall(m.group("labels") or ""))
         out.setdefault(m.group("name"), []).append((labels, value))
     return out

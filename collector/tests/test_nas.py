@@ -31,6 +31,18 @@ def test_parse_metrics_reads_labels_and_skips_comments():
     assert not any(name.startswith("#") for name in metrics)
 
 
+def test_parse_metrics_skips_nan_and_infinite_values():
+    text = (
+        'node_hwmon_temp_celsius{chip="acpi",sensor="temp1"} NaN\n'
+        'node_hwmon_temp_celsius{chip="coretemp",sensor="temp2"} 41\n'
+        'node_scrape_collector_duration_seconds{collector="x"} +Inf\n'
+    )
+
+    metrics = nas.parse_metrics(text)
+
+    assert metrics == {"node_hwmon_temp_celsius": [({"chip": "coretemp", "sensor": "temp2"}, 41.0)]}
+
+
 def test_parse_metrics_handles_unlabelled_samples():
     assert nas.parse_metrics("node_boot_time_seconds 1.7e9") == {
         "node_boot_time_seconds": [({}, 1.7e9)]

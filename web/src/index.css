@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+@import './fonts.css';
+
+/*
+ * Home hub design tokens: "calm graphite", dark first, one violet accent.
+ * Text colours are checked for WCAG AA (4.5:1) against the panel and card
+ * surfaces they sit on; `faint` is too low for text on `raised`.
+ */
+@theme {
+  --color-canvas: #08090a; /* page background and sidebar */
+  --color-panel: #101114; /* the raised content panel */
+  --color-card: #15161a;
+  --color-raised: #1b1c21; /* controls and chips inside cards */
+  --color-line: #24262c;
+  --color-line-soft: #1c1e23;
+
+  --color-fg: #ecedef;
+  --color-muted: #9a9ea7;
+  --color-faint: #7e828b;
+
+  /* Filled accent (buttons, toggles) carries white text at 4.8:1. */
+  --color-accent: #6d5ce8;
+  --color-accent-soft: rgb(124 108 242 / 0.14);
+  --color-accent-fg: #b4aaff; /* accent-coloured text and icons */
+  --color-accent-line: #8f80ff; /* active indicator, chart lines */
+
+  --color-up: #3fb97f;
+  --color-down: #e5646a;
+  --color-warn: #e0a23b;
+
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-canvas);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  /* Figures line up in every table and stat without a separate class. */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--color-accent-soft);
+  color: var(--color-fg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-line);
+  outline-offset: 2px;
+}
