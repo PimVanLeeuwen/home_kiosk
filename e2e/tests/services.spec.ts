@@ -8,7 +8,7 @@ const SERVICES = {
     {
       name: 'Media',
       services: [
-        { id: 'jellyfin', name: 'Jellyfin', group: 'Media', description: 'Media server', port: 8096, path: '/', container: 'jellyfin', widget: 'jellyfin', status: 'up' },
+        { id: 'jellyfin', name: 'Jellyfin', group: 'Media', description: 'Media server', port: 8096, path: '/', container: 'jellyfin', widget: 'jellyfin', status: 'up', stats: [{ label: 'Streaming', value: 2, unit: 'count' }, { label: 'Movies', value: 1812, unit: 'count' }], stats_error: null },
         { id: 'immich', name: 'Immich', group: 'Media', description: 'Photos', port: 2283, path: '/', container: 'immich_server', widget: 'immich', status: 'unhealthy' },
       ],
     },
@@ -39,6 +39,7 @@ test('lists services by group with status and links to the NAS', async ({ page }
   const media = page.getByRole('region', { name: 'Media' })
   await expect(media.getByRole('link')).toHaveCount(2)
   await expect(media.getByRole('link', { name: /Immich/ })).toHaveAccessibleName(/Unhealthy/)
+  await expect(media.getByRole('link', { name: /Jellyfin/ })).toContainText('2 streaming · 1.812 movies')
 
   // The test server is localhost, so links use the NAS LAN address.
   await expect(page.getByRole('link', { name: /CouchDB/ })).toHaveAttribute(

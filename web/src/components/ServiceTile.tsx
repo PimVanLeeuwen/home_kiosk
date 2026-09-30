@@ -1,5 +1,7 @@
+import { TriangleAlert } from 'lucide-react'
 import { tileColour } from '../lib/monogram'
 import { serviceUrl } from '../lib/links'
+import { statsSummary } from '../lib/stats'
 import type { Service } from '../lib/types'
 import { StatusDot } from './StatusDot'
 
@@ -13,6 +15,11 @@ interface Props {
 
 export function ServiceTile({ service, host, label, index }: Props) {
   const colour = tileColour(index)
+  // Live stats replace the description when the widget delivers them. Two fit
+  // on a tile; the tooltip has them all.
+  const stats = service.stats?.length ? service.stats : null
+  const detail = stats ? statsSummary(stats, 2) : service.description
+  const fullDetail = stats ? statsSummary(stats) : service.description
 
   return (
     <a
@@ -30,10 +37,18 @@ export function ServiceTile({ service, host, label, index }: Props) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[13.5px] font-medium">{service.name}</span>
-        {service.description && (
-          <span className="block truncate text-[11.5px] text-muted">{service.description}</span>
+        {detail && (
+          <span className="block truncate text-[11.5px] text-muted" title={fullDetail}>
+            {detail}
+          </span>
         )}
       </span>
+      {service.stats_error && (
+        <span title={`Stats: ${service.stats_error}`} className="text-warn">
+          <TriangleAlert aria-hidden="true" className="size-3.5" />
+          <span className="sr-only">Stats unavailable: {service.stats_error}</span>
+        </span>
+      )}
       <StatusDot status={service.status} />
       <span className="sr-only">(opens in a new tab)</span>
     </a>

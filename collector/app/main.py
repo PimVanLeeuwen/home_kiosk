@@ -137,7 +137,9 @@ def services() -> Any:
     """The service catalog with a status per service. Always 200: the catalog
     is local, and without a container list every status reads "unknown"."""
     store = app.state.store
-    return service_catalog.build(store.list_services(), store.get_cache("containers"))
+    return service_catalog.build(
+        store.list_services(), store.get_cache("containers"), store.get_cache("widgets")
+    )
 
 
 class SaveRequest(BaseModel):

@@ -80,3 +80,8 @@ python3 dashboard/serve.py
   Admin → Gather all data has run once. See docs/kiosk-build-spec.md §6.
 - node-exporter and Scrutiny listen on the host network: reach them via `host.docker.internal`.
 - Readeck listens on 8000 inside the stack but is published on 8084 (8000 is the collector).
+- Every endpoint that changes data needs `dependencies=[Depends(same_origin_json)]` (see
+  `collector/app/security.py`). Never re-add CORS, and keep `changeOrigin: false` in the Vite
+  proxy, or dev writes get a 403.
+- On the Mac, the Vite dev proxy can't reach the NAS on its LAN IP (`EHOSTUNREACH`, probably
+  macOS Local Network privacy). Point `HUB_API` at the Tailscale IP `http://100.70.0.10:8000`.

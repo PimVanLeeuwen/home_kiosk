@@ -257,8 +257,26 @@ class Service(BaseModel):
     widget: str | None = None
 
 
+class Stat(BaseModel):
+    label: str
+    value: float
+    unit: Literal["count", "bytes"] = "count"
+
+
+class WidgetResult(BaseModel):
+    stats: list[Stat] = []
+    # Short and safe to show: never contains a key or a URL with one.
+    error: str | None = None
+
+
+class WidgetStats(Envelope):
+    items: dict[str, WidgetResult]  # by service id
+
+
 class ServiceWithStatus(Service):
     status: ServiceStatus
+    stats: list[Stat] | None = None
+    stats_error: str | None = None
 
 
 class ServiceGroup(BaseModel):
@@ -272,3 +290,4 @@ class Services(BaseModel):
     as_of: datetime | None
     stale: bool
     groups: list[ServiceGroup]
+    stats_as_of: datetime | None = None

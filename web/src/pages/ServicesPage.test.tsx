@@ -97,6 +97,38 @@ describe('ServicesPage', () => {
     )
   })
 
+  it('shows live stats instead of the description, and flags stats errors', async () => {
+    const withStats: ServicesResponse = {
+      ...SERVICES,
+      groups: [
+        {
+          ...SERVICES.groups[0],
+          services: [
+            {
+              ...SERVICES.groups[0].services[0],
+              stats: [
+                { label: 'Streaming', value: 2, unit: 'count' },
+                { label: 'Movies', value: 1812, unit: 'count' },
+              ],
+            },
+            { ...SERVICES.groups[0].services[1], stats: null, stats_error: 'No API key set (IMMICH_API_KEY)' },
+          ],
+        },
+        SERVICES.groups[1],
+      ],
+    }
+    stubApi({ '/api/services': withStats })
+    renderRoute('/services')
+
+    const jellyfin = await screen.findByRole('link', { name: /Jellyfin/ })
+    expect(jellyfin).toHaveTextContent('2 streaming · 1.812 movies')
+    expect(jellyfin).not.toHaveTextContent('Media server')
+
+    const immich = screen.getByRole('link', { name: /Immich/ })
+    expect(immich).toHaveTextContent('Photos')
+    expect(immich).toHaveAccessibleName(/Stats unavailable: No API key set \(IMMICH_API_KEY\)/)
+  })
+
   it('says when the container status is stale', async () => {
     stubApi({ '/api/services': { ...SERVICES, stale: true } })
     renderRoute('/services')

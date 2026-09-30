@@ -2,6 +2,12 @@
 
 export type ServiceStatus = 'up' | 'starting' | 'unhealthy' | 'down' | 'missing' | 'unknown'
 
+export interface Stat {
+  label: string
+  value: number
+  unit: 'count' | 'bytes'
+}
+
 export interface Service {
   id: string
   name: string
@@ -12,6 +18,9 @@ export interface Service {
   container: string | null
   widget: string | null
   status: ServiceStatus
+  /** Live stats from the service's widget; null without a widget or when it failed. */
+  stats?: Stat[] | null
+  stats_error?: string | null
 }
 
 export interface ServicesResponse {
@@ -27,8 +36,8 @@ export interface Hosts {
   tailscale: { dns_name: string; ip: string | null } | null
 }
 
-/** A catalog entry as edited in Settings (no status). */
-export type CatalogService = Omit<Service, 'status'>
+/** A catalog entry as edited in Settings (no status or stats). */
+export type CatalogService = Omit<Service, 'status' | 'stats' | 'stats_error'>
 
 export interface SettingsCatalog {
   services: CatalogService[]

@@ -35,8 +35,13 @@ def status_for(
     return "up"
 
 
-def build(catalog: list[Service], container_cache: dict[str, Any] | None) -> Services:
-    """Group the catalog in stored order and attach each service's status."""
+def build(
+    catalog: list[Service],
+    container_cache: dict[str, Any] | None,
+    widget_cache: dict[str, Any] | None = None,
+) -> Services:
+    """Group the catalog in stored order and attach each service's status and,
+    where it has a widget, its latest stats."""
     containers: dict[str, ContainerState] | None = None
     as_of: datetime | None = None
     stale = True
@@ -48,11 +53,17 @@ def build(catalog: list[Service], container_cache: dict[str, Any] | None) -> Ser
         as_of = datetime.fromisoformat(container_cache["as_of"])
         stale = bool(container_cache.get("stale"))
 
+    widgets = (widget_cache or {}).get("items", {})
+
     groups: dict[str, list[ServiceWithStatus]] = {}
     for service in catalog:
+        widget = widgets.get(service.id) if service.widget else None
         groups.setdefault(service.group, []).append(
             ServiceWithStatus(
-                **service.model_dump(), status=status_for(service.container, containers)
+                **service.model_dump(),
+                status=status_for(service.container, containers),
+                stats=widget.get("stats") if widget and not widget.get("error") else None,
+                stats_error=widget.get("error") if widget else None,
             )
         )
 
@@ -60,6 +71,7 @@ def build(catalog: list[Service], container_cache: dict[str, Any] | None) -> Ser
         as_of=as_of,
         stale=stale,
         groups=[ServiceGroup(name=name, services=items) for name, items in groups.items()],
+        stats_as_of=(widget_cache or {}).get("as_of"),
     )
 
 
