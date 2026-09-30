@@ -126,6 +126,11 @@ def nas() -> Any:
     return _serve(CACHE_KEYS["nas"])
 
 
+@app.get("/api/hosts")
+def hosts() -> Any:
+    return _serve("hosts")
+
+
 @app.get("/api/services")
 def services() -> Any:
     """The service catalog with a status per service. Always 200: the catalog

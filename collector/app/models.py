@@ -221,6 +221,18 @@ class Nas(Envelope):
 # --- Home hub: containers and services ----------------------------------------
 
 
+class TailscaleHost(BaseModel):
+    dns_name: str  # e.g. "dev-minotaur.tail1234.ts.net", no trailing dot
+    ip: str | None  # the node's IPv4 in 100.64.0.0/10
+
+
+class Hosts(Envelope):
+    """Where the NAS can be reached, for building service links."""
+
+    lan: str
+    tailscale: TailscaleHost
+
+
 class ContainerState(BaseModel):
     name: str
     state: str  # Docker's State: running, exited, restarting, paused, created, dead

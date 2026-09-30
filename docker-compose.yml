@@ -53,6 +53,9 @@ services:
       # The backup marker written by rclone's backup.sh. Without this mount the
       # backup tile silently reads "unknown".
       - /volume1/docker/rclone/config:/volume1/docker/rclone/config:ro
+      # tailscaled's control socket, shared by the tailscale stack. The hub
+      # reads the NAS's tailnet name and IP from it for service links.
+      - /volume1/docker/tailscale/run:/var/run/tailscale:ro
     extra_hosts:
       - host.docker.internal:host-gateway
     depends_on:
