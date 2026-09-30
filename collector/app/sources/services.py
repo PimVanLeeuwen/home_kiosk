@@ -18,6 +18,7 @@ from ..models import (
     ServiceStatus,
     ServiceWithStatus,
 )
+from ..store import Store
 
 
 def status_for(
@@ -76,9 +77,26 @@ def build(
 
 
 def seed(cfg: dict[str, Any]) -> list[Service]:
-    """The default catalog from config.yaml, grouped as written."""
+    """The default catalog from config.yaml, grouped as written. Entries go
+    through the same validation as edits in Settings."""
+    from ..settings_api import ServiceInput  # noqa: PLC0415 (avoids an import cycle)
+
     catalog: list[Service] = []
     for group in cfg.get("services", []):
         for entry in group.get("items", []):
-            catalog.append(Service(group=group["group"], **entry))
+            fields = {k: v for k, v in entry.items() if k != "id"}
+            checked = ServiceInput(group=group["group"], **fields)
+            catalog.append(Service(id=entry["id"], **checked.model_dump()))
     return catalog
+
+
+def prepare(store: Store, cfg: dict[str, Any]) -> str:
+    """At startup: seed an empty catalog, or bring the default links into a
+    catalog that was just upgraded to support them. Returns a log line."""
+    defaults = seed(cfg)
+    if store.seed_services(defaults):
+        return "service catalog seeded from config.yaml"
+    if store.catalog_upgraded:
+        added = store.add_missing_services([s for s in defaults if s.url])
+        return f"service catalog upgraded for links; added {', '.join(added) or 'none'}"
+    return "service catalog unchanged"

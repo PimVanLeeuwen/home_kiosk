@@ -129,6 +129,32 @@ describe('ServicesPage', () => {
     expect(immich).toHaveAccessibleName(/Stats unavailable: No API key set \(IMMICH_API_KEY\)/)
   })
 
+  it('shows links without a status and leaves them out of the count', async () => {
+    const withLink: ServicesResponse = {
+      ...SERVICES,
+      groups: [
+        ...SERVICES.groups,
+        {
+          name: 'Links',
+          services: [
+            {
+              id: 'trash-guides', name: 'TRaSH Guides', group: 'Links', description: 'Guides',
+              port: null, path: '/', url: 'https://trash-guides.info', container: null,
+              widget: null, status: 'unknown',
+            },
+          ],
+        },
+      ],
+    }
+    stubApi({ '/api/services': withLink })
+    renderRoute('/services')
+
+    const link = await screen.findByRole('link', { name: /TRaSH Guides/ })
+    expect(link).toHaveAttribute('href', 'https://trash-guides.info')
+    expect(link).not.toHaveAccessibleName(/Status unknown/)
+    expect(screen.getByText('1 of 3 running')).toBeInTheDocument()
+  })
+
   it('says when the container status is stale', async () => {
     stubApi({ '/api/services': { ...SERVICES, stale: true } })
     renderRoute('/services')

@@ -16,10 +16,12 @@ interface Props {
 export function ServiceForm({ service, groups, containers, widgets, onSubmit, onCancel }: Props) {
   const id = useId()
   const [values, setValues] = useState({
+    kind: service?.url ? 'link' : 'service',
+    url: service?.url ?? '',
     name: service?.name ?? '',
     group: service?.group ?? groups[0] ?? '',
     description: service?.description ?? '',
-    port: service ? String(service.port) : '',
+    port: service?.port ? String(service.port) : '',
     path: service?.path ?? '/',
     container: service?.container ?? '',
     widget: service?.widget ?? '',
@@ -35,14 +37,16 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
     setSaving(true)
     setError(undefined)
     try {
+      const link = values.kind === 'link'
       await onSubmit({
         name: values.name,
         group: values.group,
         description: values.description,
-        port: Number(values.port),
-        path: values.path,
-        container: values.container.trim() || null,
-        widget: values.widget || null,
+        port: link ? null : Number(values.port),
+        path: link ? '/' : values.path,
+        url: link ? values.url.trim() : null,
+        container: link ? null : values.container.trim() || null,
+        widget: link ? null : values.widget || null,
       })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Saving failed.')
@@ -58,6 +62,28 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
       aria-label={service ? `Edit ${service.name}` : 'Add a service'}
       className="rounded-[12px] border border-line bg-panel p-4"
     >
+      <fieldset className="mb-3 flex flex-wrap gap-x-5 gap-y-2">
+        <legend className="sr-only">Kind</legend>
+        {(
+          [
+            ['service', 'Service on the NAS'],
+            ['link', 'Link to a website'],
+          ] as const
+        ).map(([kind, label]) => (
+          <label key={kind} className="flex items-center gap-2">
+            <input
+              type="radio"
+              name={field('kind')}
+              value={kind}
+              checked={values.kind === kind}
+              onChange={set('kind')}
+              className="accent-accent"
+            />
+            {label}
+          </label>
+        ))}
+      </fieldset>
+
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
           <span className="mb-1 block text-[12.5px] text-muted">Name</span>
@@ -76,34 +102,51 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
           <span className="mb-1 block text-[12.5px] text-muted">Description</span>
           <input maxLength={80} value={values.description} onChange={set('description')} className={inputClass} />
         </label>
-        <label className="block">
-          <span className="mb-1 block text-[12.5px] text-muted">Port</span>
-          <input required type="number" min={1} max={65535} inputMode="numeric" value={values.port} onChange={set('port')} className={inputClass} />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-[12.5px] text-muted">Path</span>
-          <input maxLength={200} value={values.path} onChange={set('path')} className={`${inputClass} font-mono`} />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-[12.5px] text-muted">Container (for the status dot)</span>
-          <input maxLength={128} list={field('containers')} value={values.container} onChange={set('container')} className={`${inputClass} font-mono`} />
-          <datalist id={field('containers')}>
-            {containers.map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-[12.5px] text-muted">Stats widget</span>
-          <select value={values.widget} onChange={set('widget')} className={inputClass}>
-            <option value="">None</option>
-            {widgets.map((w) => (
-              <option key={w} value={w}>
-                {w}
-              </option>
-            ))}
-          </select>
-        </label>
+        {values.kind === 'link' ? (
+          <label className="block sm:col-span-2">
+            <span className="mb-1 block text-[12.5px] text-muted">Address</span>
+            <input
+              required
+              type="url"
+              maxLength={500}
+              placeholder="https://"
+              value={values.url}
+              onChange={set('url')}
+              className={`${inputClass} font-mono`}
+            />
+          </label>
+        ) : (
+          <>
+            <label className="block">
+              <span className="mb-1 block text-[12.5px] text-muted">Port</span>
+              <input required type="number" min={1} max={65535} inputMode="numeric" value={values.port} onChange={set('port')} className={inputClass} />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12.5px] text-muted">Path</span>
+              <input maxLength={200} value={values.path} onChange={set('path')} className={`${inputClass} font-mono`} />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12.5px] text-muted">Container (for the status dot)</span>
+              <input maxLength={128} list={field('containers')} value={values.container} onChange={set('container')} className={`${inputClass} font-mono`} />
+              <datalist id={field('containers')}>
+                {containers.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12.5px] text-muted">Stats widget</span>
+              <select value={values.widget} onChange={set('widget')} className={inputClass}>
+                <option value="">None</option>
+                {widgets.map((w) => (
+                  <option key={w} value={w}>
+                    {w}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
       </div>
 
       {error && (

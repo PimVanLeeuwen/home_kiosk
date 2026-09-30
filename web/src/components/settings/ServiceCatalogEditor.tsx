@@ -215,8 +215,7 @@ function ServiceSummary({ service, label, index }: { service: CatalogService; la
         <p className="truncate font-medium">{service.name}</p>
         <p className="truncate text-[12px] text-muted">
           <span className="font-mono">
-            :{service.port}
-            {service.path !== '/' && service.path}
+            {service.url ?? `:${service.port}${service.path !== '/' ? service.path : ''}`}
           </span>
           {service.container && (
             <>

@@ -1,4 +1,4 @@
-import { TriangleAlert } from 'lucide-react'
+import { ExternalLink, TriangleAlert } from 'lucide-react'
 import { tileColour } from '../lib/monogram'
 import { statsSummary } from '../lib/stats'
 import type { Service } from '../lib/types'
@@ -48,7 +48,12 @@ export function ServiceTile({ service, href, label, index }: Props) {
           <span className="sr-only">Stats unavailable: {service.stats_error}</span>
         </span>
       )}
-      <StatusDot status={service.status} />
+      {service.url ? (
+        // A link has no container to report on.
+        <ExternalLink aria-hidden="true" className="size-3.5 shrink-0 text-faint" />
+      ) : (
+        <StatusDot status={service.status} />
+      )}
       <span className="sr-only">(opens in a new tab)</span>
     </a>
   )

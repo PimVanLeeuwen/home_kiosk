@@ -47,19 +47,26 @@ CREATE TABLE IF NOT EXISTS storage_sample (
     PRIMARY KEY (date, mountpoint)
 );
 
--- Home hub service catalog. Seeded from config.yaml once, then edited in the app.
-CREATE TABLE IF NOT EXISTS service (
+"""
+
+# Home hub service catalog. Seeded from config.yaml once, then edited in the
+# app. An entry is either a NAS service (port, path) or an external link (url).
+SERVICE_TABLE = """
+CREATE TABLE IF NOT EXISTS {name} (
     id          TEXT PRIMARY KEY,
     name        TEXT NOT NULL,
     grp         TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
-    port        INTEGER NOT NULL,
+    port        INTEGER,
     path        TEXT NOT NULL DEFAULT '/',
+    url         TEXT,
     container   TEXT,
     widget      TEXT,
     sort        INTEGER NOT NULL
 );
 """
+
+SERVICE_COLUMNS = "id, name, grp, description, port, path, url, container, widget, sort"
 
 NAS_SAMPLE_RETENTION = timedelta(hours=24)
 
@@ -69,7 +76,24 @@ class Store:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as conn:
-            conn.executescript(SCHEMA)
+            conn.executescript(SCHEMA + SERVICE_TABLE.format(name="service"))
+            # True when this start upgraded a catalog from before links existed.
+            self.catalog_upgraded = self._add_link_support(conn)
+
+    @staticmethod
+    def _add_link_support(conn: sqlite3.Connection) -> bool:
+        """Before links, `port` was NOT NULL and there was no `url`. SQLite
+        cannot relax a NOT NULL in place, so the table is rebuilt."""
+        columns = {r["name"] for r in conn.execute("PRAGMA table_info(service)")}
+        if "url" in columns:
+            return False
+        old = "id, name, grp, description, port, path, container, widget, sort"
+        conn.executescript(
+            SERVICE_TABLE.format(name="service_new")
+            + f"INSERT INTO service_new ({old}) SELECT {old} FROM service;"
+            + "DROP TABLE service; ALTER TABLE service_new RENAME TO service;"
+        )
+        return True
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
@@ -179,15 +203,24 @@ class Store:
             if conn.execute("SELECT 1 FROM service LIMIT 1").fetchone():
                 return False
             conn.executemany(
-                "INSERT INTO service (id, name, grp, description, port, path, container, "
-                "widget, sort) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                [
-                    (s.id, s.name, s.group, s.description, s.port, s.path, s.container,
-                     s.widget, i)
-                    for i, s in enumerate(services)
-                ],
+                f"INSERT INTO service ({SERVICE_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [(*self._values(s), i) for i, s in enumerate(services)],
             )
         return True
+
+    def add_missing_services(self, services: list[Service]) -> list[str]:
+        """Add entries whose id is not in the catalog yet; returns their ids.
+        Used once, when an upgrade brings defaults an existing catalog lacks."""
+        existing = {s.id for s in self.list_services()}
+        added = [s for s in services if s.id not in existing]
+        for service in added:
+            self.add_service(service)
+        return [s.id for s in added]
+
+    @staticmethod
+    def _values(s: Service) -> tuple[Any, ...]:
+        return (s.id, s.name, s.group, s.description, s.port, s.path, s.url, s.container,
+                s.widget)
 
     def list_services(self) -> list[Service]:
         with self._connect() as conn:
@@ -200,6 +233,7 @@ class Store:
                 description=r["description"],
                 port=r["port"],
                 path=r["path"],
+                url=r["url"],
                 container=r["container"],
                 widget=r["widget"],
             )
@@ -212,10 +246,8 @@ class Store:
             sort = self._sort_after_group(conn, service.group)
             conn.execute("UPDATE service SET sort = sort + 1 WHERE sort >= ?", (sort,))
             conn.execute(
-                "INSERT INTO service (id, name, grp, description, port, path, container, "
-                "widget, sort) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (service.id, service.name, service.group, service.description, service.port,
-                 service.path, service.container, service.widget, sort),
+                f"INSERT INTO service ({SERVICE_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (*self._values(service), sort),
             )
 
     def update_service(self, service: Service) -> bool:
@@ -227,9 +259,8 @@ class Store:
                 return False
             conn.execute(
                 "UPDATE service SET name = ?, grp = ?, description = ?, port = ?, path = ?, "
-                "container = ?, widget = ? WHERE id = ?",
-                (service.name, service.group, service.description, service.port, service.path,
-                 service.container, service.widget, service.id),
+                "url = ?, container = ?, widget = ? WHERE id = ?",
+                (*self._values(service)[1:], service.id),
             )
             if row["grp"] != service.group:
                 # Last in the stored order, so normalising puts it at the end

@@ -89,4 +89,8 @@ def test_the_shipped_config_seeds_a_valid_catalog():
 
     ids = [s.id for s in seeded]
     assert len(ids) == len(set(ids))
-    assert all(1 <= s.port <= 65535 for s in seeded)
+    nas_services = [s for s in seeded if s.url is None]
+    links = [s for s in seeded if s.url is not None]
+    assert all(1 <= s.port <= 65535 for s in nas_services)
+    assert [s.id for s in links] == ["nas-docker-repo", "trash-guides", "hetzner-robot"]
+    assert all(s.port is None and s.url.startswith("https://") for s in links)

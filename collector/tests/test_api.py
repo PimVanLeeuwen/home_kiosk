@@ -70,6 +70,7 @@ def test_services_without_container_list_reads_unknown(client, store):
         "description": "",
         "port": 8096,
         "path": "/",
+        "url": None,
         "container": "jellyfin",
         "widget": None,
         "status": "unknown",

@@ -72,7 +72,37 @@ describe('SettingsPage services', () => {
       description: '',
       port: 3001,
       path: '/',
+      url: null,
       container: 'uptime-kuma',
+      widget: null,
+    })
+  })
+
+  it('adds a link with only the fields a link needs', async () => {
+    const withLink = {
+      ...CATALOG,
+      services: [...CATALOG.services, svc('trash-guides', 'TRaSH Guides', 'Links', { port: null, url: 'https://trash-guides.info' })],
+    }
+    const fetchMock = setup({ [`POST ${ENDPOINT}`]: withLink })
+    fireEvent.click(await screen.findByRole('button', { name: 'Add service' }))
+
+    const form = screen.getByRole('form', { name: 'Add a service' })
+    fireEvent.click(within(form).getByLabelText('Link to a website'))
+    expect(within(form).queryByLabelText('Port')).not.toBeInTheDocument()
+    fireEvent.change(within(form).getByLabelText('Name'), { target: { value: 'TRaSH Guides' } })
+    fireEvent.change(within(form).getByLabelText('Group'), { target: { value: 'Links' } })
+    fireEvent.change(within(form).getByLabelText('Address'), { target: { value: 'https://trash-guides.info' } })
+    fireEvent.submit(form)
+
+    expect(await screen.findByText('https://trash-guides.info')).toBeInTheDocument()
+    expect(sentBody(fetchMock, 'POST', ENDPOINT)).toEqual({
+      name: 'TRaSH Guides',
+      group: 'Links',
+      description: '',
+      port: null,
+      path: '/',
+      url: 'https://trash-guides.info',
+      container: null,
       widget: null,
     })
   })

@@ -41,8 +41,7 @@ CACHE_KEYS = {
 async def lifespan(app: FastAPI):
     app.state.config = config.load()
     app.state.store = Store(app.state.config.get("database", "./data/collector.db"))
-    if app.state.store.seed_services(service_catalog.seed(app.state.config)):
-        log.info("service catalog seeded from config.yaml")
+    log.info(service_catalog.prepare(app.state.store, app.state.config))
 
     # Unset ${VAR} references expand to "", which would otherwise only surface
     # as a failed save long after startup.

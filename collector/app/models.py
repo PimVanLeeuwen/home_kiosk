@@ -254,8 +254,10 @@ class Service(BaseModel):
     name: str
     group: str
     description: str = ""
-    port: int
+    # A NAS service has a port (and path); an external link has a url instead.
+    port: int | None = None
     path: str = "/"
+    url: str | None = None
     container: str | None = None
     widget: str | None = None
 

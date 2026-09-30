@@ -21,7 +21,7 @@ repo in `~/Pictures/pr-screenshots/home_kiosk/2026-09-30-mockups/`.
 | Frontend | New `web/` app: React + TypeScript + Vite + Tailwind + React Router, same family as community-cafe-web. |
 | Serving | The existing Caddy `dashboard` image on :8083 serves `web/` at `/`, the old carousel at `/kiosk/`, and proxies `/api/*`. |
 | Access | No login. The network is the boundary: LAN and Tailscale only, never through cloudflared. |
-| HTTPS | `tailscale serve` gives the hub, and each service, an `https://<host>.ts.net` address. |
+| HTTPS | `tailscale serve` (nas-docker `tailscale/serve.json`): the hub on 443, each service on its port plus 10000, so the plain `http://100.x:<port>` addresses keep working. Links read the served ports from tailscaled. Transmission stays HTTP. |
 | Link hosts | Chosen in the browser from `location.hostname`: `*.ts.net` or `100.x` means Tailscale links, anything else means LAN links (`192.168.1.10`). |
 | Style | Dark first. "Calm graphite": near-black, darker sidebar, page in a raised rounded panel, violet accent (`#7C6CF2`), comfortable density. |
 | Type | Instrument Sans with tabular figures for all numbers. JetBrains Mono only for technical values (container names, hosts, commands). Both self-hosted. |
@@ -32,7 +32,8 @@ repo in `~/Pictures/pr-screenshots/home_kiosk/2026-09-30-mockups/`.
 | Search | News only. |
 | Container actions | Out of scope; use Dockge. The Docker socket stays read-only. |
 | Pi kiosk controls | Out of scope for now (dimming, rotation choice). |
-| Service logins | Arr apps set to "Disabled for Local Addresses". Apps with real accounts rely on long-lived sessions plus a password manager. No SSO for now. |
+| Service logins | Sonarr, Radarr, Prowlarr: "Disabled for Local Addresses" plus "Trust CGNAT IP Addresses" (covers Tailscale). Apps with real accounts rely on long-lived sessions plus a password manager. No SSO for now. |
+| Bookmarks | External links live in the service catalog (a `url` instead of a port), editable in Settings; homepage's three bookmarks were migrated. |
 | Telegram | The hub owns the bot token (NAS-only `.env`). Two chats, as today: **NAS alerts** and **Portfolio**. The bot only accepts commands from those chats. |
 
 ## 2. Architecture
@@ -71,7 +72,7 @@ commit message, screenshots for visual changes.
   `web/`, Playwright (desktop + mobile) in `e2e/`.
 - CI: lint and test both parts, build both images as today.
 
-**M2. Home, services and links** (retires homepage)
+**M2. Home, services and links** (retires homepage). **Done 2026-09-30.**
 - Service catalog (name, group, icon, port, container, widget type), editable in Settings.
 - LAN / Tailscale link resolution; `tailscale serve` HTTPS per service.
 - Status from the Docker socket plus an HTTP check.
@@ -106,7 +107,7 @@ commit message, screenshots for visual changes.
 - Daily report through M5, which makes stock-bot redundant (retirement when the owner says so).
 
 **M8. Cleanup**
-- Rebuild `/kiosk/` in the new style; retire homepage and stock-bot; update READMEs and copy
+- Rebuild `/kiosk/` in the new style; retire stock-bot; update READMEs and copy
   the stack into nas-docker.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8.
@@ -116,8 +117,6 @@ Order: M1, M2, M3 + M4, M5, M6, M7, M8.
 - Pi kiosk URL: the carousel now lives at `/kiosk/`, so the Pi's Chromium `--app` URL becomes
   `http://<nas>:8083/kiosk/?data=api`. Without `?data=api` the carousel shows its fixture data.
   `/kiosk` and the old `/read.html` redirect.
-- Tailscale serve configuration lives in the tailscale container's state; decide in M2 whether it
-  is scripted in nas-docker.
 
 ## 5. Non-goals
 

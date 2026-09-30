@@ -14,7 +14,8 @@ export function serviceHost(pageHost: string, hosts?: Hosts): string {
   return hosts?.lan ?? pageHost
 }
 
-export function serviceUrl(service: Pick<Service, 'port' | 'path'>, host: string): string {
+export function serviceUrl(service: Pick<Service, 'port' | 'path' | 'url'>, host: string): string {
+  if (service.url) return service.url
   const path = service.path.startsWith('/') ? service.path : `/${service.path}`
   // IPv6 literals need brackets in a URL.
   const hostPart = host.includes(':') && !host.startsWith('[') ? `[${host}]` : host
@@ -27,10 +28,11 @@ export function serviceUrl(service: Pick<Service, 'port' | 'path'>, host: string
  * plain HTTP link on the host the hub was opened on.
  */
 export function serviceHref(
-  service: Pick<Service, 'port' | 'path'>,
+  service: Pick<Service, 'port' | 'path' | 'url'>,
   pageHost: string,
   hosts?: Hosts,
 ): string {
+  if (service.url) return service.url
   const tailnet = hosts?.tailscale
   const httpsPort = tailnet?.https_ports?.[String(service.port)]
   if (connectionFor(pageHost) === 'tailscale' && tailnet && httpsPort) {

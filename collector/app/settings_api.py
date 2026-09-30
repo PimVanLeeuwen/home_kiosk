@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import re
 from typing import Annotated, Any
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .models import Service
 from .security import same_origin_json
@@ -33,8 +34,11 @@ class ServiceInput(BaseModel):
     name: Text
     group: Annotated[str, Field(min_length=1, max_length=40)]
     description: Annotated[str, Field(max_length=80)] = ""
-    port: Annotated[int, Field(ge=1, le=65535)]
+    # Either a NAS service (port, path, optional container and widget) or an
+    # external link (url only).
+    port: Annotated[int | None, Field(ge=1, le=65535)] = None
     path: Annotated[str, Field(max_length=200)] = "/"
+    url: Annotated[str | None, Field(max_length=500)] = None
     container: Annotated[str | None, Field(max_length=128)] = None
     widget: str | None = None
 
@@ -60,6 +64,28 @@ class ServiceInput(BaseModel):
         if any(c.isspace() for c in value) or "\\" in value:
             raise ValueError("must be a URL path without spaces, like /_utils")
         return value
+
+    @field_validator("url")
+    @classmethod
+    def _url(cls, value: str | None) -> str | None:
+        value = (value or "").strip()
+        if not value:
+            return None
+        parts = urlsplit(value)
+        # http(s) only: a javascript: or data: URL would run in the hub's page.
+        if parts.scheme not in ("http", "https") or not parts.netloc:
+            raise ValueError("must be a full http:// or https:// address")
+        return value
+
+    @model_validator(mode="after")
+    def _service_or_link(self) -> ServiceInput:
+        if (self.port is None) == (self.url is None):
+            raise ValueError("give either a port (NAS service) or a url (link), not both")
+        if self.url is not None:
+            if self.container or self.widget:
+                raise ValueError("a link has no container or widget")
+            self.path = "/"
+        return self
 
     @field_validator("container")
     @classmethod

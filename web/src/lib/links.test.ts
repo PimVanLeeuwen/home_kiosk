@@ -73,3 +73,9 @@ describe('serviceHref', () => {
     expect(serviceHref(jellyfin, '100.70.0.10', HOSTS)).toBe('http://100.70.0.10:8096/')
   })
 })
+
+it('uses a link as is, whatever the connection', () => {
+  const link = { port: null, path: '/', url: 'https://trash-guides.info' }
+  expect(serviceHref(link, 'dev-minotaur.tail1234.ts.net', HOSTS)).toBe('https://trash-guides.info')
+  expect(serviceHref(link, '192.168.1.10', HOSTS)).toBe('https://trash-guides.info')
+})

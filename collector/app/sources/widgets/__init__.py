@@ -91,7 +91,8 @@ async def collect(
     host = widget_cfg.get("host", "localhost")
     keys = widget_cfg.get("keys") or {}
     options = widget_cfg.get("options") or {}
-    services = [s for s in store.list_services() if s.widget in REGISTRY]
+    # Links have no port, so no widget either.
+    services = [s for s in store.list_services() if s.widget in REGISTRY and s.port]
 
     async with httpx.AsyncClient(
         timeout=TIMEOUT_SECONDS, follow_redirects=True, transport=transport

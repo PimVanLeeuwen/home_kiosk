@@ -13,8 +13,10 @@ export interface Service {
   name: string
   group: string
   description: string
-  port: number
+  /** A NAS service has a port and path; an external link has a url instead. */
+  port: number | null
   path: string
+  url?: string | null
   container: string | null
   widget: string | null
   status: ServiceStatus
@@ -60,8 +62,9 @@ export interface ServiceInput {
   name: string
   group: string
   description: string
-  port: number
+  port: number | null
   path: string
+  url: string | null
   container: string | null
   widget: string | null
 }

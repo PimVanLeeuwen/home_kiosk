@@ -13,7 +13,9 @@ export function ServicesPage() {
   const linkFor = useServiceLinks()
 
   const all = services.data?.groups.flatMap((g) => g.services) ?? []
-  const running = all.filter((s) => s.status === 'up').length
+  // Links have no status; count NAS services only.
+  const onNas = all.filter((s) => !s.url)
+  const running = onNas.filter((s) => s.status === 'up').length
   const labels = uniqueMonograms(all.map((s) => s.name))
   const position = new Map(all.map((s, i) => [s.id, i]))
   const statusKnown = !!services.data && !services.data.stale && !services.error
@@ -24,7 +26,7 @@ export function ServicesPage() {
         title="Services"
         subtitle={
           services.data
-            ? `${running} of ${all.length} running`
+            ? `${running} of ${onNas.length} running`
             : 'Every app on the NAS, with status and links'
         }
       />
