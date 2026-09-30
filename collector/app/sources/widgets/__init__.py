@@ -17,7 +17,7 @@ import httpx
 
 from ...models import Service, Stat, WidgetResult, WidgetStats
 from ...store import Store
-from . import media
+from . import arr, media
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +26,10 @@ REGISTRY: dict[str, tuple[Callable[..., Awaitable[list[Stat]]], bool]] = {
     "jellyfin": (media.jellyfin, True),
     "immich": (media.immich, True),
     "jellyseerr": (media.jellyseerr, True),
+    "sonarr": (arr.sonarr, True),
+    "radarr": (arr.radarr, True),
+    "bazarr": (arr.bazarr, True),
+    "prowlarr": (arr.prowlarr, True),
 }
 
 TIMEOUT_SECONDS = 8
