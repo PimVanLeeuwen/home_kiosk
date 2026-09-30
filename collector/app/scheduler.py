@@ -1,4 +1,4 @@
-"""APScheduler jobs on the cadences in plan.md §5.
+"""APScheduler jobs on the cadences in docs/kiosk-build-spec.md §5.
 
 Each job refreshes one endpoint's cached payload. A job that raises leaves the
 previous payload in place and flags it stale, so the screen keeps showing the

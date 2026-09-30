@@ -1,6 +1,6 @@
 """FastAPI app exposing the four dashboard endpoints.
 
-No auth — LAN only, per plan.md §11. Endpoints never raise on a source failure:
+No auth — LAN only, per docs/kiosk-build-spec.md §11. Endpoints never raise on a source failure:
 they serve the last-good cached payload, flagged stale. The only non-200 case is
 a cold start with nothing cached yet, which the frontend renders with its
 "collector unreachable" fallback.

@@ -2,7 +2,7 @@
 
 Read-only: this project never writes to Ghostfolio.
 
-Endpoints verified against a running 2.x instance (plan.md §6) — several paths
+Endpoints verified against a running 2.x instance (docs/kiosk-build-spec.md §6) — several paths
 in older documentation are gone, notably `/api/v1/portfolio/performance`, which
 is now v2.
 

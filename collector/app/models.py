@@ -1,6 +1,6 @@
 """Response models for the four endpoints.
 
-These mirror the payloads in plan.md §5 exactly — they are the schema contract
+These mirror the payloads in docs/kiosk-build-spec.md §5 exactly — they are the schema contract
 the frontend fixtures are written against, so change them deliberately.
 """
 
