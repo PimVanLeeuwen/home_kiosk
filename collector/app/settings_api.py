@@ -14,25 +14,14 @@ from pydantic import BaseModel, Field, field_validator
 
 from .models import Service
 from .security import same_origin_json
+from .sources import widgets
 from .store import Store
 
 router = APIRouter(prefix="/api/settings")
 write = [Depends(same_origin_json)]
 
-# Stats adapters the hub knows; M2 step 5 builds them.
-WIDGETS = [
-    "bazarr",
-    "immich",
-    "jellyfin",
-    "jellyseerr",
-    "prowlarr",
-    "radarr",
-    "sabnzbd",
-    "scrutiny",
-    "sonarr",
-    "transmission",
-    "uptimekuma",
-]
+# The widget types that have an adapter.
+WIDGETS = sorted(widgets.REGISTRY)
 
 _CONTAINER = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_.-]*$")
 _ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")

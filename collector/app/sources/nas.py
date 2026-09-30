@@ -157,16 +157,8 @@ def _storage(
     )
 
 
-async def _disks(client: httpx.AsyncClient, base_url: str) -> list[Disk]:
-    """Disk temps and SMART verdicts from Scrutiny's summary API."""
-    try:
-        resp = await client.get(f"{base_url.rstrip('/')}/api/summary", timeout=8)
-        resp.raise_for_status()
-        summary = resp.json()["data"]["summary"]
-    except Exception as exc:
-        log.warning("scrutiny unreachable: %s", exc)
-        return []
-
+def parse_scrutiny(summary: dict[str, Any]) -> list[Disk]:
+    """Disks from Scrutiny's /api/summary `data.summary`, sorted by name."""
     disks: list[Disk] = []
     for entry in summary.values():
         device = entry.get("device", {})
@@ -183,6 +175,18 @@ async def _disks(client: httpx.AsyncClient, base_url: str) -> list[Disk]:
         )
     disks.sort(key=lambda d: d.name)
     return disks
+
+
+async def _disks(client: httpx.AsyncClient, base_url: str) -> list[Disk]:
+    """Disk temps and SMART verdicts from Scrutiny's summary API."""
+    try:
+        resp = await client.get(f"{base_url.rstrip('/')}/api/summary", timeout=8)
+        resp.raise_for_status()
+        summary = resp.json()["data"]["summary"]
+    except Exception as exc:
+        log.warning("scrutiny unreachable: %s", exc)
+        return []
+    return parse_scrutiny(summary)
 
 
 async def _containers(socket_path: str) -> Containers:

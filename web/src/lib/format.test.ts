@@ -1,4 +1,4 @@
-import { formatBytes, formatCount, formatRate } from './format'
+import { formatBytes, formatCount, formatPercent, formatRate } from './format'
 
 it('formats counts with Dutch grouping', () => {
   expect(formatCount(48213)).toBe('48.213')
@@ -15,4 +15,9 @@ it('formats transfer speeds', () => {
   expect(formatRate(5_000_000)).toBe('5,0 MB/s')
   expect(formatRate(250_000)).toBe('250 kB/s')
   expect(formatRate(0)).toBe('0 kB/s')
+})
+
+it('formats percentages', () => {
+  expect(formatPercent(97.2)).toBe('97,2%')
+  expect(formatPercent(100)).toBe('100,0%')
 })

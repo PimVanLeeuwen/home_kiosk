@@ -25,3 +25,6 @@ export function formatRate(bytesPerSecond: number): string {
   if (bytesPerSecond >= MB) return `${decimals(bytesPerSecond / MB, 1)} MB/s`
   return `${decimals(bytesPerSecond / 1e3, 0)} kB/s`
 }
+
+/** A 0 to 100 percentage with one decimal: 97,2%. */
+export const formatPercent = (percent: number) => `${decimals(percent, 1)}%`

@@ -17,7 +17,7 @@ import httpx
 
 from ...models import Service, Stat, WidgetResult, WidgetStats
 from ...store import Store
-from . import arr, downloads, media
+from . import arr, downloads, media, monitoring
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +33,8 @@ REGISTRY: dict[str, tuple[Callable[..., Awaitable[list[Stat]]], bool]] = {
     "sabnzbd": (downloads.sabnzbd, True),
     # No RPC auth on this Transmission (it sits behind gluetun, LAN only).
     "transmission": (downloads.transmission, False),
+    "uptimekuma": (monitoring.uptimekuma, False),
+    "scrutiny": (monitoring.scrutiny, False),
 }
 
 TIMEOUT_SECONDS = 8
@@ -59,7 +61,11 @@ def describe(exc: Exception) -> str:
 
 
 async def _one(
-    client: httpx.AsyncClient, service: Service, host: str, keys: dict[str, str]
+    client: httpx.AsyncClient,
+    service: Service,
+    host: str,
+    keys: dict[str, str],
+    options: dict[str, dict[str, Any]],
 ) -> WidgetResult:
     adapter, needs_key = REGISTRY[service.widget or ""]
     key = (keys.get(service.widget or "") or "").strip()
@@ -68,7 +74,8 @@ async def _one(
         return WidgetResult(error=f"No API key set ({env})")
     base_url = f"http://{host}:{service.port}"
     try:
-        return WidgetResult(stats=await adapter(client, base_url, key))
+        extra = options.get(service.widget or "") or {}
+        return WidgetResult(stats=await adapter(client, base_url, key, **extra))
     except Exception as exc:
         # Log the class only: some exceptions carry the request, and the
         # request carries the key.
@@ -83,12 +90,13 @@ async def collect(
     widget_cfg = cfg.get("widgets") or {}
     host = widget_cfg.get("host", "localhost")
     keys = widget_cfg.get("keys") or {}
+    options = widget_cfg.get("options") or {}
     services = [s for s in store.list_services() if s.widget in REGISTRY]
 
     async with httpx.AsyncClient(
         timeout=TIMEOUT_SECONDS, follow_redirects=True, transport=transport
     ) as client:
-        results = await asyncio.gather(*(_one(client, s, host, keys) for s in services))
+        results = await asyncio.gather(*(_one(client, s, host, keys, options) for s in services))
 
     return WidgetStats(
         as_of=datetime.now(UTC),
