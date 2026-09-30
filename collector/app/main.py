@@ -13,12 +13,12 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, HttpUrl
 
-from . import config, scheduler
+from . import config, scheduler, settings_api
+from .security import same_origin_json
 from .sources import feeds, readeck
 from .sources import services as service_catalog
 from .store import Store
@@ -61,14 +61,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Desk Dashboard Collector", version="0.1.0", lifespan=lifespan)
 
-# LAN-only appliance; the dashboard may be served from a different port during
-# development, so origin checks would only get in the way.
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-)
+# No CORS: the hub, the kiosk and the Vite dev server all reach the API on the
+# same origin. Allowing any origin would let other websites call the write
+# endpoints; see security.py.
+app.include_router(settings_api.router)
 
 
 def _serve(key: str) -> Any:
@@ -131,6 +127,11 @@ def hosts() -> Any:
     return _serve("hosts")
 
 
+@app.get("/api/containers")
+def containers() -> Any:
+    return _serve("containers")
+
+
 @app.get("/api/services")
 def services() -> Any:
     """The service catalog with a status per service. Always 200: the catalog
@@ -144,7 +145,7 @@ class SaveRequest(BaseModel):
     title: str | None = None
 
 
-@app.post("/api/save")
+@app.post("/api/save", dependencies=[Depends(same_origin_json)])
 async def save(req: SaveRequest) -> Any:
     """Queue an article in Readeck. The only write path in the project.
 

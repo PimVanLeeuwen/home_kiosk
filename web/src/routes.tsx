@@ -6,10 +6,12 @@ import { MorePage } from './pages/MorePage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { SectionPage } from './pages/SectionPage'
 import { ServicesPage } from './pages/ServicesPage'
+import { SettingsPage } from './pages/SettingsPage'
 
 /** Sections that are built; the rest show their placeholder. */
 const PAGES: Record<string, ReactElement> = {
   '/services': <ServicesPage />,
+  '/settings': <SettingsPage />,
 }
 
 export const BUILT_ROUTES = Object.keys(PAGES)

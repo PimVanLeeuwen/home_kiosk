@@ -9,7 +9,9 @@ const apiTarget = process.env.HUB_API ?? 'http://localhost:8000'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    proxy: { '/api': { target: apiTarget, changeOrigin: true } },
+    // Keep the browser's Host header: the collector checks that writes come
+    // from the same origin (collector/app/security.py).
+    proxy: { '/api': { target: apiTarget, changeOrigin: false } },
   },
   test: {
     environment: 'jsdom',

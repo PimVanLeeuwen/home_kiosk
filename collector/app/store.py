@@ -205,3 +205,77 @@ class Store:
             )
             for r in rows
         ]
+
+    def add_service(self, service: Service) -> None:
+        """Append at the end of its group, or at the very end for a new group."""
+        with self._connect() as conn:
+            sort = self._sort_after_group(conn, service.group)
+            conn.execute("UPDATE service SET sort = sort + 1 WHERE sort >= ?", (sort,))
+            conn.execute(
+                "INSERT INTO service (id, name, grp, description, port, path, container, "
+                "widget, sort) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (service.id, service.name, service.group, service.description, service.port,
+                 service.path, service.container, service.widget, sort),
+            )
+
+    def update_service(self, service: Service) -> bool:
+        """Overwrite a service. Moving it to another group puts it at the end
+        of that group, so groups stay contiguous."""
+        with self._connect() as conn:
+            row = conn.execute("SELECT grp FROM service WHERE id = ?", (service.id,)).fetchone()
+            if row is None:
+                return False
+            conn.execute(
+                "UPDATE service SET name = ?, grp = ?, description = ?, port = ?, path = ?, "
+                "container = ?, widget = ? WHERE id = ?",
+                (service.name, service.group, service.description, service.port, service.path,
+                 service.container, service.widget, service.id),
+            )
+            if row["grp"] != service.group:
+                # Last in the stored order, so normalising puts it at the end
+                # of its new group.
+                conn.execute(
+                    "UPDATE service SET sort = (SELECT MAX(sort) + 1 FROM service) WHERE id = ?",
+                    (service.id,),
+                )
+                self._keep_groups_together(conn)
+        return True
+
+    def delete_service(self, service_id: str) -> bool:
+        with self._connect() as conn:
+            cur = conn.execute("DELETE FROM service WHERE id = ?", (service_id,))
+            return cur.rowcount > 0
+
+    def reorder_services(self, ids: list[str]) -> None:
+        with self._connect() as conn:
+            self._write_order(conn, ids)
+            self._keep_groups_together(conn)
+
+    def rename_group(self, old: str, new: str) -> bool:
+        with self._connect() as conn:
+            cur = conn.execute("UPDATE service SET grp = ? WHERE grp = ?", (new, old))
+            # Renaming onto an existing group merges the two.
+            self._keep_groups_together(conn)
+            return cur.rowcount > 0
+
+    @classmethod
+    def _keep_groups_together(cls, conn: sqlite3.Connection) -> None:
+        """Make every group contiguous, groups in order of their first service
+        and services in their existing order within a group."""
+        rows = conn.execute("SELECT id, grp FROM service ORDER BY sort, name").fetchall()
+        by_group: dict[str, list[str]] = {}
+        for r in rows:
+            by_group.setdefault(r["grp"], []).append(r["id"])
+        cls._write_order(conn, [sid for ids in by_group.values() for sid in ids])
+
+    @staticmethod
+    def _write_order(conn: sqlite3.Connection, ids: list[str]) -> None:
+        conn.executemany("UPDATE service SET sort = ? WHERE id = ?", list(enumerate(ids)))
+
+    @staticmethod
+    def _sort_after_group(conn: sqlite3.Connection, group: str) -> int:
+        row = conn.execute("SELECT MAX(sort) AS m FROM service WHERE grp = ?", (group,)).fetchone()
+        if row["m"] is not None:
+            return row["m"] + 1
+        row = conn.execute("SELECT MAX(sort) AS m FROM service").fetchone()
+        return (row["m"] + 1) if row["m"] is not None else 0
