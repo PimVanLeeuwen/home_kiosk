@@ -4,12 +4,14 @@ interface Props {
   title: string
   subtitle?: string
   actions?: ReactNode
+  /** Browser tab title when it should differ from the heading (Home's greeting). */
+  documentTitle?: string
 }
 
-export function PageHeader({ title, subtitle, actions }: Props) {
+export function PageHeader({ title, subtitle, actions, documentTitle }: Props) {
   useEffect(() => {
-    document.title = `${title} · Home hub`
-  }, [title])
+    document.title = `${documentTitle ?? title} · Home hub`
+  }, [title, documentTitle])
 
   return (
     <div className="mb-6 flex items-end justify-between gap-4 md:mb-7">

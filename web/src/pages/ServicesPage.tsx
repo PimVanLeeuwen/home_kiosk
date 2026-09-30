@@ -1,18 +1,16 @@
 import { RefreshCw } from 'lucide-react'
 import { PageHeader } from '../components/PageHeader'
 import { ServiceTile } from '../components/ServiceTile'
-import { serviceHost } from '../lib/links'
 import { uniqueMonograms } from '../lib/monogram'
-import type { Hosts, ServicesResponse } from '../lib/types'
+import type { ServicesResponse } from '../lib/types'
 import { useApi } from '../lib/useApi'
+import { useServiceHost } from '../lib/useServiceHost'
 
 const REFRESH_MS = 30_000
 
 export function ServicesPage() {
   const services = useApi<ServicesResponse>('/api/services', REFRESH_MS)
-  // Only needed when the hub is not opened on the NAS itself; see serviceHost.
-  const hosts = useApi<Hosts>('/api/hosts')
-  const host = serviceHost(window.location.hostname, hosts.data)
+  const host = useServiceHost()
 
   const all = services.data?.groups.flatMap((g) => g.services) ?? []
   const running = all.filter((s) => s.status === 'up').length

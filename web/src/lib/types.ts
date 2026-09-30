@@ -60,3 +60,53 @@ export interface ServiceInput {
   container: string | null
   widget: string | null
 }
+
+// Kiosk payloads, reused by the Home page. Mirrors collector/app/models.py.
+
+export interface Portfolio {
+  as_of: string
+  stale: boolean
+  currency: string
+  total_value: number
+  change: { day_abs: number; day_pct: number; month_pct: number; year_pct: number; all_pct: number }
+  history: { d: string; v: number }[]
+  holdings: { symbol: string; name: string; value: number; day_pct: number; weight_pct: number }[]
+}
+
+export interface Pool {
+  name: string
+  used_bytes: number
+  total_bytes: number
+  used_pct: number
+  free_bytes: number
+  projection_months?: number | null
+}
+
+export interface Nas {
+  as_of: string
+  stale: boolean
+  host: string
+  storage: { used_pct: number; pools: Pool[] }
+  cpu_pct: number
+  ram_pct: number
+  cpu_temp_c: number | null
+  containers: { running: number; total: number }
+  disks: { name: string; temp_c: number | null; smart: 'ok' | 'warn' | 'fail' }[]
+  /** Megabits per second. */
+  network: { rx_mbps: number; tx_mbps: number }
+  backup: { status: 'ok' | 'fail' | 'unknown'; at: string | null }
+}
+
+export interface NewsItem {
+  title: string
+  source: string
+  published: string
+  age_label: string
+  url: string
+}
+
+export interface NewsResponse {
+  as_of: string
+  stale: boolean
+  groups: { id: string; title: string; items: NewsItem[] }[]
+}

@@ -81,5 +81,6 @@ test('unknown addresses show the not-found page', async ({ page }) => {
 
   await expect(shell.heading()).toHaveText('Page not found')
   await shell.main.getByRole('link', { name: 'Back to Home' }).click()
-  await expect(shell.heading()).toHaveText('Home')
+  await expect(page).toHaveURL('/')
+  await expect(page).toHaveTitle('Home · Home hub')
 })

@@ -58,7 +58,8 @@ describe('Layout', () => {
 
   it('shows the NAS host name under the brand once the collector answers', async () => {
     stubNas({ host: 'dev-minotaur' })
-    renderRoute('/')
+    // A page without data of its own, so only the layout reads /api/nas.
+    renderRoute('/more')
 
     expect(await within(sidebar().parentElement!).findByText('dev-minotaur')).toBeInTheDocument()
     expect(fetch).toHaveBeenCalledWith('/api/nas', expect.anything())
@@ -66,11 +67,21 @@ describe('Layout', () => {
 
   it('leaves the host out when the collector has no data yet', async () => {
     stubNas({ detail: 'no nas data collected yet' }, false)
-    renderRoute('/')
+    renderRoute('/more')
 
     await waitFor(() => expect(fetch).toHaveBeenCalled())
     expect(screen.getAllByText('Home hub')).toHaveLength(2) // sidebar and mobile header
     expect(screen.queryByText('dev-minotaur')).not.toBeInTheDocument()
+  })
+
+  it('keeps the navigation when a page crashes', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    // A malformed payload: /api/services without groups.
+    stubNas({ host: 'dev-minotaur' })
+    renderRoute('/services')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Something went wrong' })).toBeInTheDocument()
+    expect(within(sidebar()).getByRole('link', { name: 'Home' })).toBeInTheDocument()
   })
 
   it('shows how the hub was reached', () => {
