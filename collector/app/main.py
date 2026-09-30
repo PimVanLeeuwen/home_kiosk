@@ -25,6 +25,9 @@ from .store import Store
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger(__name__)
+# httpx logs every request URL at INFO, and SABnzbd only takes its API key as a
+# query parameter: keep URLs out of the container log (Dozzle shows it to the LAN).
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 CACHE_KEYS = {
     "portfolio": "portfolio",

@@ -1,14 +1,16 @@
-import { formatBytes, formatCount } from './format'
+import { formatBytes, formatCount, formatRate } from './format'
 import type { Stat } from './types'
+
+const FORMAT: Record<Stat['unit'], (n: number) => string> = {
+  count: formatCount,
+  bytes: formatBytes,
+  bytes_per_second: formatRate,
+}
 
 /** "2 streaming · 812 movies": a one-line summary, optionally of the first `limit` stats. */
 export function statsSummary(stats: Stat[], limit?: number): string {
   return stats
     .slice(0, limit)
-    .map((s) =>
-      s.unit === 'bytes'
-        ? `${formatBytes(s.value)} ${s.label.toLowerCase()}`
-        : `${formatCount(s.value)} ${s.label.toLowerCase()}`,
-    )
+    .map((s) => `${FORMAT[s.unit](s.value)} ${s.label.toLowerCase()}`)
     .join(' · ')
 }

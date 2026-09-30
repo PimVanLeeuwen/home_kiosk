@@ -5,7 +5,7 @@ export type ServiceStatus = 'up' | 'starting' | 'unhealthy' | 'down' | 'missing'
 export interface Stat {
   label: string
   value: number
-  unit: 'count' | 'bytes'
+  unit: 'count' | 'bytes' | 'bytes_per_second'
 }
 
 export interface Service {

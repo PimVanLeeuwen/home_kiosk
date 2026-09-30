@@ -17,3 +17,12 @@ it('can limit the summary to the first stats', () => {
   ]
   expect(statsSummary(stats, 2)).toBe('2 streaming · 812 movies')
 })
+
+it('formats speeds', () => {
+  expect(
+    statsSummary([
+      { label: 'Active', value: 2, unit: 'count' },
+      { label: 'Down', value: 5_000_000, unit: 'bytes_per_second' },
+    ]),
+  ).toBe('2 active · 5,0 MB/s down')
+})

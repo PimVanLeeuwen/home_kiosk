@@ -17,7 +17,7 @@ import httpx
 
 from ...models import Service, Stat, WidgetResult, WidgetStats
 from ...store import Store
-from . import arr, media
+from . import arr, downloads, media
 
 log = logging.getLogger(__name__)
 
@@ -30,6 +30,9 @@ REGISTRY: dict[str, tuple[Callable[..., Awaitable[list[Stat]]], bool]] = {
     "radarr": (arr.radarr, True),
     "bazarr": (arr.bazarr, True),
     "prowlarr": (arr.prowlarr, True),
+    "sabnzbd": (downloads.sabnzbd, True),
+    # No RPC auth on this Transmission (it sits behind gluetun, LAN only).
+    "transmission": (downloads.transmission, False),
 }
 
 TIMEOUT_SECONDS = 8

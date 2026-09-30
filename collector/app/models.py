@@ -260,7 +260,7 @@ class Service(BaseModel):
 class Stat(BaseModel):
     label: str
     value: float
-    unit: Literal["count", "bytes"] = "count"
+    unit: Literal["count", "bytes", "bytes_per_second"] = "count"
 
 
 class WidgetResult(BaseModel):
