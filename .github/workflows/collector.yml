@@ -15,10 +15,28 @@ jobs:
         with:
           src: collector
 
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: collector
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          # Same runtime as the image (python:3.14-slim).
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: collector/pyproject.toml
+
+      - run: pip install -e '.[dev]'
+      - run: pytest
+
   image:
-    # Only publish from main; pull requests get the lint check alone.
+    # Only publish from main; pull requests get the lint and test checks alone.
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: lint
+    needs: [lint, test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

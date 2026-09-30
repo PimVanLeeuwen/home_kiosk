@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["ruff>=0.16"]
+dev = ["ruff>=0.16", "pytest>=9.1"]
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -27,6 +27,9 @@ packages = ["app", "app.sources"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
