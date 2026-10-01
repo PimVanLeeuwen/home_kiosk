@@ -32,3 +32,20 @@ test('pages revalidate while hashed assets cache for good', async ({ page, reque
   const asset = await request.get(script!)
   expect(asset.headers()['cache-control']).toContain('immutable')
 })
+
+test('the favicon is served and linked from the hub and the kiosk', async ({ page, request }) => {
+  for (const [path, type] of [
+    ['/favicon.svg', 'image/svg+xml'],
+    ['/favicon-32.png', 'image/png'],
+    ['/apple-touch-icon.png', 'image/png'],
+  ]) {
+    const response = await request.get(path)
+    expect(response.status(), path).toBe(200)
+    expect(response.headers()['content-type'], path).toContain(type)
+  }
+
+  await page.goto('/')
+  await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute('href', '/favicon.svg')
+  await page.goto('/kiosk/')
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg')
+})

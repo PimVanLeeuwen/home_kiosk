@@ -67,6 +67,28 @@ CREATE TABLE IF NOT EXISTS {name} (
 );
 """
 
+CONTAINER_TABLES = """
+-- Per-container load, one row per container per minute, 24h rolling.
+CREATE TABLE IF NOT EXISTS container_sample (
+    ts        TEXT NOT NULL,
+    name      TEXT NOT NULL,
+    cpu_pct   REAL,
+    mem_bytes INTEGER,
+    PRIMARY KEY (name, ts)
+);
+
+-- Image updates noticed by the Docker page (Watchtower or by hand).
+CREATE TABLE IF NOT EXISTS container_update (
+    ts           TEXT NOT NULL,
+    name         TEXT NOT NULL,
+    image        TEXT NOT NULL,
+    old_image_id TEXT NOT NULL,
+    new_image_id TEXT NOT NULL
+);
+"""
+
+CONTAINER_SAMPLE_RETENTION = timedelta(hours=24)
+
 SERVICE_COLUMNS = "id, name, grp, description, port, path, url, container, widget, icon, sort"
 
 NAS_SAMPLE_RETENTION = timedelta(hours=24)
@@ -77,7 +99,9 @@ class Store:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as conn:
-            conn.executescript(SCHEMA + SERVICE_TABLE.format(name="service"))
+            conn.executescript(
+                SCHEMA + SERVICE_TABLE.format(name="service") + CONTAINER_TABLES
+            )
             # True when this start upgraded a catalog from before links existed.
             self.catalog_upgraded = self._add_link_support(conn)
             # True when this start added icons to an existing catalog. The links
@@ -339,3 +363,44 @@ class Store:
             return row["m"] + 1
         row = conn.execute("SELECT MAX(sort) AS m FROM service").fetchone()
         return (row["m"] + 1) if row["m"] is not None else 0
+
+    # --- container_sample / container_update: the Docker page ----------------
+
+    def put_container_sample(
+        self, ts: datetime, name: str, cpu_pct: float | None, mem_bytes: int | None
+    ) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT INTO container_sample (ts, name, cpu_pct, mem_bytes) VALUES (?, ?, ?, ?) "
+                "ON CONFLICT(name, ts) DO NOTHING",
+                (ts.isoformat(), name, cpu_pct, mem_bytes),
+            )
+
+    def container_samples(self, name: str, since: datetime) -> list[sqlite3.Row]:
+        with self._connect() as conn:
+            return list(conn.execute(
+                "SELECT ts, cpu_pct, mem_bytes FROM container_sample "
+                "WHERE name = ? AND ts >= ? ORDER BY ts",
+                (name, since.isoformat()),
+            ))
+
+    def prune_container_samples(self, retention: timedelta = CONTAINER_SAMPLE_RETENTION) -> int:
+        cutoff = (datetime.now(UTC) - retention).isoformat()
+        with self._connect() as conn:
+            return conn.execute("DELETE FROM container_sample WHERE ts < ?", (cutoff,)).rowcount
+
+    def add_container_update(
+        self, ts: datetime, name: str, image: str, old_image_id: str, new_image_id: str
+    ) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT INTO container_update (ts, name, image, old_image_id, new_image_id) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (ts.isoformat(), name, image, old_image_id, new_image_id),
+            )
+
+    def container_updates(self, limit: int = 100) -> list[sqlite3.Row]:
+        with self._connect() as conn:
+            return list(conn.execute(
+                "SELECT * FROM container_update ORDER BY ts DESC LIMIT ?", (limit,)
+            ))

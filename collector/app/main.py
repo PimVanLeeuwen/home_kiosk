@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import Depends, FastAPI
@@ -18,8 +18,9 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, HttpUrl
 
 from . import config, scheduler, settings_api
+from .models import ContainerUpdate
 from .security import same_origin_json
-from .sources import feeds, readeck
+from .sources import container_stats, feeds, readeck
 from .sources import services as service_catalog
 from .store import Store
 
@@ -132,6 +133,30 @@ def hosts() -> Any:
 @app.get("/api/containers")
 def containers() -> Any:
     return _serve("containers")
+
+
+@app.get("/api/docker")
+def docker_overview() -> Any:
+    return _serve("docker")
+
+
+@app.get("/api/docker/history/{name}")
+def docker_history(name: str) -> Any:
+    """One container's CPU and memory over the last 24 hours, in 10-minute buckets."""
+    since = datetime.now(UTC) - timedelta(hours=24)
+    return container_stats.history(app.state.store.container_samples(name, since))
+
+
+@app.get("/api/docker/updates")
+def docker_updates() -> Any:
+    """Image updates noticed so far, newest first."""
+    return [
+        ContainerUpdate(
+            at=r["ts"], name=r["name"], image=r["image"],
+            old_image_id=r["old_image_id"], new_image_id=r["new_image_id"],
+        )
+        for r in app.state.store.container_updates()
+    ]
 
 
 @app.get("/api/repos")

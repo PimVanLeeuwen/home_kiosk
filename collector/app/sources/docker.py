@@ -31,25 +31,33 @@ def parse(raw: list[dict[str, Any]]) -> list[ContainerState]:
             continue
         match = _HEALTH.search(entry.get("Status") or "")
         health = match.group(1).replace("health: ", "") if match else None
+        labels = entry.get("Labels") or {}
         containers.append(
             ContainerState(
                 name=names[0].lstrip("/"),
                 state=entry.get("State") or "unknown",
                 health=health,
+                id=entry.get("Id") or "",
+                image=entry.get("Image") or "",
+                image_id=entry.get("ImageID") or "",
+                project=labels.get("com.docker.compose.project"),
+                status=entry.get("Status") or "",
             )
         )
     containers.sort(key=lambda c: c.name)
     return containers
 
 
-async def list_containers(socket_path: str) -> list[ContainerState] | None:
+async def list_containers(
+    socket_path: str, transport: httpx.AsyncBaseTransport | None = None
+) -> list[ContainerState] | None:
     """Every container, running or not; None when the socket is unavailable
-    (off-NAS development, or the mount is missing)."""
-    if not Path(socket_path).exists():
+    (off-NAS development, or the mount is missing). `transport` is for tests."""
+    if transport is None and not Path(socket_path).exists():
         log.info("docker socket %s not present", socket_path)
         return None
     try:
-        transport = httpx.AsyncHTTPTransport(uds=socket_path)
+        transport = transport or httpx.AsyncHTTPTransport(uds=socket_path)
         async with httpx.AsyncClient(transport=transport, base_url="http://docker") as client:
             resp = await client.get("/containers/json", params={"all": "1"}, timeout=5)
             resp.raise_for_status()

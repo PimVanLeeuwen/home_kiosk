@@ -240,6 +240,12 @@ class ContainerState(BaseModel):
     name: str
     state: str  # Docker's State: running, exited, restarting, paused, created, dead
     health: Literal["healthy", "unhealthy", "starting"] | None = None
+    # Extra detail for the Docker page; defaults keep older cached lists valid.
+    id: str = ""
+    image: str = ""
+    image_id: str = ""
+    project: str | None = None  # docker compose project, i.e. the stack
+    status: str = ""  # Docker's human status, e.g. "Up 3 days (healthy)"
 
 
 class ContainerList(Envelope):
@@ -338,3 +344,41 @@ class RepoGroup(BaseModel):
 
 class Repos(Envelope):
     groups: list[RepoGroup]
+
+
+# --- Home hub: Docker page ------------------------------------------------------
+
+
+class ContainerLoad(BaseModel):
+    name: str
+    project: str | None
+    image: str
+    state: str
+    health: Literal["healthy", "unhealthy", "starting"] | None
+    status: str
+    # None until two readings exist (CPU and network are rates), or when stopped.
+    cpu_pct: float | None
+    mem_bytes: int | None
+    mem_limit: int | None
+    rx_bps: float | None  # bytes per second
+    tx_bps: float | None
+
+
+class DockerOverview(Envelope):
+    containers: list[ContainerLoad]
+    cpu_pct: float  # all containers together, as a share of the whole machine
+    mem_bytes: int
+
+
+class ContainerPoint(BaseModel):
+    t: datetime
+    cpu: float | None
+    mem: int | None
+
+
+class ContainerUpdate(BaseModel):
+    at: datetime
+    name: str
+    image: str
+    old_image_id: str
+    new_image_id: str
