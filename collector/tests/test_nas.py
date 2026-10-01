@@ -155,3 +155,50 @@ def test_downsample_averages_into_buckets_and_keeps_short_series():
 
     assert [p.rx for p in out] == [0.5, 2.5, 4.5, 6.5, 8.5]
     assert out[-1].t == points[-1].t
+
+
+def _sample(minute, rx, tx, cpu=10.0, ram=50.0, temp=40.0):
+    t0 = datetime(2026, 10, 1, 12, 0, tzinfo=UTC)
+    return {"ts": (t0 + timedelta(minutes=minute)).isoformat(), "rx_bytes": rx, "tx_bytes": tx,
+            "cpu_pct": cpu, "ram_pct": ram, "cpu_temp": temp}
+
+
+def test_history_averages_host_figures_and_network_rates_per_ten_minutes():
+    rows = [
+        _sample(0, 0, 0, cpu=10, ram=50, temp=40),
+        _sample(1, 7_500_000, 750_000, cpu=20, ram=52, temp=42),  # 1 Mbit/s down, 0.1 up
+        _sample(2, 22_500_000, 750_000, cpu=30, ram=54, temp=44),  # 2 Mbit/s down, 0 up
+        _sample(12, 22_500_000 + 7_500_000 * 10, 750_000, cpu=5, ram=60, temp=50),
+    ]
+
+    points = nas.history(rows)
+
+    first, second = points
+    assert (first.t.minute, first.cpu, first.ram, first.temp) == (0, 20.0, 52.0, 42.0)
+    # The first sample has no rate yet; the two after it average 1.5 and 0.05.
+    assert (first.rx_mbps, first.tx_mbps) == (1.5, 0.05)
+    assert (second.t.minute, second.cpu, second.rx_mbps) == (10, 5.0, 1.0)
+
+
+def test_history_skips_rates_across_a_counter_reset():
+    rows = [_sample(0, 9_000_000, 9_000_000), _sample(1, 100, 100)]
+
+    (point,) = nas.history(rows)
+
+    assert (point.rx_mbps, point.tx_mbps) == (None, None)
+    assert point.cpu == 10.0
+
+
+def test_history_endpoint(store):
+    from fastapi.testclient import TestClient
+
+    from app import main
+
+    main.app.state.store = store
+    now = datetime.now(UTC)
+    store.put_nas_sample(now - timedelta(minutes=2), 0, 0, 12.0, 70.0, 55.0)
+    store.put_nas_sample(now - timedelta(minutes=1), 7_500_000, 0, 14.0, 72.0, 57.0)
+
+    body = TestClient(main.app).get("/api/nas/history").json()
+
+    assert body and {"t", "cpu", "ram", "temp", "rx_mbps", "tx_mbps"} <= set(body[0])

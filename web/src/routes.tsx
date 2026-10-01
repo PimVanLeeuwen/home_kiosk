@@ -5,6 +5,7 @@ import { NAV_ITEMS, MORE_ROUTE } from './lib/navigation'
 import { DockerPage } from './pages/DockerPage'
 import { HomePage } from './pages/HomePage'
 import { MorePage } from './pages/MorePage'
+import { NasPage } from './pages/NasPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PageError } from './pages/PageError'
 import { ReposPage } from './pages/ReposPage'
@@ -19,6 +20,7 @@ const PAGES: Record<string, ReactElement> = {
   '/settings': <SettingsPage />,
   '/repos': <ReposPage />,
   '/docker': <DockerPage />,
+  '/nas': <NasPage />,
 }
 
 export const BUILT_ROUTES = Object.keys(PAGES)

@@ -3,15 +3,17 @@ interface Props {
   label: string
   /** Scale from zero instead of the series' own minimum (sizes, not prices). */
   fromZero?: boolean
+  /** A fixed top of the scale, e.g. 100 for percentages. */
+  max?: number
 }
 
 /** Area sparkline for a series, scaled to its own min and max by default. */
-export function Sparkline({ values, label, fromZero = false }: Props) {
+export function Sparkline({ values, label, fromZero = false, max: fixedMax }: Props) {
   if (values.length < 2) return null
   const width = 600
   const height = 120
-  const min = fromZero ? 0 : Math.min(...values)
-  const max = Math.max(...values)
+  const min = fromZero || fixedMax != null ? 0 : Math.min(...values)
+  const max = fixedMax ?? Math.max(...values)
   const span = max - min || 1
   const points = values.map((v, i) => [
     (i / (values.length - 1)) * width,

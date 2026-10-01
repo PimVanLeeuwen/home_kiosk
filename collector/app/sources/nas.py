@@ -17,7 +17,17 @@ from typing import Any
 
 import httpx
 
-from ..models import Backup, Containers, Disk, Nas, Network, NetworkPoint, Pool, Storage
+from ..models import (
+    Backup,
+    Containers,
+    Disk,
+    Nas,
+    NasPoint,
+    Network,
+    NetworkPoint,
+    Pool,
+    Storage,
+)
 from ..store import Store
 from . import docker
 
@@ -334,4 +344,55 @@ async def collect(cfg: dict[str, Any], store: Store) -> Nas:
         disks=disks,
         network=Network(rx_mbps=rx_mbps, tx_mbps=tx_mbps, history=history),
         backup=_backup(nas_cfg["backup_marker"]),
+        mem_total_bytes=int(mem_total) if mem_total else None,
     )
+
+
+HISTORY_BUCKET_MINUTES = 10
+
+
+def history(rows: list[Any]) -> list[NasPoint]:
+    """24h of host figures in 10-minute averages for the NAS page.
+
+    CPU, memory and temperature are stored per sample; network is stored as
+    raw counters, so each sample's rate is its delta to the previous one, with
+    counter resets (reboots) skipped as in _network_history.
+    """
+    samples: list[dict[str, Any]] = []
+    for previous, current in zip([None, *rows], rows, strict=False):
+        rx = tx = None
+        if previous is not None:
+            elapsed = (
+                datetime.fromisoformat(current["ts"]) - datetime.fromisoformat(previous["ts"])
+            ).total_seconds()
+            rx_delta = (current["rx_bytes"] or 0) - (previous["rx_bytes"] or 0)
+            tx_delta = (current["tx_bytes"] or 0) - (previous["tx_bytes"] or 0)
+            if elapsed > 0 and rx_delta >= 0 and tx_delta >= 0:
+                rx = rx_delta * 8 / 1e6 / elapsed
+                tx = tx_delta * 8 / 1e6 / elapsed
+        samples.append({
+            "t": datetime.fromisoformat(current["ts"]),
+            "cpu": current["cpu_pct"], "ram": current["ram_pct"], "temp": current["cpu_temp"],
+            "rx": rx, "tx": tx,
+        })
+
+    buckets: dict[datetime, list[dict[str, Any]]] = {}
+    for s in samples:
+        t = s["t"]
+        start = t.replace(
+            minute=t.minute - t.minute % HISTORY_BUCKET_MINUTES, second=0, microsecond=0
+        )
+        buckets.setdefault(start, []).append(s)
+
+    def mean(items: list[dict[str, Any]], key: str, digits: int) -> float | None:
+        values = [i[key] for i in items if i[key] is not None]
+        return round(sum(values) / len(values), digits) if values else None
+
+    return [
+        NasPoint(
+            t=start, cpu=mean(items, "cpu", 1), ram=mean(items, "ram", 1),
+            temp=mean(items, "temp", 1), rx_mbps=mean(items, "rx", 2),
+            tx_mbps=mean(items, "tx", 2),
+        )
+        for start, items in sorted(buckets.items())
+    ]

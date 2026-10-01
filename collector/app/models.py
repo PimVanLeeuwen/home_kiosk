@@ -216,6 +216,19 @@ class Nas(Envelope):
     disks: list[Disk] = []
     network: Network
     backup: Backup
+    # Added for the Home hub NAS page; the kiosk ignores it.
+    mem_total_bytes: int | None = None
+
+
+class NasPoint(BaseModel):
+    """One 10-minute average on the NAS page charts."""
+
+    t: datetime
+    cpu: float | None
+    ram: float | None
+    temp: float | None
+    rx_mbps: float | None
+    tx_mbps: float | None
 
 
 # --- Home hub: containers and services ----------------------------------------

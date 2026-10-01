@@ -80,10 +80,11 @@ commit message, screenshots for visual changes.
   Prowlarr, Transmission, SABnzbd, Uptime Kuma, Scrutiny. API keys in the hub `.env`.
 - Home page per the mockup. Then the homepage stack is removed from nas-docker.
 
-**M3. NAS and Docker**
+**M3. NAS and Docker**. **Done 2026-10-01.**
 - Host metrics and storage runway (existing), disk health from Scrutiny.
 - Per-container CPU, memory and network from the Docker stats API, 24h history.
-- Watchtower update history (from its webhook, see M5).
+- Image update history: the hub notices when a container is recreated from a new image (Watchtower
+  or Dockge), so no Watchtower webhook is needed.
 
 **M4. Backups**
 - `backup.sh` posts a JSON run record (per volume: result, duration, bytes, errors).

@@ -21,6 +21,7 @@ from . import config, scheduler, settings_api
 from .models import ContainerUpdate
 from .security import same_origin_json
 from .sources import container_stats, feeds, readeck
+from .sources import nas as nas_source
 from .sources import services as service_catalog
 from .store import Store
 
@@ -133,6 +134,13 @@ def hosts() -> Any:
 @app.get("/api/containers")
 def containers() -> Any:
     return _serve("containers")
+
+
+@app.get("/api/nas/history")
+def nas_history() -> Any:
+    """CPU, memory, temperature and network over the last 24 hours."""
+    since = datetime.now(UTC) - timedelta(hours=24)
+    return nas_source.history(app.state.store.recent_nas_samples(since))
 
 
 @app.get("/api/docker")

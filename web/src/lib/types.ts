@@ -97,6 +97,8 @@ export interface Nas {
   as_of: string
   stale: boolean
   host: string
+  uptime_seconds?: number
+  mem_total_bytes?: number | null
   storage: { used_pct: number; pools: Pool[] }
   cpu_pct: number
   ram_pct: number
@@ -185,3 +187,13 @@ export interface ContainerUpdate {
 
 /** CPU per container in 30-minute averages, oldest first. */
 export type Sparklines = Record<string, (number | null)[]>
+
+/** One 10-minute average on the NAS page charts. Network in megabits per second. */
+export interface NasPoint {
+  t: string
+  cpu: number | null
+  ram: number | null
+  temp: number | null
+  rx_mbps: number | null
+  tx_mbps: number | null
+}
