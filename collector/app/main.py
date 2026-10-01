@@ -24,6 +24,8 @@ from .alerts import bot as alert_bot
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
 from .models import ContainerUpdate
+from .news import api as news_api
+from .news import store as news_store
 from .security import same_origin_json
 from .sources import container_stats, feeds, readeck
 from .sources import nas as nas_source
@@ -51,6 +53,9 @@ async def lifespan(app: FastAPI):
     log.info(service_catalog.prepare(app.state.store, app.state.config))
     alerts_core.ensure_tables(app.state.store)
     alert_rules.ensure_tables(app.state.store)
+    news_store.ensure_tables(app.state.store)
+    if news_store.seed(app.state.store, app.state.config):
+        log.info("feed list seeded from config.yaml")
 
     # Unset ${VAR} references expand to "", which would otherwise only surface
     # as a failed save long after startup.
@@ -81,6 +86,7 @@ app = FastAPI(title="Desk Dashboard Collector", version="0.1.0", lifespan=lifesp
 # endpoints; see security.py.
 app.include_router(settings_api.router)
 app.include_router(alerts_api.router)
+app.include_router(news_api.router)
 
 
 def _serve(key: str) -> Any:

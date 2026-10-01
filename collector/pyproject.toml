@@ -22,7 +22,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["app", "app.alerts", "app.sources", "app.sources.widgets"]
+packages = ["app", "app.alerts", "app.news", "app.sources", "app.sources.widgets"]
 
 [tool.ruff]
 line-length = 100

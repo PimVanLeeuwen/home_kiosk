@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, SerializerFunctionWrapHandler, model_serializer
+from pydantic import BaseModel, PrivateAttr, SerializerFunctionWrapHandler, model_serializer
 
 
 def _drop_none(data: dict, *keys: str) -> dict:
@@ -123,6 +123,9 @@ class NewsItem(BaseModel):
     age_label: str
     url: str
     meta: str | None = None
+    # The untruncated title, for the Home hub's article store; not part of
+    # the kiosk payload.
+    _full_title: str = PrivateAttr(default="")
 
 
 class NewsGroup(BaseModel):

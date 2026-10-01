@@ -24,6 +24,7 @@ import feedparser
 import httpx
 
 from ..models import News, NewsGroup, NewsItem
+from ..news import store as news_store
 from ..store import Store
 
 log = logging.getLogger(__name__)
@@ -153,7 +154,7 @@ def _normalise(entry: Any, source: str, cfg: dict[str, Any], now: datetime) -> N
     if not title or not link:
         return None
     published = _published(entry, now)
-    return NewsItem(
+    item = NewsItem(
         title=truncate(title, cfg["news"].get("title_max_chars", 70)),
         source=source,
         published=published,
@@ -161,6 +162,8 @@ def _normalise(entry: Any, source: str, cfg: dict[str, Any], now: datetime) -> N
         url=link,
         meta=_meta(entry),
     )
+    item._full_title = " ".join(title.split())
+    return item
 
 
 # --- fetching ---------------------------------------------------------------
@@ -170,12 +173,26 @@ def _feed_url(feed: Any) -> str:
     return feed["url"] if isinstance(feed, dict) else str(feed)
 
 
+def _reason(exc: Exception) -> str:
+    """A short reason for the Settings feed list."""
+    if isinstance(exc, httpx.HTTPStatusError):
+        return f"HTTP {exc.response.status_code}"
+    if isinstance(exc, httpx.TimeoutException):
+        return "Timed out"
+    if isinstance(exc, httpx.TransportError):
+        return "Not reachable"
+    return type(exc).__name__
+
+
 async def _fetch_feed(
-    client: httpx.AsyncClient, feed: Any, cfg: dict[str, Any], now: datetime
+    client: httpx.AsyncClient, feed: Any, cfg: dict[str, Any], now: datetime,
+    errors: dict[int, str] | None = None,
 ) -> list[NewsItem]:
     """One feed's items, newest first. A failing feed yields nothing rather
-    than failing the whole refresh — one dead source must not blank the view."""
+    than failing the whole refresh — one dead source must not blank the view.
+    Failures are noted in `errors` by feed id, for the Settings page."""
     url = _feed_url(feed)
+    feed_id = feed.get("feed_id") if isinstance(feed, dict) else None
     try:
         resp = await client.get(url, timeout=FETCH_TIMEOUT_SECONDS)
         resp.raise_for_status()
@@ -183,12 +200,16 @@ async def _fetch_feed(
         # Include the exception class: timeouts stringify to an empty message,
         # so "feed X failed: " on its own says nothing about why.
         log.warning("feed %s failed: %s: %s", url, type(exc).__name__, exc or "(no detail)")
+        if errors is not None and feed_id is not None:
+            errors[feed_id] = _reason(exc)
         return []
 
     # feedparser is synchronous and does real parsing work; keep it off the loop.
     parsed = await asyncio.to_thread(feedparser.parse, resp.text)
     if not parsed.entries:
         log.warning("feed %s returned no entries", url)
+        if errors is not None and feed_id is not None:
+            errors[feed_id] = "No items: not a feed?"
         return []
 
     name = feed.get("name") if isinstance(feed, dict) else None
@@ -200,7 +221,9 @@ async def _fetch_feed(
     return items
 
 
-async def collect(cfg: dict[str, Any], store: Store) -> News:
+async def collect(
+    cfg: dict[str, Any], store: Store, transport: httpx.AsyncBaseTransport | None = None
+) -> News:
     """Fetch every feed once and cache two views of the same data.
 
     Returns the kiosk payload — a few interleaved headlines per group — and
@@ -209,6 +232,9 @@ async def collect(cfg: dict[str, Any], store: Store) -> News:
     are already in memory and were previously thrown away.
     """
     news_cfg = cfg["news"]
+    # The feed list as edited in Settings; config.yaml until it is seeded.
+    feed_groups = news_store.as_config(store) or news_cfg.get("groups", [])
+    errors: dict[int, str] = {}
     tz = ZoneInfo(cfg.get("timezone", "UTC"))
     now = datetime.now(tz)
     limit = news_cfg.get("max_per_group", 3)
@@ -219,17 +245,27 @@ async def collect(cfg: dict[str, Any], store: Store) -> News:
     feed_count = 0
 
     async with httpx.AsyncClient(
-        follow_redirects=True, headers={"User-Agent": USER_AGENT}
+        follow_redirects=True, headers={"User-Agent": USER_AGENT}, transport=transport
     ) as client:
-        for group in news_cfg.get("groups", []):
+        for group in feed_groups:
             feeds = group.get("feeds") or []
             feed_count += len(feeds)
             if not feeds:
                 continue
 
             per_feed = await asyncio.gather(
-                *(_fetch_feed(client, f, cfg, now) for f in feeds)
+                *(_fetch_feed(client, f, cfg, now, errors) for f in feeds)
             )
+            for feed, items in zip(feeds, per_feed, strict=True):
+                if isinstance(feed, dict) and feed.get("feed_id") is not None:
+                    news_store.record_fetch(
+                        store, feed["feed_id"], now, len(items), errors.get(feed["feed_id"]))
+            # Every item, untruncated, into the Home hub's article store.
+            news_store.save_articles(store, group["id"], [
+                {"url": i.url, "title": i._full_title or i.title, "source": i.source,
+                 "published": i.published}
+                for feed_items in per_feed for i in feed_items
+            ], now)
 
             offset = next_offset(store, group["id"], len(feeds))
             chosen = interleave(
@@ -271,6 +307,7 @@ async def collect(cfg: dict[str, Any], store: Store) -> News:
             )
 
     store.put_cache(SEEN_KEY, seen_all)
+    news_store.prune(store, now)
     store.put_cache(
         FULL_CACHE_KEY,
         News(as_of=now, stale=False, groups=full_groups, feed_count=feed_count).model_dump(
