@@ -145,3 +145,43 @@ export interface ReposResponse {
   stale: boolean
   groups: { login: string; label: string; repos: Repo[]; error: string | null }[]
 }
+
+export interface ContainerLoad {
+  name: string
+  project: string | null
+  image: string
+  state: string
+  health: 'healthy' | 'unhealthy' | 'starting' | null
+  status: string
+  /** Share of the whole NAS, in percent; null before two readings or when stopped. */
+  cpu_pct: number | null
+  mem_bytes: number | null
+  mem_limit: number | null
+  rx_bps: number | null
+  tx_bps: number | null
+}
+
+export interface DockerOverview {
+  as_of: string
+  stale: boolean
+  containers: ContainerLoad[]
+  cpu_pct: number
+  mem_bytes: number
+}
+
+export interface ContainerPoint {
+  t: string
+  cpu: number | null
+  mem: number | null
+}
+
+export interface ContainerUpdate {
+  at: string
+  name: string
+  image: string
+  old_image_id: string
+  new_image_id: string
+}
+
+/** CPU per container in 30-minute averages, oldest first. */
+export type Sparklines = Record<string, (number | null)[]>

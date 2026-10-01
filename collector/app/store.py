@@ -384,6 +384,14 @@ class Store:
                 (name, since.isoformat()),
             ))
 
+    def all_container_samples(self, since: datetime) -> list[sqlite3.Row]:
+        with self._connect() as conn:
+            return list(conn.execute(
+                "SELECT ts, name, cpu_pct, mem_bytes FROM container_sample WHERE ts >= ? "
+                "ORDER BY name, ts",
+                (since.isoformat(),),
+            ))
+
     def prune_container_samples(self, retention: timedelta = CONTAINER_SAMPLE_RETENTION) -> int:
         cutoff = (datetime.now(UTC) - retention).isoformat()
         with self._connect() as conn:

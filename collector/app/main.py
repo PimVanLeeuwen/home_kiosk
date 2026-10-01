@@ -140,6 +140,12 @@ def docker_overview() -> Any:
     return _serve("docker")
 
 
+@app.get("/api/docker/sparklines")
+def docker_sparklines() -> Any:
+    since = datetime.now(UTC) - timedelta(hours=24)
+    return container_stats.sparklines(app.state.store.all_container_samples(since))
+
+
 @app.get("/api/docker/history/{name}")
 def docker_history(name: str) -> Any:
     """One container's CPU and memory over the last 24 hours, in 10-minute buckets."""

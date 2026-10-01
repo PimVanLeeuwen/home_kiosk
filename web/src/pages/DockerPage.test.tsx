@@ -1,0 +1,127 @@
+import { fireEvent, screen, within } from '@testing-library/react'
+import type { ContainerLoad, DockerOverview } from '../lib/types'
+import { renderRoute } from '../test/renderRoute'
+import { stubApi } from '../test/stubApi'
+
+const c = (name: string, project: string | null, over: Partial<ContainerLoad> = {}): ContainerLoad => ({
+  name,
+  project,
+  image: `lscr.io/linuxserver/${name}:latest`,
+  state: 'running',
+  health: null,
+  status: 'Up 2 days',
+  cpu_pct: 1.2,
+  mem_bytes: 200_000_000,
+  mem_limit: 8_000_000_000,
+  rx_bps: 1500,
+  tx_bps: 300,
+  ...over,
+})
+
+const NOW = new Date().toISOString()
+
+const OVERVIEW: DockerOverview = {
+  as_of: NOW,
+  stale: false,
+  cpu_pct: 14.6,
+  mem_bytes: 2_400_000_000,
+  containers: [
+    c('sonarr', 'sonarr', { cpu_pct: 0.4, mem_bytes: 300_000_000 }),
+    c('jellyfin', 'jellyfin', { cpu_pct: 12.5, mem_bytes: 900_000_000 }),
+    c('gluetun', 'qbittorrent', { health: 'healthy' }),
+    c('transmission', 'qbittorrent', { state: 'exited', status: 'Exited (0) 1 hour ago', cpu_pct: null, mem_bytes: null, rx_bps: null, tx_bps: null }),
+    c('node-exporter', 'home_kiosk', { rx_bps: null, tx_bps: null }),
+  ],
+}
+
+const UPDATES = [
+  { at: NOW, name: 'sonarr', image: 'lscr.io/linuxserver/sonarr:latest', old_image_id: 'sha256:aaaaaaaaaaaaaaaa', new_image_id: 'sha256:bbbbbbbbbbbbbbbb' },
+  { at: '2026-01-01T04:00:00Z', name: 'radarr', image: 'radarr', old_image_id: 'sha256:c', new_image_id: 'sha256:d' },
+]
+
+function setup(over: Record<string, unknown> = {}) {
+  return stubApi({
+    '/api/docker': OVERVIEW,
+    '/api/docker/sparklines': { jellyfin: [1, 5, 12.5] },
+    '/api/docker/updates': UPDATES,
+    '/api/docker/history/jellyfin': [
+      { t: '2026-10-01T10:00:00Z', cpu: 4, mem: 800_000_000 },
+      { t: '2026-10-01T10:10:00Z', cpu: 12.5, mem: 900_000_000 },
+    ],
+    ...over,
+  })
+}
+
+const names = (region: HTMLElement) =>
+  within(region).getAllByRole('button', { expanded: false }).map((b) => b.querySelector('.font-mono')?.textContent)
+
+describe('DockerPage', () => {
+  it('sums up running containers, load and recent updates', async () => {
+    setup()
+    renderRoute('/docker')
+
+    expect(await screen.findByText('4 of 5 running')).toBeInTheDocument()
+    expect(screen.getByText('14,6% of the NAS')).toBeInTheDocument()
+    expect(screen.getByText('2,4 GB')).toBeInTheDocument()
+    // Only the update from today counts as the last 7 days.
+    expect(within(screen.getByText('Updates, last 7 days').parentElement!).getByText('1')).toBeInTheDocument()
+  })
+
+  it('groups containers by stack with a running count', async () => {
+    setup()
+    renderRoute('/docker')
+
+    const torrents = await screen.findByRole('region', { name: 'qbittorrent · 1/2' })
+    expect(names(torrents)).toEqual(['gluetun', 'transmission'])
+    expect(within(torrents).getByRole('button', { name: /transmission/ })).toHaveTextContent('–')
+    expect(screen.getByRole('region', { name: /home_kiosk/ })).toHaveTextContent('host network')
+    expect(screen.getByRole('img', { name: 'jellyfin CPU, last 24 hours' })).toBeInTheDocument()
+  })
+
+  it('orders by CPU across stacks and filters', async () => {
+    setup()
+    renderRoute('/docker')
+    await screen.findByText('4 of 5 running')
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Order' }), { target: { value: 'cpu' } })
+    const all = screen.getByRole('region', { name: 'Containers' })
+    expect(names(all).slice(0, 2)).toEqual(['jellyfin', 'gluetun'])
+
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Filter containers' }), { target: { value: 'qbit' } })
+    expect(names(screen.getByRole('region', { name: 'Containers' }))).toEqual(['gluetun', 'transmission'])
+  })
+
+  it('opens a container for its 24-hour charts and details', async () => {
+    const fetchMock = setup()
+    renderRoute('/docker')
+
+    fireEvent.click(await screen.findByRole('button', { name: /jellyfin/ }))
+
+    expect(screen.getByRole('button', { name: /jellyfin/, expanded: true })).toBeInTheDocument()
+    expect(await screen.findByRole('img', { name: 'jellyfin memory, last 24 hours' })).toBeInTheDocument()
+    expect(screen.getByText(/peak 13%/)).toBeInTheDocument()
+    expect(screen.getByText(/limit 8,0 GB/)).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith('/api/docker/history/jellyfin', expect.anything())
+  })
+
+  it('lists image updates with short image ids', async () => {
+    setup()
+    renderRoute('/docker')
+
+    const log = await screen.findByRole('region', { name: 'Image updates' })
+    expect(within(log).getByText('aaaaaaaaaaaa → bbbbbbbbbbbb')).toBeInTheDocument()
+    expect(within(log).getAllByText('radarr')).toHaveLength(2) // name and image
+  })
+
+  it('explains an empty update log and an unreachable collector', async () => {
+    setup({ '/api/docker/updates': [] })
+    renderRoute('/docker')
+    expect(await screen.findByText(/No updates seen yet/)).toBeInTheDocument()
+  })
+
+  it('says when container data is not available', async () => {
+    stubApi({})
+    renderRoute('/docker')
+    expect(await screen.findByText('Container data is not available right now.')).toBeInTheDocument()
+  })
+})

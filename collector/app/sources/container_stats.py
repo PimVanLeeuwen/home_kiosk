@@ -169,12 +169,12 @@ async def collect(
 BUCKET_MINUTES = 10
 
 
-def history(rows: list[Any]) -> list[ContainerPoint]:
-    """Average minute samples into 10-minute buckets (144 points for 24h)."""
+def history(rows: list[Any], bucket_minutes: int = BUCKET_MINUTES) -> list[ContainerPoint]:
+    """Average minute samples into buckets: 10 minutes gives 144 points for 24h."""
     buckets: dict[datetime, list[Any]] = {}
     for r in rows:
         t = datetime.fromisoformat(r["ts"])
-        start = t.replace(minute=t.minute - t.minute % BUCKET_MINUTES, second=0, microsecond=0)
+        start = t.replace(minute=t.minute - t.minute % bucket_minutes, second=0, microsecond=0)
         buckets.setdefault(start, []).append(r)
 
     def mean(values: list[float]) -> float | None:
@@ -192,3 +192,18 @@ def history(rows: list[Any]) -> list[ContainerPoint]:
             )
         )
     return points
+
+
+SPARKLINE_MINUTES = 30
+
+
+def sparklines(rows: list[Any]) -> dict[str, list[float | None]]:
+    """CPU per container in 30-minute averages (48 points for 24h), for the
+    small charts in the container list: one request instead of one per row."""
+    by_name: dict[str, list[Any]] = {}
+    for r in rows:
+        by_name.setdefault(r["name"], []).append(r)
+    return {
+        name: [p.cpu for p in history(items, SPARKLINE_MINUTES)]
+        for name, items in by_name.items()
+    }

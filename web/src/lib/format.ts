@@ -16,7 +16,8 @@ export const formatCount = (n: number) => new Intl.NumberFormat(LOCALE).format(n
 /** Decimal units like the kiosk and disk vendors; small sizes step down a unit. */
 export function formatBytes(bytes: number): string {
   if (bytes >= TB) return `${decimals(bytes / TB, 1)} TB`
-  if (bytes >= GB) return `${decimals(bytes / GB, 0)} GB`
+  // One decimal below 10 GB, where whole gigabytes are too coarse (container memory).
+  if (bytes >= GB) return `${decimals(bytes / GB, bytes < 10 * GB ? 1 : 0)} GB`
   return `${decimals(bytes / MB, 0)} MB`
 }
 

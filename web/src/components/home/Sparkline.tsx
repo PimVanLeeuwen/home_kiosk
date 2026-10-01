@@ -1,9 +1,16 @@
-/** Area sparkline for a series, scaled to its own min and max. */
-export function Sparkline({ values, label }: { values: number[]; label: string }) {
+interface Props {
+  values: number[]
+  label: string
+  /** Scale from zero instead of the series' own minimum (sizes, not prices). */
+  fromZero?: boolean
+}
+
+/** Area sparkline for a series, scaled to its own min and max by default. */
+export function Sparkline({ values, label, fromZero = false }: Props) {
   if (values.length < 2) return null
   const width = 600
   const height = 120
-  const min = Math.min(...values)
+  const min = fromZero ? 0 : Math.min(...values)
   const max = Math.max(...values)
   const span = max - min || 1
   const points = values.map((v, i) => [

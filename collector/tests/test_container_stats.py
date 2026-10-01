@@ -150,3 +150,17 @@ def test_docker_endpoints(store):
     assert client.get("/api/docker/updates").json() == [{
         "at": "2026-10-01T04:00:00Z", "name": "sonarr", "image": "img",
         "old_image_id": "a", "new_image_id": "b"}]
+
+
+def test_sparklines_give_cpu_per_container_in_half_hours(store):
+    base = datetime.now(UTC).replace(minute=0, second=0, microsecond=0) - timedelta(hours=2)
+    for minute, cpu in [(0, 1.0), (10, 3.0), (35, 5.0)]:
+        store.put_container_sample(base + timedelta(minutes=minute), "sonarr", cpu, 1)
+    store.put_container_sample(base, "radarr", None, 1)
+
+    lines = container_stats.sparklines(store.all_container_samples(base))
+
+    assert lines == {"radarr": [None], "sonarr": [2.0, 5.0]}
+
+    main.app.state.store = store
+    assert TestClient(main.app).get("/api/docker/sparklines").json() == lines

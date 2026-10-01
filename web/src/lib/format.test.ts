@@ -18,6 +18,7 @@ it('formats counts with Dutch grouping', () => {
 it('formats bytes like the kiosk', () => {
   expect(formatBytes(1_234_000_000_000)).toBe('1,2 TB')
   expect(formatBytes(912_000_000_000)).toBe('912 GB')
+  expect(formatBytes(2_400_000_000)).toBe('2,4 GB')
   expect(formatBytes(80_500_000)).toBe('81 MB')
 })
 
