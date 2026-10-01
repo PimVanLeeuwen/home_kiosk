@@ -10,17 +10,16 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from ..models import BackupHistory, BackupRun, BackupVolume, VolumeSummary
 
 log = logging.getLogger(__name__)
 
 MAX_RUNS = 90
-# backup.sh runs, then sleeps 24 hours.
-INTERVAL = timedelta(hours=24)
 
 
 def parse_volume(raw: dict[str, Any]) -> BackupVolume:
@@ -81,7 +80,20 @@ def summarise(runs: list[BackupRun]) -> list[VolumeSummary]:
     return summaries
 
 
-def read(path: str) -> BackupHistory:
+def next_run(after: datetime, at: str, tz: str) -> datetime:
+    """The next HH:MM (local time in `tz`) strictly after `after`, matching
+    schedule.sh in nas-docker, which starts backup.sh nightly at BACKUP_AT."""
+    zone = ZoneInfo(tz)
+    hour, minute = (int(part) for part in at.split(":"))
+    local = after.astimezone(zone)
+    candidate = datetime.combine(local.date(), time(hour, minute), tzinfo=zone)
+    if candidate <= local:
+        candidate = datetime.combine(local.date() + timedelta(days=1), time(hour, minute),
+                                     tzinfo=zone)
+    return candidate
+
+
+def read(path: str, at: str = "03:00", tz: str = "UTC") -> BackupHistory:
     file = Path(path)
     lines = file.read_text(errors="replace").splitlines() if file.exists() else []
     runs = [run for line in lines if line.strip() and (run := parse_line(line))]
@@ -95,9 +107,13 @@ def read(path: str) -> BackupHistory:
         stale=False,
         runs=runs,
         volumes=summarise(runs),
-        next_due=runs[0].finished + INTERVAL if runs else None,
+        next_due=next_run(runs[0].finished, at, tz) if runs else None,
     )
 
 
 async def collect(cfg: dict[str, Any]) -> BackupHistory:
-    return read(cfg["nas"]["backup_runs"])
+    return read(
+        cfg["nas"]["backup_runs"],
+        at=cfg["nas"].get("backup_at", "03:00"),
+        tz=cfg.get("timezone", "UTC"),
+    )

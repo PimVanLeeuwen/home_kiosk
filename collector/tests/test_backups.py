@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import timedelta
+from datetime import datetime
 
 from fastapi.testclient import TestClient
 
@@ -67,7 +67,8 @@ def test_read_sorts_newest_first_skips_bad_lines_and_tracks_last_success(tmp_pat
     # volume3 failed on the 28th; its last success was the 27th.
     assert by_name["volume3"].last_success.day == 27
     assert by_name["volume3"].last_run.started.day == 28
-    assert history.next_due == history.runs[0].finished + timedelta(hours=24)
+    # read() defaults to 03:00 UTC; the last run finished 01:23 UTC on the 28th.
+    assert history.next_due.isoformat() == "2026-09-28T03:00:00+00:00"
 
 
 def test_read_without_a_file_is_an_empty_history(tmp_path):
@@ -101,3 +102,17 @@ def test_a_retried_error_on_a_good_volume_is_not_shown():
     v1 = backups.parse_line(json.dumps(line)).volumes[0]
 
     assert (v1.ok, v1.errors, v1.last_error) == (True, 0, None)
+
+
+def test_next_run_is_the_next_scheduled_start_in_local_time():
+    def nxt(iso, at="03:00"):
+        return backups.next_run(datetime.fromisoformat(iso), at, "Europe/Amsterdam").isoformat()
+
+    # Finished at 03:23 local: next is tomorrow 03:00.
+    assert nxt("2026-09-28T03:23:00+02:00") == "2026-09-29T03:00:00+02:00"
+    # A late manual run in the evening: still the coming night.
+    assert nxt("2026-09-28T20:33:00+02:00") == "2026-09-29T03:00:00+02:00"
+    # Finished before the scheduled time (e.g. a manual run at 01:00): same night.
+    assert nxt("2026-09-29T01:00:00+02:00") == "2026-09-29T03:00:00+02:00"
+    # Across the switch to winter time (last Sunday of October).
+    assert nxt("2026-10-24T03:20:00+02:00") == "2026-10-25T03:00:00+01:00"

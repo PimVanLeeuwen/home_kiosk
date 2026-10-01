@@ -430,5 +430,5 @@ class VolumeSummary(BaseModel):
 class BackupHistory(Envelope):
     runs: list[BackupRun]  # newest first
     volumes: list[VolumeSummary]
-    # The script sleeps 24 hours after each run, so the next one is due then.
+    # The next scheduled start after the last run (BACKUP_AT, see schedule.sh).
     next_due: datetime | None
