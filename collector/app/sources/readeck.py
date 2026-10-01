@@ -1,6 +1,6 @@
 """Save-to-Readeck for tap-to-save on the news view.
 
-The only write path in the project. Readeck does its own article extraction, so
+Readeck does its own article extraction, so
 this just forwards the URL with a bearer token.
 
 Contract verified against Readeck 0.23.4:

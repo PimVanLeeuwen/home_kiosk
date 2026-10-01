@@ -107,6 +107,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 **M6. News reader**
 - Full feed list with group filters, read/unread state, news search, trafilatura reader, Readeck
   save. Feeds editable in Settings.
+- Decided 2026-10-01: articles kept 7 days; read state shared and set on open; images proxied by
+  the hub; the reader gets text blocks only, never site HTML; the link and every redirect must be
+  a public address. Saved lists unarchived Readeck bookmarks (Archived filter), reads them in the
+  same reader, offers archive and delete (Readeck's own scheduled delete) and syncs read progress.
 
 **M7. Portfolio**
 - Full Ghostfolio overview: value history, holdings, allocation, holding detail.

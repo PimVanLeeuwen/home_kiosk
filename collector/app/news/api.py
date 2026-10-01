@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field, field_validator
 
 from ..security import same_origin_json
-from . import reader
+from . import reader, saved
 from . import store as news
 
 router = APIRouter(prefix="/api")
@@ -72,6 +72,10 @@ async def article_image(article_id: str, index: int, request: Request) -> Respon
         data, kind = await reader.image(content.images[index], _transport(request))
     except Exception as exc:
         raise HTTPException(502, "The image could not be loaded.") from exc
+    return _image_response(data, kind)
+
+
+def _image_response(data: bytes, kind: str) -> Response:
     return Response(data, media_type=kind, headers={
         "Cache-Control": "private, max-age=86400",
         "X-Content-Type-Options": "nosniff",
@@ -97,6 +101,97 @@ class ReadAll(BaseModel):
 @router.post("/news/read-all", dependencies=write)
 def read_all(body: ReadAll, request: Request) -> dict[str, int]:
     return {"marked": news.mark_all_read(_store(request), body.group)}
+
+
+# --- saved (Readeck) ---------------------------------------------------------------------
+
+
+def _readeck(request: Request) -> tuple[dict[str, Any], Any]:
+    return request.app.state.config, getattr(request.app.state, "readeck_transport", None)
+
+
+def _readeck_failed(exc: saved.ReadeckError) -> HTTPException:
+    return HTTPException(exc.status, str(exc))
+
+
+@router.get("/saved")
+async def list_saved(request: Request, archived: bool = False, limit: int = 30,
+                     offset: int = 0) -> dict[str, Any]:
+    cfg, transport = _readeck(request)
+    try:
+        items, total = await saved.bookmarks(cfg, archived=archived, limit=min(max(limit, 1), 100),
+                                             offset=max(offset, 0), transport=transport)
+    except saved.ReadeckError as exc:
+        raise _readeck_failed(exc) from exc
+    return {"bookmarks": items, "total": total}
+
+
+@router.get("/saved/{bookmark_id}/content")
+async def saved_content(bookmark_id: str, request: Request) -> dict[str, Any]:
+    cfg, transport = _readeck(request)
+    try:
+        content = await saved.article(cfg, saved.check_id(bookmark_id), transport)
+    except saved.ReadeckError as exc:
+        raise _readeck_failed(exc) from exc
+    return content.model_dump(exclude={"images"})
+
+
+@router.get("/saved/{bookmark_id}/images/{index}")
+async def saved_image(bookmark_id: str, index: int, request: Request) -> Response:
+    cfg, transport = _readeck(request)
+    try:
+        data, kind = await saved.image(cfg, saved.check_id(bookmark_id), index, transport)
+    except saved.ReadeckError as exc:
+        raise _readeck_failed(exc) from exc
+    except Exception as exc:
+        raise HTTPException(502, "The image could not be loaded.") from exc
+    return _image_response(data, kind)
+
+
+@router.get("/saved/{bookmark_id}/thumbnail")
+async def saved_thumbnail(bookmark_id: str, request: Request) -> Response:
+    cfg, transport = _readeck(request)
+    try:
+        data, kind = await saved.thumbnail(cfg, saved.check_id(bookmark_id), transport)
+    except saved.ReadeckError as exc:
+        raise _readeck_failed(exc) from exc
+    except Exception as exc:
+        raise HTTPException(502, "The image could not be loaded.") from exc
+    return _image_response(data, kind)
+
+
+class BookmarkUpdate(BaseModel):
+    archived: bool | None = None
+    progress: Annotated[int | None, Field(ge=0, le=100)] = None
+
+
+@router.patch("/saved/{bookmark_id}", dependencies=write)
+async def update_saved(bookmark_id: str, body: BookmarkUpdate, request: Request
+                       ) -> dict[str, Any]:
+    fields: dict[str, Any] = {}
+    if body.archived is not None:
+        fields["is_archived"] = body.archived
+    if body.progress is not None:
+        fields["read_progress"] = body.progress
+    if not fields:
+        raise HTTPException(422, "Nothing to change.")
+    cfg, transport = _readeck(request)
+    try:
+        await saved.update(cfg, saved.check_id(bookmark_id), fields, transport)
+    except saved.ReadeckError as exc:
+        raise _readeck_failed(exc) from exc
+    return body.model_dump(exclude_none=True)
+
+
+@router.delete("/saved/{bookmark_id}", dependencies=write)
+async def delete_saved(bookmark_id: str, request: Request) -> dict[str, bool]:
+    """Schedules the deletion in Readeck, like its own Delete button."""
+    cfg, transport = _readeck(request)
+    try:
+        await saved.update(cfg, saved.check_id(bookmark_id), {"is_deleted": True}, transport)
+    except saved.ReadeckError as exc:
+        raise _readeck_failed(exc) from exc
+    return {"deleted": True}
 
 
 # --- editing feeds -----------------------------------------------------------------------

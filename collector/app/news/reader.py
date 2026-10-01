@@ -91,7 +91,7 @@ def client(transport: httpx.AsyncBaseTransport | None = None) -> httpx.AsyncClie
     )
 
 
-async def _read_capped(resp: httpx.Response, limit: int) -> bytes:
+async def read_capped(resp: httpx.Response, limit: int) -> bytes:
     chunks, size = [], 0
     async for chunk in resp.aiter_bytes():
         size += len(chunk)
@@ -164,7 +164,7 @@ async def extract(url: str, article_id: str,
         async with client(transport) as http:
             async with http.stream("GET", url) as resp:
                 resp.raise_for_status()
-                raw = await _read_capped(resp, MAX_PAGE_BYTES)
+                raw = await read_capped(resp, MAX_PAGE_BYTES)
                 encoding = resp.encoding or "utf-8"
     except Exception as exc:
         log.warning("reader fetch failed: %s", type(exc).__name__)
@@ -212,4 +212,4 @@ async def image(url: str, transport: httpx.AsyncBaseTransport | None = None
             if not kind.startswith("image/") or kind == "image/svg+xml":
                 # SVG can carry script; the reader only shows raster images.
                 raise ValueError("not an image")
-            return await _read_capped(resp, MAX_IMAGE_BYTES), kind
+            return await read_capped(resp, MAX_IMAGE_BYTES), kind

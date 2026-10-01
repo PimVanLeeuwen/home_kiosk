@@ -218,7 +218,7 @@ class SaveRequest(BaseModel):
 
 @app.post("/api/save", dependencies=[Depends(same_origin_json)])
 async def save(req: SaveRequest) -> Any:
-    """Queue an article in Readeck. The only write path in the project.
+    """Queue an article in Readeck.
 
     Errors are returned as 502 with a short human message: the screen shows it
     verbatim, so it has to read as a sentence rather than a stack trace.
