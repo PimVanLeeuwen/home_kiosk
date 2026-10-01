@@ -18,6 +18,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, HttpUrl
 
 from . import config, scheduler, settings_api
+from .alerts import api as alerts_api
+from .alerts import core as alerts_core
 from .models import ContainerUpdate
 from .security import same_origin_json
 from .sources import container_stats, feeds, readeck
@@ -44,6 +46,7 @@ async def lifespan(app: FastAPI):
     app.state.config = config.load()
     app.state.store = Store(app.state.config.get("database", "./data/collector.db"))
     log.info(service_catalog.prepare(app.state.store, app.state.config))
+    alerts_core.ensure_tables(app.state.store)
 
     # Unset ${VAR} references expand to "", which would otherwise only surface
     # as a failed save long after startup.
@@ -69,6 +72,7 @@ app = FastAPI(title="Desk Dashboard Collector", version="0.1.0", lifespan=lifesp
 # same origin. Allowing any origin would let other websites call the write
 # endpoints; see security.py.
 app.include_router(settings_api.router)
+app.include_router(alerts_api.router)
 
 
 def _serve(key: str) -> Any:

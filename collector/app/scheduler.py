@@ -13,6 +13,7 @@ from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from .alerts import core as alerts_core
 from .sources import (
     backups,
     container_stats,
@@ -166,6 +167,16 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         args=[store, "spotlight", lambda: spotlight.collect(cfg, store)],
         id="spotlight",
         next_run_time=None,
+        max_instances=1,
+        coalesce=True,
+    )
+    # After quiet hours, the held messages go out as one digest per chat.
+    scheduler.add_job(
+        alerts_core.send_digests,
+        "interval",
+        minutes=5,
+        args=[store, cfg],
+        id="alert-digest",
         max_instances=1,
         coalesce=True,
     )

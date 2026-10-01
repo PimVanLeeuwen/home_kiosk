@@ -91,7 +91,11 @@ commit message, screenshots for visual changes.
   `rclone/config/backup-runs.jsonl`, which the collector reads from its read-only mount.
 - Backups page: run history, last success per volume, trends. Kuma heartbeat stays.
 
-**M5. Telegram hub**
+**M5. Telegram hub**. Decided 2026-10-01: Uptime Kuma keeps its own direct Telegram line for
+"hub down" and the backup heartbeat; a problem sends one message when it starts and one when it is
+resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; senders post to
+`/api/notify` with a shared `NOTIFY_KEY`; the existing bot is kept; bot commands
+`/status`, `/backup`, `/portfolio`, for members of the two chats only; rule defaults as below.
 - `POST /api/notify` (source, severity, title, body), message log, routing per category to chat,
   templates, quiet hours (errors bypass), compose and send.
 - Hub alert rules: disk above 90%, container unhealthy or restart loop, backup missing for 26h,

@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -132,6 +132,10 @@ class Store:
             return False
         conn.execute("ALTER TABLE service ADD COLUMN icon TEXT")
         return True
+
+    def connect(self) -> AbstractContextManager[sqlite3.Connection]:
+        """A connection for modules that keep their own tables (app.alerts)."""
+        return self._connect()
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
