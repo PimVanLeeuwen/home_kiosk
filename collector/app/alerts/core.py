@@ -149,7 +149,7 @@ def format_html(severity: str, title: str, body: str = "") -> str:
     return text
 
 
-def _log(store: Store, now: datetime, **fields: Any) -> AlertMessage:
+def log_entry(store: Store, now: datetime, **fields: Any) -> AlertMessage:
     with store.connect() as conn:
         cur = conn.execute(
             "INSERT INTO alert_message (ts, source, category, severity, title, body, chat, "
@@ -188,7 +188,7 @@ async def notify(
         and in_quiet_hours(local(now, cfg), quiet_hours(store))
     )
     if held:
-        return _log(store, now, **fields, status="held")
+        return log_entry(store, now, **fields, status="held")
 
     chat_id = chats(cfg).get(chat_key, {}).get("id")
     try:
@@ -199,8 +199,8 @@ async def notify(
     except Exception as exc:
         reason = str(exc) if isinstance(exc, ValueError) else describe(exc)
         log.warning("telegram send for %s failed: %s", source, type(exc).__name__)
-        return _log(store, now, **fields, status="failed", error=reason)
-    return _log(store, now, **fields, status="sent", sent_at=now.isoformat())
+        return log_entry(store, now, **fields, status="failed", error=reason)
+    return log_entry(store, now, **fields, status="sent", sent_at=now.isoformat())
 
 
 async def send_digests(

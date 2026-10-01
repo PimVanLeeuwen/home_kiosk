@@ -8,6 +8,7 @@ a cold start with nothing cached yet, which the frontend renders with its
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
@@ -19,6 +20,7 @@ from pydantic import BaseModel, HttpUrl
 
 from . import config, scheduler, settings_api
 from .alerts import api as alerts_api
+from .alerts import bot as alert_bot
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
 from .models import ContainerUpdate
@@ -62,9 +64,13 @@ async def lifespan(app: FastAPI):
     for job in app.state.scheduler.get_jobs():
         job.modify(next_run_time=datetime.now(UTC))
 
+    # Telegram commands: long polling in the background (off without a token).
+    bot_task = asyncio.create_task(alert_bot.run(app.state.store, app.state.config))
+
     try:
         yield
     finally:
+        bot_task.cancel()
         app.state.scheduler.shutdown(wait=False)
 
 
