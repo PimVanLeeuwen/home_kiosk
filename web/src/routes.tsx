@@ -2,6 +2,7 @@ import type { ReactElement } from 'react'
 import type { RouteObject } from 'react-router'
 import { Layout } from './components/Layout'
 import { NAV_ITEMS, MORE_ROUTE } from './lib/navigation'
+import { BackupsPage } from './pages/BackupsPage'
 import { DockerPage } from './pages/DockerPage'
 import { HomePage } from './pages/HomePage'
 import { MorePage } from './pages/MorePage'
@@ -21,6 +22,7 @@ const PAGES: Record<string, ReactElement> = {
   '/repos': <ReposPage />,
   '/docker': <DockerPage />,
   '/nas': <NasPage />,
+  '/backups': <BackupsPage />,
 }
 
 export const BUILT_ROUTES = Object.keys(PAGES)

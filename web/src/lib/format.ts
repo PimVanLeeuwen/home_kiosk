@@ -66,3 +66,11 @@ export function formatAgo(iso: string, now = new Date()): string {
     new Date(iso),
   )
 }
+
+/** "45 s", "4 min", "1 h 12 min". */
+export function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${Math.round(seconds)} s`
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) return `${minutes} min`
+  return `${Math.floor(minutes / 60)} h ${minutes % 60} min`
+}

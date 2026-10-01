@@ -1,4 +1,4 @@
-import type { Nas, NewsResponse, Portfolio, ServicesResponse } from '../lib/types'
+import type { BackupHistory, BackupRun, Nas, NewsResponse, Portfolio, ServicesResponse } from '../lib/types'
 
 /** Shared API fixtures for page tests. Times are relative to now so "today" holds. */
 export function nasFixture(over: Partial<Nas> = {}): Nas {
@@ -84,4 +84,31 @@ export const SERVICES: ServicesResponse = {
       ],
     },
   ],
+}
+
+const vol = (name: string, ok = true, over: Partial<BackupRun['volumes'][number]> = {}) => ({
+  name, ok, exit_code: ok ? 0 : 7, seconds: name === 'volume1' ? 241 : 1140,
+  bytes: ok ? (name === 'volume1' ? 2_468_000_000 : 500_000_000) : 10, transfers: ok ? 118 : 0,
+  checks: 5120, deletes: 3, errors: ok ? 0 : 1, last_error: ok ? null : 'quota exceeded', ...over,
+})
+
+export function backupRun(day: number, ok = true): BackupRun {
+  return {
+    started: `2026-09-${String(day).padStart(2, '0')}T01:00:00Z`,
+    finished: `2026-09-${String(day).padStart(2, '0')}T01:23:00Z`,
+    ok,
+    volumes: [vol('volume1'), vol('volume3', ok)],
+  }
+}
+
+/** Newest first: the 28th failed on volume3, the 27th and 26th succeeded. */
+export const BACKUPS: BackupHistory = {
+  as_of: '2026-09-28T12:00:00Z',
+  stale: false,
+  runs: [backupRun(28, false), backupRun(27), backupRun(26)],
+  volumes: [
+    { name: 'volume1', last_run: backupRun(28, false), last_success: '2026-09-28T01:23:00Z' },
+    { name: 'volume3', last_run: backupRun(28, false), last_success: '2026-09-27T01:23:00Z' },
+  ],
+  next_due: '2026-09-29T01:23:00Z',
 }

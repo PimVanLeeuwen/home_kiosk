@@ -86,8 +86,9 @@ commit message, screenshots for visual changes.
 - Image update history: the hub notices when a container is recreated from a new image (Watchtower
   or Dockge), so no Watchtower webhook is needed.
 
-**M4. Backups**
-- `backup.sh` posts a JSON run record (per volume: result, duration, bytes, errors).
+**M4. Backups**. **Done 2026-10-01.**
+- `backup.sh` appends a JSON run record (per volume: result, duration, bytes, errors) to
+  `rclone/config/backup-runs.jsonl`, which the collector reads from its read-only mount.
 - Backups page: run history, last success per volume, trends. Kuma heartbeat stays.
 
 **M5. Telegram hub**

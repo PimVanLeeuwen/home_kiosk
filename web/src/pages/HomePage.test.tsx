@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react'
 import { renderRoute } from '../test/renderRoute'
-import { NEWS, PORTFOLIO, SERVICES, nasFixture } from '../test/fixtures'
+import { BACKUPS, NEWS, PORTFOLIO, SERVICES, nasFixture } from '../test/fixtures'
 import { stubApi } from '../test/stubApi'
 
 function setup(over: Record<string, unknown> = {}) {
@@ -66,6 +66,16 @@ describe('HomePage', () => {
     expect(await within(card('Backups')).findByText('Succeeded')).toBeInTheDocument()
     const services = card('Services')
     expect(await within(services).findByRole('link', { name: /Jellyfin/ })).toHaveTextContent('1 streaming')
+  })
+
+  it('shows the latest run per volume once there is run history', async () => {
+    setup({ '/api/backups': BACKUPS })
+
+    const card = await screen.findByRole('region', { name: 'Backups' })
+    expect(await within(card).findByText('Failed')).toBeInTheDocument()
+    expect(within(card).getByText(/OK · 4 min · 2,5 GB/)).toBeInTheDocument()
+    expect(within(card).getByText(/Failed · 19 min/)).toBeInTheDocument()
+    expect(within(card).getByText(/Next run due/)).toBeInTheDocument()
   })
 
   it('raises what needs a look in the strip and the subtitle', async () => {

@@ -197,3 +197,33 @@ export interface NasPoint {
   rx_mbps: number | null
   tx_mbps: number | null
 }
+
+export interface BackupVolume {
+  name: string
+  ok: boolean
+  exit_code: number
+  seconds: number
+  /** rclone's final stats; null when a run left none. */
+  bytes: number | null
+  transfers: number | null
+  checks: number | null
+  deletes: number | null
+  errors: number | null
+  last_error: string | null
+}
+
+export interface BackupRun {
+  started: string
+  finished: string
+  ok: boolean
+  volumes: BackupVolume[]
+}
+
+export interface BackupHistory {
+  as_of: string
+  stale: boolean
+  /** Newest first. */
+  runs: BackupRun[]
+  volumes: { name: string; last_run: BackupRun | null; last_success: string | null }[]
+  next_due: string | null
+}

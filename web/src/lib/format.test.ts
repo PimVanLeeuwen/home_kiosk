@@ -1,6 +1,7 @@
 import {
   formatAgo,
   formatBytes,
+  formatDuration,
   formatCount,
   formatMbit,
   formatMoney,
@@ -58,4 +59,10 @@ it('formats how long ago something happened', () => {
   expect(ago(86_400)).toBe('1 day ago')
   expect(ago(12 * 86_400)).toBe('12 days ago')
   expect(ago(90 * 86_400)).toBe('3 Jul 2026')
+})
+
+it('formats durations', () => {
+  expect(formatDuration(45)).toBe('45 s')
+  expect(formatDuration(241)).toBe('4 min')
+  expect(formatDuration(4320)).toBe('1 h 12 min')
 })
