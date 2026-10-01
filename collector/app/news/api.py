@@ -5,10 +5,11 @@ from __future__ import annotations
 from typing import Annotated, Any
 from urllib.parse import urlsplit
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field, field_validator
 
 from ..security import same_origin_json
+from . import reader
 from . import store as news
 
 router = APIRouter(prefix="/api")
@@ -39,6 +40,43 @@ def list_articles(
         _store(request), group=group, unread=unread, q=(q or "")[:100],
         limit=min(max(limit, 1), 200), offset=max(offset, 0))
     return {"articles": items, "total": total}
+
+
+def _transport(request: Request):
+    # Tests swap in a mock transport; production uses the network.
+    return getattr(request.app.state, "reader_transport", None)
+
+
+@router.get("/news/articles/{article_id}/content")
+async def article_content(article_id: str, request: Request) -> dict[str, Any]:
+    """The article as plain text blocks for the reader. When extraction fails
+    the answer is {ok: false, reason}, and the page offers the original."""
+    store = _store(request)
+    found = news.article(store, article_id)
+    if found is None:
+        raise HTTPException(404, "No such article.")
+    content = reader.cached(store, article_id)
+    if content is None:
+        content = await reader.extract(found.url, article_id, _transport(request))
+        reader.remember(store, article_id, content)
+    return content.model_dump(exclude={"images"})
+
+
+@router.get("/news/articles/{article_id}/images/{index}")
+async def article_image(article_id: str, index: int, request: Request) -> Response:
+    """Only images found in the cached article, so this is not an open proxy."""
+    content = reader.cached(_store(request), article_id)
+    if content is None or not 0 <= index < len(content.images):
+        raise HTTPException(404, "No such image.")
+    try:
+        data, kind = await reader.image(content.images[index], _transport(request))
+    except Exception as exc:
+        raise HTTPException(502, "The image could not be loaded.") from exc
+    return Response(data, media_type=kind, headers={
+        "Cache-Control": "private, max-age=86400",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "default-src 'none'",
+    })
 
 
 class ReadState(BaseModel):

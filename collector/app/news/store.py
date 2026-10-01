@@ -48,6 +48,13 @@ CREATE TABLE IF NOT EXISTS article (
     read_at    TEXT
 );
 CREATE INDEX IF NOT EXISTS article_published ON article (published);
+
+-- The reader's extracted text, cached per article (see reader.py).
+CREATE TABLE IF NOT EXISTS article_content (
+    id         TEXT PRIMARY KEY,
+    fetched_at TEXT NOT NULL,
+    content    TEXT NOT NULL
+);
 """
 
 
@@ -207,7 +214,9 @@ def save_articles(store: Store, group_id: str, items: list[dict[str, Any]],
 def prune(store: Store, now: datetime | None = None) -> int:
     cutoff = ((now or datetime.now(UTC)) - RETENTION).isoformat()
     with store.connect() as conn:
-        return conn.execute("DELETE FROM article WHERE published < ?", (cutoff,)).rowcount
+        removed = conn.execute("DELETE FROM article WHERE published < ?", (cutoff,)).rowcount
+        conn.execute("DELETE FROM article_content WHERE id NOT IN (SELECT id FROM article)")
+        return removed
 
 
 def _row(r: Any) -> Article:
