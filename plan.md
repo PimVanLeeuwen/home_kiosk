@@ -91,7 +91,7 @@ commit message, screenshots for visual changes.
   `rclone/config/backup-runs.jsonl`, which the collector reads from its read-only mount.
 - Backups page: run history, last success per volume, trends. Kuma heartbeat stays.
 
-**M5. Telegram hub**. Decided 2026-10-01: Uptime Kuma keeps its own direct Telegram line for
+**M5. Telegram hub**. **Done 2026-10-01.** Decided 2026-10-01: Uptime Kuma keeps its own direct Telegram line for
 "hub down" and the backup heartbeat; a problem sends one message when it starts and one when it is
 resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; senders post to
 `/api/notify` with a shared `NOTIFY_KEY`; the existing bot is kept; bot commands

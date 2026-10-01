@@ -271,3 +271,64 @@ def test_manual_messages_go_to_the_chosen_chat_right_away(client):
     assert payload["chat_id"] == "-1002"
     assert payload["text"] == "ℹ️ <b>Hello</b>\nfrom the hub"
     assert client.get("/api/alerts/messages").json()[0]["category"] == "manual"
+
+
+def test_watchtower_reports_get_their_summary_line_as_title(client):
+    # What Shoutrrr's generic service posts for Watchtower: template=json,
+    # messagekey=body, plus the $source/$category/$severity extra fields.
+    report = (
+        "🔄 Watchtower: 36 scanned, 2 updated, 0 failed\n✅ sonarr (lscr.io/linuxserver/sonarr)"
+    )
+    resp = client.post(
+        "/api/notify",
+        json={
+            "title": "",
+            "body": report,
+            "source": "watchtower",
+            "category": "updates",
+            "severity": "info",
+        },
+        headers={"X-Notify-Key": KEY},
+    )
+
+    message = resp.json()
+    assert resp.status_code == 200
+    assert message["title"] == "🔄 Watchtower: 36 scanned, 2 updated, 0 failed"
+    assert message["body"] == "✅ sonarr (lscr.io/linuxserver/sonarr)"
+
+
+@pytest.mark.parametrize(
+    ("payload", "expected"),
+    [
+        (
+            {
+                "heartbeat": {"status": 0, "msg": "connect ECONNREFUSED"},
+                "monitor": {"name": "Jellyfin"},
+                "msg": "[Jellyfin] [🔴 Down]",
+            },
+            ("error", "Jellyfin is down", "connect ECONNREFUSED"),
+        ),
+        (
+            {
+                "heartbeat": {"status": 1, "msg": "200 - OK"},
+                "monitor": {"name": "Jellyfin"},
+                "msg": "[Jellyfin] [✅ Up]",
+            },
+            ("ok", "Jellyfin is up", "200 - OK"),
+        ),
+        (
+            {"heartbeat": None, "monitor": None, "msg": "Uptime Kuma Webhook testing"},
+            ("info", "Uptime Kuma", "Uptime Kuma Webhook testing"),
+        ),
+    ],
+)
+def test_uptime_kuma_webhooks_are_translated(client, payload, expected):
+    resp = client.post("/api/notify/kuma", json=payload, headers={"X-Notify-Key": KEY})
+
+    m = resp.json()
+    assert (m["severity"], m["title"], m["body"]) == expected
+    assert (m["source"], m["category"]) == ("uptime-kuma", "uptime")
+
+
+def test_uptime_kuma_webhooks_need_the_key(client):
+    assert client.post("/api/notify/kuma", json={"msg": "x"}).status_code == 401

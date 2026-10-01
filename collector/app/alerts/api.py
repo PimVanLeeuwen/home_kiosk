@@ -7,7 +7,7 @@ import re
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from ..security import same_origin_json
 from . import core, rules
@@ -34,8 +34,19 @@ class NotifyIn(BaseModel):
     source: Annotated[str, Field(max_length=40)]
     category: str
     severity: core.Severity = "info"
-    title: Annotated[str, Field(min_length=1, max_length=200)]
+    # Optional: without one, the first line of the body is the title
+    # (Watchtower's report starts with its summary line).
+    title: Annotated[str, Field(max_length=200)] = ""
     body: Annotated[str, Field(max_length=3000)] = ""
+
+    @model_validator(mode="after")
+    def _title(self) -> NotifyIn:
+        if not self.title.strip():
+            first, _, rest = self.body.strip().partition("\n")
+            if not first.strip():
+                raise ValueError("give a title or a body")
+            self.title, self.body = first.strip()[:200], rest.strip()
+        return self
 
     @field_validator("source")
     @classmethod
@@ -57,6 +68,34 @@ async def notify(body: NotifyIn, request: Request) -> core.AlertMessage:
     """For senders on the NAS: backup.sh, Watchtower, Uptime Kuma."""
     return await core.notify(
         request.app.state.store, request.app.state.config, **body.model_dump()
+    )
+
+
+# Uptime Kuma heartbeat states (src/util.ts in Kuma).
+KUMA_STATUS: dict[int, tuple[core.Severity, str]] = {
+    0: ("error", "is down"),
+    1: ("ok", "is up"),
+    2: ("warning", "is pending"),
+    3: ("info", "is in maintenance"),
+}
+
+
+@router.post("/notify/kuma", dependencies=[Depends(notify_key), Depends(same_origin_json)])
+async def notify_kuma(payload: dict[str, Any], request: Request) -> core.AlertMessage:
+    """Uptime Kuma's Webhook notification (body: application/json). It sends
+    {heartbeat, monitor, msg}; heartbeat and monitor are null for a test."""
+    heartbeat = payload.get("heartbeat") or {}
+    monitor = payload.get("monitor") or {}
+    message = str(payload.get("msg") or "")[:3000]
+    if heartbeat and monitor:
+        severity, state = KUMA_STATUS.get(int(heartbeat.get("status", 0)), ("info", "changed"))
+        title = f"{monitor.get('name') or 'A monitor'} {state}"[:200]
+        body = str(heartbeat.get("msg") or "")[:3000]
+    else:
+        severity, title, body = "info", "Uptime Kuma", message or "Test notification"
+    return await core.notify(
+        request.app.state.store, request.app.state.config,
+        source="uptime-kuma", category="uptime", severity=severity, title=title, body=body,
     )
 
 
