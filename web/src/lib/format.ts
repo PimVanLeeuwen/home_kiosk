@@ -52,3 +52,16 @@ export function formatWhen(iso: string, now = new Date()): string {
   const label = days === 0 ? 'today' : days === 1 ? 'yesterday' : day.format(date)
   return `${label} ${time.format(date)}`
 }
+
+/** "just now", "5 min ago", "3 hours ago", "2 days ago", then the date. */
+export function formatAgo(iso: string, now = new Date()): string {
+  const seconds = Math.max(0, (now.getTime() - new Date(iso).getTime()) / 1000)
+  const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? '' : 's'} ago`
+  if (seconds < 60) return 'just now'
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`
+  if (seconds < 86_400) return plural(Math.floor(seconds / 3600), 'hour')
+  if (seconds < 30 * 86_400) return plural(Math.floor(seconds / 86_400), 'day')
+  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(
+    new Date(iso),
+  )
+}

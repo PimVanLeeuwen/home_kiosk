@@ -32,6 +32,7 @@ describe('routes', () => {
       'Docker',
       'Backups',
       'Services',
+      'Repos',
       'Alerts',
       'Settings',
     ])

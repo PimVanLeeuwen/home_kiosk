@@ -1,4 +1,5 @@
 import {
+  formatAgo,
   formatBytes,
   formatCount,
   formatMbit,
@@ -44,4 +45,16 @@ it('formats when something happened relative to now', () => {
   expect(formatWhen(new Date(2026, 8, 30, 3, 31).toISOString(), now)).toBe('today 03:31')
   expect(formatWhen(new Date(2026, 8, 29, 3, 31).toISOString(), now)).toBe('yesterday 03:31')
   expect(formatWhen(new Date(2026, 8, 27, 3, 31).toISOString(), now)).toBe('Sun 27 Sept 03:31')
+})
+
+it('formats how long ago something happened', () => {
+  const now = new Date('2026-10-01T12:00:00Z')
+  const ago = (seconds: number) => formatAgo(new Date(now.getTime() - seconds * 1000).toISOString(), now)
+  expect(ago(20)).toBe('just now')
+  expect(ago(5 * 60)).toBe('5 min ago')
+  expect(ago(3600)).toBe('1 hour ago')
+  expect(ago(5 * 3600)).toBe('5 hours ago')
+  expect(ago(86_400)).toBe('1 day ago')
+  expect(ago(12 * 86_400)).toBe('12 days ago')
+  expect(ago(90 * 86_400)).toBe('3 Jul 2026')
 })

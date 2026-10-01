@@ -3,6 +3,7 @@ import {
   Bookmark,
   Box,
   CloudUpload,
+  FolderGit2,
   House,
   LayoutGrid,
   Newspaper,
@@ -100,6 +101,18 @@ export const NAV: NavSection[] = [
         icon: LayoutGrid,
         description: 'Every app on the NAS, with status and links',
         milestone: 'M2',
+      },
+    ],
+  },
+  {
+    title: 'Code',
+    items: [
+      {
+        label: 'Repos',
+        to: '/repos',
+        icon: FolderGit2,
+        description: 'GitHub repos: yours, Hubble and GEWIS',
+        milestone: 'M9',
       },
     ],
   },

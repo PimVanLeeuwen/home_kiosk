@@ -17,10 +17,10 @@ describe('Layout', () => {
     renderRoute('/')
 
     const nav = within(sidebar())
-    for (const heading of ['Read', 'Money', 'House', 'System']) {
+    for (const heading of ['Read', 'Money', 'House', 'Code', 'System']) {
       expect(nav.getByText(heading)).toBeInTheDocument()
     }
-    expect(nav.getAllByRole('link')).toHaveLength(10)
+    expect(nav.getAllByRole('link')).toHaveLength(11)
   })
 
   it('marks the current section in the sidebar', () => {

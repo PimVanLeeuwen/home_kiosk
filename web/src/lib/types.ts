@@ -121,3 +121,27 @@ export interface NewsResponse {
   stale: boolean
   groups: { id: string; title: string; items: NewsItem[] }[]
 }
+
+export interface Repo {
+  name: string
+  full_name: string
+  url: string
+  description: string | null
+  private: boolean
+  fork: boolean
+  language: string | null
+  language_color: string | null
+  stars: number
+  forks: number
+  pushed_at: string | null
+  open_prs: number
+  open_issues: number
+  ci: 'passing' | 'failing' | 'running' | 'none'
+  release: { tag: string; published_at: string | null; url: string } | null
+}
+
+export interface ReposResponse {
+  as_of: string
+  stale: boolean
+  groups: { login: string; label: string; repos: Repo[]; error: string | null }[]
+}
