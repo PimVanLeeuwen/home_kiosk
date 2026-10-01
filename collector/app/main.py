@@ -134,6 +134,11 @@ def containers() -> Any:
     return _serve("containers")
 
 
+@app.get("/api/repos")
+def repos() -> Any:
+    return _serve("repos")
+
+
 @app.get("/api/services")
 def services() -> Any:
     """The service catalog with a status per service. Always 200: the catalog

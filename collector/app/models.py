@@ -298,3 +298,43 @@ class Services(BaseModel):
     stale: bool
     groups: list[ServiceGroup]
     stats_as_of: datetime | None = None
+
+
+# --- Home hub: GitHub repos ----------------------------------------------------
+
+
+class Release(BaseModel):
+    tag: str
+    published_at: datetime | None
+    url: str
+
+
+class Repo(BaseModel):
+    name: str
+    full_name: str
+    url: str
+    description: str | None
+    private: bool
+    fork: bool
+    language: str | None
+    language_color: str | None
+    stars: int
+    forks: int
+    pushed_at: datetime | None
+    open_prs: int
+    open_issues: int
+    # Combined check state of the default branch's latest commit.
+    ci: Literal["passing", "failing", "running", "none"]
+    release: Release | None
+
+
+class RepoGroup(BaseModel):
+    login: str
+    label: str
+    repos: list[Repo]
+    # Short and safe to show; the repos are then the last good list, if any.
+    error: str | None = None
+
+
+class Repos(Envelope):
+    groups: list[RepoGroup]

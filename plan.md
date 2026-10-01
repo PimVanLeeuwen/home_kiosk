@@ -110,7 +110,15 @@ commit message, screenshots for visual changes.
 - Rebuild `/kiosk/` in the new style; retire stock-bot; update READMEs and copy
   the stack into nas-docker.
 
-Order: M1, M2, M3 + M4, M5, M6, M7, M8.
+**M9. Repos** (added 2026-10-01)
+- A "Code" sidebar group with a Repos page: tabs Mine (PimVanLeeuwen), Hubble
+  (Hubble-Community-Cafe) and GEWIS (only repos with your pull requests or commits). Private repos
+  included through read-only fine-grained tokens, one per owner.
+- Per repo: description, language, stars and forks, visibility, last push, open pull requests and
+  issues, CI state of the default branch, latest release. Archived repos hidden.
+- One GraphQL query per owner every 30 minutes, cached; the last good list stays on errors.
+
+Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2.
 
 ## 4. Open items
 

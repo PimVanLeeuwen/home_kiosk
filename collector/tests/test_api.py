@@ -93,3 +93,10 @@ def test_services_with_container_list(client, store):
 
     assert body["stale"] is False
     assert body["groups"][0]["services"][0]["status"] == "down"
+
+
+def test_repos_serves_the_cached_payload(client, store):
+    assert client.get("/api/repos").status_code == 503
+    store.put_cache("repos", {"as_of": "2026-09-30T12:00:00+00:00", "stale": False, "groups": []})
+
+    assert client.get("/api/repos").json()["groups"] == []

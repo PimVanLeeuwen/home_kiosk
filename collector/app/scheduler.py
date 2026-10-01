@@ -13,7 +13,7 @@ from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from .sources import docker, feeds, ghostfolio, nas, spotlight, tailscale, widgets
+from .sources import docker, feeds, ghostfolio, github, nas, spotlight, tailscale, widgets
 from .store import Store
 
 log = logging.getLogger(__name__)
@@ -21,6 +21,7 @@ log = logging.getLogger(__name__)
 NAS_INTERVAL_SECONDS = 60
 CONTAINERS_INTERVAL_SECONDS = 30  # status dots on the Services page
 WIDGETS_INTERVAL_SECONDS = 60  # tile stats
+REPOS_INTERVAL_SECONDS = 1800  # GitHub repos; well inside the API limits
 HOSTS_INTERVAL_SECONDS = 600  # the tailnet name practically never changes
 NEWS_INTERVAL_SECONDS = 600       # §5: feeds every 10 minutes
 PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
@@ -74,6 +75,17 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         seconds=WIDGETS_INTERVAL_SECONDS,
         args=[store, "widgets", lambda: widgets.collect(cfg, store)],
         id="widgets",
+        next_run_time=None,
+        max_instances=1,
+        coalesce=True,
+    )
+
+    scheduler.add_job(
+        _run,
+        "interval",
+        seconds=REPOS_INTERVAL_SECONDS,
+        args=[store, "repos", lambda: github.collect(cfg, store)],
+        id="repos",
         next_run_time=None,
         max_instances=1,
         coalesce=True,
