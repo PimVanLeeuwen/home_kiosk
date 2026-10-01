@@ -395,3 +395,40 @@ class ContainerUpdate(BaseModel):
     image: str
     old_image_id: str
     new_image_id: str
+
+
+# --- Home hub: backups ------------------------------------------------------------
+
+
+class BackupVolume(BaseModel):
+    name: str
+    ok: bool
+    exit_code: int
+    seconds: int
+    # From rclone's final stats; None when the run left no stats line.
+    bytes: int | None = None
+    transfers: int | None = None
+    checks: int | None = None
+    deletes: int | None = None
+    errors: int | None = None
+    last_error: str | None = None
+
+
+class BackupRun(BaseModel):
+    started: datetime
+    finished: datetime
+    ok: bool
+    volumes: list[BackupVolume]
+
+
+class VolumeSummary(BaseModel):
+    name: str
+    last_run: BackupRun | None = None  # the newest run that included this volume
+    last_success: datetime | None
+
+
+class BackupHistory(Envelope):
+    runs: list[BackupRun]  # newest first
+    volumes: list[VolumeSummary]
+    # The script sleeps 24 hours after each run, so the next one is due then.
+    next_due: datetime | None

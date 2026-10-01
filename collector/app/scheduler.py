@@ -14,6 +14,7 @@ from typing import Any
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .sources import (
+    backups,
     container_stats,
     docker,
     feeds,
@@ -33,6 +34,7 @@ CONTAINERS_INTERVAL_SECONDS = 30  # status dots on the Services page
 DOCKER_INTERVAL_SECONDS = 60  # per-container load and image updates
 WIDGETS_INTERVAL_SECONDS = 60  # tile stats
 REPOS_INTERVAL_SECONDS = 1800  # GitHub repos; well inside the API limits
+BACKUPS_INTERVAL_SECONDS = 300  # the run file changes once a day
 HOSTS_INTERVAL_SECONDS = 600  # the tailnet name practically never changes
 NEWS_INTERVAL_SECONDS = 600       # §5: feeds every 10 minutes
 PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
@@ -108,6 +110,17 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         seconds=REPOS_INTERVAL_SECONDS,
         args=[store, "repos", lambda: github.collect(cfg, store)],
         id="repos",
+        next_run_time=None,
+        max_instances=1,
+        coalesce=True,
+    )
+
+    scheduler.add_job(
+        _run,
+        "interval",
+        seconds=BACKUPS_INTERVAL_SECONDS,
+        args=[store, "backups", lambda: backups.collect(cfg)],
+        id="backups",
         next_run_time=None,
         max_instances=1,
         coalesce=True,

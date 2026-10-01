@@ -143,6 +143,11 @@ def nas_history() -> Any:
     return nas_source.history(app.state.store.recent_nas_samples(since))
 
 
+@app.get("/api/backups")
+def backups() -> Any:
+    return _serve("backups")
+
+
 @app.get("/api/docker")
 def docker_overview() -> Any:
     return _serve("docker")
