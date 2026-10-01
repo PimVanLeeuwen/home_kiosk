@@ -227,3 +227,59 @@ export interface BackupHistory {
   volumes: { name: string; last_run: BackupRun | null; last_success: string | null }[]
   next_due: string | null
 }
+
+export type Severity = 'info' | 'ok' | 'warning' | 'error'
+
+export interface AlertMessage {
+  id: number
+  ts: string
+  source: string
+  category: string
+  severity: Severity
+  title: string
+  body: string
+  chat: string
+  status: 'sent' | 'held' | 'digested' | 'failed'
+  error: string | null
+  sent_at: string | null
+}
+
+export interface QuietHours {
+  enabled: boolean
+  start: string
+  end: string
+}
+
+export interface AlertSettings {
+  routing: Record<string, string>
+  quiet: QuietHours
+  categories: Record<string, string>
+  chats: { key: string; label: string; configured: boolean }[]
+  token_set: boolean
+  notify_key_set: boolean
+}
+
+export interface RuleSettings {
+  enabled: boolean
+  threshold_pct?: number
+  unhealthy_minutes?: number
+  restarts?: number
+  restart_window_minutes?: number
+  hours?: number
+}
+
+export interface AlertRules {
+  rules: Record<string, RuleSettings>
+  labels: Record<string, string>
+}
+
+export interface Incident {
+  key: string
+  rule: string
+  severity: Severity
+  title: string
+  body: string
+  opened_at: string
+  last_seen_at: string
+  resolved_at: string | null
+}
