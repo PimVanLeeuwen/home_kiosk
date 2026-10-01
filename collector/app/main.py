@@ -20,6 +20,7 @@ from pydantic import BaseModel, HttpUrl
 from . import config, scheduler, settings_api
 from .alerts import api as alerts_api
 from .alerts import core as alerts_core
+from .alerts import rules as alert_rules
 from .models import ContainerUpdate
 from .security import same_origin_json
 from .sources import container_stats, feeds, readeck
@@ -47,6 +48,7 @@ async def lifespan(app: FastAPI):
     app.state.store = Store(app.state.config.get("database", "./data/collector.db"))
     log.info(service_catalog.prepare(app.state.store, app.state.config))
     alerts_core.ensure_tables(app.state.store)
+    alert_rules.ensure_tables(app.state.store)
 
     # Unset ${VAR} references expand to "", which would otherwise only surface
     # as a failed save long after startup.

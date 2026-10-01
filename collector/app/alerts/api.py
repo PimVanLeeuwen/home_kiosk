@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
 from ..security import same_origin_json
-from . import core
+from . import core, rules
 
 router = APIRouter(prefix="/api")
 write = [Depends(same_origin_json)]
@@ -137,3 +137,40 @@ async def send(body: ManualMessage, request: Request) -> core.AlertMessage:
         bypass_quiet=True, chat=body.chat,
     )
     return message
+
+
+class RuleSettings(BaseModel):
+    enabled: bool
+    threshold_pct: Annotated[float | None, Field(ge=1, le=100)] = None
+    unhealthy_minutes: Annotated[int | None, Field(ge=1, le=1440)] = None
+    restarts: Annotated[int | None, Field(ge=2, le=100)] = None
+    restart_window_minutes: Annotated[int | None, Field(ge=1, le=1440)] = None
+    hours: Annotated[int | None, Field(ge=1, le=24 * 14)] = None
+
+
+def _rules(request: Request) -> dict[str, Any]:
+    return {"rules": rules.rule_settings(request.app.state.store), "labels": rules.RULE_LABELS}
+
+
+@router.get("/alerts/rules")
+def get_rules(request: Request) -> dict[str, Any]:
+    return _rules(request)
+
+
+@router.put("/alerts/rules", dependencies=write)
+def put_rules(body: dict[str, RuleSettings], request: Request) -> dict[str, Any]:
+    """Save rule settings; only the fields a rule has are kept."""
+    current = rules.rule_settings(request.app.state.store)
+    for name, given in body.items():
+        if name not in rules.DEFAULT_RULES:
+            raise HTTPException(422, f"unknown rule {name}")
+        fields = given.model_dump(exclude_none=True)
+        current[name] |= {k: v for k, v in fields.items() if k in rules.DEFAULT_RULES[name]}
+    core.put_setting(request.app.state.store, "rules", current)
+    return _rules(request)
+
+
+@router.get("/alerts/incidents")
+def list_incidents(request: Request) -> Any:
+    """Open incidents first, then recently resolved ones."""
+    return rules.incidents(request.app.state.store)

@@ -14,6 +14,7 @@ from typing import Any
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .alerts import core as alerts_core
+from .alerts import rules as alert_rules
 from .sources import (
     backups,
     container_stats,
@@ -170,6 +171,17 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         max_instances=1,
         coalesce=True,
     )
+    # The hub's own alert rules.
+    scheduler.add_job(
+        alert_rules.check,
+        "interval",
+        seconds=60,
+        args=[cfg, store],
+        id="alert-rules",
+        max_instances=1,
+        coalesce=True,
+    )
+
     # After quiet hours, the held messages go out as one digest per chat.
     scheduler.add_job(
         alerts_core.send_digests,
