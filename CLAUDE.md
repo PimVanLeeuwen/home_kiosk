@@ -15,8 +15,9 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
   serve the last good payload with `stale: true`.
 - **Secrets are NAS-only** in `.env` (template: `.env.example`). Never in `config.yaml`, code or
   commits.
-- **Read-only towards other services**, except the deliberate writes: Readeck saves, Telegram
-  messages.
+- **Read-only towards other services**, except the deliberate writes: Readeck (save, archive,
+  delete, read progress), Telegram messages, and DEGIRO imports into Ghostfolio after you confirm
+  them.
 - Style: see plan.md §1. Dark first, violet accent, mono only for technical values.
 
 ## Architecture
