@@ -10,6 +10,7 @@ import { MorePage } from './pages/MorePage'
 import { NasPage } from './pages/NasPage'
 import { NewsPage } from './pages/NewsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { PortfolioPage } from './pages/PortfolioPage'
 import { PageError } from './pages/PageError'
 import { ReposPage } from './pages/ReposPage'
 import { SavedPage } from './pages/SavedPage'
@@ -29,6 +30,7 @@ const PAGES: Record<string, ReactElement> = {
   '/alerts': <AlertsPage />,
   '/news': <NewsPage />,
   '/saved': <SavedPage />,
+  '/portfolio': <PortfolioPage />,
 }
 
 export const BUILT_ROUTES = Object.keys(PAGES)

@@ -170,6 +170,13 @@ def test_holding_detail_thins_long_histories():
     assert len(thinned) == holding.MAX_POINTS and thinned[-1].d == "d999"
 
 
+def test_holding_detail_drops_the_unadjusted_first_price():
+    points = [holding.PricePoint(d=str(i), price=p)
+              for i, p in enumerate([454.91, 46.57, 48.3, 48.6, 121.8, 125.0])]
+    # The split-era booked price goes; a real jump (48.6 to 121.8) has a neighbour close by.
+    assert [p.price for p in holding._despike(points)] == [46.57, 48.3, 48.6, 121.8, 125.0]
+
+
 def test_holding_detail_rejects_odd_symbols():
     for ds, sym in [("YAHOO", "../admin"), ("yahoo", "NVDA"), ("YAHOO", "A" * 40)]:
         with pytest.raises(holding.NotFound):

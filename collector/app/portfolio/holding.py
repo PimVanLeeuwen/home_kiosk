@@ -5,7 +5,8 @@ Contract checked against the Ghostfolio 3.76.0 source:
 
     GET /api/v1/portfolio/holding/{dataSource}/{symbol}
         -> quantity, averagePrice, marketPrice(Min|Max), value, performance,
-           historicalData[{date, marketPrice, averagePrice}]
+           historicalData[{date, marketPrice}]  (its averagePrice per day is not
+           split-adjusted, so the page draws today's average instead)
     GET /api/v1/activities?dataSource=&symbol=&sortColumn=date&sortDirection=desc
         -> {activities: [{date, type, quantity, unitPrice, fee, currency, valueInBaseCurrency}]}
 """
@@ -55,11 +56,27 @@ def _thin(points: list[PricePoint]) -> list[PricePoint]:
     return [*picked, points[-1]]
 
 
+def _despike(points: list[PricePoint]) -> list[PricePoint]:
+    """Drop lone points far off both neighbours. Ghostfolio's first point is the
+    price as booked, which after a split (NVDA, 10 for 1) is ten times the
+    adjusted prices around it."""
+
+    def off(a: float, b: float) -> bool:
+        return a > 2 * b or a < b / 2
+
+    kept = []
+    for i, p in enumerate(points):
+        neighbours = [points[j].price for j in (i - 1, i + 1) if 0 <= j < len(points)]
+        if neighbours and all(off(p.price, n) for n in neighbours) and len(points) > 2:
+            continue
+        kept.append(p)
+    return kept
+
+
 def parse(data_source: str, symbol: str, holding: dict, activities: dict) -> HoldingDetail:
     profile = holding.get("assetProfile") or {}
     history = [
-        PricePoint(d=row["date"], price=round(row["marketPrice"], 4),
-                   average=_round(row.get("averagePrice"), 4) or None)
+        PricePoint(d=row["date"], price=round(row["marketPrice"], 4))
         for row in holding.get("historicalData") or []
         if row.get("date") and row.get("marketPrice")
     ]
@@ -82,7 +99,7 @@ def parse(data_source: str, symbol: str, holding: dict, activities: dict) -> Hol
         dividends=_round(holding.get("dividendInBaseCurrency")),
         fees=_round(holding.get("feeInBaseCurrency")),
         first_activity=holding.get("dateOfFirstActivity"),
-        history=_thin(history),
+        history=_thin(_despike(history)),
         activities=[
             HoldingActivity(
                 date=a["date"], type=a.get("type") or "", quantity=a.get("quantity") or 0,

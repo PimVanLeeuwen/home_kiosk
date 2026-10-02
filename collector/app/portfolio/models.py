@@ -24,7 +24,6 @@ class PortfolioCharts(Envelope):
 class PricePoint(BaseModel):
     d: str
     price: float
-    average: float | None = None  # your average purchase price on that day
 
 
 class HoldingActivity(BaseModel):

@@ -6,18 +6,20 @@ interface Props {
   title: string
   /** "Open →" style link to the full section. */
   link?: { to: string; label: string }
+  /** Controls at the right of the title, e.g. a period switch. */
+  actions?: ReactNode
   className?: string
   children: ReactNode
 }
 
-export function Card({ title, link, className, children }: Props) {
+export function Card({ title, link, actions, className, children }: Props) {
   const id = `card-${title.toLowerCase().replace(/\W+/g, '-')}`
   return (
     <section
       aria-labelledby={id}
       className={cn('min-w-0 rounded-[14px] border border-line-soft bg-card px-5 py-5 md:px-6', className)}
     >
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 id={id} className="text-[13px] font-semibold text-muted">
           {title}
         </h2>
@@ -26,6 +28,7 @@ export function Card({ title, link, className, children }: Props) {
             {link.label} →
           </Link>
         )}
+        {actions}
       </div>
       {children}
     </section>

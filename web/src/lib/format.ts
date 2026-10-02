@@ -89,3 +89,28 @@ export function formatDay(iso: string, now = new Date()): string {
 export function readingMinutes(words: number): number {
   return Math.max(1, Math.round(words / 220))
 }
+
+/** "+€ 1.234" / "−€ 84": a change in money, with a real minus sign. */
+export function formatSignedMoney(n: number, currency = 'EUR'): string {
+  const sign = n > 0 ? '+' : n < 0 ? '−' : ''
+  return `${sign}${formatMoney(Math.abs(n), currency)}`
+}
+
+/** A unit price with cents, in its own currency: "$ 190,25". */
+export const formatPrice = (n: number, currency = 'EUR') =>
+  new Intl.NumberFormat(LOCALE, { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
+
+/** A quantity: whole shares plainly, fractions with up to four decimals. */
+export const formatQuantity = (n: number) => new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 4 }).format(n)
+
+const shortDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' })
+const monthYear = new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric' })
+const fullDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+
+/** Chart axis dates: "2 Sept" within a year, "Sept 2025" for longer spans. */
+export function formatChartDate(iso: string, long: boolean): string {
+  return (long ? monthYear : shortDate).format(new Date(iso))
+}
+
+/** "2 Sept 2025". */
+export const formatDate = (iso: string) => fullDate.format(new Date(iso))
