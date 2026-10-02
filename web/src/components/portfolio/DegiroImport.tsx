@@ -10,6 +10,7 @@ import { buttonClass, inputClass, primaryButtonClass } from '../settings/fields'
 
 type Product = DegiroPreview['unknown'][number]
 const MAX_BYTES = 2_000_000
+const LEAVE_OUT = 'leave-out'
 
 /** Bring Ghostfolio up to date from a DEGIRO Transactions export: preview, then import. */
 export function DegiroImport({ onImported }: { onImported: () => void }) {
@@ -22,7 +23,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
   const [account, setAccount] = useState<string>()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string>()
-  const [done, setDone] = useState<{ imported: number; existing: number; unknown: number }>()
+  const [done, setDone] = useState<{ imported: number; existing: number; unknown: number; ignored: number }>()
 
   async function check(text: string, chosen: DegiroChoices) {
     setBusy(true)
@@ -58,7 +59,8 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
 
   function choose(isin: string, value: string) {
     const next = { ...choices }
-    if (value) {
+    if (value === LEAVE_OUT) next[isin] = { data_source: '', symbol: '', ignore: true }
+    else if (value) {
       const [data_source, ...rest] = value.split('/')
       next[isin] = { data_source, symbol: rest.join('/') }
     } else delete next[isin]
@@ -120,6 +122,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
           <p aria-live="polite" className="mb-4">
             {preview.rows.length} trades in the file: <span className="font-semibold text-up">{preview.counts.new} new</span>,{' '}
             {preview.counts.exists} already in Ghostfolio
+            {preview.counts.ignored > 0 && `, ${preview.counts.ignored} left out`}
             {preview.counts.unknown > 0 && (
               <>
                 ,{' '}
@@ -144,11 +147,12 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
                         {p.product} <span className="font-mono text-[12px] text-faint">{p.isin}</span>
                       </span>
                       <select
-                        value={current ? `${current.data_source}/${current.symbol}` : ''}
+                        value={current?.ignore ? LEAVE_OUT : current ? `${current.data_source}/${current.symbol}` : ''}
                         onChange={(e) => choose(p.isin, e.target.value)}
                         className={inputClass}
                       >
                         <option value="">Skip for now</option>
+                        <option value={LEAVE_OUT}>Leave out of Ghostfolio, always</option>
                         {p.candidates.map((c) => (
                           <option key={`${c.data_source}/${c.symbol}`} value={`${c.data_source}/${c.symbol}`}>
                             {c.symbol} · {c.name}
@@ -225,7 +229,8 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
         <Card title="3. Done" className="mt-4">
           <p role="status">
             Imported {done.imported} trade{done.imported === 1 ? '' : 's'} into Ghostfolio
-            {done.unknown > 0 && `; ${done.unknown} skipped without a symbol`}. The portfolio refreshes in a moment.
+            {done.unknown > 0 && `; ${done.unknown} skipped without a symbol`}
+            {done.ignored > 0 && `; ${done.ignored} left out`}. The portfolio refreshes in a moment.
           </p>
           <Link to="/portfolio" className={`${buttonClass} mt-4`}>
             Back to the portfolio

@@ -112,7 +112,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   a public address. Saved lists unarchived Readeck bookmarks (Archived filter), reads them in the
   same reader, offers archive and delete (Readeck's own scheduled delete) and syncs read progress.
 
-**M7. Portfolio**
+**M7. Portfolio**. **Done 2026-10-02.**
 - Full Ghostfolio overview: value history, holdings, allocation, holding detail.
 - Daily report through M5, which makes stock-bot redundant (retirement when the owner says so).
 - Added 2026-10-01: upload a full DEGIRO transaction export on the Portfolio page to bring the

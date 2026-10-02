@@ -85,3 +85,7 @@ python3 dashboard/serve.py
   proxy, or dev writes get a 403.
 - On the Mac, the Vite dev proxy can't reach the NAS on its LAN IP (`EHOSTUNREACH`, probably
   macOS Local Network privacy). Point `HUB_API` at the Tailscale IP `http://100.70.0.10:8000`.
+- APScheduler 3 numbers crontab weekdays from Monday = 0: use day names (`mon-fri`) in cron
+  strings, never `1-5`.
+- Ghostfolio's per-day `averagePrice` and its first price point are not split-adjusted (NVDA,
+  June 2024). The hub despikes the price history and draws today's average instead.

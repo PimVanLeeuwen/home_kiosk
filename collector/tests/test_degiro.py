@@ -35,6 +35,12 @@ def test_parse_reads_english_and_dutch_exports(text):
     assert (asml.type, asml.price, asml.fee, asml.order_id) == ("BUY", 1597.0, 3.0, "ord-2")
 
 
+def test_parse_joins_wrapped_product_names():
+    trades, skipped = degiro.parse(DUTCH)
+    assert trades[-1].product == "TAIWAN SEMICONDUCTOR MANUFACTURING CO"
+    assert skipped == []
+
+
 def test_parse_skips_rows_that_are_not_trades():
     trades, skipped = degiro.parse(ENGLISH)
     assert len(trades) == 3
@@ -148,7 +154,7 @@ def test_preview_sorts_rows_into_new_existing_and_unknown(degiro_store, fake):
 
     assert [(r.symbol, r.status) for r in result.rows] == [
         ("NVDA", "exists"), ("ASML.AS", "new"), (None, "unknown")]
-    assert result.counts == {"new": 1, "exists": 1, "unknown": 1}
+    assert result.counts == {"new": 1, "exists": 1, "unknown": 1, "ignored": 0}
     assert result.account_id == "acc-degiro"
     (product,) = result.unknown
     assert product.isin == "IE00BM67HT60"
@@ -168,7 +174,7 @@ def test_import_adds_only_new_rows_and_remembers_choices(degiro_store, fake):
     result = asyncio.run(degiro_import.run_import(
         CFG, degiro_store, ENGLISH, "acc-degiro", choices, httpx.MockTransport(fake)))
 
-    assert result == {"imported": 2, "existing": 1, "unknown": 0}
+    assert result == {"imported": 2, "existing": 1, "unknown": 0, "ignored": 0}
     assert [(a["symbol"], a["type"], a["quantity"]) for a in fake.imported] == [
         ("ASML.AS", "BUY", 1), ("XDWT.DE", "BUY", 2)]
     asml = {k: v for k, v in fake.imported[0].items() if k != "assetProfile"}
@@ -181,8 +187,31 @@ def test_import_adds_only_new_rows_and_remembers_choices(degiro_store, fake):
     # The same file again adds nothing, and the ETF no longer needs a choice.
     fake.lookups.clear()
     again = preview(degiro_store, fake)
-    assert again.counts == {"new": 0, "exists": 3, "unknown": 0}
+    assert again.counts == {"new": 0, "exists": 3, "unknown": 0, "ignored": 0}
     assert "IE00BM67HT60" not in fake.lookups
+
+
+def test_a_product_can_be_left_out_for_good(degiro_store, fake):
+    leave_out = {"IE00BM67HT60": degiro_import.Choice(ignore=True)}
+    result = asyncio.run(degiro_import.run_import(
+        CFG, degiro_store, ENGLISH, "acc-degiro", leave_out, httpx.MockTransport(fake)))
+    assert result == {"imported": 1, "existing": 1, "unknown": 0, "ignored": 1}
+    assert [a["symbol"] for a in fake.imported] == ["ASML.AS"]
+
+    fake.lookups.clear()
+    again = preview(degiro_store, fake)
+    assert again.counts == {"new": 0, "exists": 2, "unknown": 0, "ignored": 1}
+    assert again.unknown == [] and "IE00BM67HT60" not in fake.lookups
+    assert again.rows[-1].status == "ignored" and again.rows[-1].symbol is None
+
+
+def test_older_tables_get_the_ignored_column(store):
+    with store.connect() as conn:
+        conn.execute("CREATE TABLE degiro_symbol (isin TEXT PRIMARY KEY, "
+                     "data_source TEXT NOT NULL, symbol TEXT NOT NULL, chosen_at TEXT NOT NULL)")
+        conn.execute("INSERT INTO degiro_symbol VALUES ('IE00BM67HT60', 'YAHOO', 'XDWT.DE', 'x')")
+    degiro_import.ensure_tables(store)
+    assert degiro_import.saved_choices(store)["IE00BM67HT60"].ignore is False
 
 
 def test_import_refuses_an_unknown_account_and_bad_symbols(degiro_store, fake):
@@ -210,12 +239,12 @@ def client(degiro_store, fake):
 
 def test_preview_and_import_endpoints(client, fake):
     body = client.post("/api/portfolio/degiro/preview", json={"csv": ENGLISH}).json()
-    assert body["counts"] == {"new": 1, "exists": 1, "unknown": 1}
+    assert body["counts"] == {"new": 1, "exists": 1, "unknown": 1, "ignored": 0}
 
     resp = client.post("/api/portfolio/degiro/import", json={
         "csv": ENGLISH, "account_id": "acc-degiro",
         "choices": {"IE00BM67HT60": {"data_source": "YAHOO", "symbol": "XDWT.DE"}}})
-    assert resp.json() == {"imported": 2, "existing": 1, "unknown": 0}
+    assert resp.json() == {"imported": 2, "existing": 1, "unknown": 0, "ignored": 0}
 
 
 def test_endpoints_explain_problems(client, fake):

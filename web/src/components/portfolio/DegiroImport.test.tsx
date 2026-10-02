@@ -43,13 +43,13 @@ const FIRST: DegiroPreview = {
     { id: 'acc-degiro', name: 'DEGIRO' },
   ],
   account_id: 'acc-degiro',
-  counts: { new: 1, exists: 1, unknown: 1 },
+  counts: { new: 1, exists: 1, unknown: 1, ignored: 0 },
 }
 const CHOSEN: DegiroPreview = {
   ...FIRST,
   rows: [FIRST.rows[0], FIRST.rows[1], row({ line: 4, ...ETF, symbol: 'XDWT.DE', quantity: 2, price: 95.5 })],
   unknown: [],
-  counts: { new: 2, exists: 1, unknown: 0 },
+  counts: { new: 2, exists: 1, unknown: 0, ignored: 0 },
 }
 const CSV = 'Date,Time,Product,ISIN,Quantity,Price\n'
 
@@ -63,7 +63,7 @@ function setup(over: Record<string, unknown> = {}) {
     '/api/portfolio': PORTFOLIO_FULL,
     'POST /api/portfolio/degiro/preview': (body: unknown) =>
       Object.keys((body as { choices: object }).choices).length ? CHOSEN : FIRST,
-    'POST /api/portfolio/degiro/import': { imported: 2, existing: 1, unknown: 0 },
+    'POST /api/portfolio/degiro/import': { imported: 2, existing: 1, unknown: 0, ignored: 0 },
     ...over,
   })
   return { fetchMock, ...renderRoute('/portfolio?import') }
@@ -105,6 +105,28 @@ describe('DegiroImport', () => {
     })
   })
 
+  it('can leave a product out for good', async () => {
+    const left: DegiroPreview = {
+      ...FIRST,
+      rows: [FIRST.rows[0], FIRST.rows[1], { ...FIRST.rows[2], status: 'ignored' }],
+      unknown: [],
+      counts: { new: 1, exists: 1, unknown: 0, ignored: 1 },
+    }
+    const { fetchMock } = setup({
+      'POST /api/portfolio/degiro/preview': (body: unknown) =>
+        Object.keys((body as { choices: object }).choices).length ? left : FIRST,
+    })
+    upload()
+    fireEvent.change(await screen.findByRole('combobox', { name: /XTRACKERS MSCI WORLD IT/ }), {
+      target: { value: 'leave-out' },
+    })
+    expect(await screen.findByText(/1 left out/)).toBeInTheDocument()
+    expect(sentBody(fetchMock, 'POST', '/api/portfolio/degiro/preview', 1)).toEqual({
+      csv: CSV,
+      choices: { IE00BM67HT60: { data_source: '', symbol: '', ignore: true } },
+    })
+  })
+
   it('explains a wrong file', async () => {
     setup({
       'POST /api/portfolio/degiro/preview': failWith(422, {
@@ -116,7 +138,7 @@ describe('DegiroImport', () => {
   })
 
   it('has nothing to import when everything is there', async () => {
-    const all: DegiroPreview = { ...CHOSEN, rows: [FIRST.rows[0]], counts: { new: 0, exists: 1, unknown: 0 } }
+    const all: DegiroPreview = { ...CHOSEN, rows: [FIRST.rows[0]], counts: { new: 0, exists: 1, unknown: 0, ignored: 0 } }
     setup({ 'POST /api/portfolio/degiro/preview': all })
     upload()
     await waitFor(() => expect(screen.getByRole('button', { name: 'Nothing new to import' })).toBeDisabled())

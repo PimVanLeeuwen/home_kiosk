@@ -1,3 +1,5 @@
 Datum,Tijd,Product,ISIN,Beurs,Uitvoeringsplaats,Aantal,Koers,,Lokale waarde,,Waarde EUR,Wisselkoers,AutoFX Kosten,Transactiekosten en/of kosten van derden EUR,Totaal EUR,Order ID
 "09-09-2024","15:35","NVIDIA CORP","US67066G1040","NDQ","XNAS","-5","104,98","USD","524,90","USD","476,12","1,1025","-1,19","-2,00","472,93","ord-1"
 "02-10-2026","09:05","ASML HOLDING","NL0010273215","EAM","XAMS","1","1.597,00","EUR","-1.597,00","EUR","-1.597,00","","0,00","-3,00","-1.600,00","ord-2"
+"28-09-2026","10:02","TAIWAN SEMICONDUCTOR","US8740391003","NSY","XNYS","1","300,00","USD","-300,00","USD","-272,73","1,1000","-0,68","-2,00","-275,41","ord-7"
+"","","MANUFACTURING CO","","","","","","","","","","","","","",""

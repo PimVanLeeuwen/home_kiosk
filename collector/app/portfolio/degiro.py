@@ -143,6 +143,13 @@ def parse(text: str) -> tuple[list[Trade], list[str]]:
             i = columns.get(field)
             return row[i].strip() if i is not None and i < len(row) else ""
 
+        # DEGIRO wraps a long product name onto a line of its own, with
+        # nothing else filled in: it belongs to the trade above.
+        filled = [i for i, c in enumerate(row) if c.strip()]
+        if trades and filled == [columns.get("product")]:
+            trades[-1].product = f"{trades[-1].product} {cell('product')}".strip()
+            continue
+
         isin = cell("isin").upper()
         quantity = number(cell("quantity"), dutch)
         price = number(cell("price"), dutch)

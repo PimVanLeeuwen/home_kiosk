@@ -92,7 +92,7 @@ export interface DegiroRow {
   currency: string
   fee: number
   order_id: string
-  status: 'new' | 'exists' | 'unknown'
+  status: 'new' | 'exists' | 'unknown' | 'ignored'
   symbol: string | null
   data_source: string | null
 }
@@ -103,7 +103,8 @@ export interface DegiroPreview {
   unknown: { isin: string; product: string; candidates: DegiroCandidate[] }[]
   accounts: { id: string; name: string }[]
   account_id: string | null
-  counts: { new: number; exists: number; unknown: number }
+  counts: { new: number; exists: number; unknown: number; ignored: number }
 }
 
-export type DegiroChoices = Record<string, { data_source: string; symbol: string }>
+/** Per ISIN: a symbol, or `ignore` to leave the product out of Ghostfolio for good. */
+export type DegiroChoices = Record<string, { data_source: string; symbol: string; ignore?: boolean }>

@@ -7,6 +7,8 @@ twice adds nothing the second time.
   and Ghostfolio's profiles here carry no ISIN. The hub looks the ISIN up with
   Ghostfolio (`/api/v1/symbol/lookup`, Yahoo search underneath) and takes the
   listing you already hold. Without one it asks, and remembers the answer.
+- Left out: a product you never want in Ghostfolio (a delisted one, say) can
+  be left out once; it is counted, not asked about again.
 - Already there: the existing activities came from a CSV import without DEGIRO
   order IDs, so a trade counts as present when an unused activity has the same
   symbol, type, quantity and day, at a price within PRICE_TOLERANCE. Ghostfolio
@@ -48,7 +50,8 @@ CREATE TABLE IF NOT EXISTS degiro_symbol (
     isin        TEXT PRIMARY KEY,
     data_source TEXT NOT NULL,
     symbol      TEXT NOT NULL,
-    chosen_at   TEXT NOT NULL
+    chosen_at   TEXT NOT NULL,
+    ignored     INTEGER NOT NULL DEFAULT 0
 );
 """
 
@@ -72,7 +75,7 @@ class Row(BaseModel):
     currency: str
     fee: float
     order_id: str
-    status: Literal["new", "exists", "unknown"]
+    status: Literal["new", "exists", "unknown", "ignored"]
     symbol: str | None = None
     data_source: str | None = None
 
@@ -100,8 +103,10 @@ class Preview(BaseModel):
 
 
 class Choice(BaseModel):
-    data_source: str
-    symbol: str
+    data_source: str = ""
+    symbol: str = ""
+    # Leave this product out of Ghostfolio, now and on later uploads.
+    ignore: bool = False
 
 
 class DegiroError(Exception):
@@ -123,26 +128,37 @@ class _Existing:
 def ensure_tables(store: Store) -> None:
     with store.connect() as conn:
         conn.executescript(TABLES)
+        # Tables from before "leave out" existed.
+        columns = {r["name"] for r in conn.execute("PRAGMA table_info(degiro_symbol)")}
+        if "ignored" not in columns:
+            conn.execute(
+                "ALTER TABLE degiro_symbol ADD COLUMN ignored INTEGER NOT NULL DEFAULT 0")
 
 
 def saved_choices(store: Store) -> dict[str, Choice]:
     with store.connect() as conn:
-        rows = conn.execute("SELECT isin, data_source, symbol FROM degiro_symbol").fetchall()
-    return {r["isin"]: Choice(data_source=r["data_source"], symbol=r["symbol"]) for r in rows}
+        rows = conn.execute(
+            "SELECT isin, data_source, symbol, ignored FROM degiro_symbol").fetchall()
+    return {r["isin"]: Choice(data_source=r["data_source"], symbol=r["symbol"],
+                              ignore=bool(r["ignored"])) for r in rows}
 
 
 def save_choices(store: Store, choices: dict[str, Choice]) -> None:
     now = datetime.now(UTC).isoformat()
     with store.connect() as conn:
         conn.executemany(
-            "INSERT INTO degiro_symbol (isin, data_source, symbol, chosen_at) VALUES (?, ?, ?, ?) "
-            "ON CONFLICT(isin) DO UPDATE SET data_source = excluded.data_source, "
-            "symbol = excluded.symbol, chosen_at = excluded.chosen_at",
-            [(isin, c.data_source, c.symbol, now) for isin, c in choices.items()])
+            "INSERT INTO degiro_symbol (isin, data_source, symbol, chosen_at, ignored) "
+            "VALUES (?, ?, ?, ?, ?) ON CONFLICT(isin) DO UPDATE SET "
+            "data_source = excluded.data_source, symbol = excluded.symbol, "
+            "chosen_at = excluded.chosen_at, ignored = excluded.ignored",
+            [(isin, c.data_source, c.symbol, now, int(c.ignore))
+             for isin, c in choices.items()])
 
 
 def check_choices(choices: dict[str, Choice]) -> None:
     for isin, c in choices.items():
+        if c.ignore and len(isin) == 12:
+            continue
         if not DATA_SOURCE.match(c.data_source) or not SYMBOL.match(c.symbol) or len(isin) != 12:
             raise DegiroError(f"“{c.symbol}” is not a valid symbol for {isin}.")
 
@@ -254,6 +270,8 @@ async def preview(cfg: dict[str, Any], store: Store, text: str,
         choice = chosen.get(t.isin)
         if choice is None:
             status = "unknown"
+        elif choice.ignore:
+            status = "ignored"
         else:
             match = find_match(t, choice, existing)
             if match:
@@ -263,15 +281,15 @@ async def preview(cfg: dict[str, Any], store: Store, text: str,
             line=t.line, date=t.when, product=t.product, isin=t.isin, type=t.type,
             quantity=t.quantity, price=t.price, currency=t.currency, fee=t.fee,
             order_id=t.order_id, status=status,
-            symbol=choice.symbol if choice else None,
-            data_source=choice.data_source if choice else None,
+            symbol=choice.symbol if choice and not choice.ignore else None,
+            data_source=choice.data_source if choice and not choice.ignore else None,
         ))
     counts = Counter(r.status for r in rows)
     return Preview(
         rows=rows, skipped=skipped, unknown=unknown,
         accounts=[Account(id=a["id"], name=a.get("name") or a["id"]) for a in accounts],
         account_id=_default_account(accounts, activities),
-        counts={k: counts.get(k, 0) for k in ("new", "exists", "unknown")},
+        counts={k: counts.get(k, 0) for k in ("new", "exists", "unknown", "ignored")},
     )
 
 
@@ -309,4 +327,4 @@ async def run_import(cfg: dict[str, Any], store: Store, text: str, account_id: s
                               timeout=IMPORT_TIMEOUT)
     holding_cache.clear()  # holdings change; their detail is fetched again
     return {"imported": len(new), "existing": result.counts["exists"],
-            "unknown": result.counts["unknown"]}
+            "unknown": result.counts["unknown"], "ignored": result.counts["ignored"]}
