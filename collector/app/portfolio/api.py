@@ -99,3 +99,17 @@ async def degiro_run(body: ImportRequest, request: Request) -> dict[str, int]:
     if scheduler and scheduler.get_job("portfolio"):
         scheduler.get_job("portfolio").modify(next_run_time=datetime.now(UTC))
     return result
+
+
+@router.get("/portfolio/degiro/choices")
+def degiro_choices(request: Request) -> dict[str, degiro_import.Choice]:
+    """The symbols (or leave-outs) remembered per ISIN."""
+    return degiro_import.saved_choices(request.app.state.store)
+
+
+@router.delete("/portfolio/degiro/choices/{isin}", dependencies=write)
+def forget_degiro_choice(isin: str, request: Request) -> dict[str, degiro_import.Choice]:
+    """Forget one; the next upload asks about that product again."""
+    if not degiro_import.forget_choice(request.app.state.store, isin):
+        raise HTTPException(404, "Nothing remembered for that ISIN.")
+    return degiro_import.saved_choices(request.app.state.store)

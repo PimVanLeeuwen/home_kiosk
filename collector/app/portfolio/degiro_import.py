@@ -27,9 +27,11 @@ Contract checked against the Ghostfolio 3.76.0 source:
 from __future__ import annotations
 
 import asyncio
+import re
 from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from difflib import SequenceMatcher
 from typing import Any, Literal
 
 import httpx
@@ -42,6 +44,7 @@ from .holding import DATA_SOURCE, SYMBOL, _client
 from .holding import _cache as holding_cache
 
 PRICE_TOLERANCE = 0.005
+SUGGEST_FROM = 0.6  # name similarity (0 to 1) for a holding to be preselected
 IMPORT_CHUNK = 100
 IMPORT_TIMEOUT = 120
 
@@ -62,6 +65,8 @@ class Candidate(BaseModel):
     name: str
     currency: str | None = None
     held: bool = False
+    # The held holding whose name is closest to DEGIRO's product name.
+    suggested: bool = False
 
 
 class Row(BaseModel):
@@ -155,6 +160,11 @@ def save_choices(store: Store, choices: dict[str, Choice]) -> None:
              for isin, c in choices.items()])
 
 
+def forget_choice(store: Store, isin: str) -> bool:
+    with store.connect() as conn:
+        return conn.execute("DELETE FROM degiro_symbol WHERE isin = ?", (isin,)).rowcount > 0
+
+
 def check_choices(choices: dict[str, Choice]) -> None:
     for isin, c in choices.items():
         if c.ignore and len(isin) == 12:
@@ -233,6 +243,29 @@ async def _lookup(client: Client, http: httpx.AsyncClient, isin: str,
     ]
 
 
+def _similarity(a: str, b: str) -> float:
+    def words(text: str) -> str:
+        return " ".join(re.sub(r"[^a-z0-9]+", " ", text.lower()).split())
+
+    return SequenceMatcher(None, words(a), words(b)).ratio()
+
+
+def _offer(product: str, found: list[Candidate], held: set[tuple[str, str]],
+           names: dict[tuple[str, str], str]) -> list[Candidate]:
+    """What you hold first, closest name first, then Yahoo's other listings.
+
+    Yahoo often knows a fund only by another exchange (VUSD.L for the VUSA.AS
+    you hold), and picking that adds the fund a second time, so the holdings
+    lead and the best name match is marked."""
+    yours = [Candidate(symbol=s, data_source=ds, name=names[(ds, s)], held=True)
+             for ds, s in held]
+    yours.sort(key=lambda c: _similarity(product, c.name), reverse=True)
+    if yours and _similarity(product, yours[0].name) >= SUGGEST_FROM:
+        yours[0].suggested = True
+    mine = {(c.data_source, c.symbol) for c in yours}
+    return yours + [c for c in found if (c.data_source, c.symbol) not in mine]
+
+
 async def preview(cfg: dict[str, Any], store: Store, text: str,
                   choices: dict[str, Choice] | None = None,
                   transport: httpx.AsyncBaseTransport | None = None) -> Preview:
@@ -259,11 +292,8 @@ async def preview(cfg: dict[str, Any], store: Store, text: str,
                 chosen[isin] = Choice(data_source=owned[0].data_source, symbol=owned[0].symbol)
             else:
                 product = next(t.product for t in trades if t.isin == isin)
-                # Offer what Yahoo found, then everything you hold to pick from.
-                extra = [Candidate(symbol=s, data_source=ds, name=names[(ds, s)], held=True)
-                         for ds, s in sorted(held)
-                         if (ds, s) not in {(c.data_source, c.symbol) for c in candidates}]
-                unknown.append(Product(isin=isin, product=product, candidates=candidates + extra))
+                unknown.append(Product(isin=isin, product=product,
+                                       candidates=_offer(product, candidates, held, names)))
 
     rows = []
     for t in trades:

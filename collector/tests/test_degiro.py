@@ -158,9 +158,11 @@ def test_preview_sorts_rows_into_new_existing_and_unknown(degiro_store, fake):
     assert result.account_id == "acc-degiro"
     (product,) = result.unknown
     assert product.isin == "IE00BM67HT60"
-    # Yahoo's listing first, then everything held to choose from.
-    assert [c.symbol for c in product.candidates] == ["XDWT.L", "ASML.AS", "NVDA", "XDWT.DE"]
-    assert product.candidates[-1].name == "Xtrackers MSCI World IT"
+    # Your holdings first, the closest name marked; Yahoo's other listing last.
+    assert [(c.symbol, c.held, c.suggested) for c in product.candidates] == [
+        ("XDWT.DE", True, True), ("ASML.AS", True, False), ("NVDA", True, False),
+        ("XDWT.L", False, False)]
+    assert product.candidates[0].name == "Xtrackers MSCI World IT"
 
 
 def test_an_existing_activity_counts_once(degiro_store, fake):
@@ -205,6 +207,13 @@ def test_a_product_can_be_left_out_for_good(degiro_store, fake):
     assert again.rows[-1].status == "ignored" and again.rows[-1].symbol is None
 
 
+def test_a_weak_name_match_is_not_suggested():
+    held = {("YAHOO", "AIAA.DE")}
+    names = {("YAHOO", "AIAA.DE"): "iShares AI Adopters & Applications UCITS ETF"}
+    (offer,) = degiro_import._offer("VANGUARD S&P 500 UCITS ETF USD DIS", [], held, names)
+    assert offer.suggested is False
+
+
 def test_older_tables_get_the_ignored_column(store):
     with store.connect() as conn:
         conn.execute("CREATE TABLE degiro_symbol (isin TEXT PRIMARY KEY, "
@@ -245,6 +254,19 @@ def test_preview_and_import_endpoints(client, fake):
         "csv": ENGLISH, "account_id": "acc-degiro",
         "choices": {"IE00BM67HT60": {"data_source": "YAHOO", "symbol": "XDWT.DE"}}})
     assert resp.json() == {"imported": 2, "existing": 1, "unknown": 0, "ignored": 0}
+
+
+def test_remembered_choices_can_be_listed_and_forgotten(client, degiro_store):
+    degiro_import.save_choices(degiro_store, {
+        "IE00BM67HT60": degiro_import.Choice(data_source="YAHOO", symbol="XDWT.L")})
+    assert client.get("/api/portfolio/degiro/choices").json() == {
+        "IE00BM67HT60": {"data_source": "YAHOO", "symbol": "XDWT.L", "ignore": False}}
+
+    assert client.delete("/api/portfolio/degiro/choices/IE00BM67HT60").json() == {}
+    assert client.delete("/api/portfolio/degiro/choices/IE00BM67HT60").status_code == 404
+    # Asked about again on the next preview.
+    body = client.post("/api/portfolio/degiro/preview", json={"csv": ENGLISH}).json()
+    assert [u["isin"] for u in body["unknown"]] == ["IE00BM67HT60"]
 
 
 def test_endpoints_explain_problems(client, fake):

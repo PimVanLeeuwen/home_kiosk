@@ -79,6 +79,8 @@ export interface DegiroCandidate {
   name: string
   currency: string | null
   held: boolean
+  /** The holding whose name is closest to DEGIRO's product name; preselected. */
+  suggested: boolean
 }
 
 export interface DegiroRow {

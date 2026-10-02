@@ -33,8 +33,8 @@ const FIRST: DegiroPreview = {
     {
       ...ETF,
       candidates: [
-        { symbol: 'XDWT.L', data_source: 'YAHOO', name: 'Xtrackers (London)', currency: 'GBP', held: false },
-        { symbol: 'XDWT.DE', data_source: 'YAHOO', name: 'Xtrackers MSCI World IT', currency: 'EUR', held: true },
+        { symbol: 'XDWT.L', data_source: 'YAHOO', name: 'Xtrackers (London)', currency: 'GBP', held: false, suggested: false },
+        { symbol: 'XDWT.DE', data_source: 'YAHOO', name: 'Xtrackers MSCI World IT', currency: 'EUR', held: true, suggested: false },
       ],
     },
   ],
@@ -125,6 +125,53 @@ describe('DegiroImport', () => {
       csv: CSV,
       choices: { IE00BM67HT60: { data_source: '', symbol: '', ignore: true } },
     })
+  })
+
+  it('preselects the holding whose name matches, and warns about a new holding', async () => {
+    const suggested: DegiroPreview = {
+      ...FIRST,
+      unknown: [
+        {
+          ...FIRST.unknown[0],
+          candidates: [
+            { ...FIRST.unknown[0].candidates[1], suggested: true },
+            FIRST.unknown[0].candidates[0],
+          ],
+        },
+      ],
+    }
+    const { fetchMock } = setup({
+      'POST /api/portfolio/degiro/preview': (body: unknown) =>
+        Object.keys((body as { choices: object }).choices).length ? CHOSEN : suggested,
+    })
+    upload()
+    const pick = await screen.findByRole('combobox', { name: /XTRACKERS MSCI WORLD IT/ })
+    await waitFor(() => expect(pick).toHaveValue('YAHOO/XDWT.DE'))
+    expect(sentBody(fetchMock, 'POST', '/api/portfolio/degiro/preview', 1)).toEqual({
+      csv: CSV,
+      choices: { IE00BM67HT60: { data_source: 'YAHOO', symbol: 'XDWT.DE' } },
+    })
+    expect(within(pick).getByRole('option', { name: /XDWT.DE · Xtrackers MSCI World IT \(best match\)/ })).toBeInTheDocument()
+    expect(within(pick).getByRole('group', { name: 'New holding in Ghostfolio' })).toHaveTextContent('XDWT.L')
+
+    fireEvent.change(pick, { target: { value: 'YAHOO/XDWT.L' } })
+    expect(await screen.findByText(/This adds XDWT.L as a new holding/)).toBeInTheDocument()
+  })
+
+  it('lists remembered products and can forget one', async () => {
+    const { fetchMock } = setup({
+      '/api/portfolio/degiro/choices': { IE00BM67HT60: { data_source: 'YAHOO', symbol: 'XDWT.L', ignore: false } },
+      'DELETE /api/portfolio/degiro/choices/IE00BM67HT60': {},
+    })
+    upload()
+    await screen.findByText(/3 trades in the file/)
+    fireEvent.click(screen.getByText('Remembered products (1)'))
+    fireEvent.click(screen.getByRole('button', { name: 'Forget XTRACKERS MSCI WORLD IT' }))
+    await waitFor(() => expect(screen.queryByText('Remembered products (1)')).not.toBeInTheDocument())
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/portfolio/degiro/choices/IE00BM67HT60',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
   })
 
   it('explains a wrong file', async () => {

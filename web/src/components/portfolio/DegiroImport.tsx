@@ -3,7 +3,8 @@ import { useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router'
 import { ApiError, sendJson } from '../../lib/api'
 import { formatDate, formatPrice, formatQuantity } from '../../lib/format'
-import type { DegiroChoices, DegiroPreview } from '../../lib/portfolioTypes'
+import type { DegiroCandidate, DegiroChoices, DegiroPreview } from '../../lib/portfolioTypes'
+import { RememberedChoices } from './RememberedChoices'
 import { PageHeader } from '../PageHeader'
 import { Card } from '../home/Card'
 import { buttonClass, inputClass, primaryButtonClass } from '../settings/fields'
@@ -29,10 +30,26 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
     setBusy(true)
     setError(undefined)
     try {
-      const next = await sendJson<DegiroPreview>('POST', '/api/portfolio/degiro/preview', { csv: text, choices: chosen })
-      setPreview(next)
-      setAccount((current) => current ?? next.account_id ?? next.accounts[0]?.id)
-      setProducts((known) => [...known, ...next.unknown.filter((p) => !known.some((k) => k.isin === p.isin))])
+      let next = await sendJson<DegiroPreview>('POST', '/api/portfolio/degiro/preview', { csv: text, choices: chosen })
+      // Preselect the holding whose name matches: Yahoo often only knows another
+      // listing of a fund you hold, and picking that would add it twice.
+      const suggested = Object.fromEntries(
+        next.unknown.flatMap((p) => {
+          const best = p.candidates.find((c) => c.suggested)
+          return best && !chosen[p.isin] ? [[p.isin, { data_source: best.data_source, symbol: best.symbol }]] : []
+        }),
+      )
+      if (Object.keys(suggested).length) {
+        chosen = { ...chosen, ...suggested }
+        setChoices(chosen)
+        const asked = next.unknown
+        setProducts((known) => [...known, ...asked.filter((p) => !known.some((k) => k.isin === p.isin))])
+        next = await sendJson<DegiroPreview>('POST', '/api/portfolio/degiro/preview', { csv: text, choices: chosen })
+      }
+      const result = next
+      setPreview(result)
+      setAccount((current) => current ?? result.account_id ?? result.accounts[0]?.id)
+      setProducts((known) => [...known, ...result.unknown.filter((p) => !known.some((k) => k.isin === p.isin))])
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'The hub could not read the file.')
     } finally {
@@ -104,6 +121,10 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
           <input type="file" accept=".csv,text/csv" onChange={pick} className="sr-only" />
         </label>
         {fileName && <span className="ml-3 text-[13px] text-faint">{fileName}</span>}
+        <RememberedChoices
+          products={Object.fromEntries((preview?.rows ?? []).map((r) => [r.isin, r.product]))}
+          onForget={() => csv && void check(csv, choices)}
+        />
       </Card>
 
       {busy && !preview && (
@@ -120,7 +141,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
       {preview && !done && (
         <Card title="2. Check" className="mt-4">
           <p aria-live="polite" className="mb-4">
-            {preview.rows.length} trades in the file: <span className="font-semibold text-up">{preview.counts.new} new</span>,{' '}
+            {preview.rows.length} {preview.rows.length === 1 ? 'trade' : 'trades'} in the file: <span className="font-semibold text-up">{preview.counts.new} new</span>,{' '}
             {preview.counts.exists} already in Ghostfolio
             {preview.counts.ignored > 0 && `, ${preview.counts.ignored} left out`}
             {preview.counts.unknown > 0 && (
@@ -141,6 +162,13 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
               <div className="space-y-3">
                 {products.map((p) => {
                   const current = choices[p.isin]
+                  const picked = p.candidates.find((c) => c.symbol === current?.symbol && c.data_source === current?.data_source)
+                  const option = (c: DegiroCandidate) => (
+                    <option key={`${c.data_source}/${c.symbol}`} value={`${c.data_source}/${c.symbol}`}>
+                      {c.symbol} · {c.name}
+                      {c.suggested ? ' (best match)' : ''}
+                    </option>
+                  )
                   return (
                     <label key={p.isin} className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center sm:gap-3">
                       <span>
@@ -153,13 +181,15 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
                       >
                         <option value="">Skip for now</option>
                         <option value={LEAVE_OUT}>Leave out of Ghostfolio, always</option>
-                        {p.candidates.map((c) => (
-                          <option key={`${c.data_source}/${c.symbol}`} value={`${c.data_source}/${c.symbol}`}>
-                            {c.symbol} · {c.name}
-                            {c.held ? ' (held)' : ''}
-                          </option>
-                        ))}
+                        <optgroup label="You hold">{p.candidates.filter((c) => c.held).map(option)}</optgroup>
+                        <optgroup label="New holding in Ghostfolio">{p.candidates.filter((c) => !c.held).map(option)}</optgroup>
                       </select>
+                      {picked && !picked.held && (
+                        <span role="alert" className="text-[12.5px] text-warn sm:col-start-2">
+                          This adds {picked.symbol} as a new holding. If you already hold this fund, choose it under You
+                          hold, or it will count twice.
+                        </span>
+                      )}
                     </label>
                   )
                 })}
