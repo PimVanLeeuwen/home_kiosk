@@ -1,12 +1,12 @@
-# Desk dashboard stack — deploy to /volume1/docker/home_kiosk/ on the NAS.
+# Home hub stack: deploy to /volume1/docker/home_kiosk/ on the NAS.
 #
 # Follows the nas-docker conventions: restart: unless-stopped, TZ=Europe/Amsterdam.
 # Disk SMART data comes from the existing Scrutiny container on :8080, so no
 # smartctl_exporter here.
 #
-# The collector image is built and pushed by GitHub Actions, the same pattern as
-# stock-bot. Watchtower picks up new tags automatically, so a push to main
-# eventually becomes a running container with no manual step.
+# Both images are built and pushed by GitHub Actions. Watchtower picks up new
+# tags automatically, so a push to main eventually becomes a running container
+# with no manual step.
 
 services:
   node-exporter:

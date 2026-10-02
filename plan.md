@@ -124,9 +124,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   exact-match check. Columns are found by header name (English and Dutch). The daily report runs
   like stock-bot: 08:30 and 18:30 on weekdays, holdings plus the S&P 500, Nasdaq 100 and AEX.
 
-**M8. Cleanup**
-- Rebuild `/kiosk/` in the new style; retire stock-bot; update READMEs and copy
-  the stack into nas-docker.
+**M8. Cleanup**. **Done 2026-10-02.**
+- Retire stock-bot (removed from nas-docker), update the
+  READMEs, copy the stack into nas-docker, and remove the old DEGIRO converter script.
+- The `/kiosk/` restyle is postponed: the Pi kiosk is not in use yet.
 
 **M9. Repos** (added 2026-10-01)
 - A "Code" sidebar group with a Repos page: tabs Mine (PimVanLeeuwen), Hubble

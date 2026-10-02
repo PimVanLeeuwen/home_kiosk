@@ -28,7 +28,6 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
 | `dashboard/` | Old kiosk carousel (plain HTML/JS), served at `/kiosk/` |
 | `caddy/Caddyfile` | One origin on :8083: `web/`, `/kiosk/`, `/api/*` to the collector. Image `pimvanleeuwen/home-kiosk-dashboard` |
 | `e2e/` | Playwright, desktop and mobile |
-| `tools/` | One-off scripts (DEGIRO to Ghostfolio import) |
 | `docs/kiosk-build-spec.md` | The original kiosk spec: Pi hardware and setup, Ghostfolio pitfalls |
 
 ## Commands
