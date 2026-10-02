@@ -26,6 +26,7 @@ from .alerts import rules as alert_rules
 from .models import ContainerUpdate
 from .news import api as news_api
 from .news import store as news_store
+from .portfolio import api as portfolio_api
 from .security import same_origin_json
 from .sources import container_stats, feeds, readeck
 from .sources import nas as nas_source
@@ -87,6 +88,7 @@ app = FastAPI(title="Desk Dashboard Collector", version="0.1.0", lifespan=lifesp
 app.include_router(settings_api.router)
 app.include_router(alerts_api.router)
 app.include_router(news_api.router)
+app.include_router(portfolio_api.router)
 
 
 def _serve(key: str) -> Any:

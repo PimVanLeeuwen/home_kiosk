@@ -104,7 +104,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Migrate senders one at a time: backup.sh, watchtower, Uptime Kuma, Scrutiny. Then remove the
   token from nas-docker and rotate it in BotFather.
 
-**M6. News reader**
+**M6. News reader**. **Done 2026-10-02.**
 - Full feed list with group filters, read/unread state, news search, trafilatura reader, Readeck
   save. Feeds editable in Settings.
 - Decided 2026-10-01: articles kept 7 days; read state shared and set on open; images proxied by
@@ -116,8 +116,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Full Ghostfolio overview: value history, holdings, allocation, holding detail.
 - Daily report through M5, which makes stock-bot redundant (retirement when the owner says so).
 - Added 2026-10-01: upload a full DEGIRO transaction export on the Portfolio page to bring the
-  portfolio up to date, built to need minimal effort when DEGIRO changes its export. Design
-  questions (format detection, Ghostfolio import or hub-owned, duplicates) asked at the start of M7.
+  portfolio up to date, built to need minimal effort when DEGIRO changes its export.
+- Decided 2026-10-02: the upload goes into Ghostfolio (Transactions export only). The hub shows a
+  preview (new, already there, unknown product) and imports only new orders after confirmation,
+  each tagged with its DEGIRO order ID. Existing activities came from a CSV import without those
+  IDs, so the hub matches on day, product, type, quantity and price rather than Ghostfolio's
+  exact-match check. Columns are found by header name (English and Dutch). The daily report runs
+  like stock-bot: 08:30 and 18:30 on weekdays, holdings plus the S&P 500, Nasdaq 100 and AEX.
 
 **M8. Cleanup**
 - Rebuild `/kiosk/` in the new style; retire stock-bot; update READMEs and copy
@@ -143,4 +148,5 @@ Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2.
 
 - No internet exposure, no login, no SSO (for now).
 - No container control; Dockge does that.
-- No trading, order entry or investment recommendations. No writes to Ghostfolio.
+- No trading, order entry or investment recommendations. The only writes to Ghostfolio are
+  confirmed DEGIRO imports (M7).

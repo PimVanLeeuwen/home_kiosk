@@ -15,6 +15,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
+from .portfolio import indices
 from .sources import (
     backups,
     container_stats,
@@ -154,8 +155,21 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         _run,
         "interval",
         seconds=PORTFOLIO_INTERVAL_SECONDS,
-        args=[store, "portfolio", lambda: ghostfolio.collect(cfg, cfg.get("currency", "EUR"))],
+        args=[
+            store, "portfolio", lambda: ghostfolio.collect(cfg, cfg.get("currency", "EUR"), store)
+        ],
         id="portfolio",
+        next_run_time=None,
+        max_instances=1,
+        coalesce=True,
+    )
+
+    scheduler.add_job(
+        _run,
+        "interval",
+        seconds=PORTFOLIO_INTERVAL_SECONDS,
+        args=[store, "indices", lambda: indices.collect(cfg)],
+        id="indices",
         next_run_time=None,
         max_instances=1,
         coalesce=True,

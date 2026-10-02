@@ -1,6 +1,6 @@
 """Builds /api/portfolio from Ghostfolio.
 
-Read-only: this project never writes to Ghostfolio.
+Read-only here; the only write is the confirmed DEGIRO import (app.portfolio.degiro).
 
 Endpoints verified against a running 2.x instance (docs/kiosk-build-spec.md §6) — several paths
 in older documentation are gone, notably `/api/v1/portfolio/performance`, which
@@ -28,6 +28,8 @@ from typing import Any
 import httpx
 
 from ..models import AllocationSlice, HistoryPoint, Holding, Portfolio, PortfolioChange
+from ..portfolio.models import ChartPoint, PortfolioCharts
+from ..store import Store
 
 log = logging.getLogger(__name__)
 
@@ -50,7 +52,10 @@ SUB_CLASS_LABELS = {
 
 # Accepted ranges are 1d, wtd, mtd, ytd, 1y, 5y, max — verified against a live
 # instance. There is no `1mo`/`3m`; month-to-date is the closest equivalent.
-RANGES = {"day": "1d", "month": "mtd", "year": "1y", "all": "max"}
+RANGES = {"day": "1d", "month": "mtd", "ytd": "ytd", "year": "1y", "all": "max"}
+CHARTS_KEY = "portfolio_charts"
+# The Portfolio page's "1M": the daily tail of the full chart, like the Home sparkline.
+MONTH_POINTS = 31
 
 HISTORY_POINTS = 30
 
@@ -155,6 +160,10 @@ def _is_cash(profile: dict) -> bool:
     return (profile.get("assetClass") or "") in CASH_ASSET_CLASSES
 
 
+def _round(value: Any, digits: int = 2) -> float | None:
+    return None if value is None else round(value, digits)
+
+
 def _holdings(details: dict) -> list[Holding]:
     """Real positions only — cash is reported separately in the allocation."""
     out: list[Holding] = []
@@ -163,6 +172,7 @@ def _holdings(details: dict) -> list[Holding]:
         symbol = profile.get("symbol")
         if not symbol or _is_cash(profile):
             continue
+        gain_pct = entry.get("netPerformancePercentWithCurrencyEffect")
         out.append(
             Holding(
                 symbol=symbol,
@@ -171,6 +181,14 @@ def _holdings(details: dict) -> list[Holding]:
                 # Filled in from live quotes; Ghostfolio cannot supply it.
                 day_pct=0.0,
                 weight_pct=_pct(entry.get("allocationInPercentage")),
+                data_source=profile.get("dataSource"),
+                isin=profile.get("isin") or None,
+                currency=profile.get("currency"),
+                quantity=entry.get("quantity"),
+                price=_round(entry.get("marketPrice"), 4),
+                invested=_round(entry.get("investment")),
+                gain_abs=_round(entry.get("netPerformanceWithCurrencyEffect")),
+                gain_pct=None if gain_pct is None else _pct(gain_pct),
             )
         )
     out.sort(key=lambda h: h.value, reverse=True)
@@ -219,7 +237,38 @@ def _history(performance: dict) -> list[HistoryPoint]:
     return points[-HISTORY_POINTS:]
 
 
-async def collect(cfg: dict[str, Any], currency: str) -> Portfolio:
+def _chart(performance: dict) -> list[ChartPoint]:
+    return [
+        ChartPoint(
+            d=row["date"],
+            v=round(row.get("netWorth") or row.get("value") or 0.0, 2),
+            invested=_round(row.get("totalInvestmentValueWithCurrencyEffect")
+                            or row.get("totalInvestment")),
+        )
+        for row in performance.get("chart") or []
+        if row.get("date")
+    ]
+
+
+def charts(by_range: dict[str, dict], as_of: datetime) -> PortfolioCharts:
+    full = _chart(by_range["all"])
+    return PortfolioCharts(as_of=as_of, ranges={
+        "month": full[-MONTH_POINTS:],
+        "ytd": _chart(by_range["ytd"]),
+        "year": _chart(by_range["year"]),
+        "max": full,
+    })
+
+
+def day_abs(value: float, day_pct: float) -> float:
+    """Today's change in money, from the value now and the percentage move."""
+    return round(value - value / (1 + day_pct / 100), 2)
+
+
+async def collect(
+    cfg: dict[str, Any], currency: str, store: Store | None = None,
+    transport: httpx.AsyncBaseTransport | None = None,
+) -> Portfolio:
     gf_cfg = cfg["ghostfolio"]
     token = gf_cfg.get("security_token") or ""
     if not token:
@@ -227,7 +276,7 @@ async def collect(cfg: dict[str, Any], currency: str) -> Portfolio:
 
     client = Client(gf_cfg["base_url"], token)
 
-    async with httpx.AsyncClient() as http:
+    async with httpx.AsyncClient(transport=transport) as http:
         details = await client.get(http, "/api/v1/portfolio/details")
         # One request per range; they are independent so run them together.
         results = await asyncio.gather(
@@ -242,13 +291,19 @@ async def collect(cfg: dict[str, Any], currency: str) -> Portfolio:
     summary = details.get("summary") or {}
 
     holdings = _holdings(details)
-    async with httpx.AsyncClient() as http:
+    async with httpx.AsyncClient(transport=transport) as http:
         changes = await _day_changes(client, http, [h.symbol for h in holdings])
     for holding in holdings:
         holding.day_pct = changes.get(holding.symbol, 0.0)
+        holding.day_abs = day_abs(holding.value, holding.day_pct)
+
+    now = datetime.now(UTC)
+    if store is not None:
+        store.put_cache(CHARTS_KEY, charts(by_range, now).model_dump(mode="json"))
+    everything = by_range["all"].get("performance") or {}
 
     return Portfolio(
-        as_of=datetime.now(UTC),
+        as_of=now,
         stale=False,
         currency=currency,
         total_value=round(summary.get("currentValueInBaseCurrency") or 0.0, 2),
@@ -271,4 +326,9 @@ async def collect(cfg: dict[str, Any], currency: str) -> Portfolio:
         history=_history(by_range["all"]),
         holdings=holdings,
         allocation=_allocation(details),
+        invested=_round(summary.get("totalInvestmentValueWithCurrencyEffect")
+                        or summary.get("totalInvestment")),
+        gain_abs=_round(everything.get("netPerformanceWithCurrencyEffect")),
+        cash=_round(summary.get("cash")),
+        dividends=_round(summary.get("dividendInBaseCurrency")),
     )

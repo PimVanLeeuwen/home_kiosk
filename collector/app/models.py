@@ -55,6 +55,16 @@ class Holding(BaseModel):
     value: float
     day_pct: float
     weight_pct: float
+    # Home hub additions; the kiosk ignores them.
+    data_source: str | None = None
+    isin: str | None = None
+    currency: str | None = None
+    quantity: float | None = None
+    price: float | None = None
+    day_abs: float | None = None
+    invested: float | None = None
+    gain_abs: float | None = None
+    gain_pct: float | None = None
 
 
 class AllocationSlice(BaseModel):
@@ -69,6 +79,11 @@ class Portfolio(Envelope):
     history: list[HistoryPoint] = []
     holdings: list[Holding] = []
     allocation: list[AllocationSlice] = []
+    # Home hub additions: since the first purchase, with currency effects.
+    invested: float | None = None
+    gain_abs: float | None = None
+    cash: float | None = None
+    dividends: float | None = None
 
 
 # --- /api/spotlight ----------------------------------------------------------
