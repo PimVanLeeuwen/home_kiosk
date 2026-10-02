@@ -1,4 +1,4 @@
-import type { BackupHistory, BackupRun, Nas, NewsResponse, Portfolio, ServicesResponse } from '../lib/types'
+import type { BackupHistory, BackupRun, Nas, Portfolio, ServicesResponse } from '../lib/types'
 
 /** Shared API fixtures for page tests. Times are relative to now so "today" holds. */
 export function nasFixture(over: Partial<Nas> = {}): Nas {
@@ -42,28 +42,6 @@ export const PORTFOLIO: Portfolio = {
     { symbol: 'ASML', name: 'ASML Holding', value: 8905, day_pct: 4.2, weight_pct: 6 },
     { symbol: 'NVDA', name: 'NVIDIA', value: 6410, day_pct: -1.1, weight_pct: 4 },
     { symbol: 'AAPL', name: 'Apple', value: 5000, day_pct: 0.1, weight_pct: 3 },
-  ],
-}
-
-export const NEWS: NewsResponse = {
-  as_of: '2026-09-30T18:00:00Z',
-  stale: false,
-  groups: [
-    {
-      id: 'nl',
-      title: 'Nederland',
-      items: [
-        { title: 'Kabinet presenteert Miljoenennota', source: 'NOS', published: '2026-09-30T17:48:00Z', age_label: '12 min ago', url: 'https://nos.nl/1' },
-      ],
-    },
-    {
-      id: 'tech',
-      title: 'Tech',
-      items: [
-        { title: 'Old story', source: 'Ars', published: '2026-09-29T08:00:00Z', age_label: '1 day ago', url: 'https://ars/1' },
-        { title: 'Jellyfin 12.1 lands', source: 'Hacker News', published: '2026-09-30T17:00:00Z', age_label: '1 hr ago', url: 'https://hn/1' },
-      ],
-    },
   ],
 }
 

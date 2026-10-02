@@ -47,6 +47,14 @@ def _transport(request: Request):
     return getattr(request.app.state, "reader_transport", None)
 
 
+@router.get("/news/articles/{article_id}")
+def get_article(article_id: str, request: Request) -> news.Article:
+    found = news.article(_store(request), article_id)
+    if found is None:
+        raise HTTPException(404, "No such article.")
+    return found
+
+
 @router.get("/news/articles/{article_id}/content")
 async def article_content(article_id: str, request: Request) -> dict[str, Any]:
     """The article as plain text blocks for the reader. When extraction fails

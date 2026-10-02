@@ -16,6 +16,7 @@ import asyncio
 import ipaddress
 import json
 import logging
+import re
 import socket
 import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
@@ -35,6 +36,8 @@ TIMEOUT_SECONDS = 20
 MAX_PAGE_BYTES = 5 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 MIN_TEXT_CHARS = 200
+# Where sites like NU.nl (DPG Media) send visitors without a consent cookie.
+CONSENT_WALL = re.compile(r"(consent|privacy-gate|cookiewall)", re.IGNORECASE)
 
 class Block(BaseModel):
     type: Literal["heading", "paragraph", "quote", "list", "image"]
@@ -118,6 +121,25 @@ def reason(exc: Exception) -> str:
 # --- extraction ---------------------------------------------------------------------------
 
 
+def alt_text(alt: str | None) -> str:
+    """Alt text, unless it is a file name ("53420776536_b9dede69df_k")."""
+    alt = " ".join((alt or "").split())
+    return "" if re.fullmatch(r"[\w.-]{12,}", alt) and not alt.isalpha() else alt
+
+
+def tidy(blocks: list[Block], title: str | None) -> list[Block]:
+    """Drop the page's own copies of the title (the reader shows it already)
+    and blocks that repeat the one before, which teaser markup often causes."""
+    kept: list[Block] = []
+    for block in blocks:
+        if block.type == "heading" and title and block.text.split() == title.split():
+            continue
+        if kept and block.type != "image" and block == kept[-1]:
+            continue
+        kept.append(block)
+    return kept
+
+
 def to_blocks(xml: str, article_id: str) -> ArticleContent:
     """trafilatura's XML (with metadata) to plain blocks. Text only: every
     element is flattened with itertext, so no markup survives."""
@@ -140,15 +162,19 @@ def to_blocks(xml: str, article_id: str) -> ArticleContent:
             items = [text(i) for i in el.findall("item") if text(i)]
             if items:
                 blocks.append(Block(type="list", items=items))
-        elif el.tag == "graphic" and el.get("src", "").startswith(("http://", "https://")):
+        elif (
+            el.tag == "graphic"
+            and el.get("src", "").startswith(("http://", "https://"))
+            and el.get("src") not in images
+            # A byline headshot, not part of the story.
+            and not (el.get("alt") and el.get("alt") == root.get("author"))
+        ):
             images.append(el.get("src", ""))
-            blocks.append(Block(type="image", text=el.get("alt") or "",
+            blocks.append(Block(type="image", text=alt_text(el.get("alt")),
                                 src=f"/api/news/articles/{article_id}/images/{len(images) - 1}"))
 
-    # The reader shows the title itself; drop the page's own copy of it.
+    blocks = tidy(blocks, root.get("title"))
     title = root.get("title")
-    if blocks and blocks[0].type == "heading" and blocks[0].text == title:
-        blocks.pop(0)
     # A paywall or cookie wall leaves a sentence or two: not worth reading here.
     if sum(len(b.text) for b in blocks if b.type == "paragraph") < MIN_TEXT_CHARS:
         return ArticleContent(ok=False, reason="No readable text (paywall or app-only page)")
@@ -166,10 +192,13 @@ async def extract(url: str, article_id: str,
                 resp.raise_for_status()
                 raw = await read_capped(resp, MAX_PAGE_BYTES)
                 encoding = resp.encoding or "utf-8"
+                final = str(resp.url)
     except Exception as exc:
         log.warning("reader fetch failed: %s", type(exc).__name__)
         return ArticleContent(ok=False, reason=reason(exc))
 
+    if CONSENT_WALL.search(final):
+        return ArticleContent(ok=False, reason="The site asks for cookie consent first")
     page = raw.decode(encoding, errors="replace")
     xml = await asyncio.to_thread(
         trafilatura.extract, page, url=url, output_format="xml", include_images=True,

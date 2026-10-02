@@ -1,6 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import { renderRoute } from '../test/renderRoute'
-import { BACKUPS, NEWS, PORTFOLIO, SERVICES, nasFixture } from '../test/fixtures'
+import { BACKUPS, PORTFOLIO, SERVICES, nasFixture } from '../test/fixtures'
+import { ARTICLES, NEWS_GROUPS } from '../test/newsFixtures'
 import { stubApi } from '../test/stubApi'
 
 function setup(over: Record<string, unknown> = {}) {
@@ -8,7 +9,8 @@ function setup(over: Record<string, unknown> = {}) {
     '/api/nas': nasFixture(),
     '/api/services': SERVICES,
     '/api/portfolio': PORTFOLIO,
-    '/api/news/full': NEWS,
+    '/api/news/articles?limit=5': { articles: ARTICLES, total: ARTICLES.length },
+    '/api/news/groups': NEWS_GROUPS,
     ...over,
   })
   renderRoute('/')
@@ -48,16 +50,20 @@ describe('HomePage', () => {
     expect(within(nas).getByText(/19,2 Mbit\/s/)).toBeInTheDocument()
   })
 
-  it('lists the newest headlines across groups', async () => {
+  it('lists the newest headlines, each opening in the reader', async () => {
     setup()
 
     const news = await screen.findByRole('region', { name: 'Latest news' })
-    const links = await within(news).findAllByRole('link', { name: /opens in a new tab/ })
+    const links = await within(news).findAllByRole('link', { name: /Miljoenennota|Jellyfin|Old story/ })
     expect(links.map((l) => l.textContent)).toEqual([
       expect.stringContaining('Kabinet presenteert Miljoenennota'),
       expect.stringContaining('Jellyfin 12.1 lands'),
       expect.stringContaining('Old story'),
     ])
+    expect(links[0]).toHaveAttribute('href', '/news?a=a1')
+    expect(links[0]).toHaveTextContent('unread')
+    expect(links[2]).not.toHaveTextContent('unread')
+    expect(await within(news).findByText(/NOS · Nederland/)).toBeInTheDocument()
   })
 
   it('shows the last backup and service tiles with stats', async () => {

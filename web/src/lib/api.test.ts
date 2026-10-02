@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { ApiError, errorMessage, sendJson } from './api'
+import { ApiError, errorMessage, getJson, sendJson } from './api'
 
 describe('errorMessage', () => {
   it('uses a string detail as is', () => {
@@ -18,6 +18,18 @@ describe('errorMessage', () => {
 
   it('falls back to the status', () => {
     expect(errorMessage(undefined, 500)).toBe('The hub answered 500.')
+  })
+})
+
+describe('getJson', () => {
+  it("carries the hub's message on a failure", async () => {
+    vi.stubGlobal('fetch', () => Promise.resolve(new Response('{"detail":"Readeck is not reachable"}', { status: 502 })))
+    await expect(getJson('/api/saved')).rejects.toMatchObject({ message: 'Readeck is not reachable', status: 502 })
+  })
+
+  it('falls back to the path and status', async () => {
+    vi.stubGlobal('fetch', () => Promise.resolve(new Response('oops', { status: 500 })))
+    await expect(getJson('/api/x')).rejects.toThrow('/api/x answered 500')
   })
 })
 

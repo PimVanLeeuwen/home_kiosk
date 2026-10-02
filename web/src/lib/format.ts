@@ -74,3 +74,18 @@ export function formatDuration(seconds: number): string {
   if (minutes < 60) return `${minutes} min`
   return `${Math.floor(minutes / 60)} h ${minutes % 60} min`
 }
+
+/** "Today", "Yesterday", or "Tue 29 Sept": headings for a list split by day. */
+export function formatDay(iso: string, now = new Date()): string {
+  const date = new Date(iso)
+  const start = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const days = Math.round((start(now) - start(date)) / 86_400_000)
+  if (days <= 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  return day.format(date)
+}
+
+/** Reading time at about 220 words a minute; at least a minute. */
+export function readingMinutes(words: number): number {
+  return Math.max(1, Math.round(words / 220))
+}

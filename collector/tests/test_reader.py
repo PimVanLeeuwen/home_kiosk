@@ -53,6 +53,11 @@ def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(302, headers={"location": "http://intranet.lan/admin"})
     if request.url.path == "/thin":
         return httpx.Response(200, text="<html><body><p>Subscribe.</p></body></html>")
+    if request.url.path == "/walled":
+        return httpx.Response(
+            302, headers={"location": "https://myprivacy.example/consent?siteKey=x"})
+    if request.url.path == "/consent":
+        return httpx.Response(200, text=PAGE)
     if request.url.path == "/logo.svg":
         return httpx.Response(200, text="<svg/>", headers={"content-type": "image/svg+xml"})
     return httpx.Response(404)
@@ -105,6 +110,38 @@ def test_to_blocks_flattens_markup_to_text(monkeypatch):
     assert content.images == []
 
 
+def test_tidy_drops_title_copies_and_repeats():
+    p = reader.Block(type="paragraph", text="Same")
+    blocks = [
+        reader.Block(type="paragraph", text="Lead"),
+        reader.Block(type="heading", text="The  title"),
+        p, p,
+        reader.Block(type="heading", text="Next"),
+    ]
+    assert [b.text for b in reader.tidy(blocks, "The title")] == ["Lead", "Same", "Next"]
+
+
+def test_to_blocks_skips_repeated_images_and_byline_photos(monkeypatch):
+    monkeypatch.setattr(reader, "MIN_TEXT_CHARS", 1)
+    xml = (
+        '<doc title="T" author="Jane Writer"><main><p>Text</p>'
+        '<graphic src="https://cdn.example/a.jpg" alt="Chip"/>'
+        '<graphic src="https://cdn.example/a.jpg" alt="Chip"/>'
+        '<graphic src="https://cdn.example/jane.jpg" alt="Jane Writer"/></main></doc>'
+    )
+    content = reader.to_blocks(xml, "abc")
+    assert content.images == ["https://cdn.example/a.jpg"]
+    assert [b.type for b in content.blocks] == ["paragraph", "image"]
+
+
+def test_alt_text_drops_file_names():
+    assert reader.alt_text("53420776536_b9dede69df_k") == ""
+    assert reader.alt_text("IMG_2041.jpg") == ""
+    assert reader.alt_text(" A new  bike lane ") == "A new bike lane"
+    assert reader.alt_text("Prinsjesdag") == "Prinsjesdag"
+    assert reader.alt_text(None) == ""
+
+
 def test_to_blocks_without_paragraphs_is_not_readable():
     content = reader.to_blocks('<doc><main><head>Only a title</head></main></doc>', "abc")
     assert not content.ok and "No readable text" in content.reason
@@ -117,6 +154,12 @@ def test_extract_reports_unreadable_pages():
 
     gone = asyncio.run(reader.extract("https://news.example/gone", "a", transport))
     assert not gone.ok and gone.reason == "The site answered 404"
+
+
+def test_extract_explains_cookie_walls():
+    content = asyncio.run(
+        reader.extract("https://news.example/walled", "a", httpx.MockTransport(handler)))
+    assert not content.ok and content.reason == "The site asks for cookie consent first"
 
 
 def test_extract_refuses_private_addresses_and_redirects_to_them():
@@ -161,6 +204,12 @@ def test_content_endpoint_extracts_once_and_hides_image_urls(client, store):
     # Served from the cache now, even with the site gone.
     main.app.state.reader_transport = httpx.MockTransport(lambda r: httpx.Response(500))
     assert client.get(f"/api/news/articles/{AID}/content").json() == body
+
+
+def test_article_endpoint(client):
+    body = client.get(f"/api/news/articles/{AID}").json()
+    assert body["url"] == URL and body["read"] is False
+    assert client.get("/api/news/articles/nope").status_code == 404
 
 
 def test_content_endpoint_explains_failures_and_retries_later(client):

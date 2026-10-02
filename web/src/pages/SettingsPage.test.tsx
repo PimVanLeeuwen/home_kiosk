@@ -35,7 +35,7 @@ const CONTAINERS = {
 const ENDPOINT = '/api/settings/services'
 
 function setup(extra: Record<string, unknown> = {}) {
-  const fetchMock = stubApi({ [ENDPOINT]: CATALOG, '/api/containers': CONTAINERS, ...extra })
+  const fetchMock = stubApi({ [ENDPOINT]: CATALOG, '/api/containers': CONTAINERS, '/api/settings/feeds': [], ...extra })
   renderRoute('/settings')
   return fetchMock
 }
@@ -226,7 +226,7 @@ describe('SettingsPage services', () => {
   })
 
   it('says when the catalog cannot be loaded', async () => {
-    stubApi({})
+    stubApi({ '/api/settings/feeds': [] })
     renderRoute('/settings')
 
     expect(await screen.findByRole('alert')).toHaveTextContent('could not be loaded')

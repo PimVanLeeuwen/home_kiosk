@@ -115,6 +115,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 **M7. Portfolio**
 - Full Ghostfolio overview: value history, holdings, allocation, holding detail.
 - Daily report through M5, which makes stock-bot redundant (retirement when the owner says so).
+- Added 2026-10-01: upload a full DEGIRO transaction export on the Portfolio page to bring the
+  portfolio up to date, built to need minimal effort when DEGIRO changes its export. Design
+  questions (format detection, Ghostfolio import or hub-owned, duplicates) asked at the start of M7.
 
 **M8. Cleanup**
 - Rebuild `/kiosk/` in the new style; retire stock-bot; update READMEs and copy

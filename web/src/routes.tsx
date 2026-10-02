@@ -8,9 +8,11 @@ import { DockerPage } from './pages/DockerPage'
 import { HomePage } from './pages/HomePage'
 import { MorePage } from './pages/MorePage'
 import { NasPage } from './pages/NasPage'
+import { NewsPage } from './pages/NewsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PageError } from './pages/PageError'
 import { ReposPage } from './pages/ReposPage'
+import { SavedPage } from './pages/SavedPage'
 import { SectionPage } from './pages/SectionPage'
 import { ServicesPage } from './pages/ServicesPage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -25,6 +27,8 @@ const PAGES: Record<string, ReactElement> = {
   '/nas': <NasPage />,
   '/backups': <BackupsPage />,
   '/alerts': <AlertsPage />,
+  '/news': <NewsPage />,
+  '/saved': <SavedPage />,
 }
 
 export const BUILT_ROUTES = Object.keys(PAGES)

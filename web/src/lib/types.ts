@@ -110,20 +110,6 @@ export interface Nas {
   backup: { status: 'ok' | 'fail' | 'unknown'; at: string | null }
 }
 
-export interface NewsItem {
-  title: string
-  source: string
-  published: string
-  age_label: string
-  url: string
-}
-
-export interface NewsResponse {
-  as_of: string
-  stale: boolean
-  groups: { id: string; title: string; items: NewsItem[] }[]
-}
-
 export interface Repo {
   name: string
   full_name: string

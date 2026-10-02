@@ -1,7 +1,14 @@
-/** GET a JSON endpoint on the hub API. Relative, so it works on every host. */
+/**
+ * GET a JSON endpoint on the hub API. Relative, so it works on every host.
+ * A failure is an ApiError carrying the hub's own message when it sent one.
+ */
 export async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(path, { signal, headers: { Accept: 'application/json' } })
-  if (!response.ok) throw new Error(`${path} answered ${response.status}`)
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => ({}))) as { detail?: unknown }
+    const detail = typeof payload.detail === 'string' && payload.detail
+    throw new ApiError(detail || `${path} answered ${response.status}`, response.status)
+  }
   return (await response.json()) as T
 }
 
@@ -35,8 +42,8 @@ export function errorMessage(detail: unknown, status: number): string {
   return `The hub answered ${status}.`
 }
 
-/** POST/PUT/DELETE JSON to the hub API; throws ApiError with a readable message. */
-export async function sendJson<T>(method: 'POST' | 'PUT' | 'DELETE', path: string, body?: unknown): Promise<T> {
+/** POST/PUT/PATCH/DELETE JSON to the hub API; throws ApiError with a readable message. */
+export async function sendJson<T>(method: 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
   let response: Response
   try {
     response = await fetch(path, {
