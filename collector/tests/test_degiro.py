@@ -1,0 +1,236 @@
+from __future__ import annotations
+
+import asyncio
+import json
+from pathlib import Path
+from urllib.parse import unquote
+
+import httpx
+import pytest
+from fastapi.testclient import TestClient
+
+from app import main
+from app.portfolio import degiro, degiro_import, holding
+
+FIXTURES = Path(__file__).parent / "fixtures"
+# Shaped like DEGIRO's Transactions export; the English one starts with a BOM.
+ENGLISH = (FIXTURES / "degiro_transactions_en.csv").read_text(encoding="utf-8")
+DUTCH = (FIXTURES / "degiro_transactions_nl.csv").read_text(encoding="utf-8")
+
+CFG = {"ghostfolio": {"base_url": "http://gf.lan:3333", "security_token": "token"}}
+
+
+# --- parsing ------------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("text", [ENGLISH, DUTCH])
+def test_parse_reads_english_and_dutch_exports(text):
+    trades, _ = degiro.parse(text)
+    nvda, asml = trades[:2]
+    assert (nvda.isin, nvda.type, nvda.quantity, nvda.price, nvda.currency) == (
+        "US67066G1040", "SELL", 5, 104.98, "USD")
+    # Fees in euros, turned into dollars at DEGIRO's rate: (1,19 + 2,00) x 1,1025.
+    assert nvda.fee == 3.517
+    assert nvda.when.isoformat() == "2024-09-09T15:35:00+02:00"
+    assert (asml.type, asml.price, asml.fee, asml.order_id) == ("BUY", 1597.0, 3.0, "ord-2")
+
+
+def test_parse_skips_rows_that_are_not_trades():
+    trades, skipped = degiro.parse(ENGLISH)
+    assert len(trades) == 3
+    assert skipped == ["Line 5: not a trade (no product)."]
+
+
+def test_parse_explains_a_wrong_file():
+    with pytest.raises(degiro.ExportError, match="no column for isin, quantity"):
+        degiro.parse("Datum,Omschrijving,Mutatie\n01-10-2026,Deposit,100\n")
+    with pytest.raises(degiro.ExportError, match="empty"):
+        degiro.parse("")
+
+
+def test_parse_semicolon_files_and_derived_rates():
+    text = (
+        "Date;Time;Product;ISIN;Quantity;Price;;Local value;;Value EUR;"
+        "Transaction and/or third party fees EUR;Order ID\n"
+        "01-10-2026;10:00;APPLE INC;US0378331005;2;200.00;USD;-400.00;USD;-363.64;-1.00;o\n"
+    )
+    (trade,), _ = degiro.parse(text)
+    # No rate column: 400 / 363,64 dollars per euro.
+    assert trade.fee == round(400 / 363.64, 4)
+
+
+def test_header_keys_keep_words_that_are_not_currencies():
+    assert degiro._header_key("Value EUR") == "value"
+    assert degiro._header_key("AutoFX Fee") == "autofx fee"
+    assert degiro._header_key("﻿Date") == "date"
+
+
+# --- preview and import ---------------------------------------------------------------------
+
+
+EXISTING = [
+    # The NVDA sale, already imported earlier (at midnight UTC, without an order ID).
+    {"accountId": "acc-degiro", "date": "2024-09-09T00:00:00.000Z", "type": "SELL", "quantity": 5,
+     "unitPrice": 104.98, "assetProfile": {"symbol": "NVDA", "dataSource": "YAHOO",
+                                           "name": "NVIDIA Corporation"}},
+    {"accountId": "acc-degiro", "date": "2024-03-01T00:00:00.000Z", "type": "BUY", "quantity": 1,
+     "unitPrice": 600.0, "assetProfile": {"symbol": "ASML.AS", "dataSource": "YAHOO",
+                                          "name": "ASML Holding N.V."}},
+    {"accountId": "acc-degiro", "date": "2024-03-01T00:00:00.000Z", "type": "BUY", "quantity": 3,
+     "unitPrice": 60.0, "assetProfile": {"symbol": "XDWT.DE", "dataSource": "YAHOO",
+                                         "name": "Xtrackers MSCI World IT"}},
+]
+def item(symbol: str, currency: str) -> dict:
+    return {"symbol": symbol, "dataSource": "YAHOO", "name": symbol, "currency": currency}
+
+
+LOOKUP = {
+    "US67066G1040": [item("NVDA", "USD")],
+    "NL0010273215": [item("ASML.AS", "EUR"), item("ASML", "USD")],
+    # Yahoo finds another listing than the one held: the hub has to ask.
+    "IE00BM67HT60": [item("XDWT.L", "GBP")],
+}
+
+
+class FakeGhostfolio:
+    def __init__(self):
+        self.imported: list[dict] = []
+        self.lookups: list[str] = []
+        self.status = 200
+
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        path = unquote(request.url.path)
+        if path == "/api/v1/auth/anonymous":
+            return httpx.Response(200, json={"authToken": "jwt"})
+        if path == "/api/v1/activities":
+            return httpx.Response(200, json={"activities": EXISTING + self.imported, "count": 3})
+        if path == "/api/v1/account":
+            return httpx.Response(200, json={"accounts": [
+                {"id": "acc-other", "name": "Savings"},
+                {"id": "acc-degiro", "name": "Broker", "platform": {"name": "DEGIRO"}}]})
+        if path == "/api/v1/symbol/lookup":
+            query = request.url.params["query"]
+            self.lookups.append(query)
+            return httpx.Response(200, json={"items": LOOKUP.get(query, [])})
+        if path == "/api/v1/import":
+            if self.status != 200:
+                message = ["activities.0.symbol is not valid"]
+                return httpx.Response(self.status, json={"message": message})
+            body = json.loads(request.content)["activities"]
+            # Stored the way Ghostfolio lists them afterwards.
+            self.imported += [
+                {**a, "assetProfile": {"symbol": a["symbol"], "dataSource": a["dataSource"],
+                                       "name": a["symbol"]}}
+                for a in body
+            ]
+            return httpx.Response(201, json={"activities": body})
+        return httpx.Response(404)
+
+
+@pytest.fixture
+def fake():
+    holding._clients.clear()
+    return FakeGhostfolio()
+
+
+@pytest.fixture
+def degiro_store(store):
+    degiro_import.ensure_tables(store)
+    return store
+
+
+def preview(store, fake, text=ENGLISH, choices=None):
+    return asyncio.run(degiro_import.preview(CFG, store, text, choices, httpx.MockTransport(fake)))
+
+
+def test_preview_sorts_rows_into_new_existing_and_unknown(degiro_store, fake):
+    result = preview(degiro_store, fake)
+
+    assert [(r.symbol, r.status) for r in result.rows] == [
+        ("NVDA", "exists"), ("ASML.AS", "new"), (None, "unknown")]
+    assert result.counts == {"new": 1, "exists": 1, "unknown": 1}
+    assert result.account_id == "acc-degiro"
+    (product,) = result.unknown
+    assert product.isin == "IE00BM67HT60"
+    # Yahoo's listing first, then everything held to choose from.
+    assert [c.symbol for c in product.candidates] == ["XDWT.L", "ASML.AS", "NVDA", "XDWT.DE"]
+    assert product.candidates[-1].name == "Xtrackers MSCI World IT"
+
+
+def test_an_existing_activity_counts_once(degiro_store, fake):
+    twice = ENGLISH.splitlines()[:2] + [ENGLISH.splitlines()[1].replace("ord-1", "ord-9")]
+    result = preview(degiro_store, fake, "\n".join(twice) + "\n")
+    assert [r.status for r in result.rows] == ["exists", "new"]
+
+
+def test_import_adds_only_new_rows_and_remembers_choices(degiro_store, fake):
+    choices = {"IE00BM67HT60": degiro_import.Choice(data_source="YAHOO", symbol="XDWT.DE")}
+    result = asyncio.run(degiro_import.run_import(
+        CFG, degiro_store, ENGLISH, "acc-degiro", choices, httpx.MockTransport(fake)))
+
+    assert result == {"imported": 2, "existing": 1, "unknown": 0}
+    assert [(a["symbol"], a["type"], a["quantity"]) for a in fake.imported] == [
+        ("ASML.AS", "BUY", 1), ("XDWT.DE", "BUY", 2)]
+    asml = {k: v for k, v in fake.imported[0].items() if k != "assetProfile"}
+    assert asml == {
+        "accountId": "acc-degiro", "comment": "DEGIRO order ord-2", "currency": "EUR",
+        "dataSource": "YAHOO", "date": "2026-10-02T07:05:00Z", "fee": 3.0, "quantity": 1.0,
+        "symbol": "ASML.AS", "type": "BUY", "unitPrice": 1597.0,
+    }
+
+    # The same file again adds nothing, and the ETF no longer needs a choice.
+    fake.lookups.clear()
+    again = preview(degiro_store, fake)
+    assert again.counts == {"new": 0, "exists": 3, "unknown": 0}
+    assert "IE00BM67HT60" not in fake.lookups
+
+
+def test_import_refuses_an_unknown_account_and_bad_symbols(degiro_store, fake):
+    with pytest.raises(degiro_import.DegiroError, match="account"):
+        asyncio.run(degiro_import.run_import(CFG, degiro_store, ENGLISH, "nope", {},
+                                             httpx.MockTransport(fake)))
+    bad = {"IE00BM67HT60": degiro_import.Choice(data_source="YAHOO", symbol="../x")}
+    with pytest.raises(degiro_import.DegiroError, match="not a valid symbol"):
+        asyncio.run(degiro_import.run_import(CFG, degiro_store, ENGLISH, "acc-degiro", bad,
+                                             httpx.MockTransport(fake)))
+    assert fake.imported == []
+
+
+# --- endpoints -------------------------------------------------------------------------------
+
+
+@pytest.fixture
+def client(degiro_store, fake):
+    main.app.state.store = degiro_store
+    main.app.state.config = CFG
+    main.app.state.ghostfolio_transport = httpx.MockTransport(fake)
+    yield TestClient(main.app, headers={"origin": "http://testserver"})
+    del main.app.state.ghostfolio_transport
+
+
+def test_preview_and_import_endpoints(client, fake):
+    body = client.post("/api/portfolio/degiro/preview", json={"csv": ENGLISH}).json()
+    assert body["counts"] == {"new": 1, "exists": 1, "unknown": 1}
+
+    resp = client.post("/api/portfolio/degiro/import", json={
+        "csv": ENGLISH, "account_id": "acc-degiro",
+        "choices": {"IE00BM67HT60": {"data_source": "YAHOO", "symbol": "XDWT.DE"}}})
+    assert resp.json() == {"imported": 2, "existing": 1, "unknown": 0}
+
+
+def test_endpoints_explain_problems(client, fake):
+    wrong = client.post("/api/portfolio/degiro/preview", json={"csv": "a,b\n1,2\n"})
+    assert wrong.status_code == 422 and "DEGIRO Transactions export" in wrong.json()["detail"]
+
+    fake.status = 400
+    refused = client.post("/api/portfolio/degiro/import", json={
+        "csv": ENGLISH, "account_id": "acc-degiro",
+        "choices": {"IE00BM67HT60": {"data_source": "YAHOO", "symbol": "XDWT.DE"}}})
+    assert refused.status_code == 502
+    assert refused.json()["detail"] == "Ghostfolio refused: activities.0.symbol is not valid"
+
+
+def test_import_needs_the_same_origin(client):
+    other = TestClient(main.app, headers={"origin": "https://evil.example"})
+    resp = other.post("/api/portfolio/degiro/import", json={"csv": ENGLISH, "account_id": "x"})
+    assert resp.status_code == 403

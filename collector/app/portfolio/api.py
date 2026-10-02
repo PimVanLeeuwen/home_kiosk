@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any
+from datetime import UTC, datetime
+from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
 
-from ..sources.ghostfolio import CHARTS_KEY
-from . import holding
+from ..security import same_origin_json
+from ..sources.ghostfolio import CHARTS_KEY, GhostfolioError
+from . import degiro, degiro_import, holding
 from .models import HoldingDetail
 
 router = APIRouter(prefix="/api")
@@ -46,3 +49,53 @@ async def holding_detail(data_source: str, symbol: str, request: Request) -> Hol
 @router.get("/indices")
 def indices(request: Request) -> dict[str, Any]:
     return _cached(request, "indices")
+
+
+# --- DEGIRO import ---------------------------------------------------------------------------
+
+write = [Depends(same_origin_json)]
+Csv = Annotated[str, Field(min_length=1, max_length=degiro.MAX_BYTES)]
+
+
+class PreviewRequest(BaseModel):
+    csv: Csv
+    choices: dict[str, degiro_import.Choice] = {}
+
+
+class ImportRequest(PreviewRequest):
+    account_id: Annotated[str, Field(min_length=1, max_length=100)]
+
+
+def _failed(exc: Exception) -> HTTPException:
+    if isinstance(exc, (degiro.ExportError, degiro_import.DegiroError)):
+        return HTTPException(422, str(exc))
+    if isinstance(exc, GhostfolioError) and exc.detail:
+        return HTTPException(502, f"Ghostfolio refused: {exc.detail}")
+    return HTTPException(502, "Ghostfolio is not answering.")
+
+
+@router.post("/portfolio/degiro/preview", dependencies=write)
+async def degiro_preview(body: PreviewRequest, request: Request) -> degiro_import.Preview:
+    """What an import would do. Writes nothing."""
+    try:
+        degiro_import.check_choices(body.choices)
+        return await degiro_import.preview(
+            request.app.state.config, request.app.state.store, body.csv, body.choices,
+            getattr(request.app.state, "ghostfolio_transport", None))
+    except Exception as exc:
+        raise _failed(exc) from exc
+
+
+@router.post("/portfolio/degiro/import", dependencies=write)
+async def degiro_run(body: ImportRequest, request: Request) -> dict[str, int]:
+    """Import the new trades into Ghostfolio, then refresh the portfolio."""
+    try:
+        result = await degiro_import.run_import(
+            request.app.state.config, request.app.state.store, body.csv, body.account_id,
+            body.choices, getattr(request.app.state, "ghostfolio_transport", None))
+    except Exception as exc:
+        raise _failed(exc) from exc
+    scheduler = getattr(request.app.state, "scheduler", None)
+    if scheduler and scheduler.get_job("portfolio"):
+        scheduler.get_job("portfolio").modify(next_run_time=datetime.now(UTC))
+    return result

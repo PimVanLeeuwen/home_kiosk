@@ -28,6 +28,7 @@ from .models import ContainerUpdate
 from .news import api as news_api
 from .news import store as news_store
 from .portfolio import api as portfolio_api
+from .portfolio import degiro_import
 from .security import same_origin_json
 from .sources import container_stats, feeds, readeck
 from .sources import nas as nas_source
@@ -56,6 +57,7 @@ async def lifespan(app: FastAPI):
     alerts_core.ensure_tables(app.state.store)
     alert_rules.ensure_tables(app.state.store)
     news_store.ensure_tables(app.state.store)
+    degiro_import.ensure_tables(app.state.store)
     if news_store.seed(app.state.store, app.state.config):
         log.info("feed list seeded from config.yaml")
 

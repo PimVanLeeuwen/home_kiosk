@@ -65,7 +65,22 @@ HISTORY_LOOKBACK = 6
 
 
 class GhostfolioError(Exception):
-    """Ghostfolio could not be reached or refused the token."""
+    """Ghostfolio could not be reached or refused the token. `detail` carries
+    Ghostfolio's own message, e.g. why an import was refused."""
+
+    def __init__(self, message: str, detail: str | None = None) -> None:
+        super().__init__(message)
+        self.detail = detail
+
+
+def _message(resp: httpx.Response) -> str | None:
+    try:
+        message = resp.json().get("message")
+    except ValueError:
+        return None
+    if isinstance(message, list):
+        message = "; ".join(str(m) for m in message)
+    return str(message)[:300] if message else None
 
 
 class Client:
@@ -91,20 +106,29 @@ class Client:
         return token
 
     async def get(self, client: httpx.AsyncClient, path: str, **params: Any) -> dict:
+        return await self.request(client, "GET", path, params=params or None)
+
+    async def post(self, client: httpx.AsyncClient, path: str, body: Any,
+                   timeout: float = TIMEOUT_SECONDS) -> dict:
+        return await self.request(client, "POST", path, json=body, timeout=timeout)
+
+    async def request(self, client: httpx.AsyncClient, method: str, path: str,
+                      timeout: float = TIMEOUT_SECONDS, **kwargs: Any) -> dict:
         for attempt in (1, 2):
             if not self._bearer:
                 await self._authenticate(client)
-            resp = await client.get(
+            resp = await client.request(
+                method,
                 f"{self.base_url}{path}",
-                params=params or None,
                 headers={"Authorization": f"Bearer {self._bearer}"},
-                timeout=TIMEOUT_SECONDS,
+                timeout=timeout,
+                **kwargs,
             )
             if resp.status_code == 401 and attempt == 1:
                 self._bearer = None       # expired; re-auth once and retry
                 continue
             if resp.status_code >= 400:
-                raise GhostfolioError(f"{path} returned {resp.status_code}")
+                raise GhostfolioError(f"{path} returned {resp.status_code}", _message(resp))
             return resp.json()
         raise GhostfolioError(f"{path} unauthorised after refresh")
 

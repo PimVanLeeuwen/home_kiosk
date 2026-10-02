@@ -72,3 +72,38 @@ export interface Indices {
   stale: boolean
   indices: { symbol: string; label: string; currency: string | null; price: number; day_pct: number; at: string | null }[]
 }
+
+export interface DegiroCandidate {
+  symbol: string
+  data_source: string
+  name: string
+  currency: string | null
+  held: boolean
+}
+
+export interface DegiroRow {
+  line: number
+  date: string
+  product: string
+  isin: string
+  type: 'BUY' | 'SELL'
+  quantity: number
+  price: number
+  currency: string
+  fee: number
+  order_id: string
+  status: 'new' | 'exists' | 'unknown'
+  symbol: string | null
+  data_source: string | null
+}
+
+export interface DegiroPreview {
+  rows: DegiroRow[]
+  skipped: string[]
+  unknown: { isin: string; product: string; candidates: DegiroCandidate[] }[]
+  accounts: { id: string; name: string }[]
+  account_id: string | null
+  counts: { new: number; exists: number; unknown: number }
+}
+
+export type DegiroChoices = Record<string, { data_source: string; symbol: string }>

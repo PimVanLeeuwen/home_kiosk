@@ -14,6 +14,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
+from ..portfolio.moves import day_move
 from ..store import Store
 from . import core, rules
 from .telegram import Telegram
@@ -95,11 +96,11 @@ def portfolio_text(store: Store, cfg: dict[str, Any]) -> str:
     p = store.get_cache("portfolio")
     if not p:
         return "📈 <b>Portfolio</b>\nNo portfolio data yet."
-    change = p["change"]
-    sign = "+" if change["day_pct"] >= 0 else "−"
+    move, pct = day_move(p)
+    sign = "+" if pct >= 0 else "−"
     lines = [
         f"📈 <b>€ {_nl(p['total_value'])}</b>",
-        f"Today {sign}€ {_nl(abs(change['day_abs']))} ({sign}{_nl(abs(change['day_pct']), 2)}%)",
+        f"Today {sign}€ {_nl(abs(move))} ({sign}{_nl(abs(pct), 2)}%)",
     ]
     movers = sorted(p.get("holdings", []), key=lambda h: abs(h["day_pct"]), reverse=True)[:3]
     for h in movers:

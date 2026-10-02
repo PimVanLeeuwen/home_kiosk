@@ -1,0 +1,5 @@
+﻿Date,Time,Product,ISIN,Reference exchange,Venue,Quantity,Price,,Local value,,Value EUR,Exchange rate,AutoFX Fee,Transaction and/or third party fees EUR,Total EUR,Order ID
+09-09-2024,15:35,NVIDIA CORP,US67066G1040,NDQ,XNAS,-5,104.98,USD,524.90,USD,476.12,1.1025,-1.19,-2.00,472.93,ord-1
+02-10-2026,09:05,ASML HOLDING,NL0010273215,EAM,XAMS,1,"1,597.00",EUR,"-1,597.00",EUR,"-1,597.00",,0.00,-3.00,"-1,600.00",ord-2
+02-10-2026,09:10,XTRACKERS MSCI WORLD IT,IE00BM67HT60,XET,XETA,2,95.50,EUR,-191.00,EUR,-191.00,,0.00,-1.00,-192.00,ord-3
+02-10-2026,09:15,,,,,,,,,,,,,,,

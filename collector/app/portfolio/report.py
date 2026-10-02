@@ -5,8 +5,8 @@ with its move in % and euros, then the index line. It runs on weekdays at the
 times in `portfolio.report.schedule` and is built from the hub's cached data,
 like the bot's replies.
 
-The total move is the sum of the holdings' moves, as stock-bot did, so the
-lines always add up. In the morning that is the previous session.
+The total move is the sum of the holdings' moves (moves.py), so the lines
+always add up. In the morning that is the previous session.
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from ..alerts import core
 from ..store import Store
+from .moves import day_move
 
 log = logging.getLogger(__name__)
 
@@ -67,11 +68,8 @@ def build(portfolio: dict[str, Any], indices: dict[str, Any] | None, cfg: dict[s
     local = core.local(now, cfg)
     title = "Morning report" if local.hour < 12 else "Evening report"
     holdings = portfolio.get("holdings") or []
-    moves = [h.get("day_abs") or 0.0 for h in holdings]
     total = portfolio["total_value"]
-    change = sum(moves)
-    previous = total - change
-    pct = change / previous * 100 if previous else 0.0
+    change, pct = day_move(portfolio)
 
     lines = [
         f"📈 <b>{title}</b> · {local.strftime('%a %d %b, %H:%M')}",

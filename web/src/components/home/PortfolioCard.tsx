@@ -1,6 +1,7 @@
 import { cn } from '../../lib/cn'
-import { formatMoney, formatSignedPct } from '../../lib/format'
-import type { Portfolio } from '../../lib/types'
+import { formatMoney, formatSignedMoney, formatSignedPct } from '../../lib/format'
+import { dayMove } from '../../lib/portfolio'
+import type { PortfolioFull } from '../../lib/portfolioTypes'
 import { useApi } from '../../lib/useApi'
 import { Card, Loading, StaleNote, Unavailable } from './Card'
 import { Sparkline } from './Sparkline'
@@ -8,7 +9,8 @@ import { Sparkline } from './Sparkline'
 const tone = (n: number) => (n > 0 ? 'text-up' : n < 0 ? 'text-down' : 'text-muted')
 
 export function PortfolioCard() {
-  const { data, error } = useApi<Portfolio>('/api/portfolio', 300_000)
+  const { data, error } = useApi<PortfolioFull>('/api/portfolio', 300_000)
+  const today = data && dayMove(data)
 
   return (
     <Card title="Portfolio" link={{ to: '/portfolio', label: 'Open' }}>
@@ -19,8 +21,8 @@ export function PortfolioCard() {
             <span className="text-[30px] font-semibold tracking-tight md:text-[34px]">
               {formatMoney(data.total_value, data.currency)}
             </span>
-            <span className={cn('font-semibold', tone(data.change.day_abs))}>
-              {formatMoney(data.change.day_abs, data.currency)} · {formatSignedPct(data.change.day_pct)} today
+            <span className={cn('font-semibold', tone(today!.abs))}>
+              {formatSignedMoney(today!.abs, data.currency)} · {formatSignedPct(today!.pct)} today
             </span>
           </p>
           <Sparkline values={data.history.map((p) => p.v)} label="Portfolio value, last 30 days" />

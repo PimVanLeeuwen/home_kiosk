@@ -1,16 +1,19 @@
-import { useSearchParams } from 'react-router'
+import { FileUp } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
 import { StaleNote } from '../components/home/Card'
 import { AllocationCard } from '../components/portfolio/AllocationCard'
+import { DegiroImport } from '../components/portfolio/DegiroImport'
 import { HoldingView } from '../components/portfolio/HoldingView'
 import { HoldingsCard } from '../components/portfolio/HoldingsCard'
 import { MarketsCard } from '../components/portfolio/MarketsCard'
 import { ValueCard } from '../components/portfolio/ValueCard'
 import { cn } from '../lib/cn'
 import { formatMoney, formatSignedMoney, formatSignedPct, formatWhen } from '../lib/format'
-import { parseHolding } from '../lib/portfolio'
+import { dayMove, parseHolding } from '../lib/portfolio'
 import type { PortfolioFull } from '../lib/portfolioTypes'
 import { useApi } from '../lib/useApi'
+import { buttonClass } from '../components/settings/fields'
 
 const tone = (n: number | null | undefined) => (!n ? 'text-fg' : n > 0 ? 'text-up' : 'text-down')
 
@@ -18,7 +21,10 @@ const tone = (n: number | null | undefined) => (!n ? 'text-fg' : n > 0 ? 'text-u
 export function PortfolioPage() {
   const [params] = useSearchParams()
   const selected = parseHolding(params.get('h'))
-  const { data, error } = useApi<PortfolioFull>('/api/portfolio', 300_000)
+  const { data, error, reload } = useApi<PortfolioFull>('/api/portfolio', 300_000)
+
+  // The collector refreshes from Ghostfolio right after an import; give it a moment.
+  if (params.has('import')) return <DegiroImport onImported={() => window.setTimeout(reload, 8000)} />
 
   if (selected)
     return <HoldingView dataSource={selected.dataSource} symbol={selected.symbol} currency={data?.currency ?? 'EUR'} />
@@ -39,8 +45,7 @@ export function PortfolioPage() {
 
   const money = (n: number) => formatMoney(n, data.currency)
   // The sum of the holdings' moves, like the daily report, so it matches the table.
-  const dayAbs = data.holdings.reduce((sum, h) => sum + (h.day_abs ?? 0), 0)
-  const dayPct = data.total_value - dayAbs ? (dayAbs / (data.total_value - dayAbs)) * 100 : 0
+  const { abs: dayAbs, pct: dayPct } = dayMove(data)
   const summary: [string, string, string, string?][] = [
     ['Today', formatSignedMoney(dayAbs, data.currency), formatSignedPct(dayPct), tone(dayAbs)],
     [
@@ -55,7 +60,17 @@ export function PortfolioPage() {
 
   return (
     <>
-      <PageHeader title="Portfolio" subtitle={`From Ghostfolio, ${formatWhen(data.as_of)}`} />
+      <PageHeader
+        title="Portfolio"
+        subtitle={`From Ghostfolio, ${formatWhen(data.as_of)}`}
+        actions={
+          <Link to="/portfolio?import" aria-label="Update from DEGIRO" className={buttonClass}>
+            <FileUp aria-hidden="true" className="size-4" />
+            <span className="hidden sm:inline">Update from DEGIRO</span>
+            <span className="sm:hidden">DEGIRO</span>
+          </Link>
+        }
+      />
 
       <section aria-label="Summary" className="mb-4 rounded-[14px] border border-line-soft bg-card px-5 py-5 md:px-6">
         <p className="text-[13px] font-semibold text-muted">Value</p>

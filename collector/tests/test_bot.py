@@ -157,6 +157,16 @@ def test_backup_from_run_history_or_the_marker(bot_store):
     )
 
 
+def test_portfolio_move_is_the_sum_of_the_holdings(bot_store):
+    with_euros = {**PORTFOLIO, "holdings": [
+        {"symbol": "NVDA", "day_pct": 1.5, "day_abs": 30.0},
+        {"symbol": "ASML.AS", "day_pct": -0.5, "day_abs": -10.0},
+    ]}
+    bot_store.put_cache("portfolio", with_euros)
+    # 20 on 9099,40 before the move, not Ghostfolio's own +69.
+    assert "Today +€ 20 (+0,22%)" in bot.portfolio_text(bot_store, CFG)
+
+
 def test_portfolio_shows_value_change_and_biggest_movers(bot_store):
     bot_store.put_cache("portfolio", PORTFOLIO)
 
