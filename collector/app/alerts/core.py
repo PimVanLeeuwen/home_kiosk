@@ -175,8 +175,10 @@ async def notify(
     chat: str | None = None,
     now: datetime | None = None,
     telegram: Telegram | None = None,
+    formatted: str | None = None,
 ) -> AlertMessage:
-    """Route (or use `chat`), hold for quiet hours or send, and log one message."""
+    """Route (or use `chat`), hold for quiet hours or send, and log one message.
+    `formatted` is ready-made Telegram HTML to send instead of title and body."""
     now = now or datetime.now(UTC)
     chat_key = chat or routing(store).get(category, "nas")
     fields = {"source": source, "category": category, "severity": severity,
@@ -195,7 +197,7 @@ async def notify(
         if not chat_id:
             raise ValueError(f"No chat id set for {chat_key}")
         client = telegram or Telegram((cfg.get("telegram") or {}).get("token", ""))
-        await client.send(chat_id, format_html(severity, title, body))
+        await client.send(chat_id, formatted or format_html(severity, title, body))
     except Exception as exc:
         reason = str(exc) if isinstance(exc, ValueError) else describe(exc)
         log.warning("telegram send for %s failed: %s", source, type(exc).__name__)

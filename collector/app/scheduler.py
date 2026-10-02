@@ -16,6 +16,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
 from .portfolio import indices
+from .portfolio import report as portfolio_report
 from .sources import (
     backups,
     container_stats,
@@ -195,6 +196,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         max_instances=1,
         coalesce=True,
     )
+
+    # The portfolio report to the Portfolio chat (stock-bot's job before).
+    if portfolio_report.settings(cfg)["enabled"]:
+        scheduler.add_job(
+            portfolio_report.send,
+            portfolio_report.trigger(cfg),
+            args=[store, cfg],
+            id="portfolio-report",
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=600,
+        )
 
     # After quiet hours, the held messages go out as one digest per chat.
     scheduler.add_job(

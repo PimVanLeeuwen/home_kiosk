@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from apscheduler.triggers.interval import IntervalTrigger
 from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, HttpUrl
@@ -67,8 +68,10 @@ async def lifespan(app: FastAPI):
     app.state.scheduler.start()
     # Populate the cache immediately rather than leaving the screen blank for a
     # full interval after a restart.
+    # Only the refreshes: a timed job like the portfolio report keeps its schedule.
     for job in app.state.scheduler.get_jobs():
-        job.modify(next_run_time=datetime.now(UTC))
+        if isinstance(job.trigger, IntervalTrigger):
+            job.modify(next_run_time=datetime.now(UTC))
 
     # Telegram commands: long polling in the background (off without a token).
     bot_task = asyncio.create_task(alert_bot.run(app.state.store, app.state.config))
