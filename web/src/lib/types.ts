@@ -265,6 +265,24 @@ export interface AlertMessage {
   sent_at: string | null
 }
 
+/** An editable message wording (Settings → Messages, /api/alerts/templates). */
+export interface MessageTemplate {
+  id: string
+  group: string
+  label: string
+  description: string
+  /** Line templates: the message they are part of. */
+  parent: string | null
+  /** The category it is routed by, e.g. "Backups"; null for line templates. */
+  category: string | null
+  placeholders: { name: string; description: string; block: boolean }[]
+  default: string
+  text: string
+  customised: boolean
+  /** Telegram HTML with sample values. */
+  preview: string
+}
+
 export interface QuietHours {
   enabled: boolean
   start: string

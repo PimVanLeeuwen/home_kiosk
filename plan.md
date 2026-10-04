@@ -151,7 +151,20 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Shown on the Backups page (a GitHub mirror card) and per repo on the Repos page. A failed run
   sends a Telegram message; the backup_missing rule also covers the mirror, and `/backup` lists it.
 
-Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8.
+**M11. Message templates** (added 2026-10-04)
+- Settings → Messages: the wording of the alert rules (and Resolved), the portfolio report, the
+  GitHub mirror failure, and the messages from the NAS (backup, Watchtower, Uptime Kuma) is
+  editable. Bot replies and messages typed on the Alerts page are not.
+- One text per message with `{placeholders}` and `<b> <i> <u> <s> <code>`; repeating parts
+  (holdings, indices, backup volumes, updated containers) have their own line template. Values are
+  escaped; a line holding only an empty placeholder is left out.
+- Only changes are stored (alert setting `templates`); the built-in texts give the messages from
+  before. Saving checks placeholders, tags and Telegram's length limit. The editor previews with
+  sample values (rendered by the hub) and can send a test to the message's chat, quiet hours or not.
+- backup.sh sends its figures in `data`; Watchtower's report lines are read back. Anything the hub
+  cannot read goes out as the sender wrote it.
+
+Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11.
 
 ## 4. Open items
 

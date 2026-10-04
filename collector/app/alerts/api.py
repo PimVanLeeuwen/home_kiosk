@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from ..security import same_origin_json
-from . import core, rules
+from . import core, formats, rules, templates
 
 router = APIRouter(prefix="/api")
 write = [Depends(same_origin_json)]
@@ -38,6 +38,9 @@ class NotifyIn(BaseModel):
     # (Watchtower's report starts with its summary line).
     title: Annotated[str, Field(max_length=200)] = ""
     body: Annotated[str, Field(max_length=3000)] = ""
+    # Figures for the hub's own template (backup.sh sends these); title and
+    # body are what goes out when they are missing or unreadable.
+    data: dict[str, Any] | None = None
 
     @model_validator(mode="after")
     def _title(self) -> NotifyIn:
@@ -66,9 +69,12 @@ class NotifyIn(BaseModel):
 @router.post("/notify", dependencies=[Depends(notify_key), Depends(same_origin_json)])
 async def notify(body: NotifyIn, request: Request) -> core.AlertMessage:
     """For senders on the NAS: backup.sh, Watchtower, Uptime Kuma."""
-    return await core.notify(
-        request.app.state.store, request.app.state.config, **body.model_dump()
-    )
+    store = request.app.state.store
+    fields = body.model_dump(exclude={"data"})
+    sent = formats.from_sender(store, body.source, body.severity, body.title, body.body, body.data)
+    if sent is not None:
+        fields |= {"title": sent.title, "body": sent.body, "formatted": sent.html}
+    return await core.notify(store, request.app.state.config, **fields)
 
 
 # Uptime Kuma heartbeat states (src/util.ts in Kuma).
@@ -87,15 +93,19 @@ async def notify_kuma(payload: dict[str, Any], request: Request) -> core.AlertMe
     heartbeat = payload.get("heartbeat") or {}
     monitor = payload.get("monitor") or {}
     message = str(payload.get("msg") or "")[:3000]
+    store = request.app.state.store
     if heartbeat and monitor:
         severity, state = KUMA_STATUS.get(int(heartbeat.get("status", 0)), ("info", "changed"))
-        title = f"{monitor.get('name') or 'A monitor'} {state}"[:200]
-        body = str(heartbeat.get("msg") or "")[:3000]
+        sent = templates.message(store, "kuma", {
+            "monitor": str(monitor.get("name") or "A monitor")[:150], "state": state,
+            "message": str(heartbeat.get("msg") or "")[:3000]}, severity)
+        title, body, formatted = sent.title, sent.body, sent.html
     else:
         severity, title, body = "info", "Uptime Kuma", message or "Test notification"
+        formatted = None
     return await core.notify(
-        request.app.state.store, request.app.state.config,
-        source="uptime-kuma", category="uptime", severity=severity, title=title, body=body,
+        store, request.app.state.config, source="uptime-kuma", category="uptime",
+        severity=severity, title=title, body=body, formatted=formatted,
     )
 
 
@@ -213,3 +223,90 @@ def put_rules(body: dict[str, RuleSettings], request: Request) -> dict[str, Any]
 def list_incidents(request: Request) -> Any:
     """Open incidents first, then recently resolved ones."""
     return rules.incidents(request.app.state.store)
+
+
+# --- message templates (Settings → Messages) -----------------------------------------
+
+
+class TemplateText(BaseModel):
+    text: Annotated[str, Field(max_length=templates.MAX_TEXT)]
+
+
+def _template(store: Any, template_id: str) -> dict[str, Any]:
+    t = templates.CATALOG[template_id]
+    text = templates.text_of(store, template_id)
+    return {
+        "id": template_id,
+        "group": t.group,
+        "label": t.label,
+        "description": t.description,
+        "parent": t.parent or None,
+        "category": core.CATEGORIES.get(t.category) if t.category else None,
+        "placeholders": [
+            {"name": name, "description": what, "block": name in t.blocks}
+            for name, (what, _) in t.placeholders.items()
+        ],
+        "default": t.default,
+        "text": text,
+        "customised": text != t.default,
+        "preview": templates.sample(template_id, store=store).html,
+    }
+
+
+def _known(template_id: str) -> None:
+    if template_id not in templates.CATALOG:
+        raise HTTPException(404, f"No message template called {template_id}.")
+
+
+@router.get("/alerts/templates")
+def list_templates(request: Request) -> list[dict[str, Any]]:
+    return [_template(request.app.state.store, tid) for tid in templates.CATALOG]
+
+
+@router.put("/alerts/templates/{template_id}", dependencies=write)
+def put_template(template_id: str, body: TemplateText, request: Request) -> dict[str, Any]:
+    _known(template_id)
+    try:
+        templates.save(request.app.state.store, template_id, body.text)
+    except templates.TemplateError as exc:
+        raise HTTPException(422, str(exc)) from None
+    return _template(request.app.state.store, template_id)
+
+
+@router.delete("/alerts/templates/{template_id}", dependencies=write)
+def reset_template(template_id: str, request: Request) -> dict[str, Any]:
+    _known(template_id)
+    templates.reset(request.app.state.store, template_id)
+    return _template(request.app.state.store, template_id)
+
+
+@router.post("/alerts/templates/{template_id}/preview", dependencies=write)
+def preview_template(template_id: str, body: TemplateText, request: Request) -> dict[str, Any]:
+    """The draft with sample values, for the editor. A problem is reported, not raised."""
+    _known(template_id)
+    try:
+        templates.check(template_id, body.text)
+        error = None
+    except templates.TemplateError as exc:
+        error = str(exc)
+    sent = templates.sample(template_id, {template_id: body.text}, request.app.state.store)
+    return {"html": sent.html, "error": error}
+
+
+@router.post("/alerts/templates/{template_id}/test", dependencies=write)
+async def test_template(template_id: str, body: TemplateText,
+                        request: Request) -> core.AlertMessage:
+    """Send the draft with sample values to the chat its message goes to, now."""
+    _known(template_id)
+    try:
+        templates.check(template_id, body.text)
+    except templates.TemplateError as exc:
+        raise HTTPException(422, str(exc)) from None
+    store = request.app.state.store
+    target = templates.CATALOG[templates.CATALOG[template_id].parent or template_id]
+    sent = templates.sample(template_id, {template_id: body.text}, store)
+    return await core.notify(
+        store, request.app.state.config, source="hub.test", category=target.category,
+        severity=target.severity, title=f"Test: {sent.title}"[:200], body=sent.body,
+        formatted=sent.html, bypass_quiet=True,
+    )

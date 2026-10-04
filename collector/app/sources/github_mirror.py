@@ -27,6 +27,7 @@ from typing import Any
 import httpx
 
 from ..alerts import core as alerts_core
+from ..alerts import templates
 from ..models import GitHubMirror, MirroredRepo, MirrorOwner, MirrorRun
 from ..store import Store
 from .backups import next_run
@@ -250,9 +251,11 @@ async def collect(
     result.as_of = finished
     result.next_due = next_run(finished, s["at"], tz)
     if not ok:
+        sent = templates.message(store, "mirror_failed", {"problems": failure_text(result)},
+                                 "error")
         await alerts_core.notify(store, cfg, source="github-mirror", category="backup",
-                                 severity="error", title="GitHub mirror FAILED",
-                                 body=failure_text(result), now=finished, telegram=telegram)
+                                 severity="error", title=sent.title, body=sent.body,
+                                 formatted=sent.html, now=finished, telegram=telegram)
     return result
 
 
@@ -264,7 +267,7 @@ def failure_text(result: GitHubMirror) -> str:
     lines += [f"{r.full_name}: {r.error}" for r in failed[:5]]
     if len(failed) > 5:
         lines.append(f"and {len(failed) - 5} more")
-    return "\n".join(lines) + "\nSee the Backups page"
+    return "\n".join(lines)
 
 
 def current(cfg: dict[str, Any], store: Store, now: datetime | None = None) -> dict[str, Any]:

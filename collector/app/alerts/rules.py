@@ -10,12 +10,12 @@ collection hiccup never "resolves" a real problem.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from ..store import Store
-from . import core
+from . import core, templates
 
 log = logging.getLogger(__name__)
 
@@ -61,8 +61,21 @@ class Problem:
     key: str
     rule: str
     severity: core.Severity
-    title: str
-    body: str = ""
+    # The message template and its values (see templates.CATALOG).
+    template: str
+    values: dict[str, Any] = field(default_factory=dict, hash=False, compare=False)
+
+    def message(self, store: Store | None = None) -> templates.Rendered:
+        return templates.message(store, self.template, self.values, self.severity)
+
+    @property
+    def title(self) -> str:
+        """The built-in wording; the sent message follows the saved template."""
+        return self.message().title
+
+    @property
+    def body(self) -> str:
+        return self.message().body
 
 
 def ensure_tables(store: Store) -> None:
@@ -102,8 +115,9 @@ def disk_space(nas: dict[str, Any] | None, settings: dict[str, Any]) -> list[Pro
     return [
         Problem(
             key=f"disk_space:{pool['name']}", rule="disk_space", severity="warning",
-            title=f"{pool['name']} is {int(pool['used_pct'])}% full",
-            body=f"{_size(pool['free_bytes'])} left of {_size(pool['total_bytes'])}",
+            template="disk_space",
+            values={"pool": pool["name"], "used_pct": int(pool["used_pct"]),
+                    "free": _size(pool["free_bytes"]), "total": _size(pool["total_bytes"])},
         )
         for pool in nas["storage"]["pools"]
         if pool["used_pct"] >= limit
@@ -117,11 +131,10 @@ def smart(nas: dict[str, Any] | None, settings: dict[str, Any]) -> list[Problem]
     for disk in nas.get("disks", []):
         if disk["smart"] == "fail":
             problems.append(Problem(f"smart:{disk['name']}", "smart", "error",
-                                    f"Disk {disk['name']} is failing (SMART)",
-                                    "Check Scrutiny and plan a replacement."))
+                                    "smart_failing", {"disk": disk["name"]}))
         elif disk["smart"] == "warn":
             problems.append(Problem(f"smart:{disk['name']}", "smart", "warning",
-                                    f"Disk {disk['name']} has SMART warnings", "Check Scrutiny."))
+                                    "smart_warning", {"disk": disk["name"]}))
     return problems
 
 
@@ -152,8 +165,9 @@ def container_health(
             key = f"unhealthy:{c['name']}"
             if (lasted := lasting(key)) >= grace:
                 problems.append(Problem(key, "container_health", "warning",
-                                        f"{c['name']} is unhealthy",
-                                        f"for {int(lasted.total_seconds() // 60)} min"))
+                                        "container_unhealthy",
+                                        {"name": c["name"],
+                                         "minutes": int(lasted.total_seconds() // 60)}))
 
     # Services in the catalog are expected to run.
     for service in catalog:
@@ -164,16 +178,15 @@ def container_health(
             key = f"down:{service.container}"
             if lasting(key) >= grace:
                 state = c["state"] if c else "no container"
-                problems.append(Problem(key, "container_health", "error",
-                                        f"{service.name} is down",
-                                        f"container {service.container}: {state}"))
+                problems.append(Problem(key, "container_health", "error", "container_down",
+                                        {"service": service.name,
+                                         "container": service.container, "state": state}))
 
     for name, count in (dies or {}).items():
         if count >= settings["restarts"]:
             problems.append(Problem(
-                f"restarting:{name}", "container_health", "warning",
-                f"{name} keeps restarting",
-                f"{count} restarts in {settings['restart_window_minutes']} min"))
+                f"restarting:{name}", "container_health", "warning", "container_restarting",
+                {"name": name, "count": count, "window": settings["restart_window_minutes"]}))
 
     for key in [k for k in pending if k not in seen_now]:
         del pending[key]
@@ -195,8 +208,8 @@ def backup_missing(
                 datetime.fromisoformat(last).strftime("%a %d %b %H:%M") if last else "none recorded"
             )
             mirror_problems.append(Problem(
-                "backup_missing:github-mirror", "backup_missing", "error",
-                f"No complete GitHub mirror in {settings['hours']} h", f"Last success: {when}"))
+                "backup_missing:github-mirror", "backup_missing", "error", "mirror_missing",
+                {"hours": settings["hours"], "last_success": when}))
     volumes = (backups or {}).get("volumes") or []
     if volumes:
         lasts = {v["name"]: v.get("last_success") for v in volumes}
@@ -216,8 +229,9 @@ def backup_missing(
                 datetime.fromisoformat(last).strftime("%a %d %b %H:%M") if last else "none recorded"
             )
             problems.append(Problem(f"backup_missing:{name}", "backup_missing", "error",
-                                    f"No successful backup of {label} in {settings['hours']} h",
-                                    f"Last success: {when}"))
+                                    "backup_missing",
+                                    {"volume": label, "hours": settings["hours"],
+                                     "last_success": when}))
     return problems
 
 
@@ -231,9 +245,8 @@ def portfolio_move(
         return []
     sign = "+" if pct > 0 else "−"
     value = f"{portfolio['total_value']:,.0f}".replace(",", ".")
-    return [Problem(f"portfolio_move:{today}", "portfolio_move", "info",
-                    f"Portfolio moved {sign}{abs(pct):.1f}% today".replace(".", ","),
-                    f"Now € {value}")]
+    return [Problem(f"portfolio_move:{today}", "portfolio_move", "info", "portfolio_move",
+                    {"move": f"{sign}{abs(pct):.1f}%".replace(".", ","), "value": value})]
 
 
 # --- evaluation ----------------------------------------------------------------------
@@ -276,6 +289,7 @@ async def apply(
                     conn.execute("UPDATE alert_incident SET last_seen_at = ? WHERE key = ?",
                                  (now.isoformat(), key))
                 continue
+            sent = problem.message(store)
             with store.connect() as conn:
                 conn.execute(
                     "INSERT INTO alert_incident (key, rule, severity, title, body, opened_at, "
@@ -283,12 +297,12 @@ async def apply(
                     "severity = excluded.severity, title = excluded.title, body = excluded.body, "
                     "opened_at = excluded.opened_at, last_seen_at = excluded.last_seen_at, "
                     "resolved_at = NULL",
-                    (key, rule, problem.severity, problem.title, problem.body,
+                    (key, rule, problem.severity, sent.title, sent.body,
                      now.isoformat(), now.isoformat()))
             category = "portfolio" if rule == "portfolio_move" else "rules"
             await core.notify(store, cfg, source=f"rule.{rule}", category=category,
-                              severity=problem.severity, title=problem.title, body=problem.body,
-                              now=now, telegram=telegram)
+                              severity=problem.severity, title=sent.title, body=sent.body,
+                              formatted=sent.html, now=now, telegram=telegram)
             changed.append(key)
         for key, incident in open_now.items():
             if incident["rule"] != rule or key in active:
@@ -297,10 +311,13 @@ async def apply(
                 conn.execute("UPDATE alert_incident SET resolved_at = ? WHERE key = ?",
                              (now.isoformat(), key))
             if rule not in NO_RESOLVE:
+                done = templates.message(
+                    store, "resolved",
+                    {"title": incident["title"],
+                     "duration": _duration(incident["opened_at"], now)}, "ok")
                 await core.notify(store, cfg, source=f"rule.{rule}", category="rules",
-                                  severity="ok", title=f"Resolved: {incident['title']}",
-                                  body=f"after {_duration(incident['opened_at'], now)}",
-                                  now=now, telegram=telegram)
+                                  severity="ok", title=done.title, body=done.body,
+                                  formatted=done.html, now=now, telegram=telegram)
             changed.append(key)
     return changed
 

@@ -13,7 +13,7 @@ There is no login and nothing is exposed to the internet.
 | Services | Links to every app, LAN or Tailscale depending on how the hub was opened, with live stats |
 | Repos | GitHub repos: your own, Hubble and GEWIS, with the backup status of each mirrored repo |
 | Alerts | Every Telegram message the hub sends, routing, quiet hours and the hub's own alert rules |
-| Settings | Service catalog and news feeds |
+| Settings | Service catalog, news feeds, and the wording of every Telegram message (templates with a live preview and a test send) |
 
 The hub is also the one Telegram sender: backup reports, Watchtower updates, Uptime Kuma, its own
 rules, and the weekday portfolio report (08:30 and 18:30). The bot answers `/status`, `/backup`

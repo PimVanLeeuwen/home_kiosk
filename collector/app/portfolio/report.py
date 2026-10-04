@@ -19,7 +19,7 @@ from typing import Any
 
 from apscheduler.triggers.cron import CronTrigger
 
-from ..alerts import core
+from ..alerts import core, templates
 from ..store import Store
 from .moves import day_move
 
@@ -63,35 +63,34 @@ def _dot(n: float) -> str:
 
 
 def build(portfolio: dict[str, Any], indices: dict[str, Any] | None, cfg: dict[str, Any],
-          now: datetime) -> tuple[str, str]:
-    """The report as (title, Telegram HTML)."""
+          now: datetime, store: Store | None = None) -> tuple[str, str]:
+    """The report as (title, Telegram HTML), worded by the saved templates."""
     local = core.local(now, cfg)
     title = "Morning report" if local.hour < 12 else "Evening report"
     holdings = portfolio.get("holdings") or []
-    total = portfolio["total_value"]
     change, pct = day_move(portfolio)
-
-    lines = [
-        f"📈 <b>{title}</b> · {local.strftime('%a %d %b, %H:%M')}",
-        "",
-        f"💼 <b>{_money(total)}</b>",
-        f"{_dot(change)} <b>{_money(change, signed=True)}</b> ({_pct(pct)}) today",
-        RULE,
-    ]
-    for h in sorted(holdings, key=lambda h: h.get("day_pct") or 0.0, reverse=True):
-        day = h.get("day_pct") or 0.0
-        lines.append(f"{_dot(day)} <b>{html.escape(h['symbol'])}</b>  {_pct(day)}  "
-                     f"({_money(h.get('day_abs') or 0.0, signed=True)})")
-    quotes = (indices or {}).get("indices") or []
-    if quotes:
-        lines.append(RULE)
-        lines.append("  ".join(f"{_dot(q['day_pct'])} {html.escape(q['label'])} "
-                               f"{_pct(q['day_pct'])}" for q in quotes))
     as_of = datetime.fromisoformat(portfolio["as_of"])
-    if portfolio.get("stale") or now - as_of > FRESH:
-        lines.append(f"\n<i>Figures from {core.local(as_of, cfg).strftime('%a %H:%M')}; "
-                     "Ghostfolio is not answering.</i>")
-    return title, "\n".join(lines)
+    stale = portfolio.get("stale") or now - as_of > FRESH
+    values = {
+        "title": title,
+        "when": local.strftime("%a %d %b, %H:%M"),
+        "total": _money(portfolio["total_value"]),
+        "dot": _dot(change),
+        "change": _money(change, signed=True),
+        "change_pct": _pct(pct),
+        "holdings": [
+            {"dot": _dot(h.get("day_pct") or 0.0), "symbol": h["symbol"],
+             "pct": _pct(h.get("day_pct") or 0.0),
+             "change": _money(h.get("day_abs") or 0.0, signed=True)}
+            for h in sorted(holdings, key=lambda h: h.get("day_pct") or 0.0, reverse=True)
+        ],
+        "indices": [
+            {"dot": _dot(q["day_pct"]), "label": q["label"], "pct": _pct(q["day_pct"])}
+            for q in (indices or {}).get("indices") or []
+        ],
+        "stale_note": [{"as_of": core.local(as_of, cfg).strftime("%a %H:%M")}] if stale else [],
+    }
+    return title, templates.render(store, "portfolio_report", values)
 
 
 def plain(text: str) -> str:
@@ -110,7 +109,7 @@ async def send(store: Store, cfg: dict[str, Any], now: datetime | None = None,
                        chat=core.routing(store).get("portfolio", "portfolio"),
                        status="failed", error="No portfolio data yet")
         return
-    title, text = build(portfolio, store.get_cache("indices"), cfg, now)
+    title, text = build(portfolio, store.get_cache("indices"), cfg, now, store)
     body = plain(text).split("\n", 2)[-1].strip()  # the title line is logged separately
     await core.notify(store, cfg, source="hub", category="portfolio", severity="info",
                       title=title, body=body, formatted=text, now=now, telegram=telegram)

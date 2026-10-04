@@ -52,3 +52,43 @@ test('reorders with the move buttons', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 3 })).toHaveText(['Arr', 'Media'])
   expect(order).toEqual({ ids: ['sonarr', 'jellyfin'] })
 })
+
+const TEMPLATE = {
+  id: 'disk_space', group: 'Alert rules', label: 'Disk space', description: 'A storage pool above the threshold.',
+  parent: null, category: 'Hub alert rules',
+  placeholders: [
+    { name: 'icon', description: 'The severity emoji', block: false },
+    { name: 'pool', description: 'Pool name', block: false },
+  ],
+  default: '{icon} <b>{pool} is full</b>', text: '{icon} <b>{pool} is full</b>', customised: false,
+  preview: '⚠️ <b>volume2 is full</b>',
+}
+
+test('rewords a Telegram message in Settings', async ({ page }) => {
+  let saved: unknown
+  await page.route('**/api/containers', (route) => route.fulfill({ status: 503, json: {} }))
+  await page.route('**/api/settings/services', (route) => route.fulfill({ json: CATALOG }))
+  await page.route('**/api/settings/feeds', (route) => route.fulfill({ json: [] }))
+  await page.route('**/api/alerts/templates', (route) => route.fulfill({ json: [TEMPLATE] }))
+  await page.route('**/api/alerts/templates/disk_space/preview', (route) => {
+    const { text } = route.request().postDataJSON() as { text: string }
+    return route.fulfill({ json: { html: text.replace('{icon}', '⚠️').replace('{pool}', 'volume2'), error: null } })
+  })
+  await page.route('**/api/alerts/templates/disk_space', (route) => {
+    saved = route.request().postDataJSON()
+    return route.fulfill({ json: { ...TEMPLATE, text: (saved as { text: string }).text, customised: true } })
+  })
+
+  await page.goto('/settings')
+  await page.getByRole('button', { name: 'Edit Disk space' }).click()
+  const form = page.getByRole('form', { name: 'Edit Disk space' })
+  await form.getByLabel('Message text').fill('{icon} <b>Almost full: </b>')
+  await form.getByLabel('Message text').press('End')
+  await form.getByRole('button', { name: /\{pool\}/ }).click()
+  await expect(form.getByRole('figure', { name: 'Preview' })).toHaveText('⚠️ Almost full: volume2')
+  await form.getByRole('button', { name: 'Save' }).click()
+
+  await expect(form).toBeHidden()
+  await expect(page.getByRole('region', { name: 'Alert rules' })).toContainText('Customised')
+  expect(saved).toEqual({ text: '{icon} <b>Almost full: </b>{pool}' })
+})
