@@ -4,8 +4,8 @@ import { useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
 import { RepoCard } from '../components/repos/RepoCard'
 import { cn } from '../lib/cn'
-import { formatAgo } from '../lib/format'
-import type { Repo, ReposResponse } from '../lib/types'
+import { formatAgo, formatWhen } from '../lib/format'
+import type { GitHubMirror, MirroredRepo, Repo, ReposResponse } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
 const REFRESH_MS = 300_000
@@ -16,8 +16,25 @@ function matches(repo: Repo, query: string): boolean {
   return [repo.name, repo.description, repo.language].some((v) => v?.toLowerCase().includes(q))
 }
 
+/** One line on how the active owner's backup stands, or nothing when it is not mirrored. */
+function MirrorNote({ mirror, login }: { mirror: GitHubMirror; login: string }) {
+  const owner = mirror.owners.find((o) => o.login.toLowerCase() === login.toLowerCase())
+  const last = mirror.runs[0]
+  if (!last || !owner) return null
+  const failed = owner.repos.filter((r) => !r.ok).length
+  const problem = mirror.error ?? owner.error ?? (failed ? `${failed} of ${owner.repos.length} repos failed` : null)
+  return (
+    <p className={cn('mb-4 text-[13px]', problem ? 'text-warn' : 'text-muted')}>
+      {problem
+        ? `Backup: ${problem} in the run of ${formatWhen(last.finished)}. See Backups.`
+        : `Backed up nightly to the NAS and Hetzner: ${owner.repos.length} repo${owner.repos.length === 1 ? '' : 's'}, last run ${formatWhen(last.finished)}.`}
+    </p>
+  )
+}
+
 export function ReposPage() {
   const { data, error, loading, reload } = useApi<ReposResponse>('/api/repos', REFRESH_MS)
+  const { data: mirror } = useApi<GitHubMirror>('/api/github-mirror', REFRESH_MS)
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState('')
   const [showForks, setShowForks] = useState(false)
@@ -27,6 +44,17 @@ export function ReposPage() {
   const active = groups.find((g) => g.label === params.get('tab')) ?? groups[0]
   const forks = active?.repos.filter((r) => r.fork).length ?? 0
   const shown = (active?.repos ?? []).filter((r) => (showForks || !r.fork) && matches(r, query))
+
+  // Backup state per repo, for owners in the mirror that has run at least once.
+  const mirrorOwner =
+    mirror?.enabled && mirror.runs.length > 0 && active
+      ? mirror.owners.find((o) => o.login.toLowerCase() === active.login.toLowerCase())
+      : undefined
+  const mirrored = new Map<string, MirroredRepo>(
+    mirrorOwner?.repos.map((r) => [r.full_name.toLowerCase(), r]) ?? [],
+  )
+  const backupOf = (repo: Repo) =>
+    !mirrorOwner || repo.fork ? undefined : (mirrored.get(repo.full_name.toLowerCase()) ?? null)
 
   return (
     <>
@@ -118,6 +146,8 @@ export function ReposPage() {
               )}
             </div>
 
+            {mirror?.enabled && <MirrorNote mirror={mirror} login={active.login} />}
+
             {active.error && (
               <p role="status" className="mb-4 text-[13px] text-warn">
                 {active.repos.length ? 'Showing the last known list. ' : ''}
@@ -128,7 +158,7 @@ export function ReposPage() {
             {shown.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {shown.map((repo) => (
-                  <RepoCard key={repo.full_name} repo={repo} />
+                  <RepoCard key={repo.full_name} repo={repo} backup={backupOf(repo)} />
                 ))}
               </div>
             ) : (

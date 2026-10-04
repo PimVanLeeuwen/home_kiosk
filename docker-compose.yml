@@ -56,6 +56,10 @@ services:
       # tailscaled's control socket, shared by the tailscale stack. The hub
       # reads the NAS's tailnet name and IP from it for service links.
       - /volume1/docker/tailscale/run:/var/run/tailscale:ro
+      # The nightly GitHub mirror (bare git repos), on /volume3 so the 03:00
+      # rclone run takes it to Hetzner. Docker creates the folder on the first
+      # deploy; without this mount the Backups page shows the mirror as failed.
+      - /volume3/backups/github:/backups/github
     extra_hosts:
       - host.docker.internal:host-gateway
     depends_on:

@@ -450,3 +450,48 @@ class BackupHistory(Envelope):
     volumes: list[VolumeSummary]
     # The next scheduled start after the last run (BACKUP_AT, see schedule.sh).
     next_due: datetime | None
+
+
+# --- Home hub: GitHub mirror ----------------------------------------------------
+
+
+class MirroredRepo(BaseModel):
+    full_name: str
+    archived: bool = False
+    # This run's result; `mirrored_at` is the last time it succeeded.
+    ok: bool
+    error: str | None = None
+    mirrored_at: datetime | None = None
+    bytes: int | None = None
+
+
+class MirrorOwner(BaseModel):
+    login: str
+    label: str
+    repos: list[MirroredRepo]
+    # Mirrors deleted this run because the repo is gone from GitHub.
+    removed: list[str] = []
+    # Listing the owner failed: nothing was fetched or removed for it.
+    error: str | None = None
+
+
+class MirrorRun(BaseModel):
+    started: datetime
+    finished: datetime
+    ok: bool
+    repos: int
+    failed: int
+    removed: int
+    bytes: int
+
+
+class GitHubMirror(Envelope):
+    # Off when no owner in config.yaml has `mirror: true`.
+    enabled: bool
+    dir: str
+    # Set when the whole run could not start, such as a missing mount.
+    error: str | None = None
+    owners: list[MirrorOwner] = []
+    runs: list[MirrorRun] = []  # newest first
+    last_success: datetime | None = None  # the last run with every repo mirrored
+    next_due: datetime | None = None

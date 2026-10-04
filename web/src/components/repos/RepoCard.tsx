@@ -5,6 +5,7 @@ import {
   CircleX,
   GitFork,
   GitPullRequest,
+  HardDrive,
   LoaderCircle,
   Lock,
   Star,
@@ -12,8 +13,11 @@ import {
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cn } from '../../lib/cn'
-import { formatAgo, formatCount } from '../../lib/format'
-import type { Repo } from '../../lib/types'
+import { formatAgo, formatCount, formatWhen } from '../../lib/format'
+import type { MirroredRepo, Repo } from '../../lib/types'
+
+/** The repo in the nightly GitHub mirror; `null` when it is not in it (yet). */
+export type RepoBackup = MirroredRepo | null
 
 const CI = {
   passing: { label: 'CI passing', icon: CircleCheck, className: 'text-up' },
@@ -32,7 +36,29 @@ function Meta({ icon: Icon, children, label }: { icon: typeof Star; children: Re
   )
 }
 
-export function RepoCard({ repo }: { repo: Repo }) {
+function BackupStatus({ backup }: { backup: RepoBackup }) {
+  const state = !backup
+    ? { label: 'Not backed up yet', className: 'text-faint', detail: 'New since the last mirror run' }
+    : backup.ok
+      ? { label: 'Backed up', className: 'text-muted', detail: `Mirrored ${formatWhen(backup.mirrored_at!)}` }
+      : {
+          label: 'Backup failed',
+          className: 'text-down',
+          detail: `${backup.error ?? 'Not mirrored in the last run'}${
+            backup.mirrored_at ? `; last mirrored ${formatWhen(backup.mirrored_at)}` : ''
+          }`,
+        }
+  return (
+    <span className={cn('inline-flex items-center gap-1', state.className)} title={state.detail}>
+      <HardDrive aria-hidden="true" className="size-3.5" />
+      {state.label}
+      <span className="sr-only">: {state.detail}</span>
+    </span>
+  )
+}
+
+/** `backup` is left out for owners that are not mirrored. */
+export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) {
   const ci = CI[repo.ci]
 
   return (
@@ -85,6 +111,7 @@ export function RepoCard({ repo }: { repo: Repo }) {
         </span>
         <Meta icon={GitPullRequest} label="Open pull requests">{repo.open_prs}</Meta>
         <Meta icon={CircleDot} label="Open issues">{repo.open_issues}</Meta>
+        {backup !== undefined && <BackupStatus backup={backup} />}
         {repo.release && (
           <a
             href={repo.release.url}

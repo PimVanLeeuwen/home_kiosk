@@ -30,7 +30,7 @@ from .news import store as news_store
 from .portfolio import api as portfolio_api
 from .portfolio import degiro_import
 from .security import same_origin_json
-from .sources import container_stats, feeds, readeck
+from .sources import container_stats, feeds, github_mirror, readeck
 from .sources import nas as nas_source
 from .sources import services as service_catalog
 from .store import Store
@@ -166,6 +166,11 @@ def nas_history() -> Any:
     """CPU, memory, temperature and network over the last 24 hours."""
     since = datetime.now(UTC) - timedelta(hours=24)
     return nas_source.history(app.state.store.recent_nas_samples(since))
+
+
+@app.get("/api/github-mirror")
+def github_mirror_status() -> Any:
+    return github_mirror.current(app.state.config, app.state.store)
 
 
 @app.get("/api/backups")

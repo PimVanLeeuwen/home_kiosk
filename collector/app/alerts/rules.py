@@ -182,9 +182,21 @@ def container_health(
 
 def backup_missing(
     backups: dict[str, Any] | None, nas: dict[str, Any] | None,
-    settings: dict[str, Any], now: datetime,
+    settings: dict[str, Any], now: datetime, mirror: dict[str, Any] | None = None,
 ) -> list[Problem] | None:
     limit = timedelta(hours=settings["hours"])
+    # The GitHub mirror runs once a night, so its payload is judged as it is
+    # (never "fresh"), and only once it has run.
+    mirror_problems = []
+    if mirror and mirror.get("enabled") and mirror.get("runs"):
+        last = mirror.get("last_success")
+        if last is None or now - datetime.fromisoformat(last) > limit:
+            when = (
+                datetime.fromisoformat(last).strftime("%a %d %b %H:%M") if last else "none recorded"
+            )
+            mirror_problems.append(Problem(
+                "backup_missing:github-mirror", "backup_missing", "error",
+                f"No complete GitHub mirror in {settings['hours']} h", f"Last success: {when}"))
     volumes = (backups or {}).get("volumes") or []
     if volumes:
         lasts = {v["name"]: v.get("last_success") for v in volumes}
@@ -193,8 +205,10 @@ def backup_missing(
     elif nas is not None:
         lasts = {"backup": None}
     else:
+        # Without NAS data the volumes cannot be judged, so neither is the mirror:
+        # a missing input must never "resolve" an open problem.
         return None
-    problems = []
+    problems = mirror_problems
     for name, last in lasts.items():
         if last is None or now - datetime.fromisoformat(last) > limit:
             label = "the NAS" if name == "backup" else name
@@ -314,7 +328,8 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
         "container_health": container_health(containers, store.list_services(), dies,
                                               pending, health, now),
         "backup_missing": backup_missing(_fresh(store.get_cache("backups"), now), nas,
-                                         settings["backup_missing"], now),
+                                         settings["backup_missing"], now,
+                                         store.get_cache("github_mirror")),
         "portfolio_move": portfolio_move(_fresh(store.get_cache("portfolio"), now),
                                          settings["portfolio_move"],
                                          core.local(now, cfg).date().isoformat()),

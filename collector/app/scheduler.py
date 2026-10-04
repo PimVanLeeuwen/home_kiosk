@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -24,6 +25,7 @@ from .sources import (
     feeds,
     ghostfolio,
     github,
+    github_mirror,
     nas,
     spotlight,
     tailscale,
@@ -42,6 +44,7 @@ BACKUPS_INTERVAL_SECONDS = 300  # the run file changes once a day
 HOSTS_INTERVAL_SECONDS = 600  # the tailnet name practically never changes
 NEWS_INTERVAL_SECONDS = 600       # §5: feeds every 10 minutes
 PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
+MIRROR_STARTUP_DELAY = timedelta(minutes=2)  # let the startup refreshes go first
 
 
 def mark_stale(store: Store, key: str) -> None:
@@ -186,6 +189,29 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         max_instances=1,
         coalesce=True,
     )
+    # The nightly git mirror of the GitHub repos, before the 03:00 Hetzner
+    # backup. Right after startup too when a night was missed (hub down).
+    mirror = github_mirror.settings(cfg)
+    if mirror["enabled"]:
+        hour, minute = (int(part) for part in mirror["at"].split(":"))
+        now = datetime.now(UTC)
+        first = (
+            {"next_run_time": now + MIRROR_STARTUP_DELAY}
+            if github_mirror.overdue(cfg, store, now) else {}
+        )
+        scheduler.add_job(
+            _run,
+            "cron",
+            hour=hour,
+            minute=minute,
+            args=[store, github_mirror.CACHE_KEY, lambda: github_mirror.collect(cfg, store)],
+            id="github-mirror",
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=3600,
+            **first,
+        )
+
     # The hub's own alert rules.
     scheduler.add_job(
         alert_rules.check,

@@ -9,15 +9,22 @@ There is no login and nothing is exposed to the internet.
 | Home | Status at a glance: NAS health, portfolio, latest news, last backup, services |
 | News, Saved | Feeds read in the hub (text only, images through the hub), search, read state; Readeck bookmarks in the same reader |
 | Portfolio | Ghostfolio overview: value history, holdings, allocation, holding detail, markets; **Update from DEGIRO** imports new trades |
-| NAS, Docker, Backups | Live figures and history, container load and image updates, rclone runs per volume |
+| NAS, Docker, Backups | Live figures and history, container load and image updates, rclone runs per volume, the GitHub mirror |
 | Services | Links to every app, LAN or Tailscale depending on how the hub was opened, with live stats |
-| Repos | GitHub repos: your own, Hubble and GEWIS |
+| Repos | GitHub repos: your own, Hubble and GEWIS, with the backup status of each mirrored repo |
 | Alerts | Every Telegram message the hub sends, routing, quiet hours and the hub's own alert rules |
 | Settings | Service catalog and news feeds |
 
 The hub is also the one Telegram sender: backup reports, Watchtower updates, Uptime Kuma, its own
 rules, and the weekday portfolio report (08:30 and 18:30). The bot answers `/status`, `/backup`
 and `/portfolio` in the two configured chats.
+
+Every night at 02:00 the collector also mirrors all repos of PimVanLeeuwen and
+Hubble-Community-Cafe (no forks) as bare git repos into `/volume3/backups/github`, so the 03:00
+rclone run takes them to Hetzner. It is an exact copy: a repo deleted on GitHub goes from the mirror
+too. Owners are picked with `mirror: true` in `collector/config.yaml`; a failed run goes to Telegram.
+To restore one: `git clone /volume3/backups/github/<owner>/<repo>.git`, or push it back to a new
+GitHub repo with `git push --mirror <url>` from inside the mirror.
 
 The old 720×1280 desk carousel still lives at `/kiosk/` (add `?data=api` for live data).
 

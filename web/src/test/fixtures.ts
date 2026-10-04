@@ -1,4 +1,4 @@
-import type { BackupHistory, BackupRun, Nas, Portfolio, ServicesResponse } from '../lib/types'
+import type { BackupHistory, BackupRun, GitHubMirror, MirroredRepo, Nas, Portfolio, ServicesResponse } from '../lib/types'
 
 /** Shared API fixtures for page tests. Times are relative to now so "today" holds. */
 export function nasFixture(over: Partial<Nas> = {}): Nas {
@@ -89,4 +89,45 @@ export const BACKUPS: BackupHistory = {
     { name: 'volume3', last_run: backupRun(28, false), last_success: '2026-09-27T01:23:00Z' },
   ],
   next_due: '2026-09-29T01:23:00Z',
+}
+
+const mirrored = (full_name: string, over: Partial<MirroredRepo> = {}): MirroredRepo => ({
+  full_name, archived: false, ok: true, error: null, mirrored_at: '2026-10-04T00:01:00Z', bytes: 4_200_000, ...over,
+})
+
+/** The last run failed one Hubble repo; the run before succeeded. */
+export const MIRROR: GitHubMirror = {
+  as_of: '2026-10-04T00:02:00Z',
+  stale: false,
+  enabled: true,
+  dir: '/backups/github',
+  error: null,
+  owners: [
+    {
+      login: 'PimVanLeeuwen',
+      label: 'Mine',
+      repos: [mirrored('PimVanLeeuwen/home_kiosk'), mirrored('PimVanLeeuwen/nas-docker')],
+      removed: ['PimVanLeeuwen/old-thing'],
+      error: null,
+    },
+    {
+      login: 'Hubble-Community-Cafe',
+      label: 'Hubble',
+      repos: [
+        mirrored('Hubble-Community-Cafe/community-cafe-web', {
+          ok: false,
+          error: 'fatal: repository not found',
+          mirrored_at: '2026-10-03T00:01:00Z',
+        }),
+      ],
+      removed: [],
+      error: null,
+    },
+  ],
+  runs: [
+    { started: '2026-10-04T00:00:00Z', finished: '2026-10-04T00:02:00Z', ok: false, repos: 3, failed: 1, removed: 1, bytes: 12_600_000 },
+    { started: '2026-10-03T00:00:00Z', finished: '2026-10-03T00:02:00Z', ok: true, repos: 4, failed: 0, removed: 0, bytes: 13_000_000 },
+  ],
+  last_success: '2026-10-03T00:02:00Z',
+  next_due: '2026-10-05T00:00:00Z',
 }

@@ -137,7 +137,21 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   issues, CI state of the default branch, latest release. Archived repos hidden.
 - One GraphQL query per owner every 30 minutes, cached; the last good list stays on errors.
 
-Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2.
+**M10. GitHub mirror** (added 2026-10-04)
+- A backup of the git history in case GitHub goes away: every repo of PimVanLeeuwen and
+  Hubble-Community-Cafe (no forks, archived ones included), nothing of GEWIS. Issues and pull
+  requests are not kept.
+- Runs in the collector (it already has the tokens and the owner list), nightly at 02:00 and right
+  after a start that missed a night. Bare `git clone --mirror` per repo in
+  `/volume3/backups/github/<owner>/<repo>.git`, which the 03:00 rclone run takes to Hetzner.
+- An exact copy, by choice: a repo deleted on GitHub is deleted from the mirror, and force-pushes
+  overwrite history. No protection against git mistakes.
+- The hub's read-only tokens are reused; git gets them as an HTTP header through the environment,
+  so they are never written into the mirrors (or the backup).
+- Shown on the Backups page (a GitHub mirror card) and per repo on the Repos page. A failed run
+  sends a Telegram message; the backup_missing rule also covers the mirror, and `/backup` lists it.
+
+Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8.
 
 ## 4. Open items
 

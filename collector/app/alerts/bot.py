@@ -84,12 +84,28 @@ def backup_text(store: Store, cfg: dict[str, Any]) -> str:
                 lines.append(f"{html.escape(v['name'])}: failed{error}")
         if history.get("next_due"):
             lines.append(f"Next run {_when(history['next_due'], cfg)}")
-        return "\n".join(lines)
+        return "\n".join(lines + mirror_lines(store, cfg))
     nas = store.get_cache("nas")
     if nas and nas.get("backup", {}).get("at"):
         state = {"ok": "✅ Succeeded", "fail": "❌ Failed"}.get(nas["backup"]["status"], "Unknown")
         return f"💾 <b>Last backup: {state}</b>\n{_when(nas['backup']['at'], cfg)}"
     return "💾 <b>Backups</b>\nNo backup recorded yet."
+
+
+def mirror_lines(store: Store, cfg: dict[str, Any]) -> list[str]:
+    """The GitHub mirror's last run, for under the backup report."""
+    mirror = store.get_cache("github_mirror") or {}
+    runs = mirror.get("runs") or []
+    if not mirror.get("enabled") or not runs:
+        return []
+    last = runs[0]
+    if last["ok"]:
+        state = f"OK · {last['repos']} repos · {_nl(last['bytes'] / 1e9, 1)} GB"
+    elif last["failed"]:
+        state = f"failed ({last['failed']} of {last['repos']} repos)"
+    else:
+        state = "failed, see the Backups page"
+    return [f"\n🐙 <b>GitHub mirror</b>: {state}", _when(last["finished"], cfg)]
 
 
 def portfolio_text(store: Store, cfg: dict[str, Any]) -> str:

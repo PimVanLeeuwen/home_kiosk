@@ -214,6 +214,41 @@ export interface BackupHistory {
   next_due: string | null
 }
 
+export interface MirroredRepo {
+  full_name: string
+  archived: boolean
+  /** This run's result; `mirrored_at` is the last time it succeeded. */
+  ok: boolean
+  error: string | null
+  mirrored_at: string | null
+  bytes: number | null
+}
+
+export interface MirrorRun {
+  started: string
+  finished: string
+  ok: boolean
+  repos: number
+  failed: number
+  removed: number
+  bytes: number
+}
+
+/** The nightly git mirror of the GitHub repos (GET /api/github-mirror). */
+export interface GitHubMirror {
+  as_of: string
+  stale: boolean
+  enabled: boolean
+  dir: string
+  /** The whole run could not start, such as a missing mount. */
+  error: string | null
+  owners: { login: string; label: string; repos: MirroredRepo[]; removed: string[]; error: string | null }[]
+  /** Newest first. */
+  runs: MirrorRun[]
+  last_success: string | null
+  next_due: string | null
+}
+
 export type Severity = 'info' | 'ok' | 'warning' | 'error'
 
 export interface AlertMessage {

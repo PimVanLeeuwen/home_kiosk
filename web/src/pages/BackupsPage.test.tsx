@@ -1,5 +1,5 @@
 import { screen, within } from '@testing-library/react'
-import { BACKUPS } from '../test/fixtures'
+import { BACKUPS, MIRROR } from '../test/fixtures'
 import { renderRoute } from '../test/renderRoute'
 import { stubApi } from '../test/stubApi'
 
@@ -49,5 +49,45 @@ describe('BackupsPage', () => {
     renderRoute('/backups')
 
     expect(await screen.findByText(/Run records start with the first backup/)).toBeInTheDocument()
+  })
+
+  it('shows the GitHub mirror with its failures and removals', async () => {
+    stubApi({ '/api/backups': BACKUPS, '/api/github-mirror': MIRROR })
+    renderRoute('/backups')
+
+    const card = await screen.findByRole('region', { name: 'GitHub mirror' })
+    const value = (label: string) => within(card).getByText(label).nextElementSibling
+    expect(value('Last run')).toHaveTextContent('Failed')
+    expect(value('Repos')).toHaveTextContent('Mine 2 · Hubble 1 · 1 failed')
+    expect(value('Size')).toHaveTextContent('13 MB')
+    expect(value('Removed')).toHaveTextContent('PimVanLeeuwen/old-thing')
+    expect(value('Succeeded, last 2')).toHaveTextContent('1 of 2')
+    expect(within(card).getByText('Hubble-Community-Cafe/community-cafe-web: fatal: repository not found')).toBeInTheDocument()
+    expect(within(card).getByRole('link', { name: /Repos/ })).toHaveAttribute('href', '/repos')
+  })
+
+  it('says when the first mirror run is due, and flags stale data', async () => {
+    stubApi({
+      '/api/backups': BACKUPS,
+      '/api/github-mirror': { ...MIRROR, owners: [], runs: [], last_success: null, stale: true },
+    })
+    renderRoute('/backups')
+
+    const card = await screen.findByRole('region', { name: 'GitHub mirror' })
+    expect(within(card).getByText(/No run yet. The first one is due/)).toBeInTheDocument()
+    expect(within(card).getByText('Showing the last known figures.')).toBeInTheDocument()
+  })
+
+  it('leaves the mirror out when it is off or not answering', async () => {
+    stubApi({ '/api/backups': BACKUPS, '/api/github-mirror': { ...MIRROR, enabled: false } })
+    renderRoute('/backups')
+    await screen.findByText('Next run due')
+    expect(screen.queryByRole('region', { name: 'GitHub mirror' })).not.toBeInTheDocument()
+  })
+
+  it('shows the mirror even before the first rclone run record', async () => {
+    stubApi({ '/api/backups': { ...BACKUPS, runs: [], volumes: [], next_due: null }, '/api/github-mirror': MIRROR })
+    renderRoute('/backups')
+    expect(await screen.findByRole('region', { name: 'GitHub mirror' })).toBeInTheDocument()
   })
 })

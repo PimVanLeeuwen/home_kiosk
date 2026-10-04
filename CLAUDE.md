@@ -17,7 +17,7 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
   commits.
 - **Read-only towards other services**, except the deliberate writes: Readeck (save, archive,
   delete, read progress), Telegram messages, and DEGIRO imports into Ghostfolio after you confirm
-  them.
+  them. The GitHub mirror only reads from GitHub; it writes to `/volume3/backups/github`.
 - Style: see plan.md §1. Dark first, violet accent, mono only for technical values.
 
 ## Architecture
@@ -73,6 +73,8 @@ python3 dashboard/serve.py
 - 2026-09-30: grow the kiosk into Home hub; keep the Python backend and SQLite; no login; settings
   in SQLite with `config.yaml` as seed; trafilatura for article reading; two Telegram chats
   (NAS alerts, Portfolio). Details in plan.md §1.
+- 2026-10-04: GitHub mirror (git history only) of your and Hubble's repos in the collector, an
+  exact copy in `/volume3/backups/github` that rclone takes to Hetzner. plan.md M10.
 
 ## Gotchas
 

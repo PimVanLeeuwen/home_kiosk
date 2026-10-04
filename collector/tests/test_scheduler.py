@@ -40,3 +40,25 @@ def test_failed_run_with_nothing_cached_stays_empty(store):
     asyncio.run(scheduler._run(store, "nas", job))
 
     assert store.get_cache("nas") is None
+
+
+def mirror_cfg(mirror: bool) -> dict:
+    return {"timezone": "Europe/Amsterdam", "nas": {"docker_socket": "/nope"},
+            "github": {"owners": [{"login": "PimVanLeeuwen", "mirror": mirror}],
+                       "mirror": {"at": "02:00"}}}
+
+
+def test_the_github_mirror_runs_nightly_and_catches_up_after_startup(store):
+    sched = scheduler.build(mirror_cfg(True), store)
+    job = sched.get_job("github-mirror")
+
+    assert "hour='2'" in str(job.trigger) and "minute='0'" in str(job.trigger)
+    # Never run yet: it is overdue, so a run comes right after startup. (A job
+    # added before start only has a next_run_time when one was given.)
+    assert job.next_run_time is not None
+
+    store.put_cache("github_mirror", {"next_due": "2999-01-01T00:00:00+00:00"})
+    later = scheduler.build(mirror_cfg(True), store).get_job("github-mirror")
+    assert not hasattr(later, "next_run_time")
+
+    assert scheduler.build(mirror_cfg(False), store).get_job("github-mirror") is None

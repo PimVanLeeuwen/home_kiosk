@@ -2,6 +2,11 @@ FROM python:3.14-slim
 
 WORKDIR /app
 
+# git for the nightly GitHub mirror (app/sources/github_mirror.py).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 # app/ is copied before the install because pyproject declares it as a package —
 # pip install . cannot resolve it otherwise.
 COPY pyproject.toml ./

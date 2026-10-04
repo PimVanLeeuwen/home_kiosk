@@ -100,3 +100,10 @@ def test_repos_serves_the_cached_payload(client, store):
     store.put_cache("repos", {"as_of": "2026-09-30T12:00:00+00:00", "stale": False, "groups": []})
 
     assert client.get("/api/repos").json()["groups"] == []
+
+
+def test_github_mirror_before_the_first_run_says_whether_it_is_on(client, store):
+    assert client.get("/api/github-mirror").json()["enabled"] is False
+
+    store.put_cache("github_mirror", {"as_of": "2026-10-04T00:00:00Z", "enabled": True})
+    assert client.get("/api/github-mirror").json()["enabled"] is True

@@ -1,9 +1,10 @@
+import { MirrorCard } from '../components/backups/MirrorCard'
 import { RunBars } from '../components/backups/RunBars'
 import { Card, Loading, StaleNote, Unavailable } from '../components/home/Card'
 import { PageHeader } from '../components/PageHeader'
 import { cn } from '../lib/cn'
 import { formatBytes, formatCount, formatDuration, formatWhen } from '../lib/format'
-import type { BackupHistory, BackupRun, BackupVolume } from '../lib/types'
+import type { BackupHistory, BackupRun, BackupVolume, GitHubMirror } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
 const runSeconds = (run: BackupRun) => run.volumes.reduce((sum, v) => sum + v.seconds, 0)
@@ -20,6 +21,7 @@ function changed(v: BackupVolume): string {
 
 export function BackupsPage() {
   const { data, error } = useApi<BackupHistory>('/api/backups', 300_000)
+  const { data: mirror } = useApi<GitHubMirror>('/api/github-mirror', 300_000)
   const last = data?.runs[0]
   const recent = data?.runs.slice(0, 30) ?? []
   const succeeded = recent.filter((r) => r.ok).length
@@ -141,6 +143,8 @@ export function BackupsPage() {
           {data.stale && <StaleNote />}
         </>
       )}
+
+      {mirror?.enabled && <MirrorCard mirror={mirror} />}
     </>
   )
 }

@@ -1,5 +1,6 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import type { Repo, ReposResponse } from '../lib/types'
+import { MIRROR } from '../test/fixtures'
 import { renderRoute } from '../test/renderRoute'
 import { stubApi } from '../test/stubApi'
 
@@ -124,5 +125,36 @@ describe('ReposPage', () => {
     renderRoute('/repos')
 
     expect(await screen.findByRole('alert')).toHaveTextContent('The repo list is not available yet')
+  })
+
+  it('shows the backup status per repo for mirrored owners', async () => {
+    const withNew: ReposResponse = {
+      ...REPOS,
+      groups: [{ ...REPOS.groups[0], repos: [...REPOS.groups[0].repos, repo('brand-new')] }, ...REPOS.groups.slice(1)],
+    }
+    stubApi({ '/api/repos': withNew, '/api/github-mirror': MIRROR })
+    renderRoute('/repos')
+
+    const kiosk = await screen.findByRole('article', { name: /home_kiosk/ })
+    expect(await within(kiosk).findByText('Backed up')).toHaveAttribute('title', expect.stringMatching(/^Mirrored /))
+    expect(within(screen.getByRole('article', { name: /brand-new/ })).getByText('Not backed up yet')).toBeInTheDocument()
+    expect(screen.getByText(/Backed up nightly to the NAS and Hetzner: 2 repos, last run/)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('tab', { name: /Hubble/ }))
+    const failed = within(cards()[0]).getByText('Backup failed')
+    expect(failed).toHaveAttribute('title', expect.stringContaining('fatal: repository not found; last mirrored'))
+    expect(screen.getByText(/Backup: 1 of 1 repos failed in the run of/)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('tab', { name: /GEWIS/ }))
+    expect(screen.queryByText(/Backed up nightly/)).not.toBeInTheDocument()
+  })
+
+  it('shows no backup status when the mirror is not answering', async () => {
+    stubApi({ '/api/repos': REPOS })
+    renderRoute('/repos')
+
+    await screen.findByRole('article', { name: /home_kiosk/ })
+    expect(screen.queryByText('Backed up')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Backed up nightly/)).not.toBeInTheDocument()
   })
 })

@@ -26,3 +26,30 @@ test('Backups shows per-volume results and the run history', async ({ page }) =>
   await expect(page.getByRole('img', { name: 'Duration of the last 3 runs; 1 failed.' })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Last 3 runs' }).getByRole('row')).toHaveCount(4)
 })
+
+const MIRROR = {
+  as_of: new Date().toISOString(), stale: false, enabled: true, dir: '/backups/github', error: null,
+  owners: [
+    { login: 'PimVanLeeuwen', label: 'Mine', removed: [], error: null, repos: [
+      { full_name: 'PimVanLeeuwen/home_kiosk', archived: false, ok: true, error: null, mirrored_at: '2026-10-04T00:01:00Z', bytes: 4_200_000 },
+    ] },
+    { login: 'Hubble-Community-Cafe', label: 'Hubble', removed: [], error: null, repos: [
+      { full_name: 'Hubble-Community-Cafe/web', archived: false, ok: false, error: 'fatal: repository not found', mirrored_at: null, bytes: null },
+    ] },
+  ],
+  runs: [{ started: '2026-10-04T00:00:00Z', finished: '2026-10-04T00:02:00Z', ok: false, repos: 2, failed: 1, removed: 0, bytes: 4_200_000 }],
+  last_success: null,
+  next_due: '2026-10-05T00:00:00Z',
+}
+
+test('Backups shows the GitHub mirror and what failed', async ({ page }) => {
+  await page.route('**/api/backups', (route) => route.fulfill({ json: HISTORY }))
+  await page.route('**/api/github-mirror', (route) => route.fulfill({ json: MIRROR }))
+  await page.goto('/backups')
+
+  const card = page.getByRole('region', { name: 'GitHub mirror' })
+  await expect(card).toContainText('Mine 1 · Hubble 1 · 1 failed')
+  await expect(card).toContainText('Hubble-Community-Cafe/web: fatal: repository not found')
+  await card.getByRole('link', { name: /Repos/ }).click()
+  await expect(page).toHaveURL(/\/repos$/)
+})
