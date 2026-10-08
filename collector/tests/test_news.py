@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime, timedelta
+from email.utils import format_datetime
 
 import httpx
 import pytest
@@ -145,9 +146,11 @@ def test_articles_older_than_a_week_are_pruned(news_store):
 
 # --- the feed job ---------------------------------------------------------------------------
 
-RSS = """<?xml version="1.0"?><rss version="2.0"><channel><title>Ars</title>
+# The feed job prunes by the real clock, so the item has to be recent whenever this runs.
+RSS = f"""<?xml version="1.0"?><rss version="2.0"><channel><title>Ars</title>
 <item><title>A very long headline that the kiosk has to cut short somewhere</title>
-<link>https://ars.example/1</link><pubDate>Wed, 01 Oct 2026 11:00:00 GMT</pubDate></item>
+<link>https://ars.example/1</link>
+<pubDate>{format_datetime(datetime.now(UTC) - timedelta(hours=1), usegmt=True)}</pubDate></item>
 </channel></rss>"""
 
 
