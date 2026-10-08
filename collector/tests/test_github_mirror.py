@@ -200,7 +200,7 @@ def test_a_failing_repo_fails_the_run_keeps_its_last_success_and_alerts(env):
     assert result.last_success == NOW
     ((chat, text),) = env.telegram.sent
     assert chat == "-1001"
-    assert "GitHub mirror FAILED" in text and "PimVanLeeuwen/flaky" in text
+    assert "GitHub mirror failed" in text and "PimVanLeeuwen/flaky" in text
 
 
 def test_a_failed_listing_touches_nothing(env):
@@ -338,7 +338,7 @@ def test_bot_backup_reply_mentions_the_mirror(store):
 
     store.put_cache("github_mirror", mirror_payload(NOW))
     assert bot.backup_text(store, cfg).endswith(
-        "\n\n🐙 <b>GitHub mirror</b>: OK · 12 repos · 1,3 GB\nSun 04 Oct 02:00")
+        "\n\n<b>GitHub mirror</b>: OK · 12 repos · 1,3 GB\nSun 04 Oct 02:00")
 
     store.put_cache("github_mirror", mirror_payload(None))
     assert "GitHub mirror</b>: failed (2 of 12 repos)" in bot.backup_text(store, cfg)

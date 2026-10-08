@@ -1,13 +1,17 @@
 import type { ReactNode } from 'react'
 
-const TOKEN = /<(\/?)(b|i|u|s|code)>|&(amp|lt|gt|quot|#39);|[^<&]+|[<&]/g
+const TOKEN = /<(\/?)(b|i|u|s|code|pre)>|&(amp|lt|gt|quot|#39);|[^<&]+|[<&]/g
 const ENTITY: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" }
-const TAGS = { b: 'strong', i: 'em', u: 'u', s: 's', code: 'code' } as const
+const TAGS = { b: 'strong', i: 'em', u: 'u', s: 's', code: 'code', pre: 'pre' } as const
+const CLASS: Partial<Record<keyof typeof TAGS, string>> = {
+  code: 'font-mono text-[0.92em]',
+  pre: 'my-1 overflow-x-auto rounded-[6px] border border-line-soft px-2 py-1.5 font-mono text-[0.92em] whitespace-pre',
+}
 
 type Node = { tag: keyof typeof TAGS | null; children: ReactNode[] }
 
 /**
- * Telegram HTML as the hub renders it (text, entities and b/i/u/s/code only),
+ * Telegram HTML as the hub renders it (text, entities and b/i/u/s/code/pre only),
  * turned into React elements. Never set as innerHTML.
  */
 export function TelegramText({ html }: { html: string }) {
@@ -25,7 +29,7 @@ export function TelegramText({ html }: { html: string }) {
         stack.pop()
         const Tag = TAGS[name]
         stack[stack.length - 1].children.push(
-          <Tag key={key++} className={name === 'code' ? 'font-mono text-[0.92em]' : undefined}>
+          <Tag key={key++} className={CLASS[name]}>
             {top.children}
           </Tag>,
         )

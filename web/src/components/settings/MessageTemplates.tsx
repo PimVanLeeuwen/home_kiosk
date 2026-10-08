@@ -144,7 +144,7 @@ function Editor({ template, parentLabel, onSaved, onClose }: EditorProps) {
             ))}
           </ul>
           <p className="mt-2 text-[12px] text-faint">
-            Allowed tags: {'<b> <i> <u> <s> <code>'}. A line that only has an empty placeholder is left out.
+            Allowed tags: {'<b> <i> <u> <s> <code> <pre>'}; Telegram allows no other tags inside {'<pre>'}. A line that only has an empty placeholder is left out.
           </p>
         </div>
       </div>

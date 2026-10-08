@@ -1,7 +1,7 @@
 """The portfolio report to the Portfolio chat, replacing stock-bot.
 
-Same shape as stock-bot's: the value and today's move, one line per holding
-with its move in % and euros, then the index line. It runs on weekdays at the
+The value and today's move, then a monospace table: one row per holding with
+its move in % and euros, then one row per index. It runs on weekdays at the
 times in `portfolio.report.schedule` and is built from the hub's cached data,
 like the bot's replies.
 
@@ -29,7 +29,6 @@ log = logging.getLogger(__name__)
 DEFAULT_SCHEDULE = "30 8,18 * * mon-fri"
 # Older figures than this get a note: the Ghostfolio refresh runs every 15 minutes.
 FRESH = timedelta(minutes=45)
-RULE = "━━━━━━━━━━━━━━"
 
 
 def settings(cfg: dict[str, Any]) -> dict[str, Any]:
@@ -58,8 +57,23 @@ def _pct(n: float) -> str:
     return f"{'+' if n >= 0 else '−'}{_nl(abs(n))}%"
 
 
-def _dot(n: float) -> str:
-    return "🟢" if n > 0 else "🔴" if n < 0 else "⚪"
+def _table(holdings: list[dict[str, Any]], indices: list[dict[str, Any]]) -> tuple[
+        list[dict[str, str]], list[dict[str, str]]]:
+    """The holding and index rows, padded so the report's <pre> table lines up."""
+    rows = [{"symbol": h["symbol"], "pct": _pct(h.get("day_pct") or 0.0),
+             "change": _money(h.get("day_abs") or 0.0, signed=True)}
+            for h in sorted(holdings, key=lambda h: h.get("day_pct") or 0.0, reverse=True)]
+    index_rows = [{"label": q["label"], "pct": _pct(q["day_pct"])} for q in indices]
+    name = max(map(len, [r["symbol"] for r in rows] + [r["label"] for r in index_rows]),
+               default=0)
+    pct = max((len(r["pct"]) for r in rows + index_rows), default=0)
+    change = max((len(r["change"]) for r in rows), default=0)
+    for r in rows:
+        r.update(symbol=r["symbol"].ljust(name), pct=r["pct"].rjust(pct),
+                 change=r["change"].rjust(change))
+    for r in index_rows:
+        r.update(label=r["label"].ljust(name), pct=r["pct"].rjust(pct))
+    return rows, index_rows
 
 
 def build(portfolio: dict[str, Any], indices: dict[str, Any] | None, cfg: dict[str, Any],
@@ -67,7 +81,8 @@ def build(portfolio: dict[str, Any], indices: dict[str, Any] | None, cfg: dict[s
     """The report as (title, Telegram HTML), worded by the saved templates."""
     local = core.local(now, cfg)
     title = "Morning report" if local.hour < 12 else "Evening report"
-    holdings = portfolio.get("holdings") or []
+    rows, index_rows = _table(portfolio.get("holdings") or [],
+                              (indices or {}).get("indices") or [])
     change, pct = day_move(portfolio)
     as_of = datetime.fromisoformat(portfolio["as_of"])
     stale = portfolio.get("stale") or now - as_of > FRESH
@@ -75,19 +90,10 @@ def build(portfolio: dict[str, Any], indices: dict[str, Any] | None, cfg: dict[s
         "title": title,
         "when": local.strftime("%a %d %b, %H:%M"),
         "total": _money(portfolio["total_value"]),
-        "dot": _dot(change),
         "change": _money(change, signed=True),
         "change_pct": _pct(pct),
-        "holdings": [
-            {"dot": _dot(h.get("day_pct") or 0.0), "symbol": h["symbol"],
-             "pct": _pct(h.get("day_pct") or 0.0),
-             "change": _money(h.get("day_abs") or 0.0, signed=True)}
-            for h in sorted(holdings, key=lambda h: h.get("day_pct") or 0.0, reverse=True)
-        ],
-        "indices": [
-            {"dot": _dot(q["day_pct"]), "label": q["label"], "pct": _pct(q["day_pct"])}
-            for q in (indices or {}).get("indices") or []
-        ],
+        "holdings": rows,
+        "indices": index_rows,
         "stale_note": [{"as_of": core.local(as_of, cfg).strftime("%a %H:%M")}] if stale else [],
     }
     return title, templates.render(store, "portfolio_report", values)
@@ -110,6 +116,6 @@ async def send(store: Store, cfg: dict[str, Any], now: datetime | None = None,
                        status="failed", error="No portfolio data yet")
         return
     title, text = build(portfolio, store.get_cache("indices"), cfg, now, store)
-    body = plain(text).split("\n", 2)[-1].strip()  # the title line is logged separately
+    body = plain(text).split("\n", 1)[-1].strip()  # the title line is logged separately
     await core.notify(store, cfg, source="hub", category="portfolio", severity="info",
                       title=title, body=body, formatted=text, now=now, telegram=telegram)

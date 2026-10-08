@@ -24,7 +24,7 @@ def backup(store: Store, data: dict[str, Any]) -> templates.Rendered | None:
     try:
         ok = bool(data["ok"])
         volumes = [
-            {"status": "✅" if v.get("ok") else "❌", "name": str(v["name"]),
+            {"status": "OK" if v.get("ok") else "FAILED", "name": str(v["name"]),
              "label": str(v.get("label") or v["name"])}
             for v in data["volumes"]
         ]

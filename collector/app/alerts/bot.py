@@ -46,8 +46,8 @@ def _when(iso: str, cfg: dict[str, Any]) -> str:
 def status_text(store: Store, cfg: dict[str, Any]) -> str:
     nas = store.get_cache("nas")
     if not nas:
-        return "🖥 <b>NAS</b>\nNo NAS data yet."
-    lines = [f"🖥 <b>{html.escape(nas['host'])}</b>"]
+        return "<b>NAS</b>\nNo NAS data yet."
+    lines = [f"<b>{html.escape(nas['host'])}</b>"]
     temp = f" · {round(nas['cpu_temp_c'])} °C" if nas.get("cpu_temp_c") is not None else ""
     lines.append(f"CPU {round(nas['cpu_pct'])}% · memory {round(nas['ram_pct'])}%{temp}")
     lines.append(f"Containers {nas['containers']['running']} of {nas['containers']['total']} "
@@ -58,10 +58,10 @@ def status_text(store: Store, cfg: dict[str, Any]) -> str:
             f"{html.escape(p['name'])} {_nl(p['used_pct'], 0)}%" for p in pools))
     open_now = rules.open_incidents(store)
     if open_now:
-        lines.append(f"\n⚠️ <b>{len(open_now)} open</b>")
+        lines.append(f"\n<b>{len(open_now)} open</b>")
         lines += [f"• {html.escape(i['title'])}" for i in open_now.values()]
     else:
-        lines.append("\n✅ Nothing needs a look")
+        lines.append("\nNothing needs a look")
     if nas.get("stale"):
         lines.append("<i>Figures are out of date.</i>")
     return "\n".join(lines)
@@ -72,8 +72,8 @@ def backup_text(store: Store, cfg: dict[str, Any]) -> str:
     runs = history.get("runs") or []
     if runs:
         last = runs[0]
-        head = "✅ Succeeded" if last["ok"] else "❌ Failed"
-        lines = [f"💾 <b>Last backup: {head}</b>", _when(last["finished"], cfg)]
+        head = "Succeeded" if last["ok"] else "Failed"
+        lines = [f"<b>Last backup: {head}</b>", _when(last["finished"], cfg)]
         for v in last["volumes"]:
             minutes = max(1, round(v["seconds"] / 60))
             if v["ok"]:
@@ -87,9 +87,9 @@ def backup_text(store: Store, cfg: dict[str, Any]) -> str:
         return "\n".join(lines + mirror_lines(store, cfg))
     nas = store.get_cache("nas")
     if nas and nas.get("backup", {}).get("at"):
-        state = {"ok": "✅ Succeeded", "fail": "❌ Failed"}.get(nas["backup"]["status"], "Unknown")
-        return f"💾 <b>Last backup: {state}</b>\n{_when(nas['backup']['at'], cfg)}"
-    return "💾 <b>Backups</b>\nNo backup recorded yet."
+        state = {"ok": "Succeeded", "fail": "Failed"}.get(nas["backup"]["status"], "Unknown")
+        return f"<b>Last backup: {state}</b>\n{_when(nas['backup']['at'], cfg)}"
+    return "<b>Backups</b>\nNo backup recorded yet."
 
 
 def mirror_lines(store: Store, cfg: dict[str, Any]) -> list[str]:
@@ -105,30 +105,30 @@ def mirror_lines(store: Store, cfg: dict[str, Any]) -> list[str]:
         state = f"failed ({last['failed']} of {last['repos']} repos)"
     else:
         state = "failed, see the Backups page"
-    return [f"\n🐙 <b>GitHub mirror</b>: {state}", _when(last["finished"], cfg)]
+    return [f"\n<b>GitHub mirror</b>: {state}", _when(last["finished"], cfg)]
 
 
 def portfolio_text(store: Store, cfg: dict[str, Any]) -> str:
     p = store.get_cache("portfolio")
     if not p:
-        return "📈 <b>Portfolio</b>\nNo portfolio data yet."
+        return "<b>Portfolio</b>\nNo portfolio data yet."
     move, pct = day_move(p)
     sign = "+" if pct >= 0 else "−"
     lines = [
-        f"📈 <b>€ {_nl(p['total_value'])}</b>",
+        f"<b>€ {_nl(p['total_value'])}</b>",
         f"Today {sign}€ {_nl(abs(move))} ({sign}{_nl(abs(pct), 2)}%)",
     ]
     movers = sorted(p.get("holdings", []), key=lambda h: abs(h["day_pct"]), reverse=True)[:3]
     for h in movers:
-        arrow = "▲" if h["day_pct"] >= 0 else "▼"
-        lines.append(f"{arrow} {html.escape(h['symbol'])} {_nl(abs(h['day_pct']), 1)}%")
+        sign = "+" if h["day_pct"] >= 0 else "−"
+        lines.append(f"{html.escape(h['symbol'])} {sign}{_nl(abs(h['day_pct']), 1)}%")
     if p.get("stale"):
         lines.append("<i>Figures are out of date.</i>")
     return "\n".join(lines)
 
 
 def help_text() -> str:
-    return "🤖 <b>Home hub</b>\n" + "\n".join(f"/{c} · {d}" for c, d in COMMANDS.items())
+    return "<b>Home hub</b>\n" + "\n".join(f"/{c} · {d}" for c, d in COMMANDS.items())
 
 
 REPLIES = {"status": status_text, "backup": backup_text, "portfolio": portfolio_text}

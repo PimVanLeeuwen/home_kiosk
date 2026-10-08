@@ -13,13 +13,13 @@ const tpl = (id: string, over: Partial<MessageTemplate> = {}): MessageTemplate =
   parent: null,
   category: 'Hub alert rules',
   placeholders: [
-    { name: 'icon', description: 'The severity emoji', block: false },
+    { name: 'level', description: 'The severity', block: false },
     { name: 'pool', description: 'Pool name', block: false },
   ],
-  default: '{icon} <b>{pool} is full</b>',
-  text: '{icon} <b>{pool} is full</b>',
+  default: '<b>{level}</b> · <b>{pool} is full</b>',
+  text: '<b>{level}</b> · <b>{pool} is full</b>',
   customised: false,
-  preview: '⚠️ <b>volume2 is full</b>',
+  preview: '<b>WARNING</b> · <b>volume2 is full</b>',
   ...over,
 })
 
@@ -34,7 +34,7 @@ function setup(extra: Record<string, unknown> = {}) {
   const fetchMock = stubApi({
     '/api/alerts/templates': LIST,
     [`POST ${DISK}/preview`]: (body: { text: string }) => ({
-      html: body.text.replace('{pool}', 'volume2').replace('{icon}', '⚠️'),
+      html: body.text.replace('{pool}', 'volume2').replace('{level}', 'WARNING'),
       error: body.text.includes('{nope}') ? 'Unknown placeholder: {nope}.' : null,
     }),
     ...extra,
@@ -112,7 +112,7 @@ describe('MessageTemplates', () => {
 
     fireEvent.click(within(form).getByRole('button', { name: 'Reset to default' }))
     expect(await within(form).findByRole('status')).toHaveTextContent('Back to the built-in text.')
-    expect(within(form).getByRole('textbox', { name: 'Message text' })).toHaveValue('{icon} <b>{pool} is full</b>')
+    expect(within(form).getByRole('textbox', { name: 'Message text' })).toHaveValue('<b>{level}</b> · <b>{pool} is full</b>')
     expect(screen.queryByText('Customised')).not.toBeInTheDocument()
   })
 
@@ -136,11 +136,18 @@ describe('MessageTemplates', () => {
 
 describe('TelegramText', () => {
   it('renders the allowed tags and entities, never raw HTML', () => {
-    const { container } = render(<TelegramText html={'❌ <b>Disk &lt;sdb&gt;</b> <i>a &amp; b</i> <code>x</code>'} />)
+    const { container } = render(<TelegramText html={'ERROR <b>Disk &lt;sdb&gt;</b> <i>a &amp; b</i> <code>x</code>'} />)
     expect(container.querySelector('strong')).toHaveTextContent('Disk <sdb>')
     expect(container.querySelector('em')).toHaveTextContent('a & b')
     expect(container.querySelector('code')).toHaveTextContent('x')
     expect(container.querySelector('script')).toBeNull()
+  })
+
+  it('renders a pre block as a monospace table that keeps its spacing', () => {
+    const { container } = render(<TelegramText html={'<b>Report</b>\n<pre>VWRL  +1,12%\nAEX   −0,40%</pre>'} />)
+    const pre = container.querySelector('pre')
+    expect(pre?.textContent).toBe('VWRL  +1,12%\nAEX   −0,40%')
+    expect(pre).toHaveClass('font-mono', 'whitespace-pre')
   })
 
   it('keeps the text of an unclosed tag', () => {

@@ -38,17 +38,16 @@ def test_report_reads_like_stock_bot():
     title, text = report.build(PORTFOLIO, INDICES, CFG, MORNING)
     assert title == "Morning report"
     assert text == "\n".join([
-        "📈 <b>Morning report</b> · Fri 02 Oct, 08:30",
-        "",
-        "💼 <b>€ 12.346</b>",
+        "<b>Morning report</b> · Fri 02 Oct, 08:30",
         # 12345.67 - (-83.89) = 12429.56 before the move.
-        "🔴 <b>−€ 83,89</b> (−0,67%) today",
-        report.RULE,
-        "🟢 <b>ASML.AS</b>  +1,27%  (+€ 100,32)",
-        "⚪ <b>VUSA.AS</b>  +0,00%  (+€ 0,00)",
-        "🔴 <b>NVDA</b>  −5,00%  (−€ 184,21)",
-        report.RULE,
-        "🟢 S&amp;P 500 +0,19%  🔴 AEX −1,10%",
+        "<b>€ 12.346</b>  −€ 83,89 (−0,67%) today",
+        # One table: names, % and euros line up across holdings and indices.
+        "<pre>ASML.AS  +1,27%  +€ 100,32",
+        "VUSA.AS  +0,00%    +€ 0,00",
+        "NVDA     −5,00%  −€ 184,21",
+        "",
+        "S&amp;P 500  +0,19%",
+        "AEX      −1,10%</pre>",
     ])
 
 
@@ -58,6 +57,7 @@ def test_evening_title_and_stale_note():
     assert title == "Evening report"
     assert "Figures from Fri 08:20; Ghostfolio is not answering." in text
     assert "S&amp;P" not in text  # no index line without quotes
+    assert "−€ 184,21</pre>" in text  # and no blank line left in the table
 
 
 def test_old_figures_get_the_note_too():
@@ -76,10 +76,10 @@ def test_send_goes_to_the_portfolio_chat_and_logs_plain_text(store):
 
     ((_, payload),) = fake.sent
     assert payload["chat_id"] == "-1002"
-    assert payload["text"].startswith("📈 <b>Morning report</b>")
+    assert payload["text"].startswith("<b>Morning report</b>")
     (logged,) = core.messages(store)
     assert (logged.category, logged.title, logged.status) == ("portfolio", "Morning report", "sent")
-    assert logged.body.startswith("💼 € 12.346") and "<b>" not in logged.body
+    assert logged.body.startswith("€ 12.346") and "<b>" not in logged.body
     assert "S&P 500" in logged.body
 
 

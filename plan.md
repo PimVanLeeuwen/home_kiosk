@@ -155,7 +155,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Settings → Messages: the wording of the alert rules (and Resolved), the portfolio report, the
   GitHub mirror failure, and the messages from the NAS (backup, Watchtower, Uptime Kuma) is
   editable. Bot replies and messages typed on the Alerts page are not.
-- One text per message with `{placeholders}` and `<b> <i> <u> <s> <code>`; repeating parts
+- One text per message with `{placeholders}` and `<b> <i> <u> <s> <code> <pre>`; repeating parts
   (holdings, indices, backup volumes, updated containers) have their own line template. Values are
   escaped; a line holding only an empty placeholder is left out.
 - Only changes are stored (alert setting `templates`); the built-in texts give the messages from
@@ -163,6 +163,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   sample values (rendered by the hub) and can send a test to the message's chat, quiet hours or not.
 - backup.sh sends its figures in `data`; Watchtower's report lines are read back. Anything the hub
   cannot read goes out as the sender wrote it.
+- No emoji (decided 2026-10-08). Telegram has no colours, so the severity is a bold word before
+  the title (`{level}`: ERROR, WARNING, OK, INFO) and the portfolio report's holdings and indices
+  are one monospace `<pre>` table with padded values; the + and − signs carry the direction.
+  Telegram allows no tags inside `<pre>`, so saving checks that too. Texts saved with the old
+  `{icon}` and `{dot}` placeholders are rewritten when read.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11.
 

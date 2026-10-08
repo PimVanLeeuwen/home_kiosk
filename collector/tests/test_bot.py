@@ -109,8 +109,8 @@ def test_parse_command(text, expected):
 def test_status_lists_figures_and_open_incidents(bot_store):
     bot_store.put_cache("nas", NAS)
     assert bot.status_text(bot_store, CFG) == (
-        "🖥 <b>dev-minotaur</b>\nCPU 12% · memory 77% · 62 °C\nContainers 36 of 36 running\n"
-        "Fullest: volume2 87%, volume3 35%\n\n✅ Nothing needs a look"
+        "<b>dev-minotaur</b>\nCPU 12% · memory 77% · 62 °C\nContainers 36 of 36 running\n"
+        "Fullest: volume2 87%, volume3 35%\n\nNothing needs a look"
     )
 
     with bot_store.connect() as conn:
@@ -119,13 +119,13 @@ def test_status_lists_figures_and_open_incidents(bot_store):
             "last_seen_at) VALUES ('k', 'disk_space', 'warning', 'volume2 is 92% full', "
             "'2026-10-01T10:00:00+00:00', '2026-10-01T10:00:00+00:00')"
         )
-    assert bot.status_text(bot_store, CFG).endswith("⚠️ <b>1 open</b>\n• volume2 is 92% full")
+    assert bot.status_text(bot_store, CFG).endswith("<b>1 open</b>\n• volume2 is 92% full")
 
 
 def test_backup_from_run_history_or_the_marker(bot_store):
     bot_store.put_cache("nas", NAS)
     assert (
-        bot.backup_text(bot_store, CFG) == "💾 <b>Last backup: ✅ Succeeded</b>\nWed 30 Sep 20:33"
+        bot.backup_text(bot_store, CFG) == "<b>Last backup: Succeeded</b>\nWed 30 Sep 20:33"
     )
 
     bot_store.put_cache(
@@ -152,7 +152,7 @@ def test_backup_from_run_history_or_the_marker(bot_store):
         },
     )
     assert bot.backup_text(bot_store, CFG) == (
-        "💾 <b>Last backup: ❌ Failed</b>\nFri 02 Oct 03:23\nvolume1: OK · 4 min · 2,5 GB\n"
+        "<b>Last backup: Failed</b>\nFri 02 Oct 03:23\nvolume1: OK · 4 min · 2,5 GB\n"
         "volume3: failed (quota exceeded)\nNext run Sat 03 Oct 03:00"
     )
 
@@ -171,7 +171,7 @@ def test_portfolio_shows_value_change_and_biggest_movers(bot_store):
     bot_store.put_cache("portfolio", PORTFOLIO)
 
     assert bot.portfolio_text(bot_store, CFG) == (
-        "📈 <b>€ 9.119</b>\nToday +€ 69 (+0,76%)\n▲ NVDA 1,5%\n▲ XDWT.DE 0,6%\n▼ ASML.AS 0,3%"
+        "<b>€ 9.119</b>\nToday +€ 69 (+0,76%)\nNVDA +1,5%\nXDWT.DE +0,6%\nASML.AS −0,3%"
     )
 
 
@@ -195,7 +195,7 @@ def test_only_commands_from_the_two_chats_are_answered(bot_store):
     assert handle(update(4, "/help", chat="-1002")) is True
 
     assert [m["chat_id"] for m in api.sent] == ["-1001", "-1002"]
-    assert api.sent[1]["text"].startswith("🤖 <b>Home hub</b>\n/status")
+    assert api.sent[1]["text"].startswith("<b>Home hub</b>\n/status")
     log = core.messages(bot_store, category="bot")
     assert [(m.title, m.chat, m.status) for m in log] == [
         ("/help from Pim", "portfolio", "sent"),
@@ -221,7 +221,7 @@ def test_the_poller_registers_commands_answers_and_saves_its_offset(bot_store):
 
     assert api.calls[:2] == ["getMe", "setMyCommands"]
     assert len(api.sent) == 1  # the command for another bot was skipped
-    assert api.sent[0]["text"].startswith("📈")
+    assert api.sent[0]["text"].startswith("<b>€")
     # The saved offset means a restart does not answer these again.
     assert core.get_setting(bot_store, bot.OFFSET_KEY, 0) == 43
 

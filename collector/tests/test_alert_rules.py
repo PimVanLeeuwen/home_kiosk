@@ -188,7 +188,8 @@ def test_portfolio_move_beyond_the_threshold():
 def test_one_message_when_a_problem_starts_and_one_when_it_is_resolved(rule_store):
     rule_store.put_cache("nas", nas_payload([pool("volume2", 92.4)]))
 
-    assert run_check(rule_store) == ["⚠️ <b>volume2 is 92% full</b>\n500,0 GB left of 6,0 TB"]
+    assert run_check(rule_store) == [
+        "<b>WARNING</b> · <b>volume2 is 92% full</b>\n500,0 GB left of 6,0 TB"]
     # Still full a minute later: nothing new.
     rule_store.put_cache("nas", nas_payload([pool("volume2", 92.6)], at=NOW + timedelta(minutes=1)))
     assert run_check(rule_store, NOW + timedelta(minutes=1)) == []
@@ -196,7 +197,7 @@ def test_one_message_when_a_problem_starts_and_one_when_it_is_resolved(rule_stor
     later = NOW + timedelta(hours=3, minutes=12)
     rule_store.put_cache("nas", nas_payload([pool("volume2", 80.0)], at=later))
     assert run_check(rule_store, later) == [
-        "✅ <b>Resolved: volume2 is 92% full</b>\nafter 3 h 12 min"
+        "<b>OK</b> · <b>Resolved: volume2 is 92% full</b>\nafter 3 h 12 min"
     ]
     assert rules.incidents(rule_store)[0]["resolved_at"] == later.isoformat()
 

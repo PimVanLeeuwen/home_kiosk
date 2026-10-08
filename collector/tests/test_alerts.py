@@ -67,9 +67,9 @@ def notify(store, fake, **fields):
     return asyncio.run(core.notify(store, CFG, telegram=fake.client(), **(defaults | fields)))
 
 
-def test_format_html_escapes_text_and_adds_an_icon():
+def test_format_html_escapes_text_and_adds_the_level():
     assert core.format_html("error", "Disk <sda> failing", "a & b") == (
-        "❌ <b>Disk &lt;sda&gt; failing</b>\na &amp; b"
+        "<b>ERROR</b> · <b>Disk &lt;sda&gt; failing</b>\na &amp; b"
     )
 
 
@@ -100,7 +100,7 @@ def test_notify_sends_html_to_the_routed_chat_and_logs_it(alert_store):
     assert path == f"/bot{TOKEN}/sendMessage"
     assert payload == {
         "chat_id": "-1001",
-        "text": "✅ <b>NAS backup OK</b>\nvolume1 4 min",
+        "text": "<b>OK</b> · <b>NAS backup OK</b>\nvolume1 4 min",
         "parse_mode": "HTML",
         "disable_web_page_preview": True,
         "disable_notification": False,
@@ -124,7 +124,7 @@ def test_quiet_hours_hold_all_but_errors(alert_store):
     urgent = notify(alert_store, fake, severity="error", title="Backup failed", now=NIGHT)
 
     assert (held.status, urgent.status) == ("held", "sent")
-    assert [p["text"] for _, p in fake.sent] == ["❌ <b>Backup failed</b>"]
+    assert [p["text"] for _, p in fake.sent] == ["<b>ERROR</b> · <b>Backup failed</b>"]
 
 
 def test_digest_after_quiet_hours_sends_held_messages_once(alert_store):
@@ -138,7 +138,8 @@ def test_digest_after_quiet_hours_sends_held_messages_once(alert_store):
     assert asyncio.run(core.send_digests(alert_store, CFG, MORNING, fake.client())) == 0
 
     ((_, digest),) = fake.sent
-    assert digest["text"] == ("🌙 <b>While you slept (2)</b>\n⚠️ Pool 91% full\nℹ️ 3 images updated")
+    assert digest["text"] == (
+        "<b>While you slept (2)</b>\nWARNING · Pool 91% full\nINFO · 3 images updated")
     assert {m.status for m in core.messages(alert_store)} == {"digested"}
 
 
@@ -269,7 +270,7 @@ def test_manual_messages_go_to_the_chosen_chat_right_away(client):
     assert resp.json()["status"] == "sent"
     _, payload = client.fake.sent[0]
     assert payload["chat_id"] == "-1002"
-    assert payload["text"] == "ℹ️ <b>Hello</b>\nfrom the hub"
+    assert payload["text"] == "<b>INFO</b> · <b>Hello</b>\nfrom the hub"
     assert client.get("/api/alerts/messages").json()[0]["category"] == "manual"
 
 
@@ -293,8 +294,8 @@ def test_watchtower_reports_get_their_summary_line_as_title(client):
 
     message = resp.json()
     assert resp.status_code == 200
-    assert message["title"] == "🔄 Watchtower: 36 scanned, 2 updated, 0 failed"
-    assert message["body"] == "✅ sonarr (lscr.io/linuxserver/sonarr)"
+    assert message["title"] == "Watchtower: 36 scanned, 2 updated, 0 failed"
+    assert message["body"] == "Updated sonarr (lscr.io/linuxserver/sonarr)"
 
 
 @pytest.mark.parametrize(

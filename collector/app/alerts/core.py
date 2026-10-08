@@ -58,7 +58,7 @@ CATEGORIES = {
 DEFAULT_ROUTING = {category: "nas" for category in CATEGORIES} | {"portfolio": "portfolio"}
 DEFAULT_QUIET = {"enabled": True, "start": "23:00", "end": "07:00"}
 
-ICON = {"error": "❌", "warning": "⚠️", "ok": "✅", "info": "ℹ️"}
+LEVEL = {"error": "ERROR", "warning": "WARNING", "ok": "OK", "info": "INFO"}
 
 DIGEST_LIMIT = 20
 
@@ -143,7 +143,9 @@ def local(now: datetime, cfg: dict[str, Any]) -> datetime:
 
 
 def format_html(severity: str, title: str, body: str = "") -> str:
-    text = f"{ICON.get(severity, '')} <b>{html.escape(title)}</b>".strip()
+    level = LEVEL.get(severity)
+    text = f"<b>{level}</b> · " if level else ""
+    text += f"<b>{html.escape(title)}</b>"
     if body:
         text += f"\n{html.escape(body)}"
     return text
@@ -223,11 +225,11 @@ async def send_digests(
 
     sent = 0
     for chat_key, messages in by_chat.items():
-        lines = [f"{ICON.get(m['severity'], '•')} {html.escape(m['title'])}"
+        lines = [f"{LEVEL.get(m['severity'], '•')} · {html.escape(m['title'])}"
                  for m in messages[:DIGEST_LIMIT]]
         if len(messages) > DIGEST_LIMIT:
             lines.append(f"… and {len(messages) - DIGEST_LIMIT} more on the Alerts page")
-        text = f"🌙 <b>While you slept ({len(messages)})</b>\n" + "\n".join(lines)
+        text = f"<b>While you slept ({len(messages)})</b>\n" + "\n".join(lines)
         chat_id = chats(cfg).get(chat_key, {}).get("id")
         try:
             if not chat_id:

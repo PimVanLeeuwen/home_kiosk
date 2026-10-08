@@ -75,6 +75,8 @@ python3 dashboard/serve.py
   (NAS alerts, Portfolio). Details in plan.md §1.
 - 2026-10-04: GitHub mirror (git history only) of your and Hubble's repos in the collector, an
   exact copy in `/volume3/backups/github` that rclone takes to Hetzner. plan.md M10.
+- 2026-10-08: no emoji in Telegram messages; a bold severity word and a monospace table for the
+  portfolio report instead. plan.md M11.
 
 ## Gotchas
 
