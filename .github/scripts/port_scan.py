@@ -3,7 +3,8 @@
     port_scan.py HOST             scan every TCP port, print the result as JSON
     port_scan.py --error MESSAGE  print a failed result instead
 
-The JSON is what the hub's POST /api/exposure/scan takes. Standard library only.
+The JSON (stdout) is what the hub's POST /api/exposure/scan takes; a one-line
+summary for the workflow log goes to stderr. Standard library only.
 The house needs no open port at all (Tandoor and CouchDB go through a Cloudflare
 tunnel, which connects outward), so every open port is reported.
 """
@@ -51,11 +52,14 @@ def main(argv: list[str]) -> int:
     started = datetime.now(UTC)
     if len(argv) == 3 and argv[1] == "--error":
         print(result(started, [], 0, argv[2][:300]))
+        print(f"Not scanned: {argv[2]}", file=sys.stderr)
         return 0
     if len(argv) != 2:
         print(__doc__, file=sys.stderr)
         return 2
-    print(result(started, asyncio.run(scan(argv[1])), len(PORTS)))
+    open_ports = asyncio.run(scan(argv[1]))
+    print(result(started, open_ports, len(PORTS)))
+    print(f"{len(open_ports)} open of {len(PORTS)} ports checked", file=sys.stderr)
     return 0
 
 

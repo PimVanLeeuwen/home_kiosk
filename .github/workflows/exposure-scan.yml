@@ -34,15 +34,14 @@ jobs:
           NOTIFY_KEY: ${{ secrets.NOTIFY_KEY }}
         run: |
           set -u
-          if ip=$(curl -fsS --max-time 30 -H "X-Notify-Key: $NOTIFY_KEY" "$HUB_URL/api/exposure/target" \
-              | python3 -c 'import json, sys; print(json.load(sys.stdin)["ip"])'); then
+          scan=.github/scripts/port_scan.py
+          if curl -fsS --max-time 30 -H "X-Notify-Key: $NOTIFY_KEY" -o target.json "$HUB_URL/api/exposure/target" \
+              && ip=$(python3 -c 'import json; print(json.load(open("target.json"))["ip"])'); then
             # Keep the home IP out of the log.
             echo "::add-mask::$ip"
-            python3 .github/scripts/port_scan.py "$ip" > result.json \
-              || python3 .github/scripts/port_scan.py --error "The scan itself failed" > result.json
+            python3 "$scan" "$ip" > result.json || python3 "$scan" --error "The scan itself failed" > result.json
           else
-            python3 .github/scripts/port_scan.py --error "Could not get the home IP from the hub" > result.json
+            python3 "$scan" --error "Could not get the home IP from the hub" > result.json
           fi
-          python3 -c 'import json; r = json.load(open("result.json")); print(f"{len(r[\"open\"])} open of {r[\"ports_checked\"]} ports checked", r["error"] or "")'
           curl -fsS --max-time 30 -X POST -H "Content-Type: application/json" -H "X-Notify-Key: $NOTIFY_KEY" \
             --data @result.json "$HUB_URL/api/exposure/scan" > /dev/null
