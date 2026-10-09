@@ -100,6 +100,27 @@ describe('HomePage', () => {
     expect(within(card('NAS')).getByRole('meter', { name: 'volume2' })).toBeInTheDocument()
   })
 
+  it('shows the weather with a rain summary and chart, and names Buienradar', async () => {
+    const at = (minute: number) => new Date(2026, 9, 9, 15, minute).toISOString()
+    setup({
+      '/api/weather': {
+        as_of: at(0), stale: false, station: 'Meetstation De Bilt', measured_at: at(0),
+        description: 'Zwaar bewolkt', temperature: 12.9, feel_temperature: 10.6, wind_bft: 4,
+        wind_direction: 'ZW', humidity: 94, rain_last_hour: 0, sunrise: at(0), sunset: new Date(2026, 9, 9, 18, 57).toISOString(),
+        rain: [0, 0, 0.6, 1.4, 0].map((mm, i) => ({ at: at(i * 5), mm_per_hour: mm })),
+      },
+    })
+
+    const weather = await screen.findByRole('region', { name: 'Weather' })
+    expect(within(weather).getByText('13 °C')).toBeInTheDocument()
+    expect(within(weather).getByText('Zwaar bewolkt')).toBeInTheDocument()
+    expect(within(weather).getByText('Feels like 11 °C · Wind 4 Bft ZW · Humidity 94%')).toBeInTheDocument()
+    expect(within(weather).getByRole('img', { name: 'Rain from 15:10, up to 1,4 mm/h' })).toBeInTheDocument()
+    expect(within(weather).getByRole('link', { name: 'Buienradar' })).toHaveAttribute('href', 'https://www.buienradar.nl')
+    expect(weather).toHaveTextContent('Sunset 18:57')
+    expect(weather).toHaveTextContent(', De Bilt')
+  })
+
   it('keeps the other cards when one source is down', async () => {
     setup({ '/api/portfolio': new Error('offline') })
 

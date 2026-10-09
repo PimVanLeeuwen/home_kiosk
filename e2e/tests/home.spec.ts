@@ -38,3 +38,19 @@ test('Home brings status, cards and services together', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'Services' }).getByRole('link', { name: /Jellyfin/ })).toContainText('2 streaming')
   await expect(page.getByRole('region', { name: 'NAS' }).getByRole('meter', { name: 'volume2' })).toBeVisible()
 })
+
+test('Home shows the weather with the rain in the next two hours', async ({ page }) => {
+  const at = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString()
+  await page.route('**/api/weather', (route) => route.fulfill({ json: {
+    as_of: at(0), stale: false, station: 'Meetstation De Bilt', measured_at: at(-15),
+    description: 'Zwaar bewolkt', temperature: 12.9, feel_temperature: 10.6, wind_bft: 4, wind_direction: 'ZW',
+    humidity: 94, rain_last_hour: 0, sunrise: at(-400), sunset: at(240),
+    rain: Array.from({ length: 24 }, (_, i) => ({ at: at(i * 5), mm_per_hour: 0 })),
+  } }))
+  await page.goto('/')
+
+  const card = page.getByRole('region', { name: 'Weather' })
+  await expect(card).toContainText('13 °C')
+  await expect(card.getByRole('img', { name: 'Dry for the next 2 hours' })).toBeVisible()
+  await expect(card.getByRole('link', { name: 'Buienradar' })).toBeVisible()
+})

@@ -301,6 +301,26 @@ export interface PortScan {
   runs: { started: string; finished: string; ports_checked: number; open: number[]; error: string | null }[]
 }
 
+/** Weather from Buienradar (GET /api/weather). */
+export interface Weather {
+  as_of: string
+  stale: boolean
+  station: string
+  measured_at: string | null
+  /** Buienradar's own words, in Dutch. */
+  description: string | null
+  temperature: number | null
+  feel_temperature: number | null
+  wind_bft: number | null
+  wind_direction: string | null
+  humidity: number | null
+  rain_last_hour: number | null
+  sunrise: string | null
+  sunset: string | null
+  /** The next 2 hours in 5-minute steps. */
+  rain: { at: string; mm_per_hour: number }[]
+}
+
 export interface UpsOutage {
   started_at: string
   /** null while it lasts. */

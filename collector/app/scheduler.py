@@ -33,6 +33,7 @@ from .sources import (
     spotlight,
     tailscale,
     ups,
+    weather,
     widgets,
 )
 from .store import Store
@@ -48,6 +49,7 @@ BACKUPS_INTERVAL_SECONDS = 300  # the run file changes once a day
 HOSTS_INTERVAL_SECONDS = 600  # the tailnet name practically never changes
 NEWS_INTERVAL_SECONDS = 600       # §5: feeds every 10 minutes
 PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
+WEATHER_INTERVAL_SECONDS = 300  # Buienradar's rain forecast moves in 5-minute steps
 EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
 UPS_INTERVAL_SECONDS = 15  # outages are timed from these readings
 MIRROR_STARTUP_DELAY = timedelta(minutes=2)  # let the startup refreshes go first
@@ -227,6 +229,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             coalesce=True,
             misfire_grace_time=3600,
             **first,
+        )
+
+    if weather.settings(cfg)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=WEATHER_INTERVAL_SECONDS,
+            args=[store, weather.CACHE_KEY, lambda: weather.collect(cfg)],
+            id="weather",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
         )
 
     # What of the house is public, from Cloudflare's view.

@@ -4,6 +4,7 @@ import { NewsCard } from '../components/home/NewsCard'
 import { PortfolioCard } from '../components/home/PortfolioCard'
 import { ServicesCard } from '../components/home/ServicesCard'
 import { StatusStrip } from '../components/home/StatusStrip'
+import { WeatherCard } from '../components/home/WeatherCard'
 import { PageHeader } from '../components/PageHeader'
 import { attentionItems } from '../lib/attention'
 import { greeting } from '../lib/greeting'
@@ -36,6 +37,7 @@ export function HomePage() {
         <NewsCard />
         <BackupCard nas={nas.data} error={nas.error} />
         <ServicesCard services={all} error={services.error} />
+        <WeatherCard />
       </div>
     </>
   )

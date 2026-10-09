@@ -123,3 +123,6 @@ export function formatRunway(months: number | null | undefined): string {
   const n = Math.max(1, Math.round(months))
   return `Full in about ${n} month${n === 1 ? '' : 's'}`
 }
+
+/** Clock time, "14:05". */
+export const formatTime = (iso: string) => time.format(new Date(iso))

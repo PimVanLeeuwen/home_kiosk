@@ -6,7 +6,7 @@ There is no login and nothing is exposed to the internet.
 
 | Section | What it does |
 |---------|--------------|
-| Home | Status at a glance: NAS health, portfolio, latest news, last backup, services |
+| Home | Status at a glance: NAS health, portfolio, latest news, last backup, services, and the weather (rain in the next 2 hours, from Buienradar) |
 | News, Saved | Feeds read in the hub (text only, images through the hub), search, read state; Readeck bookmarks in the same reader |
 | Portfolio | Ghostfolio overview: value history, holdings, allocation, holding detail, markets; **Update from DEGIRO** imports new trades |
 | NAS, Docker, Backups | Live figures and history, the UPS and its power cuts, what is public on the internet, container load and image updates, rclone runs per volume, storage box space, database dumps, the GitHub mirror |

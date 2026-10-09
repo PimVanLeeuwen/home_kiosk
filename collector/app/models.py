@@ -633,3 +633,26 @@ class PortScanRun(BaseModel):
 
 class PortScan(Envelope):
     runs: list[PortScanRun]  # newest first
+
+
+# --- Home hub: weather ------------------------------------------------------------
+
+
+class RainPoint(BaseModel):
+    at: datetime
+    mm_per_hour: float
+
+
+class Weather(Envelope):
+    station: str
+    measured_at: datetime | None = None
+    description: str | None = None  # Buienradar's own words, in Dutch
+    temperature: float | None = None
+    feel_temperature: float | None = None
+    wind_bft: int | None = None
+    wind_direction: str | None = None
+    humidity: float | None = None
+    rain_last_hour: float | None = None
+    sunrise: datetime | None = None
+    sunset: datetime | None = None
+    rain: list[RainPoint] = []  # the next 2 hours in 5-minute steps
