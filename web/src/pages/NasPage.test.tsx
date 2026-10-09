@@ -78,12 +78,14 @@ describe('NasPage', () => {
 
     expect(await screen.findByText('NAS data is not available right now.')).toBeInTheDocument()
   })
+  // Local time, so the expected text holds in any time zone (CI runs in UTC).
+  const local = (day: number, hour: number, minute: number) => new Date(2026, 9, day, hour, minute).toISOString()
   const UPS = {
     as_of: '2026-10-09T08:00:00Z', stale: false, name: 'ups0', model: 'UGREEN US3000', status: 'online',
     status_raw: 'OL', charge: 100, charge_low: 15, load: 1,
     outages: [
-      { started_at: '2026-10-06T08:02:00Z', ended_at: '2026-10-06T08:41:00Z', lowest_charge: 62, reached_low: false },
-      { started_at: '2026-09-20T18:00:00Z', ended_at: '2026-09-20T20:05:00Z', lowest_charge: 14, reached_low: true },
+      { started_at: local(6, 10, 2), ended_at: local(6, 10, 41), lowest_charge: 62, reached_low: false },
+      { started_at: local(4, 18, 0), ended_at: local(4, 20, 5), lowest_charge: 14, reached_low: true },
     ],
   }
 
