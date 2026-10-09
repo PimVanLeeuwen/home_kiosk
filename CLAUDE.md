@@ -32,6 +32,7 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
 | `caddy/Caddyfile` | One origin on :8083: `web/`, `/kiosk/`, `/api/*` to the collector. Image `pimvanleeuwen/home-kiosk-dashboard` |
 | `e2e/` | Playwright, desktop and mobile |
 | `docs/kiosk-build-spec.md` | The original kiosk spec: Pi hardware and setup, Ghostfolio pitfalls |
+| `docs/desk-panels.md` | Research for the desk panels, Hue and Spotify (M16 to M18); mockup in `docs/desk-panels-mockup.html` |
 
 ## Commands
 

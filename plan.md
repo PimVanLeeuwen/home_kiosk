@@ -246,6 +246,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Hardware: three Waveshare ESP32-P4-WIFI6-Touch-LCD-4B (4", 720×720, 5-point touch, Wi-Fi 6 on
   2.4 GHz through an ESP32-C6, 5 V over USB-C or the back header). Ordered 2026-10-09, not
   arrived yet. The microphones stay off in the firmware; the speaker is unused.
+- Research, links and shops: [docs/desk-panels.md](docs/desk-panels.md). Clickable mockup of
+  the three panels: [docs/desk-panels-mockup.html](docs/desk-panels-mockup.html) (open the file
+  in a browser; it is not served by the hub).
 - Roles, editable in the hub (Settings → Desk panels): left **Now** (clock, weather, Buienradar
   rain; Now Playing while music plays, M18), middle **Home** (Hue, M17), right **House** (NAS,
   backups, alerts, with Money in the rotation). Each panel rotates through its cards; a touch
@@ -314,11 +317,52 @@ M12, M13, M14, M15, M16, M17, M18.
 
 - The Pi kiosk is replaced by the desk panels (M16, decided 2026-10-09). Until they run, the
   carousel stays at `/kiosk/` (`?data=api` for live data; `/kiosk` and `/read.html` redirect).
-- Ad and tracker blocking (DNS): options under discussion, not yet decided.
+- Secrets in nas-docker (found 2026-10-08, not decided): the cloudflared tunnel token, the
+  CouchDB admin password (CouchDB is public through the tunnel), the NordVPN credentials
+  (qbittorrent) and Tracearr's JWT, cookie and Postgres secrets are written in the compose
+  files, so they are in git history, the GitHub mirror and the Hetzner backup. Proposed: move
+  them to each stack's `.env`, rotate them (removing them from the files does not remove them
+  from history), keep the recovery copies in the password manager, and add gitleaks to CI in
+  both repos. CouchDB first, as it is public. RECOVERY.md points to these files today.
+- Password manager (discussed 2026-10-09, not decided): no self-hosting (Vaultwarden was
+  considered and dropped: the vault would hold the passwords needed to rebuild the NAS).
+  Compared Bitwarden and NordPass; recommended Bitwarden in the EU region (open source, yearly
+  published audits, a CLI, a later move to Vaultwarden without new apps), Families if shared
+  with the household, otherwise Premium. NordPass mainly wins on price, for example in a bundle
+  with NordVPN. Either way: a paper emergency sheet away from the NAS (master password, 2FA
+  recovery codes for Tailscale, Hetzner and GitHub, the rclone crypt passwords, the LiveSync
+  passphrase) and 2FA for Tailscale and Hetzner on a passkey, not only a TOTP in the vault.
+- Ad and tracker blocking (DNS), not decided. Software: AdGuard Home (UI, encrypted upstream,
+  per-device rules), Pi-hole, Blocky (one config file, easy to run twice, Prometheus metrics),
+  Technitium, or hosted NextDNS (nothing to run, but it sees every lookup). Upstream: Quad9 or
+  Mullvad over DoH/DoT, or Unbound resolving itself. Handed out by the router (whole house) or
+  Tailscale DNS (devices anywhere); one instance on the NAS means no DNS when the NAS is down,
+  so run two (NAS plus a VPS or the router). iCloud Private Relay and browser DoH bypass it.
+  Proposed: AdGuard Home on the NAS and a second box, and a "blocked today" tile. Open
+  question: which router (some can run AdGuard themselves).
+- Hetzner VPS next to the NAS (discussed 2026-10-08, not decided; the exposure scan went to a
+  GitHub workflow instead). A small cloud server (CX22 or CAX11, about EUR 4 to 5 a month) on the
+  tailnet could be: an outside uptime watcher that also notices the NAS losing power or
+  internet; a weekly restore drill into throwaway containers; an append-only restic
+  `rest-server`, so a compromised NAS cannot delete backups; a Caddy proxy replacing cloudflared
+  so Cloudflare no longer sees the traffic (but one more public box to maintain); an exit node
+  and second DNS. SSH over Tailscale only, unattended-upgrades, compose files in a `hetzner/`
+  folder in nas-docker. Not worth it: Headscale, media or Immich on the VPS.
 - Backlog (2026-10-09): a richer Jellyfin overview in the hub, in the spirit of Tracearr's history:
   library counts (movies, series, episodes), what is pending or downloading (Jellyseerr, Sonarr,
   Radarr, the download clients), watch stats and a per-user leaderboard. Not planned into a
   milestone yet.
+- Backlog, ideas not yet chosen (2026-10-08): dynamic energy prices for today and tomorrow
+  (EnergyZero, no key), bin collection dates for the municipality, NS departures, a read-only
+  calendar (ICS or CalDAV), an Immich "on this day" photo, a command palette (Cmd-K) for
+  services, pages and repos, and a morning digest in Telegram (overnight updates, backup,
+  disk, weather). Desk panels: house and productivity widgets and actions, later.
+- Considered and dropped (2026-10-08 and 09): a Docker socket proxy; pinned image versions
+  with Renovate PRs (updates stay automatic, no PRs); a rollback command from the previous image
+  digest; a Tailscale key expiry rule (keys do not expire on this tailnet); a privacy blur for
+  amounts on the kiosk; Tailscale identity headers to gate writes; self-hosting a password
+  manager. Watchtower: containrrr/watchtower was archived on 2025-12-17 (forks such as
+  `nickfedor/watchtower`, or What's Up Docker); the owner parked this on 2026-10-09.
 
 ## 5. Non-goals
 

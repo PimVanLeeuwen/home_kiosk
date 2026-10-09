@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Design mockup of the M16 desk panels, example data only. Not served by the hub.
+     Fonts come from Google Fonts here; the real panels and the hub self-host theirs. -->
+<title>Home hub desk panels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a desk at night. Three 86.5 mm panels in one stand, outer two angled in; stacks on phones. */
+:root {
+  color-scheme: dark;
+  --room: #0b0b0e;
+  --room-2: #121217;
+  --ink: #e9e8ef;
+  --ink-2: #a3a1b0;
+  --ink-3: #6c6a79;
+  --line: #24232c;
+  --screen: #08090a;
+  --panel: #111116;
+  --panel-2: #17171e;
+  --bezel: #050506;
+  --accent: #7c6cf2;
+  --accent-soft: rgba(124, 108, 242, .16);
+  --ok: #4fbf8a;
+  --warn: #e3b04b;
+  --err: #ef5b5b;
+  --up: #4fbf8a;
+  --down: #ef6f6f;
+  --stand: #2a2622;
+  --stand-hi: #3a352f;
+  --f-body: "Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+html, body { height: auto; }
+body {
+  background: radial-gradient(120% 80% at 50% 0%, var(--room-2), var(--room) 70%);
+  background-color: var(--room);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-inline: 16px;
+  padding-block: 28px 48px;
+  font-variant-numeric: tabular-nums;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+
+header { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: end; justify-content: space-between; }
+header h1 { font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+header p { margin: 4px 0 0; color: var(--ink-2); max-width: 60ch; }
+.chip { display: inline-block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; margin-left: 8px; vertical-align: 3px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn {
+  font: inherit; font-size: 14px; color: var(--ink); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; cursor: pointer;
+}
+.btn:hover { border-color: #3a3946; }
+.btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.btn.danger { border-color: rgba(239, 91, 91, .45); }
+.btn:focus-visible, .dot:focus-visible, .scr button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The desk */
+.desk { perspective: 1400px; padding-block: 12px 0; }
+.stand {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3.2%;
+  padding: 2.2% 3.2% 0; position: relative;
+}
+.stand::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -26px; height: 26px;
+  background: linear-gradient(180deg, var(--stand-hi), var(--stand));
+  border-radius: 4px 4px 10px 10px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .6);
+}
+.unit { transform-style: preserve-3d; transition: transform .4s ease; }
+.unit:nth-child(1) { transform: rotateY(14deg) rotateX(6deg); transform-origin: right bottom; }
+.unit:nth-child(2) { transform: rotateX(6deg); transform-origin: center bottom; }
+.unit:nth-child(3) { transform: rotateY(-14deg) rotateX(6deg); transform-origin: left bottom; }
+.unit figcaption { text-align: center; color: var(--ink-3); font-size: 12px; margin-top: 40px; letter-spacing: .06em; text-transform: uppercase; }
+
+/* One panel: 86.5 mm outline, 71.93 mm display, so the bezel is 8.4% per side */
+.bezel {
+  aspect-ratio: 1; max-width: 100%; background: var(--bezel); border-radius: 4.5%;
+  padding: 8.4%; box-shadow: inset 0 0 0 1px #1c1c22, 0 24px 50px rgba(0, 0, 0, .55);
+}
+.scr {
+  container-type: inline-size; position: relative; width: 100%; aspect-ratio: 1;
+  background: var(--screen); overflow: hidden; border-radius: 1.2%;
+  touch-action: pan-y; user-select: none; -webkit-user-select: none;
+  transition: filter .5s ease;
+}
+.track { display: flex; height: 100%; transition: transform .45s cubic-bezier(.2, .7, .2, 1); }
+.track.dragging { transition: none; }
+.card { flex: 0 0 100%; height: 100%; padding: 7cqw 7cqw 11cqw; display: flex; flex-direction: column; gap: 3cqw; min-width: 0; }
+
+.k { font-size: 3.6cqw; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+.big { font-size: 19cqw; font-weight: 600; line-height: .95; letter-spacing: -.03em; }
+.mid { font-size: 9.5cqw; font-weight: 600; line-height: 1; letter-spacing: -.02em; }
+.sub { font-size: 4.4cqw; color: var(--ink-2); }
+.mono { font-family: var(--f-mono); }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 3cqw; }
+.grow { flex: 1; min-height: 0; }
+.up { color: var(--up); } .down { color: var(--down); }
+.pill { display: inline-block; font-size: 3.3cqw; font-weight: 700; letter-spacing: .08em; padding: .6cqw 2cqw; border-radius: 99px; }
+.pill.ok { color: var(--ok); background: rgba(79, 191, 138, .13); }
+.pill.warn { color: var(--warn); background: rgba(227, 176, 75, .14); }
+.pill.err { color: var(--err); background: rgba(239, 91, 91, .14); }
+.list { display: grid; gap: 2.4cqw; font-size: 4.6cqw; }
+.list .row span:first-child { color: var(--ink-2); }
+.meter { height: 1.6cqw; background: var(--panel-2); border-radius: 99px; overflow: hidden; margin-top: 1cqw; }
+.meter i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.meter i.warn { background: var(--warn); }
+.attrib { font-size: 3cqw; color: var(--ink-3); }
+.tap {
+  font: inherit; font-size: 4.4cqw; font-weight: 600; color: var(--ink); background: var(--accent-soft);
+  border: 1px solid var(--accent); border-radius: 3cqw; padding: 2.6cqw 4cqw; cursor: pointer;
+}
+svg text { font-family: var(--f-body); }
+
+.dots { position: absolute; left: 0; right: 0; bottom: 4cqw; display: flex; justify-content: center; gap: 2cqw; z-index: 2; }
+.dot { width: 2.4cqw; height: 2.4cqw; border-radius: 50%; border: 0; padding: 0; background: #2c2b36; cursor: pointer; }
+.dot.on { background: var(--accent); }
+.paused { position: absolute; top: 3cqw; right: 3.5cqw; font-size: 3cqw; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; z-index: 2; }
+
+/* Night */
+.night .scr { filter: brightness(.45); }
+.night .scr.off { filter: brightness(0); }
+.nightclock { position: absolute; inset: 0; display: none; place-items: center; z-index: 3; background: var(--screen); }
+.nightclock div { font-size: 24cqw; font-weight: 500; color: #8a85b8; letter-spacing: -.03em; }
+.night .scr.clockonly .nightclock { display: grid; }
+.night .scr.clockonly .dots { display: none; }
+
+/* Alert takeover */
+.takeover {
+  position: absolute; inset: 0; z-index: 4; display: none; flex-direction: column; justify-content: center; gap: 3cqw;
+  padding: 9cqw; background: linear-gradient(180deg, #2a0f12, #170809); filter: none;
+}
+.alerting .takeover { display: flex; }
+.alerting .scr { filter: none !important; }
+.takeover b { color: var(--err); font-size: 5cqw; letter-spacing: .12em; }
+.takeover h3 { margin: 0; font-size: 8.6cqw; line-height: 1.1; font-weight: 600; }
+.takeover p { margin: 0; font-size: 4.6cqw; color: #d9b9bb; }
+.takeover .tap { align-self: flex-start; margin-top: 3cqw; background: rgba(239, 91, 91, .14); border-color: var(--err); }
+
+.notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 30px; }
+.notes section { min-width: 0; }
+.notes h2 { font-size: 15px; margin: 0 0 6px; font-weight: 600; }
+.notes ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; display: grid; gap: 4px; }
+.foot { color: var(--ink-3); font-size: 13px; max-width: 80ch; }
+
+@media (max-width: 760px) {
+  .stand { grid-template-columns: minmax(0, 1fr); gap: 34px; padding: 0; max-width: 420px; margin: 0 auto; }
+  .stand::after { display: none; }
+  .unit:nth-child(n) { transform: none; }
+  .unit figcaption { margin-top: 10px; }
+  .notes { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .track, .unit, .scr { transition: none; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Desk panels <span class="chip">Example data</span></h1>
+      <p>Three 4-inch ESP32-P4 touch panels, 720 × 720, fed by the Home hub. Swipe a panel or tap its dots. Touching a panel pauses its rotation for 60 seconds.</p>
+    </div>
+    <div class="controls">
+      <button class="btn" id="btn-rotate" aria-pressed="true">Rotation on</button>
+      <button class="btn" id="btn-night" aria-pressed="false">Night mode</button>
+      <button class="btn danger" id="btn-alert">Simulate error alert</button>
+    </div>
+  </header>
+
+  <div class="desk" id="desk">
+    <div class="stand">
+      <figure class="unit" style="margin:0"><div class="bezel"><div class="scr clockonly" data-panel="now"></div></div><figcaption>Now</figcaption></figure>
+      <figure class="unit" style="margin:0"><div class="bezel"><div class="scr off" data-panel="money"></div></div><figcaption>Money</figcaption></figure>
+      <figure class="unit" style="margin:0"><div class="bezel"><div class="scr" data-panel="house"></div></div><figcaption>House</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="notes">
+    <section>
+      <h2>Now</h2>
+      <ul><li>Clock, temperature and Buienradar rain for De Bilt, 2 hours in 5-minute steps</li><li>Today's forecast</li><li>Night: a dim clock only</li></ul>
+    </section>
+    <section>
+      <h2>Money</h2>
+      <ul><li>Portfolio value and today's change, with the day's chart</li><li>Top movers, then the indices</li><li>Night: screen off</li></ul>
+    </section>
+    <section>
+      <h2>House</h2>
+      <ul><li>NAS health and the UPS</li><li>Backups and the last verified restore</li><li>Open alerts, with Mute 1h</li></ul>
+    </section>
+  </div>
+  <p class="foot">An error alert takes over all three panels until you dismiss it. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. All figures here are made up.</p>
+</div>
+
+<script>
+(function () {
+  const nf = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 0 });
+  const eur = v => '€ ' + nf.format(v);
+  const pct = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2).replace('.', ',') + '%';
+  const now = new Date();
+  const hhmm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+
+  // Buienradar raintext values 0..255; mm/h = 10^((v-109)/32)
+  const rainVals = [0, 0, 0, 0, 0, 77, 92, 110, 128, 141, 136, 120, 104, 88, 70, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  const mmh = v => v === 0 ? 0 : Math.pow(10, (v - 109) / 32);
+  function rainSvg() {
+    const W = 240, H = 92, base = 70, max = 3;
+    const bw = W / rainVals.length;
+    let bars = '';
+    rainVals.forEach((v, i) => {
+      const h = Math.min(mmh(v), max) / max * (base - 6);
+      bars += `<rect x="${(i * bw + 1).toFixed(1)}" y="${(base - h).toFixed(1)}" width="${(bw - 2).toFixed(1)}" height="${Math.max(h, .8).toFixed(1)}" rx="1.2" fill="${h > .5 ? 'var(--accent)' : '#24232c'}"/>`;
+    });
+    const t = m => hhmm(new Date(now.getTime() + m * 60000));
+    return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;overflow:visible">
+      <line x1="0" y1="${base + .5}" x2="${W}" y2="${base + .5}" stroke="#24232c"/>
+      ${bars}
+      <text x="0" y="${H - 4}" font-size="8" fill="var(--ink-3)">Now</text>
+      <text x="${W / 2}" y="${H - 4}" font-size="8" fill="var(--ink-3)" text-anchor="middle">${t(60)}</text>
+      <text x="${W}" y="${H - 4}" font-size="8" fill="var(--ink-3)" text-anchor="end">${t(120)}</text>
+    </svg>`;
+  }
+
+  const day = [48210, 48190, 48260, 48240, 48310, 48420, 48390, 48450, 48520, 48480, 48560, 48610, 48590, 48655, 48702];
+  function spark(series, color) {
+    const W = 240, H = 80, min = Math.min(...series), max = Math.max(...series);
+    const x = i => i / (series.length - 1) * W, y = v => H - 6 - (v - min) / (max - min) * (H - 12);
+    const pts = series.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    const last = series.length - 1;
+    return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;overflow:visible">
+      <line x1="0" y1="${y(series[0]).toFixed(1)}" x2="${W}" y2="${y(series[0]).toFixed(1)}" stroke="#2c2b36" stroke-dasharray="3 4"/>
+      <polygon points="0,${H} ${pts} ${W},${H}" fill="${color}" fill-opacity=".12"/>
+      <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="${x(last)}" cy="${y(series[last]).toFixed(1)}" r="3.5" fill="${color}"/>
+    </svg>`;
+  }
+
+  const state = { muted: false };
+
+  const cards = {
+    now: [
+      () => `<div class="row"><span class="k">De Bilt</span><span class="k">${now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</span></div>
+        <div class="big" data-clock>${hhmm(new Date())}</div>
+        <div class="row"><span class="mid">14°</span><span class="sub">Cloudy, wind 3 Bft SW</span></div>
+        <div class="grow"></div>
+        <div class="k">Rain, next 2 hours <span style="color:var(--accent);text-transform:none;letter-spacing:0">up to 2,8 mm/u at ${hhmm(new Date(now.getTime() + 45 * 60000))}</span></div>
+        ${rainSvg()}
+        <div class="attrib">Rain data: Buienradar</div>`,
+      () => `<div class="k">Today in De Bilt</div>
+        <div class="list" style="font-size:5.2cqw;gap:3.4cqw;margin-top:2cqw">
+          ${[['09:00', '11°', 'Dry'], ['12:00', '14°', 'Showers'], ['15:00', '16°', 'Clearing up'], ['18:00', '13°', 'Dry'], ['21:00', '10°', 'Dry']]
+            .map(r => `<div class="row"><span class="mono">${r[0]}</span><span>${r[2]}</span><span style="font-weight:600">${r[1]}</span></div>`).join('')}
+        </div>
+        <div class="grow"></div>
+        <div class="row sub"><span>Sunrise 07:58</span><span>Sunset 18:57</span></div>
+        <div class="attrib">Forecast: Buienradar</div>`
+    ],
+    money: [
+      () => `<div class="k">Portfolio · today</div>
+        <div class="mid" style="font-size:13cqw">${eur(day[day.length - 1])}</div>
+        <div class="row" style="justify-content:flex-start"><span class="up" style="font-size:5.4cqw;font-weight:600">+${eur(day[day.length - 1] - day[0])}</span><span class="up" style="font-size:5.4cqw">${pct((day[day.length - 1] / day[0] - 1) * 100)}</span></div>
+        <div class="grow"></div>
+        ${spark(day, 'var(--up)')}
+        <div class="row sub" style="font-size:3.6cqw"><span>09:00</span><span>Updated ${hhmm(new Date(now.getTime() - 4 * 60000))}</span><span>17:30</span></div>`,
+      () => `<div class="k">Top movers</div>
+        <div class="list" style="font-size:5.4cqw;gap:3.6cqw;margin-top:2cqw">
+          ${[['NVDA', 2.84], ['ASML', 1.92], ['VWRL', .41], ['ADYEN', -1.37], ['SHELL', -.62]]
+            .map(r => `<div class="row"><span class="mono" style="color:var(--ink)">${r[0]}</span><span class="${r[1] >= 0 ? 'up' : 'down'}" style="font-weight:600">${pct(r[1])}</span></div>`).join('')}
+        </div>`,
+      () => `<div class="k">Indices</div>
+        <div class="list" style="gap:4.4cqw;margin-top:2cqw">
+          ${[['S&amp;P 500', '6.712', .38], ['Nasdaq 100', '24.905', .71], ['AEX', '961', -.24]]
+            .map(r => `<div><div class="row" style="font-size:5.6cqw"><span style="color:var(--ink)">${r[0]}</span><span class="${r[2] >= 0 ? 'up' : 'down'}" style="font-weight:600">${pct(r[2])}</span></div><div class="sub" style="font-size:4cqw">${r[1]}</div></div>`).join('')}
+        </div>`
+    ],
+    house: [
+      () => `<div class="row"><span class="k">NAS</span><span class="pill ok">HEALTHY</span></div>
+        <div class="list" style="gap:3.4cqw">
+          <div><div class="row"><span>CPU</span><span>12%</span></div><div class="meter"><i style="width:12%"></i></div></div>
+          <div><div class="row"><span>Memory</span><span>41%</span></div><div class="meter"><i style="width:41%"></i></div></div>
+          <div><div class="row"><span>volume2</span><span>88%</span></div><div class="meter"><i class="warn" style="width:88%"></i></div></div>
+          <div class="row"><span>Disks</span><span>4 of 4 OK</span></div>
+          <div class="row"><span>UPS</span><span>Mains · 100% · 38 min</span></div>
+        </div>`,
+      () => `<div class="row"><span class="k">Backups</span><span class="pill ok">OK</span></div>
+        <div class="mid">03:00</div>
+        <div class="sub">Last night, 1 h 12 min</div>
+        <div class="list" style="margin-top:2cqw">
+          <div class="row"><span>volume1 · docker</span><span class="pill ok">OK</span></div>
+          <div class="row"><span>volume3 · files</span><span class="pill ok">OK</span></div>
+          <div class="row"><span>GitHub mirror</span><span>47 repos</span></div>
+          <div class="row"><span>Last verified restore</span><span>12 days ago</span></div>
+        </div>`,
+      () => `<div class="row"><span class="k">Alerts</span><span class="pill warn">1 OPEN</span></div>
+        <div style="background:var(--panel);border-radius:3cqw;padding:4.5cqw;display:grid;gap:1.6cqw">
+          <span class="pill warn" style="justify-self:start">WARNING</span>
+          <div style="font-size:5.6cqw;font-weight:600;line-height:1.2">volume2 is 88% full</div>
+          <div class="sub" style="font-size:4cqw">Full in about 5 months at the current rate</div>
+        </div>
+        <div class="grow"></div>
+        <div class="row" style="align-items:center">
+          <span class="sub" data-mutestate>${state.muted ? 'Muted until ' + hhmm(new Date(Date.now() + 3600000)) : 'Telegram alerts on'}</span>
+          <button class="tap" data-mute>${state.muted ? 'Unmute' : 'Mute 1h'}</button>
+        </div>`
+    ]
+  };
+
+  const intervals = { now: 9000, money: 11000, house: 13000 };
+  const desk = document.getElementById('desk');
+  let rotating = true;
+  const panels = {};
+
+  document.querySelectorAll('.scr').forEach(scr => {
+    const name = scr.dataset.panel;
+    const p = panels[name] = { scr, i: 0, pausedUntil: 0, last: Date.now() };
+    function render() {
+      scr.innerHTML = `<div class="track">${cards[name].map(c => `<div class="card">${c()}</div>`).join('')}</div>
+        <div class="dots">${cards[name].map((_, j) => `<button class="dot${j === p.i ? ' on' : ''}" aria-label="Card ${j + 1}" data-j="${j}"></button>`).join('')}</div>
+        <div class="paused" hidden>Paused</div>
+        <div class="nightclock"><div data-clock>${hhmm(new Date())}</div></div>
+        <div class="takeover"><b>ERROR</b><h3>Backup failed: volume3</h3><p>rclone exited with code 1 at 03:41. volume1 finished.</p><button class="tap" data-dismiss>Dismiss</button></div>`;
+      p.track = scr.querySelector('.track');
+      p.pausedEl = scr.querySelector('.paused');
+      go(p.i, false);
+    }
+    function go(j) {
+      const n = cards[name].length;
+      p.i = (j + n) % n;
+      p.track.style.transform = `translateX(${-p.i * 100}%)`;
+      scr.querySelectorAll('.dot').forEach((d, k) => d.classList.toggle('on', k === p.i));
+      p.last = Date.now();
+    }
+    function pause() { p.pausedUntil = Date.now() + 60000; p.pausedEl.hidden = false; }
+    p.render = render; p.go = go;
+    render();
+
+    scr.addEventListener('click', e => {
+      const dot = e.target.closest('.dot');
+      if (dot) { pause(); go(+dot.dataset.j); return; }
+      if (e.target.closest('[data-mute]')) { pause(); state.muted = !state.muted; render(); return; }
+      if (e.target.closest('[data-dismiss]')) { desk.classList.remove('alerting'); return; }
+    });
+
+    let x0 = null, dx = 0, w = 1;
+    scr.addEventListener('pointerdown', e => {
+      if (e.target.closest('button')) return;
+      x0 = e.clientX; dx = 0; w = scr.clientWidth; p.track.classList.add('dragging'); pause();
+      scr.setPointerCapture(e.pointerId);
+    });
+    scr.addEventListener('pointermove', e => {
+      if (x0 === null) return;
+      dx = e.clientX - x0;
+      p.track.style.transform = `translateX(calc(${-p.i * 100}% + ${dx}px))`;
+    });
+    const end = () => {
+      if (x0 === null) return;
+      p.track.classList.remove('dragging');
+      if (Math.abs(dx) > w * .18) go(p.i + (dx < 0 ? 1 : -1)); else go(p.i);
+      x0 = null;
+    };
+    scr.addEventListener('pointerup', end);
+    scr.addEventListener('pointercancel', end);
+  });
+
+  setInterval(() => {
+    const t = Date.now();
+    document.querySelectorAll('[data-clock]').forEach(el => { el.textContent = hhmm(new Date()); });
+    Object.entries(panels).forEach(([name, p]) => {
+      if (p.pausedUntil && t >= p.pausedUntil) { p.pausedUntil = 0; p.pausedEl.hidden = true; }
+      if (rotating && !p.pausedUntil && t - p.last >= intervals[name]) p.go(p.i + 1);
+    });
+  }, 1000);
+
+  const bRot = document.getElementById('btn-rotate');
+  bRot.addEventListener('click', () => {
+    rotating = !rotating;
+    bRot.setAttribute('aria-pressed', String(rotating));
+    bRot.textContent = rotating ? 'Rotation on' : 'Rotation off';
+    Object.values(panels).forEach(p => { p.last = Date.now(); });
+  });
+  const bNight = document.getElementById('btn-night');
+  bNight.addEventListener('click', () => {
+    const on = desk.classList.toggle('night');
+    bNight.setAttribute('aria-pressed', String(on));
+  });
+  document.getElementById('btn-alert').addEventListener('click', () => desk.classList.add('alerting'));
+})();
+</script>
+
+</html>
