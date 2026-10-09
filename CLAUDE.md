@@ -7,8 +7,9 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
 
 ## Project rules
 
-- **The Pi kiosk must keep working.** It is a dumb Chromium on a Pi pointed at this stack; any
-  change to URLs or `/api/*` shapes has to keep it rendering.
+- **The kiosk must keep working.** Today the `/kiosk/` carousel; from M16 the three ESP32-P4
+  desk panels that replace the Pi kiosk. Any change to URLs or `/api/*` shapes has to keep them
+  rendering.
 - **Private, LAN and Tailscale only.** No login, no internet exposure, no third-party CDNs,
   tracking or analytics. Fonts and assets are self-hosted.
 - **Never 500 to the frontend.** Every payload carries `as_of` and `stale`; on a source failure
@@ -17,7 +18,8 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
   commits.
 - **Read-only towards other services**, except the deliberate writes: Readeck (save, archive,
   delete, read progress), Telegram messages, and DEGIRO imports into Ghostfolio after you confirm
-  them. The GitHub mirror only reads from GitHub; it writes to `/volume3/backups/github`.
+  them. Planned (M17, M18): Hue lights, plugs and scenes, and Spotify playback control. The
+  GitHub mirror only reads from GitHub; it writes to `/volume3/backups/github`.
 - Style: see plan.md §1. Dark first, violet accent, mono only for technical values.
 
 ## Architecture
@@ -80,6 +82,8 @@ python3 dashboard/serve.py
 - 2026-10-09: no Docker socket proxy; database dumps and restore checks run as a NAS host job,
   so no container gets more Docker access; the PWA is installed from the Tailscale HTTPS
   address. plan.md M12 to M15.
+- 2026-10-09: three ESP32-P4 4" touch panels replace the Pi kiosk; Hue control through the
+  local bridge API and Spotify playback control become deliberate writes. plan.md M16 to M18.
 
 ## Gotchas
 

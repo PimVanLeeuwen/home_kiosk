@@ -31,7 +31,9 @@ repo in `~/Pictures/pr-screenshots/home_kiosk/2026-09-30-mockups/`.
 | Article reading | Backend extraction with trafilatura, cached in SQLite; falls back to "Open original". Readeck stays as "Save for later". |
 | Search | News only. |
 | Container actions | Out of scope; use Dockge. The Docker socket stays read-only. |
-| Pi kiosk controls | Out of scope for now (dimming, rotation choice). |
+| Pi kiosk controls | Out of scope for now (dimming, rotation choice). Superseded 2026-10-09: three ESP32-P4 desk panels replace the Pi kiosk, with rotation, night hours and touch controls (M16). |
+| Home control | Hue Bridge local API only, no cloud; Apple Home follows through the bridge (M17). |
+| Music | Spotify Web API with the owner's Premium account; any device on the account (M18). |
 | Service logins | Sonarr, Radarr, Prowlarr: "Disabled for Local Addresses" plus "Trust CGNAT IP Addresses" (covers Tailscale). Apps with real accounts rely on long-lived sessions plus a password manager. No SSO for now. |
 | Bookmarks | External links live in the service catalog (a `url` instead of a port), editable in Settings; homepage's three bookmarks were migrated. |
 | Telegram | The hub owns the bot token (NAS-only `.env`). Two chats, as today: **NAS alerts** and **Portfolio**. The bot only accepts commands from those chats. |
@@ -169,7 +171,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Telegram allows no tags inside `<pre>`, so saving checks that too. Texts saved with the old
   `{icon}` and `{dot}` placeholders are rewritten when read.
 
-**M12. Backup hardening** (added 2026-10-08)
+**M12. Backup hardening** (added 2026-10-08). **Done 2026-10-09.**
 - Done 2026-10-08, outside the code: automatic snapshots on the Hetzner Storage Box (Robot). The
   NAS's sftp login cannot delete them, so a bad state that reaches Hetzner by `rclone sync` can
   still be rolled back. RECOVERY.md gets the restore steps from a snapshot.
@@ -230,7 +232,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   `gpsgadget.buienradar.nl/data/raintext?lat=52.11&lon=5.18` (5-minute steps) as a bar chart,
   and current weather from the nearest station in `data.buienradar.nl/2.0/feed/json`. Fetched
   by the collector every 5 minutes, cached with `as_of` and `stale`; a Home tile. Buienradar asks
-  for attribution, so the tile names it. A kiosk slide waits for the kiosk restyle (M8).
+  for attribution, so the tile names it. The kiosk slide moves to the desk panels' Now panel (M16).
 - The hub as a real PWA, replacing today's plain "Add to Home Screen" bookmark: a web app
   manifest (`display: standalone`, name, icons, theme colour), iOS safe-area padding, and a
   service worker that caches the app shell and the last API payloads, so the app opens offline
@@ -240,14 +242,78 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   alone. The existing home screen icon has to be removed and added again from the ts.net
   address.
 
+**M16. Desk panels** (added 2026-10-09; replaces the planned Pi kiosk)
+- Hardware: three Waveshare ESP32-P4-WIFI6-Touch-LCD-4B (4", 720×720, 5-point touch, Wi-Fi 6 on
+  2.4 GHz through an ESP32-C6, 5 V over USB-C or the back header). Ordered 2026-10-09, not
+  arrived yet. The microphones stay off in the firmware; the speaker is unused.
+- Roles, editable in the hub (Settings → Desk panels): left **Now** (clock, weather, Buienradar
+  rain; Now Playing while music plays, M18), middle **Home** (Hue, M17), right **House** (NAS,
+  backups, alerts, with Money in the rotation). Each panel rotates through its cards; a touch
+  pauses its rotation for 60 seconds. An ERROR alert takes over all three until dismissed. Night
+  hours: Now shows a dim clock, Home and House dim, Money is off.
+- Firmware: one ESP-IDF + LVGL 9 build for all three; a panel only knows its name. It fetches
+  its layout and data from `/api/desk/<name>` (every payload with `as_of` and `stale`; stale
+  cards are dimmed with their age). Built in GitHub Actions, updated over Wi-Fi from the hub, no
+  cloud. The Wi-Fi password is a build secret, never in the repo.
+- Writes from a panel (mute, lights, music) use a per-panel device key created in the hub, since
+  `same_origin_json` only protects browsers. Keys can be revoked in Settings.
+- Heartbeat: the hub alerts when a panel has not polled for 10 minutes.
+- Stand. Nothing ordered yet; first test the angles with three cheap phone stands.
+  - Requirements: about 15° tilted back, the outer panels turned 12 to 15° in, 8 to 10 mm
+    gaps, one row of about 30 cm below the monitor. Heavy enough not to slide or tip when
+    the panels are touched (wood, a steel weight or a weighted print, rubber feet). Room
+    behind each board for its components and the USB-C port, and a cable channel.
+  - Before designing: measure one board (depth, mounting holes, USB-C position). Waveshare
+    gives only the outline (86.5 × 86.5 mm, display 71.93 × 71.93 mm).
+  - Options: a ready-made single-panel stand for this board on MakerWorld (print three; not
+    checked for fit); a parametric OpenSCAD stand for all three, written in this repo
+    (angles and gaps as parameters), printed by a friend, a print service or TU/e's maker
+    facilities, possibly split in two for a small printer; the same design laser-cut as
+    stacked plywood or acrylic (for example Snijlab), exported to 2D from the model; or an
+    oak or walnut block (about 30 × 6 × 4.5 cm) with three angled pockets from a carpenter
+    or a CNC router. Preferred: the OpenSCAD model, then print or laser-cut.
+- Power. Nothing ordered yet. Each board takes 5 V, over USB-C or the 5 V and GND pins on its
+  back header.
+  - Preferred: one cable to the stand. A USB-C PD trigger board set to 5 V, or a 5 V 4 A
+    supply, feeds a 5 V line inside the stand that powers each board through its header pins.
+    Measure one board's draw at full brightness first (expected around 2 W, not verified)
+    and size the supply with headroom for three.
+  - Fallback: three short USB-C cables to a 3-port USB charger behind the monitor.
+  - Not used: the Ethernet variant (ESP32-P4-86-Panel-ETH-2RO, 6 to 30 V); a wired network
+    needs a switch on the desk and only suits a wall mount.
+- Order of work: test one board on a phone stand and settle the angles, measure it, write the
+  OpenSCAD model, choose print or laser-cut, then buy the power parts.
+- The 720×1280 `/kiosk/` carousel retires once the panels run.
+
+**M17. Home control** (added 2026-10-09)
+- The hub talks to the Hue Bridge's local CLIP v2 API with an application key (created once with
+  the bridge's link button, kept in `.env`). No Hue cloud. The bridge's event stream keeps the
+  hub's state live, so changes from the Home app, Siri or a switch show at once.
+- Everything in the house is Hue (lights and smart plugs), so Apple Home follows on its own: it
+  reads the same bridge. Non-Hue HomeKit devices would need Home Assistant; there are none now.
+- Home panel: room tiles (tap on/off, hold for brightness), plugs as on/off tiles, scenes per
+  room, and one All off. A Lights page in the hub with the same controls.
+- A new deliberate write (decided 2026-10-09): lights, plugs and scenes on the Hue Bridge.
+
+**M18. Music** (added 2026-10-09)
+- Spotify Web API with the owner's Premium account: a developer app in development mode (owner
+  must keep Premium; up to 5 users). Logged in once through the hub; the redirect URI is the
+  hub's Tailscale HTTPS address. The refresh token stays on the NAS.
+- Shows what plays on any device on the account (phone, Mac, speakers, AirPlay from the phone),
+  podcasts included. Polled every 3 seconds while playing, slower when idle; the panel moves the
+  progress bar between polls. Album art is fetched by the hub, so panels never contact Spotify.
+- Now Playing on the Now panel: art with a blurred art background, title, artist, progress,
+  previous / play-pause / next, volume, and the device name (tap to move playback). It takes
+  over the panel when music starts and gives it back 2 minutes after a pause.
+- A new deliberate write (decided 2026-10-09): Spotify playback control.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15.
+M12, M13, M14, M15, M16, M17, M18.
 
 ## 4. Open items
 
-- Pi kiosk URL: the carousel now lives at `/kiosk/`, so the Pi's Chromium `--app` URL becomes
-  `http://<nas>:8083/kiosk/?data=api`. Without `?data=api` the carousel shows its fixture data.
-  `/kiosk` and the old `/read.html` redirect.
+- The Pi kiosk is replaced by the desk panels (M16, decided 2026-10-09). Until they run, the
+  carousel stays at `/kiosk/` (`?data=api` for live data; `/kiosk` and `/read.html` redirect).
 - Ad and tracker blocking (DNS): options under discussion, not yet decided.
 - Backlog (2026-10-09): a richer Jellyfin overview in the hub, in the spirit of Tracearr's history:
   library counts (movies, series, episodes), what is pending or downloading (Jellyseerr, Sonarr,
@@ -260,3 +326,4 @@ M12, M13, M14, M15.
 - No container control; Dockge does that.
 - No trading, order entry or investment recommendations. The only writes to Ghostfolio are
   confirmed DEGIRO imports (M7).
+- No microphone or voice control on the desk panels.
