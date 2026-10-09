@@ -195,6 +195,7 @@ class RuleSettings(BaseModel):
     restarts: Annotated[int | None, Field(ge=2, le=100)] = None
     restart_window_minutes: Annotated[int | None, Field(ge=1, le=1440)] = None
     hours: Annotated[int | None, Field(ge=1, le=24 * 14)] = None
+    restore_days: Annotated[int | None, Field(ge=1, le=366)] = None
 
 
 def _rules(request: Request) -> dict[str, Any]:

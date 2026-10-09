@@ -280,6 +280,17 @@ export interface DatabaseDumps {
   databases: DumpedDatabase[]
   /** The host job's runs, newest first. */
   runs: { started: string; finished: string; ok: boolean; failed: number }[]
+  /** The monthly restore check, newest first. */
+  restore_checks?: RestoreCheck[]
+  /** The newest restore check that passed. */
+  last_verified?: string | null
+}
+
+export interface RestoreCheck {
+  started: string
+  finished: string
+  ok: boolean
+  checks: { name: string; ok: boolean; detail: string }[]
 }
 
 export type Severity = 'info' | 'ok' | 'warning' | 'error'
@@ -338,6 +349,7 @@ export interface RuleSettings {
   restarts?: number
   restart_window_minutes?: number
   hours?: number
+  restore_days?: number
 }
 
 export interface AlertRules {

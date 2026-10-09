@@ -182,10 +182,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   error alert.
 - Uptime Kuma and Tracearr move from named volumes to bind mounts under `/volume1/docker`, so
   the nightly backup covers them. RECOVERY.md's "not backed up" rows go.
-- Restore check, monthly from the same host job: downloads a sample of the Hetzner copy and
-  compares it (`rclone check --download` on a subset), and restores the hub and Ghostfolio dumps
-  into throwaway containers to prove they load. Each result is a run record; the Backups page
-  shows "last verified restore" and the backup_missing rule warns when it is older than 45 days.
+- Restore check, monthly (`host-jobs/restore-check.sh`, root's crontab, the 1st at 05:00):
+  downloads the database dumps and the hub's database copy from Hetzner and compares them byte
+  for byte with the local files, then restores the Ghostfolio dump into a throwaway Postgres and
+  opens the hub copy in a throwaway collector container (the live images, no network). Each run
+  is a record in `restore-checks.jsonl`; the Backups page shows "last verified restore" and the
+  backup_missing rule warns when the newest check failed or the last good one is older than 45
+  days (editable).
 - Storage Box space on the Backups page: used and free from `rclone about`, with the same runway
   projection as the NAS storage, and an alert above 85%.
 

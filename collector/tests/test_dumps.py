@@ -79,3 +79,31 @@ def test_the_endpoint_serves_the_cached_payload(store):
     assert client.get("/api/database-dumps").status_code == 503
     store.put_cache(dumps.CACHE_KEY, {"as_of": "2026-10-09T10:00:00Z", "stale": False})
     assert client.get("/api/database-dumps").json()["as_of"] == "2026-10-09T10:00:00Z"
+
+
+def check_line(day, ok=True):
+    return json.dumps({
+        "started": f"2026-10-{day:02d}T05:00:00+0200",
+        "finished": f"2026-10-{day:02d}T05:01:30+0200",
+        "ok": ok,
+        "checks": [{"name": "download:databases", "ok": True, "detail": "3 files, identical"},
+                   {"name": "ghostfolio", "ok": ok,
+                    "detail": "restored: 212 activities" if ok else "pg_restore failed"}],
+    })
+
+
+def test_restore_checks_newest_first_with_the_last_good_one(tmp_path, store):
+    checks = tmp_path / "restore-checks.jsonl"
+    checks.write_text("\n".join([check_line(1), "{broken", check_line(8, ok=False)]) + "\n")
+
+    payload = dumps.read(str(tmp_path / "missing.jsonl"), store, str(checks))
+
+    assert [(c.finished.day, c.ok) for c in payload.restore_checks] == [(8, False), (1, True)]
+    assert payload.restore_checks[0].checks[1].detail == "pg_restore failed"
+    assert payload.last_verified.day == 1
+
+
+def test_no_restore_check_yet(tmp_path, store):
+    payload = dumps.read(str(tmp_path / "missing.jsonl"), store, str(tmp_path / "none.jsonl"))
+
+    assert payload.restore_checks == [] and payload.last_verified is None

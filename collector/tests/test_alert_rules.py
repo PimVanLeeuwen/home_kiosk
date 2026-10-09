@@ -188,6 +188,32 @@ def test_a_failed_or_old_dump_is_a_problem_until_a_recent_good_one():
     assert (old.key, old.body) == ("backup_missing:db:tracearr", "Last success: Wed 30 Sep 04:00")
 
 
+def test_a_failed_or_old_restore_check_is_a_problem():
+    settings = {"hours": 26, "restore_days": 45}
+
+    def checks(ok, days_ago, last_days_ago):
+        last = (NOW - timedelta(days=last_days_ago)).isoformat()
+        return {"restore_checks": [{
+            "finished": (NOW - timedelta(days=days_ago)).isoformat(), "ok": ok,
+            "checks": [{"name": "download:databases", "ok": True, "detail": "identical"},
+                       {"name": "ghostfolio", "ok": ok,
+                        "detail": "ok" if ok else "pg_restore failed"}],
+        }], "last_verified": last}
+
+    def judge(dumps):
+        return rules.backup_missing(None, nas_payload(), settings, NOW, dumps=dumps)
+
+    assert judge(checks(True, 9, 9)) == []
+    assert judge({"restore_checks": [], "last_verified": None}) == []  # never run: no opinion
+
+    (failed,) = judge(checks(False, 1, 32))
+    assert (failed.key, failed.title, failed.body) == (
+        "backup_missing:restore-check", "Restore check failed, or none passed in 45 days",
+        "Last good check: Sun 30 Aug 10:00\nghostfolio: pg_restore failed")
+    (old,) = judge(checks(True, 50, 50))
+    assert old.key == "backup_missing:restore-check"
+
+
 def test_the_storage_box_above_the_threshold():
     box = {"storage_box": {"used_pct": 86.4, "free": 150_000_000_000, "total": 1_099_511_627_776}}
 

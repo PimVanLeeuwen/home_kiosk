@@ -143,6 +143,42 @@ describe('BackupsPage', () => {
     expect(within(card).getByText('Showing the last known figures.')).toBeInTheDocument()
   })
 
+  it('shows the newest restore check step by step, with the last verified restore', async () => {
+    stubApi({
+      '/api/backups': BACKUPS,
+      '/api/database-dumps': {
+        ...DUMPS,
+        last_verified: '2026-09-01T03:01:30Z',
+        restore_checks: [
+          {
+            started: '2026-10-01T03:00:00Z', finished: '2026-10-01T03:01:30Z', ok: false,
+            checks: [
+              { name: 'download:databases', ok: true, detail: '3 files, identical to the local copies' },
+              { name: 'ghostfolio', ok: false, detail: 'pg_restore failed: invalid archive' },
+            ],
+          },
+        ],
+      },
+    })
+    renderRoute('/backups')
+
+    const card = await screen.findByRole('region', { name: 'Restore check' })
+    const value = (label: string) => within(card).getByText(label).nextElementSibling
+    expect(value('Last check')).toHaveTextContent('Failed')
+    expect(value('Last verified restore')).toHaveTextContent('1 Sept')
+    const steps = within(card).getAllByRole('listitem')
+    expect(steps[0]).toHaveTextContent('OKDownload of the dumps3 files, identical to the local copies')
+    expect(steps[1]).toHaveTextContent('FailedGhostfolio restorepg_restore failed: invalid archive')
+  })
+
+  it('says how the restore check runs before the first one', async () => {
+    stubApi({ '/api/backups': BACKUPS, '/api/database-dumps': DUMPS })
+    renderRoute('/backups')
+
+    const card = await screen.findByRole('region', { name: 'Restore check' })
+    expect(within(card).getByText(/No restore check recorded yet/)).toBeInTheDocument()
+  })
+
   it('shows the mirror even before the first rclone run record', async () => {
     stubApi({ '/api/backups': { ...BACKUPS, runs: [], volumes: [], next_due: null }, '/api/github-mirror': MIRROR })
     renderRoute('/backups')

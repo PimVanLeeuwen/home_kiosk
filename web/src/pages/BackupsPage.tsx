@@ -1,5 +1,6 @@
 import { DumpsCard } from '../components/backups/DumpsCard'
 import { MirrorCard } from '../components/backups/MirrorCard'
+import { RestoreCheckCard } from '../components/backups/RestoreCheckCard'
 import { RunBars } from '../components/backups/RunBars'
 import { StorageBoxCard } from '../components/backups/StorageBoxCard'
 import { Card, Loading, StaleNote, Unavailable } from '../components/home/Card'
@@ -150,6 +151,13 @@ export function BackupsPage() {
       )}
 
       {dumps && <DumpsCard dumps={dumps} />}
+      {dumps && (
+        <RestoreCheckCard
+          checks={dumps.restore_checks ?? []}
+          lastVerified={dumps.last_verified ?? null}
+          stale={dumps.stale}
+        />
+      )}
       {mirror?.enabled && <MirrorCard mirror={mirror} />}
     </>
   )

@@ -142,6 +142,14 @@ CATALOG: dict[str, Template] = {
         "rules", "error", {"database": ("Database", "Ghostfolio"),
                            "last_success": ("When it last worked", "Fri 02 Oct 02:30"),
                            "error": ("The error, if any", "pg_dump: connection refused")}),
+    "restore_check": _msg(
+        RULES, "Restore check", "The monthly restore check failed, or none passed recently.",
+        "<b>{level}</b> · <b>Restore check failed, or none passed in {days} days</b>\n"
+        "Last good check: {last_verified}\n{error}",
+        "rules", "error", {"days": ("The rule's limit in days", "45"),
+                           "last_verified": ("When it last passed", "Thu 01 Oct 05:02"),
+                           "error": ("What failed, if anything",
+                                     "ghostfolio: pg_restore failed")}),
     "portfolio_move": _msg(
         RULES, "Portfolio move", "The portfolio moved more than the threshold today.",
         "<b>{level}</b> · <b>Portfolio moved {move} today</b>\nNow € {value}", "portfolio", "info",

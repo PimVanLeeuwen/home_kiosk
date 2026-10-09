@@ -73,6 +73,14 @@ const DUMPS = {
     { started: '2026-10-09T00:30:00Z', finished: '2026-10-09T00:30:05Z', ok: false, failed: 1 },
     { started: '2026-10-08T00:30:00Z', finished: '2026-10-08T00:30:04Z', ok: true, failed: 0 },
   ],
+  last_verified: '2026-10-01T03:01:30Z',
+  restore_checks: [{
+    started: '2026-10-01T03:00:00Z', finished: '2026-10-01T03:01:30Z', ok: true,
+    checks: [
+      { name: 'download:databases', ok: true, detail: '3 files, identical to the local copies' },
+      { name: 'ghostfolio', ok: true, detail: 'restored: 31 tables, 212 activities' },
+    ],
+  }],
 }
 
 test('Backups shows the database dumps and a failed one', async ({ page }) => {
@@ -84,4 +92,7 @@ test('Backups shows the database dumps and a failed one', async ({ page }) => {
   await expect(card.getByRole('listitem')).toHaveCount(4)
   await expect(card).toContainText('pg_dump: error: connection refused')
   await expect(card).toContainText('Host job: 1 of 2 recent runs succeeded')
+  const restore = page.getByRole('region', { name: 'Restore check' })
+  await expect(restore).toContainText('Passed')
+  await expect(restore).toContainText('restored: 31 tables, 212 activities')
 })

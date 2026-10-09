@@ -36,7 +36,7 @@ DEFAULT_RULES: dict[str, dict[str, Any]] = {
     "disk_space": {"enabled": True, "threshold_pct": 90},
     "container_health": {"enabled": True, "unhealthy_minutes": 5, "restarts": 3,
                          "restart_window_minutes": 10},
-    "backup_missing": {"enabled": True, "hours": 26},
+    "backup_missing": {"enabled": True, "hours": 26, "restore_days": 45},
     "storage_box": {"enabled": True, "threshold_pct": 85},
     "smart": {"enabled": True},
     "portfolio_move": {"enabled": False, "threshold_pct": 3},
@@ -230,6 +230,22 @@ def dump_problems(dumps: dict[str, Any] | None, settings: dict[str, Any],
     return problems
 
 
+def restore_problems(dumps: dict[str, Any] | None, settings: dict[str, Any],
+                     now: datetime) -> list[Problem]:
+    """The monthly restore check failed, or the last good one is too old. Only
+    once a check has run at all: until then there is nothing to judge."""
+    checks = (dumps or {}).get("restore_checks") or []
+    if not checks:
+        return []
+    last = (dumps or {}).get("last_verified")
+    days = settings.get("restore_days", 45)
+    if checks[0]["ok"] and last and now - datetime.fromisoformat(last) <= timedelta(days=days):
+        return []
+    failed = "; ".join(f"{c['name']}: {c['detail']}" for c in checks[0]["checks"] if not c["ok"])
+    return [Problem("backup_missing:restore-check", "backup_missing", "error", "restore_check",
+                    {"days": days, "last_verified": _when(last), "error": failed})]
+
+
 def backup_missing(
     backups: dict[str, Any] | None, nas: dict[str, Any] | None,
     settings: dict[str, Any], now: datetime, mirror: dict[str, Any] | None = None,
@@ -259,7 +275,8 @@ def backup_missing(
         # Without NAS data the volumes cannot be judged, so neither is the mirror:
         # a missing input must never "resolve" an open problem.
         return None
-    problems = mirror_problems + dump_problems(dumps, settings, now)
+    problems = (mirror_problems + dump_problems(dumps, settings, now)
+                + restore_problems(dumps, settings, now))
     for name, last in lasts.items():
         if last is None or now - datetime.fromisoformat(last) > limit:
             label = "the NAS" if name == "backup" else name

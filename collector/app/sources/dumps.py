@@ -4,7 +4,8 @@ The Postgres databases are dumped at 02:30 by nas-docker's
 host-jobs/dump-databases.sh (root's crontab on the NAS), which appends one JSON
 line per run to dump-runs.jsonl next to the dumps in /volume3/backups/databases.
 The collector reads it through a read-only mount. The hub's own SQLite copy is
-made by the collector itself (db_copy, 02:45).
+made by the collector itself (db_copy, 02:45). The monthly restore check
+(host-jobs/restore-check.sh) writes restore-checks.jsonl in the same folder.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from ..models import DatabaseDumps, DumpedDatabase, DumpRun
+from ..models import DatabaseDumps, DumpedDatabase, DumpRun, RestoreCheck
 from ..store import Store
 from . import db_copy
 
@@ -23,6 +24,7 @@ log = logging.getLogger(__name__)
 
 CACHE_KEY = "dumps"
 MAX_RUNS = 30
+MAX_RESTORE_CHECKS = 12  # a year of monthly checks
 LABELS = {"hub": "Home hub"}
 
 
@@ -59,6 +61,20 @@ def read_runs(path: str) -> list[dict[str, Any]]:
     return sorted(runs, key=lambda r: r["finished"], reverse=True)
 
 
+def read_restore_checks(path: str) -> list[RestoreCheck]:
+    """The monthly restore check's runs, newest first. Unreadable lines are skipped."""
+    file = Path(path)
+    checks = []
+    for line in file.read_text(errors="replace").splitlines() if file.exists() else []:
+        if not line.strip():
+            continue
+        try:
+            checks.append(RestoreCheck.model_validate_json(line))
+        except ValueError:
+            log.warning("skipped an unreadable restore check line")
+    return sorted(checks, key=lambda c: c.finished, reverse=True)
+
+
 def summarise(runs: list[dict[str, Any]]) -> list[DumpedDatabase]:
     """Per database: its newest attempt and the last time it succeeded."""
     names: list[str] = []
@@ -85,16 +101,21 @@ def hub_copy(store: Store) -> DumpedDatabase:
         bytes=copy.get("bytes"), error=copy.get("error"), last_success=copy.get("last_success"))
 
 
-def read(path: str, store: Store) -> DatabaseDumps:
+def read(path: str, store: Store, restore_path: str | None = None) -> DatabaseDumps:
     runs = read_runs(path)
+    checks = read_restore_checks(restore_path) if restore_path else []
     return DatabaseDumps(
         as_of=datetime.now(UTC),
         databases=[*summarise(runs), hub_copy(store)],
         runs=[DumpRun(started=r["started"], finished=r["finished"], ok=r["ok"],
                       failed=sum(1 for d in r["dumps"] if not d["ok"]))
               for r in runs[:MAX_RUNS]],
+        restore_checks=checks[:MAX_RESTORE_CHECKS],
+        last_verified=next((c.finished for c in checks if c.ok), None),
     )
 
 
 async def collect(cfg: dict[str, Any], store: Store) -> DatabaseDumps:
-    return read(cfg["nas"].get("dump_runs", "/backups/databases/dump-runs.jsonl"), store)
+    nas = cfg["nas"]
+    return read(nas.get("dump_runs", "/backups/databases/dump-runs.jsonl"), store,
+                nas.get("restore_checks", "/backups/databases/restore-checks.jsonl"))

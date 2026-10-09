@@ -548,6 +548,22 @@ class DumpRun(BaseModel):
     failed: int
 
 
+class RestoreCheckItem(BaseModel):
+    name: str  # download:databases, download:hub, ghostfolio, hub
+    ok: bool
+    detail: str
+
+
+class RestoreCheck(BaseModel):
+    started: datetime
+    finished: datetime
+    ok: bool
+    checks: list[RestoreCheckItem]
+
+
 class DatabaseDumps(Envelope):
     databases: list[DumpedDatabase]
     runs: list[DumpRun]  # the host job's runs, newest first
+    # The monthly restore check (host-jobs/restore-check.sh), newest first.
+    restore_checks: list[RestoreCheck] = []
+    last_verified: datetime | None = None  # the newest check that passed
