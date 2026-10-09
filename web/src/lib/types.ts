@@ -132,6 +132,16 @@ export interface ReposResponse {
   as_of: string
   stale: boolean
   groups: { login: string; label: string; repos: Repo[]; error: string | null }[]
+  /** One per configured token, by the owner labels it reads. */
+  tokens?: GitHubToken[]
+}
+
+export interface GitHubToken {
+  owners: string[]
+  /** null: no expiry date, or not known yet. */
+  expires_at: string | null
+  /** GitHub has answered a request with it. */
+  checked: boolean
 }
 
 export interface ContainerLoad {
@@ -350,6 +360,7 @@ export interface RuleSettings {
   restart_window_minutes?: number
   hours?: number
   restore_days?: number
+  days?: number
 }
 
 export interface AlertRules {

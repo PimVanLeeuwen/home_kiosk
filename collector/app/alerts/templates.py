@@ -97,6 +97,13 @@ CATALOG: dict[str, Template] = {
         "{free} left of {total}", "rules", "warning",
         {"used_pct": ("Percentage used", "86"), "free": ("Space left", "150,0 GB"),
          "total": ("Box size", "1,1 TB")}),
+    "token_expiry": _msg(
+        RULES, "GitHub token expiry", "A GitHub token for Repos and the mirror expires soon.",
+        "<b>{level}</b> · <b>GitHub token for {owners} {when}</b>\n"
+        "Valid until {date}. Make a new one on GitHub and put it in the hub's .env on the NAS.",
+        "rules", "warning", {"owners": ("The owners it reads", "Mine and GEWIS"),
+                             "when": ("expires in … days, or expired on …", "expires in 13 days"),
+                             "date": ("Expiry date", "Sat 21 Nov 2026")}),
     "smart_failing": _msg(
         RULES, "Disk failing (SMART)", "Scrutiny marks a disk as failed.",
         "<b>{level}</b> · <b>Disk {disk} is failing (SMART)</b>\n"

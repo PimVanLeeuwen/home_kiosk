@@ -19,6 +19,7 @@ const FIELDS: Record<string, { field: NumberField; before: string; after: string
     { field: 'hours', before: 'No successful run in', after: 'h', min: 1, max: 336 },
     { field: 'restore_days', before: 'or no good restore check in', after: 'days', min: 1, max: 366 },
   ],
+  token_expiry: [{ field: 'days', before: 'Warn', after: 'days before, and again at 3', min: 4, max: 90 }],
   storage_box: [{ field: 'threshold_pct', before: 'Hetzner box above', after: '%', min: 1, max: 100 }],
   smart: [],
   portfolio_move: [{ field: 'threshold_pct', before: 'Day change beyond ±', after: '%', min: 1, max: 100 }],

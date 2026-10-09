@@ -38,6 +38,7 @@ DEFAULT_RULES: dict[str, dict[str, Any]] = {
                          "restart_window_minutes": 10},
     "backup_missing": {"enabled": True, "hours": 26, "restore_days": 45},
     "storage_box": {"enabled": True, "threshold_pct": 85},
+    "token_expiry": {"enabled": True, "days": 14},
     "smart": {"enabled": True},
     "portfolio_move": {"enabled": False, "threshold_pct": 3},
 }
@@ -47,12 +48,17 @@ RULE_LABELS = {
     "container_health": "Container health",
     "backup_missing": "Backup missing",
     "storage_box": "Storage box space",
+    "token_expiry": "GitHub token expiry",
     "smart": "Disk SMART",
     "portfolio_move": "Portfolio move",
 }
 
-# Rules whose problems end on their own and need no "resolved" message.
-NO_RESOLVE = {"portfolio_move"}
+# Rules whose problems end on their own and need no "resolved" message. A
+# renewed token simply stops warning.
+NO_RESOLVE = {"portfolio_move", "token_expiry"}
+
+# The second, last warning before a token expires.
+TOKEN_FINAL_DAYS = 3
 
 # Input older than this counts as missing: its rule is skipped.
 FRESH = timedelta(minutes=15)
@@ -136,6 +142,41 @@ def storage_box(backups: dict[str, Any] | None, settings: dict[str, Any]) -> lis
     return [Problem("storage_box", "storage_box", "warning", "storage_box",
                     {"used_pct": int(box["used_pct"]), "free": _size(box["free"]),
                      "total": _size(box["total"])})]
+
+
+def _and(labels: list[str]) -> str:
+    return labels[0] if len(labels) == 1 else ", ".join(labels[:-1]) + " and " + labels[-1]
+
+
+def token_expiry(repos: dict[str, Any] | None, settings: dict[str, Any],
+                 now: datetime) -> list[Problem] | None:
+    """A warning `days` before a GitHub token expires and an error at 3 days.
+    The stage is part of the key, so each one sends its own message. Judged
+    as it is: an expiry date does not go stale."""
+    if repos is None:
+        return None
+    problems = []
+    for token in repos.get("tokens") or []:
+        if not token.get("expires_at"):
+            continue
+        expires = datetime.fromisoformat(token["expires_at"])
+        days = (expires - now).total_seconds() / 86400
+        if days > settings["days"]:
+            continue
+        final = days <= TOKEN_FINAL_DAYS
+        if days < 0:
+            when = f"expired on {expires.strftime('%a %d %b')}"
+        elif days < 1:
+            when = "expires today"
+        else:
+            whole = int(days)
+            when = f"expires in {whole} day{'' if whole == 1 else 's'}"
+        owners = _and(token["owners"])
+        problems.append(Problem(
+            f"token_expiry:{owners}:{TOKEN_FINAL_DAYS if final else settings['days']}",
+            "token_expiry", "error" if final else "warning", "token_expiry",
+            {"owners": owners, "when": when, "date": expires.strftime("%a %d %b %Y")}))
+    return problems
 
 
 def smart(nas: dict[str, Any] | None, settings: dict[str, Any]) -> list[Problem] | None:
@@ -405,6 +446,7 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
                                          store.get_cache("dumps")),
         "storage_box": storage_box(_fresh(store.get_cache("backups"), now),
                                    settings["storage_box"]),
+        "token_expiry": token_expiry(store.get_cache("repos"), settings["token_expiry"], now),
         "portfolio_move": portfolio_move(_fresh(store.get_cache("portfolio"), now),
                                          settings["portfolio_move"],
                                          core.local(now, cfg).date().isoformat()),

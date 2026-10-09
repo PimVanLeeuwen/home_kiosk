@@ -373,8 +373,17 @@ class RepoGroup(BaseModel):
     error: str | None = None
 
 
+class GitHubToken(BaseModel):
+    """One configured token; the value itself is never kept."""
+
+    owners: list[str]  # labels of the owners it reads, e.g. ["Mine", "GEWIS"]
+    expires_at: datetime | None = None  # None: no expiry date, or not known yet
+    checked: bool = False  # GitHub has answered a request with it
+
+
 class Repos(Envelope):
     groups: list[RepoGroup]
+    tokens: list[GitHubToken] = []
 
 
 # --- Home hub: Docker page ------------------------------------------------------

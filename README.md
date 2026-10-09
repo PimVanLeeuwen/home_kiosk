@@ -11,7 +11,7 @@ There is no login and nothing is exposed to the internet.
 | Portfolio | Ghostfolio overview: value history, holdings, allocation, holding detail, markets; **Update from DEGIRO** imports new trades |
 | NAS, Docker, Backups | Live figures and history, container load and image updates, rclone runs per volume, storage box space, database dumps, the GitHub mirror |
 | Services | Links to every app, LAN or Tailscale depending on how the hub was opened, with live stats |
-| Repos | GitHub repos: your own, Hubble and GEWIS, with the backup status of each mirrored repo |
+| Repos | GitHub repos: your own, Hubble and GEWIS, with the backup status of each mirrored repo and when each token expires |
 | Alerts | Every Telegram message the hub sends, routing, quiet hours and the hub's own alert rules |
 | Settings | Service catalog, news feeds, and the wording of every Telegram message (templates with a live preview and a test send) |
 

@@ -214,6 +214,28 @@ def test_a_failed_or_old_restore_check_is_a_problem():
     assert old.key == "backup_missing:restore-check"
 
 
+def test_a_token_warns_at_14_days_and_again_at_3():
+    settings = {"days": 14}
+
+    def judge(days_left, owners=("Mine", "GEWIS")):
+        token = {"owners": list(owners), "checked": True,
+                 "expires_at": (NOW + timedelta(days=days_left)).isoformat()}
+        repos = {"tokens": [token, {"owners": ["Hubble"], "expires_at": None}]}
+        return rules.token_expiry(repos, settings, NOW)
+
+    assert judge(20) == []
+    (warn,) = judge(13.5)
+    assert (warn.key, warn.severity, warn.title) == (
+        "token_expiry:Mine and GEWIS:14", "warning",
+        "GitHub token for Mine and GEWIS expires in 13 days")
+    assert warn.body.startswith("Valid until Wed 14 Oct 2026.")
+    (final,) = judge(2.5, owners=("Hubble",))
+    assert (final.key, final.severity) == ("token_expiry:Hubble:3", "error")
+    (gone,) = judge(-1)
+    assert gone.title == "GitHub token for Mine and GEWIS expired on Wed 30 Sep"
+    assert rules.token_expiry(None, settings, NOW) is None
+
+
 def test_the_storage_box_above_the_threshold():
     box = {"storage_box": {"used_pct": 86.4, "free": 150_000_000_000, "total": 1_099_511_627_776}}
 

@@ -170,3 +170,41 @@ def test_tokens_never_reach_errors_or_logs(store, caplog):
     assert result.groups[0].error == "GitHub not reachable"
     assert TOKEN not in caplog.text
     assert TOKEN not in result.model_dump_json()
+
+
+def test_each_token_reports_its_expiry_and_never_its_value(store):
+    owners = [{"login": "PimVanLeeuwen", "label": "Mine"},
+              {"login": "Hubble-Community-Cafe", "label": "Hubble", "token": HUBBLE_TOKEN},
+              {"login": "Other", "label": "Other"}]
+
+    def handler(request):
+        headers = {}
+        if request.headers["Authorization"] == f"Bearer {TOKEN}":
+            headers[github.EXPIRY_HEADER] = "2026-11-21 13:05:00 UTC"
+        return httpx.Response(200, json=page([node("x")]), headers=headers)
+
+    repos = run(store, handler, owners)
+
+    mine, hubble = repos.tokens
+    assert (mine.owners, mine.checked, mine.expires_at.isoformat()) == (
+        ["Mine", "Other"], True, "2026-11-21T13:05:00+00:00")
+    # Answered without the header: a token with no expiry date.
+    assert (hubble.owners, hubble.checked, hubble.expires_at) == (["Hubble"], True, None)
+    dumped = repos.model_dump_json()
+    assert TOKEN not in dumped and HUBBLE_TOKEN not in dumped
+
+
+def test_a_token_github_refused_keeps_what_was_known(store):
+    store.put_cache("repos", {"groups": [], "tokens": [
+        {"owners": ["Mine"], "expires_at": "2026-11-21T13:05:00+00:00", "checked": True}]})
+
+    repos = run(store, lambda request: httpx.Response(401), [{"login": "PimVanLeeuwen",
+                                                               "label": "Mine"}])
+
+    assert repos.tokens[0].expires_at.isoformat() == "2026-11-21T13:05:00+00:00"
+
+
+def test_expiry_header_formats():
+    assert github.parse_expiry("2026-11-21 13:05:00 +0100").isoformat() == (
+        "2026-11-21T13:05:00+01:00")
+    assert github.parse_expiry("next tuesday") is None

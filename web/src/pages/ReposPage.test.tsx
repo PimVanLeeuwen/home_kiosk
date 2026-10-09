@@ -113,6 +113,36 @@ describe('ReposPage', () => {
     expect(screen.queryAllByRole('article')).toHaveLength(0)
   })
 
+  it('says when the tab\'s token expires, warning when it is close', async () => {
+    const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString()
+    stubApi({
+      '/api/repos': {
+        ...REPOS,
+        tokens: [
+          { owners: ['Mine', 'GEWIS'], expires_at: inDays(40.5), checked: true },
+          { owners: ['Hubble'], expires_at: inDays(10.5), checked: true },
+        ],
+      },
+    })
+    renderRoute('/repos')
+
+    const mine = await screen.findByText(/GitHub token \(Mine and GEWIS\) expires/)
+    expect(mine).toHaveTextContent('(in 40 days)')
+    expect(mine).toHaveClass('text-muted')
+
+    fireEvent.click(screen.getByRole('tab', { name: /Hubble/ }))
+    const hubble = await screen.findByText(/^GitHub token expires/)
+    expect(hubble).toHaveTextContent('(in 10 days)')
+    expect(hubble).toHaveClass('text-warn')
+  })
+
+  it('leaves the token line out until GitHub has answered with it', async () => {
+    stubApi({ '/api/repos': { ...REPOS, tokens: [{ owners: ['Mine'], expires_at: null, checked: false }] } })
+    renderRoute('/repos')
+    await screen.findAllByRole('article')
+    expect(screen.queryByText(/GitHub token/)).not.toBeInTheDocument()
+  })
+
   it('opens the tab named in the address', async () => {
     stubApi({ '/api/repos': REPOS })
     renderRoute('/repos?tab=GEWIS')

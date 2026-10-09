@@ -16,7 +16,7 @@ from typing import Any
 
 import httpx
 
-from ..models import Release, Repo, RepoGroup, Repos
+from ..models import GitHubToken, Release, Repo, RepoGroup, Repos
 from ..store import Store
 
 log = logging.getLogger(__name__)
@@ -66,8 +66,21 @@ CI_STATE = {
 }
 
 
+EXPIRY_HEADER = "github-authentication-token-expiration"
+
+
 class GitHubError(Exception):
     """A failure with a message fit for the page."""
+
+
+def parse_expiry(value: str) -> datetime | None:
+    """GitHub's expiry header, such as "2026-11-21 13:05:00 UTC" or "... +0100"."""
+    text = value.strip().replace(" UTC", " +0000")
+    try:
+        return datetime.strptime(text, "%Y-%m-%d %H:%M:%S %z")
+    except ValueError:
+        log.warning("unreadable token expiry header")
+        return None
 
 
 def parse_repo(node: dict[str, Any]) -> Repo:
@@ -208,20 +221,59 @@ async def _group(
         return RepoGroup(login=login, label=label, repos=last, error=describe(exc))
 
 
+def _tokens(
+    owners: list[dict[str, Any]], default_token: str, answered: dict[str, str | None],
+    previous: list[dict[str, Any]],
+) -> list[GitHubToken]:
+    """One entry per distinct token, named by the owners it reads. `answered`
+    maps an Authorization header to the expiry GitHub sent with it (None when
+    it sent none: no expiry date). A token GitHub did not answer this time
+    keeps what the last run knew."""
+    by_token: dict[str, list[str]] = {}
+    for owner in owners:
+        token = (owner.get("token") or "").strip() or default_token
+        if token:
+            by_token.setdefault(token, []).append(owner.get("label", owner["login"]))
+    known = {tuple(t["owners"]): t for t in previous}
+    tokens = []
+    for token, labels in by_token.items():
+        auth = f"Bearer {token}"
+        if auth in answered:
+            expiry = answered[auth]
+            tokens.append(GitHubToken(owners=labels, checked=True,
+                                      expires_at=parse_expiry(expiry) if expiry else None))
+        elif (last := known.get(tuple(labels))) is not None:
+            tokens.append(GitHubToken.model_validate(last))
+        else:
+            tokens.append(GitHubToken(owners=labels))
+    return tokens
+
+
 async def collect(
     cfg: dict[str, Any], store: Store, transport: httpx.AsyncBaseTransport | None = None
 ) -> Repos:
     """`transport` is for tests (httpx.MockTransport)."""
     gh_cfg = cfg.get("github") or {}
     default_token = (gh_cfg.get("token") or "").strip()
-    previous = {g["login"]: g for g in (store.get_cache("repos") or {}).get("groups", [])}
+    cached = store.get_cache("repos") or {}
+    previous = {g["login"]: g for g in cached.get("groups", [])}
+    # Authorization header -> the token's expiry, from every answered request.
+    answered: dict[str, str | None] = {}
+
+    async def note_expiry(response: httpx.Response) -> None:
+        auth = response.request.headers.get("Authorization")
+        if auth and response.status_code < 400:
+            answered[auth] = response.headers.get(EXPIRY_HEADER) or answered.get(auth)
+
     async with httpx.AsyncClient(
         timeout=TIMEOUT_SECONDS,
         transport=transport,
         headers={"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"},
+        event_hooks={"response": [note_expiry]},
     ) as client:
         groups = [
             await _group(client, owner, default_token, previous.get(owner["login"]))
             for owner in gh_cfg.get("owners", [])
         ]
-    return Repos(as_of=datetime.now(UTC), stale=False, groups=groups)
+    tokens = _tokens(gh_cfg.get("owners", []), default_token, answered, cached.get("tokens", []))
+    return Repos(as_of=datetime.now(UTC), stale=False, groups=groups, tokens=tokens)

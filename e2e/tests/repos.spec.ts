@@ -59,3 +59,13 @@ test('Repos shows the backup status of mirrored owners', async ({ page }) => {
   await page.getByRole('tab', { name: /GEWIS/ }).click()
   await expect(page.getByRole('article', { name: /aurora/ })).not.toContainText('Backed up')
 })
+
+test('Repos says when the tab\'s GitHub token expires', async ({ page }) => {
+  const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString()
+  await page.route('**/api/repos', (route) => route.fulfill({
+    json: { ...REPOS, tokens: [{ owners: ['Mine', 'GEWIS'], expires_at: inDays(10.5), checked: true }] },
+  }))
+  await page.goto('/repos')
+
+  await expect(page.getByText(/GitHub token \(Mine and GEWIS\) expires .* \(in 10 days\)/)).toBeVisible()
+})

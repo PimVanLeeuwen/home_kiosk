@@ -3,6 +3,7 @@ import { useId, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
 import { RepoCard } from '../components/repos/RepoCard'
+import { TokenNote } from '../components/repos/TokenNote'
 import { cn } from '../lib/cn'
 import { formatAgo, formatWhen } from '../lib/format'
 import type { GitHubMirror, MirroredRepo, Repo, ReposResponse } from '../lib/types'
@@ -147,6 +148,7 @@ export function ReposPage() {
             </div>
 
             {mirror?.enabled && <MirrorNote mirror={mirror} login={active.login} />}
+            <TokenNote token={data?.tokens?.find((t) => t.owners.includes(active.label))} />
 
             {active.error && (
               <p role="status" className="mb-4 text-[13px] text-warn">
