@@ -23,6 +23,7 @@ from .sources import (
     container_stats,
     db_copy,
     docker,
+    dumps,
     feeds,
     ghostfolio,
     github,
@@ -129,6 +130,17 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         seconds=BACKUPS_INTERVAL_SECONDS,
         args=[store, "backups", lambda: backups.collect(cfg)],
         id="backups",
+        next_run_time=None,
+        max_instances=1,
+        coalesce=True,
+    )
+
+    scheduler.add_job(
+        _run,
+        "interval",
+        seconds=BACKUPS_INTERVAL_SECONDS,
+        args=[store, dumps.CACHE_KEY, lambda: dumps.collect(cfg, store)],
+        id="dumps",
         next_run_time=None,
         max_instances=1,
         coalesce=True,

@@ -60,6 +60,10 @@ services:
       # rclone run takes it to Hetzner. Docker creates the folder on the first
       # deploy; without this mount the Backups page shows the mirror as failed.
       - /volume3/backups/github:/backups/github
+      # The nightly database dumps' run records, written by nas-docker's
+      # host-jobs/dump-databases.sh (root's crontab). Read-only: root writes
+      # there, so no container may.
+      - /volume3/backups/databases:/backups/databases:ro
     extra_hosts:
       - host.docker.internal:host-gateway
     depends_on:

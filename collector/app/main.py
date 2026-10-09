@@ -178,6 +178,11 @@ def backups() -> Any:
     return _serve("backups")
 
 
+@app.get("/api/database-dumps")
+def database_dumps() -> Any:
+    return _serve("dumps")
+
+
 @app.get("/api/docker")
 def docker_overview() -> Any:
     return _serve("docker")

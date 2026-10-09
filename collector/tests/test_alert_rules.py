@@ -165,6 +165,29 @@ def test_backup_missing_per_volume_or_from_the_marker():
     assert rules.backup_missing(None, None, settings, NOW) is None
 
 
+def test_a_failed_or_old_dump_is_a_problem_until_a_recent_good_one():
+    settings = {"hours": 26}
+
+    def db(name, ok, hours_ago, error=None):
+        last = (NOW - timedelta(hours=hours_ago)).isoformat() if hours_ago is not None else None
+        return {"name": name, "label": name.capitalize(), "ok": ok, "last_success": last,
+                "error": error}
+
+    dumps = {"databases": [
+        db("ghostfolio", True, 8),
+        db("tandoor", False, 32, "pg_dump: connection refused"),
+        db("tracearr", True, 30),
+        db("hub", None, None),  # never attempted yet: no opinion
+    ]}
+
+    failed, old = rules.backup_missing(None, nas_payload(), settings, NOW, dumps=dumps)
+    assert (failed.key, failed.title, failed.body) == (
+        "backup_missing:db:tandoor", "No good dump of the Tandoor database",
+        "Last success: Wed 30 Sep 02:00\npg_dump: connection refused")
+    # No error text: that line is left out.
+    assert (old.key, old.body) == ("backup_missing:db:tracearr", "Last success: Wed 30 Sep 04:00")
+
+
 def test_portfolio_move_beyond_the_threshold():
     portfolio = {"total_value": 9119.0, "change": {"day_pct": -3.4}}
 

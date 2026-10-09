@@ -18,7 +18,7 @@ export function formatBytes(bytes: number): string {
   if (bytes >= TB) return `${decimals(bytes / TB, 1)} TB`
   // One decimal below 10 GB, where whole gigabytes are too coarse (container memory).
   if (bytes >= GB) return `${decimals(bytes / GB, bytes < 10 * GB ? 1 : 0)} GB`
-  return `${decimals(bytes / MB, 0)} MB`
+  return `${decimals(bytes / MB, bytes < 10 * MB ? 1 : 0)} MB`
 }
 
 /** Transfer speed: kB/s below one megabyte per second, else MB/s. */

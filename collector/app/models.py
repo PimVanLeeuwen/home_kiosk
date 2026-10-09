@@ -506,3 +506,30 @@ class DatabaseCopy(Envelope):
     path: str
     bytes: int | None = None
     error: str | None = None
+    last_success: datetime | None = None
+
+
+# --- Home hub: database dumps -----------------------------------------------------
+
+
+class DumpedDatabase(BaseModel):
+    name: str  # ghostfolio, tandoor, tracearr, hub
+    label: str
+    kind: Literal["pg_dump", "sqlite"]
+    ok: bool | None  # the newest attempt; None when there is none yet
+    at: datetime | None = None  # when the newest attempt finished
+    bytes: int | None = None
+    error: str | None = None
+    last_success: datetime | None = None
+
+
+class DumpRun(BaseModel):
+    started: datetime
+    finished: datetime
+    ok: bool
+    failed: int
+
+
+class DatabaseDumps(Envelope):
+    databases: list[DumpedDatabase]
+    runs: list[DumpRun]  # the host job's runs, newest first

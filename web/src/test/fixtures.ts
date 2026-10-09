@@ -1,4 +1,4 @@
-import type { BackupHistory, BackupRun, GitHubMirror, MirroredRepo, Nas, Portfolio, ServicesResponse } from '../lib/types'
+import type { BackupHistory, BackupRun, DatabaseDumps, GitHubMirror, MirroredRepo, Nas, Portfolio, ServicesResponse } from '../lib/types'
 
 /** Shared API fixtures for page tests. Times are relative to now so "today" holds. */
 export function nasFixture(over: Partial<Nas> = {}): Nas {
@@ -130,4 +130,27 @@ export const MIRROR: GitHubMirror = {
   ],
   last_success: '2026-10-03T00:02:00Z',
   next_due: '2026-10-05T00:00:00Z',
+}
+
+const dumped = (name: string, label: string, over: Partial<DatabaseDumps['databases'][number]> = {}) => ({
+  name, label, kind: 'pg_dump' as const, ok: true, at: '2026-10-09T00:30:05Z', bytes: 623_926, error: null,
+  last_success: '2026-10-09T00:30:05Z', ...over,
+})
+
+/** Tandoor failed last night; the hub copy is fine. */
+export const DUMPS: DatabaseDumps = {
+  as_of: '2026-10-09T08:00:00Z',
+  stale: false,
+  databases: [
+    dumped('ghostfolio', 'Ghostfolio'),
+    dumped('tandoor', 'Tandoor', {
+      ok: false, bytes: null, error: 'pg_dump: error: connection refused', last_success: '2026-10-08T00:30:04Z',
+    }),
+    dumped('tracearr', 'Tracearr', { bytes: 4_371_803 }),
+    dumped('hub', 'Home hub', { kind: 'sqlite', at: '2026-10-09T00:45:01Z', bytes: 2_100_000 }),
+  ],
+  runs: [
+    { started: '2026-10-09T00:30:00Z', finished: '2026-10-09T00:30:05Z', ok: false, failed: 1 },
+    { started: '2026-10-08T00:30:00Z', finished: '2026-10-08T00:30:04Z', ok: true, failed: 0 },
+  ],
 }

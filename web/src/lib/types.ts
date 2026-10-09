@@ -249,6 +249,27 @@ export interface GitHubMirror {
   next_due: string | null
 }
 
+export interface DumpedDatabase {
+  name: string
+  label: string
+  kind: 'pg_dump' | 'sqlite'
+  /** The newest attempt; null when there is none yet. */
+  ok: boolean | null
+  at: string | null
+  bytes: number | null
+  error: string | null
+  last_success: string | null
+}
+
+/** Nightly database dumps: the NAS host job and the hub's own copy (GET /api/database-dumps). */
+export interface DatabaseDumps {
+  as_of: string
+  stale: boolean
+  databases: DumpedDatabase[]
+  /** The host job's runs, newest first. */
+  runs: { started: string; finished: string; ok: boolean; failed: number }[]
+}
+
 export type Severity = 'info' | 'ok' | 'warning' | 'error'
 
 export interface AlertMessage {

@@ -53,3 +53,28 @@ test('Backups shows the GitHub mirror and what failed', async ({ page }) => {
   await card.getByRole('link', { name: /Repos/ }).click()
   await expect(page).toHaveURL(/\/repos$/)
 })
+
+const DUMPS = {
+  as_of: new Date().toISOString(), stale: false,
+  databases: [
+    { name: 'ghostfolio', label: 'Ghostfolio', kind: 'pg_dump', ok: true, at: '2026-10-09T00:30:05Z', bytes: 623_926, error: null, last_success: '2026-10-09T00:30:05Z' },
+    { name: 'tandoor', label: 'Tandoor', kind: 'pg_dump', ok: false, at: '2026-10-09T00:30:05Z', bytes: null, error: 'pg_dump: error: connection refused', last_success: '2026-10-08T00:30:04Z' },
+    { name: 'tracearr', label: 'Tracearr', kind: 'pg_dump', ok: true, at: '2026-10-09T00:30:05Z', bytes: 4_371_803, error: null, last_success: '2026-10-09T00:30:05Z' },
+    { name: 'hub', label: 'Home hub', kind: 'sqlite', ok: true, at: '2026-10-09T00:45:01Z', bytes: 2_100_000, error: null, last_success: '2026-10-09T00:45:01Z' },
+  ],
+  runs: [
+    { started: '2026-10-09T00:30:00Z', finished: '2026-10-09T00:30:05Z', ok: false, failed: 1 },
+    { started: '2026-10-08T00:30:00Z', finished: '2026-10-08T00:30:04Z', ok: true, failed: 0 },
+  ],
+}
+
+test('Backups shows the database dumps and a failed one', async ({ page }) => {
+  await page.route('**/api/backups', (route) => route.fulfill({ json: HISTORY }))
+  await page.route('**/api/database-dumps', (route) => route.fulfill({ json: DUMPS }))
+  await page.goto('/backups')
+
+  const card = page.getByRole('region', { name: 'Database dumps' })
+  await expect(card.getByRole('listitem')).toHaveCount(4)
+  await expect(card).toContainText('pg_dump: error: connection refused')
+  await expect(card).toContainText('Host job: 1 of 2 recent runs succeeded')
+})

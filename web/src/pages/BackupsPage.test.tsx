@@ -1,5 +1,5 @@
 import { screen, within } from '@testing-library/react'
-import { BACKUPS, MIRROR } from '../test/fixtures'
+import { BACKUPS, DUMPS, MIRROR } from '../test/fixtures'
 import { renderRoute } from '../test/renderRoute'
 import { stubApi } from '../test/stubApi'
 
@@ -83,6 +83,38 @@ describe('BackupsPage', () => {
     renderRoute('/backups')
     await screen.findByText('Next run due')
     expect(screen.queryByRole('region', { name: 'GitHub mirror' })).not.toBeInTheDocument()
+  })
+
+  it('shows each database dump, with the error of a failed one', async () => {
+    stubApi({ '/api/backups': BACKUPS, '/api/database-dumps': DUMPS })
+    renderRoute('/backups')
+
+    const card = await screen.findByRole('region', { name: 'Database dumps' })
+    const items = within(card).getAllByRole('listitem')
+    expect(items.map((li) => li.querySelector('.font-semibold')?.textContent)).toEqual([
+      'Ghostfolio', 'Tandoor', 'Tracearr', 'Home hub',
+    ])
+    expect(items[0]).toHaveTextContent('Succeeded · 0,6 MB')
+    expect(items[1]).toHaveTextContent('Failed')
+    expect(items[1]).toHaveTextContent('pg_dump: error: connection refused')
+    expect(items[3]).toHaveTextContent('SQLite')
+    expect(within(card).getByText(/recent runs succeeded/)).toHaveTextContent('Host job: 1 of 2 recent runs succeeded')
+  })
+
+  it('explains where the dumps come from before the first host run', async () => {
+    stubApi({
+      '/api/backups': BACKUPS,
+      '/api/database-dumps': {
+        ...DUMPS, stale: true, runs: [],
+        databases: [{ ...DUMPS.databases[3], ok: null, at: null, bytes: null, last_success: null }],
+      },
+    })
+    renderRoute('/backups')
+
+    const card = await screen.findByRole('region', { name: 'Database dumps' })
+    expect(within(card).getByText('Not run yet')).toBeInTheDocument()
+    expect(within(card).getByText(/No dump run recorded yet/)).toBeInTheDocument()
+    expect(within(card).getByText('Showing the last known figures.')).toBeInTheDocument()
   })
 
   it('shows the mirror even before the first rclone run record', async () => {

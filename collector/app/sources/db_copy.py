@@ -57,4 +57,10 @@ def write(store: Store) -> DatabaseCopy:
 
 
 async def collect(store: Store) -> DatabaseCopy:
-    return await asyncio.to_thread(write, store)
+    result = await asyncio.to_thread(write, store)
+    if result.ok:
+        result.last_success = result.as_of
+    else:
+        previous = (store.get_cache(CACHE_KEY) or {}).get("last_success")
+        result.last_success = datetime.fromisoformat(previous) if previous else None
+    return result

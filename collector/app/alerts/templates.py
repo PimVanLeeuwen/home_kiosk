@@ -129,6 +129,13 @@ CATALOG: dict[str, Template] = {
         "Last success: {last_success}",
         "rules", "error", {"hours": ("The rule's limit", "26"),
                            "last_success": ("When it last worked", "Fri 02 Oct 02:01")}),
+    "dump_missing": _msg(
+        RULES, "Database dump failed", "A database's newest dump failed, or none is recent.",
+        "<b>{level}</b> · <b>No good dump of the {database} database</b>\n"
+        "Last success: {last_success}\n{error}",
+        "rules", "error", {"database": ("Database", "Ghostfolio"),
+                           "last_success": ("When it last worked", "Fri 02 Oct 02:30"),
+                           "error": ("The error, if any", "pg_dump: connection refused")}),
     "portfolio_move": _msg(
         RULES, "Portfolio move", "The portfolio moved more than the threshold today.",
         "<b>{level}</b> · <b>Portfolio moved {move} today</b>\nNow € {value}", "portfolio", "info",

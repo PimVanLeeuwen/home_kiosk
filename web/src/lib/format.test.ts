@@ -21,6 +21,7 @@ it('formats bytes like the kiosk', () => {
   expect(formatBytes(912_000_000_000)).toBe('912 GB')
   expect(formatBytes(2_400_000_000)).toBe('2,4 GB')
   expect(formatBytes(80_500_000)).toBe('81 MB')
+  expect(formatBytes(623_926)).toBe('0,6 MB')
 })
 
 it('formats transfer speeds', () => {

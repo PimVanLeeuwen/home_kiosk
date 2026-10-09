@@ -193,9 +193,33 @@ def container_health(
     return problems
 
 
+def _when(last: str | None) -> str:
+    return datetime.fromisoformat(last).strftime("%a %d %b %H:%M") if last else "none recorded"
+
+
+def dump_problems(dumps: dict[str, Any] | None, settings: dict[str, Any],
+                  now: datetime) -> list[Problem]:
+    """A database whose newest dump failed, or whose last good one is too old.
+    Judged as it is, like the mirror: the payload only changes once a night."""
+    limit = timedelta(hours=settings["hours"])
+    problems = []
+    for db in (dumps or {}).get("databases") or []:
+        if db.get("ok") is None:
+            continue  # never attempted yet
+        last = db.get("last_success")
+        if db["ok"] and last and now - datetime.fromisoformat(last) <= limit:
+            continue
+        problems.append(Problem(
+            f"backup_missing:db:{db['name']}", "backup_missing", "error", "dump_missing",
+            {"database": db["label"], "last_success": _when(last),
+             "error": db.get("error") or ""}))
+    return problems
+
+
 def backup_missing(
     backups: dict[str, Any] | None, nas: dict[str, Any] | None,
     settings: dict[str, Any], now: datetime, mirror: dict[str, Any] | None = None,
+    dumps: dict[str, Any] | None = None,
 ) -> list[Problem] | None:
     limit = timedelta(hours=settings["hours"])
     # The GitHub mirror runs once a night, so its payload is judged as it is
@@ -221,7 +245,7 @@ def backup_missing(
         # Without NAS data the volumes cannot be judged, so neither is the mirror:
         # a missing input must never "resolve" an open problem.
         return None
-    problems = mirror_problems
+    problems = mirror_problems + dump_problems(dumps, settings, now)
     for name, last in lasts.items():
         if last is None or now - datetime.fromisoformat(last) > limit:
             label = "the NAS" if name == "backup" else name
@@ -346,7 +370,8 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
                                               pending, health, now),
         "backup_missing": backup_missing(_fresh(store.get_cache("backups"), now), nas,
                                          settings["backup_missing"], now,
-                                         store.get_cache("github_mirror")),
+                                         store.get_cache("github_mirror"),
+                                         store.get_cache("dumps")),
         "portfolio_move": portfolio_move(_fresh(store.get_cache("portfolio"), now),
                                          settings["portfolio_move"],
                                          core.local(now, cfg).date().isoformat()),
