@@ -66,6 +66,14 @@ services:
       - /volume3/backups/databases:/backups/databases:ro
     extra_hosts:
       - host.docker.internal:host-gateway
+    # Read by the hub's own "container unhealthy" rule (and Dockge). Python,
+    # because the slim image has no curl or wget.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     depends_on:
       - node-exporter
       - readeck
@@ -148,5 +156,13 @@ services:
     ports:
       # 8080 is Scrutiny; this is the port the Pi kiosk points at.
       - 8083:8083
+    # Caddy itself, not /api: a collector outage must not mark the dashboard
+    # unhealthy too. wget comes with the Alpine base.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8083/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
     depends_on:
       - collector

@@ -192,7 +192,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Storage Box space on the Backups page: used and free from `rclone about`, with the same runway
   projection as the NAS storage, and an alert above 85%.
 
-**M13. Health and expiry alerts** (added 2026-10-08)
+**M13. Health and expiry alerts** (added 2026-10-08). **Done 2026-10-09.**
 - Token expiry: GitHub returns `github-authentication-token-expiration` on every API call. The
   hub keeps it per token (Repos and the mirror) and alerts 14 days before, and again at 3 days.
   Shown on the Repos page. (Tailscale keys do not expire on this tailnet, so no rule for them.)
