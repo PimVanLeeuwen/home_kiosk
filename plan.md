@@ -242,6 +242,10 @@ M12, M13, M14, M15.
   uptime watcher and for restore drills) or a scheduled GitHub Action (free, but the home IP and
   results then pass through GitHub).
 - Ad and tracker blocking (DNS): options under discussion, not yet decided.
+- Backlog (2026-10-09): a richer Jellyfin overview in the hub, in the spirit of Tracearr's history:
+  library counts (movies, series, episodes), what is pending or downloading (Jellyseerr, Sonarr,
+  Radarr, the download clients), watch stats and a per-user leaderboard. Not planned into a
+  milestone yet.
 
 ## 5. Non-goals
 
