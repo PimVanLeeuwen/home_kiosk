@@ -3,6 +3,34 @@
 Background for plan.md M16 (desk panels), M17 (Hue) and M18 (Spotify), gathered 2026-10-09.
 The decisions are in plan.md; this file keeps the facts and links behind them.
 
+## Design
+
+The panels are for information and for home, music and other control, and they must also be
+beautiful desk pieces in their own right (decided 2026-10-09). Design quality is part of done.
+
+- **One object.** The three panels share their margins (7.5% of the width), header line, type
+  scale and dot position, so they read as one piece on the stand.
+- **Light with meaning.** Each panel has an ambient backdrop that says something: Now follows the
+  sky through the day, or the album's colours while music plays; Home glows in the colours the
+  Hue lights in each room have right now; House stays a quiet violet. An error alert turns all
+  three red. The light also falls on the stand, so the stand material matters.
+- **Type.** Instrument Sans with tabular figures, as in the hub, rendered as LVGL fonts at a few
+  fixed sizes. The screen has 10 px per mm: nothing below 24 px (2.4 mm), body text 30 px and
+  up, the clock about 150 px. Labels in spaced capitals, sparingly.
+- **IPS, not OLED.** Blacks glow a little, so use deep tinted darks rather than relying on pure
+  black, avoid large bright white areas, and lower the backlight at night.
+- **Motion.** Calm and smooth: slides and fades of about 400 to 500 ms, no bouncing. At rest only
+  the clock, the progress bar and slow ambient changes move.
+- **Touch.** Targets at least 9 mm (90 px); hold-and-drag for brightness; swipes between cards.
+- **Heavy effects are pre-rendered by the hub** (the blurred album backdrop, gradients) and sent
+  as JPEGs, which the P4 decodes in hardware; the panel composes and animates.
+- **Physical.** Walnut or oak, or a matte print; no visible cables; the three panels evenly
+  spaced and flush.
+- **Checked for real.** Every screen is photographed on a real panel on the stand before it
+  ships; screenshots and tests alone are not enough.
+
+The mockup ([desk-panels-mockup.html](desk-panels-mockup.html)) shows the direction.
+
 ## Board
 
 **Waveshare ESP32-P4-WIFI6-Touch-LCD-4B**, also sold as "ESP32-P4 Smart 86 Box" (Waveshare SKU
@@ -76,7 +104,9 @@ Requirements and options are in plan.md M16. Links:
 
 ## Mockup
 
-[desk-panels-mockup.html](desk-panels-mockup.html): the three panels (Now, Money, House) with
-rotation, swipes, night mode and an error takeover, example data only. Made before M17 and M18,
-so the Home and Now Playing cards are not in it yet. Also published privately as a claude.ai
-artifact: <https://claude.ai/artifact/7kjiWAz6C8cBu7cArw7j2i>
+[desk-panels-mockup.html](desk-panels-mockup.html): the three panels as planned: Now (clock,
+weather, rain; Now Playing with controls), Home (rooms in their light colours, tap to switch,
+hold and drag for brightness, plugs, scenes, All off) and House (NAS, Money, backups, movers,
+alerts with Mute 1h). Buttons on the page start music, switch rotation and night mode, and
+simulate an error takeover. Example data only; album art is generated colour. Also published
+privately as a claude.ai artifact: <https://claude.ai/artifact/7kjiWAz6C8cBu7cArw7j2i>

@@ -10,6 +10,8 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
 - **The kiosk must keep working.** Today the `/kiosk/` carousel; from M16 the three ESP32-P4
   desk panels that replace the Pi kiosk. Any change to URLs or `/api/*` shapes has to keep them
   rendering.
+- **The desk panels are desk pieces.** Information and control, but also beautiful objects:
+  design quality is part of done for every panel screen (docs/desk-panels.md, Design).
 - **Private, LAN and Tailscale only.** No login, no internet exposure, no third-party CDNs,
   tracking or analytics. Fonts and assets are self-hosted.
 - **Never 500 to the frontend.** Every payload carries `as_of` and `stale`; on a source failure

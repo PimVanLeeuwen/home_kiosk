@@ -249,6 +249,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Research, links and shops: [docs/desk-panels.md](docs/desk-panels.md). Clickable mockup of
   the three panels: [docs/desk-panels-mockup.html](docs/desk-panels-mockup.html) (open the file
   in a browser; it is not served by the hub).
+- Design is a requirement, not polish (decided 2026-10-09): the panels are for information and
+  for home, music and other control, and they must also be beautiful desk pieces. The three read
+  as one object: same margins, header line and dot position. Each throws meaningful light: Now
+  follows the sky or the album colours, Home glows in the rooms' real Hue colours, House stays a
+  quiet violet, an error turns all three red. Calm motion, a few large type sizes, nothing below
+  24 px. Every screen is checked on a real panel (photos) before it ships, not only in tests.
+  Details in [docs/desk-panels.md](docs/desk-panels.md#design).
 - Roles, editable in the hub (Settings → Desk panels): left **Now** (clock, weather, Buienradar
   rain; Now Playing while music plays, M18), middle **Home** (Hue, M17), right **House** (NAS,
   backups, alerts, with Money in the rotation). Each panel rotates through its cards; a touch
