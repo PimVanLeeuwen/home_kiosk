@@ -96,3 +96,14 @@ python3 dashboard/serve.py
   strings, never `1-5`.
 - Ghostfolio's per-day `averagePrice` and its first price point are not split-adjusted (NVDA,
   June 2024). The hub despikes the price history and draws today's average instead.
+- Playwright runs with service workers blocked (`e2e/playwright.config.ts`) because localhost
+  counts as secure and `sw.js` would sit between the specs and their mocked `/api` answers; only
+  `e2e/tests/pwa.spec.ts` allows them. A mocked `context.route` keeps answering even with the
+  browser offline, so unroute before testing offline behaviour.
+- Web tests run in UTC on CI: build expected clock times from local dates
+  (`new Date(2026, 9, 6, 10, 2)`), never from `...Z` strings.
+- GitHub's "Re-run jobs" repeats a run on its original commit; after fixing a workflow, start a
+  new run (Run workflow) instead.
+- UGREEN's desktop app runs "Sync Space", which is Syncthing (`syncspace_pro`): it opens TCP
+  ports on the router through UPnP. UPnP is off on the router since 2026-10-09; the
+  `exposure-scan` workflow catches it if something opens a port again.
