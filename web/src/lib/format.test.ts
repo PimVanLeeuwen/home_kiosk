@@ -7,6 +7,7 @@ import {
   formatMoney,
   formatPercent,
   formatRate,
+  formatRunway,
   formatSignedPct,
   formatWhen,
 } from './format'
@@ -66,4 +67,12 @@ it('formats durations', () => {
   expect(formatDuration(45)).toBe('45 s')
   expect(formatDuration(241)).toBe('4 min')
   expect(formatDuration(4320)).toBe('1 h 12 min')
+})
+
+it('says when storage runs full', () => {
+  expect(formatRunway(null)).toBe('No growth trend yet')
+  expect(formatRunway(0.4)).toBe('Full in about 1 month')
+  expect(formatRunway(4.2)).toBe('Full in about 4 months')
+  expect(formatRunway(30)).toBe('Full in about 3 years')
+  expect(formatRunway(130)).toBe('Full in more than 10 years')
 })

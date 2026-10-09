@@ -15,7 +15,8 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from ..models import BackupHistory, BackupRun, BackupVolume, VolumeSummary
+from ..models import BackupHistory, BackupRun, BackupVolume, StorageBox, StorageUse, VolumeSummary
+from .nas import _projection_months
 
 log = logging.getLogger(__name__)
 
@@ -52,6 +53,7 @@ def parse_line(line: str) -> BackupRun | None:
             finished=raw["finished"],
             ok=bool(raw["ok"]),
             volumes=[parse_volume(v) for v in raw.get("volumes", [])],
+            storage=StorageUse(**raw["storage"]) if raw.get("storage") else None,
         )
     except Exception:
         return None
@@ -78,6 +80,27 @@ def summarise(runs: list[BackupRun]) -> list[VolumeSummary]:
             )
         )
     return summaries
+
+
+PROJECTION_RUNS = 60  # about two months of nightly runs, like the NAS pools
+
+
+def storage_box(runs: list[BackupRun]) -> StorageBox | None:
+    """The newest measured space on the storage box, with its runway. `runs` newest first."""
+    measured = [(run.finished, run.storage) for run in runs if run.storage is not None]
+    if not measured:
+        return None
+    at, use = measured[0]
+    # One point per day (the newest run of that day), oldest first.
+    daily: dict[str, int] = {}
+    for finished, storage in measured[:PROJECTION_RUNS]:
+        daily.setdefault(finished.date().isoformat(), storage.used)
+    rows = [{"date": day, "used_bytes": used} for day, used in sorted(daily.items())]
+    return StorageBox(
+        total=use.total, used=use.used, free=use.free,
+        used_pct=round(use.used / use.total * 100, 1) if use.total else 0.0,
+        at=at, projection_months=_projection_months(rows, use.free),
+    )
 
 
 def next_run(after: datetime, at: str, tz: str) -> datetime:
@@ -108,6 +131,7 @@ def read(path: str, at: str = "03:00", tz: str = "UTC") -> BackupHistory:
         runs=runs,
         volumes=summarise(runs),
         next_due=next_run(runs[0].finished, at, tz) if runs else None,
+        storage_box=storage_box(runs),
     )
 
 

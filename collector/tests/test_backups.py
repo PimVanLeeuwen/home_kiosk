@@ -116,3 +116,39 @@ def test_next_run_is_the_next_scheduled_start_in_local_time():
     assert nxt("2026-09-29T01:00:00+02:00") == "2026-09-29T03:00:00+02:00"
     # Across the switch to winter time (last Sunday of October).
     assert nxt("2026-10-24T03:20:00+02:00") == "2026-10-25T03:00:00+01:00"
+
+
+def with_storage(day, used, total=1_000_000_000_000):
+    line = json.loads(run_line(day))
+    line["storage"] = {"total": total, "used": used, "free": total - used}
+    return json.dumps(line)
+
+
+def test_the_storage_box_shows_the_newest_measurement_and_its_runway(tmp_path):
+    path = tmp_path / "backup-runs.jsonl"
+    # 10 GB a day over ten days; the first line predates storage in the record.
+    lines = [run_line(19)] + [with_storage(day, 200_000_000_000 + (day - 20) * 10_000_000_000)
+                              for day in range(20, 30)]
+    path.write_text("\n".join(lines))
+
+    box = backups.read(str(path)).storage_box
+
+    assert (box.used, box.free, box.used_pct) == (290_000_000_000, 710_000_000_000, 29.0)
+    assert box.at.day == 29
+    # 710 GB left at 10 GB a day: 71 days, about 2.3 months.
+    assert box.projection_months == 2.3
+
+
+def test_no_runway_without_a_week_of_measurements(tmp_path):
+    path = tmp_path / "backup-runs.jsonl"
+    path.write_text("\n".join(with_storage(day, 200_000_000_000 + day) for day in (27, 28, 29)))
+
+    box = backups.read(str(path)).storage_box
+    assert box.used_pct == 20.0 and box.projection_months is None
+
+
+def test_no_storage_box_before_backup_sh_records_it(tmp_path):
+    path = tmp_path / "backup-runs.jsonl"
+    path.write_text(run_line(28) + "\n" + json.dumps({**json.loads(run_line(29)), "storage": None}))
+
+    assert backups.read(str(path)).storage_box is None

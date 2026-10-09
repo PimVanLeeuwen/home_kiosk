@@ -432,11 +432,28 @@ class BackupVolume(BaseModel):
     last_error: str | None = None
 
 
+class StorageUse(BaseModel):
+    """Space on the Hetzner storage box after a run, from `rclone about`."""
+
+    total: int
+    used: int
+    free: int
+
+
 class BackupRun(BaseModel):
     started: datetime
     finished: datetime
     ok: bool
     volumes: list[BackupVolume]
+    storage: StorageUse | None = None  # runs before backup.sh recorded it have none
+
+
+class StorageBox(StorageUse):
+    used_pct: float
+    at: datetime  # the run that measured it
+    # Months until full at the growth rate seen over recent runs; None when
+    # there is too little history or usage is not growing.
+    projection_months: float | None = None
 
 
 class VolumeSummary(BaseModel):
@@ -450,6 +467,7 @@ class BackupHistory(Envelope):
     volumes: list[VolumeSummary]
     # The next scheduled start after the last run (BACKUP_AT, see schedule.sh).
     next_due: datetime | None
+    storage_box: StorageBox | None = None
 
 
 # --- Home hub: GitHub mirror ----------------------------------------------------

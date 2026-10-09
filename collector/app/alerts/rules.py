@@ -37,6 +37,7 @@ DEFAULT_RULES: dict[str, dict[str, Any]] = {
     "container_health": {"enabled": True, "unhealthy_minutes": 5, "restarts": 3,
                          "restart_window_minutes": 10},
     "backup_missing": {"enabled": True, "hours": 26},
+    "storage_box": {"enabled": True, "threshold_pct": 85},
     "smart": {"enabled": True},
     "portfolio_move": {"enabled": False, "threshold_pct": 3},
 }
@@ -45,6 +46,7 @@ RULE_LABELS = {
     "disk_space": "Disk space",
     "container_health": "Container health",
     "backup_missing": "Backup missing",
+    "storage_box": "Storage box space",
     "smart": "Disk SMART",
     "portfolio_move": "Portfolio move",
 }
@@ -122,6 +124,18 @@ def disk_space(nas: dict[str, Any] | None, settings: dict[str, Any]) -> list[Pro
         for pool in nas["storage"]["pools"]
         if pool["used_pct"] >= limit
     ]
+
+
+def storage_box(backups: dict[str, Any] | None, settings: dict[str, Any]) -> list[Problem] | None:
+    """The Hetzner storage box, as measured by the last backup run."""
+    if backups is None:
+        return None
+    box = backups.get("storage_box")
+    if not box or box["used_pct"] < settings["threshold_pct"]:
+        return []
+    return [Problem("storage_box", "storage_box", "warning", "storage_box",
+                    {"used_pct": int(box["used_pct"]), "free": _size(box["free"]),
+                     "total": _size(box["total"])})]
 
 
 def smart(nas: dict[str, Any] | None, settings: dict[str, Any]) -> list[Problem] | None:
@@ -372,6 +386,8 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
                                          settings["backup_missing"], now,
                                          store.get_cache("github_mirror"),
                                          store.get_cache("dumps")),
+        "storage_box": storage_box(_fresh(store.get_cache("backups"), now),
+                                   settings["storage_box"]),
         "portfolio_move": portfolio_move(_fresh(store.get_cache("portfolio"), now),
                                          settings["portfolio_move"],
                                          core.local(now, cfg).date().isoformat()),

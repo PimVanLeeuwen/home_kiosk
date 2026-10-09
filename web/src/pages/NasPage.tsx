@@ -5,7 +5,7 @@ import { ChartCard } from '../components/nas/ChartCard'
 import { PageHeader } from '../components/PageHeader'
 import { POOL_FULL_PCT } from '../lib/attention'
 import { cn } from '../lib/cn'
-import { formatBytes, formatMbit } from '../lib/format'
+import { formatBytes, formatMbit, formatRunway } from '../lib/format'
 import type { Nas, NasPoint } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
@@ -14,13 +14,6 @@ const one = (n: number) => n.toFixed(1).replace('.', ',')
 function peak(points: NasPoint[], key: 'cpu' | 'ram' | 'temp' | 'rx_mbps' | 'tx_mbps'): number | null {
   const values = points.map((p) => p[key]).filter((v): v is number => v != null)
   return values.length ? Math.max(...values) : null
-}
-
-function runway(months: number | null | undefined): string {
-  if (months == null) return 'No growth trend yet'
-  if (months > 120) return 'Full in more than 10 years'
-  if (months >= 24) return `Full in about ${Math.round(months / 12)} years`
-  return `Full in about ${Math.max(1, Math.round(months))} months`
 }
 
 const SMART = {
@@ -98,7 +91,7 @@ export function NasPage() {
                       <span>
                         {one(pool.used_pct)}% used · {formatBytes(pool.free_bytes)} free
                       </span>
-                      <span>{runway(pool.projection_months)}</span>
+                      <span>{formatRunway(pool.projection_months)}</span>
                     </p>
                   </li>
                 ))}

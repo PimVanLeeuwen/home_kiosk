@@ -114,3 +114,12 @@ export function formatChartDate(iso: string, long: boolean): string {
 
 /** "2 Sept 2025". */
 export const formatDate = (iso: string) => fullDate.format(new Date(iso))
+
+/** When storage runs full at its current growth, from a projection in months. */
+export function formatRunway(months: number | null | undefined): string {
+  if (months == null) return 'No growth trend yet'
+  if (months > 120) return 'Full in more than 10 years'
+  if (months >= 24) return `Full in about ${Math.round(months / 12)} years`
+  const n = Math.max(1, Math.round(months))
+  return `Full in about ${n} month${n === 1 ? '' : 's'}`
+}

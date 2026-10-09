@@ -16,6 +16,10 @@ const HISTORY = {
     { name: 'volume3', last_run: run(28, false), last_success: '2026-09-27T01:23:00Z' },
   ],
   next_due: '2026-09-29T01:23:00Z',
+  storage_box: {
+    total: 1_099_511_627_776, used: 235_264_802_816, free: 864_246_824_960, used_pct: 21.4,
+    at: '2026-09-28T01:23:00Z', projection_months: 31,
+  },
 }
 
 test('Backups shows per-volume results and the run history', async ({ page }) => {
@@ -25,6 +29,9 @@ test('Backups shows per-volume results and the run history', async ({ page }) =>
   await expect(page.getByRole('region', { name: 'volume3' })).toContainText('quota exceeded')
   await expect(page.getByRole('img', { name: 'Duration of the last 3 runs; 1 failed.' })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Last 3 runs' }).getByRole('row')).toHaveCount(4)
+  const box = page.getByRole('region', { name: 'Storage box' })
+  await expect(box).toContainText('235 GB / 1,1 TB')
+  await expect(box).toContainText('Full in about 3 years')
 })
 
 const MIRROR = {

@@ -91,6 +91,12 @@ CATALOG: dict[str, Template] = {
         "{free} left of {total}", "rules", "warning",
         {"pool": ("Pool name", "volume2"), "used_pct": ("Percentage used", "92"),
          "free": ("Space left", "1,4 TB"), "total": ("Pool size", "17,9 TB")}),
+    "storage_box": _msg(
+        RULES, "Storage box space", "The Hetzner storage box above the threshold.",
+        "<b>{level}</b> · <b>The storage box is {used_pct}% full</b>\n"
+        "{free} left of {total}", "rules", "warning",
+        {"used_pct": ("Percentage used", "86"), "free": ("Space left", "150,0 GB"),
+         "total": ("Box size", "1,1 TB")}),
     "smart_failing": _msg(
         RULES, "Disk failing (SMART)", "Scrutiny marks a disk as failed.",
         "<b>{level}</b> · <b>Disk {disk} is failing (SMART)</b>\n"

@@ -9,7 +9,7 @@ There is no login and nothing is exposed to the internet.
 | Home | Status at a glance: NAS health, portfolio, latest news, last backup, services |
 | News, Saved | Feeds read in the hub (text only, images through the hub), search, read state; Readeck bookmarks in the same reader |
 | Portfolio | Ghostfolio overview: value history, holdings, allocation, holding detail, markets; **Update from DEGIRO** imports new trades |
-| NAS, Docker, Backups | Live figures and history, container load and image updates, rclone runs per volume, the GitHub mirror |
+| NAS, Docker, Backups | Live figures and history, container load and image updates, rclone runs per volume, storage box space, database dumps, the GitHub mirror |
 | Services | Links to every app, LAN or Tailscale depending on how the hub was opened, with live stats |
 | Repos | GitHub repos: your own, Hubble and GEWIS, with the backup status of each mirrored repo |
 | Alerts | Every Telegram message the hub sends, routing, quiet hours and the hub's own alert rules |

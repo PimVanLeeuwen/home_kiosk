@@ -44,6 +44,32 @@ describe('BackupsPage', () => {
     expect(rows[1]).toHaveTextContent('500 MB · 118 files')
   })
 
+  it('shows the storage box space with its runway, warning when nearly full', async () => {
+    stubApi({
+      '/api/backups': {
+        ...BACKUPS,
+        storage_box: {
+          total: 1_099_511_627_776, used: 945_000_000_000, free: 154_511_627_776, used_pct: 85.9,
+          at: '2026-09-28T01:23:00Z', projection_months: 4.2,
+        },
+      },
+    })
+    renderRoute('/backups')
+
+    const card = await screen.findByRole('region', { name: 'Storage box' })
+    expect(within(card).getByText('945 GB / 1,1 TB')).toBeInTheDocument()
+    expect(within(card).getByText('85,9% used · 155 GB free')).toBeInTheDocument()
+    expect(within(card).getByText('Full in about 4 months')).toBeInTheDocument()
+    expect(within(card).getByRole('meter', { name: 'Hetzner' }).firstElementChild).toHaveClass('bg-warn')
+  })
+
+  it('leaves the storage box out until a run has measured it', async () => {
+    stubApi({ '/api/backups': BACKUPS })
+    renderRoute('/backups')
+    await screen.findByText('Next run due')
+    expect(screen.queryByRole('region', { name: 'Storage box' })).not.toBeInTheDocument()
+  })
+
   it('explains that records start with the next run', async () => {
     stubApi({ '/api/backups': { ...BACKUPS, runs: [], volumes: [], next_due: null } })
     renderRoute('/backups')

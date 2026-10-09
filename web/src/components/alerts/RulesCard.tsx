@@ -16,6 +16,7 @@ const FIELDS: Record<string, { field: NumberField; before: string; after: string
     { field: 'restart_window_minutes', before: 'within', after: 'min', min: 1, max: 1440 },
   ],
   backup_missing: [{ field: 'hours', before: 'No successful run in', after: 'h', min: 1, max: 336 }],
+  storage_box: [{ field: 'threshold_pct', before: 'Hetzner box above', after: '%', min: 1, max: 100 }],
   smart: [],
   portfolio_move: [{ field: 'threshold_pct', before: 'Day change beyond ±', after: '%', min: 1, max: 100 }],
 }

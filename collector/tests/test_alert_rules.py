@@ -188,6 +188,17 @@ def test_a_failed_or_old_dump_is_a_problem_until_a_recent_good_one():
     assert (old.key, old.body) == ("backup_missing:db:tracearr", "Last success: Wed 30 Sep 04:00")
 
 
+def test_the_storage_box_above_the_threshold():
+    box = {"storage_box": {"used_pct": 86.4, "free": 150_000_000_000, "total": 1_099_511_627_776}}
+
+    (p,) = rules.storage_box(box, {"threshold_pct": 85})
+    assert (p.key, p.severity, p.title, p.body) == (
+        "storage_box", "warning", "The storage box is 86% full", "150,0 GB left of 1,1 TB")
+    assert rules.storage_box(box, {"threshold_pct": 90}) == []
+    assert rules.storage_box({"storage_box": None}, {"threshold_pct": 85}) == []
+    assert rules.storage_box(None, {"threshold_pct": 85}) is None
+
+
 def test_portfolio_move_beyond_the_threshold():
     portfolio = {"total_value": 9119.0, "change": {"day_pct": -3.4}}
 

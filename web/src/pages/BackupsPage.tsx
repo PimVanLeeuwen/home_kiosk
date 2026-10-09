@@ -1,6 +1,7 @@
 import { DumpsCard } from '../components/backups/DumpsCard'
 import { MirrorCard } from '../components/backups/MirrorCard'
 import { RunBars } from '../components/backups/RunBars'
+import { StorageBoxCard } from '../components/backups/StorageBoxCard'
 import { Card, Loading, StaleNote, Unavailable } from '../components/home/Card'
 import { PageHeader } from '../components/PageHeader'
 import { cn } from '../lib/cn'
@@ -67,6 +68,8 @@ export function BackupsPage() {
               </dd>
             </div>
           </dl>
+
+          {data.storage_box && <StorageBoxCard box={data.storage_box} />}
 
           <div className="grid gap-4 md:grid-cols-2">
             {data.volumes.map((summary) => {

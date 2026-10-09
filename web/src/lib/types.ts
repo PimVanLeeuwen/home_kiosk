@@ -212,6 +212,18 @@ export interface BackupHistory {
   runs: BackupRun[]
   volumes: { name: string; last_run: BackupRun | null; last_success: string | null }[]
   next_due: string | null
+  /** Space on the Hetzner storage box at the newest run that measured it. */
+  storage_box?: StorageBox | null
+}
+
+export interface StorageBox {
+  total: number
+  used: number
+  free: number
+  used_pct: number
+  /** The run that measured it. */
+  at: string
+  projection_months: number | null
 }
 
 export interface MirroredRepo {
