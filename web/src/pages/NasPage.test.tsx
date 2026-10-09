@@ -124,4 +124,74 @@ describe('NasPage', () => {
     await screen.findByRole('region', { name: 'Disks' })
     expect(screen.queryByRole('region', { name: 'UPS' })).not.toBeInTheDocument()
   })
+  const EXPOSURE = {
+    as_of: '2026-10-09T08:00:00Z', stale: false, zone: 'example.com', home_ip: '203.0.113.7', error: null,
+    hosts: [
+      { hostname: 'couchdb.example.com', source: 'tunnel', target: 'http://192.168.1.10:5984', allowed: true, status: 200, error: null },
+      { hostname: 'immich.example.com', source: 'tunnel', target: 'http://192.168.1.10:2283', allowed: false, status: null, error: 'no answer' },
+    ],
+  }
+
+  it('lists the public hostnames and flags one that is not allowed', async () => {
+    stubApi({ '/api/nas': NAS, '/api/exposure': EXPOSURE })
+    renderRoute('/nas')
+
+    const card = await screen.findByRole('region', { name: 'Exposure' })
+    const hosts = within(card).getAllByRole('listitem')
+    expect(hosts[0]).toHaveTextContent('couchdb.example.comAllowed')
+    expect(hosts[0]).toHaveTextContent('Tunnel to http://192.168.1.10:5984 · answers 200')
+    expect(hosts[1]).toHaveTextContent('Not allowed')
+    expect(hosts[1]).toHaveTextContent('no answer')
+    expect(within(card).getByText(/1 hostname not on the allowlist/)).toHaveClass('text-down')
+    // The home IP is not shown.
+    expect(card).not.toHaveTextContent('203.0.113.7')
+  })
+
+  it('says why the audit could not run', async () => {
+    stubApi({
+      '/api/nas': NAS,
+      '/api/exposure': { ...EXPOSURE, hosts: [], error: 'No Cloudflare API token set (CLOUDFLARE_API_TOKEN)' },
+    })
+    renderRoute('/nas')
+
+    const card = await screen.findByRole('region', { name: 'Exposure' })
+    expect(within(card).getByRole('status')).toHaveTextContent('No Cloudflare API token set')
+    expect(within(card).queryByText(/Nothing public beyond the allowlist/)).not.toBeInTheDocument()
+  })
+  const scanRun = (open: number[], error: string | null = null) => ({
+    started: '2026-10-09T03:30:00Z', finished: '2026-10-09T03:36:00Z', ports_checked: error ? 0 : 65535, open, error,
+  })
+
+  it('shows the port scan from outside with any open ports', async () => {
+    stubApi({
+      '/api/nas': NAS, '/api/exposure': EXPOSURE,
+      '/api/exposure/scan': { as_of: '2026-10-09T03:36:00Z', stale: false, runs: [scanRun([22, 32400])] },
+    })
+    renderRoute('/nas')
+
+    const card = await screen.findByRole('region', { name: 'Exposure' })
+    expect(within(card).getByText(/Open on the home IP: 22, 32400\./)).toHaveClass('text-down')
+  })
+
+  it('says the scan found nothing, or why it failed, or that none came in', async () => {
+    stubApi({
+      '/api/nas': NAS, '/api/exposure': EXPOSURE,
+      '/api/exposure/scan': { as_of: '2026-10-09T03:36:00Z', stale: false, runs: [scanRun([])] },
+    })
+    const { unmount } = renderRoute('/nas')
+    expect(await screen.findByText(/No open ports \(all 65\.535 checked\)/)).toBeInTheDocument()
+    unmount()
+
+    stubApi({
+      '/api/nas': NAS, '/api/exposure': EXPOSURE,
+      '/api/exposure/scan': { as_of: '2026-10-09T03:36:00Z', stale: false, runs: [scanRun([], 'Could not get the home IP from the hub')] },
+    })
+    const second = renderRoute('/nas')
+    expect(await screen.findByText(/failed: Could not get the home IP from the hub/)).toHaveClass('text-warn')
+    second.unmount()
+
+    stubApi({ '/api/nas': NAS, '/api/exposure': EXPOSURE })
+    renderRoute('/nas')
+    expect(await screen.findByText(/No scan received yet/)).toBeInTheDocument()
+  })
 })

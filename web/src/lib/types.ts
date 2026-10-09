@@ -271,6 +271,36 @@ export interface GitHubMirror {
   next_due: string | null
 }
 
+export interface PublicHost {
+  hostname: string
+  /** A tunnel route, or a DNS record on the house. */
+  source: 'tunnel' | 'dns'
+  target: string
+  allowed: boolean
+  /** The HTTPS answer from outside; null when there was none. */
+  status: number | null
+  error: string | null
+}
+
+/** The exposure audit (GET /api/exposure). */
+export interface Exposure {
+  as_of: string
+  stale: boolean
+  zone: string
+  home_ip: string | null
+  hosts: PublicHost[]
+  /** The audit could not run; hosts are then the last known list. */
+  error: string | null
+}
+
+/** The nightly port scan of the home IP from outside (GET /api/exposure/scan). */
+export interface PortScan {
+  as_of: string
+  stale: boolean
+  /** Newest first. */
+  runs: { started: string; finished: string; ports_checked: number; open: number[]; error: string | null }[]
+}
+
 export interface UpsOutage {
   started_at: string
   /** null while it lasts. */

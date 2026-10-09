@@ -19,7 +19,7 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, HttpUrl
 
-from . import config, scheduler, settings_api
+from . import config, exposure_api, scheduler, settings_api
 from .alerts import api as alerts_api
 from .alerts import bot as alert_bot
 from .alerts import core as alerts_core
@@ -30,7 +30,7 @@ from .news import store as news_store
 from .portfolio import api as portfolio_api
 from .portfolio import degiro_import
 from .security import same_origin_json
-from .sources import container_stats, feeds, github_mirror, readeck, ups
+from .sources import container_stats, exposure, feeds, github_mirror, readeck, ups
 from .sources import nas as nas_source
 from .sources import services as service_catalog
 from .store import Store
@@ -92,6 +92,7 @@ app = FastAPI(title="Desk Dashboard Collector", version="0.1.0", lifespan=lifesp
 # same origin. Allowing any origin would let other websites call the write
 # endpoints; see security.py.
 app.include_router(settings_api.router)
+app.include_router(exposure_api.router)
 app.include_router(alerts_api.router)
 app.include_router(news_api.router)
 app.include_router(portfolio_api.router)
@@ -177,6 +178,11 @@ def github_mirror_status() -> Any:
 @app.get("/api/backups")
 def backups() -> Any:
     return _serve("backups")
+
+
+@app.get("/api/exposure")
+def exposure_audit() -> Any:
+    return _serve(exposure.CACHE_KEY)
 
 
 @app.get("/api/ups")

@@ -47,3 +47,27 @@ test('the NAS page shows the UPS and its last power cut', async ({ page }) => {
   await expect(card.getByRole('meter', { name: 'Battery' })).toBeVisible()
   await expect(card).toContainText('39 min, down to 62%')
 })
+
+const EXPOSURE = {
+  as_of: new Date().toISOString(), stale: false, zone: 'example.com', home_ip: '203.0.113.7', error: null,
+  hosts: [
+    { hostname: 'couchdb.example.com', source: 'tunnel', target: 'http://192.168.1.10:5984', allowed: true, status: 200, error: null },
+    { hostname: 'immich.example.com', source: 'tunnel', target: 'http://192.168.1.10:2283', allowed: false, status: 200, error: null },
+  ],
+}
+
+test('the NAS page flags a public hostname that is not allowed', async ({ page }) => {
+  await page.route('**/api/nas', (route) => route.fulfill({ json: NAS }))
+  await page.route('**/api/nas/history', (route) => route.fulfill({ json: HISTORY }))
+  await page.route('**/api/exposure', (route) => route.fulfill({ json: EXPOSURE }))
+  await page.route('**/api/exposure/scan', (route) => route.fulfill({ json: {
+    as_of: new Date().toISOString(), stale: false,
+    runs: [{ started: new Date().toISOString(), finished: new Date().toISOString(), ports_checked: 65535, open: [], error: null }],
+  } }))
+  await page.goto('/nas')
+
+  const card = page.getByRole('region', { name: 'Exposure' })
+  await expect(card.getByRole('listitem')).toHaveCount(2)
+  await expect(card).toContainText('1 hostname not on the allowlist.')
+  await expect(card).toContainText('No open ports (all 65.535 checked).')
+})

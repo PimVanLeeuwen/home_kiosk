@@ -24,6 +24,7 @@ from .sources import (
     db_copy,
     docker,
     dumps,
+    exposure,
     feeds,
     ghostfolio,
     github,
@@ -47,6 +48,7 @@ BACKUPS_INTERVAL_SECONDS = 300  # the run file changes once a day
 HOSTS_INTERVAL_SECONDS = 600  # the tailnet name practically never changes
 NEWS_INTERVAL_SECONDS = 600       # §5: feeds every 10 minutes
 PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
+EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
 UPS_INTERVAL_SECONDS = 15  # outages are timed from these readings
 MIRROR_STARTUP_DELAY = timedelta(minutes=2)  # let the startup refreshes go first
 
@@ -225,6 +227,19 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             coalesce=True,
             misfire_grace_time=3600,
             **first,
+        )
+
+    # What of the house is public, from Cloudflare's view.
+    if exposure.settings(cfg)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=EXPOSURE_INTERVAL_SECONDS,
+            args=[store, exposure.CACHE_KEY, lambda: exposure.collect(cfg, store)],
+            id="exposure",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
         )
 
     # The UPS over NUT, and one report per finished power cut.

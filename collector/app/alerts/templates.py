@@ -113,6 +113,28 @@ CATALOG: dict[str, Template] = {
          "start": ("When it began", "Tue 06 Oct 10:02"),
          "end": ("When power was back", "10:41"), "lowest": ("Lowest battery charge", "62"),
          "stopped": ("A note when the NAS stopped its services at 15%, else empty", "")}),
+    "exposure_unexpected": _msg(
+        RULES, "Exposure audit", "A public hostname leads to the house but is not allowed.",
+        "<b>{level}</b> · <b>{hostname} is public</b>\n"
+        "{how}; it {answer}. Only the hostnames in config.yaml may be public.",
+        "rules", "error",
+        {"hostname": ("The public hostname", "immich.example.com"),
+         "how": ("How it leads to the house", "A tunnel route to http://192.168.1.10:2283"),
+         "answer": ("What it answered", "answers with 200")}),
+    "port_open": _msg(
+        RULES, "Open port", "A port on the home IP answered the scan from outside.",
+        "<b>{level}</b> · <b>Port {port} is open on the home IP</b>\n"
+        "Found by the nightly scan from outside ({ports_checked} ports). Check the router's "
+        "port forwards and UPnP.",
+        "rules", "error", {"port": ("The open TCP port", "32400"),
+                           "ports_checked": ("How many ports were scanned", "65535")}),
+    "port_scan_missing": _msg(
+        RULES, "Port scan missing", "No good scan from outside for too long.",
+        "<b>{level}</b> · <b>No port scan from outside in {hours} h</b>\n"
+        "Last good scan: {last}\n{error}",
+        "rules", "warning", {"hours": ("The rule's limit", "48"),
+                             "last": ("When it last worked", "Thu 08 Oct 04:21"),
+                             "error": ("The last error, if any", "Home IP not found")}),
     "smart_failing": _msg(
         RULES, "Disk failing (SMART)", "Scrutiny marks a disk as failed.",
         "<b>{level}</b> · <b>Disk {disk} is failing (SMART)</b>\n"

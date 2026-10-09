@@ -598,3 +598,38 @@ class Ups(Envelope):
     charge_low: int | None = None
     load: int | None = None  # percent
     outages: list[UpsOutage] = []  # newest first; the first is open while it lasts
+
+
+# --- Home hub: exposure audit -------------------------------------------------------
+
+
+class PublicHost(BaseModel):
+    hostname: str
+    source: Literal["tunnel", "dns"]  # a tunnel route, or a DNS record on the house
+    target: str  # the tunnel's service, or the DNS record's content
+    allowed: bool  # on the allowlist in config.yaml
+    status: int | None = None  # the HTTPS answer from outside; None when there was none
+    error: str | None = None
+
+
+class Exposure(Envelope):
+    zone: str
+    home_ip: str | None = None
+    hosts: list[PublicHost] = []
+    # The audit could not run (no token, Cloudflare refused); hosts are then
+    # the last known list.
+    error: str | None = None
+
+
+class PortScanRun(BaseModel):
+    """One nightly scan of the home IP from outside (the exposure-scan workflow)."""
+
+    started: datetime
+    finished: datetime
+    ports_checked: int
+    open: list[int]  # TCP ports that accepted a connection
+    error: str | None = None  # the scan could not run
+
+
+class PortScan(Envelope):
+    runs: list[PortScanRun]  # newest first

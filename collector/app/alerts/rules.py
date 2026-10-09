@@ -39,6 +39,8 @@ DEFAULT_RULES: dict[str, dict[str, Any]] = {
     "backup_missing": {"enabled": True, "hours": 26, "restore_days": 45},
     "storage_box": {"enabled": True, "threshold_pct": 85},
     "token_expiry": {"enabled": True, "days": 14},
+    "exposure": {"enabled": True},
+    "port_scan": {"enabled": True, "hours": 48},
     "smart": {"enabled": True},
     "portfolio_move": {"enabled": False, "threshold_pct": 3},
 }
@@ -49,6 +51,8 @@ RULE_LABELS = {
     "backup_missing": "Backup missing",
     "storage_box": "Storage box space",
     "token_expiry": "GitHub token expiry",
+    "exposure": "Exposure audit",
+    "port_scan": "Open ports",
     "smart": "Disk SMART",
     "portfolio_move": "Portfolio move",
 }
@@ -176,6 +180,47 @@ def token_expiry(repos: dict[str, Any] | None, settings: dict[str, Any],
             f"token_expiry:{owners}:{TOKEN_FINAL_DAYS if final else settings['days']}",
             "token_expiry", "error" if final else "warning", "token_expiry",
             {"owners": owners, "when": when, "date": expires.strftime("%a %d %b %Y")}))
+    return problems
+
+
+def exposure(audit: dict[str, Any] | None) -> list[Problem] | None:
+    """A public name that leads to the house and is not on the allowlist.
+    Judged as it is (the audit runs every 6 hours); skipped when the audit
+    failed, so a Cloudflare hiccup never "resolves" a real exposure."""
+    if audit is None or audit.get("error"):
+        return None
+    problems = []
+    for host in audit.get("hosts") or []:
+        if host["allowed"]:
+            continue
+        how = (f"A tunnel route to {host['target']}" if host["source"] == "tunnel"
+               else f"A DNS record ({host['target']}) to the house")
+        answer = (f"answers with {host['status']}" if host.get("status") is not None
+                  else "does not answer")
+        problems.append(Problem(f"exposure:{host['hostname']}", "exposure", "error",
+                                "exposure_unexpected",
+                                {"hostname": host["hostname"], "how": how, "answer": answer}))
+    return problems
+
+
+def port_scan(scan: dict[str, Any] | None, settings: dict[str, Any],
+              now: datetime) -> list[Problem] | None:
+    """An open port on the home IP in the newest good scan from outside, or no
+    good scan for too long (the workflow broke). Quiet until a scan has come in."""
+    runs = (scan or {}).get("runs") or []
+    if not runs:
+        return []
+    good = [r for r in runs if not r.get("error")]
+    problems = []
+    last = good[0]["finished"] if good else None
+    if last is None or now - datetime.fromisoformat(last) > timedelta(hours=settings["hours"]):
+        problems.append(Problem("port_scan:missing", "port_scan", "warning", "port_scan_missing",
+                                {"hours": settings["hours"], "last": _when(last),
+                                 "error": runs[0].get("error") or ""}))
+    if good:
+        problems += [Problem(f"port_scan:{port}", "port_scan", "error", "port_open",
+                             {"port": port, "ports_checked": good[0]["ports_checked"]})
+                     for port in good[0]["open"]]
     return problems
 
 
@@ -447,6 +492,8 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
         "storage_box": storage_box(_fresh(store.get_cache("backups"), now),
                                    settings["storage_box"]),
         "token_expiry": token_expiry(store.get_cache("repos"), settings["token_expiry"], now),
+        "exposure": exposure(store.get_cache("exposure")),
+        "port_scan": port_scan(store.get_cache("port_scan"), settings["port_scan"], now),
         "portfolio_move": portfolio_move(_fresh(store.get_cache("portfolio"), now),
                                          settings["portfolio_move"],
                                          core.local(now, cfg).date().isoformat()),

@@ -212,10 +212,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   covers the hub itself.
 
 **M14. Privacy hardening** (added 2026-10-08)
-- Exposure audit: a nightly scan of the home IP and the public hostnames from outside the house.
-  Only Tandoor and CouchDB may answer, on 443 through Cloudflare; anything else (an open port on
-  the router, a new tunnel hostname, the hub or Immich reachable) is an error alert. Results go
-  to `/api/notify` and a card on the NAS page. Needs a runner outside the LAN (see Open items).
+- Exposure audit, in two parts (decided 2026-10-09). The tunnel connects outward, so the router
+  needs no open port and only Tandoor (`recipes.example.com`) and CouchDB may be public.
+  1. The collector, every 6 hours, with a read-only Cloudflare API token: the zone's DNS records
+     and every tunnel's hostnames; anything that leads to the house (a tunnel route, a CNAME to a
+     tunnel, an A/AAAA record on the home IP) and is not on the allowlist is an error alert. Each
+     such hostname is also requested over HTTPS, through Cloudflare, as an outsider would.
+  2. A nightly GitHub workflow (`exposure-scan`) for the ports: the home IP is dynamic, so the
+     runner joins the tailnet as a temporary node (`tag:exposure-scan`, the policy lets it reach
+     only the hub's API), asks the hub for the IP, scans every TCP port over the internet and posts
+     the result back. Any open port is an error alert, no good scan in 48 h a warning.
+  Both show on the NAS page's Exposure card.
 - No Docker socket proxy (decided 2026-10-09): not worth the setup for a LAN-only stack.
 
 **M15. Weather and app** (added 2026-10-08)
@@ -241,9 +248,6 @@ M12, M13, M14, M15.
 - Pi kiosk URL: the carousel now lives at `/kiosk/`, so the Pi's Chromium `--app` URL becomes
   `http://<nas>:8083/kiosk/?data=api`. Without `?data=api` the carousel shows its fixture data.
   `/kiosk` and the old `/read.html` redirect.
-- M14 exposure audit: needs a runner outside the LAN. A Hetzner VPS (also useful as an outside
-  uptime watcher and for restore drills) or a scheduled GitHub Action (free, but the home IP and
-  results then pass through GitHub).
 - Ad and tracker blocking (DNS): options under discussion, not yet decided.
 - Backlog (2026-10-09): a richer Jellyfin overview in the hub, in the spirit of Tracearr's history:
   library counts (movies, series, episodes), what is pending or downloading (Jellyseerr, Sonarr,

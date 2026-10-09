@@ -9,7 +9,7 @@ There is no login and nothing is exposed to the internet.
 | Home | Status at a glance: NAS health, portfolio, latest news, last backup, services |
 | News, Saved | Feeds read in the hub (text only, images through the hub), search, read state; Readeck bookmarks in the same reader |
 | Portfolio | Ghostfolio overview: value history, holdings, allocation, holding detail, markets; **Update from DEGIRO** imports new trades |
-| NAS, Docker, Backups | Live figures and history, the UPS and its power cuts, container load and image updates, rclone runs per volume, storage box space, database dumps, the GitHub mirror |
+| NAS, Docker, Backups | Live figures and history, the UPS and its power cuts, what is public on the internet, container load and image updates, rclone runs per volume, storage box space, database dumps, the GitHub mirror |
 | Services | Links to every app, LAN or Tailscale depending on how the hub was opened, with live stats |
 | Repos | GitHub repos: your own, Hubble and GEWIS, with the backup status of each mirrored repo and when each token expires |
 | Alerts | Every Telegram message the hub sends, routing, quiet hours and the hub's own alert rules |
@@ -55,6 +55,28 @@ same-origin JSON requests.
   app afterwards; the file only seeds an empty database.
 - Senders on the NAS post to `http://<nas>:8000/api/notify` with the `X-Notify-Key` header
   (`NOTIFY_KEY`); see the nas-docker README, *Alerts*.
+
+### Port scan from outside
+
+The house needs no open port (Tandoor and CouchDB go through the Cloudflare tunnel), and the NAS
+page's Exposure card shows the proof: `.github/workflows/exposure-scan.yml` runs nightly on
+GitHub, joins the tailnet as a temporary node, asks the hub for the current home IP, scans every
+TCP port over the normal internet and posts the result back. The hub alerts on any open port, and
+when no good scan came in for 48 hours. One-time setup:
+
+1. **Tailscale policy** (admin console, Access controls): add the tag and let it reach only the
+   hub's API, not the rest of the tailnet. If the policy still has the default allow-all rule,
+   narrow that first, or the tagged node can reach everything.
+   ```json
+   "tagOwners": { "tag:exposure-scan": ["autogroup:admin"] },
+   "grants": [ { "src": ["tag:exposure-scan"], "dst": ["<the NAS's tailnet IP>"], "ip": ["tcp:8000"] } ]
+   ```
+2. **Tailscale OAuth client** (Settings, OAuth clients): scope *Auth Keys: write*, tag
+   `tag:exposure-scan`.
+3. **GitHub secrets** (this repo, Settings, Secrets and variables, Actions): `TS_OAUTH_CLIENT_ID`,
+   `TS_OAUTH_SECRET`, `HUB_URL` (`http://<the NAS's tailnet IP>:8000`) and `NOTIFY_KEY` (the
+   hub's).
+4. Run it once by hand (Actions, exposure-scan, Run workflow) and check the Exposure card.
 
 ## Developing
 
