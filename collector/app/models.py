@@ -495,3 +495,14 @@ class GitHubMirror(Envelope):
     runs: list[MirrorRun] = []  # newest first
     last_success: datetime | None = None  # the last run with every repo mirrored
     next_due: datetime | None = None
+
+
+# --- Home hub: database copy for the backup --------------------------------------
+
+
+class DatabaseCopy(Envelope):
+    # The last nightly copy of the hub's own SQLite file.
+    ok: bool
+    path: str
+    bytes: int | None = None
+    error: str | None = None

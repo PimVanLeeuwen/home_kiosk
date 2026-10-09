@@ -21,6 +21,7 @@ from .portfolio import report as portfolio_report
 from .sources import (
     backups,
     container_stats,
+    db_copy,
     docker,
     feeds,
     ghostfolio,
@@ -211,6 +212,20 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             misfire_grace_time=3600,
             **first,
         )
+
+    # A consistent copy of the hub's own database for the 03:00 Hetzner backup.
+    hour, minute = (int(part) for part in db_copy.settings(cfg)["at"].split(":"))
+    scheduler.add_job(
+        _run,
+        "cron",
+        hour=hour,
+        minute=minute,
+        args=[store, db_copy.CACHE_KEY, lambda: db_copy.collect(store)],
+        id="db-copy",
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=600,
+    )
 
     # The hub's own alert rules.
     scheduler.add_job(

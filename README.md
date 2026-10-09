@@ -26,6 +26,10 @@ too. Owners are picked with `mirror: true` in `collector/config.yaml`; a failed 
 To restore one: `git clone /volume3/backups/github/<owner>/<repo>.git`, or push it back to a new
 GitHub repo with `git push --mirror <url>` from inside the mirror.
 
+At 02:45 the collector writes a consistent copy of its own database (`VACUUM INTO`) to
+`data/backup/collector.db`, which the 03:00 run takes along. To restore: stop the collector, put
+that file in place of `data/collector.db`, and start it again.
+
 The old 720×1280 desk carousel still lives at `/kiosk/` (add `?data=api` for live data).
 
 ## How it fits together
