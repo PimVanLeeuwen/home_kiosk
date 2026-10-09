@@ -31,6 +31,7 @@ from .sources import (
     nas,
     spotlight,
     tailscale,
+    ups,
     widgets,
 )
 from .store import Store
@@ -46,6 +47,7 @@ BACKUPS_INTERVAL_SECONDS = 300  # the run file changes once a day
 HOSTS_INTERVAL_SECONDS = 600  # the tailnet name practically never changes
 NEWS_INTERVAL_SECONDS = 600       # §5: feeds every 10 minutes
 PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
+UPS_INTERVAL_SECONDS = 15  # outages are timed from these readings
 MIRROR_STARTUP_DELAY = timedelta(minutes=2)  # let the startup refreshes go first
 
 
@@ -223,6 +225,28 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             coalesce=True,
             misfire_grace_time=3600,
             **first,
+        )
+
+    # The UPS over NUT, and one report per finished power cut.
+    if ups.settings(cfg)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=UPS_INTERVAL_SECONDS,
+            args=[store, ups.CACHE_KEY, lambda: ups.collect(cfg, store)],
+            id="ups",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
+        scheduler.add_job(
+            ups.report_outages,
+            "interval",
+            minutes=5,
+            args=[store, cfg],
+            id="ups-report",
+            max_instances=1,
+            coalesce=True,
         )
 
     # A consistent copy of the hub's own database for the 03:00 Hetzner backup.

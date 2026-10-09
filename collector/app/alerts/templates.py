@@ -104,6 +104,15 @@ CATALOG: dict[str, Template] = {
         "rules", "warning", {"owners": ("The owners it reads", "Mine and GEWIS"),
                              "when": ("expires in … days, or expired on …", "expires in 13 days"),
                              "date": ("Expiry date", "Sat 21 Nov 2026")}),
+    "ups_outage": _msg(
+        NAS, "Power cut", "Sent once after a power cut, when Telegram can be reached again.",
+        "<b>{level}</b> · <b>Power cut of {duration}</b>\n"
+        "From {start} to {end}, the UPS went down to {lowest}%.\n{stopped}",
+        "rules", "warning",
+        {"duration": ("How long it lasted", "39 min"),
+         "start": ("When it began", "Tue 06 Oct 10:02"),
+         "end": ("When power was back", "10:41"), "lowest": ("Lowest battery charge", "62"),
+         "stopped": ("A note when the NAS stopped its services at 15%, else empty", "")}),
     "smart_failing": _msg(
         RULES, "Disk failing (SMART)", "Scrutiny marks a disk as failed.",
         "<b>{level}</b> · <b>Disk {disk} is failing (SMART)</b>\n"

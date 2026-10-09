@@ -29,3 +29,21 @@ test('the NAS page shows live figures, pools and disks', async ({ page, isMobile
   await expect(page.getByRole('region', { name: 'Storage' }).getByRole('meter', { name: 'volume2' })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Disks' })).toContainText('Healthy')
 })
+
+const UPS = {
+  as_of: new Date().toISOString(), stale: false, name: 'ups0', model: 'UGREEN US3000', status: 'online',
+  status_raw: 'OL', charge: 100, charge_low: 15, load: 1,
+  outages: [{ started_at: '2026-10-06T08:02:00Z', ended_at: '2026-10-06T08:41:00Z', lowest_charge: 62, reached_low: false }],
+}
+
+test('the NAS page shows the UPS and its last power cut', async ({ page }) => {
+  await page.route('**/api/nas', (route) => route.fulfill({ json: NAS }))
+  await page.route('**/api/nas/history', (route) => route.fulfill({ json: HISTORY }))
+  await page.route('**/api/ups', (route) => route.fulfill({ json: UPS }))
+  await page.goto('/nas')
+
+  const card = page.getByRole('region', { name: 'UPS' })
+  await expect(card).toContainText('On mains')
+  await expect(card.getByRole('meter', { name: 'Battery' })).toBeVisible()
+  await expect(card).toContainText('39 min, down to 62%')
+})

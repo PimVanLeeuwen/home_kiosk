@@ -30,7 +30,7 @@ from .news import store as news_store
 from .portfolio import api as portfolio_api
 from .portfolio import degiro_import
 from .security import same_origin_json
-from .sources import container_stats, feeds, github_mirror, readeck
+from .sources import container_stats, feeds, github_mirror, readeck, ups
 from .sources import nas as nas_source
 from .sources import services as service_catalog
 from .store import Store
@@ -58,6 +58,7 @@ async def lifespan(app: FastAPI):
     alert_rules.ensure_tables(app.state.store)
     news_store.ensure_tables(app.state.store)
     degiro_import.ensure_tables(app.state.store)
+    ups.ensure_tables(app.state.store)
     if news_store.seed(app.state.store, app.state.config):
         log.info("feed list seeded from config.yaml")
 
@@ -176,6 +177,11 @@ def github_mirror_status() -> Any:
 @app.get("/api/backups")
 def backups() -> Any:
     return _serve("backups")
+
+
+@app.get("/api/ups")
+def ups_status() -> Any:
+    return _serve(ups.CACHE_KEY)
 
 
 @app.get("/api/database-dumps")

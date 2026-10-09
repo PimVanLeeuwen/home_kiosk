@@ -78,4 +78,48 @@ describe('NasPage', () => {
 
     expect(await screen.findByText('NAS data is not available right now.')).toBeInTheDocument()
   })
+  const UPS = {
+    as_of: '2026-10-09T08:00:00Z', stale: false, name: 'ups0', model: 'UGREEN US3000', status: 'online',
+    status_raw: 'OL', charge: 100, charge_low: 15, load: 1,
+    outages: [
+      { started_at: '2026-10-06T08:02:00Z', ended_at: '2026-10-06T08:41:00Z', lowest_charge: 62, reached_low: false },
+      { started_at: '2026-09-20T18:00:00Z', ended_at: '2026-09-20T20:05:00Z', lowest_charge: 14, reached_low: true },
+    ],
+  }
+
+  it('shows the UPS with its battery and the last power cuts', async () => {
+    stubApi({ '/api/nas': NAS, '/api/ups': UPS })
+    renderRoute('/nas')
+
+    const card = await screen.findByRole('region', { name: 'UPS' })
+    expect(within(card).getByText('Status').nextElementSibling).toHaveTextContent('On mains')
+    expect(within(card).getByText('Load').nextElementSibling).toHaveTextContent('1%')
+    expect(within(card).getByRole('meter', { name: 'Battery' })).toHaveAttribute('aria-valuenow', '100')
+    const cuts = within(card).getAllByRole('listitem')
+    expect(cuts[0]).toHaveTextContent('Tue 6 Oct 10:02, 39 min, down to 62%')
+    expect(cuts[1]).toHaveTextContent('2 h 5 min, down to 14% (services stopped)')
+  })
+
+  it('says since when the UPS is on battery', async () => {
+    stubApi({
+      '/api/nas': NAS,
+      '/api/ups': {
+        ...UPS, status: 'on_battery', status_raw: 'OB DISCHRG', charge: 71,
+        outages: [{ started_at: new Date().toISOString(), ended_at: null, lowest_charge: 71, reached_low: false }],
+      },
+    })
+    renderRoute('/nas')
+
+    const card = await screen.findByRole('region', { name: 'UPS' })
+    expect(within(card).getByText('Status').nextElementSibling).toHaveTextContent(/On battery since today/)
+    expect(within(card).getByText('None recorded.')).toBeInTheDocument()
+    expect(within(card).getByRole('meter', { name: 'Battery' }).firstElementChild).toHaveClass('bg-warn')
+  })
+
+  it('leaves the UPS out when the hub has no UPS data', async () => {
+    stubApi({ '/api/nas': NAS })
+    renderRoute('/nas')
+    await screen.findByRole('region', { name: 'Disks' })
+    expect(screen.queryByRole('region', { name: 'UPS' })).not.toBeInTheDocument()
+  })
 })

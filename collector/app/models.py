@@ -576,3 +576,25 @@ class DatabaseDumps(Envelope):
     # The monthly restore check (host-jobs/restore-check.sh), newest first.
     restore_checks: list[RestoreCheck] = []
     last_verified: datetime | None = None  # the newest check that passed
+
+
+# --- Home hub: UPS ----------------------------------------------------------------
+
+
+class UpsOutage(BaseModel):
+    started_at: datetime  # when the hub first saw the UPS on battery
+    ended_at: datetime | None = None  # when it saw mains again; None while it lasts
+    lowest_charge: int | None = None
+    # The charge reached battery.charge.low, where UGOS stops all services.
+    reached_low: bool = False
+
+
+class Ups(Envelope):
+    name: str
+    model: str | None = None
+    status: Literal["online", "on_battery", "low_battery", "unknown"]
+    status_raw: str  # NUT's ups.status, such as "OL" or "OB LB"
+    charge: int | None = None
+    charge_low: int | None = None
+    load: int | None = None  # percent
+    outages: list[UpsOutage] = []  # newest first; the first is open while it lasts

@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { Card, Loading, StaleNote, Unavailable } from '../components/home/Card'
 import { Meter } from '../components/home/Meter'
 import { ChartCard } from '../components/nas/ChartCard'
+import { UpsCard } from '../components/nas/UpsCard'
 import { PageHeader } from '../components/PageHeader'
 import { POOL_FULL_PCT } from '../lib/attention'
 import { cn } from '../lib/cn'
@@ -131,6 +132,9 @@ export function NasPage() {
                 </Link>
               </p>
             </Card>
+          </div>
+          <div className="mt-5 grid gap-5 lg:grid-cols-2">
+            <UpsCard />
           </div>
           {n.stale && <StaleNote />}
         </>

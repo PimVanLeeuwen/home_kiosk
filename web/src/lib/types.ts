@@ -271,6 +271,30 @@ export interface GitHubMirror {
   next_due: string | null
 }
 
+export interface UpsOutage {
+  started_at: string
+  /** null while it lasts. */
+  ended_at: string | null
+  lowest_charge: number | null
+  /** The charge reached the level where UGOS stops all services. */
+  reached_low: boolean
+}
+
+/** The UPS over NUT (GET /api/ups). */
+export interface Ups {
+  as_of: string
+  stale: boolean
+  name: string
+  model: string | null
+  status: 'online' | 'on_battery' | 'low_battery' | 'unknown'
+  status_raw: string
+  charge: number | null
+  charge_low: number | null
+  load: number | null
+  /** Newest first; the first is open while it lasts. */
+  outages: UpsOutage[]
+}
+
 export interface DumpedDatabase {
   name: string
   label: string
