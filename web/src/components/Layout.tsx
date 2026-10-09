@@ -21,7 +21,8 @@ export function Layout() {
       <Sidebar host={host} />
 
       <div className="flex min-w-0 flex-1 flex-col md:py-2 md:pr-2">
-        <header className="flex items-center justify-between px-4 pt-4 pb-2 md:hidden">
+        {/* The insets keep the bar clear of the iPhone's status bar and notch in the installed app. */}
+        <header className="flex items-center justify-between pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-2 pl-[max(1rem,env(safe-area-inset-left))] md:hidden">
           <Brand host={null} />
           <ConnectionBadge />
         </header>
@@ -29,7 +30,7 @@ export function Layout() {
         <main
           id={MAIN_ID}
           tabIndex={-1}
-          className="min-h-0 flex-1 overflow-y-auto px-4 pt-2 pb-28 focus:outline-none md:rounded-[14px] md:border md:border-line-soft md:bg-panel md:px-8 md:py-8 lg:px-11 lg:py-9"
+          className="min-h-0 flex-1 overflow-y-auto pt-2 pr-[max(1rem,env(safe-area-inset-right))] pb-28 pl-[max(1rem,env(safe-area-inset-left))] focus:outline-none md:rounded-[14px] md:border md:border-line-soft md:bg-panel md:px-8 md:py-8 lg:px-11 lg:py-9"
         >
           <Outlet />
         </main>

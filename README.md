@@ -56,6 +56,16 @@ same-origin JSON requests.
 - Senders on the NAS post to `http://<nas>:8000/api/notify` with the `X-Notify-Key` header
   (`NOTIFY_KEY`); see the nas-docker README, *Alerts*.
 
+### Install on a phone or laptop
+
+The hub is an installable app (a web app manifest and a service worker): it opens full screen
+from the home screen, and without the hub it still shows the last data it saw, marked as stale.
+Browsers only allow this over HTTPS, so install it from the Tailscale address
+(`https://<nas>.<tailnet>.ts.net`), not from `http://192.168.1.10:8083`; the LAN address keeps
+working as a normal website. On an iPhone: open the Tailscale address in Safari, Share, Add to
+Home Screen. A home screen icon made before (a plain bookmark) has to be removed and added again
+to become the app. The Pi kiosk at `/kiosk/` is not part of the app.
+
 ### Port scan from outside
 
 The house needs no open port (Tandoor and CouchDB go through the Cloudflare tunnel), and the NAS

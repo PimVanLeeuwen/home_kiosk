@@ -211,7 +211,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   image) and the dashboard (Caddy, with `wget`), so the existing "container unhealthy" rule
   covers the hub itself.
 
-**M14. Privacy hardening** (added 2026-10-08)
+**M14. Privacy hardening** (added 2026-10-08). **Done 2026-10-09.**
 - Exposure audit, in two parts (decided 2026-10-09). The tunnel connects outward, so the router
   needs no open port and only Tandoor (`recipes.example.com`) and CouchDB may be public.
   1. The collector, every 6 hours, with a read-only Cloudflare API token: the zone's DNS records
@@ -225,7 +225,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Both show on the NAS page's Exposure card.
 - No Docker socket proxy (decided 2026-10-09): not worth the setup for a LAN-only stack.
 
-**M15. Weather and app** (added 2026-10-08)
+**M15. Weather and app** (added 2026-10-08). **Done 2026-10-09.**
 - Buienradar for the home spot: rain in the next 2 hours from
   `gpsgadget.buienradar.nl/data/raintext?lat=52.11&lon=5.18` (5-minute steps) as a bar chart,
   and current weather from the nearest station in `data.buienradar.nl/2.0/feed/json`. Fetched

@@ -17,6 +17,9 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     colorScheme: 'dark',
+    // localhost counts as secure, so the hub's service worker would register and
+    // sit between the specs and their mocked /api answers. pwa.spec.ts allows it.
+    serviceWorkers: 'block',
     trace: 'retain-on-failure',
   },
   projects: [
