@@ -77,6 +77,9 @@ python3 dashboard/serve.py
   exact copy in `/volume3/backups/github` that rclone takes to Hetzner. plan.md M10.
 - 2026-10-08: no emoji in Telegram messages; a bold severity word and a monospace table for the
   portfolio report instead. plan.md M11.
+- 2026-10-09: no Docker socket proxy; database dumps and restore checks run as a NAS host job,
+  so no container gets more Docker access; the PWA is installed from the Tailscale HTTPS
+  address. plan.md M12 to M15.
 
 ## Gotchas
 

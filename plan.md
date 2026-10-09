@@ -169,13 +169,79 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Telegram allows no tags inside `<pre>`, so saving checks that too. Texts saved with the old
   `{icon}` and `{dot}` placeholders are rewritten when read.
 
-Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11.
+**M12. Backup hardening** (added 2026-10-08)
+- Done 2026-10-08, outside the code: automatic snapshots on the Hetzner Storage Box (Robot). The
+  NAS's sftp login cannot delete them, so a bad state that reaches Hetzner by `rclone sync` can
+  still be rolled back. RECOVERY.md gets the restore steps from a snapshot.
+- Consistent database copies: before the 03:00 sync, a host job on the NAS (outside Docker)
+  dumps every live database to a file the sync then takes along: `pg_dump` for Ghostfolio,
+  Tandoor and Tracearr through `docker exec`, and a CouchDB dump. The collector writes its own
+  SQLite copy with `VACUUM INTO` into its data folder. So neither the rclone container nor the
+  collector needs more Docker access (decided 2026-10-09). The job appends a run record with a
+  `dumps` entry per database (result, size), shown on the Backups page; a failed dump is an
+  error alert.
+- Uptime Kuma and Tracearr move from named volumes to bind mounts under `/volume1/docker`, so
+  the nightly backup covers them. RECOVERY.md's "not backed up" rows go.
+- Restore check, monthly from the same host job: downloads a sample of the Hetzner copy and
+  compares it (`rclone check --download` on a subset), and restores the hub and Ghostfolio dumps
+  into throwaway containers to prove they load. Each result is a run record; the Backups page
+  shows "last verified restore" and the backup_missing rule warns when it is older than 45 days.
+- Storage Box space on the Backups page: used and free from `rclone about`, with the same runway
+  projection as the NAS storage, and an alert above 85%.
+
+**M13. Health and expiry alerts** (added 2026-10-08)
+- Token expiry: GitHub returns `github-authentication-token-expiration` on every API call. The
+  hub keeps it per token (Repos and the mirror) and alerts 14 days before, and again at 3 days.
+  Shown on the Repos page. (Tailscale keys do not expire on this tailnet, so no rule for them.)
+- UPS: the Ugreen US3000 (a DC UPS) is on USB to the NAS. Checked 2026-10-09: UGOS protection
+  mode is Standby (below 15% battery it stops all services; the NAS powers off when the battery
+  is empty), and its NUT server is on and reachable from the collector as
+  `ups0@host.docker.internal:3493`, no login needed. The collector reads `ups.status`,
+  `battery.charge`, `battery.charge.low` and `ups.load`. `battery.runtime` reads 65535 (no real
+  value) and the voltages are DC, so neither is shown. A tile on the NAS page. Low battery is
+  `LB` or charge at or below `battery.charge.low` (the driver runs with `ignorelb`).
+- The router is not on a UPS, so alerts cannot reach Telegram during a power cut. The hub
+  records each outage (start, end, lowest charge, whether it reached the 15% stop) and sends one
+  message when power and internet are back. UGOS "Auto power-on when power is supplied" must be
+  on, or the NAS stays off after a full drain.
+- Compose healthchecks for the collector (`/api/health`, run with Python, so no curl in the
+  image) and the dashboard (Caddy, with `wget`), so the existing "container unhealthy" rule
+  covers the hub itself.
+
+**M14. Privacy hardening** (added 2026-10-08)
+- Exposure audit: a nightly scan of the home IP and the public hostnames from outside the house.
+  Only Tandoor and CouchDB may answer, on 443 through Cloudflare; anything else (an open port on
+  the router, a new tunnel hostname, the hub or Immich reachable) is an error alert. Results go
+  to `/api/notify` and a card on the NAS page. Needs a runner outside the LAN (see Open items).
+- No Docker socket proxy (decided 2026-10-09): not worth the setup for a LAN-only stack.
+
+**M15. Weather and app** (added 2026-10-08)
+- Buienradar for the home spot: rain in the next 2 hours from
+  `gpsgadget.buienradar.nl/data/raintext?lat=52.11&lon=5.18` (5-minute steps) as a bar chart,
+  and current weather from the nearest station in `data.buienradar.nl/2.0/feed/json`. Fetched
+  by the collector every 5 minutes, cached with `as_of` and `stale`; a Home tile. Buienradar asks
+  for attribution, so the tile names it. A kiosk slide waits for the kiosk restyle (M8).
+- The hub as a real PWA, replacing today's plain "Add to Home Screen" bookmark: a web app
+  manifest (`display: standalone`, name, icons, theme colour), iOS safe-area padding, and a
+  service worker that caches the app shell and the last API payloads, so the app opens offline
+  and shows them as stale. No web push: alerts stay on Telegram. Installed from the Tailscale
+  HTTPS address (`*.ts.net`): browsers only run service workers over HTTPS, so on the plain LAN
+  address the hub works as before, without offline mode. The service worker leaves `/kiosk/`
+  alone. The existing home screen icon has to be removed and added again from the ts.net
+  address.
+
+Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
+M12, M13, M14, M15.
 
 ## 4. Open items
 
 - Pi kiosk URL: the carousel now lives at `/kiosk/`, so the Pi's Chromium `--app` URL becomes
   `http://<nas>:8083/kiosk/?data=api`. Without `?data=api` the carousel shows its fixture data.
   `/kiosk` and the old `/read.html` redirect.
+- M14 exposure audit: needs a runner outside the LAN. A Hetzner VPS (also useful as an outside
+  uptime watcher and for restore drills) or a scheduled GitHub Action (free, but the home IP and
+  results then pass through GitHub).
+- Ad and tracker blocking (DNS): options under discussion, not yet decided.
 
 ## 5. Non-goals
 
