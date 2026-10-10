@@ -142,8 +142,15 @@ svg text { font-family: var(--f-body); }
 .plug i { width: 2.4cqw; height: 2.4cqw; border-radius: 50%; background: rgba(255, 255, 255, .2); }
 .plug.on i { background: var(--ok); box-shadow: 0 0 2cqw var(--ok); }
 .scenes { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; }
-.scene { font: inherit; font-size: 4.4cqw; font-weight: 600; color: var(--ink); cursor: pointer; border-radius: 4.6cqw; border: 1px solid var(--hair); padding: 5cqw 4.4cqw; text-align: left; position: relative; overflow: hidden; }
+.scene { font: inherit; font-size: 4.4cqw; font-weight: 600; color: var(--ink); cursor: pointer; border-radius: 4.6cqw; border: 1px solid var(--hair); padding: 3.6cqw 4.4cqw; text-align: left; position: relative; overflow: hidden; }
 .scene small { display: block; font-weight: 400; font-size: 3.4cqw; color: rgba(255, 255, 255, .7); margin-top: .6cqw; }
+.scene.active { border-color: rgba(255, 255, 255, .55); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
+.scon { position: absolute; top: 3cqw; right: 3cqw; font-size: 3cqw; font-weight: 700; letter-spacing: .1em; color: #111; background: rgba(255, 255, 255, .9); border-radius: 99px; padding: .4cqw 1.8cqw; }
+.sdots { display: flex; gap: 1.6cqw; margin-top: 2.2cqw; }
+.sdots i { width: 2.6cqw; height: 2.6cqw; border-radius: 50%; }
+.seg { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--glass); border: 1px solid var(--hair); border-radius: 99px; padding: .8cqw; }
+.seg button { font: inherit; font-size: 3.6cqw; font-weight: 600; color: var(--ink-2); background: transparent; border: 0; border-radius: 99px; padding: 1.6cqw 0; cursor: pointer; }
+.seg button.on { background: rgba(255, 255, 255, .14); color: #fff; }
 .alloff { font: inherit; font-size: 4.6cqw; font-weight: 600; color: var(--ink); cursor: pointer; border-radius: 99px; border: 1px solid rgba(255, 255, 255, .22); background: transparent; padding: 3.2cqw; }
 .sheet { position: absolute; inset: 0; z-index: 5; display: none; align-items: center; justify-content: center; gap: 8cqw; background: rgba(8, 8, 12, .82); backdrop-filter: blur(6px); }
 .sheet.open { display: flex; }
@@ -281,11 +288,11 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>Home</h2>
-      <ul><li>Bedroom, Hallway and Living room glow in the colour their Hue lights have right now</li><li>Tap to switch, hold and drag for brightness; plugs as switches</li><li>Desk PC: tap to start it; while it is on, tap for Sleep and Shut down</li><li>Now Playing comes first while music plays, lit by the album's colours; swipe for the lights; after a pause the panel goes back to the lights</li><li>Scenes and All off on the second card. This panel does not rotate.</li></ul>
+      <ul><li>Bedroom, Hallway and Living room glow in the colour their Hue lights have right now</li><li>Tap to switch, hold and drag for brightness; plugs as switches</li><li>Desk PC: tap to start it; while it is on, tap for Sleep and Shut down</li><li>Now Playing comes first while music plays, lit by the album's colours; swipe for the lights; after a pause the panel goes back to the lights</li><li>Scenes in the colours of their lights, the active one marked, and All off. This panel does not rotate.</li></ul>
     </section>
     <section>
       <h2>House</h2>
-      <ul><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h</li><li>Money: portfolio today, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
+      <ul><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
     </section>
   </div>
   <p class="foot">An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
@@ -308,17 +315,17 @@ svg text { font-family: var(--f-body); }
   };
   const plugs = { coffee: { name: 'Coffee', on: false }, speakers: { name: 'Speakers', on: true } };
   const scenes = [
-    { name: 'Relax', room: 'Living room', a: [255, 150, 70], b: [190, 70, 60] },
-    { name: 'Read', room: 'Living room', a: [255, 226, 170], b: [230, 170, 110] },
-    { name: 'Movie', room: 'Living room', a: [90, 70, 200], b: [40, 30, 90] },
-    { name: 'Nightlight', room: 'Hallway', a: [255, 120, 80], b: [120, 40, 40] }
+    { name: 'Relax', room: 'Living room', a: [255, 150, 70], lights: [[255, 150, 70], [255, 112, 64], [196, 74, 70]] },
+    { name: 'Read', room: 'Living room', a: [255, 226, 170], lights: [[255, 238, 204], [255, 214, 160], [232, 176, 112]] },
+    { name: 'Movie', room: 'Living room', a: [90, 70, 200], lights: [[96, 76, 214], [44, 34, 110], [255, 124, 70]] },
+    { name: 'Nightlight', room: 'Hallway', a: [255, 120, 80], lights: [[255, 120, 80], [150, 50, 40]] }
   ];
   const tracks = [
     { title: 'Low Tide Static', artist: 'Marlow Hayes', len: 214, device: 'MacBook', c: [[239, 112, 74], [126, 58, 160], [32, 22, 60]] },
     { title: 'Glasshouse', artist: 'Noor & the Quiet Hours', len: 251, device: 'MacBook', c: [[72, 180, 190], [40, 70, 160], [12, 22, 40]] },
     { title: 'Polder Lights', artist: 'Fenna Dijk', len: 189, device: 'Living room speakers', c: [[245, 200, 90], [210, 90, 120], [40, 20, 36]] }
   ];
-  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, pc: 'off', pcSince: '01:12', pcConfirm: 0, pcSheet: false, train: 0, saved: {} };
+  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, pc: 'off', pcSince: '01:12', pcConfirm: 0, pcSheet: false, train: 0, saved: {}, scene: 0, period: '1D', alertsOpen: true };
   const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
   const art = t => `radial-gradient(circle at 28% 30%, ${rgb(t.c[0])}, transparent 58%), radial-gradient(circle at 78% 72%, ${rgb(t.c[1])}, transparent 60%), linear-gradient(135deg, ${rgb(t.c[2])}, ${rgb(t.c[1], .8)})`;
 
@@ -342,18 +349,28 @@ svg text { font-family: var(--f-body); }
     </svg>`;
   }
   const day = [48210, 48190, 48260, 48240, 48310, 48420, 48390, 48450, 48520, 48480, 48560, 48610, 48590, 48655, 48702];
-  function spark(series) {
-    const W = 240, H = 78, min = Math.min(...series), max = Math.max(...series);
+  function walk(n, start, end, wob, seed) {
+    let s = seed; const r = () => (s = (s * 16807) % 2147483647) / 2147483647 - .5;
+    return Array.from({ length: n }, (_, i) => i === n - 1 ? end : Math.round(start + (end - start) * i / (n - 1) + r() * wob * Math.sin(Math.PI * i / (n - 1) + .3)));
+  }
+  const periods = {
+    '1D': { s: day, from: '09:00', to: '17:30', label: 'today' },
+    '1W': { s: walk(7, 47850, 48702, 900, 11), from: 'Last Friday', to: 'Today', label: 'this week' },
+    '1M': { s: walk(22, 49120, 48702, 1400, 5), from: '10 Sep', to: 'Today', label: 'this month' },
+    '1Y': { s: walk(52, 39800, 48702, 2600, 3), from: 'Oct 2025', to: 'Today', label: 'this year' }
+  };
+  function spark(series, color = '#5fd39c') {
+    const W = 240, H = 70, min = Math.min(...series), max = Math.max(...series);
     const x = i => i / (series.length - 1) * W, y = v => H - 6 - (v - min) / (max - min) * (H - 14);
     const pts = series.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
     const L = series.length - 1;
     return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;overflow:visible">
-      <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fd39c" stop-opacity=".32"/><stop offset="1" stop-color="#5fd39c" stop-opacity="0"/></linearGradient></defs>
+      <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
       <line x1="0" y1="${y(series[0]).toFixed(1)}" x2="${W}" y2="${y(series[0]).toFixed(1)}" stroke="rgba(255,255,255,.14)" stroke-dasharray="3 5"/>
       <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#sg)"/>
-      <polyline points="${pts}" fill="none" stroke="#5fd39c" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-      <circle cx="${x(L)}" cy="${y(series[L]).toFixed(1)}" r="7" fill="#5fd39c" fill-opacity=".2"/>
-      <circle cx="${x(L)}" cy="${y(series[L]).toFixed(1)}" r="3.6" fill="#5fd39c"/>
+      <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${x(L)}" cy="${y(series[L]).toFixed(1)}" r="7" fill="${color}" fill-opacity=".2"/>
+      <circle cx="${x(L)}" cy="${y(series[L]).toFixed(1)}" r="3.6" fill="${color}"/>
     </svg>`;
   }
   function daySvg() {
@@ -458,8 +475,14 @@ svg text { font-family: var(--f-body); }
         <div class="pcrow"><button class="pcbtn" data-act="pc-sleep">Sleep</button><button class="pcbtn${st.pcConfirm > Date.now() ? ' sure' : ''}" data-act="pc-off">${st.pcConfirm > Date.now() ? 'Tap again to shut down' : 'Shut down'}</button></div>
         <button class="alloff" data-act="pc-close">Close</button></div>` : ''}
       <div class="plugs">${Object.entries(plugs).map(([id, p]) => `<button class="plug${p.on ? ' on' : ''}" data-act="plug" data-plug="${id}"><span>${p.name}</span><i></i></button>`).join('')}</div>`,
-    scenes: () => `<div class="k">Scenes</div>
-      <div class="scenes">${scenes.map((s, i) => `<button class="scene" data-act="scene" data-i="${i}" style="background:linear-gradient(140deg, ${rgb(s.a, .55)}, ${rgb(s.b, .35)})">${s.name}<small>${s.room}</small></button>`).join('')}</div>
+    scenes: () => `<div class="row"><span class="k">Scenes</span><span class="k">${st.scene === null ? 'None active' : scenes[st.scene].name + ' is on'}</span></div>
+      <div class="scenes">${scenes.map((s, i) => {
+        const L = s.lights, pos = ['20% 25%', '85% 30%', '50% 95%'];
+        const bg = L.map((c, k) => `radial-gradient(70% 80% at ${pos[k]}, ${rgb(c, .62)}, transparent 70%)`).join(', ') + ', #121118';
+        return `<button class="scene${st.scene === i ? ' active' : ''}" data-act="scene" data-i="${i}" style="background:${bg}">
+          ${st.scene === i ? '<span class="scon">ON</span>' : ''}${s.name}<small>${s.room}</small>
+          <span class="sdots">${L.map(c => `<i style="background:${rgb(c)};box-shadow:0 0 2cqw ${rgb(c, .8)}"></i>`).join('')}</span></button>`;
+      }).join('')}</div>
       <div class="grow"></div>
       <button class="alloff" data-act="alloff">All off</button>`,
     agenda: () => {
@@ -513,12 +536,16 @@ svg text { font-family: var(--f-body); }
       <div class="grow"></div>
       <div class="chips"><span class="chip2"><i style="background:var(--ok)"></i>4 of 4 disks OK</span><span class="chip2"><i style="background:var(--ok)"></i>UPS on mains · 100%</span></div>`;
     },
-    money: () => `<div class="k">Portfolio today</div>
-      <div class="big">${eur(day[day.length - 1])}</div>
-      <div class="row" style="justify-content:flex-start"><span class="up" style="font-size:5cqw;font-weight:600">+${eur(day[day.length - 1] - day[0])}</span><span class="up" style="font-size:5cqw">${pct((day[day.length - 1] / day[0] - 1) * 100)}</span></div>
+    money: () => {
+      const P = periods[st.period], s = P.s, d = s[s.length - 1] - s[0], up = d >= 0, col = up ? '#5fd39c' : '#ff7d7d';
+      return `<div class="row"><span class="k">Portfolio</span><span class="k">${P.label}</span></div>
+      <div class="big">${eur(s[s.length - 1])}</div>
+      <div class="row" style="justify-content:flex-start"><span class="${up ? 'up' : 'down'}" style="font-size:5cqw;font-weight:600">${up ? '+' : '−'}${eur(Math.abs(d))}</span><span class="${up ? 'up' : 'down'}" style="font-size:5cqw">${pct((s[s.length - 1] / s[0] - 1) * 100)}</span></div>
       <div class="grow"></div>
-      ${spark(day)}
-      <div class="row" style="font-size:3.4cqw;color:var(--ink-3)"><span>09:00</span><span>17:30</span></div>`,
+      ${spark(s, col)}
+      <div class="row" style="font-size:3.4cqw;color:var(--ink-3);margin-top:-1cqw"><span>${P.from}</span><span>${P.to}</span></div>
+      <div class="seg">${Object.keys(periods).map(k => `<button class="${k === st.period ? 'on' : ''}" data-act="period" data-v="${k}">${k}</button>`).join('')}</div>`;
+    },
     movers: () => {
       const m = [['NVDA', 'Nvidia', 2.84], ['ASML', 'ASML', 1.92], ['VWRL', 'All-World', .41], ['SHELL', 'Shell', -.62], ['ADYEN', 'Adyen', -1.37]];
       const max = Math.max(...m.map(x => Math.abs(x[2])));
@@ -565,14 +592,25 @@ svg text { font-family: var(--f-body); }
         <text x="0" y="${H + 11}" font-size="8.5" fill="#7d7a8c">14 nights ago</text><text x="${W}" y="${H + 11}" font-size="8.5" fill="#7d7a8c" text-anchor="end">Last night</text></svg>
       <div class="chips"><span class="chip2"><i style="background:var(--ok)"></i>Verified restore 12 days ago</span><span class="chip2"><i style="background:var(--warn)"></i>1 slow night</span></div>`;
     },
-    alerts: () => `<div class="row"><span class="k">Alerts</span><span class="pill warn">1 OPEN</span></div>
+    alerts: () => {
+      const mute = `<div class="row" style="align-items:center"><span class="sub" style="font-size:3.8cqw">${st.muted ? 'Muted until ' + hhmm(new Date(Date.now() + 3600000)) : 'Telegram alerts on'}</span><button class="mutebtn" data-act="mute">${st.muted ? 'Unmute' : 'Mute 1h'}</button></div>`;
+      if (!st.alertsOpen) return `<div class="amb2" style="background:radial-gradient(70% 55% at 50% 38%, rgba(95,211,156,.16), transparent 70%)"></div>
+      <div class="row"><span class="k">Alerts</span><button class="pillbtn" data-act="alertprev"><span class="pill ok">NONE OPEN</span></button></div>
+      <div class="grow" style="display:grid;place-items:center;align-content:center;gap:3cqw">
+        <svg viewBox="0 0 60 60" width="30%"><circle cx="30" cy="30" r="26" fill="none" stroke="rgba(95,211,156,.25)" stroke-width="2"/><circle cx="30" cy="30" r="20" fill="rgba(95,211,156,.12)"/><path d="M21 30.5l6 6 12-13" fill="none" stroke="#5fd39c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="mid" style="font-weight:500;text-align:center">All quiet</div>
+        <div class="sub" style="text-align:center;font-size:3.8cqw">Nothing needs you. Last alert resolved<br>2 days ago: a slow backup night.</div>
+      </div>
+      ${mute}`;
+      return `<div class="row"><span class="k">Alerts</span><button class="pillbtn" data-act="alertprev"><span class="pill warn">1 OPEN</span></button></div>
       <div class="glass" style="padding:5cqw;display:grid;gap:1.8cqw">
         <span class="pill warn" style="justify-self:start">WARNING</span>
         <div style="font-size:5.6cqw;font-weight:600;line-height:1.2">volume2 is 88% full</div>
         <div class="sub" style="font-size:3.8cqw">Full in about 5 months at this rate</div>
       </div>
       <div class="grow"></div>
-      <div class="row" style="align-items:center"><span class="sub" style="font-size:3.8cqw">${st.muted ? 'Muted until ' + hhmm(new Date(Date.now() + 3600000)) : 'Telegram alerts on'}</span><button class="mutebtn" data-act="mute">${st.muted ? 'Unmute' : 'Mute 1h'}</button></div>`
+      ${mute}`;
+    }
   };
   const decks = {
     now: () => ['clock', 'train', 'agenda', 'forecast', 'headlines'],
@@ -714,11 +752,13 @@ svg text { font-family: var(--f-body); }
       }
       if (act === 'toggle') { const r = rooms[b.dataset.room]; r.on = !r.on; return p.render(); }
       if (act === 'plug') { const x = plugs[b.dataset.plug]; x.on = !x.on; return p.render(); }
-      if (act === 'alloff') { Object.values(rooms).forEach(r => { r.on = false; }); return p.render(); }
+      if (act === 'alloff') { Object.values(rooms).forEach(r => { r.on = false; }); st.scene = null; return p.render(); }
+      if (act === 'period') { st.period = b.dataset.v; return p.render(); }
+      if (act === 'alertprev') { st.alertsOpen = !st.alertsOpen; return p.render(); }
       if (act === 'scene') {
         const s = scenes[+b.dataset.i], r = Object.values(rooms).find(x => x.name === s.room);
         r.on = true; r.color = s.a; r.label = s.name; r.bri = s.name === 'Movie' ? 25 : 70;
-        p.i = 0; return p.render();
+        st.scene = +b.dataset.i; return p.render();
       }
       if (act === 'pp') { st.playing = !st.playing; st.pausedAt = st.playing ? 0 : Date.now(); return p.render(); }
       if (act === 'next' || act === 'prev') { st.t = (st.t + (act === 'next' ? 1 : tracks.length - 1)) % tracks.length; st.pos = 0; return p.render(); }

@@ -376,6 +376,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - **NAS and Backups** (House), redesigned 2026-10-10: NAS as three rings (CPU, memory, the
   fullest volume) with the storage runway and chips for disks and the UPS; Backups as the last
   14 nights as bars (a slow or failed night in amber or red) with the verified restore.
+- **Scenes, Portfolio and Alerts** (redesigned 2026-10-10): each scene tile is lit in the colours
+  of its lights, with a dot per light and the active scene marked; Portfolio has a day, week,
+  month and year switch, its line green or red with the change for that period; Alerts shows a
+  calm "All quiet" with a check when nothing is open, instead of an empty list.
 - No ambient mode (dropped 2026-10-10): the panels always show these screens; an idle art mode
   would defeat their purpose.
 - Each screen follows the design bar in M16 and is checked on a real panel.
