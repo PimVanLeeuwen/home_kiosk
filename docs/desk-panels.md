@@ -105,8 +105,9 @@ Requirements and options are in plan.md M16. Links:
 ## Mockup
 
 [desk-panels-mockup.html](desk-panels-mockup.html): the three panels as planned: Now (clock,
-weather, rain; Now Playing with controls), Home (rooms in their light colours, tap to switch,
-hold and drag for brightness, plugs, scenes, All off) and House (NAS, Money, backups, movers,
-alerts with Mute 1h). Buttons on the page start music, switch rotation and night mode, and
+weather, rain; a day card with the sun's arc, temperature curve and chance of rain; Now Playing
+with controls), Home (rooms in their light colours, tap to switch,
+hold and drag for brightness, plugs, scenes, All off) and House (Desk PC power, NAS, Money,
+backups, movers, alerts with Mute 1h). Buttons on the page start music, switch rotation and night mode, and
 simulate an error takeover. Example data only; album art is generated colour. Also published
 privately as a claude.ai artifact: <https://claude.ai/artifact/7kjiWAz6C8cBu7cArw7j2i>

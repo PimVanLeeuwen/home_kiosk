@@ -317,8 +317,29 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   over the panel when music starts and gives it back 2 minutes after a pause.
 - A new deliberate write (decided 2026-10-09): Spotify playback control.
 
+**M19. Desk PC power** (added 2026-10-10, proposed; the way to wake it is not chosen yet)
+- Goal: turn the desk PC on from the House panel instead of reaching under the desk, and sleep
+  or shut it down, with its real state (off, starting, on). The PC is on Wi-Fi, not wired.
+- Options:
+  1. **Small ESP32 on the power-button header (recommended).** An ESP32-C3 or C6 board (about
+     EUR 5 to 10) with an optocoupler in parallel with the case's power button, and the power-LED
+     header read back for the real state. It "presses" the button: short for on, sleep or a
+     clean shutdown (the OS power-button action), 5 s hold for a forced off. Powered from a USB
+     port that stays live when the PC is off (BIOS: USB power in S5, ErP off) or a small USB
+     supply. Wi-Fi, local only, the same firmware family as the panels (or ESPHome).
+  2. **Hue smart plug plus "Restore on AC power loss: On" in the BIOS.** No new hardware: switch
+     the plug off and on and the PC boots. Only when the PC is known to be off, or it cuts power
+     to a running PC; no sleep or shutdown, no real state; check the plug's rating against the PC.
+     A stopgap.
+  3. **Wake-on-WLAN.** Free to try, but most Wi-Fi cards only wake from sleep, not from off, and
+     it depends on the card, BIOS and driver. Not the main path.
+  Dropped: a button-pressing robot (Bluetooth and a cloud hub).
+- House panel: a Desk PC card with one large power button, the state and since when, and Sleep
+  and Shut down (tap twice to confirm) while it is on. Shown in the mockup.
+- A new deliberate write: pressing the PC's power button.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15, M16, M17, M18.
+M12, M13, M14, M15, M16, M17, M18, M19.
 
 ## 4. Open items
 
@@ -364,6 +385,22 @@ M12, M13, M14, M15, M16, M17, M18.
   calendar (ICS or CalDAV), an Immich "on this day" photo, a command palette (Cmd-K) for
   services, pages and repos, and a morning digest in Telegram (overnight updates, backup,
   disk, weather). Desk panels: house and productivity widgets and actions, later.
+- Desk panel screen ideas (2026-10-10), not chosen yet:
+  1. Agenda: today's timeline from a read-only ICS or CalDAV calendar, a countdown to the next
+     event, bin collection days as entries.
+  2. Ride: the next dry window to cycle (from Buienradar) and NS departures from De Bilt.
+  3. Focus: one tap starts a 50-minute ring timer, the desk light goes to its Focus scene, a
+     focus playlist starts and Telegram alerts are held until the end.
+  4. Memories: an Immich "on this day" photo, full-bleed, LAN only, off at night.
+  5. Ambient: a generative piece driven by live data (rain falling, NAS traffic flowing) for
+     when nothing needs attention.
+  6. Media: Jellyfin continue watching and recently added posters, the Sonarr and Radarr queue.
+  7. Code: CI state and open pull requests across the repos (from M9); red draws attention.
+  8. Headlines: top stories from the News reader; tap to save one to Readeck.
+  9. Air: outdoor air quality at home from Luchtmeetnet (RIVM), with pollen if a free
+     source exists.
+  10. Timers: tea or kitchen timers that chime on a panel's speaker (a speaker is not fitted
+      yet).
 - Considered and dropped (2026-10-08 and 09): a Docker socket proxy; pinned image versions
   with Renovate PRs (updates stay automatic, no PRs); a rollback command from the previous image
   digest; a Tailscale key expiry rule (keys do not expire on this tailnet); a privacy blur for

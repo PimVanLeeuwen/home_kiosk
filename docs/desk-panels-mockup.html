@@ -181,6 +181,14 @@ svg text { font-family: var(--f-body); }
 .takeover h3 { margin: 0; font-size: 8.4cqw; line-height: 1.08; font-weight: 600; letter-spacing: -.015em; }
 .takeover p { margin: 0; font-size: 4.4cqw; color: #e2c3c5; }
 .takeover button { align-self: flex-start; margin-top: 3cqw; font: inherit; font-size: 4.4cqw; font-weight: 600; color: #fff; background: rgba(255, 107, 107, .16); border: 1px solid var(--err); border-radius: 99px; padding: 2.4cqw 6cqw; cursor: pointer; }
+.power { width: 34cqw; height: 34cqw; border-radius: 50%; border: 1px solid var(--hair); cursor: pointer; display: grid; place-items: center; color: var(--ink-2);
+  background: radial-gradient(circle at 50% 30%, #2a2934, #121118 70%); transition: box-shadow .6s ease, color .6s ease; }
+.power.on { color: #eafff4; box-shadow: 0 0 0 1.4cqw rgba(95, 211, 156, .12), 0 0 12cqw rgba(95, 211, 156, .35); }
+.power.starting, .power.stopping { color: #d6d0ff; animation: breathe 1.8s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(124, 108, 242, 0); } 50% { box-shadow: 0 0 0 2cqw rgba(124, 108, 242, .22), 0 0 12cqw rgba(124, 108, 242, .4); } }
+.pcrow { display: grid; grid-template-columns: 1fr 1.4fr; gap: 3cqw; }
+.pcbtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: var(--glass); border: 1px solid var(--hair); border-radius: 99px; padding: 3cqw; cursor: pointer; }
+.pcbtn.sure { background: rgba(255, 107, 107, .16); border-color: var(--err); }
 .mutebtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: rgba(124, 108, 242, .18); border: 1px solid var(--accent); border-radius: 99px; padding: 2.4cqw 5cqw; cursor: pointer; }
 
 .notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 34px; }
@@ -197,7 +205,7 @@ svg text { font-family: var(--f-body); }
   .unit figcaption { margin-top: 18px; }
   .notes { grid-template-columns: minmax(0, 1fr); }
 }
-@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .power { transition: none; animation: none; } }
 </style>
 
 <div class="wrap">
@@ -225,7 +233,7 @@ svg text { font-family: var(--f-body); }
   <div class="notes">
     <section>
       <h2>Now</h2>
-      <ul><li>Clock, weather and Buienradar rain, on a sky that follows the time of day</li><li>Now Playing takes over while music plays, lit by the album's colours, and gives the panel back after a pause</li><li>Night: a dim clock only</li></ul>
+      <ul><li>Clock, weather and Buienradar rain, on a sky that follows the time of day</li><li>Your day: the sun's arc, the temperature curve and the chance of rain, with a one-line summary</li><li>Now Playing takes over while music plays, lit by the album's colours, and gives the panel back after a pause</li><li>Night: a dim clock only</li></ul>
     </section>
     <section>
       <h2>Home</h2>
@@ -233,7 +241,7 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>House</h2>
-      <ul><li>NAS and UPS, backups, alerts with Mute 1h</li><li>Money in the same rotation: portfolio today, then top movers</li><li>Night: screen off, unless an alert needs you</li></ul>
+      <ul><li>Desk PC: turn it on from the desk, sleep or shut down, with its state</li><li>NAS and UPS, backups, alerts with Mute 1h</li><li>Money in the same rotation: portfolio today, then top movers</li><li>Night: screen off, unless an alert needs you</li></ul>
     </section>
   </div>
   <p class="foot">An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
@@ -267,7 +275,7 @@ svg text { font-family: var(--f-body); }
     { title: 'Glasshouse', artist: 'Noor & the Quiet Hours', len: 251, device: 'MacBook', c: [[72, 180, 190], [40, 70, 160], [12, 22, 40]] },
     { title: 'Polder Lights', artist: 'Fenna Dijk', len: 189, device: 'Living room speakers', c: [[245, 200, 90], [210, 90, 120], [40, 20, 36]] }
   ];
-  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0 };
+  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, pc: 'off', pcSince: '01:12', pcConfirm: 0 };
   const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
   const art = t => `radial-gradient(circle at 28% 30%, ${rgb(t.c[0])}, transparent 58%), radial-gradient(circle at 78% 72%, ${rgb(t.c[1])}, transparent 60%), linear-gradient(135deg, ${rgb(t.c[2])}, ${rgb(t.c[1], .8)})`;
 
@@ -305,6 +313,48 @@ svg text { font-family: var(--f-body); }
       <circle cx="${x(L)}" cy="${y(series[L]).toFixed(1)}" r="3.6" fill="#5fd39c"/>
     </svg>`;
   }
+  function daySvg() {
+    const temps = [9, 9, 10, 11, 12, 13, 14, 14, 15, 16, 16, 15, 14, 13, 12, 11, 10, 10, 9];   // 06:00 to 24:00
+    const rain = [0, 0, 0, 5, 10, 40, 70, 60, 30, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0];             // chance, %
+    const W = 240, sr = 7 + 58 / 60, ss = 18 + 57 / 60;
+    const x = h => (h - 6) / 18 * W;
+    const nh = Math.min(24, Math.max(6, new Date().getHours() + new Date().getMinutes() / 60));
+    // sun arc
+    const base = 40, ah = 32, arc = [];
+    for (let i = 0; i <= 40; i++) { const h = sr + (ss - sr) * i / 40; arc.push(`${x(h).toFixed(1)},${(base - Math.sin(Math.PI * i / 40) * ah).toFixed(1)}`); }
+    const up = nh > sr && nh < ss, f = Math.min(1, Math.max(0, (nh - sr) / (ss - sr)));
+    const sx = x(sr + (ss - sr) * f), sy = base - Math.sin(Math.PI * f) * ah;
+    // temperature curve (Catmull-Rom as Bezier)
+    const tMin = 8, tMax = 17, ty = v => 88 - (v - tMin) / (tMax - tMin) * 32;
+    const P = temps.map((v, i) => [x(6 + i), ty(v)]);
+    let d = `M${P[0][0]},${P[0][1].toFixed(1)}`;
+    for (let i = 0; i < P.length - 1; i++) {
+      const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2;
+      d += ` C${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(1)},${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(1)},${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+    }
+    const hi = temps.indexOf(Math.max(...temps));
+    const bars = rain.map((r, i) => r ? `<rect x="${(x(6 + i) - 4).toFixed(1)}" y="${(108 - r / 100 * 14).toFixed(1)}" width="8" height="${(r / 100 * 14).toFixed(1)}" rx="2" fill="url(#rb)"/>` : '').join('');
+    const ticks = [6, 12, 18, 24].map(h => `<text x="${x(h)}" y="121" font-size="8.5" fill="#7d7a8c" text-anchor="${h === 6 ? 'start' : h === 24 ? 'end' : 'middle'}">${String(h % 24).padStart(2, '0')}:00</text>`).join('');
+    return `<svg viewBox="0 -2 ${W} 126" width="100%" style="display:block;overflow:visible">
+      <defs>
+        <linearGradient id="tg" x1="0" x2="1"><stop offset="0" stop-color="#8ab4ff"/><stop offset=".55" stop-color="#ffb86b"/><stop offset="1" stop-color="#8ab4ff"/></linearGradient>
+        <linearGradient id="tf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb86b" stop-opacity=".18"/><stop offset="1" stop-color="#ffb86b" stop-opacity="0"/></linearGradient>
+        <linearGradient id="rb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4a9ff"/><stop offset="1" stop-color="#6f60ea"/></linearGradient>
+        <radialGradient id="sun"><stop offset="0" stop-color="#ffe2a8"/><stop offset=".45" stop-color="#ffb86b" stop-opacity=".55"/><stop offset="1" stop-color="#ffb86b" stop-opacity="0"/></radialGradient>
+      </defs>
+      <line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="rgba(255,255,255,.12)"/>
+      <polyline points="${arc.join(' ')}" fill="none" stroke="rgba(255,226,168,.35)" stroke-width="1.4" stroke-dasharray="2 4" stroke-linecap="round"/>
+      ${up ? `<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="14" fill="url(#sun)"/><circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="4.5" fill="#fff2d6"/>`
+           : `<circle cx="${x(nh).toFixed(1)}" cy="${base - 24}" r="5" fill="#c9c4ee"/><circle cx="${(x(nh) + 2.6).toFixed(1)}" cy="${base - 25.6}" r="4.4" fill="#0f0f1a"/>`}
+      <path d="${d} L${W},94 L0,94 Z" fill="url(#tf)"/>
+      <path d="${d}" fill="none" stroke="url(#tg)" stroke-width="2.4" stroke-linecap="round"/>
+      <text x="${P[hi][0]}" y="${P[hi][1] - 7}" font-size="10" font-weight="600" fill="#ffd9a8" text-anchor="middle">16°</text>
+      <text x="2" y="${P[0][1] - 7}" font-size="10" fill="#8ab4ff">9°</text>
+      ${bars}
+      <line x1="${x(nh).toFixed(1)}" y1="4" x2="${x(nh).toFixed(1)}" y2="110" stroke="rgba(255,255,255,.45)" stroke-dasharray="2 3"/>
+      ${ticks}
+    </svg>`;
+  }
   function sky() { // the Now panel's backdrop follows the time of day
     const h = new Date().getHours();
     if (h >= 21 || h < 6) return ['#1a1840', '#08080f'];
@@ -313,6 +363,7 @@ svg text { font-family: var(--f-body); }
     return ['#4a2a3e', '#100a14'];
   }
   const ico = {
+    power: '<svg width="13cqw" height="13cqw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3.5v8"/><path d="M7.2 6.6a7.5 7.5 0 1 0 9.6 0"/></svg>',
     prev: '<svg width="7cqw" height="7cqw" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>',
     next: '<svg width="7cqw" height="7cqw" viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>',
     play: '<svg width="8cqw" height="8cqw" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>',
@@ -327,14 +378,11 @@ svg text { font-family: var(--f-body); }
       <div class="grow"></div>
       <div class="row"><span class="k">Rain · Buienradar</span><span class="k" style="color:#b4a9ff">2,8 mm/u at ${hhmm(new Date(now.getTime() + 45 * 60000))}</span></div>
       ${rainSvg()}`,
-    forecast: () => `<div class="k">Today</div>
-      <div class="list" style="font-size:5cqw;gap:3.6cqw;margin-top:1cqw">
-        ${[['09:00', '11°', 'Dry'], ['12:00', '14°', 'Showers'], ['15:00', '16°', 'Clearing up'], ['18:00', '13°', 'Dry'], ['21:00', '10°', 'Dry']]
-          .map(r => `<div class="row"><span class="mono" style="font-size:4.2cqw">${r[0]}</span><span style="color:var(--ink-2)">${r[2]}</span><span style="font-weight:600">${r[1]}</span></div>`).join('')}
-      </div>
+    forecast: () => `<div class="row"><span class="k">Your day</span><span class="k">High 16° · Low 9°</span></div>
+      <div class="mid" style="font-size:6.6cqw;font-weight:500;line-height:1.15">Showers around noon,<br><span style="color:var(--ink-2)">dry again from 15:00.</span></div>
       <div class="grow"></div>
-      <div class="row sub"><span>Sunrise 07:58</span><span>Sunset 18:57</span></div>
-      <div class="attrib">Buienradar</div>`,
+      ${daySvg()}
+      <div class="row" style="font-size:3.4cqw;color:var(--ink-3)"><span>Sunrise 07:58 · Sunset 18:57</span><span>Buienradar</span></div>`,
     playing: () => {
       const t = tracks[st.t];
       return `<div class="np card" style="padding:7.5cqw 7.5cqw 11cqw">
@@ -360,6 +408,16 @@ svg text { font-family: var(--f-body); }
       <div class="scenes">${scenes.map((s, i) => `<button class="scene" data-act="scene" data-i="${i}" style="background:linear-gradient(140deg, ${rgb(s.a, .55)}, ${rgb(s.b, .35)})">${s.name}<small>${s.room}</small></button>`).join('')}</div>
       <div class="grow"></div>
       <button class="alloff" data-act="alloff">All off</button>`,
+    pc: () => {
+      const s = st.pc, pill = { off: '<span class="pill" style="color:var(--ink-3);background:var(--glass-2)">OFF</span>', starting: '<span class="pill" style="color:#c9c1ff;background:rgba(124,108,242,.2)">STARTING</span>', on: '<span class="pill ok">ON</span>', stopping: '<span class="pill warn">SHUTTING DOWN</span>' }[s];
+      const line = { off: 'Off since ' + st.pcSince, starting: 'Starting, usually about 25 s', on: 'On since ' + st.pcSince + ' · Wi-Fi', stopping: 'Shutting down' }[s];
+      return `<div class="row"><span class="k">Desk PC</span>${pill}</div>
+      <div class="grow" style="display:grid;place-items:center">
+        <button class="power ${s}" data-act="pc-power" aria-label="${s === 'off' ? 'Turn on' : 'Power'}">${ico.power}</button>
+      </div>
+      <div style="text-align:center" class="sub">${line}</div>
+      ${s === 'on' ? `<div class="pcrow"><button class="pcbtn" data-act="pc-sleep">Sleep</button><button class="pcbtn${st.pcConfirm > Date.now() ? ' sure' : ''}" data-act="pc-off">${st.pcConfirm > Date.now() ? 'Tap again to shut down' : 'Shut down'}</button></div>` : '<div style="height:12.4cqw"></div>'}`;
+    },
     nas: () => `<div class="row"><span class="k">NAS</span><span class="pill ok">HEALTHY</span></div>
       <div class="list" style="gap:3.4cqw;margin-top:1cqw">
         <div><div class="row"><span>CPU</span><span>12%</span></div><div class="meter"><i style="width:12%"></i></div></div>
@@ -400,7 +458,7 @@ svg text { font-family: var(--f-body); }
   const decks = {
     now: () => st.music ? ['playing', 'clock', 'forecast'] : ['clock', 'forecast'],
     home: () => ['rooms', 'scenes'],
-    house: () => ['nas', 'money', 'backups', 'movers', 'alerts']
+    house: () => ['pc', 'nas', 'money', 'backups', 'movers', 'alerts']
   };
   const intervals = { now: 10000, home: 0, house: 9000 };
 
@@ -515,6 +573,19 @@ svg text { font-family: var(--f-body); }
       if (act === 'dot') return p.go(+b.dataset.j);
       if (act === 'dismiss') { desk.classList.remove('alerting'); return renderAll(); }
       if (act === 'mute') { st.muted = !st.muted; return p.render(); }
+      if (act === 'pc-power' && st.pc === 'off') {
+        st.pc = 'starting'; p.render();
+        return setTimeout(() => { st.pc = 'on'; st.pcSince = hhmm(new Date()); p.render(); }, 5000);
+      }
+      if (act === 'pc-sleep') { st.pc = 'off'; st.pcSince = hhmm(new Date()); return p.render(); }
+      if (act === 'pc-off') {
+        if (st.pcConfirm > Date.now()) {
+          st.pcConfirm = 0; st.pc = 'stopping'; p.render();
+          return setTimeout(() => { st.pc = 'off'; st.pcSince = hhmm(new Date()); p.render(); }, 4000);
+        }
+        st.pcConfirm = Date.now() + 3000; p.render();
+        return setTimeout(() => { if (st.pcConfirm && st.pcConfirm <= Date.now()) { st.pcConfirm = 0; p.render(); } }, 3100);
+      }
       if (act === 'toggle') { const r = rooms[b.dataset.room]; r.on = !r.on; return p.render(); }
       if (act === 'plug') { const x = plugs[b.dataset.plug]; x.on = !x.on; return p.render(); }
       if (act === 'alloff') { Object.values(rooms).forEach(r => { r.on = false; }); return p.render(); }
