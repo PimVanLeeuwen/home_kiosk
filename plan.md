@@ -257,8 +257,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   24 px. Every screen is checked on a real panel (photos) before it ships, not only in tests.
   Details in [docs/desk-panels.md](docs/desk-panels.md#design).
 - Roles, editable in the hub (Settings → Desk panels): left **Now** (clock, weather, Buienradar
-  rain; Now Playing while music plays, M18), middle **Home** (Hue, M17), right **House** (NAS,
-  backups, alerts, with Money in the rotation). Each panel rotates through its cards; a touch
+  rain, the morning train, calendar, the day view, headlines; Now Playing while music plays,
+  M18), middle **Home** (Hue lights, plugs and scenes, M17, and the desk PC's power button, M19;
+  does not rotate), right **House** (NAS, Money, Code, Jellyfin, backups, alerts). The screens
+  beyond the basics are M20. Each panel rotates through its cards; a touch
   pauses its rotation for 60 seconds. An ERROR alert takes over all three until dismissed. Night
   hours: Now shows a dim clock, Home and House dim, Money is off.
 - Firmware: one ESP-IDF + LVGL 9 build for all three; a panel only knows its name. It fetches
@@ -300,9 +302,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the bridge's link button, kept in `.env`). No Hue cloud. The bridge's event stream keeps the
   hub's state live, so changes from the Home app, Siri or a switch show at once.
 - Everything in the house is Hue (lights and smart plugs), so Apple Home follows on its own: it
-  reads the same bridge. Non-Hue HomeKit devices would need Home Assistant; there are none now.
-- Home panel: room tiles (tap on/off, hold for brightness), plugs as on/off tiles, scenes per
-  room, and one All off. A Lights page in the hub with the same controls.
+  reads the same bridge. Light zones: Bedroom, Hallway and Living room (2026-10-10). Non-Hue HomeKit devices would need Home Assistant; there are none now.
+- Home panel: a tile per zone (tap on/off, hold and drag for brightness) and the Desk PC tile
+  (M19) in one 2 × 2 grid, plugs as on/off switches, scenes per zone, and one All off. A Lights page in the hub with the same controls.
 - A new deliberate write (decided 2026-10-09): lights, plugs and scenes on the Hue Bridge.
 
 **M18. Music** (added 2026-10-09)
@@ -317,11 +319,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   over the panel when music starts and gives it back 2 minutes after a pause.
 - A new deliberate write (decided 2026-10-09): Spotify playback control.
 
-**M19. Desk PC power** (added 2026-10-10, proposed; the way to wake it is not chosen yet)
-- Goal: turn the desk PC on from the House panel instead of reaching under the desk, and sleep
+**M19. Desk PC power** (added 2026-10-10; ESP32 chosen 2026-10-10)
+- Goal: turn the desk PC on from the Home panel instead of reaching under the desk, and sleep
   or shut it down, with its real state (off, starting, on). The PC is on Wi-Fi, not wired.
 - Options:
-  1. **Small ESP32 on the power-button header (recommended).** An ESP32-C3 or C6 board (about
+  1. **Small ESP32 on the power-button header (chosen).** An ESP32-C3 or C6 board (about
      EUR 5 to 10) with an optocoupler in parallel with the case's power button, and the power-LED
      header read back for the real state. It "presses" the button: short for on, sleep or a
      clean shutdown (the OS power-button action), 5 s hold for a forced off. Powered from a USB
@@ -334,12 +336,59 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   3. **Wake-on-WLAN.** Free to try, but most Wi-Fi cards only wake from sleep, not from off, and
      it depends on the card, BIOS and driver. Not the main path.
   Dropped: a button-pressing robot (Bluetooth and a cloud hub).
-- House panel: a Desk PC card with one large power button, the state and since when, and Sleep
-  and Shut down (tap twice to confirm) while it is on. Shown in the mockup.
+- Home panel: a Desk PC tile next to the light zones (decided 2026-10-10). Off: tap to start
+  (the tile shows Starting until the power LED is on). On: tap opens Sleep and Shut down (tap
+  twice to confirm) and Close. Shown in the mockup.
+- To find out first: the motherboard model (front-panel header layout, whether a USB port stays
+  powered when off) and the OS power-button action (set to Shut down). Parts: an ESP32-C3 or C6
+  board, a PC817 optocoupler, a resistor, a front-panel header splitter (so the case button keeps
+  working), and Dupont wires.
+- The hub talks to the ESP32 over the LAN (ESPHome's API or a small HTTP API with a key); the
+  panel never talks to it directly.
 - A new deliberate write: pressing the PC's power button.
 
+**M20. Panel screens** (added 2026-10-10)
+- **Your train** (Now, weekday mornings only): the owner takes the 07:16 from Leiden Centraal
+  to Rotterdam Centraal every morning. The collector checks it with the NS API (free key
+  from the NS API portal, in `.env`): from about 06:00 it follows that departure (cancelled,
+  delayed, platform change, disruptions on the route) and stops after it leaves. The card shows
+  on time, the delay or cancelled with the next train, the platform and the arrival. Any problem
+  is a Telegram message at once. Decide: quiet hours run until 07:00, so this alert must bypass
+  them; which days (weekdays, or set per day); whether a quiet "on time" message is wanted too.
+  To check: whether the 07:16 is direct or has a change (then each leg is followed).
+- **Calendar** (Now): today's events, the next one with a countdown, and bin day. Read-only.
+  Options for the Apple calendars:
+  1. **CalDAV with an app-specific password (recommended).** One login to `caldav.icloud.com`
+     with an app-specific password from the Apple account page, kept in `.env`. Reads every
+     iCloud calendar, including ones shared with you, with their names and colours, and no public
+     links. The password also opens iCloud mail and contacts, so it stays NAS-only and can be
+     revoked at any time.
+  2. **Public calendar links.** In Calendar, each calendar can be made public and gives a webcal
+     link. No password, but anyone with a link can read that calendar, and Apple's public feed
+     can lag.
+  3. **Mixed.** CalDAV for iCloud plus plain ICS links for anything else (a work calendar, a bin
+     collection calendar for De Bilt).
+  Questions: which calendars to show (and are any outside iCloud, such as work or subscribed
+  ones); show titles for all, or "Busy" for some (visitors see the desk); today only, or also
+  tomorrow morning after 18:00; any reminders on the panel or in Telegram; where bin days come
+  from (a municipal or collector ICS feed, to check).
+- **Headlines** (Now): the top stories from the News reader (M6); tap one to save it to Readeck.
+- **Code** (House): CI state of the default branches and open pull requests from the Repos data
+  (M9); a failing build stands out.
+- **Jellyfin** (House): continue watching with progress, recently added posters, and what Sonarr
+  and Radarr are downloading. Posters are fetched and resized by the hub. Shares its data with
+  the backlog's richer Jellyfin overview in the hub.
+- **Top movers** (House, Money): diverging bars from a centre line, ticker and name, the change
+  in green or red; the count up and down in the header.
+- **Ambient mode** (all three): when nothing needs attention, each panel becomes a slow
+  generative piece driven by live data. Now: rain falling at the Buienradar rate, with the time.
+  Home: the colours of the lights that are on, drifting. House: NAS network traffic as flowing
+  particles. A touch wakes the panel; an alert ends it. When it starts (idle time, hours) is
+  set in Settings. Drawn on the panel itself, kept light enough for 30 fps or more.
+- Each screen follows the design bar in M16 and is checked on a real panel.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15, M16, M17, M18, M19.
+M12, M13, M14, M15, M16, M17, M18, M19, M20.
 
 ## 4. Open items
 
@@ -385,22 +434,16 @@ M12, M13, M14, M15, M16, M17, M18, M19.
   calendar (ICS or CalDAV), an Immich "on this day" photo, a command palette (Cmd-K) for
   services, pages and repos, and a morning digest in Telegram (overnight updates, backup,
   disk, weather). Desk panels: house and productivity widgets and actions, later.
-- Desk panel screen ideas (2026-10-10), not chosen yet:
-  1. Agenda: today's timeline from a read-only ICS or CalDAV calendar, a countdown to the next
-     event, bin collection days as entries.
-  2. Ride: the next dry window to cycle (from Buienradar) and NS departures from De Bilt.
-  3. Focus: one tap starts a 50-minute ring timer, the desk light goes to its Focus scene, a
+- Desk panel screen ideas (2026-10-10). Chosen into M20 on 2026-10-10: calendar, the morning
+  train (instead of general departures), ambient, Jellyfin, code and headlines. Not chosen yet:
+  1. Ride: the next dry window to cycle (from Buienradar).
+  2. Focus: one tap starts a 50-minute ring timer, the lights go to a Focus scene, a
      focus playlist starts and Telegram alerts are held until the end.
-  4. Memories: an Immich "on this day" photo, full-bleed, LAN only, off at night.
-  5. Ambient: a generative piece driven by live data (rain falling, NAS traffic flowing) for
-     when nothing needs attention.
-  6. Media: Jellyfin continue watching and recently added posters, the Sonarr and Radarr queue.
-  7. Code: CI state and open pull requests across the repos (from M9); red draws attention.
-  8. Headlines: top stories from the News reader; tap to save one to Readeck.
-  9. Air: outdoor air quality at home from Luchtmeetnet (RIVM), with pollen if a free
+  3. Memories: an Immich "on this day" photo, full-bleed, LAN only, off at night.
+  4. Air: outdoor air quality at home from Luchtmeetnet (RIVM), with pollen if a free
      source exists.
-  10. Timers: tea or kitchen timers that chime on a panel's speaker (a speaker is not fitted
-      yet).
+  5. Timers: tea or kitchen timers that chime on a panel's speaker (a speaker is not fitted
+     yet).
 - Considered and dropped (2026-10-08 and 09): a Docker socket proxy; pinned image versions
   with Renovate PRs (updates stay automatic, no PRs); a rollback command from the previous image
   digest; a Tailscale key expiry rule (keys do not expire on this tailnet); a privacy blur for

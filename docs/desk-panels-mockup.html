@@ -189,6 +189,32 @@ svg text { font-family: var(--f-body); }
 .pcrow { display: grid; grid-template-columns: 1fr 1.4fr; gap: 3cqw; }
 .pcbtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: var(--glass); border: 1px solid var(--hair); border-radius: 99px; padding: 3cqw; cursor: pointer; }
 .pcbtn.sure { background: rgba(255, 107, 107, .16); border-color: var(--err); }
+canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 5; }
+.tile.pc .pcico svg { width: 6cqw; height: 6cqw; }
+.tile.pc .pcico { font-style: normal; color: var(--ink-3); display: grid; }
+.tile.pc.on .pcico { color: var(--ok); }
+.tile.pc.starting .pcico, .tile.pc.stopping .pcico { color: #c9c1ff; animation: blink 1.4s ease-in-out infinite; }
+@keyframes blink { 50% { opacity: .35; } }
+.pcsheet { position: absolute; inset: 0; z-index: 4; padding: 7.5cqw 7.5cqw 11cqw; display: flex; flex-direction: column; gap: 3cqw;
+  background: radial-gradient(90% 70% at 0% 0%, rgba(95, 211, 156, .18), transparent 70%), #0b0c10; }
+.tl { display: grid; gap: 2.4cqw; }
+.ev { display: grid; grid-template-columns: 13cqw 2.4cqw 1fr auto; gap: 2.6cqw; align-items: center; font-size: 4.2cqw; }
+.ev i { width: 2.4cqw; height: 2.4cqw; border-radius: 50%; }
+.ev .mono { font-size: 3.8cqw; color: var(--ink-2); }
+.ev .evt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev .evc { font-size: 3.4cqw; color: var(--ink-3); }
+.ev.past { opacity: .4; }
+.amb2 { position: absolute; inset: 0; pointer-events: none; }
+.hl { font: inherit; color: var(--ink); text-align: left; cursor: pointer; background: transparent; border: 0; border-left: .6cqw solid rgba(255, 255, 255, .14); padding: .4cqw 0 .4cqw 3.4cqw; display: grid; gap: 1cqw; }
+.hl.saved { border-left-color: var(--accent); }
+.hl .hlt { font-size: 4.8cqw; font-weight: 600; line-height: 1.2; }
+.movers { display: grid; gap: 2.4cqw; margin-top: 1cqw; }
+.mv { display: grid; grid-template-columns: 24cqw 1fr 17cqw; gap: 2.6cqw; align-items: center; }
+.mvbar { position: relative; height: 2.6cqw; }
+.mvbar::before { content: ""; position: absolute; left: 50%; top: -1.2cqw; bottom: -1.2cqw; width: 1px; background: rgba(255, 255, 255, .18); }
+.mvbar i { position: absolute; top: 0; bottom: 0; border-radius: 99px; }
+.pillbtn { font: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.poster { aspect-ratio: 2 / 3; border-radius: 2cqw; box-shadow: 0 2cqw 5cqw rgba(0, 0, 0, .45); }
 .mutebtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: rgba(124, 108, 242, .18); border: 1px solid var(--accent); border-radius: 99px; padding: 2.4cqw 5cqw; cursor: pointer; }
 
 .notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 34px; }
@@ -217,6 +243,7 @@ svg text { font-family: var(--f-body); }
     <div class="controls">
       <button class="btn" id="btn-music" aria-pressed="false">Play music</button>
       <button class="btn" id="btn-rotate" aria-pressed="true">Rotation on</button>
+      <button class="btn" id="btn-ambient" aria-pressed="false">Ambient</button>
       <button class="btn" id="btn-night" aria-pressed="false">Night mode</button>
       <button class="btn danger" id="btn-alert">Simulate error alert</button>
     </div>
@@ -233,18 +260,18 @@ svg text { font-family: var(--f-body); }
   <div class="notes">
     <section>
       <h2>Now</h2>
-      <ul><li>Clock, weather and Buienradar rain, on a sky that follows the time of day</li><li>Your day: the sun's arc, the temperature curve and the chance of rain, with a one-line summary</li><li>Now Playing takes over while music plays, lit by the album's colours, and gives the panel back after a pause</li><li>Night: a dim clock only</li></ul>
+      <ul><li>Clock, weather and Buienradar rain, on a sky that follows the time of day</li><li>Your train: the 07:16 to Rotterdam Centraal, on weekday mornings only (tap its status to preview delayed and cancelled)</li><li>Today: events from the Apple calendars, the next one up, bin day</li><li>Your day: the sun's arc, the temperature curve and the chance of rain, with a one-line summary</li><li>Headlines from the News reader; tap one to save it to Readeck</li><li>Now Playing takes over while music plays, lit by the album's colours, and gives the panel back after a pause</li><li>Night: a dim clock only</li></ul>
     </section>
     <section>
       <h2>Home</h2>
-      <ul><li>Each room glows in the colour its Hue lights have right now</li><li>Tap to switch, hold and drag for brightness; plugs as switches</li><li>Scenes and All off on the second card. This panel does not rotate.</li></ul>
+      <ul><li>Bedroom, Hallway and Living room glow in the colour their Hue lights have right now</li><li>Tap to switch, hold and drag for brightness; plugs as switches</li><li>Desk PC: tap to start it; while it is on, tap for Sleep and Shut down</li><li>Scenes and All off on the second card. This panel does not rotate.</li></ul>
     </section>
     <section>
       <h2>House</h2>
-      <ul><li>Desk PC: turn it on from the desk, sleep or shut down, with its state</li><li>NAS and UPS, backups, alerts with Mute 1h</li><li>Money in the same rotation: portfolio today, then top movers</li><li>Night: screen off, unless an alert needs you</li></ul>
+      <ul><li>NAS and UPS, backups, alerts with Mute 1h</li><li>Money: portfolio today, then top movers as diverging bars</li><li>Code: CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
     </section>
   </div>
-  <p class="foot">An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
+  <p class="foot">Ambient turns each panel into a slow piece driven by live data (rain, the lights, NAS traffic); a touch wakes it. An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
 </div>
 
 <script>
@@ -259,23 +286,22 @@ svg text { font-family: var(--f-body); }
   // --- example state -------------------------------------------------------------
   const rooms = {
     living: { name: 'Living room', on: true, bri: 64, color: [255, 176, 92], label: 'Warm' },
-    kitchen: { name: 'Kitchen', on: false, bri: 80, color: [255, 214, 160], label: 'Bright' },
     bedroom: { name: 'Bedroom', on: false, bri: 30, color: [255, 120, 80], label: 'Nightlight' },
-    desk: { name: 'Desk', on: true, bri: 45, color: [138, 118, 255], label: 'Violet' }
+    hallway: { name: 'Hallway', on: true, bri: 35, color: [138, 118, 255], label: 'Violet' }
   };
   const plugs = { coffee: { name: 'Coffee', on: false }, speakers: { name: 'Speakers', on: true } };
   const scenes = [
     { name: 'Relax', room: 'Living room', a: [255, 150, 70], b: [190, 70, 60] },
     { name: 'Read', room: 'Living room', a: [255, 226, 170], b: [230, 170, 110] },
-    { name: 'Focus', room: 'Desk', a: [170, 200, 255], b: [120, 110, 255] },
-    { name: 'Movie', room: 'Living room', a: [90, 70, 200], b: [40, 30, 90] }
+    { name: 'Movie', room: 'Living room', a: [90, 70, 200], b: [40, 30, 90] },
+    { name: 'Nightlight', room: 'Hallway', a: [255, 120, 80], b: [120, 40, 40] }
   ];
   const tracks = [
     { title: 'Low Tide Static', artist: 'Marlow Hayes', len: 214, device: 'MacBook', c: [[239, 112, 74], [126, 58, 160], [32, 22, 60]] },
     { title: 'Glasshouse', artist: 'Noor & the Quiet Hours', len: 251, device: 'MacBook', c: [[72, 180, 190], [40, 70, 160], [12, 22, 40]] },
     { title: 'Polder Lights', artist: 'Fenna Dijk', len: 189, device: 'Living room speakers', c: [[245, 200, 90], [210, 90, 120], [40, 20, 36]] }
   ];
-  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, pc: 'off', pcSince: '01:12', pcConfirm: 0 };
+  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, pc: 'off', pcSince: '01:12', pcConfirm: 0, pcSheet: false, train: 0, saved: {}, ambient: false };
   const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
   const art = t => `radial-gradient(circle at 28% 30%, ${rgb(t.c[0])}, transparent 58%), radial-gradient(circle at 78% 72%, ${rgb(t.c[1])}, transparent 60%), linear-gradient(135deg, ${rgb(t.c[2])}, ${rgb(t.c[1], .8)})`;
 
@@ -399,24 +425,59 @@ svg text { font-family: var(--f-body); }
         <div class="ctl"><button data-act="prev" aria-label="Previous">${ico.prev}</button><button class="pp" data-act="pp" aria-label="${st.playing ? 'Pause' : 'Play'}">${st.playing ? ico.pause : ico.play}</button><button data-act="next" aria-label="Next">${ico.next}</button></div>
       </div>`;
     },
-    rooms: () => `<div class="row"><span class="k">Home</span><span class="k">${Object.values(rooms).filter(r => r.on).length} of 4 on</span></div>
+    rooms: () => `<div class="row"><span class="k">Home</span><span class="k">${Object.values(rooms).filter(r => r.on).length} of 3 lights on</span></div>
       <div class="rooms">${Object.entries(rooms).map(([id, r]) => `<button class="tile${r.on ? ' on' : ''}" data-act="toggle" data-room="${id}">
           <div class="glow" style="background:radial-gradient(120% 100% at 0% 0%, ${rgb(r.color, .2 + r.bri / 160)}, ${rgb(r.color, .05)} 70%)"></div>
-          <b>${r.name}</b><span>${r.on ? r.label + ' · ' + r.bri + '%' : 'Off'}</span></button>`).join('')}</div>
+          <b>${r.name}</b><span>${r.on ? r.label + ' · ' + r.bri + '%' : 'Off'}</span></button>`).join('')}
+        <button class="tile pc ${st.pc}${st.pc === 'on' ? ' on' : ''}" data-act="pc">
+          <div class="glow" style="background:radial-gradient(120% 100% at 0% 0%, rgba(95,211,156,.32), rgba(95,211,156,.04) 70%)"></div>
+          <b style="display:flex;justify-content:space-between;align-items:center">Desk PC <i class="pcico">${ico.power}</i></b>
+          <span>${{ off: 'Off · tap to start', starting: 'Starting…', on: 'On since ' + st.pcSince, stopping: 'Shutting down…' }[st.pc]}</span></button></div>
+      ${st.pcSheet ? `<div class="pcsheet"><div class="row"><span class="k">Desk PC</span><span class="pill ok">ON</span></div>
+        <div class="mid" style="font-weight:500">On since ${st.pcSince}</div><div class="sub">Over Wi-Fi · the ESP32 on the power button</div>
+        <div class="grow"></div>
+        <div class="pcrow"><button class="pcbtn" data-act="pc-sleep">Sleep</button><button class="pcbtn${st.pcConfirm > Date.now() ? ' sure' : ''}" data-act="pc-off">${st.pcConfirm > Date.now() ? 'Tap again to shut down' : 'Shut down'}</button></div>
+        <button class="alloff" data-act="pc-close">Close</button></div>` : ''}
       <div class="plugs">${Object.entries(plugs).map(([id, p]) => `<button class="plug${p.on ? ' on' : ''}" data-act="plug" data-plug="${id}"><span>${p.name}</span><i></i></button>`).join('')}</div>`,
     scenes: () => `<div class="k">Scenes</div>
       <div class="scenes">${scenes.map((s, i) => `<button class="scene" data-act="scene" data-i="${i}" style="background:linear-gradient(140deg, ${rgb(s.a, .55)}, ${rgb(s.b, .35)})">${s.name}<small>${s.room}</small></button>`).join('')}</div>
       <div class="grow"></div>
       <button class="alloff" data-act="alloff">All off</button>`,
-    pc: () => {
-      const s = st.pc, pill = { off: '<span class="pill" style="color:var(--ink-3);background:var(--glass-2)">OFF</span>', starting: '<span class="pill" style="color:#c9c1ff;background:rgba(124,108,242,.2)">STARTING</span>', on: '<span class="pill ok">ON</span>', stopping: '<span class="pill warn">SHUTTING DOWN</span>' }[s];
-      const line = { off: 'Off since ' + st.pcSince, starting: 'Starting, usually about 25 s', on: 'On since ' + st.pcSince + ' · Wi-Fi', stopping: 'Shutting down' }[s];
-      return `<div class="row"><span class="k">Desk PC</span>${pill}</div>
-      <div class="grow" style="display:grid;place-items:center">
-        <button class="power ${s}" data-act="pc-power" aria-label="${s === 'off' ? 'Turn on' : 'Power'}">${ico.power}</button>
-      </div>
-      <div style="text-align:center" class="sub">${line}</div>
-      ${s === 'on' ? `<div class="pcrow"><button class="pcbtn" data-act="pc-sleep">Sleep</button><button class="pcbtn${st.pcConfirm > Date.now() ? ' sure' : ''}" data-act="pc-off">${st.pcConfirm > Date.now() ? 'Tap again to shut down' : 'Shut down'}</button></div>` : '<div style="height:12.4cqw"></div>'}`;
+    agenda: () => {
+      const ev = [
+        ['08:00', 'Gym', 'Personal', [255, 184, 107], true],
+        ['09:30', 'Standup', 'Work', [90, 169, 255], false],
+        ['12:30', 'Busy', 'Family', [200, 160, 255], false],
+        ['16:00', 'Dentist', 'Personal', [255, 184, 107], false],
+        ['20:00', 'Hubble board meeting', 'Hubble', [95, 211, 156], false]
+      ];
+      return `<div class="row"><span class="k">Today</span><span class="k">4 calendars</span></div>
+      <div><div class="mid">Standup</div><div class="sub" style="margin-top:1cqw"><span style="color:#5aa9ff">●</span> Work · in 42 min, 09:30</div></div>
+      <div class="tl">${ev.map(x => `<div class="ev${x[4] ? ' past' : ''}"><span class="mono">${x[0]}</span><i style="background:${rgb(x[3])}"></i><span class="evt">${x[1]}</span><span class="evc">${x[2]}</span></div>`).join('')}</div>
+      <div class="grow"></div>
+      <div class="glass" style="padding:2.6cqw 4cqw;display:flex;justify-content:space-between;align-items:center;font-size:4cqw"><span>Tonight: paper bin out</span><span class="k" style="font-size:3.4cqw">Tomorrow</span></div>`;
+    },
+    train: () => {
+      const s = [
+        { pill: '<span class="pill ok">ON TIME</span>', dep: '07:16', note: 'On time', plat: '3', arr: '08:41', glow: 'rgba(95,211,156,.18)' },
+        { pill: '<span class="pill warn">+6 MIN</span>', dep: '07:22', note: '6 minutes late', plat: '3', arr: '08:47', glow: 'rgba(240,189,90,.2)' },
+        { pill: '<span class="pill" style="color:var(--err);background:rgba(255,107,107,.15)">CANCELLED</span>', dep: '07:46', note: 'Cancelled. Next one: 07:46, platform 4', plat: '4', arr: '09:11', glow: 'rgba(255,107,107,.22)' }
+      ][st.train];
+      return `<div class="amb2" style="background:radial-gradient(80% 60% at 100% 0%, ${s.glow}, transparent 70%)"></div>
+      <div class="row"><span class="k">Your train</span><button class="pillbtn" data-act="train" aria-label="Preview another state">${s.pill}</button></div>
+      <div class="huge" style="font-size:19cqw;${st.train === 2 ? 'text-decoration:line-through;text-decoration-thickness:.6cqw;color:var(--ink-3)' : ''}">07:16</div>
+      <div class="sub" style="font-size:4.6cqw;color:var(--ink)">Leiden Centraal → Rotterdam Centraal</div>
+      <div class="grow"></div>
+      <div class="glass" style="padding:3.6cqw 4.4cqw;display:grid;gap:2cqw;font-size:4.2cqw">
+        <div class="row"><span style="color:var(--ink-2)">Departs</span><span style="font-weight:600">${s.dep} · platform ${s.plat}</span></div>
+        <div class="row"><span style="color:var(--ink-2)">Arrives</span><span>${s.arr}</span></div>
+        <div style="font-size:3.8cqw;color:var(--ink-2)">${s.note}</div>
+      </div>`;
+    },
+    headlines: () => {
+      const h = [['NOS', '12 min', 'Kabinet presenteert plannen voor betaalbare huurwoningen'], ['Tweakers', '40 min', 'Raspberry Pi kondigt nieuwe Compute Module aan'], ['The Verge', '1 h', 'The quiet return of the desk gadget']];
+      return `<div class="row"><span class="k">Headlines</span><span class="k">Tap to save</span></div>
+      <div style="display:grid;gap:3.6cqw;margin-top:1cqw">${h.map((x, i) => `<button class="hl${st.saved[i] ? ' saved' : ''}" data-act="save" data-i="${i}"><span class="k" style="font-size:3.4cqw">${x[0]} · ${x[1]}${st.saved[i] ? ' · saved to Readeck' : ''}</span><span class="hlt">${x[2]}</span></button>`).join('')}</div>`;
     },
     nas: () => `<div class="row"><span class="k">NAS</span><span class="pill ok">HEALTHY</span></div>
       <div class="list" style="gap:3.4cqw;margin-top:1cqw">
@@ -432,11 +493,37 @@ svg text { font-family: var(--f-body); }
       <div class="grow"></div>
       ${spark(day)}
       <div class="row" style="font-size:3.4cqw;color:var(--ink-3)"><span>09:00</span><span>17:30</span></div>`,
-    movers: () => `<div class="k">Top movers</div>
-      <div class="list" style="font-size:5.2cqw;gap:3.8cqw;margin-top:1cqw">
-        ${[['NVDA', 2.84], ['ASML', 1.92], ['VWRL', .41], ['ADYEN', -1.37], ['AEX', -.24]]
-          .map(r => `<div class="row"><span class="mono" style="color:var(--ink);font-size:4.6cqw">${r[0]}</span><span class="${r[1] >= 0 ? 'up' : 'down'}" style="font-weight:600">${pct(r[1])}</span></div>`).join('')}
-      </div>`,
+    movers: () => {
+      const m = [['NVDA', 'Nvidia', 2.84], ['ASML', 'ASML', 1.92], ['VWRL', 'All-World', .41], ['SHELL', 'Shell', -.62], ['ADYEN', 'Adyen', -1.37]];
+      const max = Math.max(...m.map(x => Math.abs(x[2])));
+      return `<div class="row"><span class="k">Top movers today</span><span class="k">3 up · 2 down</span></div>
+      <div class="movers">${m.map(x => {
+        const w = Math.abs(x[2]) / max * 50, up = x[2] >= 0;
+        return `<div class="mv"><div><div class="mono" style="font-size:4.4cqw;color:var(--ink)">${x[0]}</div><div style="font-size:3.4cqw;color:var(--ink-3)">${x[1]}</div></div>
+          <div class="mvbar"><i style="${up ? 'left:50%' : 'right:50%'};width:${w.toFixed(1)}%;background:${up ? 'linear-gradient(90deg, rgba(95,211,156,.35), #5fd39c)' : 'linear-gradient(270deg, rgba(255,125,125,.35), #ff7d7d)'}"></i></div>
+          <div class="${up ? 'up' : 'down'}" style="font-weight:600;font-size:4.4cqw;text-align:right">${pct(x[2])}</div></div>`;
+      }).join('')}</div>`;
+    },
+    code: () => {
+      const r = [['home_kiosk', 'main', 'ok', '4 min ago'], ['nas-docker', 'main', 'ok', '2 h ago'], ['hubble-website', 'main', 'fail', 'build · 12 min ago'], ['home_kiosk', 'PR #41', 'run', 'running']];
+      const pill = { ok: '<span class="pill ok">PASSING</span>', fail: '<span class="pill" style="color:var(--err);background:rgba(255,107,107,.15)">FAILING</span>', run: '<span class="pill" style="color:#c9c1ff;background:rgba(124,108,242,.2)">RUNNING</span>' };
+      return `<div class="row"><span class="k">Code</span><span class="pill" style="color:var(--err);background:rgba(255,107,107,.15)">1 FAILING</span></div>
+      <div style="display:grid;gap:3.2cqw;margin-top:1cqw">${r.map(x => `<div class="row" style="align-items:center"><div style="min-width:0"><div class="mono" style="font-size:4.2cqw">${x[0]}</div><div style="font-size:3.4cqw;color:var(--ink-3)">${x[1]} · ${x[3]}</div></div>${pill[x[2]]}</div>`).join('')}</div>
+      <div class="grow"></div>
+      <div class="row" style="font-size:4cqw"><span style="color:var(--ink-2)">Open pull requests</span><span>3 · 1 waiting for you</span></div>`;
+    },
+    media: () => {
+      const post = (a, b) => `background:linear-gradient(160deg, ${a}, ${b})`;
+      return `<div class="row"><span class="k">Jellyfin</span><span class="k">2 downloading</span></div>
+      <div style="display:flex;gap:4cqw;align-items:flex-end">
+        <div class="poster" style="width:24cqw;${post('#3a6ea5', '#14213d')}"></div>
+        <div style="min-width:0;display:grid;gap:1.4cqw;flex:1"><span class="k" style="font-size:3.4cqw">Continue watching</span><div style="font-size:5.4cqw;font-weight:600;line-height:1.1">The Long Coast</div><div class="sub" style="font-size:3.8cqw">S1 E4 · 23 min left</div><div class="prog" style="background:rgba(255,255,255,.14)"><i style="width:62%;background:var(--accent)"></i></div></div>
+      </div>
+      <div class="grow"></div>
+      <span class="k" style="font-size:3.4cqw">Recently added</span>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2.4cqw">${[['#b5543c', '#3d1a14'], ['#4f8a6b', '#16261d'], ['#7c6cf2', '#221c4a'], ['#c9a227', '#3a2d08']].map(c => `<div class="poster" style="${post(c[0], c[1])}"></div>`).join('')}</div>`;
+    },
+
     backups: () => `<div class="row"><span class="k">Backups</span><span class="pill ok">OK</span></div>
       <div class="big" style="font-weight:500">03:00</div>
       <div class="sub">Last night · 1 h 12 min</div>
@@ -456,9 +543,9 @@ svg text { font-family: var(--f-body); }
       <div class="row" style="align-items:center"><span class="sub" style="font-size:3.8cqw">${st.muted ? 'Muted until ' + hhmm(new Date(Date.now() + 3600000)) : 'Telegram alerts on'}</span><button class="mutebtn" data-act="mute">${st.muted ? 'Unmute' : 'Mute 1h'}</button></div>`
   };
   const decks = {
-    now: () => st.music ? ['playing', 'clock', 'forecast'] : ['clock', 'forecast'],
+    now: () => (st.music ? ['playing'] : []).concat(['clock', 'train', 'agenda', 'forecast', 'headlines']),
     home: () => ['rooms', 'scenes'],
-    house: () => ['pc', 'nas', 'money', 'backups', 'movers', 'alerts']
+    house: () => ['nas', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
   };
   const intervals = { now: 10000, home: 0, house: 9000 };
 
@@ -506,6 +593,7 @@ svg text { font-family: var(--f-body); }
       p.pausedEl.hidden = !p.pausedUntil;
       p.track.style.transform = `translateX(${-p.i * 100}%)`;
       unit.style.setProperty('--glow', glow(name));
+      if (st.ambient) { const cv = document.createElement('canvas'); cv.className = 'art2'; scr.appendChild(cv); }
     };
     p.go = function (j) {
       const n = decks[name]().length;
@@ -573,14 +661,21 @@ svg text { font-family: var(--f-body); }
       if (act === 'dot') return p.go(+b.dataset.j);
       if (act === 'dismiss') { desk.classList.remove('alerting'); return renderAll(); }
       if (act === 'mute') { st.muted = !st.muted; return p.render(); }
-      if (act === 'pc-power' && st.pc === 'off') {
-        st.pc = 'starting'; p.render();
-        return setTimeout(() => { st.pc = 'on'; st.pcSince = hhmm(new Date()); p.render(); }, 5000);
+      if (act === 'pc') {
+        if (st.pc === 'off') {
+          st.pc = 'starting'; p.render();
+          return setTimeout(() => { st.pc = 'on'; st.pcSince = hhmm(new Date()); p.render(); }, 5000);
+        }
+        if (st.pc === 'on') { st.pcSheet = true; return p.render(); }
+        return;
       }
-      if (act === 'pc-sleep') { st.pc = 'off'; st.pcSince = hhmm(new Date()); return p.render(); }
+      if (act === 'pc-close') { st.pcSheet = false; st.pcConfirm = 0; return p.render(); }
+      if (act === 'pc-sleep') { st.pc = 'off'; st.pcSheet = false; st.pcSince = hhmm(new Date()); return p.render(); }
+      if (act === 'train') { st.train = (st.train + 1) % 3; return p.render(); }
+      if (act === 'save') { st.saved[+b.dataset.i] = !st.saved[+b.dataset.i]; return p.render(); }
       if (act === 'pc-off') {
         if (st.pcConfirm > Date.now()) {
-          st.pcConfirm = 0; st.pc = 'stopping'; p.render();
+          st.pcConfirm = 0; st.pc = 'stopping'; st.pcSheet = false; p.render();
           return setTimeout(() => { st.pc = 'off'; st.pcSince = hhmm(new Date()); p.render(); }, 4000);
         }
         st.pcConfirm = Date.now() + 3000; p.render();
@@ -590,7 +685,7 @@ svg text { font-family: var(--f-body); }
       if (act === 'plug') { const x = plugs[b.dataset.plug]; x.on = !x.on; return p.render(); }
       if (act === 'alloff') { Object.values(rooms).forEach(r => { r.on = false; }); return p.render(); }
       if (act === 'scene') {
-        const s = scenes[+b.dataset.i], r = s.room === 'Desk' ? rooms.desk : rooms.living;
+        const s = scenes[+b.dataset.i], r = Object.values(rooms).find(x => x.name === s.room);
         r.on = true; r.color = s.a; r.label = s.name; r.bri = s.name === 'Movie' ? 25 : 70;
         p.i = 0; return p.render();
       }
@@ -637,6 +732,60 @@ svg text { font-family: var(--f-body); }
   const bNight = document.getElementById('btn-night');
   bNight.addEventListener('click', () => { const on = desk.classList.toggle('night'); bNight.setAttribute('aria-pressed', String(on)); });
   document.getElementById('btn-alert').addEventListener('click', () => { desk.classList.add('alerting'); renderAll(); });
+  // Ambient mode: when nothing needs attention, each panel becomes a slow piece driven by live data.
+  // Now: rain falling at the Buienradar rate. Home: the lights' colours drifting. House: NAS traffic flowing.
+  const bAmb = document.getElementById('btn-ambient');
+  let ambRun = 0;
+  function ambientOn(on) {
+    st.ambient = on; bAmb.setAttribute('aria-pressed', String(on));
+    document.querySelectorAll('.scr').forEach(scr => {
+      let cv = scr.querySelector('canvas.art2');
+      if (on && !cv) { cv = document.createElement('canvas'); cv.className = 'art2'; scr.appendChild(cv); }
+      if (!on && cv) cv.remove();
+    });
+    if (on) { ambRun++; loop(ambRun); }
+  }
+  const parts = {};
+  function setup(name, w, h) {
+    const n = name === 'now' ? 90 : name === 'home' ? 3 : 70;
+    parts[name] = Array.from({ length: n }, (_, i) => ({ x: Math.random() * w, y: Math.random() * h, s: .5 + Math.random(), ph: Math.random() * 6.28, i }));
+  }
+  function loop(run) {
+    if (!st.ambient || run !== ambRun) return;
+    const t = performance.now() / 1000;
+    document.querySelectorAll('.scr').forEach(scr => {
+      const cv = scr.querySelector('canvas.art2'); if (!cv) return;
+      const name = scr.dataset.panel, dpr = window.devicePixelRatio || 1, w = scr.clientWidth, h = scr.clientHeight;
+      if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); setup(name, w, h); }
+      const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (name === 'now') {
+        c.fillStyle = 'rgba(10,10,24,.35)'; c.fillRect(0, 0, w, h);
+        c.strokeStyle = 'rgba(180,170,255,.55)'; c.lineWidth = 1; c.lineCap = 'round';
+        parts.now.forEach(q => { q.y += q.s * 2.2; q.x -= q.s * .35; if (q.y > h) { q.y = -10; q.x = Math.random() * w * 1.1; }
+          c.beginPath(); c.moveTo(q.x, q.y); c.lineTo(q.x + q.s * 1.5, q.y - q.s * 9); c.stroke(); });
+        c.fillStyle = 'rgba(241,239,247,.85)'; c.font = `500 ${w * .15}px "Instrument Sans", system-ui`; c.fillText(hhmm(new Date()), w * .075, h * .9);
+        c.fillStyle = 'rgba(180,170,255,.8)'; c.font = `600 ${w * .034}px "Instrument Sans", system-ui`; c.fillText('RAIN 2,8 MM/U', w * .075, h * .73);
+      } else if (name === 'home') {
+        c.globalCompositeOperation = 'source-over'; c.fillStyle = '#0b0a10'; c.fillRect(0, 0, w, h);
+        c.globalCompositeOperation = 'lighter';
+        const on = Object.values(rooms).filter(r => r.on); const cols = on.length ? on.map(r => r.color) : [[90, 80, 160]];
+        parts.home.forEach((q, k) => { const col = cols[k % cols.length];
+          const x = w * (.5 + .32 * Math.sin(t * .13 * q.s + q.ph)), y = h * (.5 + .3 * Math.cos(t * .11 * q.s + q.ph * 1.7)), r = w * (.42 + .08 * Math.sin(t * .2 + k));
+          const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgb(col, .55)); g.addColorStop(1, rgb(col, 0));
+          c.fillStyle = g; c.fillRect(0, 0, w, h); });
+        c.globalCompositeOperation = 'source-over';
+      } else {
+        c.fillStyle = 'rgba(11,11,16,.18)'; c.fillRect(0, 0, w, h);
+        parts.house.forEach(q => { const sp = q.s * 1.6; q.x += sp; const y = q.y + Math.sin(q.x / 38 + q.ph) * 10;
+          if (q.x > w + 10) { q.x = -10; q.y = Math.random() * h; }
+          c.fillStyle = q.i % 5 ? 'rgba(124,108,242,.75)' : 'rgba(95,211,156,.8)'; c.fillRect(q.x, y, 2.2, 2.2); });
+      }
+    });
+    requestAnimationFrame(() => loop(run));
+  }
+  bAmb.addEventListener('click', () => ambientOn(!st.ambient));
+  document.getElementById('desk').addEventListener('pointerdown', () => { if (st.ambient) ambientOn(false); }, true);
+
 })();
 </script>
 </html>
