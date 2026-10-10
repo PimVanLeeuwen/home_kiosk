@@ -259,7 +259,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Details in [docs/desk-panels.md](docs/desk-panels.md#design).
 - Roles, editable in the hub (Settings → Desk panels): left **Now** (clock, weather, Buienradar
   rain, the morning train, calendar, the day view, headlines), middle **Home** (the living room's
-  lights, its air and the Christmas plugs, M17; Now Playing while music plays, otherwise a music
+  lights, its air and the Christmas plugs, M17; the Apple devices, M20; Now Playing while music plays, otherwise a music
   card with favourite playlists, M18; never rotates), right **House** (NAS, Money, Code, Jellyfin, backups, alerts). The screens
   beyond the basics are M20. Each panel rotates through its cards; a touch
   pauses its rotation for 60 seconds. An ERROR alert takes over all three until dismissed. Night
@@ -410,8 +410,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   When all is well: the services as a ring around a glowing check. During an incident: a card with the service, its state
   and how long it has run, the incident's timeline (Investigating, Identified, Resolved) and a
   softly pulsing halo; the other services as a row of small icons below.
-- **Apple devices** (House, added 2026-10-10): the two Apple TVs and the HomePods, each with
-  whether it is online, and what it plays. Possible locally: every device announces itself on
+- **Apple devices** (Home, moved from House 2026-10-10): the two Apple TVs and the HomePods,
+  each with whether it is online, and what it plays. Design: a small map of the house, rooms as
+  soft zones, each device as a glowing glyph where it stands, playing devices sending out slow
+  ripples in the colour of what they play, an offline device in amber with since when, and the
+  Thread mesh between them as faint dotted lines, including the air sensor's link; below the map
+  what plays where. Room positions are set once in Settings. Possible locally: every device announces itself on
   the LAN over Bonjour (mDNS), so the hub sees which are online; Thread border routers announce
   `_meshcop._udp`, so it can show whether Thread (which the air sensor needs) is up; pyatv
   (open source) reads what an Apple TV plays after a one-time pairing, and HomePods report

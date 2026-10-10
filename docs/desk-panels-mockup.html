@@ -323,16 +323,14 @@ svg text { font-family: var(--f-body); }
 .more .mtt { font-size: 3.8cqw; font-weight: 600; line-height: 1.2; }
 .clim { display: grid; grid-template-columns: 1fr 34cqw; gap: 3cqw; align-items: center; margin-top: 1cqw; }
 .cword { font-size: 5.6cqw; font-weight: 600; text-align: right; margin-top: -1cqw; }
-.adev { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4cqw; margin-top: 1cqw; }
-.ad { display: grid; grid-template-columns: 7cqw 1fr 2cqw; gap: 2cqw; align-items: center; padding: 2.8cqw 2.6cqw; border-radius: 3.4cqw; background: var(--glass); border: 1px solid var(--hair); }
-.ad .ai { color: var(--ink-2); display: grid; }
-.ad .an { font-size: 3.6cqw; font-weight: 600; line-height: 1.1; }
-.ad .am, .ad .as { font-size: 3.4cqw; color: var(--ink-3); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ad > div { min-width: 0; }
-.ad b { width: 2cqw; height: 2cqw; border-radius: 50%; background: var(--ok); box-shadow: 0 0 1.8cqw var(--ok); }
-.ad.off { border-color: rgba(240, 189, 90, .4); background: rgba(240, 189, 90, .07); }
-.ad.off b { background: var(--warn); box-shadow: 0 0 1.8cqw var(--warn); }
-.ad.off .as { color: var(--warn); }
+.house { display: block; margin-top: 1cqw; overflow: visible; }
+.playing2 { display: grid; gap: 1.4cqw; font-size: 3.6cqw; }
+.playing2 > div { display: flex; align-items: center; gap: .4cqw; }
+.playing2 span { color: var(--ink-2); }
+.playing2 em { font-style: normal; margin-left: auto; font-weight: 600; }
+.house .wave { transform-box: fill-box; transform-origin: center; animation: wave 3.2s ease-out infinite; opacity: 0; }
+.house .w2 { animation-delay: 1.6s; }
+@keyframes wave { from { transform: scale(.9); opacity: .8; } to { transform: scale(2.1); opacity: 0; } }
 .poster { aspect-ratio: 2 / 3; border-radius: 2cqw; box-shadow: 0 2cqw 5cqw rgba(0, 0, 0, .45); }
 .mutebtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: rgba(124, 108, 242, .18); border: 1px solid var(--accent); border-radius: 99px; padding: 2.4cqw 5cqw; cursor: pointer; }
 
@@ -350,7 +348,7 @@ svg text { font-family: var(--f-body); }
   .unit figcaption { margin-top: 18px; }
   .notes { grid-template-columns: minmax(0, 1fr); }
 }
-@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo, .fline i, .ripple i, .aico { transition: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo, .fline i, .ripple i, .aico, .house .wave { transition: none; animation: none; } }
 </style>
 
 <div class="wrap">
@@ -382,11 +380,11 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>Home</h2>
-      <ul><li>The living room only: the 3 kitchen spots and the 2 lamps, each glowing in the white they have now</li><li>Tap to switch, hold and drag for brightness; warm to cool white for the kitchen spots</li><li>Air: temperature, humidity, CO₂ as a ring with Fresh, Getting stuffy or Open a window, PM2.5, and CO₂ over the last 8 hours; the Christmas plugs only in the season</li><li>Music: Now Playing first while music plays; otherwise a card with favourite playlists to start from the desk</li></ul>
+      <ul><li>The living room only: the 3 kitchen spots and the 2 lamps, each glowing in the white they have now</li><li>Tap to switch, hold and drag for brightness; warm to cool white for the kitchen spots</li><li>Air: temperature, humidity, CO₂ as a ring with Fresh, Getting stuffy or Open a window, PM2.5, and CO₂ over the last 8 hours; the Christmas plugs only in the season</li><li>Apple devices: a small map of the house, each Apple TV and HomePod where it stands, playing ones rippling in the colour of what they play, the Thread mesh and the air sensor</li><li>Music: Now Playing first while music plays; otherwise a card with favourite playlists to start from the desk</li></ul>
     </section>
     <section>
       <h2>House</h2>
-      <ul><li>My sites: one ring per site, 30 day segments each, incidents lit amber or red; Services (GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP, Proton, with their logos): a constellation around a check when all is well, an incident card with its timeline when not (tap the status to preview)</li><li>Apple devices: each Apple TV and HomePod with online state and what it plays, and whether Thread (for the air sensor) is up</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
+      <ul><li>My sites: one ring per site, 30 day segments each, incidents lit amber or red; Services (GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP, Proton, with their logos): a constellation around a check when all is well, an incident card with its timeline when not (tap the status to preview)</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
     </section>
   </div>
   <p class="foot">An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
@@ -728,15 +726,36 @@ svg text { font-family: var(--f-body); }
       <div class="sub" style="font-size:3.6cqw;text-align:center">The other 6 are operational</div>`;
     },
     apple: () => {
-      const tv = '<svg viewBox="0 0 24 24" width="7cqw" height="7cqw" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="6" width="18" height="11" rx="1.8"/><path d="M9 20h6"/></svg>';
-      const pod = '<svg viewBox="0 0 24 24" width="7cqw" height="7cqw" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 7c0-2 2.2-3 5-3s5 1 5 3v10c0 2-2.2 3-5 3s-5-1-5-3z"/><path d="M7 7c0 1.6 2.2 2.4 5 2.4s5-.8 5-2.4"/></svg>';
-      const d = [[tv, 'Living room', 'Apple TV', 1, 'The Long Coast', true], [tv, 'Bedroom', 'Apple TV', 1, 'Idle', true],
-                 [pod, 'Living room', 'HomePod', 1, 'Glasshouse', true], [pod, 'Kitchen', 'HomePod mini', 1, 'Idle', true],
-                 [pod, 'Bedroom', 'HomePod mini', 0, 'Offline 11:20', false], [pod, 'Study', 'HomePod mini', 1, 'Idle', true]];
-      return `<div class="row"><span class="k">Apple devices</span><span class="pill warn">1 OFFLINE</span></div>
-      <div class="adev">${d.map(x => `<div class="ad${x[3] ? '' : ' off'}"><span class="ai">${x[0]}</span><div><div class="an">${x[1]}</div><div class="as">${x[4]}</div></div><b></b></div>`).join('')}</div>
+      // A small map of the house: rooms as zones, devices where they stand, the Thread mesh between them.
+      const zones = [['Living room', 3, 3, 55, 38], ['Kitchen', 61, 3, 36, 38], ['Bedroom', 3, 44, 55, 30], ['Study', 61, 44, 36, 30]];
+      const dev = [
+        { id: 'lrtv', kind: 'tv', x: 15, y: 22, on: 1, play: 'The Long Coast', col: '#5aa9ff', lx: 6, la: 'start', ly: 36 },
+        { id: 'lrpod', kind: 'pod', x: 47, y: 22, on: 1, play: 'Glasshouse', col: '#48b4be', lx: 55, la: 'end', ly: 36 },
+        { id: 'kit', kind: 'mini', x: 79, y: 24, on: 1 },
+        { id: 'bdtv', kind: 'tv', x: 15, y: 62, on: 1 },
+        { id: 'bdpod', kind: 'mini', x: 43, y: 60, on: 0, lx: 43, la: 'middle', ly: 70.5 },
+        { id: 'std', kind: 'mini', x: 79, y: 62, on: 1 }
+      ];
+      const sensor = { x: 31, y: 16 };
+      const D = Object.fromEntries(dev.map(d => [d.id, d]));
+      const mesh = [['lrtv', 'lrpod'], ['lrpod', 'kit'], ['lrtv', 'bdtv'], ['kit', 'std'], ['bdtv', 'std']];
+      const glyph = d => d.kind === 'tv'
+        ? `<rect x="${d.x - 3.6}" y="${d.y - 2.4}" width="7.2" height="4.6" rx="1" fill="none" stroke="currentColor" stroke-width=".8"/><path d="M${d.x - 1.6} ${d.y + 3.4}h3.2" stroke="currentColor" stroke-width=".8"/>`
+        : `<rect x="${d.x - (d.kind === 'pod' ? 2.6 : 2.4)}" y="${d.y - (d.kind === 'pod' ? 3.4 : 2.4)}" width="${d.kind === 'pod' ? 5.2 : 4.8}" height="${d.kind === 'pod' ? 6.8 : 4.8}" rx="${d.kind === 'pod' ? 2.4 : 2.4}" fill="none" stroke="currentColor" stroke-width=".8"/>`;
+      const off = dev.filter(d => !d.on).length;
+      return `<div class="row"><span class="k">Apple devices</span><span class="pill ${off ? 'warn' : 'ok'}">${off ? off + ' OFFLINE' : 'ALL ONLINE'}</span></div>
+      <svg class="house" viewBox="0 0 100 75" width="84%" style="margin:0 auto">
+        ${zones.map(z => `<rect x="${z[1]}" y="${z[2]}" width="${z[3]}" height="${z[4]}" rx="4" fill="rgba(255,255,255,.035)" stroke="rgba(255,255,255,.08)" stroke-width=".4"/><text x="${z[1] + 3}" y="${z[2] + 6}" font-size="4.2" fill="#7d7a8c" letter-spacing=".3">${z[0].toUpperCase()}</text>`).join('')}
+        ${mesh.map(m => `<line x1="${D[m[0]].x}" y1="${D[m[0]].y}" x2="${D[m[1]].x}" y2="${D[m[1]].y}" stroke="rgba(180,169,255,.35)" stroke-width=".5" stroke-dasharray="1 1.6"/>`).join('')}
+        <line x1="${sensor.x}" y1="${sensor.y}" x2="${D.lrpod.x}" y2="${D.lrpod.y}" stroke="rgba(95,211,156,.5)" stroke-width=".5" stroke-dasharray="1 1.6"/>
+        ${dev.map(d => `${d.play ? `<circle class="wave" cx="${d.x}" cy="${d.y}" r="7" fill="none" stroke="${d.col}" stroke-width=".6"/><circle class="wave w2" cx="${d.x}" cy="${d.y}" r="7" fill="none" stroke="${d.col}" stroke-width=".6"/>` : ''}
+          <circle cx="${d.x}" cy="${d.y}" r="6.4" fill="${d.on ? (d.play ? d.col + '33' : 'rgba(255,255,255,.06)') : 'rgba(240,189,90,.08)'}" stroke="${d.on ? (d.play ? d.col : 'rgba(255,255,255,.22)') : '#f0bd5a'}" stroke-width=".6"${d.play ? ` style="filter:drop-shadow(0 0 2px ${d.col})"` : ''}/>
+          <g color="${d.on ? '#f1eff7' : '#f0bd5a'}">${glyph(d)}</g>
+          ${!d.on ? `<text x="${d.lx}" y="${d.ly}" text-anchor="${d.la}" font-size="4.4" fill="#f0bd5a">offline 11:20</text>` : ''}`).join('')}
+        <circle cx="${sensor.x}" cy="${sensor.y}" r="2" fill="#5fd39c" style="filter:drop-shadow(0 0 2px #5fd39c)"/><text x="${sensor.x}" y="${sensor.y - 3.6}" text-anchor="middle" font-size="3.8" fill="#5fd39c">air</text>
+      </svg>
       <div class="grow"></div>
-      <div class="row" style="font-size:3.4cqw;color:var(--ink-3)"><span>Thread: 5 border routers online</span><span>Air sensor reachable</span></div>`;
+      <div class="playing2">${dev.filter(d => d.play).map(d => `<div><b class="okd" style="background:${d.col};box-shadow:0 0 1.6cqw ${d.col}"></b><span>${zones.find(z => d.x > z[1] && d.x < z[1] + z[3] && d.y > z[2] && d.y < z[2] + z[4])[0]} ${d.kind === 'tv' ? 'Apple TV' : 'HomePod'}</span><em>${d.play}</em></div>`).join('')}</div>`;
     },
     nas: () => {
       const v = 88, R = 40, cx = 50, cy = 52, P = a => [cx - R * Math.cos(a * Math.PI), cy - R * Math.sin(a * Math.PI)];
@@ -857,8 +876,8 @@ svg text { font-family: var(--f-body); }
   };
   const decks = {
     now: () => ['clock', 'train', 'agenda', 'forecast', 'headlines'],
-    home: () => st.music ? ['playing', 'rooms', 'climate'] : ['rooms', 'climate', 'music'],
-    house: () => ['nas', 'sites', 'services', 'apple', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
+    home: () => st.music ? ['playing', 'rooms', 'climate', 'apple'] : ['rooms', 'climate', 'apple', 'music'],
+    house: () => ['nas', 'sites', 'services', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
   };
   const intervals = { now: 10000, home: 0, house: 9000 };
 

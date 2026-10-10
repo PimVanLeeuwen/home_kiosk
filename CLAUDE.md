@@ -100,7 +100,8 @@ python3 dashboard/serve.py
 - 2026-10-10: status cards on House for the owner's own sites and the outside services in use. plan.md M20.
 - 2026-10-10: the scenes card is dropped; Home's second card shows the living room's air, with
   an IKEA ALPSTUGA recommended (Thread through the Apple TVs and HomePods). plan.md M17.
-- 2026-10-10: an Apple devices card on House (online state, what plays, Thread up). plan.md M20.
+- 2026-10-10: an Apple devices card on Home, as a map of the house (online state, what plays,
+  the Thread mesh). plan.md M20.
 
 ## Gotchas
 
