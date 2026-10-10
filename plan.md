@@ -325,8 +325,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
      over Wi-Fi. Simplest to connect and the most accurate.
   3. **Apollo AIR-1** (ESPHome), EUR 130 without CO₂ to EUR 208 with CO₂ and gas at Domadoo;
      EU distributor SlimHuisje.nl. Local ESPHome API.
-  The Hue motion sensor only gives temperature. Question: is there an Apple TV or HomePod in
-  the house (decides whether option 1 is possible)?
+  The Hue motion sensor only gives temperature. Recommended (2026-10-10): option 1, the
+  ALPSTUGA. The house has two Apple TVs and several HomePods, which are Thread border routers
+  already, so it joins Apple Home directly; the hub reads it through matter-server on the NAS
+  (host network, IPv6 on the LAN). Not bought yet.
 - The Hue plugs are used for Christmas decorations: their switches only show in the season
   (dates set in Settings).
 - No light strips for now (2026-10-10). If ever: Hue's own strip is the only one that also shows
@@ -408,6 +410,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   When all is well: the services as a ring around a glowing check. During an incident: a card with the service, its state
   and how long it has run, the incident's timeline (Investigating, Identified, Resolved) and a
   softly pulsing halo; the other services as a row of small icons below.
+- **Apple devices** (House, added 2026-10-10): the two Apple TVs and the HomePods, each with
+  whether it is online, and what it plays. Possible locally: every device announces itself on
+  the LAN over Bonjour (mDNS), so the hub sees which are online; Thread border routers announce
+  `_meshcop._udp`, so it can show whether Thread (which the air sensor needs) is up; pyatv
+  (open source) reads what an Apple TV plays after a one-time pairing, and HomePods report
+  what they play over AirPlay. Not possible: firmware updates, which device is the active home
+  hub, or anything else inside Apple Home. Bonjour is multicast, so the collector needs the
+  host network or a small host-network helper; the collector container is on a bridge network
+  today. Device names to fill in; the mockup uses examples. An Apple TV or HomePod going
+  offline for 10 minutes is a warning.
 - **NAS, Backups, Alerts and the train**, redesigned again 2026-10-10 to be desk pieces:
   - NAS: an instrument-style arc gauge for the fullest volume (ticks, a glow, a red mark where
     it would alert), its size and runway below, then tiles for CPU and memory with live

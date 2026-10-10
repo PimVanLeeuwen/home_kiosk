@@ -98,7 +98,9 @@ python3 dashboard/serve.py
 - 2026-10-10: the Home panel controls only the living room (3 White Ambiance spots, 2 white
   bulbs); the Hue plugs are seasonal Christmas switches; no light strips for now. plan.md M17.
 - 2026-10-10: status cards on House for the owner's own sites and the outside services in use. plan.md M20.
-- 2026-10-10: the scenes card is dropped; Home's second card shows the living room's air (sensor not chosen yet). plan.md M17.
+- 2026-10-10: the scenes card is dropped; Home's second card shows the living room's air, with
+  an IKEA ALPSTUGA recommended (Thread through the Apple TVs and HomePods). plan.md M17.
+- 2026-10-10: an Apple devices card on House (online state, what plays, Thread up). plan.md M20.
 
 ## Gotchas
 

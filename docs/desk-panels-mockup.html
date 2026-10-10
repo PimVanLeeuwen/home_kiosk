@@ -323,6 +323,16 @@ svg text { font-family: var(--f-body); }
 .more .mtt { font-size: 3.8cqw; font-weight: 600; line-height: 1.2; }
 .clim { display: grid; grid-template-columns: 1fr 34cqw; gap: 3cqw; align-items: center; margin-top: 1cqw; }
 .cword { font-size: 5.6cqw; font-weight: 600; text-align: right; margin-top: -1cqw; }
+.adev { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4cqw; margin-top: 1cqw; }
+.ad { display: grid; grid-template-columns: 7cqw 1fr 2cqw; gap: 2cqw; align-items: center; padding: 2.8cqw 2.6cqw; border-radius: 3.4cqw; background: var(--glass); border: 1px solid var(--hair); }
+.ad .ai { color: var(--ink-2); display: grid; }
+.ad .an { font-size: 3.6cqw; font-weight: 600; line-height: 1.1; }
+.ad .am, .ad .as { font-size: 3.4cqw; color: var(--ink-3); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ad > div { min-width: 0; }
+.ad b { width: 2cqw; height: 2cqw; border-radius: 50%; background: var(--ok); box-shadow: 0 0 1.8cqw var(--ok); }
+.ad.off { border-color: rgba(240, 189, 90, .4); background: rgba(240, 189, 90, .07); }
+.ad.off b { background: var(--warn); box-shadow: 0 0 1.8cqw var(--warn); }
+.ad.off .as { color: var(--warn); }
 .poster { aspect-ratio: 2 / 3; border-radius: 2cqw; box-shadow: 0 2cqw 5cqw rgba(0, 0, 0, .45); }
 .mutebtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: rgba(124, 108, 242, .18); border: 1px solid var(--accent); border-radius: 99px; padding: 2.4cqw 5cqw; cursor: pointer; }
 
@@ -376,7 +386,7 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>House</h2>
-      <ul><li>My sites: one ring per site, 30 day segments each, incidents lit amber or red; Services (GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP, Proton, with their logos): a constellation around a check when all is well, an incident card with its timeline when not (tap the status to preview)</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
+      <ul><li>My sites: one ring per site, 30 day segments each, incidents lit amber or red; Services (GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP, Proton, with their logos): a constellation around a check when all is well, an incident card with its timeline when not (tap the status to preview)</li><li>Apple devices: each Apple TV and HomePod with online state and what it plays, and whether Thread (for the air sensor) is up</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
     </section>
   </div>
   <p class="foot">An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
@@ -717,6 +727,17 @@ svg text { font-family: var(--f-body); }
       <div class="orbrow">${sv.slice(1).map(x => `<span class="mini" style="--c:${glowOf(x)}" title="${x}">${logo(x, 4)}</span>`).join('')}</div>
       <div class="sub" style="font-size:3.6cqw;text-align:center">The other 6 are operational</div>`;
     },
+    apple: () => {
+      const tv = '<svg viewBox="0 0 24 24" width="7cqw" height="7cqw" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="6" width="18" height="11" rx="1.8"/><path d="M9 20h6"/></svg>';
+      const pod = '<svg viewBox="0 0 24 24" width="7cqw" height="7cqw" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 7c0-2 2.2-3 5-3s5 1 5 3v10c0 2-2.2 3-5 3s-5-1-5-3z"/><path d="M7 7c0 1.6 2.2 2.4 5 2.4s5-.8 5-2.4"/></svg>';
+      const d = [[tv, 'Living room', 'Apple TV', 1, 'The Long Coast', true], [tv, 'Bedroom', 'Apple TV', 1, 'Idle', true],
+                 [pod, 'Living room', 'HomePod', 1, 'Glasshouse', true], [pod, 'Kitchen', 'HomePod mini', 1, 'Idle', true],
+                 [pod, 'Bedroom', 'HomePod mini', 0, 'Offline 11:20', false], [pod, 'Study', 'HomePod mini', 1, 'Idle', true]];
+      return `<div class="row"><span class="k">Apple devices</span><span class="pill warn">1 OFFLINE</span></div>
+      <div class="adev">${d.map(x => `<div class="ad${x[3] ? '' : ' off'}"><span class="ai">${x[0]}</span><div><div class="an">${x[1]}</div><div class="as">${x[4]}</div></div><b></b></div>`).join('')}</div>
+      <div class="grow"></div>
+      <div class="row" style="font-size:3.4cqw;color:var(--ink-3)"><span>Thread: 5 border routers online</span><span>Air sensor reachable</span></div>`;
+    },
     nas: () => {
       const v = 88, R = 40, cx = 50, cy = 52, P = a => [cx - R * Math.cos(a * Math.PI), cy - R * Math.sin(a * Math.PI)];
       const arcP = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
@@ -837,7 +858,7 @@ svg text { font-family: var(--f-body); }
   const decks = {
     now: () => ['clock', 'train', 'agenda', 'forecast', 'headlines'],
     home: () => st.music ? ['playing', 'rooms', 'climate'] : ['rooms', 'climate', 'music'],
-    house: () => ['nas', 'sites', 'services', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
+    house: () => ['nas', 'sites', 'services', 'apple', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
   };
   const intervals = { now: 10000, home: 0, house: 9000 };
 
