@@ -232,16 +232,30 @@ svg text { font-family: var(--f-body); }
 .leadt { font-size: 5.4cqw; font-weight: 600; line-height: 1.15; letter-spacing: -.01em; }
 .heat { display: grid; grid-template-columns: repeat(16, 1fr); grid-template-rows: repeat(7, 1fr); gap: .8cqw; aspect-ratio: 16 / 7.3; }
 .heat i { border-radius: .8cqw; }
-.sites { display: grid; gap: 3cqw; margin-top: 1cqw; }
-.site .strip { display: grid; grid-template-columns: repeat(30, 1fr); gap: .5cqw; height: 4cqw; margin-top: 1cqw; }
-.site .strip i { border-radius: .6cqw; }
-.sdot { display: inline-block; width: 2cqw; height: 2cqw; border-radius: 50%; background: var(--ok); box-shadow: 0 0 2cqw var(--ok); margin-right: 2cqw; vertical-align: .3cqw; }
-.incident { padding: 3.6cqw 4cqw; display: grid; gap: 1.6cqw; border-color: rgba(240, 189, 90, .35); background: rgba(240, 189, 90, .07); }
+.sring { display: grid; grid-template-columns: 46cqw 1fr; gap: 4cqw; align-items: center; margin-top: 1cqw; }
+.slist { display: grid; gap: 2.6cqw; }
+.slist > div { display: flex; gap: 2cqw; align-items: flex-start; }
+.sk { width: 2.2cqw; height: 2.2cqw; border-radius: 50%; margin-top: 1.2cqw; flex: none; }
+.sn { font-size: 3.8cqw; font-weight: 600; line-height: 1.15; }
+.sm { font-size: 3.4cqw; color: var(--ink-3); }
 .mono2 { width: 6.4cqw; height: 6.4cqw; border-radius: 1.8cqw; display: inline-grid; place-items: center; font-size: 3.6cqw; font-weight: 700; color: #0b0b10; flex: none; }
-.svc { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4cqw 3cqw; }
-.sv { display: flex; align-items: center; gap: 2.4cqw; font-size: 4cqw; }
-.sv .svn { flex: 1; min-width: 0; }
-.sv b { width: 2.2cqw; height: 2.2cqw; border-radius: 50%; box-shadow: 0 0 2cqw currentColor; }
+.mono2.halo { width: 10cqw; height: 10cqw; border-radius: 3cqw; font-size: 5cqw; animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo { 0%, 100% { box-shadow: 0 0 0 0 rgba(240, 189, 90, .0); } 50% { box-shadow: 0 0 0 1.6cqw rgba(240, 189, 90, .18), 0 0 8cqw rgba(240, 189, 90, .35); } }
+.constel { position: relative; width: 64cqw; aspect-ratio: 1; margin: 0 auto; }
+.orb { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: .8cqw; }
+.orb span { width: 9cqw; height: 9cqw; border-radius: 3cqw; display: grid; place-items: center; font-weight: 700; font-size: 4.2cqw; color: #0b0b10; background: var(--c); box-shadow: 0 0 5cqw color-mix(in srgb, var(--c) 45%, transparent); }
+.orb em { font-style: normal; font-size: 3cqw; color: var(--ink-2); white-space: nowrap; }
+.cc { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 1cqw; }
+.cc span { font-size: 3.6cqw; color: var(--ink-2); }
+.inc { margin-top: 1cqw; padding: 4.4cqw; border-radius: 4.4cqw; display: grid; gap: 2.6cqw; border: 1px solid rgba(240, 189, 90, .35); background: linear-gradient(160deg, rgba(240, 189, 90, .12), rgba(240, 189, 90, .03)); }
+.tline { display: grid; gap: 1.6cqw; padding-left: 1cqw; border-left: 1px dashed rgba(255, 255, 255, .18); }
+.tline > div { display: flex; align-items: center; gap: 2.4cqw; font-size: 3.6cqw; color: var(--ink-3); margin-left: -2.1cqw; }
+.tline b { width: 2.2cqw; height: 2.2cqw; border-radius: 50%; background: rgba(255, 255, 255, .25); flex: none; }
+.tline .on { color: var(--ink); }
+.tline .on b { background: var(--warn); box-shadow: 0 0 2.4cqw var(--warn); }
+.tline em { font-style: normal; margin-left: auto; font-family: var(--f-mono); font-size: 3.4cqw; }
+.orbrow { display: flex; justify-content: center; gap: 2.2cqw; }
+.mini { width: 7cqw; height: 7cqw; border-radius: 2.2cqw; display: grid; place-items: center; font-size: 3.4cqw; font-weight: 700; color: #0b0b10; background: var(--c); box-shadow: 0 0 3cqw color-mix(in srgb, var(--c) 40%, transparent); }
 .poster { aspect-ratio: 2 / 3; border-radius: 2cqw; box-shadow: 0 2cqw 5cqw rgba(0, 0, 0, .45); }
 .mutebtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: rgba(124, 108, 242, .18); border: 1px solid var(--accent); border-radius: 99px; padding: 2.4cqw 5cqw; cursor: pointer; }
 
@@ -259,7 +273,7 @@ svg text { font-family: var(--f-body); }
   .unit figcaption { margin-top: 18px; }
   .notes { grid-template-columns: minmax(0, 1fr); }
 }
-@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot { transition: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo { transition: none; animation: none; } }
 </style>
 
 <div class="wrap">
@@ -295,7 +309,7 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>House</h2>
-      <ul><li>My sites: each site with a 30-day uptime strip, response time and uptime; Services: GitHub, Cloudflare, Proton and others from their status pages, any incident on top</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
+      <ul><li>My sites: one ring per site, 30 day segments each, incidents lit amber or red; Services: a constellation around a check when all is well, an incident card with its timeline when not (tap the status to preview)</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
     </section>
   </div>
   <p class="foot">An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
@@ -339,7 +353,7 @@ svg text { font-family: var(--f-body); }
     { title: 'Glasshouse', artist: 'Noor & the Quiet Hours', len: 251, device: 'MacBook', c: [[72, 180, 190], [40, 70, 160], [12, 22, 40]] },
     { title: 'Polder Lights', artist: 'Fenna Dijk', len: 189, device: 'Living room speakers', c: [[245, 200, 90], [210, 90, 120], [40, 20, 36]] }
   ];
-  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, train: 0, saved: {}, scene: 0, period: '1D', alertsOpen: true };
+  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, train: 0, saved: {}, scene: 0, period: '1D', alertsOpen: true, svcIncident: true };
   const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
   const art = t => `radial-gradient(circle at 28% 30%, ${rgb(t.c[0])}, transparent 58%), radial-gradient(circle at 78% 72%, ${rgb(t.c[1])}, transparent 60%), linear-gradient(135deg, ${rgb(t.c[2])}, ${rgb(t.c[1], .8)})`;
 
@@ -540,26 +554,54 @@ svg text { font-family: var(--f-body); }
       <div style="display:grid;gap:3cqw">${h.slice(1).map((x, k) => `<button class="hl${st.saved[k + 1] ? ' saved' : ''}" data-act="save" data-i="${k + 1}"><span class="k" style="font-size:3.4cqw">${x[0]} · ${x[1]}${sv(k + 1)}</span><span class="hlt">${x[2]}</span></button>`).join('')}</div>`;
     },
     sites: () => {
-      // 30 days per site: 0 up, 1 short blip, 2 down for a while
+      // 30 days per site, oldest at 12 o'clock going round to today; [day, 1 blip | 2 down]
       const s = [
-        ['example.com', 'example.com', 182, '100%', []],
-        ['Recipes', 'recipes.example.com', 241, '99.96%', [[17, 1]]],
-        ['Obsidian sync', 'couchdb.example.com', 96, '100%', []],
-        ['Harry list', 'Hubble', 318, '99.81%', [[9, 2], [22, 1]]],
-        ['Community Cafe', 'Hubble', 274, '100%', []]
+        ['example.com', 182, '100%', []],
+        ['Recipes', 241, '99.96%', [[17, 1]]],
+        ['Obsidian sync', 96, '100%', []],
+        ['Harry list', 318, '99.81%', [[9, 2], [22, 1]]],
+        ['Cafe web', 274, '100%', []]
       ];
-      const strip = bad => Array.from({ length: 30 }, (_, i) => { const b = bad.find(x => x[0] === i);
-        return `<i style="background:${!b ? 'rgba(95,211,156,.55)' : b[1] === 2 ? '#ff6b6b' : '#f0bd5a'}"></i>`; }).join('');
-      return `<div class="row"><span class="k">My sites · 30 days</span><span class="pill ok">5 OF 5 UP</span></div>
-      <div class="sites">${s.map(x => `<div class="site"><div class="row" style="align-items:baseline"><span style="font-size:4.2cqw;font-weight:600"><b class="sdot"></b>${x[0]}</span><span style="font-size:3.4cqw;color:var(--ink-3)">${x[2]} ms · ${x[3]}</span></div><div class="strip">${strip(x[4])}</div></div>`).join('')}</div>`;
+      const pt = (r, a) => [50 + r * Math.sin(a * Math.PI / 180), 50 - r * Math.cos(a * Math.PI / 180)];
+      const arc = (r, a0, a1) => { const [x0, y0] = pt(r, a0), [x1, y1] = pt(r, a1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+      const rings = s.map((x, k) => {
+        const r = 45 - k * 7.4, op = (.5 - k * .06).toFixed(2);
+        return Array.from({ length: 30 }, (_, d) => { const b = x[3].find(y => y[0] === d);
+          const c = !b ? `rgba(95,211,156,${op})` : b[1] === 2 ? '#ff6b6b' : '#f0bd5a';
+          return `<path d="${arc(r, d * 12 + 1.6, d * 12 + 10.4)}" stroke="${c}" stroke-width="${b ? 4.4 : 3.4}" stroke-linecap="round" fill="none"${b ? ` filter="url(#gl)"` : ''}/>`; }).join('');
+      }).join('');
+      return `<div class="row"><span class="k">My sites · 30 days</span><span class="pill ok">ALL UP</span></div>
+      <div class="sring">
+        <svg viewBox="0 0 100 100" width="100%"><defs><filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <radialGradient id="cg"><stop offset="0" stop-color="rgba(95,211,156,.28)"/><stop offset="1" stop-color="rgba(95,211,156,0)"/></radialGradient></defs>
+          <circle cx="50" cy="50" r="14" fill="url(#cg)"/>${rings}
+          <text x="50" y="52.5" text-anchor="middle" font-size="9" font-weight="600" fill="#f1eff7">5/5</text>
+          <text x="50" y="59" text-anchor="middle" font-size="3.6" fill="#b4b1c2" letter-spacing=".5">UP</text>
+          <path d="M50 1.5 L50 6" stroke="rgba(255,255,255,.6)" stroke-width=".6"/></svg>
+        <div class="slist">${s.map((x, k) => `<div><span class="sk" style="background:rgba(95,211,156,${(.75 - k * .08).toFixed(2)})"></span><div><div class="sn">${x[0]}</div><div class="sm">${x[2]} · ${x[1]} ms</div></div></div>`).join('')}</div>
+      </div>
+      <div class="grow"></div>
+      <div class="row" style="font-size:3.6cqw;color:var(--ink-2)"><span>Overall <b style="color:var(--ink)">99.95%</b></span><span>Last outage: Harry list, 21 days ago</span></div>`;
     },
     services: () => {
-      const sv = [['GitHub', '#8b949e', 2], ['Cloudflare', '#f38020', 0], ['Proton', '#8a6cf2', 0], ['Tailscale', '#c8c8d0', 0], ['Hetzner', '#d50c2d', 0], ['Docker Hub', '#2496ed', 0], ['Spotify', '#1ed760', 0], ['iCloud', '#5ac8fa', 0], ['Telegram', '#2aabee', 0]];
-      const word = ['Operational', 'Maintenance', 'Degraded'], col = ['var(--ok)', '#b4a9ff', 'var(--warn)'];
-      return `<div class="row"><span class="k">Services</span><span class="pill warn">1 INCIDENT</span></div>
-      <div class="glass incident"><div class="row" style="align-items:center;justify-content:flex-start;gap:2.4cqw"><span class="mono2" style="background:#8b949e">G</span><span style="font-size:4.4cqw;font-weight:600">GitHub Actions</span><span class="pill warn" style="margin-left:auto">DEGRADED</span></div>
-        <div class="sub" style="font-size:3.8cqw">Delayed workflow runs. Investigating, for 24 min.</div></div>
-      <div class="svc">${sv.slice(1).map(x => `<div class="sv"><span class="mono2" style="background:${x[1]}">${x[0][0]}</span><span class="svn">${x[0]}</span><b style="background:${col[x[2]]}"></b></div>`).join('')}</div>`;
+      const sv = [['GitHub', '#8b949e'], ['Cloudflare', '#f38020'], ['Proton', '#8a6cf2'], ['Tailscale', '#c8c8d0'], ['Hetzner', '#d50c2d'], ['Docker Hub', '#2496ed'], ['Spotify', '#1ed760'], ['iCloud', '#5ac8fa'], ['Telegram', '#2aabee']];
+      if (!st.svcIncident) {
+        const orbs = sv.map((x, i) => { const a = i / sv.length * Math.PI * 2 - Math.PI / 2, X = 50 + 40 * Math.cos(a), Y = 50 + 40 * Math.sin(a);
+          return `<div class="orb" style="left:${X.toFixed(1)}%;top:${Y.toFixed(1)}%;--c:${x[1]}"><span>${x[0][0]}</span><em>${x[0]}</em></div>`; }).join('');
+        return `<div class="amb2" style="background:radial-gradient(55% 45% at 50% 52%, rgba(95,211,156,.14), transparent 70%)"></div>
+        <div class="row"><span class="k">Services</span><button class="pillbtn" data-act="svcprev"><span class="pill ok">ALL OPERATIONAL</span></button></div>
+        <div class="constel">${orbs}<div class="cc"><svg viewBox="0 0 60 60" width="38%"><circle cx="30" cy="30" r="22" fill="rgba(95,211,156,.14)" stroke="rgba(95,211,156,.4)" stroke-width="1.5"/><path d="M21 30.5l6 6 12-13" fill="none" stroke="#5fd39c" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>`;
+      }
+      return `<div class="amb2" style="background:radial-gradient(70% 50% at 50% 22%, rgba(240,189,90,.16), transparent 70%)"></div>
+      <div class="row"><span class="k">Services</span><button class="pillbtn" data-act="svcprev"><span class="pill warn">1 INCIDENT</span></button></div>
+      <div class="inc">
+        <div class="row" style="align-items:center;justify-content:flex-start;gap:3cqw"><span class="mono2 halo" style="background:#8b949e">G</span><div><div style="font-size:5cqw;font-weight:600;line-height:1.1">GitHub Actions</div><div class="sub" style="font-size:3.6cqw">Degraded · for 24 min</div></div></div>
+        <div style="font-size:4.2cqw;line-height:1.3">Workflow runs are delayed.</div>
+        <div class="tline"><div class="on"><b></b><span>Identified</span><em>14:15</em></div><div><b></b><span>Investigating</span><em>14:02</em></div></div>
+      </div>
+      <div class="grow"></div>
+      <div class="orbrow">${sv.slice(1).map(x => `<span class="mini" style="--c:${x[1]}" title="${x[0]}">${x[0][0]}</span>`).join('')}</div>
+      <div class="sub" style="font-size:3.6cqw;text-align:center">The other 8 are operational</div>`;
     },
     nas: () => {
       const ring = (v, label, warn) => {
@@ -778,6 +820,7 @@ svg text { font-family: var(--f-body); }
       if (act === 'playlist') { st.t = +b.dataset.i % tracks.length; st.pos = 0; st.music = true; st.playing = true; st.pausedAt = 0; p.i = 0;
         const bm = document.getElementById('btn-music'); bm.setAttribute('aria-pressed', 'true'); bm.textContent = 'Stop music'; return p.render(); }
       if (act === 'period') { st.period = b.dataset.v; return p.render(); }
+      if (act === 'svcprev') { st.svcIncident = !st.svcIncident; return p.render(); }
       if (act === 'alertprev') { st.alertsOpen = !st.alertsOpen; return p.render(); }
       if (act === 'scene') {
         const s = scenes[+b.dataset.i];

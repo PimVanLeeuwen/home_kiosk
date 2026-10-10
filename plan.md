@@ -365,8 +365,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - **Top movers** (House, Money): diverging bars from a centre line, ticker and name, the change
   in green or red; the count up and down in the header.
 - **My sites** (House, added 2026-10-10): the owner's own applications (the example.com sites
-  such as Tandoor and CouchDB, and Hubble's Harry list and Community Cafe web), each with a
-  30-day uptime strip, its response time and uptime percentage. Checked from outside the LAN
+  such as Tandoor and CouchDB, and Hubble's Harry list and Community Cafe web). Design: one ring per
+  site, split into 30 day-segments from 30 days ago round to today; healthy days are a quiet green,
+  a blip amber and an outage red with a soft glow, so incidents stand out; the count of sites up
+  in the centre, a list with each site's uptime and response time beside it. Checked from outside the LAN
   path, through their public addresses. Proposed source: Uptime Kuma (already running), with a
   monitor per site and a second status page the hub reads (Kuma keeps the history); a site going
   down already reaches Telegram through Kuma. To decide: the exact URLs, and whether Kuma or the
@@ -375,8 +377,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - **Services** (House, added 2026-10-10): the outside services the owner relies on, from their
   public status pages (most use Statuspage's `/api/v2/summary.json`): GitHub, Cloudflare, Proton,
   Tailscale, Hetzner, Docker Hub, Spotify, iCloud and Telegram (the list is editable; services
-  without a public status API are checked by a plain request). An open incident is shown on top
-  with its title and how long it has run; the rest as a calm grid with a status dot. Polled
+  without a public status API are checked by a plain request). When all is well: the services as a
+  ring of icons around a glowing check. During an incident: a card with the service, its state
+  and how long it has run, the incident's timeline (Investigating, Identified, Resolved) and a
+  softly pulsing halo; the other services as a row of small icons below. Polled
   every 5 minutes by the collector, never by the panels.
 - **NAS and Backups** (House), redesigned 2026-10-10: NAS as three rings (CPU, memory, the
   fullest volume) with the storage runway and chips for disks and the UPS; Backups as the last
