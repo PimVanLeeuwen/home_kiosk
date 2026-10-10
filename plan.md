@@ -341,12 +341,32 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Home panel: a Desk PC tile next to the light zones (decided 2026-10-10). Off: tap to start
   (the tile shows Starting until the power LED is on). On: tap opens Sleep and Shut down (tap
   twice to confirm) and Close. Shown in the mockup.
-- To find out first: the motherboard model (front-panel header layout, whether a USB port stays
-  powered when off) and the OS power-button action (set to Shut down). Parts: an ESP32-C3 or C6
-  board, a PC817 optocoupler, a resistor, a front-panel header splitter (so the case button keeps
-  working), and Dupont wires.
-- The hub talks to the ESP32 over the LAN (ESPHome's API or a small HTTP API with a key); the
-  panel never talks to it directly.
+- Hardware, two ways (researched 2026-10-10, not chosen yet):
+  - **Ready-made: Sinilink XY-WPCE** (about EUR 10 to 15, AliExpress ships to the Netherlands).
+    An ESP8266 card in a free PCIe slot (it only takes power and the on/off state from the slot),
+    wired between the case's power button and the motherboard; the button keeps working. Its
+    stock firmware uses Sinilink's cloud app, so flash ESPHome once over its 1 mm serial pads
+    (fiddly; a USB serial adapter and wires). ESPHome device page:
+    https://devices.esphome.io/devices/sinilink-xy-wpce/. Similar Tuya or eWeLink PCIe cards
+    sell on Amazon, but run through a cloud app and often use non-ESP chips; avoid those.
+  - **DIY: an ESP32-C3 SuperMini** (flashes over its own USB-C, no serial pads), a PC817
+    optocoupler (or a small transistor) and 1 kOhm resistors to "press" the button, the power-LED
+    header read back for the state, a front-panel splitter cable so the case button keeps
+    working, and power from the motherboard's internal USB 2.0 header, which keeps 5 V standby
+    when the PC is off with ErP disabled. Parts at Tinytronics or AliExpress, about
+    EUR 10. Known designs: Erriez ESPHomePCPowerControlHomeAssistant, pixelwave Wake-On-ESP32
+    (PC817 and 1 kOhm on an ESP32-C3), Michael Stapelberg's write-up (5 V standby from the USB
+    header, a transistor instead of an optocoupler). Check: the 5 V standby can supply the
+    ESP32's bursts (about 0.5 A), the LED pin's polarity, all ESP pins at 3.3 V.
+  Either runs ESPHome: a button entity for a short press, one for a 5 s press, and a binary
+  sensor for the power state.
+- Steps for the owner: look up the motherboard model and its manual (front-panel header
+  pinout, the USB 2.0 header, whether there is a free PCIe slot); in the BIOS disable ErP so
+  standby power stays on; set the OS power button to Shut down (and turn off Windows fast
+  startup if it gets in the way); give the ESP a fixed address in the router. Install with the
+  PSU switched off and unplugged.
+- The hub talks to the ESP over the LAN (ESPHome's web server REST API, behind a password in
+  `.env`); the panel never talks to it directly.
 - A new deliberate write: pressing the PC's power button.
 
 **M20. Panel screens** (added 2026-10-10)
