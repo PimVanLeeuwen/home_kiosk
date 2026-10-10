@@ -97,6 +97,7 @@ python3 dashboard/serve.py
 - 2026-10-10: desk PC power is parked: no ready-made local option. plan.md M19, Open items.
 - 2026-10-10: the Home panel controls only the living room (3 White Ambiance spots, 2 white
   bulbs); the Hue plugs are seasonal Christmas switches; no light strips for now. plan.md M17.
+- 2026-10-10: status cards on House for the owner's own sites and the outside services in use. plan.md M20.
 
 ## Gotchas
 

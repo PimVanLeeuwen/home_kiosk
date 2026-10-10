@@ -232,6 +232,16 @@ svg text { font-family: var(--f-body); }
 .leadt { font-size: 5.4cqw; font-weight: 600; line-height: 1.15; letter-spacing: -.01em; }
 .heat { display: grid; grid-template-columns: repeat(16, 1fr); grid-template-rows: repeat(7, 1fr); gap: .8cqw; aspect-ratio: 16 / 7.3; }
 .heat i { border-radius: .8cqw; }
+.sites { display: grid; gap: 3cqw; margin-top: 1cqw; }
+.site .strip { display: grid; grid-template-columns: repeat(30, 1fr); gap: .5cqw; height: 4cqw; margin-top: 1cqw; }
+.site .strip i { border-radius: .6cqw; }
+.sdot { display: inline-block; width: 2cqw; height: 2cqw; border-radius: 50%; background: var(--ok); box-shadow: 0 0 2cqw var(--ok); margin-right: 2cqw; vertical-align: .3cqw; }
+.incident { padding: 3.6cqw 4cqw; display: grid; gap: 1.6cqw; border-color: rgba(240, 189, 90, .35); background: rgba(240, 189, 90, .07); }
+.mono2 { width: 6.4cqw; height: 6.4cqw; border-radius: 1.8cqw; display: inline-grid; place-items: center; font-size: 3.6cqw; font-weight: 700; color: #0b0b10; flex: none; }
+.svc { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4cqw 3cqw; }
+.sv { display: flex; align-items: center; gap: 2.4cqw; font-size: 4cqw; }
+.sv .svn { flex: 1; min-width: 0; }
+.sv b { width: 2.2cqw; height: 2.2cqw; border-radius: 50%; box-shadow: 0 0 2cqw currentColor; }
 .poster { aspect-ratio: 2 / 3; border-radius: 2cqw; box-shadow: 0 2cqw 5cqw rgba(0, 0, 0, .45); }
 .mutebtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: rgba(124, 108, 242, .18); border: 1px solid var(--accent); border-radius: 99px; padding: 2.4cqw 5cqw; cursor: pointer; }
 
@@ -285,7 +295,7 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>House</h2>
-      <ul><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
+      <ul><li>My sites: each site with a 30-day uptime strip, response time and uptime; Services: GitHub, Cloudflare, Proton and others from their status pages, any incident on top</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
     </section>
   </div>
   <p class="foot">An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
@@ -529,6 +539,28 @@ svg text { font-family: var(--f-body); }
         </button>
       <div style="display:grid;gap:3cqw">${h.slice(1).map((x, k) => `<button class="hl${st.saved[k + 1] ? ' saved' : ''}" data-act="save" data-i="${k + 1}"><span class="k" style="font-size:3.4cqw">${x[0]} · ${x[1]}${sv(k + 1)}</span><span class="hlt">${x[2]}</span></button>`).join('')}</div>`;
     },
+    sites: () => {
+      // 30 days per site: 0 up, 1 short blip, 2 down for a while
+      const s = [
+        ['example.com', 'example.com', 182, '100%', []],
+        ['Recipes', 'recipes.example.com', 241, '99.96%', [[17, 1]]],
+        ['Obsidian sync', 'couchdb.example.com', 96, '100%', []],
+        ['Harry list', 'Hubble', 318, '99.81%', [[9, 2], [22, 1]]],
+        ['Community Cafe', 'Hubble', 274, '100%', []]
+      ];
+      const strip = bad => Array.from({ length: 30 }, (_, i) => { const b = bad.find(x => x[0] === i);
+        return `<i style="background:${!b ? 'rgba(95,211,156,.55)' : b[1] === 2 ? '#ff6b6b' : '#f0bd5a'}"></i>`; }).join('');
+      return `<div class="row"><span class="k">My sites · 30 days</span><span class="pill ok">5 OF 5 UP</span></div>
+      <div class="sites">${s.map(x => `<div class="site"><div class="row" style="align-items:baseline"><span style="font-size:4.2cqw;font-weight:600"><b class="sdot"></b>${x[0]}</span><span style="font-size:3.4cqw;color:var(--ink-3)">${x[2]} ms · ${x[3]}</span></div><div class="strip">${strip(x[4])}</div></div>`).join('')}</div>`;
+    },
+    services: () => {
+      const sv = [['GitHub', '#8b949e', 2], ['Cloudflare', '#f38020', 0], ['Proton', '#8a6cf2', 0], ['Tailscale', '#c8c8d0', 0], ['Hetzner', '#d50c2d', 0], ['Docker Hub', '#2496ed', 0], ['Spotify', '#1ed760', 0], ['iCloud', '#5ac8fa', 0], ['Telegram', '#2aabee', 0]];
+      const word = ['Operational', 'Maintenance', 'Degraded'], col = ['var(--ok)', '#b4a9ff', 'var(--warn)'];
+      return `<div class="row"><span class="k">Services</span><span class="pill warn">1 INCIDENT</span></div>
+      <div class="glass incident"><div class="row" style="align-items:center;justify-content:flex-start;gap:2.4cqw"><span class="mono2" style="background:#8b949e">G</span><span style="font-size:4.4cqw;font-weight:600">GitHub Actions</span><span class="pill warn" style="margin-left:auto">DEGRADED</span></div>
+        <div class="sub" style="font-size:3.8cqw">Delayed workflow runs. Investigating, for 24 min.</div></div>
+      <div class="svc">${sv.slice(1).map(x => `<div class="sv"><span class="mono2" style="background:${x[1]}">${x[0][0]}</span><span class="svn">${x[0]}</span><b style="background:${col[x[2]]}"></b></div>`).join('')}</div>`;
+    },
     nas: () => {
       const ring = (v, label, warn) => {
         const r = 24, c = 2 * Math.PI * r, col = warn ? '#f0bd5a' : 'url(#vg)';
@@ -622,7 +654,7 @@ svg text { font-family: var(--f-body); }
   const decks = {
     now: () => ['clock', 'train', 'agenda', 'forecast', 'headlines'],
     home: () => st.music ? ['playing', 'rooms', 'scenes'] : ['rooms', 'scenes', 'music'],
-    house: () => ['nas', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
+    house: () => ['nas', 'sites', 'services', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
   };
   const intervals = { now: 10000, home: 0, house: 9000 };
 
