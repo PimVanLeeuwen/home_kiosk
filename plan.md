@@ -415,7 +415,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   soft zones, each device as a glowing glyph where it stands, playing devices sending out slow
   ripples in the colour of what they play, an offline device in amber with since when, and the
   Thread mesh between them as faint dotted lines, including the air sensor's link; below the map
-  what plays where. Room positions are set once in Settings. Possible locally: every device announces itself on
+  what plays where. Room positions are set once in Settings.
+  The devices (2026-10-10): living room, an Apple TV and two big HomePods as a stereo pair (shown
+  as one group with the TV, as they play its sound); bedroom, an Apple TV and a HomePod mini;
+  bathroom, a HomePod mini. To check when building: which are Thread border routers (the
+  HomePod mini and HomePod 2nd generation are; the Apple TV 4K Wi-Fi-only 64 GB model and the
+  first HomePod are not). Possible locally: every device announces itself on
   the LAN over Bonjour (mDNS), so the hub sees which are online; Thread border routers announce
   `_meshcop._udp`, so it can show whether Thread (which the air sensor needs) is up; pyatv
   (open source) reads what an Apple TV plays after a one-time pairing, and HomePods report
