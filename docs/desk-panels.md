@@ -91,6 +91,21 @@ Requirements and options are in plan.md M16. Links:
   bridge. Non-Hue HomeKit devices would need Home Assistant.
 - Discussion and examples: <https://community.openhab.org/t/philips-hue-clip-2-api-v2-discussion-thread/142111>
 
+## Air sensor (M17, Home panel)
+
+Researched 2026-10-10, not chosen yet:
+
+- IKEA ALPSTUGA, EUR 29.99 at IKEA NL (https://www.ikea.com/nl/en/p/alpstuga-air-quality-sensor-smart-50604187/):
+  CO₂, PM2.5, temperature, humidity, no VOC (teardown: https://holliger.me/posts/ikea_co2).
+  Matter over Thread; needs a Thread border router (DIRIGERA, or an Apple TV 4K or HomePod mini).
+  Review: https://www.matteralpha.com/review/ikea-alpstuga-review-matter-air-quality-monitor.
+- AirGradient ONE, about EUR 290 at EU resellers (https://smartairfilters.com/uk/en/product/airgradient-indoor-air-quality-monitor/),
+  USD 230 direct (https://www.airgradient.com/shop/). Open source, local HTTP API.
+  Review: https://breathesafeair.com/airgradient-one-review/.
+- Apollo AIR-1, EUR 129.99 to 207.99 at Domadoo
+  (https://www.domadoo.fr/en/smart-home-products/8298-apollo-automation-air-1-co2-and-gas-air-quality-sensor.html);
+  EU distributor SlimHuisje.nl (https://apolloautomation.com/blogs/news/apollo-automation-expands-to-europe-again-with-new-eu-distributor-slimhuisje-nl).
+
 ## Spotify (M18)
 
 - The owner has Premium. Playback control needs Premium, and since February 2026 so does the
@@ -108,7 +123,8 @@ Requirements and options are in plan.md M16. Links:
 data only). Now: clock and rain, the 07:16 departure (tap Preview for delayed and
 cancelled), today's calendar from the chosen calendars, the day view, headlines (tap to save). Home: Now Playing first while music plays (it
 stays, as Home never rotates), the living room's kitchen spots and lamps in their white (tap, or hold and drag
-for brightness), warm to cool white for the spots, the Christmas plugs, white scenes and All off,
+for brightness), warm to cool white for the spots, the Christmas plugs, an air card (temperature, humidity,
+CO₂ ring, PM2.5, 8 hours of CO₂),
 and a music card with favourite playlists. House: NAS as rings, my sites as 30-day uptime rings, services as
 a constellation or an incident card, portfolio with a period switch, top movers, code with an activity grid, Jellyfin, backups as
 the last 14 nights, alerts (or All quiet). Buttons on the page

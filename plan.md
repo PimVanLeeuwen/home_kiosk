@@ -259,7 +259,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Details in [docs/desk-panels.md](docs/desk-panels.md#design).
 - Roles, editable in the hub (Settings → Desk panels): left **Now** (clock, weather, Buienradar
   rain, the morning train, calendar, the day view, headlines), middle **Home** (the living room's
-  lights, scenes and the Christmas plugs, M17; Now Playing while music plays, otherwise a music
+  lights, its air and the Christmas plugs, M17; Now Playing while music plays, otherwise a music
   card with favourite playlists, M18; never rotates), right **House** (NAS, Money, Code, Jellyfin, backups, alerts). The screens
   beyond the basics are M20. Each panel rotates through its cards; a touch
   pauses its rotation for 60 seconds. An ERROR alert takes over all three until dismissed. Night
@@ -309,7 +309,24 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   no colour) and 2 white bulbs (brightness only). Other rooms are never controlled from the desk.
 - Home panel, first card: a tile for the kitchen spots and one for the lamps (tap on/off, hold
   and drag for brightness), each glowing in the white it has now; five warm-to-cool swatches for
-  the kitchen spots. Second card: white scenes (Relax, Read, Concentrate, Dimmed) and All off.
+  the kitchen spots. (A scenes card was dropped on 2026-10-10: it would not be used.)
+- Second card: **Air** in the living room: the temperature large, humidity, PM2.5, CO₂ as a ring
+  (Fresh below 800 ppm, Getting stuffy to 1200, Open a window above) with the outside
+  temperature from Buienradar beside it, and CO₂ over the last 8 hours. Needs a sensor, not
+  chosen yet:
+  1. **IKEA ALPSTUGA**, EUR 29.99 at IKEA NL: CO₂, PM2.5, temperature, humidity (no VOC).
+     Matter over Thread, so it needs a Thread border router (an Apple TV 4K or HomePod mini in
+     Apple Home is one) and then shows in Apple Home too. For the hub to read it, a Matter
+     controller runs on the NAS (the open-source matter-server in Docker), added as a second
+     controller from Apple Home. Cheapest, but the most moving parts, and reviews call its
+     sensors noisier than dedicated monitors.
+  2. **AirGradient ONE**, about EUR 290 at EU resellers (USD 230 direct): CO₂, PM, TVOC, NOx,
+     temperature, humidity, open source, with a local HTTP API the collector reads directly
+     over Wi-Fi. Simplest to connect and the most accurate.
+  3. **Apollo AIR-1** (ESPHome), EUR 130 without CO₂ to EUR 208 with CO₂ and gas at Domadoo;
+     EU distributor SlimHuisje.nl. Local ESPHome API.
+  The Hue motion sensor only gives temperature. Question: is there an Apple TV or HomePod in
+  the house (decides whether option 1 is possible)?
 - The Hue plugs are used for Christmas decorations: their switches only show in the season
   (dates set in Settings).
 - No light strips for now (2026-10-10). If ever: Hue's own strip is the only one that also shows
@@ -349,14 +366,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   The card must not read as a clock: the time sits in a labelled "Departure" box, the status
   (On time, 6 min late, Cancelled) is the large line, then "Leaves in 34 min from platform 3",
   or the next direct train when it is cancelled.
-- **Calendar** (Now): today's events only, the next one with a countdown. Read-only, no
+- **Calendar** (Now): today's events only. Design (2026-10-10): the next event large with a ring
+  counting down to it in its calendar's colour, the day from 07:00 to 23:00 as a ribbon of
+  coloured blocks with a glowing now line, then the later events. Read-only, no
   reminders, no bin days. Decided 2026-10-10: CalDAV to `caldav.icloud.com` with an
   app-specific password from the Apple account page, kept in `.env` (it also opens iCloud mail
   and contacts, so NAS-only, revocable any time). All calendars are in Apple Calendar. Settings
   → Desk panels lists them with their colours and a switch each, so some never show; events
   from the chosen ones show with their full titles.
-- **Headlines** (Now): the top stories from the News reader (M6): a lead story over its image
-  (proxied by the hub), then two more; tap one to save it to Readeck.
+- **Headlines** (Now): the top stories from the News reader (M6): the lead story full-bleed over
+  its image (proxied by the hub) with the source as a badge, then two more with thumbnails; tap
+  one to save it to Readeck, and its bookmark fills.
 - **Code** (House): 16 weeks of commit activity as a grid, then the CI state of the default
   branches and running pull requests from the Repos data (M9); a failing build stands out.
 - **Jellyfin** (House): continue watching with progress, recently added posters, and what Sonarr

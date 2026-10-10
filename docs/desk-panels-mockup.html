@@ -301,6 +301,28 @@ svg text { font-family: var(--f-body); }
 .dk small { margin-left: auto; font-size: 3cqw; color: var(--ink-3); white-space: nowrap; }
 .dk { gap: .9cqw; }
 .okd { display: inline-block; width: 1.8cqw; height: 1.8cqw; border-radius: 50%; background: var(--ok); box-shadow: 0 0 1.6cqw var(--ok); margin-right: 1.4cqw; }
+.nxt { display: grid; grid-template-columns: 24cqw 1fr; gap: 4cqw; align-items: center; margin-top: 1cqw; }
+.ribbon { position: relative; height: 5cqw; border-radius: 99px; background: rgba(255, 255, 255, .06); }
+.ribbon i { position: absolute; top: .8cqw; bottom: .8cqw; border-radius: 99px; }
+.ribbon b { position: absolute; top: -1.6cqw; bottom: -1.6cqw; width: .5cqw; margin-left: -.25cqw; border-radius: 99px; background: #fff; box-shadow: 0 0 2cqw #fff; }
+.later { display: grid; gap: 1.8cqw; }
+.later > div { display: grid; grid-template-columns: 12cqw 2cqw 1fr; gap: 2.4cqw; align-items: center; font-size: 4cqw; }
+.later .mono { font-size: 3.6cqw; color: var(--ink-2); }
+.later i { width: 2cqw; height: 2cqw; border-radius: 50%; }
+.later .lt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lead2 { font: inherit; color: #fff; text-align: left; cursor: pointer; padding: 0; border: 0; border-radius: 4.4cqw; overflow: hidden; position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 3cqw 8cqw rgba(0, 0, 0, .45); }
+.limg { position: absolute; inset: 0; }
+.limg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 6, 10, .25), transparent 35%, rgba(6, 6, 10, .9)); }
+.ltop { position: relative; display: flex; gap: 2cqw; align-items: center; padding: 3.6cqw 4cqw; font-size: 3.4cqw; color: rgba(255, 255, 255, .8); }
+.src { font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .2); border-radius: 99px; padding: .6cqw 2.2cqw; backdrop-filter: blur(4px); }
+.ltxt { position: relative; padding: 0 4.4cqw 4.4cqw; font-size: 6.2cqw; font-weight: 600; line-height: 1.12; letter-spacing: -.015em; }
+.more { display: grid; gap: 2.4cqw; }
+.more button { font: inherit; color: var(--ink); text-align: left; cursor: pointer; background: transparent; border: 0; padding: 0; display: grid; grid-template-columns: 12cqw 1fr auto; gap: 3cqw; align-items: center; }
+.more .th { aspect-ratio: 1; border-radius: 2.4cqw; }
+.more .mt { display: grid; gap: .4cqw; min-width: 0; }
+.more .mtt { font-size: 3.8cqw; font-weight: 600; line-height: 1.2; }
+.clim { display: grid; grid-template-columns: 1fr 34cqw; gap: 3cqw; align-items: center; margin-top: 1cqw; }
+.cword { font-size: 5.6cqw; font-weight: 600; text-align: right; margin-top: -1cqw; }
 .poster { aspect-ratio: 2 / 3; border-radius: 2cqw; box-shadow: 0 2cqw 5cqw rgba(0, 0, 0, .45); }
 .mutebtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: rgba(124, 108, 242, .18); border: 1px solid var(--accent); border-radius: 99px; padding: 2.4cqw 5cqw; cursor: pointer; }
 
@@ -346,11 +368,11 @@ svg text { font-family: var(--f-body); }
   <div class="notes">
     <section>
       <h2>Now</h2>
-      <ul><li>Clock, weather and Buienradar rain, on a sky that follows the time of day</li><li>Your train: the 07:16 departure to Rotterdam Centraal, on weekday mornings only (tap Preview for delayed and cancelled)</li><li>Today: events from the chosen Apple calendars, the next one up</li><li>Your day: the sun's arc, the temperature curve and the chance of rain, with a one-line summary</li><li>Headlines: a lead story with its image, then two more; tap one to save it to Readeck</li><li>Night: a dim clock only</li></ul>
+      <ul><li>Clock, weather and Buienradar rain, on a sky that follows the time of day</li><li>Your train: the 07:16 departure to Rotterdam Centraal, on weekday mornings only (tap Preview for delayed and cancelled)</li><li>Today: the next event with a countdown ring, the day as a ribbon with a now line, and what comes later</li><li>Your day: the sun's arc, the temperature curve and the chance of rain, with a one-line summary</li><li>Headlines: a full-bleed lead story, two more with thumbnails; tap one to save it to Readeck (the bookmark fills)</li><li>Night: a dim clock only</li></ul>
     </section>
     <section>
       <h2>Home</h2>
-      <ul><li>The living room only: the 3 kitchen spots and the 2 lamps, each glowing in the white they have now</li><li>Tap to switch, hold and drag for brightness; warm to cool white for the kitchen spots</li><li>Scenes (Relax, Read, Concentrate, Dimmed) and All off; the Christmas plugs only in the season</li><li>Music: Now Playing first while music plays; otherwise a card with favourite playlists to start from the desk</li></ul>
+      <ul><li>The living room only: the 3 kitchen spots and the 2 lamps, each glowing in the white they have now</li><li>Tap to switch, hold and drag for brightness; warm to cool white for the kitchen spots</li><li>Air: temperature, humidity, CO₂ as a ring with Fresh, Getting stuffy or Open a window, PM2.5, and CO₂ over the last 8 hours; the Christmas plugs only in the season</li><li>Music: Now Playing first while music plays; otherwise a card with favourite playlists to start from the desk</li></ul>
     </section>
     <section>
       <h2>House</h2>
@@ -560,29 +582,54 @@ svg text { font-family: var(--f-body); }
       <div class="plist">${pl.map((x, i) => `<button data-act="playlist" data-i="${i}"><span class="cover" style="background:radial-gradient(circle at 30% 30%, ${rgb(x[1])}, transparent 60%), linear-gradient(135deg, ${rgb(x[2])}, #111)"></span><span>${x[0]}</span></button>`).join('')}</div>
       <div class="sub" style="font-size:3.6cqw">Last played: Low Tide Static · Marlow Hayes</div>`;
     },
-    scenes: () => `<div class="row"><span class="k">Scenes</span><span class="k">${st.scene === null ? 'None active' : scenes[st.scene].name + ' is on'}</span></div>
-      <div class="scenes">${scenes.map((s, i) => {
-        const kc = kel(s.k), lc = kel(2700);
-        const bg = `radial-gradient(80% 90% at 25% 15%, ${rgb(kc, .25 + s.kb / 220)}, transparent 70%), radial-gradient(70% 80% at 90% 100%, ${rgb(lc, .15 + s.lb / 260)}, transparent 70%), #121118`;
-        return `<button class="scene${st.scene === i ? ' active' : ''}" data-act="scene" data-i="${i}" style="background:${bg}">
-          ${st.scene === i ? '<span class="scon">ON</span>' : ''}${s.name}<small>${s.note}</small>
-          <span class="sdots">${[kc, kc, kc, lc, lc].map(c => `<i style="background:${rgb(c)};box-shadow:0 0 2cqw ${rgb(c, .8)}"></i>`).join('')}</span></button>`;
-      }).join('')}</div>
+    climate: () => {
+      const co2 = 640, pm = 6, temp = 21.4, hum = 48, out = 14;
+      const hist = [520, 540, 610, 720, 880, 960, 820, 700, 640, 600, 620, 660, 700, 690, 650, 640];
+      const W = 240, H = 46, max = 1400, y = v => (H - v / max * H).toFixed(1);
+      const pts = hist.map((v, i) => `${(i / (hist.length - 1) * W).toFixed(1)},${y(v)}`).join(' ');
+      const R = 30, c = 2 * Math.PI * R, f = Math.min(1, (co2 - 400) / 1200);
+      const word = co2 < 800 ? ['Fresh', '#5fd39c'] : co2 < 1200 ? ['Getting stuffy', '#f0bd5a'] : ['Open a window', '#ff6b6b'];
+      return `<div class="amb2" style="background:radial-gradient(60% 50% at 75% 30%, ${word[1]}22, transparent 70%)"></div>
+      <div class="row"><span class="k">Living room · air</span><span class="k">Outside ${out}°</span></div>
+      <div class="clim">
+        <div><div class="huge" style="font-size:17cqw">${String(temp).replace('.', ',')}°</div><div class="sub" style="font-size:4cqw">Humidity ${hum}%</div><div class="sub" style="font-size:3.6cqw;color:var(--ink-3)">PM2.5 ${pm} µg/m³ · clean</div></div>
+        <svg viewBox="0 0 72 72" width="100%"><defs><linearGradient id="cg2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5fd39c"/><stop offset=".55" stop-color="#f0bd5a"/><stop offset="1" stop-color="#ff6b6b"/></linearGradient></defs>
+          <circle cx="36" cy="36" r="${R}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="5"/>
+          <circle cx="36" cy="36" r="${R}" fill="none" stroke="${word[1]}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 36 36)" style="filter:drop-shadow(0 0 3px ${word[1]})"/>
+          <text x="36" y="37" text-anchor="middle" font-size="15" font-weight="600" fill="#f1eff7">${co2}</text><text x="36" y="46" text-anchor="middle" font-size="5.6" fill="#b4b1c2">ppm CO₂</text></svg>
+      </div>
+      <div class="cword" style="color:${word[1]}">${word[0]}</div>
       <div class="grow"></div>
-      <button class="alloff" data-act="alloff">All off</button>`,
+      <svg viewBox="0 0 ${W} ${H + 10}" width="100%" style="display:block;overflow:visible">
+        <rect x="0" y="${y(1200)}" width="${W}" height="${(H - y(1200)).toFixed(1)}" fill="rgba(255,255,255,0)"/>
+        <line x1="0" y1="${y(800)}" x2="${W}" y2="${y(800)}" stroke="rgba(240,189,90,.35)" stroke-dasharray="3 4"/>
+        <polygon points="0,${H} ${pts} ${W},${H}" fill="rgba(95,211,156,.12)"/>
+        <polyline points="${pts}" fill="none" stroke="#5fd39c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <text x="0" y="${H + 9}" font-size="8.5" fill="#7d7a8c">CO₂ · last 8 hours</text><text x="${W}" y="${(+y(800) - 3).toFixed(1)}" font-size="8.5" fill="#f0bd5a" text-anchor="end">800</text></svg>`;
+    },
     agenda: () => {
       const ev = [
-        ['08:00', 'Gym', 'Personal', [255, 184, 107], true],
-        ['09:30', 'Standup', 'Work', [90, 169, 255], false],
-        ['12:30', 'Lunch with Sanne', 'Family', [200, 160, 255], false],
-        ['16:00', 'Dentist', 'Personal', [255, 184, 107], false],
-        ['20:00', 'Hubble board meeting', 'Hubble', [95, 211, 156], false]
+        [8, 9, 'Gym', 'Personal', [255, 184, 107]],
+        [9.5, 10, 'Standup', 'Work', [90, 169, 255]],
+        [12.5, 13.5, 'Lunch with Sanne', 'Family', [200, 160, 255]],
+        [16, 16.75, 'Dentist', 'Personal', [255, 184, 107]],
+        [20, 22, 'Hubble board meeting', 'Hubble', [95, 211, 156]]
       ];
-      return `<div class="row"><span class="k">Today</span><span class="k">4 of 6 calendars</span></div>
-      <div><div class="mid">Standup</div><div class="sub" style="margin-top:1cqw"><span style="color:#5aa9ff">●</span> Work · in 42 min, 09:30</div></div>
-      <div class="tl">${ev.map(x => `<div class="ev${x[4] ? ' past' : ''}"><span class="mono">${x[0]}</span><i style="background:${rgb(x[3])}"></i><span class="evt">${x[1]}</span><span class="evc">${x[2]}</span></div>`).join('')}</div>
+      const nowH = 8.8, from = 7, to = 23, X = h => ((h - from) / (to - from) * 100).toFixed(2);
+      const hm = h => String(Math.floor(h)).padStart(2, '0') + ':' + String(Math.round(h % 1 * 60)).padStart(2, '0');
+      const next = ev[1], mins = Math.round((next[0] - nowH) * 60), r = 22, c = 2 * Math.PI * r;
+      return `<div class="amb2" style="background:radial-gradient(70% 55% at 0% 0%, ${rgb(next[4], .2)}, transparent 70%)"></div>
+      <div class="row"><span class="k">Today · ${now.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</span><span class="k">5 events</span></div>
+      <div class="nxt">
+        <svg viewBox="0 0 56 56" width="100%"><circle cx="28" cy="28" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/>
+          <circle cx="28" cy="28" r="${r}" fill="none" stroke="${rgb(next[4])}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${(c * (1 - mins / 60)).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 28 28)"/>
+          <text x="28" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="#f1eff7">${mins}</text><text x="28" y="38" text-anchor="middle" font-size="5.6" fill="#b4b1c2">min</text></svg>
+        <div><span class="k" style="font-size:3.4cqw;color:${rgb(next[4])}">Next · ${next[3]}</span><div class="mid" style="font-size:8cqw">${next[2]}</div><div class="sub" style="font-size:3.8cqw">${hm(next[0])} to ${hm(next[1])}</div></div>
+      </div>
       <div class="grow"></div>
-      <div class="row" style="font-size:3.6cqw;color:var(--ink-3)"><span>5 events today</span><span>Free after 21:00</span></div>`;
+      <div class="ribbon">${ev.map(e => `<i style="left:${X(e[0])}%;width:${(X(e[1]) - X(e[0])).toFixed(2)}%;background:${rgb(e[4], e[1] <= nowH ? .25 : .8)}"></i>`).join('')}<b style="left:${X(nowH)}%"></b></div>
+      <div class="row" style="font-size:3.4cqw;color:var(--ink-3);margin-top:-1.4cqw"><span>07:00</span><span>12:00</span><span>17:00</span><span>23:00</span></div>
+      <div class="later">${ev.slice(2).map(e => `<div><span class="mono">${hm(e[0])}</span><i style="background:${rgb(e[4])};box-shadow:0 0 1.6cqw ${rgb(e[4], .8)}"></i><span class="lt">${e[2]}</span></div>`).join('')}</div>`;
     },
     train: () => {
       const S = [
@@ -608,13 +655,15 @@ svg text { font-family: var(--f-body); }
       ${gone ? `<div class="sub" style="font-size:3.6cqw;color:var(--ink)">Next: 07:46, platform 4, arrives 09:11</div>` : ''}`;
     },
     headlines: () => {
-      const h = [['NOS', '12 min', 'Kabinet presenteert plannen voor betaalbare huurwoningen'], ['Tweakers', '40 min', 'Raspberry Pi kondigt nieuwe Compute Module aan'], ['The Verge', '1 h', 'The quiet return of the desk gadget']];
-      const sv = i => st.saved[i] ? ' · saved' : '';
-      return `<button class="lead${st.saved[0] ? ' saved' : ''}" data-act="save" data-i="0">
-          <div class="leadimg"></div>
-          <div class="leadtxt"><span class="k" style="font-size:3.4cqw;color:rgba(255,255,255,.75)">${h[0][0]} · ${h[0][1]}${sv(0)}</span><span class="leadt">${h[0][2]}</span></div>
-        </button>
-      <div style="display:grid;gap:3cqw">${h.slice(1).map((x, k) => `<button class="hl${st.saved[k + 1] ? ' saved' : ''}" data-act="save" data-i="${k + 1}"><span class="k" style="font-size:3.4cqw">${x[0]} · ${x[1]}${sv(k + 1)}</span><span class="hlt">${x[2]}</span></button>`).join('')}</div>`;
+      const h = [['NOS', '12 min', 'Kabinet presenteert plannen voor betaalbare huurwoningen', ['#3c4f6e', 'rgba(255,196,120,.75)', 'rgba(90,140,210,.7)']],
+        ['Tweakers', '40 min', 'Raspberry Pi kondigt nieuwe Compute Module aan', ['#2a3a2c', 'rgba(120,220,150,.6)', 'rgba(60,120,90,.7)']],
+        ['The Verge', '1 h', 'The quiet return of the desk gadget', ['#3a2a44', 'rgba(255,120,170,.6)', 'rgba(124,108,242,.7)']]];
+      const img = c => `radial-gradient(60% 80% at 75% 20%, ${c[1]}, transparent 60%), radial-gradient(70% 90% at 15% 30%, ${c[2]}, transparent 65%), linear-gradient(160deg, ${c[0]}, #121118)`;
+      const bm = on => `<svg viewBox="0 0 24 24" width="4.4cqw" height="4.4cqw" fill="${on ? '#b4a9ff' : 'none'}" stroke="${on ? '#b4a9ff' : 'rgba(255,255,255,.7)'}" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4.2-6 4.2z"/></svg>`;
+      return `<button class="lead2" data-act="save" data-i="0"><span class="limg" style="background:${img(h[0][3])}"></span>
+          <span class="ltop"><span class="src">${h[0][0]}</span><span>${h[0][1]}</span><span style="margin-left:auto">${bm(st.saved[0])}</span></span>
+          <span class="ltxt">${h[0][2]}</span></button>
+      <div class="more">${h.slice(1).map((x, k) => `<button data-act="save" data-i="${k + 1}"><span class="th" style="background:${img(x[3])}"></span><span class="mt"><span class="k" style="font-size:3cqw">${x[0]} · ${x[1]}</span><span class="mtt">${x[2]}</span></span>${bm(st.saved[k + 1])}</button>`).join('')}</div>`;
     },
     sites: () => {
       // 30 days per site, oldest at 12 o'clock going round to today; [day, 1 blip | 2 down]
@@ -787,7 +836,7 @@ svg text { font-family: var(--f-body); }
   };
   const decks = {
     now: () => ['clock', 'train', 'agenda', 'forecast', 'headlines'],
-    home: () => st.music ? ['playing', 'rooms', 'scenes'] : ['rooms', 'scenes', 'music'],
+    home: () => st.music ? ['playing', 'rooms', 'climate'] : ['rooms', 'climate', 'music'],
     house: () => ['nas', 'sites', 'services', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
   };
   const intervals = { now: 10000, home: 0, house: 9000 };
