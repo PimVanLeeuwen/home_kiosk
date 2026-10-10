@@ -88,8 +88,8 @@ python3 dashboard/serve.py
 - 2026-10-09: three ESP32-P4 4" touch panels replace the Pi kiosk; Hue control through the
   local bridge API and Spotify playback control become deliberate writes. plan.md M16 to M18.
 - 2026-10-10: desk PC power through an ESP32 on the power-button header, on the Home panel;
-  panel screens for the train, calendar, headlines, code, Jellyfin and an ambient mode.
-  plan.md M19, M20.
+  panel screens for the train, calendar, headlines, code and Jellyfin; no ambient mode, the
+  panels always show their screens. plan.md M19, M20.
 - 2026-10-10: the 07:16 train is watched every weekday, Telegram only for problems and past
   quiet hours; the calendar reads iCloud over CalDAV with a per-calendar filter, today only, full
   titles. plan.md M20.

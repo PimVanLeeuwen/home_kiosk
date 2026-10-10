@@ -364,19 +364,20 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   and contacts, so NAS-only, revocable any time). All calendars are in Apple Calendar. Settings
   → Desk panels lists them with their colours and a switch each, so some never show; events
   from the chosen ones show with their full titles.
-- **Headlines** (Now): the top stories from the News reader (M6); tap one to save it to Readeck.
-- **Code** (House): CI state of the default branches and open pull requests from the Repos data
-  (M9); a failing build stands out.
+- **Headlines** (Now): the top stories from the News reader (M6): a lead story over its image
+  (proxied by the hub), then two more; tap one to save it to Readeck.
+- **Code** (House): 16 weeks of commit activity as a grid, then the CI state of the default
+  branches and running pull requests from the Repos data (M9); a failing build stands out.
 - **Jellyfin** (House): continue watching with progress, recently added posters, and what Sonarr
   and Radarr are downloading. Posters are fetched and resized by the hub. Shares its data with
   the backlog's richer Jellyfin overview in the hub.
 - **Top movers** (House, Money): diverging bars from a centre line, ticker and name, the change
   in green or red; the count up and down in the header.
-- **Ambient mode** (all three): when nothing needs attention, each panel becomes a slow
-  generative piece driven by live data. Now: rain falling at the Buienradar rate, with the time.
-  Home: the colours of the lights that are on, drifting. House: NAS network traffic as flowing
-  particles. A touch wakes the panel; an alert ends it. When it starts (idle time, hours) is
-  set in Settings. Drawn on the panel itself, kept light enough for 30 fps or more.
+- **NAS and Backups** (House), redesigned 2026-10-10: NAS as three rings (CPU, memory, the
+  fullest volume) with the storage runway and chips for disks and the UPS; Backups as the last
+  14 nights as bars (a slow or failed night in amber or red) with the verified restore.
+- No ambient mode (dropped 2026-10-10): the panels always show these screens; an idle art mode
+  would defeat their purpose.
 - Each screen follows the design bar in M16 and is checked on a real panel.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
@@ -427,7 +428,8 @@ M12, M13, M14, M15, M16, M17, M18, M19, M20.
   Desk panels: house and productivity widgets and actions, later. (The calendar and the morning
   train moved to M20; there are no bin days to show.)
 - Desk panel screen ideas (2026-10-10). Chosen into M20 on 2026-10-10: calendar, the morning
-  train (instead of general departures), ambient, Jellyfin, code and headlines. Not chosen yet:
+  train (instead of general departures), Jellyfin, code and headlines (ambient was chosen,
+  then dropped). Not chosen yet:
   1. Ride: the next dry window to cycle (from Buienradar).
   2. Focus: one tap starts a 50-minute ring timer, the lights go to a Focus scene, a
      focus playlist starts and Telegram alerts are held until the end.

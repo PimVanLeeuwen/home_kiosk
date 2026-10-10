@@ -109,7 +109,8 @@ data only). Now: clock and rain, the 07:16 departure (tap Preview for delayed an
 cancelled), today's calendar from the chosen calendars, the day view, headlines (tap to save). Home: Now Playing first while music plays (it
 stays, as Home never rotates), Bedroom, Hallway and Living room in their light colours (tap, or hold and drag for
 brightness), the Desk PC tile (tap to start, tap again for Sleep and Shut down), plugs, scenes,
-All off. House: NAS, portfolio, top movers, code, Jellyfin, backups, alerts. Buttons on the page
-start music, switch rotation, ambient and night mode, and simulate an error takeover. Album art
+All off. House: NAS as rings, portfolio, top movers, code with an activity grid, Jellyfin, backups as
+the last 14 nights, alerts. Buttons on the page
+start music, switch rotation and night mode, and simulate an error takeover. Album art
 and posters are generated colour. Also published
 privately as a claude.ai artifact: <https://claude.ai/artifact/7kjiWAz6C8cBu7cArw7j2i>

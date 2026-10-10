@@ -189,7 +189,6 @@ svg text { font-family: var(--f-body); }
 .pcrow { display: grid; grid-template-columns: 1fr 1.4fr; gap: 3cqw; }
 .pcbtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: var(--glass); border: 1px solid var(--hair); border-radius: 99px; padding: 3cqw; cursor: pointer; }
 .pcbtn.sure { background: rgba(255, 107, 107, .16); border-color: var(--err); }
-canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 5; }
 .tile.pc .pcico svg { width: 6cqw; height: 6cqw; }
 .tile.pc .pcico { font-style: normal; color: var(--ink-3); display: grid; }
 .tile.pc.on .pcico { color: var(--ok); }
@@ -219,6 +218,20 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
 .mvbar::before { content: ""; position: absolute; left: 50%; top: -1.2cqw; bottom: -1.2cqw; width: 1px; background: rgba(255, 255, 255, .18); }
 .mvbar i { position: absolute; top: 0; bottom: 0; border-radius: 99px; }
 .pillbtn { font: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.rings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3cqw; margin-top: 1cqw; }
+.ring { display: grid; justify-items: center; gap: 1cqw; }
+.ring span { font-size: 3.6cqw; color: var(--ink-2); }
+.chips { display: flex; flex-wrap: wrap; gap: 2cqw; }
+.chip2 { display: inline-flex; align-items: center; gap: 1.6cqw; font-size: 3.6cqw; color: var(--ink-2); background: var(--glass); border: 1px solid var(--hair); border-radius: 99px; padding: 1.4cqw 3cqw; }
+.chip2 i { width: 1.8cqw; height: 1.8cqw; border-radius: 50%; }
+.lead { font: inherit; color: #fff; text-align: left; cursor: pointer; padding: 0; border: 1px solid var(--hair); border-radius: 4cqw; overflow: hidden; position: relative; background: #111; min-height: 38cqw; display: flex; align-items: flex-end; }
+.lead.saved { border-color: var(--accent); }
+.leadimg { position: absolute; inset: 0; background: radial-gradient(60% 80% at 75% 20%, rgba(255, 196, 120, .75), transparent 60%), radial-gradient(70% 90% at 15% 30%, rgba(90, 140, 210, .7), transparent 65%), linear-gradient(160deg, #3c4f6e, #1a1f2c); }
+.leadimg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 25%, rgba(6, 6, 10, .88)); }
+.leadtxt { position: relative; padding: 4cqw; display: grid; gap: 1.2cqw; }
+.leadt { font-size: 5.4cqw; font-weight: 600; line-height: 1.15; letter-spacing: -.01em; }
+.heat { display: grid; grid-template-columns: repeat(16, 1fr); grid-template-rows: repeat(7, 1fr); gap: .8cqw; aspect-ratio: 16 / 7.3; }
+.heat i { border-radius: .8cqw; }
 .poster { aspect-ratio: 2 / 3; border-radius: 2cqw; box-shadow: 0 2cqw 5cqw rgba(0, 0, 0, .45); }
 .mutebtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: rgba(124, 108, 242, .18); border: 1px solid var(--accent); border-radius: 99px; padding: 2.4cqw 5cqw; cursor: pointer; }
 
@@ -248,7 +261,6 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
     <div class="controls">
       <button class="btn" id="btn-music" aria-pressed="false">Play music</button>
       <button class="btn" id="btn-rotate" aria-pressed="true">Rotation on</button>
-      <button class="btn" id="btn-ambient" aria-pressed="false">Ambient</button>
       <button class="btn" id="btn-night" aria-pressed="false">Night mode</button>
       <button class="btn danger" id="btn-alert">Simulate error alert</button>
     </div>
@@ -265,7 +277,7 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
   <div class="notes">
     <section>
       <h2>Now</h2>
-      <ul><li>Clock, weather and Buienradar rain, on a sky that follows the time of day</li><li>Your train: the 07:16 departure to Rotterdam Centraal, on weekday mornings only (tap Preview for delayed and cancelled)</li><li>Today: events from the chosen Apple calendars, the next one up</li><li>Your day: the sun's arc, the temperature curve and the chance of rain, with a one-line summary</li><li>Headlines from the News reader; tap one to save it to Readeck</li><li>Night: a dim clock only</li></ul>
+      <ul><li>Clock, weather and Buienradar rain, on a sky that follows the time of day</li><li>Your train: the 07:16 departure to Rotterdam Centraal, on weekday mornings only (tap Preview for delayed and cancelled)</li><li>Today: events from the chosen Apple calendars, the next one up</li><li>Your day: the sun's arc, the temperature curve and the chance of rain, with a one-line summary</li><li>Headlines: a lead story with its image, then two more; tap one to save it to Readeck</li><li>Night: a dim clock only</li></ul>
     </section>
     <section>
       <h2>Home</h2>
@@ -273,10 +285,10 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
     </section>
     <section>
       <h2>House</h2>
-      <ul><li>NAS and UPS, backups, alerts with Mute 1h</li><li>Money: portfolio today, then top movers as diverging bars</li><li>Code: CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
+      <ul><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h</li><li>Money: portfolio today, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
     </section>
   </div>
-  <p class="foot">Ambient turns each panel into a slow piece driven by live data (rain, the lights, NAS traffic); a touch wakes it. An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
+  <p class="foot">An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
 </div>
 
 <script>
@@ -306,7 +318,7 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
     { title: 'Glasshouse', artist: 'Noor & the Quiet Hours', len: 251, device: 'MacBook', c: [[72, 180, 190], [40, 70, 160], [12, 22, 40]] },
     { title: 'Polder Lights', artist: 'Fenna Dijk', len: 189, device: 'Living room speakers', c: [[245, 200, 90], [210, 90, 120], [40, 20, 36]] }
   ];
-  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, pc: 'off', pcSince: '01:12', pcConfirm: 0, pcSheet: false, train: 0, saved: {}, ambient: false };
+  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, pc: 'off', pcSince: '01:12', pcConfirm: 0, pcSheet: false, train: 0, saved: {} };
   const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
   const art = t => `radial-gradient(circle at 28% 30%, ${rgb(t.c[0])}, transparent 58%), radial-gradient(circle at 78% 72%, ${rgb(t.c[1])}, transparent 60%), linear-gradient(135deg, ${rgb(t.c[2])}, ${rgb(t.c[1], .8)})`;
 
@@ -480,17 +492,27 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
     },
     headlines: () => {
       const h = [['NOS', '12 min', 'Kabinet presenteert plannen voor betaalbare huurwoningen'], ['Tweakers', '40 min', 'Raspberry Pi kondigt nieuwe Compute Module aan'], ['The Verge', '1 h', 'The quiet return of the desk gadget']];
-      return `<div class="row"><span class="k">Headlines</span><span class="k">Tap to save</span></div>
-      <div style="display:grid;gap:3.6cqw;margin-top:1cqw">${h.map((x, i) => `<button class="hl${st.saved[i] ? ' saved' : ''}" data-act="save" data-i="${i}"><span class="k" style="font-size:3.4cqw">${x[0]} · ${x[1]}${st.saved[i] ? ' · saved to Readeck' : ''}</span><span class="hlt">${x[2]}</span></button>`).join('')}</div>`;
+      const sv = i => st.saved[i] ? ' · saved' : '';
+      return `<button class="lead${st.saved[0] ? ' saved' : ''}" data-act="save" data-i="0">
+          <div class="leadimg"></div>
+          <div class="leadtxt"><span class="k" style="font-size:3.4cqw;color:rgba(255,255,255,.75)">${h[0][0]} · ${h[0][1]}${sv(0)}</span><span class="leadt">${h[0][2]}</span></div>
+        </button>
+      <div style="display:grid;gap:3cqw">${h.slice(1).map((x, k) => `<button class="hl${st.saved[k + 1] ? ' saved' : ''}" data-act="save" data-i="${k + 1}"><span class="k" style="font-size:3.4cqw">${x[0]} · ${x[1]}${sv(k + 1)}</span><span class="hlt">${x[2]}</span></button>`).join('')}</div>`;
     },
-    nas: () => `<div class="row"><span class="k">NAS</span><span class="pill ok">HEALTHY</span></div>
-      <div class="list" style="gap:3.4cqw;margin-top:1cqw">
-        <div><div class="row"><span>CPU</span><span>12%</span></div><div class="meter"><i style="width:12%"></i></div></div>
-        <div><div class="row"><span>Memory</span><span>41%</span></div><div class="meter"><i style="width:41%"></i></div></div>
-        <div><div class="row"><span>volume2</span><span>88%</span></div><div class="meter"><i class="warn" style="width:88%"></i></div></div>
-        <div class="row"><span>Disks</span><span>4 of 4 OK</span></div>
-        <div class="row"><span>UPS</span><span>Mains · 100%</span></div>
-      </div>`,
+    nas: () => {
+      const ring = (v, label, warn) => {
+        const r = 24, c = 2 * Math.PI * r, col = warn ? '#f0bd5a' : 'url(#vg)';
+        return `<div class="ring"><svg viewBox="0 0 60 60" width="100%"><defs><linearGradient id="vg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b4a9ff"/><stop offset="1" stop-color="#6f60ea"/></linearGradient></defs>
+          <circle cx="30" cy="30" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/>
+          <circle cx="30" cy="30" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(c * v / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 30 30)"/>
+          <text x="30" y="34" text-anchor="middle" font-size="12" font-weight="600" fill="#f1eff7">${v}%</text></svg><span>${label}</span></div>`;
+      };
+      return `<div class="row"><span class="k">NAS</span><span class="pill ok">HEALTHY</span></div>
+      <div class="rings">${ring(12, 'CPU')}${ring(41, 'Memory')}${ring(88, 'volume2', true)}</div>
+      <div class="sub" style="text-align:center;font-size:4cqw">volume2 full in about <b style="color:var(--warn)">5 months</b></div>
+      <div class="grow"></div>
+      <div class="chips"><span class="chip2"><i style="background:var(--ok)"></i>4 of 4 disks OK</span><span class="chip2"><i style="background:var(--ok)"></i>UPS on mains · 100%</span></div>`;
+    },
     money: () => `<div class="k">Portfolio today</div>
       <div class="big">${eur(day[day.length - 1])}</div>
       <div class="row" style="justify-content:flex-start"><span class="up" style="font-size:5cqw;font-weight:600">+${eur(day[day.length - 1] - day[0])}</span><span class="up" style="font-size:5cqw">${pct((day[day.length - 1] / day[0] - 1) * 100)}</span></div>
@@ -509,12 +531,16 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
       }).join('')}</div>`;
     },
     code: () => {
-      const r = [['home_kiosk', 'main', 'ok', '4 min ago'], ['nas-docker', 'main', 'ok', '2 h ago'], ['hubble-website', 'main', 'fail', 'build · 12 min ago'], ['home_kiosk', 'PR #41', 'run', 'running']];
-      const pill = { ok: '<span class="pill ok">PASSING</span>', fail: '<span class="pill" style="color:var(--err);background:rgba(255,107,107,.15)">FAILING</span>', run: '<span class="pill" style="color:#c9c1ff;background:rgba(124,108,242,.2)">RUNNING</span>' };
-      return `<div class="row"><span class="k">Code</span><span class="pill" style="color:var(--err);background:rgba(255,107,107,.15)">1 FAILING</span></div>
-      <div style="display:grid;gap:3.2cqw;margin-top:1cqw">${r.map(x => `<div class="row" style="align-items:center"><div style="min-width:0"><div class="mono" style="font-size:4.2cqw">${x[0]}</div><div style="font-size:3.4cqw;color:var(--ink-3)">${x[1]} · ${x[3]}</div></div>${pill[x[2]]}</div>`).join('')}</div>
+      let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      const cells = Array.from({ length: 112 }, (_, i) => { const wk = Math.floor(i / 7), d = i % 7, r = rnd();
+        const lvl = d > 4 ? (r > .8 ? 1 : 0) : r > .86 ? 4 : r > .62 ? 3 : r > .38 ? 2 : r > .2 ? 1 : 0; return wk > 13 && d < 5 ? Math.max(lvl, 2) : lvl; });
+      const col = ['rgba(255,255,255,.06)', 'rgba(124,108,242,.3)', 'rgba(124,108,242,.55)', 'rgba(150,136,250,.8)', '#c3b9ff'];
+      const r = [['home_kiosk', 'passed 4 min ago', 'ok'], ['hubble-website', 'failed 12 min ago', 'fail'], ['home_kiosk #41', 'running', 'run']];
+      const dot = { ok: 'var(--ok)', fail: 'var(--err)', run: '#b4a9ff' };
+      return `<div class="row"><span class="k">Code · 16 weeks</span><span class="pill" style="color:var(--err);background:rgba(255,107,107,.15)">1 FAILING</span></div>
+      <div class="heat">${cells.map((l, i) => `<i style="grid-row:${i % 7 + 1};grid-column:${Math.floor(i / 7) + 1};background:${col[l]}"></i>`).join('')}</div>
       <div class="grow"></div>
-      <div class="row" style="font-size:4cqw"><span style="color:var(--ink-2)">Open pull requests</span><span>3 · 1 waiting for you</span></div>`;
+      <div style="display:grid;gap:2.6cqw">${r.map(x => `<div class="row" style="align-items:center;justify-content:flex-start;gap:3cqw"><i style="width:2.6cqw;height:2.6cqw;border-radius:50%;flex:none;background:${dot[x[2]]};box-shadow:0 0 2.4cqw ${dot[x[2]]}"></i><span class="mono" style="font-size:4cqw">${x[0]}</span><span style="font-size:3.4cqw;color:var(--ink-3);margin-left:auto">${x[1]}</span></div>`).join('')}</div>`;
     },
     media: () => {
       const post = (a, b) => `background:linear-gradient(160deg, ${a}, ${b})`;
@@ -528,15 +554,17 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2.4cqw">${[['#b5543c', '#3d1a14'], ['#4f8a6b', '#16261d'], ['#7c6cf2', '#221c4a'], ['#c9a227', '#3a2d08']].map(c => `<div class="poster" style="${post(c[0], c[1])}"></div>`).join('')}</div>`;
     },
 
-    backups: () => `<div class="row"><span class="k">Backups</span><span class="pill ok">OK</span></div>
-      <div class="big" style="font-weight:500">03:00</div>
-      <div class="sub">Last night · 1 h 12 min</div>
+    backups: () => {
+      const n = [68, 71, 70, 66, 72, 94, 69, 70, 71, 68, 73, 70, 69, 72], warn = 5, max = 100, W = 240, H = 70, bw = W / n.length;
+      const bars = n.map((m, i) => { const h = m / max * (H - 8);
+        return `<rect x="${(i * bw + 2).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${h.toFixed(1)}" rx="2.5" fill="${i === warn ? '#f0bd5a' : i === n.length - 1 ? '#5fd39c' : 'rgba(95,211,156,.38)'}"/>`; }).join('');
+      return `<div class="row"><span class="k">Backups</span><span class="pill ok">OK</span></div>
+      <div style="display:flex;align-items:baseline;gap:3cqw"><span class="big" style="font-weight:500">03:00</span><span class="sub">last night · 1 h 12 min</span></div>
       <div class="grow"></div>
-      <div class="list">
-        <div class="row"><span>Docker configs</span><span class="pill ok">OK</span></div>
-        <div class="row"><span>Files</span><span class="pill ok">OK</span></div>
-        <div class="row"><span>Verified restore</span><span>12 days ago</span></div>
-      </div>`,
+      <svg viewBox="0 0 ${W} ${H + 12}" width="100%" style="display:block;overflow:visible">${bars}
+        <text x="0" y="${H + 11}" font-size="8.5" fill="#7d7a8c">14 nights ago</text><text x="${W}" y="${H + 11}" font-size="8.5" fill="#7d7a8c" text-anchor="end">Last night</text></svg>
+      <div class="chips"><span class="chip2"><i style="background:var(--ok)"></i>Verified restore 12 days ago</span><span class="chip2"><i style="background:var(--warn)"></i>1 slow night</span></div>`;
+    },
     alerts: () => `<div class="row"><span class="k">Alerts</span><span class="pill warn">1 OPEN</span></div>
       <div class="glass" style="padding:5cqw;display:grid;gap:1.8cqw">
         <span class="pill warn" style="justify-self:start">WARNING</span>
@@ -597,7 +625,6 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
       p.pausedEl.hidden = !p.pausedUntil;
       p.track.style.transform = `translateX(${-p.i * 100}%)`;
       unit.style.setProperty('--glow', glow(name));
-      if (st.ambient) { const cv = document.createElement('canvas'); cv.className = 'art2'; scr.appendChild(cv); }
     };
     p.go = function (j) {
       const n = decks[name]().length;
@@ -736,59 +763,6 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
   const bNight = document.getElementById('btn-night');
   bNight.addEventListener('click', () => { const on = desk.classList.toggle('night'); bNight.setAttribute('aria-pressed', String(on)); });
   document.getElementById('btn-alert').addEventListener('click', () => { desk.classList.add('alerting'); renderAll(); });
-  // Ambient mode: when nothing needs attention, each panel becomes a slow piece driven by live data.
-  // Now: rain falling at the Buienradar rate. Home: the lights' colours drifting. House: NAS traffic flowing.
-  const bAmb = document.getElementById('btn-ambient');
-  let ambRun = 0;
-  function ambientOn(on) {
-    st.ambient = on; bAmb.setAttribute('aria-pressed', String(on));
-    document.querySelectorAll('.scr').forEach(scr => {
-      let cv = scr.querySelector('canvas.art2');
-      if (on && !cv) { cv = document.createElement('canvas'); cv.className = 'art2'; scr.appendChild(cv); }
-      if (!on && cv) cv.remove();
-    });
-    if (on) { ambRun++; loop(ambRun); }
-  }
-  const parts = {};
-  function setup(name, w, h) {
-    const n = name === 'now' ? 90 : name === 'home' ? 3 : 70;
-    parts[name] = Array.from({ length: n }, (_, i) => ({ x: Math.random() * w, y: Math.random() * h, s: .5 + Math.random(), ph: Math.random() * 6.28, i }));
-  }
-  function loop(run) {
-    if (!st.ambient || run !== ambRun) return;
-    const t = performance.now() / 1000;
-    document.querySelectorAll('.scr').forEach(scr => {
-      const cv = scr.querySelector('canvas.art2'); if (!cv) return;
-      const name = scr.dataset.panel, dpr = window.devicePixelRatio || 1, w = scr.clientWidth, h = scr.clientHeight;
-      if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); setup(name, w, h); }
-      const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (name === 'now') {
-        c.fillStyle = 'rgba(10,10,24,.35)'; c.fillRect(0, 0, w, h);
-        c.strokeStyle = 'rgba(180,170,255,.55)'; c.lineWidth = 1; c.lineCap = 'round';
-        parts.now.forEach(q => { q.y += q.s * 2.2; q.x -= q.s * .35; if (q.y > h) { q.y = -10; q.x = Math.random() * w * 1.1; }
-          c.beginPath(); c.moveTo(q.x, q.y); c.lineTo(q.x + q.s * 1.5, q.y - q.s * 9); c.stroke(); });
-        c.fillStyle = 'rgba(241,239,247,.85)'; c.font = `500 ${w * .15}px "Instrument Sans", system-ui`; c.fillText(hhmm(new Date()), w * .075, h * .9);
-        c.fillStyle = 'rgba(180,170,255,.8)'; c.font = `600 ${w * .034}px "Instrument Sans", system-ui`; c.fillText('RAIN 2,8 MM/U', w * .075, h * .73);
-      } else if (name === 'home') {
-        c.globalCompositeOperation = 'source-over'; c.fillStyle = '#0b0a10'; c.fillRect(0, 0, w, h);
-        c.globalCompositeOperation = 'lighter';
-        const on = Object.values(rooms).filter(r => r.on); const cols = on.length ? on.map(r => r.color) : [[90, 80, 160]];
-        parts.home.forEach((q, k) => { const col = cols[k % cols.length];
-          const x = w * (.5 + .32 * Math.sin(t * .13 * q.s + q.ph)), y = h * (.5 + .3 * Math.cos(t * .11 * q.s + q.ph * 1.7)), r = w * (.42 + .08 * Math.sin(t * .2 + k));
-          const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgb(col, .55)); g.addColorStop(1, rgb(col, 0));
-          c.fillStyle = g; c.fillRect(0, 0, w, h); });
-        c.globalCompositeOperation = 'source-over';
-      } else {
-        c.fillStyle = 'rgba(11,11,16,.18)'; c.fillRect(0, 0, w, h);
-        parts.house.forEach(q => { const sp = q.s * 1.6; q.x += sp; const y = q.y + Math.sin(q.x / 38 + q.ph) * 10;
-          if (q.x > w + 10) { q.x = -10; q.y = Math.random() * h; }
-          c.fillStyle = q.i % 5 ? 'rgba(124,108,242,.75)' : 'rgba(95,211,156,.8)'; c.fillRect(q.x, y, 2.2, 2.2); });
-      }
-    });
-    requestAnimationFrame(() => loop(run));
-  }
-  bAmb.addEventListener('click', () => ambientOn(!st.ambient));
-  document.getElementById('desk').addEventListener('pointerdown', () => { if (st.ambient) ambientOn(false); }, true);
 
 })();
 </script>
