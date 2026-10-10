@@ -258,7 +258,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Details in [docs/desk-panels.md](docs/desk-panels.md#design).
 - Roles, editable in the hub (Settings → Desk panels): left **Now** (clock, weather, Buienradar
   rain, the morning train, calendar, the day view, headlines), middle **Home** (Now Playing
-  while music plays, M18; Hue lights, plugs and scenes, M17; the desk PC's power button, M19;
+  while music plays, M18; Hue lights, plugs and scenes, M17;
   never rotates), right **House** (NAS, Money, Code, Jellyfin, backups, alerts). The screens
   beyond the basics are M20. Each panel rotates through its cards; a touch
   pauses its rotation for 60 seconds. An ERROR alert takes over all three until dismissed. Night
@@ -303,8 +303,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   hub's state live, so changes from the Home app, Siri or a switch show at once.
 - Everything in the house is Hue (lights and smart plugs), so Apple Home follows on its own: it
   reads the same bridge. Light zones: Bedroom, Hallway and Living room (2026-10-10). Non-Hue HomeKit devices would need Home Assistant; there are none now.
-- Home panel: a tile per zone (tap on/off, hold and drag for brightness) and the Desk PC tile
-  (M19) in one 2 × 2 grid, plugs as on/off switches, scenes per zone, and one All off. A Lights page in the hub with the same controls.
+- Home panel: a tile per zone (tap on/off, hold and drag for brightness), Living room full width
+  above Bedroom and Hallway, plugs as on/off switches, scenes per zone, and one All off. A Lights page in the hub with the same controls.
 - A new deliberate write (decided 2026-10-09): lights, plugs and scenes on the Hue Bridge.
 
 **M18. Music** (added 2026-10-09)
@@ -321,53 +321,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   card goes and the lights are back.
 - A new deliberate write (decided 2026-10-09): Spotify playback control.
 
-**M19. Desk PC power** (added 2026-10-10; ESP32 chosen 2026-10-10)
-- Goal: turn the desk PC on from the Home panel instead of reaching under the desk, and sleep
-  or shut it down, with its real state (off, starting, on). The PC is on Wi-Fi, not wired.
-- Options:
-  1. **Small ESP32 on the power-button header (chosen).** An ESP32-C3 or C6 board (about
-     EUR 5 to 10) with an optocoupler in parallel with the case's power button, and the power-LED
-     header read back for the real state. It "presses" the button: short for on, sleep or a
-     clean shutdown (the OS power-button action), 5 s hold for a forced off. Powered from a USB
-     port that stays live when the PC is off (BIOS: USB power in S5, ErP off) or a small USB
-     supply. Wi-Fi, local only, the same firmware family as the panels (or ESPHome).
-  2. **Hue smart plug plus "Restore on AC power loss: On" in the BIOS.** No new hardware: switch
-     the plug off and on and the PC boots. Only when the PC is known to be off, or it cuts power
-     to a running PC; no sleep or shutdown, no real state; check the plug's rating against the PC.
-     A stopgap.
-  3. **Wake-on-WLAN.** Free to try, but most Wi-Fi cards only wake from sleep, not from off, and
-     it depends on the card, BIOS and driver. Not the main path.
-  Dropped: a button-pressing robot (Bluetooth and a cloud hub).
-- Home panel: a Desk PC tile next to the light zones (decided 2026-10-10). Off: tap to start
-  (the tile shows Starting until the power LED is on). On: tap opens Sleep and Shut down (tap
-  twice to confirm) and Close. Shown in the mockup.
-- Hardware, two ways (researched 2026-10-10, not chosen yet):
-  - **Ready-made: Sinilink XY-WPCE** (about EUR 10 to 15, AliExpress ships to the Netherlands).
-    An ESP8266 card in a free PCIe slot (it only takes power and the on/off state from the slot),
-    wired between the case's power button and the motherboard; the button keeps working. Its
-    stock firmware uses Sinilink's cloud app, so flash ESPHome once over its 1 mm serial pads
-    (fiddly; a USB serial adapter and wires). ESPHome device page:
-    https://devices.esphome.io/devices/sinilink-xy-wpce/. Similar Tuya or eWeLink PCIe cards
-    sell on Amazon, but run through a cloud app and often use non-ESP chips; avoid those.
-  - **DIY: an ESP32-C3 SuperMini** (flashes over its own USB-C, no serial pads), a PC817
-    optocoupler (or a small transistor) and 1 kOhm resistors to "press" the button, the power-LED
-    header read back for the state, a front-panel splitter cable so the case button keeps
-    working, and power from the motherboard's internal USB 2.0 header, which keeps 5 V standby
-    when the PC is off with ErP disabled. Parts at Tinytronics or AliExpress, about
-    EUR 10. Known designs: Erriez ESPHomePCPowerControlHomeAssistant, pixelwave Wake-On-ESP32
-    (PC817 and 1 kOhm on an ESP32-C3), Michael Stapelberg's write-up (5 V standby from the USB
-    header, a transistor instead of an optocoupler). Check: the 5 V standby can supply the
-    ESP32's bursts (about 0.5 A), the LED pin's polarity, all ESP pins at 3.3 V.
-  Either runs ESPHome: a button entity for a short press, one for a 5 s press, and a binary
-  sensor for the power state.
-- Steps for the owner: look up the motherboard model and its manual (front-panel header
-  pinout, the USB 2.0 header, whether there is a free PCIe slot); in the BIOS disable ErP so
-  standby power stays on; set the OS power button to Shut down (and turn off Windows fast
-  startup if it gets in the way); give the ESP a fixed address in the router. Install with the
-  PSU switched off and unplugged.
-- The hub talks to the ESP over the LAN (ESPHome's web server REST API, behind a password in
-  `.env`); the panel never talks to it directly.
-- A new deliberate write: pressing the PC's power button.
+**M19. Desk PC power** (parked 2026-10-10)
+- Left out for now (decided 2026-10-10): there is no ready-made option that works locally out of
+  the box, and the owner does not want to build one. The research is kept under Open items, in
+  case a ready-made product turns up.
 
 **M20. Panel screens** (added 2026-10-10)
 - **Your train** (Now, weekday mornings): the owner takes the direct 07:16 from Leiden
@@ -405,7 +362,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Each screen follows the design bar in M16 and is checked on a real panel.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15, M16, M17, M18, M19, M20.
+M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked).
 
 ## 4. Open items
 
@@ -462,6 +419,16 @@ M12, M13, M14, M15, M16, M17, M18, M19, M20.
      source exists.
   5. Timers: tea or kitchen timers that chime on a panel's speaker (a speaker is not fitted
      yet).
+- Desk PC power (parked 2026-10-10, was M19): turn the Wi-Fi desk PC on from the Home panel.
+  Wake-on-WLAN mostly only wakes from sleep; a Hue plug with "Restore on AC power loss" can boot
+  it but cannot shut it down and must never cut a running PC. What works is an ESP on the
+  power-button header, running ESPHome: the nearest to ready-made is the Sinilink XY-WPCE
+  (an ESP8266 PCIe card, about EUR 10 to 15 on AliExpress, cloud firmware until flashed with
+  ESPHome over 1 mm serial pads, https://devices.esphome.io/devices/sinilink-xy-wpce/), or a DIY
+  ESP32-C3 SuperMini with a PC817 optocoupler, powered from the motherboard's USB 2.0 header
+  with ErP off (designs: pixelwave Wake-On-ESP32, Erriez ESPHomePCPowerControlHomeAssistant).
+  Tuya and eWeLink PCIe cards on Amazon need a cloud app. Revisit if a local ready-made card
+  appears.
 - Considered and dropped (2026-10-08 and 09): a Docker socket proxy; pinned image versions
   with Renovate PRs (updates stay automatic, no PRs); a rollback command from the previous image
   digest; a Tailscale key expiry rule (keys do not expire on this tailnet); a privacy blur for

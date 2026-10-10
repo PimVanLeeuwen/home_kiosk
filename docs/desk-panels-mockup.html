@@ -130,6 +130,7 @@ svg text { font-family: var(--f-body); }
   border-radius: 5cqw; border: 1px solid var(--hair); background: var(--glass); padding: 4.4cqw;
   display: flex; flex-direction: column; justify-content: space-between; transition: background .5s ease, border-color .5s ease;
 }
+.tile.wide { grid-column: 1 / -1; }
 .tile .glow { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; pointer-events: none; }
 .tile.on .glow { opacity: 1; }
 .tile.on { border-color: rgba(255, 255, 255, .16); }
@@ -188,21 +189,6 @@ svg text { font-family: var(--f-body); }
 .takeover h3 { margin: 0; font-size: 8.4cqw; line-height: 1.08; font-weight: 600; letter-spacing: -.015em; }
 .takeover p { margin: 0; font-size: 4.4cqw; color: #e2c3c5; }
 .takeover button { align-self: flex-start; margin-top: 3cqw; font: inherit; font-size: 4.4cqw; font-weight: 600; color: #fff; background: rgba(255, 107, 107, .16); border: 1px solid var(--err); border-radius: 99px; padding: 2.4cqw 6cqw; cursor: pointer; }
-.power { width: 34cqw; height: 34cqw; border-radius: 50%; border: 1px solid var(--hair); cursor: pointer; display: grid; place-items: center; color: var(--ink-2);
-  background: radial-gradient(circle at 50% 30%, #2a2934, #121118 70%); transition: box-shadow .6s ease, color .6s ease; }
-.power.on { color: #eafff4; box-shadow: 0 0 0 1.4cqw rgba(95, 211, 156, .12), 0 0 12cqw rgba(95, 211, 156, .35); }
-.power.starting, .power.stopping { color: #d6d0ff; animation: breathe 1.8s ease-in-out infinite; }
-@keyframes breathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(124, 108, 242, 0); } 50% { box-shadow: 0 0 0 2cqw rgba(124, 108, 242, .22), 0 0 12cqw rgba(124, 108, 242, .4); } }
-.pcrow { display: grid; grid-template-columns: 1fr 1.4fr; gap: 3cqw; }
-.pcbtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: var(--glass); border: 1px solid var(--hair); border-radius: 99px; padding: 3cqw; cursor: pointer; }
-.pcbtn.sure { background: rgba(255, 107, 107, .16); border-color: var(--err); }
-.tile.pc .pcico svg { width: 6cqw; height: 6cqw; }
-.tile.pc .pcico { font-style: normal; color: var(--ink-3); display: grid; }
-.tile.pc.on .pcico { color: var(--ok); }
-.tile.pc.starting .pcico, .tile.pc.stopping .pcico { color: #c9c1ff; animation: blink 1.4s ease-in-out infinite; }
-@keyframes blink { 50% { opacity: .35; } }
-.pcsheet { position: absolute; inset: 0; z-index: 4; padding: 7.5cqw 7.5cqw 11cqw; display: flex; flex-direction: column; gap: 3cqw;
-  background: radial-gradient(90% 70% at 0% 0%, rgba(95, 211, 156, .18), transparent 70%), #0b0c10; }
 .tl { display: grid; gap: 2.4cqw; }
 .ev { display: grid; grid-template-columns: 13cqw 2.4cqw 1fr auto; gap: 2.6cqw; align-items: center; font-size: 4.2cqw; }
 .ev i { width: 2.4cqw; height: 2.4cqw; border-radius: 50%; }
@@ -256,7 +242,7 @@ svg text { font-family: var(--f-body); }
   .unit figcaption { margin-top: 18px; }
   .notes { grid-template-columns: minmax(0, 1fr); }
 }
-@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .power { transition: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot { transition: none; animation: none; } }
 </style>
 
 <div class="wrap">
@@ -288,7 +274,7 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>Home</h2>
-      <ul><li>Bedroom, Hallway and Living room glow in the colour their Hue lights have right now</li><li>Tap to switch, hold and drag for brightness; plugs as switches</li><li>Desk PC: tap to start it; while it is on, tap for Sleep and Shut down</li><li>Now Playing comes first while music plays, lit by the album's colours; swipe for the lights; after a pause the panel goes back to the lights</li><li>Scenes in the colours of their lights, the active one marked, and All off. This panel does not rotate.</li></ul>
+      <ul><li>Bedroom, Hallway and Living room glow in the colour their Hue lights have right now</li><li>Tap to switch, hold and drag for brightness; plugs as switches</li><li>Now Playing comes first while music plays, lit by the album's colours; swipe for the lights; after a pause the panel goes back to the lights</li><li>Scenes in the colours of their lights, the active one marked, and All off. This panel does not rotate.</li></ul>
     </section>
     <section>
       <h2>House</h2>
@@ -325,7 +311,7 @@ svg text { font-family: var(--f-body); }
     { title: 'Glasshouse', artist: 'Noor & the Quiet Hours', len: 251, device: 'MacBook', c: [[72, 180, 190], [40, 70, 160], [12, 22, 40]] },
     { title: 'Polder Lights', artist: 'Fenna Dijk', len: 189, device: 'Living room speakers', c: [[245, 200, 90], [210, 90, 120], [40, 20, 36]] }
   ];
-  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, pc: 'off', pcSince: '01:12', pcConfirm: 0, pcSheet: false, train: 0, saved: {}, scene: 0, period: '1D', alertsOpen: true };
+  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, train: 0, saved: {}, scene: 0, period: '1D', alertsOpen: true };
   const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
   const art = t => `radial-gradient(circle at 28% 30%, ${rgb(t.c[0])}, transparent 58%), radial-gradient(circle at 78% 72%, ${rgb(t.c[1])}, transparent 60%), linear-gradient(135deg, ${rgb(t.c[2])}, ${rgb(t.c[1], .8)})`;
 
@@ -423,7 +409,6 @@ svg text { font-family: var(--f-body); }
     return ['#4a2a3e', '#100a14'];
   }
   const ico = {
-    power: '<svg width="13cqw" height="13cqw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3.5v8"/><path d="M7.2 6.6a7.5 7.5 0 1 0 9.6 0"/></svg>',
     prev: '<svg width="7cqw" height="7cqw" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>',
     next: '<svg width="7cqw" height="7cqw" viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>',
     play: '<svg width="8cqw" height="8cqw" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>',
@@ -462,18 +447,11 @@ svg text { font-family: var(--f-body); }
       </div>`;
     },
     rooms: () => `<div class="row"><span class="k">Home</span><span class="k">${Object.values(rooms).filter(r => r.on).length} of 3 lights on</span></div>
-      <div class="rooms">${Object.entries(rooms).map(([id, r]) => `<button class="tile${r.on ? ' on' : ''}" data-act="toggle" data-room="${id}">
+      <div class="rooms">${Object.entries(rooms).map(([id, r], k) => `<button class="tile${r.on ? ' on' : ''}${k === 0 ? ' wide' : ''}" data-act="toggle" data-room="${id}">
           <div class="glow" style="background:radial-gradient(120% 100% at 0% 0%, ${rgb(r.color, .2 + r.bri / 160)}, ${rgb(r.color, .05)} 70%)"></div>
           <b>${r.name}</b><span>${r.on ? r.label + ' · ' + r.bri + '%' : 'Off'}</span></button>`).join('')}
-        <button class="tile pc ${st.pc}${st.pc === 'on' ? ' on' : ''}" data-act="pc">
-          <div class="glow" style="background:radial-gradient(120% 100% at 0% 0%, rgba(95,211,156,.32), rgba(95,211,156,.04) 70%)"></div>
-          <b style="display:flex;justify-content:space-between;align-items:center">Desk PC <i class="pcico">${ico.power}</i></b>
-          <span>${{ off: 'Off · tap to start', starting: 'Starting…', on: 'On since ' + st.pcSince, stopping: 'Shutting down…' }[st.pc]}</span></button></div>
-      ${st.pcSheet ? `<div class="pcsheet"><div class="row"><span class="k">Desk PC</span><span class="pill ok">ON</span></div>
-        <div class="mid" style="font-weight:500">On since ${st.pcSince}</div><div class="sub">Over Wi-Fi · the ESP32 on the power button</div>
-        <div class="grow"></div>
-        <div class="pcrow"><button class="pcbtn" data-act="pc-sleep">Sleep</button><button class="pcbtn${st.pcConfirm > Date.now() ? ' sure' : ''}" data-act="pc-off">${st.pcConfirm > Date.now() ? 'Tap again to shut down' : 'Shut down'}</button></div>
-        <button class="alloff" data-act="pc-close">Close</button></div>` : ''}
+</div>
+
       <div class="plugs">${Object.entries(plugs).map(([id, p]) => `<button class="plug${p.on ? ' on' : ''}" data-act="plug" data-plug="${id}"><span>${p.name}</span><i></i></button>`).join('')}</div>`,
     scenes: () => `<div class="row"><span class="k">Scenes</span><span class="k">${st.scene === null ? 'None active' : scenes[st.scene].name + ' is on'}</span></div>
       <div class="scenes">${scenes.map((s, i) => {
@@ -730,26 +708,8 @@ svg text { font-family: var(--f-body); }
       if (act === 'dot') return p.go(+b.dataset.j);
       if (act === 'dismiss') { desk.classList.remove('alerting'); return renderAll(); }
       if (act === 'mute') { st.muted = !st.muted; return p.render(); }
-      if (act === 'pc') {
-        if (st.pc === 'off') {
-          st.pc = 'starting'; p.render();
-          return setTimeout(() => { st.pc = 'on'; st.pcSince = hhmm(new Date()); p.render(); }, 5000);
-        }
-        if (st.pc === 'on') { st.pcSheet = true; return p.render(); }
-        return;
-      }
-      if (act === 'pc-close') { st.pcSheet = false; st.pcConfirm = 0; return p.render(); }
-      if (act === 'pc-sleep') { st.pc = 'off'; st.pcSheet = false; st.pcSince = hhmm(new Date()); return p.render(); }
       if (act === 'train') { st.train = (st.train + 1) % 3; return p.render(); }
       if (act === 'save') { st.saved[+b.dataset.i] = !st.saved[+b.dataset.i]; return p.render(); }
-      if (act === 'pc-off') {
-        if (st.pcConfirm > Date.now()) {
-          st.pcConfirm = 0; st.pc = 'stopping'; st.pcSheet = false; p.render();
-          return setTimeout(() => { st.pc = 'off'; st.pcSince = hhmm(new Date()); p.render(); }, 4000);
-        }
-        st.pcConfirm = Date.now() + 3000; p.render();
-        return setTimeout(() => { if (st.pcConfirm && st.pcConfirm <= Date.now()) { st.pcConfirm = 0; p.render(); } }, 3100);
-      }
       if (act === 'toggle') { const r = rooms[b.dataset.room]; r.on = !r.on; return p.render(); }
       if (act === 'plug') { const x = plugs[b.dataset.plug]; x.on = !x.on; return p.render(); }
       if (act === 'alloff') { Object.values(rooms).forEach(r => { r.on = false; }); st.scene = null; return p.render(); }

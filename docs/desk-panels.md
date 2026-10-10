@@ -108,7 +108,7 @@ Requirements and options are in plan.md M16. Links:
 data only). Now: clock and rain, the 07:16 departure (tap Preview for delayed and
 cancelled), today's calendar from the chosen calendars, the day view, headlines (tap to save). Home: Now Playing first while music plays (it
 stays, as Home never rotates), Bedroom, Hallway and Living room in their light colours (tap, or hold and drag for
-brightness), the Desk PC tile (tap to start, tap again for Sleep and Shut down), plugs, scenes lit in
+brightness), plugs, scenes lit in
 their light colours,
 All off. House: NAS as rings, portfolio with a period switch, top movers, code with an activity grid, Jellyfin, backups as
 the last 14 nights, alerts (or All quiet). Buttons on the page
