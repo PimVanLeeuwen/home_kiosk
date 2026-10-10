@@ -105,8 +105,8 @@ Requirements and options are in plan.md M16. Links:
 ## Mockup
 
 [desk-panels-mockup.html](desk-panels-mockup.html): the three panels as planned (example
-data only). Now: clock and rain, the 07:16 train (tap its status to preview delayed and
-cancelled), today's calendar, the day view, headlines (tap to save), and Now Playing while music
+data only). Now: clock and rain, the 07:16 departure (tap Preview for delayed and
+cancelled), today's calendar from the chosen calendars, the day view, headlines (tap to save), and Now Playing while music
 plays. Home: Bedroom, Hallway and Living room in their light colours (tap, or hold and drag for
 brightness), the Desk PC tile (tap to start, tap again for Sleep and Shut down), plugs, scenes,
 All off. House: NAS, portfolio, top movers, code, Jellyfin, backups, alerts. Buttons on the page

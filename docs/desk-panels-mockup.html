@@ -204,6 +204,11 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
 .ev .evt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ev .evc { font-size: 3.4cqw; color: var(--ink-3); }
 .ev.past { opacity: .4; }
+.tdep { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 4cqw; align-items: end; }
+.tdep .k { grid-column: 1 / -1; }
+.tdt { font-size: 13cqw; font-weight: 600; letter-spacing: -.03em; line-height: 1; padding: .6cqw 2.4cqw; border-radius: 2.4cqw; border: 1px solid rgba(255, 255, 255, .22); font-family: var(--f-mono); }
+.tdt.gone { text-decoration: line-through; text-decoration-thickness: .6cqw; color: var(--ink-3); }
+.tto { font-size: 4.2cqw; color: var(--ink-2); line-height: 1.25; padding-bottom: 1cqw; }
 .amb2 { position: absolute; inset: 0; pointer-events: none; }
 .hl { font: inherit; color: var(--ink); text-align: left; cursor: pointer; background: transparent; border: 0; border-left: .6cqw solid rgba(255, 255, 255, .14); padding: .4cqw 0 .4cqw 3.4cqw; display: grid; gap: 1cqw; }
 .hl.saved { border-left-color: var(--accent); }
@@ -260,7 +265,7 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
   <div class="notes">
     <section>
       <h2>Now</h2>
-      <ul><li>Clock, weather and Buienradar rain, on a sky that follows the time of day</li><li>Your train: the 07:16 to Rotterdam Centraal, on weekday mornings only (tap its status to preview delayed and cancelled)</li><li>Today: events from the Apple calendars, the next one up, bin day</li><li>Your day: the sun's arc, the temperature curve and the chance of rain, with a one-line summary</li><li>Headlines from the News reader; tap one to save it to Readeck</li><li>Now Playing takes over while music plays, lit by the album's colours, and gives the panel back after a pause</li><li>Night: a dim clock only</li></ul>
+      <ul><li>Clock, weather and Buienradar rain, on a sky that follows the time of day</li><li>Your train: the 07:16 departure to Rotterdam Centraal, on weekday mornings only (tap Preview for delayed and cancelled)</li><li>Today: events from the chosen Apple calendars, the next one up</li><li>Your day: the sun's arc, the temperature curve and the chance of rain, with a one-line summary</li><li>Headlines from the News reader; tap one to save it to Readeck</li><li>Now Playing takes over while music plays, lit by the album's colours, and gives the panel back after a pause</li><li>Night: a dim clock only</li></ul>
     </section>
     <section>
       <h2>Home</h2>
@@ -447,32 +452,29 @@ canvas.art2 { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 
       const ev = [
         ['08:00', 'Gym', 'Personal', [255, 184, 107], true],
         ['09:30', 'Standup', 'Work', [90, 169, 255], false],
-        ['12:30', 'Busy', 'Family', [200, 160, 255], false],
+        ['12:30', 'Lunch with Sanne', 'Family', [200, 160, 255], false],
         ['16:00', 'Dentist', 'Personal', [255, 184, 107], false],
         ['20:00', 'Hubble board meeting', 'Hubble', [95, 211, 156], false]
       ];
-      return `<div class="row"><span class="k">Today</span><span class="k">4 calendars</span></div>
+      return `<div class="row"><span class="k">Today</span><span class="k">4 of 6 calendars</span></div>
       <div><div class="mid">Standup</div><div class="sub" style="margin-top:1cqw"><span style="color:#5aa9ff">●</span> Work · in 42 min, 09:30</div></div>
       <div class="tl">${ev.map(x => `<div class="ev${x[4] ? ' past' : ''}"><span class="mono">${x[0]}</span><i style="background:${rgb(x[3])}"></i><span class="evt">${x[1]}</span><span class="evc">${x[2]}</span></div>`).join('')}</div>
       <div class="grow"></div>
-      <div class="glass" style="padding:2.6cqw 4cqw;display:flex;justify-content:space-between;align-items:center;font-size:4cqw"><span>Tonight: paper bin out</span><span class="k" style="font-size:3.4cqw">Tomorrow</span></div>`;
+      <div class="row" style="font-size:3.6cqw;color:var(--ink-3)"><span>5 events today</span><span>Free after 21:00</span></div>`;
     },
     train: () => {
       const s = [
-        { pill: '<span class="pill ok">ON TIME</span>', dep: '07:16', note: 'On time', plat: '3', arr: '08:41', glow: 'rgba(95,211,156,.18)' },
-        { pill: '<span class="pill warn">+6 MIN</span>', dep: '07:22', note: '6 minutes late', plat: '3', arr: '08:47', glow: 'rgba(240,189,90,.2)' },
-        { pill: '<span class="pill" style="color:var(--err);background:rgba(255,107,107,.15)">CANCELLED</span>', dep: '07:46', note: 'Cancelled. Next one: 07:46, platform 4', plat: '4', arr: '09:11', glow: 'rgba(255,107,107,.22)' }
+        { word: 'On time', col: 'var(--ok)', line: 'Leaves in 34 min from platform 3', arr: '08:41', glow: 'rgba(95,211,156,.18)' },
+        { word: '6 min late', col: 'var(--warn)', line: 'Now leaves 07:22, platform 3', arr: '08:47', glow: 'rgba(240,189,90,.2)' },
+        { word: 'Cancelled', col: 'var(--err)', line: 'Next direct train: 07:46, platform 4', arr: '09:11', glow: 'rgba(255,107,107,.22)' }
       ][st.train];
       return `<div class="amb2" style="background:radial-gradient(80% 60% at 100% 0%, ${s.glow}, transparent 70%)"></div>
-      <div class="row"><span class="k">Your train</span><button class="pillbtn" data-act="train" aria-label="Preview another state">${s.pill}</button></div>
-      <div class="huge" style="font-size:19cqw;${st.train === 2 ? 'text-decoration:line-through;text-decoration-thickness:.6cqw;color:var(--ink-3)' : ''}">07:16</div>
-      <div class="sub" style="font-size:4.6cqw;color:var(--ink)">Leiden Centraal → Rotterdam Centraal</div>
+      <div class="row"><span class="k">Your train</span><button class="pillbtn dev" data-act="train" aria-label="Preview another state">Preview</button></div>
+      <div class="tdep"><span class="k" style="font-size:3.4cqw">Departure</span><span class="tdt${st.train === 2 ? ' gone' : ''}">07:16</span><span class="tto">to Rotterdam Centraal</span></div>
+      <div class="big" style="color:${s.col};font-size:11cqw">${s.word}</div>
+      <div class="sub" style="font-size:4.4cqw;color:var(--ink)">${s.line}</div>
       <div class="grow"></div>
-      <div class="glass" style="padding:3.6cqw 4.4cqw;display:grid;gap:2cqw;font-size:4.2cqw">
-        <div class="row"><span style="color:var(--ink-2)">Departs</span><span style="font-weight:600">${s.dep} · platform ${s.plat}</span></div>
-        <div class="row"><span style="color:var(--ink-2)">Arrives</span><span>${s.arr}</span></div>
-        <div style="font-size:3.8cqw;color:var(--ink-2)">${s.note}</div>
-      </div>`;
+      <div class="row" style="font-size:3.6cqw;color:var(--ink-3)"><span>Direct · arrives ${s.arr}</span><span>NS · weekdays</span></div>`;
     },
     headlines: () => {
       const h = [['NOS', '12 min', 'Kabinet presenteert plannen voor betaalbare huurwoningen'], ['Tweakers', '40 min', 'Raspberry Pi kondigt nieuwe Compute Module aan'], ['The Verge', '1 h', 'The quiet return of the desk gadget']];

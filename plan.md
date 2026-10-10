@@ -348,30 +348,20 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - A new deliberate write: pressing the PC's power button.
 
 **M20. Panel screens** (added 2026-10-10)
-- **Your train** (Now, weekday mornings only): the owner takes the 07:16 from Leiden Centraal
-  to Rotterdam Centraal every morning. The collector checks it with the NS API (free key
-  from the NS API portal, in `.env`): from about 06:00 it follows that departure (cancelled,
-  delayed, platform change, disruptions on the route) and stops after it leaves. The card shows
-  on time, the delay or cancelled with the next train, the platform and the arrival. Any problem
-  is a Telegram message at once. Decide: quiet hours run until 07:00, so this alert must bypass
-  them; which days (weekdays, or set per day); whether a quiet "on time" message is wanted too.
-  To check: whether the 07:16 is direct or has a change (then each leg is followed).
-- **Calendar** (Now): today's events, the next one with a countdown, and bin day. Read-only.
-  Options for the Apple calendars:
-  1. **CalDAV with an app-specific password (recommended).** One login to `caldav.icloud.com`
-     with an app-specific password from the Apple account page, kept in `.env`. Reads every
-     iCloud calendar, including ones shared with you, with their names and colours, and no public
-     links. The password also opens iCloud mail and contacts, so it stays NAS-only and can be
-     revoked at any time.
-  2. **Public calendar links.** In Calendar, each calendar can be made public and gives a webcal
-     link. No password, but anyone with a link can read that calendar, and Apple's public feed
-     can lag.
-  3. **Mixed.** CalDAV for iCloud plus plain ICS links for anything else (a work calendar, a bin
-     collection calendar for De Bilt).
-  Questions: which calendars to show (and are any outside iCloud, such as work or subscribed
-  ones); show titles for all, or "Busy" for some (visitors see the desk); today only, or also
-  tomorrow morning after 18:00; any reminders on the panel or in Telegram; where bin days come
-  from (a municipal or collector ICS feed, to check).
+- **Your train** (Now, weekday mornings): the owner takes the direct 07:16 from Leiden
+  Centraal to Rotterdam Centraal every weekday. The collector follows that departure with
+  the NS API (free key from the NS API portal, in `.env`) from about 06:00 until it leaves:
+  cancelled, delayed, platform change, disruptions on the route. Decided 2026-10-10: every
+  weekday; Telegram only for problems (no "on time" message); these messages skip quiet hours.
+  The card must not read as a clock: the time sits in a labelled "Departure" box, the status
+  (On time, 6 min late, Cancelled) is the large line, then "Leaves in 34 min from platform 3",
+  or the next direct train when it is cancelled.
+- **Calendar** (Now): today's events only, the next one with a countdown. Read-only, no
+  reminders, no bin days. Decided 2026-10-10: CalDAV to `caldav.icloud.com` with an
+  app-specific password from the Apple account page, kept in `.env` (it also opens iCloud mail
+  and contacts, so NAS-only, revocable any time). All calendars are in Apple Calendar. Settings
+  → Desk panels lists them with their colours and a switch each, so some never show; events
+  from the chosen ones show with their full titles.
 - **Headlines** (Now): the top stories from the News reader (M6); tap one to save it to Readeck.
 - **Code** (House): CI state of the default branches and open pull requests from the Repos data
   (M9); a failing build stands out.
@@ -430,10 +420,10 @@ M12, M13, M14, M15, M16, M17, M18, M19, M20.
   Radarr, the download clients), watch stats and a per-user leaderboard. Not planned into a
   milestone yet.
 - Backlog, ideas not yet chosen (2026-10-08): dynamic energy prices for today and tomorrow
-  (EnergyZero, no key), bin collection dates for the municipality, NS departures, a read-only
-  calendar (ICS or CalDAV), an Immich "on this day" photo, a command palette (Cmd-K) for
-  services, pages and repos, and a morning digest in Telegram (overnight updates, backup,
-  disk, weather). Desk panels: house and productivity widgets and actions, later.
+  (EnergyZero, no key), an Immich "on this day" photo, a command palette (Cmd-K) for services,
+  pages and repos, and a morning digest in Telegram (overnight updates, backup, disk, weather).
+  Desk panels: house and productivity widgets and actions, later. (The calendar and the morning
+  train moved to M20; there are no bin days to show.)
 - Desk panel screen ideas (2026-10-10). Chosen into M20 on 2026-10-10: calendar, the morning
   train (instead of general departures), ambient, Jellyfin, code and headlines. Not chosen yet:
   1. Ride: the next dry window to cycle (from Buienradar).
