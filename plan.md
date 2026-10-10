@@ -252,14 +252,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Design is a requirement, not polish (decided 2026-10-09): the panels are for information and
   for home, music and other control, and they must also be beautiful desk pieces. The three read
   as one object: same margins, header line and dot position. Each throws meaningful light: Now
-  follows the sky or the album colours, Home glows in the rooms' real Hue colours, House stays a
+  follows the sky, Home glows in the rooms' real Hue colours or the album colours, House stays a
   quiet violet, an error turns all three red. Calm motion, a few large type sizes, nothing below
   24 px. Every screen is checked on a real panel (photos) before it ships, not only in tests.
   Details in [docs/desk-panels.md](docs/desk-panels.md#design).
 - Roles, editable in the hub (Settings → Desk panels): left **Now** (clock, weather, Buienradar
-  rain, the morning train, calendar, the day view, headlines; Now Playing while music plays,
-  M18), middle **Home** (Hue lights, plugs and scenes, M17, and the desk PC's power button, M19;
-  does not rotate), right **House** (NAS, Money, Code, Jellyfin, backups, alerts). The screens
+  rain, the morning train, calendar, the day view, headlines), middle **Home** (Now Playing
+  while music plays, M18; Hue lights, plugs and scenes, M17; the desk PC's power button, M19;
+  never rotates), right **House** (NAS, Money, Code, Jellyfin, backups, alerts). The screens
   beyond the basics are M20. Each panel rotates through its cards; a touch
   pauses its rotation for 60 seconds. An ERROR alert takes over all three until dismissed. Night
   hours: Now shows a dim clock, Home and House dim, Money is off.
@@ -314,9 +314,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Shows what plays on any device on the account (phone, Mac, speakers, AirPlay from the phone),
   podcasts included. Polled every 3 seconds while playing, slower when idle; the panel moves the
   progress bar between polls. Album art is fetched by the hub, so panels never contact Spotify.
-- Now Playing on the Now panel: art with a blurred art background, title, artist, progress,
-  previous / play-pause / next, volume, and the device name (tap to move playback). It takes
-  over the panel when music starts and gives it back 2 minutes after a pause.
+- Now Playing on the Home panel (moved from Now, 2026-10-10): art with a blurred art background,
+  title, artist, progress, previous / play-pause / next, volume, and the device name (tap to
+  move playback). When music starts it becomes Home's first card and the panel shows it; Home
+  never rotates, so it stays there until you swipe to the lights. Two minutes after a pause the
+  card goes and the lights are back.
 - A new deliberate write (decided 2026-10-09): Spotify playback control.
 
 **M19. Desk PC power** (added 2026-10-10; ESP32 chosen 2026-10-10)

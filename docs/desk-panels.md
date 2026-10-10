@@ -11,8 +11,8 @@ beautiful desk pieces in their own right (decided 2026-10-09). Design quality is
 - **One object.** The three panels share their margins (7.5% of the width), header line, type
   scale and dot position, so they read as one piece on the stand.
 - **Light with meaning.** Each panel has an ambient backdrop that says something: Now follows the
-  sky through the day, or the album's colours while music plays; Home glows in the colours the
-  Hue lights in each room have right now; House stays a quiet violet. An error alert turns all
+  sky through the day; Home glows in the colours the Hue lights in each room have right now, or
+  the album's colours while music plays; House stays a quiet violet. An error alert turns all
   three red. The light also falls on the stand, so the stand material matters.
 - **Type.** Instrument Sans with tabular figures, as in the hub, rendered as LVGL fonts at a few
   fixed sizes. The screen has 10 px per mm: nothing below 24 px (2.4 mm), body text 30 px and
@@ -106,8 +106,8 @@ Requirements and options are in plan.md M16. Links:
 
 [desk-panels-mockup.html](desk-panels-mockup.html): the three panels as planned (example
 data only). Now: clock and rain, the 07:16 departure (tap Preview for delayed and
-cancelled), today's calendar from the chosen calendars, the day view, headlines (tap to save), and Now Playing while music
-plays. Home: Bedroom, Hallway and Living room in their light colours (tap, or hold and drag for
+cancelled), today's calendar from the chosen calendars, the day view, headlines (tap to save). Home: Now Playing first while music plays (it
+stays, as Home never rotates), Bedroom, Hallway and Living room in their light colours (tap, or hold and drag for
 brightness), the Desk PC tile (tap to start, tap again for Sleep and Shut down), plugs, scenes,
 All off. House: NAS, portfolio, top movers, code, Jellyfin, backups, alerts. Buttons on the page
 start music, switch rotation, ambient and night mode, and simulate an error takeover. Album art

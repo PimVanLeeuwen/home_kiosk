@@ -93,6 +93,7 @@ python3 dashboard/serve.py
 - 2026-10-10: the 07:16 train is watched every weekday, Telegram only for problems and past
   quiet hours; the calendar reads iCloud over CalDAV with a per-calendar filter, today only, full
   titles. plan.md M20.
+- 2026-10-10: Now Playing moves to the Home panel, which never rotates. plan.md M16, M18.
 
 ## Gotchas
 
