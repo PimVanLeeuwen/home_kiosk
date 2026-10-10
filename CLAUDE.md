@@ -95,6 +95,8 @@ python3 dashboard/serve.py
   titles. plan.md M20.
 - 2026-10-10: Now Playing moves to the Home panel, which never rotates. plan.md M16, M18.
 - 2026-10-10: desk PC power is parked: no ready-made local option. plan.md M19, Open items.
+- 2026-10-10: the Home panel controls only the living room (3 White Ambiance spots, 2 white
+  bulbs); the Hue plugs are seasonal Christmas switches; no light strips for now. plan.md M17.
 
 ## Gotchas
 

@@ -125,12 +125,19 @@ svg text { font-family: var(--f-body); }
 
 /* Home */
 .rooms { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; flex: 1; }
+.temps { display: flex; align-items: center; justify-content: space-between; gap: 3cqw; transition: opacity .4s ease; }
+.temps.dim { opacity: .35; }
+.tsw { display: flex; gap: 2.4cqw; }
+.tsw button { width: 7cqw; height: 7cqw; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .25); }
+.tsw button.on { border-color: #fff; box-shadow: 0 0 3cqw rgba(255, 220, 170, .45); }
+.plist { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.6cqw; }
+.plist button { font: inherit; color: var(--ink-2); font-size: 3.4cqw; background: none; border: 0; padding: 0; cursor: pointer; display: grid; gap: 1.4cqw; text-align: left; }
+.plist .cover { aspect-ratio: 1; border-radius: 2.4cqw; box-shadow: 0 2cqw 5cqw rgba(0, 0, 0, .45); }
 .tile {
   font: inherit; color: var(--ink); text-align: left; cursor: pointer; position: relative; overflow: hidden;
   border-radius: 5cqw; border: 1px solid var(--hair); background: var(--glass); padding: 4.4cqw;
   display: flex; flex-direction: column; justify-content: space-between; transition: background .5s ease, border-color .5s ease;
 }
-.tile.wide { grid-column: 1 / -1; }
 .tile .glow { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; pointer-events: none; }
 .tile.on .glow { opacity: 1; }
 .tile.on { border-color: rgba(255, 255, 255, .16); }
@@ -274,7 +281,7 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>Home</h2>
-      <ul><li>Bedroom, Hallway and Living room glow in the colour their Hue lights have right now</li><li>Tap to switch, hold and drag for brightness; plugs as switches</li><li>Now Playing comes first while music plays, lit by the album's colours; swipe for the lights; after a pause the panel goes back to the lights</li><li>Scenes in the colours of their lights, the active one marked, and All off. This panel does not rotate.</li></ul>
+      <ul><li>The living room only: the 3 kitchen spots and the 2 lamps, each glowing in the white they have now</li><li>Tap to switch, hold and drag for brightness; warm to cool white for the kitchen spots</li><li>Scenes (Relax, Read, Concentrate, Dimmed) and All off; the Christmas plugs only in the season</li><li>Music: Now Playing first while music plays; otherwise a card with favourite playlists to start from the desk</li></ul>
     </section>
     <section>
       <h2>House</h2>
@@ -294,17 +301,28 @@ svg text { font-family: var(--f-body); }
   const now = new Date();
 
   // --- example state -------------------------------------------------------------
+  // Colour temperature to an RGB tint (white ambiance lights have no colour, only warm to cool white).
+  const KT = [[2200, [255, 146, 44]], [2700, [255, 168, 86]], [3500, [255, 196, 137]], [4500, [255, 219, 186]], [6500, [255, 249, 253]]];
+  function kel(k) {
+    for (let i = 0; i < KT.length - 1; i++) {
+      const [k0, c0] = KT[i], [k1, c1] = KT[i + 1];
+      if (k <= k1) { const f = Math.max(0, (k - k0) / (k1 - k0)); return c0.map((v, j) => Math.round(v + (c1[j] - v) * f)); }
+    }
+    return KT[KT.length - 1][1];
+  }
+  // The living room with its open kitchen: 3 White Ambiance GU10 spots and 2 white bulbs.
   const rooms = {
-    living: { name: 'Living room', on: true, bri: 64, color: [255, 176, 92], label: 'Warm' },
-    bedroom: { name: 'Bedroom', on: false, bri: 30, color: [255, 120, 80], label: 'Nightlight' },
-    hallway: { name: 'Hallway', on: true, bri: 35, color: [138, 118, 255], label: 'Violet' }
+    kitchen: { name: 'Kitchen', sub: '3 spots', on: true, bri: 80, k: 3500, amb: true, get color() { return kel(this.k); } },
+    living: { name: 'Lamps', sub: '2 bulbs', on: true, bri: 55, k: 2700, amb: false, get color() { return kel(this.k); } }
   };
-  const plugs = { coffee: { name: 'Coffee', on: false }, speakers: { name: 'Speakers', on: true } };
+  const temps = [2200, 2700, 3500, 4500, 6500];
+  // Christmas decorations on the Hue plugs; the row only shows in the season.
+  const plugs = { tree: { name: 'Christmas tree', on: false }, window: { name: 'Window lights', on: true } };
   const scenes = [
-    { name: 'Relax', room: 'Living room', a: [255, 150, 70], lights: [[255, 150, 70], [255, 112, 64], [196, 74, 70]] },
-    { name: 'Read', room: 'Living room', a: [255, 226, 170], lights: [[255, 238, 204], [255, 214, 160], [232, 176, 112]] },
-    { name: 'Movie', room: 'Living room', a: [90, 70, 200], lights: [[96, 76, 214], [44, 34, 110], [255, 124, 70]] },
-    { name: 'Nightlight', room: 'Hallway', a: [255, 120, 80], lights: [[255, 120, 80], [150, 50, 40]] }
+    { name: 'Relax', note: 'Warm, 50%', k: 2200, kb: 50, lb: 45 },
+    { name: 'Read', note: 'Soft white, full', k: 2900, kb: 100, lb: 100 },
+    { name: 'Concentrate', note: 'Cool white, full', k: 4300, kb: 100, lb: 80 },
+    { name: 'Dimmed', note: 'Warm, 25%', k: 2700, kb: 25, lb: 20 }
   ];
   const tracks = [
     { title: 'Low Tide Static', artist: 'Marlow Hayes', len: 214, device: 'MacBook', c: [[239, 112, 74], [126, 58, 160], [32, 22, 60]] },
@@ -446,20 +464,31 @@ svg text { font-family: var(--f-body); }
         <div class="ctl"><button data-act="prev" aria-label="Previous">${ico.prev}</button><button class="pp" data-act="pp" aria-label="${st.playing ? 'Pause' : 'Play'}">${st.playing ? ico.pause : ico.play}</button><button data-act="next" aria-label="Next">${ico.next}</button></div>
       </div>`;
     },
-    rooms: () => `<div class="row"><span class="k">Home</span><span class="k">${Object.values(rooms).filter(r => r.on).length} of 3 lights on</span></div>
-      <div class="rooms">${Object.entries(rooms).map(([id, r], k) => `<button class="tile${r.on ? ' on' : ''}${k === 0 ? ' wide' : ''}" data-act="toggle" data-room="${id}">
-          <div class="glow" style="background:radial-gradient(120% 100% at 0% 0%, ${rgb(r.color, .2 + r.bri / 160)}, ${rgb(r.color, .05)} 70%)"></div>
-          <b>${r.name}</b><span>${r.on ? r.label + ' · ' + r.bri + '%' : 'Off'}</span></button>`).join('')}
-</div>
-
-      <div class="plugs">${Object.entries(plugs).map(([id, p]) => `<button class="plug${p.on ? ' on' : ''}" data-act="plug" data-plug="${id}"><span>${p.name}</span><i></i></button>`).join('')}</div>`,
+    rooms: () => {
+      const lightsOn = (rooms.kitchen.on ? 3 : 0) + (rooms.living.on ? 2 : 0), kc = rooms.kitchen;
+      return `<div class="row"><span class="k">Living room</span><span class="k">${lightsOn} of 5 lights on</span></div>
+      <div class="rooms">${Object.entries(rooms).map(([id, r]) => `<button class="tile${r.on ? ' on' : ''}" data-act="toggle" data-room="${id}">
+          <div class="glow" style="background:radial-gradient(130% 110% at 30% 0%, ${rgb(r.color, .18 + r.bri / 200)}, ${rgb(r.color, .04)} 75%)"></div>
+          <b>${r.name}</b><span>${r.sub}<br>${r.on ? (r.amb ? r.k + ' K · ' : '') + r.bri + '%' : 'Off'}</span></button>`).join('')}</div>
+      <div class="temps${kc.on ? '' : ' dim'}"><span class="k" style="font-size:3.4cqw">Kitchen white</span>
+        <div class="tsw">${temps.map(k => `<button data-act="temp" data-k="${k}" class="${kc.k === k ? 'on' : ''}" style="background:${rgb(kel(k))}" aria-label="${k} K"></button>`).join('')}</div></div>
+      <div class="plugs"><span class="k" style="font-size:3.4cqw;grid-column:1/-1">Christmas</span>${Object.entries(plugs).map(([id, p]) => `<button class="plug${p.on ? ' on' : ''}" data-act="plug" data-plug="${id}"><span>${p.name}</span><i></i></button>`).join('')}</div>`;
+    },
+    music: () => {
+      const pl = [['Daily Mix', [239, 112, 74], [126, 58, 160]], ['Focus Flow', [72, 180, 190], [40, 70, 160]], ['Sunday Morning', [245, 200, 90], [210, 90, 120]], ['Liked Songs', [124, 108, 242], [40, 30, 90]]];
+      return `<div class="row"><span class="k">Music</span><button class="dev" data-act="device">${tracks[st.t].device}</button></div>
+      <div class="mid" style="font-weight:500">Play something</div>
+      <div class="grow"></div>
+      <div class="plist">${pl.map((x, i) => `<button data-act="playlist" data-i="${i}"><span class="cover" style="background:radial-gradient(circle at 30% 30%, ${rgb(x[1])}, transparent 60%), linear-gradient(135deg, ${rgb(x[2])}, #111)"></span><span>${x[0]}</span></button>`).join('')}</div>
+      <div class="sub" style="font-size:3.6cqw">Last played: Low Tide Static · Marlow Hayes</div>`;
+    },
     scenes: () => `<div class="row"><span class="k">Scenes</span><span class="k">${st.scene === null ? 'None active' : scenes[st.scene].name + ' is on'}</span></div>
       <div class="scenes">${scenes.map((s, i) => {
-        const L = s.lights, pos = ['20% 25%', '85% 30%', '50% 95%'];
-        const bg = L.map((c, k) => `radial-gradient(70% 80% at ${pos[k]}, ${rgb(c, .62)}, transparent 70%)`).join(', ') + ', #121118';
+        const kc = kel(s.k), lc = kel(2700);
+        const bg = `radial-gradient(80% 90% at 25% 15%, ${rgb(kc, .25 + s.kb / 220)}, transparent 70%), radial-gradient(70% 80% at 90% 100%, ${rgb(lc, .15 + s.lb / 260)}, transparent 70%), #121118`;
         return `<button class="scene${st.scene === i ? ' active' : ''}" data-act="scene" data-i="${i}" style="background:${bg}">
-          ${st.scene === i ? '<span class="scon">ON</span>' : ''}${s.name}<small>${s.room}</small>
-          <span class="sdots">${L.map(c => `<i style="background:${rgb(c)};box-shadow:0 0 2cqw ${rgb(c, .8)}"></i>`).join('')}</span></button>`;
+          ${st.scene === i ? '<span class="scon">ON</span>' : ''}${s.name}<small>${s.note}</small>
+          <span class="sdots">${[kc, kc, kc, lc, lc].map(c => `<i style="background:${rgb(c)};box-shadow:0 0 2cqw ${rgb(c, .8)}"></i>`).join('')}</span></button>`;
       }).join('')}</div>
       <div class="grow"></div>
       <button class="alloff" data-act="alloff">All off</button>`,
@@ -592,7 +621,7 @@ svg text { font-family: var(--f-body); }
   };
   const decks = {
     now: () => ['clock', 'train', 'agenda', 'forecast', 'headlines'],
-    home: () => (st.music ? ['playing'] : []).concat(['rooms', 'scenes']),
+    home: () => st.music ? ['playing', 'rooms', 'scenes'] : ['rooms', 'scenes', 'music'],
     house: () => ['nas', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
   };
   const intervals = { now: 10000, home: 0, house: 9000 };
@@ -710,14 +739,17 @@ svg text { font-family: var(--f-body); }
       if (act === 'mute') { st.muted = !st.muted; return p.render(); }
       if (act === 'train') { st.train = (st.train + 1) % 3; return p.render(); }
       if (act === 'save') { st.saved[+b.dataset.i] = !st.saved[+b.dataset.i]; return p.render(); }
-      if (act === 'toggle') { const r = rooms[b.dataset.room]; r.on = !r.on; return p.render(); }
+      if (act === 'toggle') { const r = rooms[b.dataset.room]; r.on = !r.on; st.scene = null; return p.render(); }
       if (act === 'plug') { const x = plugs[b.dataset.plug]; x.on = !x.on; return p.render(); }
       if (act === 'alloff') { Object.values(rooms).forEach(r => { r.on = false; }); st.scene = null; return p.render(); }
+      if (act === 'temp') { rooms.kitchen.k = +b.dataset.k; rooms.kitchen.on = true; st.scene = null; return p.render(); }
+      if (act === 'playlist') { st.t = +b.dataset.i % tracks.length; st.pos = 0; st.music = true; st.playing = true; st.pausedAt = 0; p.i = 0;
+        const bm = document.getElementById('btn-music'); bm.setAttribute('aria-pressed', 'true'); bm.textContent = 'Stop music'; return p.render(); }
       if (act === 'period') { st.period = b.dataset.v; return p.render(); }
       if (act === 'alertprev') { st.alertsOpen = !st.alertsOpen; return p.render(); }
       if (act === 'scene') {
-        const s = scenes[+b.dataset.i], r = Object.values(rooms).find(x => x.name === s.room);
-        r.on = true; r.color = s.a; r.label = s.name; r.bri = s.name === 'Movie' ? 25 : 70;
+        const s = scenes[+b.dataset.i];
+        Object.assign(rooms.kitchen, { on: true, k: s.k, bri: s.kb }); Object.assign(rooms.living, { on: true, bri: s.lb });
         st.scene = +b.dataset.i; return p.render();
       }
       if (act === 'pp') { st.playing = !st.playing; st.pausedAt = st.playing ? 0 : Date.now(); return p.render(); }

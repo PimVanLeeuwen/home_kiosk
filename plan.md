@@ -252,14 +252,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Design is a requirement, not polish (decided 2026-10-09): the panels are for information and
   for home, music and other control, and they must also be beautiful desk pieces. The three read
   as one object: same margins, header line and dot position. Each throws meaningful light: Now
-  follows the sky, Home glows in the rooms' real Hue colours or the album colours, House stays a
+  follows the sky, Home glows in the warm or cool white its lights have
+  right now, or the album colours, House stays a
   quiet violet, an error turns all three red. Calm motion, a few large type sizes, nothing below
   24 px. Every screen is checked on a real panel (photos) before it ships, not only in tests.
   Details in [docs/desk-panels.md](docs/desk-panels.md#design).
 - Roles, editable in the hub (Settings → Desk panels): left **Now** (clock, weather, Buienradar
-  rain, the morning train, calendar, the day view, headlines), middle **Home** (Now Playing
-  while music plays, M18; Hue lights, plugs and scenes, M17;
-  never rotates), right **House** (NAS, Money, Code, Jellyfin, backups, alerts). The screens
+  rain, the morning train, calendar, the day view, headlines), middle **Home** (the living room's
+  lights, scenes and the Christmas plugs, M17; Now Playing while music plays, otherwise a music
+  card with favourite playlists, M18; never rotates), right **House** (NAS, Money, Code, Jellyfin, backups, alerts). The screens
   beyond the basics are M20. Each panel rotates through its cards; a touch
   pauses its rotation for 60 seconds. An ERROR alert takes over all three until dismissed. Night
   hours: Now shows a dim clock, Home and House dim, Money is off.
@@ -302,9 +303,20 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the bridge's link button, kept in `.env`). No Hue cloud. The bridge's event stream keeps the
   hub's state live, so changes from the Home app, Siri or a switch show at once.
 - Everything in the house is Hue (lights and smart plugs), so Apple Home follows on its own: it
-  reads the same bridge. Light zones: Bedroom, Hallway and Living room (2026-10-10). Non-Hue HomeKit devices would need Home Assistant; there are none now.
-- Home panel: a tile per zone (tap on/off, hold and drag for brightness), Living room full width
-  above Bedroom and Hallway, plugs as on/off switches, scenes per zone, and one All off. A Lights page in the hub with the same controls.
+  reads the same bridge. Non-Hue HomeKit devices would need Home Assistant; there are none now.
+- The panel controls only the room the desk is in (decided 2026-10-10): the living room with its
+  open kitchen. Its lights: 3 White Ambiance GU10 spots in the kitchen part (warm to cool white,
+  no colour) and 2 white bulbs (brightness only). Other rooms are never controlled from the desk.
+- Home panel, first card: a tile for the kitchen spots and one for the lamps (tap on/off, hold
+  and drag for brightness), each glowing in the white it has now; five warm-to-cool swatches for
+  the kitchen spots. Second card: white scenes (Relax, Read, Concentrate, Dimmed) and All off.
+- The Hue plugs are used for Christmas decorations: their switches only show in the season
+  (dates set in Settings).
+- No light strips for now (2026-10-10). If ever: Hue's own strip is the only one that also shows
+  in Apple Home; cheaper Zigbee strips (Innr Flex Light Colour, about EUR 44 for 2 m and EUR 70
+  for 4 m at Amazon.nl and GAMMA; Gledopto controllers plus any strip; Lidl Livarno when in
+  stock) work with the Hue Bridge and this hub, but not in Apple Home or Hue Entertainment.
+- A Lights page in the hub with the same controls.
 - A new deliberate write (decided 2026-10-09): lights, plugs and scenes on the Hue Bridge.
 
 **M18. Music** (added 2026-10-09)
@@ -314,6 +326,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Shows what plays on any device on the account (phone, Mac, speakers, AirPlay from the phone),
   podcasts included. Polled every 3 seconds while playing, slower when idle; the panel moves the
   progress bar between polls. Album art is fetched by the hub, so panels never contact Spotify.
+- When nothing plays, Home's third card is Music: four favourite playlists to start from the desk
+  on the last used device (tap the device to change it), and what played last.
 - Now Playing on the Home panel (moved from Now, 2026-10-10): art with a blurred art background,
   title, artist, progress, previous / play-pause / next, volume, and the device name (tap to
   move playback). When music starts it becomes Home's first card and the panel shows it; Home
