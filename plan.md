@@ -366,7 +366,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   in green or red; the count up and down in the header.
 - **My sites** (House, added 2026-10-10): the owner's own sites: example.com,
   aoc.example.com, hubble.cafe, meteor.cafe, admin.hubble.cafe, harry.hubble.cafe and
-  harry-admin (given as `harry-admin.cafe`; to confirm whether that is `harry-admin.hubble.cafe`).
+  harry-admin.hubble.cafe. The list is grouped Personal and Hubble with short names (aoc, admin,
+  harry, harry-admin); only a percentage below 100% is shown.
   Design: one ring per site, split into 30 day-segments from 30 days ago round to today; healthy
   days a quiet green, a blip amber and an outage red with a soft glow, so incidents stand out;
   the count of sites up in the centre and a list with each site's uptime beside it.
@@ -379,12 +380,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - **Services** (House, added 2026-10-10): only outside services something here depends on
   (kept short on purpose, 2026-10-10): GitHub (code, CI, image builds, the mirror), Cloudflare
   (DNS and the tunnel for the public sites), Docker Hub (the hub's images and Watchtower's pulls),
-  Tailscale (remote access, the exposure scan), Hetzner (the Storage Box backups) and Proton
-  (mail). Not listed: Spotify, Telegram and iCloud, whose own cards go stale when they fail. Open
-  question: where the Hubble sites are hosted, if not behind Cloudflare, so that host can be
-  added. Read from their public status pages (most use Statuspage's `/api/v2/summary.json`),
-  every 5 minutes by the collector, never by the panels. When all is well: the services as a
-  ring of icons around a glowing check. During an incident: a card with the service, its state
+  Tailscale (remote access, the exposure scan), Hetzner (the Storage Box backups and the Docker
+  server the Hubble sites run on), TransIP (DNS for the Hubble sites) and Proton (mail). Not listed: Spotify, Telegram and iCloud, whose own cards go stale when they fail. Read from their public status pages (most use Statuspage's `/api/v2/summary.json`),
+  every 5 minutes by the collector, never by the panels. Each service shows its own logo (Simple
+  Icons, CC0, bundled with the hub and converted for the panels, never loaded from a CDN; TransIP
+  has none there, so it gets a letter tile), on a dark glass tile with a glow in its brand colour.
+  When all is well: the services as a ring around a glowing check. During an incident: a card with the service, its state
   and how long it has run, the incident's timeline (Investigating, Identified, Resolved) and a
   softly pulsing halo; the other services as a row of small icons below.
 - **NAS and Backups** (House), redesigned 2026-10-10: NAS as three rings (CPU, memory, the
