@@ -388,9 +388,21 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   When all is well: the services as a ring around a glowing check. During an incident: a card with the service, its state
   and how long it has run, the incident's timeline (Investigating, Identified, Resolved) and a
   softly pulsing halo; the other services as a row of small icons below.
-- **NAS and Backups** (House), redesigned 2026-10-10: NAS as three rings (CPU, memory, the
-  fullest volume) with the storage runway and chips for disks and the UPS; Backups as the last
-  14 nights as bars (a slow or failed night in amber or red) with the verified restore.
+- **NAS, Backups, Alerts and the train**, redesigned again 2026-10-10 to be desk pieces:
+  - NAS: an instrument-style arc gauge for the fullest volume (ticks, a glow, a red mark where
+    it would alert), its size and runway below, then tiles for CPU and memory with live
+    sparklines and one for the disks (a glowing dot per disk) and the UPS.
+  - Backups: a verified seal with last night's time, duration and size and the last verified
+    restore, a NAS to Hetzner (encrypted) line with a gentle moving light, and the last 30 nights
+    as bars (a slow night in amber, last night bright).
+  - Alerts: an open alert gets a large pulsing icon, the severity, a big title, how long it has
+    been open and when Telegram was told, and a bar with the warning and error thresholds; All
+    quiet gets slow ripples round a check, how long it has been quiet and a dot per day of the
+    week (amber on days that had an alert).
+  - Train: the departure box and the status word, a ring counting down to departure (or the
+    next train when cancelled), and the route with its stops and times (Leiden Centraal,
+    Den Haag HS, Delft, Rotterdam Centraal); a delay moves the times.
+    The mockup's stop times are examples; the real ones come from the NS API.
 - **Scenes, Portfolio and Alerts** (redesigned 2026-10-10): each scene tile is lit in the colours
   of its lights, with a dot per light and the active scene marked; Portfolio has a day, week,
   month and year switch, its line green or red with the change for that period; Alerts shows a

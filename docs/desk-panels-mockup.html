@@ -205,7 +205,7 @@ svg text { font-family: var(--f-body); }
 .ev.past { opacity: .4; }
 .tdep { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 4cqw; align-items: end; }
 .tdep .k { grid-column: 1 / -1; }
-.tdt { font-size: 13cqw; font-weight: 600; letter-spacing: -.03em; line-height: 1; padding: .6cqw 2.4cqw; border-radius: 2.4cqw; border: 1px solid rgba(255, 255, 255, .22); font-family: var(--f-mono); }
+.tdt { font-size: 11cqw; font-weight: 600; letter-spacing: -.03em; line-height: 1; padding: .6cqw 2.4cqw; border-radius: 2.4cqw; border: 1px solid rgba(255, 255, 255, .22); font-family: var(--f-mono); }
 .tdt.gone { text-decoration: line-through; text-decoration-thickness: .6cqw; color: var(--ink-3); }
 .tto { font-size: 4.2cqw; color: var(--ink-2); line-height: 1.25; padding-bottom: 1cqw; }
 .amb2 { position: absolute; inset: 0; pointer-events: none; z-index: -1; }
@@ -258,6 +258,49 @@ svg text { font-family: var(--f-body); }
 .tline em { font-style: normal; margin-left: auto; font-family: var(--f-mono); font-size: 3.4cqw; }
 .orbrow { display: flex; justify-content: center; gap: 2.2cqw; }
 .mini { width: 7.4cqw; height: 7.4cqw; border-radius: 2.2cqw; display: grid; place-items: center; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); box-shadow: 0 0 3.4cqw color-mix(in srgb, var(--c) 35%, transparent); }
+.nt { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.4cqw; }
+.nt .glass { padding: 2cqw 2.6cqw; display: grid; gap: .4cqw; }
+.nt .k { font-size: 3cqw; }
+.nt b { font-size: 4.8cqw; font-weight: 600; }
+.nt small { font-size: 3cqw; color: var(--ink-3); font-weight: 400; }
+.bhero { display: grid; grid-template-columns: 22cqw 1fr; gap: 4cqw; align-items: center; }
+.flow { display: flex; align-items: center; gap: 2cqw; }
+.fline { flex: 1; height: 2px; position: relative; overflow: hidden; background: rgba(95, 211, 156, .18); border-radius: 2px; }
+.fline i { position: absolute; top: 0; bottom: 0; width: 30%; background: linear-gradient(90deg, transparent, #5fd39c, transparent); animation: flow 2.6s linear infinite; }
+@keyframes flow { from { left: -30%; } to { left: 100%; } }
+.ripple { position: relative; display: grid; place-items: center; height: 30cqw; }
+.ripple i { position: absolute; width: 20cqw; height: 20cqw; border-radius: 50%; border: 1px solid rgba(95, 211, 156, .45); animation: ripple 4.5s ease-out infinite; }
+.ripple i:nth-child(2) { animation-delay: 1.5s; } .ripple i:nth-child(3) { animation-delay: 3s; }
+@keyframes ripple { from { transform: scale(.9); opacity: .8; } to { transform: scale(2.4); opacity: 0; } }
+.week { display: flex; justify-content: center; gap: 3.4cqw; }
+.week span { display: grid; justify-items: center; gap: 1cqw; font-size: 3.4cqw; color: var(--ink-3); }
+.week b { width: 2.4cqw; height: 2.4cqw; border-radius: 50%; background: rgba(95, 211, 156, .55); }
+.week b.a { background: var(--warn); box-shadow: 0 0 2cqw var(--warn); }
+.ahero { display: grid; grid-template-columns: 18cqw 1fr; gap: 4cqw; align-items: center; margin-top: 1cqw; }
+.aico { aspect-ratio: 1; border-radius: 5cqw; display: grid; place-items: center; background: rgba(240, 189, 90, .1); border: 1px solid rgba(240, 189, 90, .4); animation: halo 2.6s ease-in-out infinite; }
+.atitle { font-size: 6.4cqw; font-weight: 600; line-height: 1.08; letter-spacing: -.015em; margin: 1.6cqw 0 1cqw; }
+.ameter { position: relative; height: 3cqw; border-radius: 99px; background: rgba(255, 255, 255, .08); margin-top: 7cqw; }
+.ameter .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: linear-gradient(90deg, #6f60ea, #b4a9ff 60%, #f0bd5a); box-shadow: 0 0 4cqw rgba(240, 189, 90, .35); }
+.ameter .thr { position: absolute; top: -1.4cqw; bottom: -1.4cqw; width: 1px; background: rgba(255, 255, 255, .5); }
+.ameter .thr span { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); font-size: 3cqw; color: var(--ink-3); white-space: nowrap; padding-bottom: .6cqw; }
+.trow { display: grid; grid-template-columns: 1fr 26cqw; gap: 3cqw; align-items: center; }
+.trow > div { display: grid; gap: 1.2cqw; justify-items: start; }
+.tstat { font-size: 9cqw; font-weight: 600; letter-spacing: -.02em; line-height: 1; }
+.route { position: relative; display: grid; gap: 2.2cqw; padding-left: 1cqw; }
+.route::before { content: ""; position: absolute; left: 1.95cqw; top: 1.6cqw; bottom: 1.6cqw; width: 2px; background: linear-gradient(180deg, rgba(180, 169, 255, .8), rgba(180, 169, 255, .25)); }
+.route > div { display: grid; grid-template-columns: 2.4cqw 13cqw 1fr auto; gap: 2.6cqw; align-items: center; font-size: 3.8cqw; }
+.route b { width: 2.4cqw; height: 2.4cqw; border-radius: 50%; background: #2a2836; border: 2px solid rgba(180, 169, 255, .7); position: relative; z-index: 1; }
+.route .here b { background: #b4a9ff; box-shadow: 0 0 2.6cqw #b4a9ff; }
+.route .mono { font-size: 3.6cqw; color: var(--ink-2); white-space: nowrap; }
+.route s { color: var(--ink-3); }
+.route .rn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.route .rp { font-size: 3.4cqw; color: var(--ink-3); }
+.route.gone { opacity: .4; }
+.dk { display: flex; align-items: center; gap: 1.2cqw; height: 4.4cqw; }
+.dk i { width: 1.8cqw; height: 1.8cqw; border-radius: 50%; background: var(--ok); box-shadow: 0 0 1.6cqw var(--ok); }
+.dk small { margin-left: auto; font-size: 3cqw; color: var(--ink-3); white-space: nowrap; }
+.dk { gap: .9cqw; }
+.okd { display: inline-block; width: 1.8cqw; height: 1.8cqw; border-radius: 50%; background: var(--ok); box-shadow: 0 0 1.6cqw var(--ok); margin-right: 1.4cqw; }
 .poster { aspect-ratio: 2 / 3; border-radius: 2cqw; box-shadow: 0 2cqw 5cqw rgba(0, 0, 0, .45); }
 .mutebtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: rgba(124, 108, 242, .18); border: 1px solid var(--accent); border-radius: 99px; padding: 2.4cqw 5cqw; cursor: pointer; }
 
@@ -275,7 +318,7 @@ svg text { font-family: var(--f-body); }
   .unit figcaption { margin-top: 18px; }
   .notes { grid-template-columns: minmax(0, 1fr); }
 }
-@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo { transition: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo, .fline i, .ripple i, .aico { transition: none; animation: none; } }
 </style>
 
 <div class="wrap">
@@ -542,18 +585,27 @@ svg text { font-family: var(--f-body); }
       <div class="row" style="font-size:3.6cqw;color:var(--ink-3)"><span>5 events today</span><span>Free after 21:00</span></div>`;
     },
     train: () => {
-      const s = [
-        { word: 'On time', col: 'var(--ok)', line: 'Leaves in 34 min from platform 3', arr: '08:41', glow: 'rgba(95,211,156,.18)' },
-        { word: '6 min late', col: 'var(--warn)', line: 'Now leaves 07:22, platform 3', arr: '08:47', glow: 'rgba(240,189,90,.2)' },
-        { word: 'Cancelled', col: 'var(--err)', line: 'Next direct train: 07:46, platform 4', arr: '09:11', glow: 'rgba(255,107,107,.22)' }
+      const S = [
+        { word: 'On time', col: '#5fd39c', mins: 34, dep: '07:16', plat: '3', glow: 'rgba(95,211,156,.16)' },
+        { word: '6 min late', col: '#f0bd5a', mins: 40, dep: '07:22', plat: '3', glow: 'rgba(240,189,90,.18)' },
+        { word: 'Cancelled', col: '#ff6b6b', mins: 0, dep: '07:46', plat: '4', glow: 'rgba(255,107,107,.2)' }
       ][st.train];
-      return `<div class="amb2" style="background:radial-gradient(80% 60% at 100% 0%, ${s.glow}, transparent 70%)"></div>
-      <div class="row"><span class="k">Your train</span><button class="pillbtn dev" data-act="train" aria-label="Preview another state">Preview</button></div>
-      <div class="tdep"><span class="k" style="font-size:3.4cqw">Departure</span><span class="tdt${st.train === 2 ? ' gone' : ''}">07:16</span><span class="tto">to Rotterdam Centraal</span></div>
-      <div class="big" style="color:${s.col};font-size:11cqw">${s.word}</div>
-      <div class="sub" style="font-size:4.4cqw;color:var(--ink)">${s.line}</div>
+      const late = st.train === 1 ? 6 : 0, gone = st.train === 2;
+      const stops = [['07:16', 'Leiden Centraal', 'platform ' + (gone ? '3' : S.plat)], ['07:36', "Den Haag HS", ''], ['08:05', 'Delft', ''], ['08:41', 'Rotterdam Centraal', '']];
+      const add = (hm, m) => { const [h, mi] = hm.split(':').map(Number), x = h * 60 + mi + m; return String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(x % 60).padStart(2, '0'); };
+      const r = 24, c = 2 * Math.PI * r, f = gone ? 0 : Math.min(1, S.mins / 60);
+      return `<div class="amb2" style="background:radial-gradient(70% 50% at 85% 10%, ${S.glow}, transparent 70%)"></div>
+      <div class="row"><span class="k">Your train · direct</span><button class="pillbtn dev" data-act="train">Preview</button></div>
+      <div class="trow">
+        <div><span class="k" style="font-size:3.4cqw">Departure</span><span class="tdt${gone ? ' gone' : ''}">07:16</span><div class="tstat" style="color:${S.col}">${S.word}</div></div>
+        <svg viewBox="0 0 60 60" width="100%"><circle cx="30" cy="30" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/>
+          <circle cx="30" cy="30" r="${r}" fill="none" stroke="${S.col}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 30 30)"/>
+          <text x="30" y="31" text-anchor="middle" font-size="${gone ? 9 : 13}" font-weight="600" fill="#f1eff7">${gone ? S.dep : S.mins}</text>
+          <text x="30" y="40" text-anchor="middle" font-size="6" fill="#b4b1c2">${gone ? 'next train' : 'min to go'}</text></svg>
+      </div>
       <div class="grow"></div>
-      <div class="row" style="font-size:3.6cqw;color:var(--ink-3)"><span>Direct · arrives ${s.arr}</span><span>NS · weekdays</span></div>`;
+      <div class="route${gone ? ' gone' : ''}">${stops.map((s, i) => `<div class="${i === 0 ? 'here' : ''}"><b></b><span class="mono"${late ? ' style="color:#f0bd5a"' : ''}>${late ? add(s[0], late) : s[0]}</span><span class="rn">${s[1]}</span><span class="rp">${s[2]}</span></div>`).join('')}</div>
+      ${gone ? `<div class="sub" style="font-size:3.6cqw;color:var(--ink)">Next: 07:46, platform 4, arrives 09:11</div>` : ''}`;
     },
     headlines: () => {
       const h = [['NOS', '12 min', 'Kabinet presenteert plannen voor betaalbare huurwoningen'], ['Tweakers', '40 min', 'Raspberry Pi kondigt nieuwe Compute Module aan'], ['The Verge', '1 h', 'The quiet return of the desk gadget']];
@@ -617,18 +669,32 @@ svg text { font-family: var(--f-body); }
       <div class="sub" style="font-size:3.6cqw;text-align:center">The other 6 are operational</div>`;
     },
     nas: () => {
-      const ring = (v, label, warn) => {
-        const r = 24, c = 2 * Math.PI * r, col = warn ? '#f0bd5a' : 'url(#vg)';
-        return `<div class="ring"><svg viewBox="0 0 60 60" width="100%"><defs><linearGradient id="vg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b4a9ff"/><stop offset="1" stop-color="#6f60ea"/></linearGradient></defs>
-          <circle cx="30" cy="30" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/>
-          <circle cx="30" cy="30" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(c * v / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 30 30)"/>
-          <text x="30" y="34" text-anchor="middle" font-size="12" font-weight="600" fill="#f1eff7">${v}%</text></svg><span>${label}</span></div>`;
-      };
-      return `<div class="row"><span class="k">NAS</span><span class="pill ok">HEALTHY</span></div>
-      <div class="rings">${ring(12, 'CPU')}${ring(41, 'Memory')}${ring(88, 'volume2', true)}</div>
-      <div class="sub" style="text-align:center;font-size:4cqw">volume2 full in about <b style="color:var(--warn)">5 months</b></div>
+      const v = 88, R = 40, cx = 50, cy = 52, P = a => [cx - R * Math.cos(a * Math.PI), cy - R * Math.sin(a * Math.PI)];
+      const arcP = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+      const ticks = Array.from({ length: 21 }, (_, i) => { const a = i / 20, [x0, y0] = [cx - (R + 6) * Math.cos(a * Math.PI), cy - (R + 6) * Math.sin(a * Math.PI)], [x1, y1] = [cx - (R + (i % 5 ? 7.5 : 9)) * Math.cos(a * Math.PI), cy - (R + (i % 5 ? 7.5 : 9)) * Math.sin(a * Math.PI)];
+        return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,${i % 5 ? .15 : .35})" stroke-width=".5"/>`; }).join('');
+      const [tx, ty] = P(.9);
+      const mini = (vals, col) => { const max = Math.max(...vals), pts = vals.map((x, i) => `${(i / (vals.length - 1) * 60).toFixed(1)},${(18 - x / max * 15).toFixed(1)}`).join(' ');
+        return `<svg viewBox="0 0 60 20" width="100%" style="display:block;overflow:visible"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></svg>`; };
+      return `<div class="row"><span class="k">NAS · storage</span><span class="pill ok">HEALTHY</span></div>
+      <div style="width:60%;margin:0 auto">
+        <svg viewBox="0 2 100 56" width="100%" style="display:block;overflow:visible">
+          <defs><linearGradient id="ng" x1="0" x2="1"><stop offset="0" stop-color="#6f60ea"/><stop offset=".7" stop-color="#b4a9ff"/><stop offset="1" stop-color="#f0bd5a"/></linearGradient>
+          <filter id="nglow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          ${ticks}
+          <path d="${arcP(0, 1)}" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <path d="${arcP(0, v / 100)}" stroke="url(#ng)" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#nglow)"/>
+          <circle cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="1.3" fill="#ff6b6b"/>
+          <text x="50" y="50" text-anchor="middle" font-size="19" font-weight="600" fill="#f1eff7" letter-spacing="-.8">${v}%</text>
+        </svg>
+      </div>
+      <div style="text-align:center;font-size:3.6cqw;line-height:1.35;margin-top:-1cqw"><span style="color:var(--ink-2)">volume2 · 15.8 of 17.9 TB</span><br><span style="color:var(--warn)">full in about 5 months</span></div>
       <div class="grow"></div>
-      <div class="chips"><span class="chip2"><i style="background:var(--ok)"></i>4 of 4 disks OK</span><span class="chip2"><i style="background:var(--ok)"></i>UPS on mains · 100%</span></div>`;
+      <div class="nt">
+        <div class="glass"><span class="k">CPU</span><b>12%</b>${mini([8, 9, 14, 11, 22, 12, 10, 15, 13, 12], '#b4a9ff')}</div>
+        <div class="glass"><span class="k">Memory</span><b>41%</b>${mini([38, 39, 40, 40, 42, 41, 41, 43, 41, 41], '#b4a9ff')}</div>
+        <div class="glass"><span class="k">Disks</span><b>4 of 4</b><span class="dk"><i></i><i></i><i></i><i></i><small>UPS ok</small></span></div>
+      </div>`;
     },
     money: () => {
       const P = periods[st.period], s = P.s, d = s[s.length - 1] - s[0], up = d >= 0, col = up ? '#5fd39c' : '#ff7d7d';
@@ -676,32 +742,45 @@ svg text { font-family: var(--f-body); }
     },
 
     backups: () => {
-      const n = [68, 71, 70, 66, 72, 94, 69, 70, 71, 68, 73, 70, 69, 72], warn = 5, max = 100, W = 240, H = 70, bw = W / n.length;
-      const bars = n.map((m, i) => { const h = m / max * (H - 8);
-        return `<rect x="${(i * bw + 2).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${h.toFixed(1)}" rx="2.5" fill="${i === warn ? '#f0bd5a' : i === n.length - 1 ? '#5fd39c' : 'rgba(95,211,156,.38)'}"/>`; }).join('');
-      return `<div class="row"><span class="k">Backups</span><span class="pill ok">OK</span></div>
-      <div style="display:flex;align-items:baseline;gap:3cqw"><span class="big" style="font-weight:500">03:00</span><span class="sub">last night · 1 h 12 min</span></div>
+      const n = [68, 71, 70, 66, 72, 69, 70, 73, 71, 68, 70, 72, 69, 67, 71, 70, 94, 69, 70, 71, 68, 73, 70, 69, 72, 71, 70, 68, 71, 72], slow = 16;
+      const W = 240, H = 46, bw = W / n.length;
+      const bars = n.map((m, i) => { const h = m / 100 * (H - 4), last = i === n.length - 1;
+        return `<rect x="${(i * bw + 1.2).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${(bw - 2.4).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${i === slow ? '#f0bd5a' : last ? '#5fd39c' : 'url(#bkg)'}"${last ? ' filter="url(#bkl)"' : ''}/>`; }).join('');
+      return `<div class="row"><span class="k">Backups</span><span class="pill ok">ALL SAFE</span></div>
+      <div class="bhero">
+        <svg viewBox="0 0 60 60" width="100%"><defs><radialGradient id="sealg"><stop offset="0" stop-color="rgba(95,211,156,.3)"/><stop offset="1" stop-color="rgba(95,211,156,0)"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="29" fill="url(#sealg)"/>
+          <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(95,211,156,.45)" stroke-width="1" stroke-dasharray="1.5 2.4"/>
+          <circle cx="30" cy="30" r="20" fill="rgba(95,211,156,.12)" stroke="#5fd39c" stroke-width="1.6"/>
+          <path d="M22 30.5l5.5 5.5 11-12" fill="none" stroke="#5fd39c" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><div class="big" style="font-weight:500">03:00</div><div class="sub" style="font-size:3.8cqw">Last night · 1 h 12 min · 4.1 GB</div><div class="sub" style="font-size:3.6cqw;color:var(--ok)">Restore verified 12 days ago</div></div>
+      </div>
+      <div class="flow"><span class="chip2">NAS</span><span class="fline"><i></i></span><span class="chip2">Hetzner · encrypted</span></div>
       <div class="grow"></div>
-      <svg viewBox="0 0 ${W} ${H + 12}" width="100%" style="display:block;overflow:visible">${bars}
-        <text x="0" y="${H + 11}" font-size="8.5" fill="#7d7a8c">14 nights ago</text><text x="${W}" y="${H + 11}" font-size="8.5" fill="#7d7a8c" text-anchor="end">Last night</text></svg>
-      <div class="chips"><span class="chip2"><i style="background:var(--ok)"></i>Verified restore 12 days ago</span><span class="chip2"><i style="background:var(--warn)"></i>1 slow night</span></div>`;
+      <svg viewBox="0 0 ${W} ${H + 11}" width="100%" style="display:block;overflow:visible"><defs><linearGradient id="bkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(95,211,156,.55)"/><stop offset="1" stop-color="rgba(95,211,156,.12)"/></linearGradient>
+        <filter id="bkl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${bars}
+        <text x="0" y="${H + 10}" font-size="8.5" fill="#7d7a8c">30 nights</text><text x="${(slow * bw + bw / 2).toFixed(1)}" y="${H + 10}" font-size="8.5" fill="#f0bd5a" text-anchor="middle">slow</text><text x="${W}" y="${H + 10}" font-size="8.5" fill="#7d7a8c" text-anchor="end">Last night</text></svg>`;
     },
     alerts: () => {
-      const mute = `<div class="row" style="align-items:center"><span class="sub" style="font-size:3.8cqw">${st.muted ? 'Muted until ' + hhmm(new Date(Date.now() + 3600000)) : 'Telegram alerts on'}</span><button class="mutebtn" data-act="mute">${st.muted ? 'Unmute' : 'Mute 1h'}</button></div>`;
-      if (!st.alertsOpen) return `<div class="amb2" style="background:radial-gradient(70% 55% at 50% 38%, rgba(95,211,156,.16), transparent 70%)"></div>
-      <div class="row"><span class="k">Alerts</span><button class="pillbtn" data-act="alertprev"><span class="pill ok">NONE OPEN</span></button></div>
-      <div class="grow" style="display:grid;place-items:center;align-content:center;gap:3cqw">
-        <svg viewBox="0 0 60 60" width="30%"><circle cx="30" cy="30" r="26" fill="none" stroke="rgba(95,211,156,.25)" stroke-width="2"/><circle cx="30" cy="30" r="20" fill="rgba(95,211,156,.12)"/><path d="M21 30.5l6 6 12-13" fill="none" stroke="#5fd39c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div class="mid" style="font-weight:500;text-align:center">All quiet</div>
-        <div class="sub" style="text-align:center;font-size:3.8cqw">Nothing needs you. Last alert resolved<br>2 days ago: a slow backup night.</div>
+      const mute = `<div class="row" style="align-items:center"><span class="sub" style="font-size:3.6cqw">${st.muted ? 'Muted until ' + hhmm(new Date(Date.now() + 3600000)) : 'Telegram alerts on'}</span><button class="mutebtn" data-act="mute">${st.muted ? 'Unmute' : 'Mute 1h'}</button></div>`;
+      if (!st.alertsOpen) {
+        const days = [['M', 0], ['T', 1], ['W', 0], ['T', 0], ['F', 0], ['S', 0], ['S', 0]];
+        return `<div class="amb2" style="background:radial-gradient(60% 50% at 50% 42%, rgba(95,211,156,.14), transparent 70%)"></div>
+        <div class="row"><span class="k">Alerts</span><button class="pillbtn" data-act="alertprev"><span class="pill ok">NONE OPEN</span></button></div>
+        <div class="ripple"><i></i><i></i><i></i>
+          <svg viewBox="0 0 60 60" width="34%"><circle cx="30" cy="30" r="22" fill="rgba(95,211,156,.14)" stroke="rgba(95,211,156,.5)" stroke-width="1.4"/><path d="M21 30.5l6 6 12-13" fill="none" stroke="#5fd39c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div style="text-align:center"><div class="mid" style="font-weight:500">All quiet</div><div class="sub" style="font-size:3.8cqw">Nothing has needed you for 2 days</div></div>
+        <div class="week">${days.map(d => `<span><b class="${d[1] ? 'a' : ''}"></b>${d[0]}</span>`).join('')}</div>
+        ${mute}`;
+      }
+      return `<div class="amb2" style="background:radial-gradient(90% 60% at 20% 0%, rgba(240,189,90,.22), transparent 65%)"></div>
+      <div class="row"><span class="k">Alerts</span><button class="pillbtn" data-act="alertprev"><span class="pill warn">1 OPEN</span></button></div>
+      <div class="ahero">
+        <div class="aico"><svg viewBox="0 0 24 24" width="60%" fill="none" stroke="#f0bd5a" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 14h18"/><circle cx="17" cy="16.5" r=".9" fill="#f0bd5a"/></svg></div>
+        <div><span class="pill warn">WARNING</span><div class="atitle">volume2 is 88% full</div><div class="sub" style="font-size:3.6cqw">Open 2 days · Telegram 09:12</div></div>
       </div>
-      ${mute}`;
-      return `<div class="row"><span class="k">Alerts</span><button class="pillbtn" data-act="alertprev"><span class="pill warn">1 OPEN</span></button></div>
-      <div class="glass" style="padding:5cqw;display:grid;gap:1.8cqw">
-        <span class="pill warn" style="justify-self:start">WARNING</span>
-        <div style="font-size:5.6cqw;font-weight:600;line-height:1.2">volume2 is 88% full</div>
-        <div class="sub" style="font-size:3.8cqw">Full in about 5 months at this rate</div>
-      </div>
+      <div class="ameter"><div class="fill" style="width:88%"></div><div class="thr" style="left:85%"><span>85%</span></div><div class="thr" style="left:95%"><span>95%</span></div></div>
+      <div class="sub" style="font-size:3.6cqw;margin-top:2.4cqw">Full in about 5 months. Free up space or add a disk.</div>
       <div class="grow"></div>
       ${mute}`;
     }
