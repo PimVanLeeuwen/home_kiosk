@@ -364,24 +364,29 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the backlog's richer Jellyfin overview in the hub.
 - **Top movers** (House, Money): diverging bars from a centre line, ticker and name, the change
   in green or red; the count up and down in the header.
-- **My sites** (House, added 2026-10-10): the owner's own applications (the example.com sites
-  such as Tandoor and CouchDB, and Hubble's Harry list and Community Cafe web). Design: one ring per
-  site, split into 30 day-segments from 30 days ago round to today; healthy days are a quiet green,
-  a blip amber and an outage red with a soft glow, so incidents stand out; the count of sites up
-  in the centre, a list with each site's uptime and response time beside it. Checked from outside the LAN
-  path, through their public addresses. Proposed source: Uptime Kuma (already running), with a
-  monitor per site and a second status page the hub reads (Kuma keeps the history); a site going
-  down already reaches Telegram through Kuma. To decide: the exact URLs, and whether Kuma or the
-  hub does the checks. These checks run on the NAS, so they cannot report the NAS itself being
+- **My sites** (House, added 2026-10-10): the owner's own sites: example.com,
+  aoc.example.com, hubble.cafe, meteor.cafe, admin.hubble.cafe, harry.hubble.cafe and
+  harry-admin (given as `harry-admin.cafe`; to confirm whether that is `harry-admin.hubble.cafe`).
+  Design: one ring per site, split into 30 day-segments from 30 days ago round to today; healthy
+  days a quiet green, a blip amber and an outage red with a soft glow, so incidents stand out;
+  the count of sites up in the centre and a list with each site's uptime beside it.
+  Source (decided 2026-10-10): Uptime Kuma, already running, with an HTTP monitor per site and a
+  second status page that the collector reads. Kuma already sends a Telegram message through the
+  hub when a site goes down. The collector keeps its own daily up, blip or down record per site
+  in SQLite from Kuma's heartbeats, so the 30 days do not depend on how much history Kuma's
+  status page returns. These checks run on the NAS, so they cannot report the NAS itself being
   down (see the Hetzner VPS open item).
-- **Services** (House, added 2026-10-10): the outside services the owner relies on, from their
-  public status pages (most use Statuspage's `/api/v2/summary.json`): GitHub, Cloudflare, Proton,
-  Tailscale, Hetzner, Docker Hub, Spotify, iCloud and Telegram (the list is editable; services
-  without a public status API are checked by a plain request). When all is well: the services as a
+- **Services** (House, added 2026-10-10): only outside services something here depends on
+  (kept short on purpose, 2026-10-10): GitHub (code, CI, image builds, the mirror), Cloudflare
+  (DNS and the tunnel for the public sites), Docker Hub (the hub's images and Watchtower's pulls),
+  Tailscale (remote access, the exposure scan), Hetzner (the Storage Box backups) and Proton
+  (mail). Not listed: Spotify, Telegram and iCloud, whose own cards go stale when they fail. Open
+  question: where the Hubble sites are hosted, if not behind Cloudflare, so that host can be
+  added. Read from their public status pages (most use Statuspage's `/api/v2/summary.json`),
+  every 5 minutes by the collector, never by the panels. When all is well: the services as a
   ring of icons around a glowing check. During an incident: a card with the service, its state
   and how long it has run, the incident's timeline (Investigating, Identified, Resolved) and a
-  softly pulsing halo; the other services as a row of small icons below. Polled
-  every 5 minutes by the collector, never by the panels.
+  softly pulsing halo; the other services as a row of small icons below.
 - **NAS and Backups** (House), redesigned 2026-10-10: NAS as three rings (CPU, memory, the
   fullest volume) with the storage runway and chips for disks and the UPS; Backups as the last
   14 nights as bars (a slow or failed night in amber or red) with the verified restore.

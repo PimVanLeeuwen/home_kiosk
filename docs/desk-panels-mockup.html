@@ -232,11 +232,11 @@ svg text { font-family: var(--f-body); }
 .leadt { font-size: 5.4cqw; font-weight: 600; line-height: 1.15; letter-spacing: -.01em; }
 .heat { display: grid; grid-template-columns: repeat(16, 1fr); grid-template-rows: repeat(7, 1fr); gap: .8cqw; aspect-ratio: 16 / 7.3; }
 .heat i { border-radius: .8cqw; }
-.sring { display: grid; grid-template-columns: 46cqw 1fr; gap: 4cqw; align-items: center; margin-top: 1cqw; }
-.slist { display: grid; gap: 2.6cqw; }
-.slist > div { display: flex; gap: 2cqw; align-items: flex-start; }
-.sk { width: 2.2cqw; height: 2.2cqw; border-radius: 50%; margin-top: 1.2cqw; flex: none; }
-.sn { font-size: 3.8cqw; font-weight: 600; line-height: 1.15; }
+.sring { display: grid; grid-template-columns: 40cqw 1fr; gap: 4cqw; align-items: center; margin-top: 1cqw; }
+.slist { display: grid; gap: 2.2cqw; }
+.slist > div { display: flex; gap: 1.8cqw; align-items: center; }
+.sk { width: 2cqw; height: 2cqw; border-radius: 50%; flex: none; }
+.sn { font-size: 3.4cqw; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sm { font-size: 3.4cqw; color: var(--ink-3); }
 .mono2 { width: 6.4cqw; height: 6.4cqw; border-radius: 1.8cqw; display: inline-grid; place-items: center; font-size: 3.6cqw; font-weight: 700; color: #0b0b10; flex: none; }
 .mono2.halo { width: 10cqw; height: 10cqw; border-radius: 3cqw; font-size: 5cqw; animation: halo 2.4s ease-in-out infinite; }
@@ -309,7 +309,7 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>House</h2>
-      <ul><li>My sites: one ring per site, 30 day segments each, incidents lit amber or red; Services: a constellation around a check when all is well, an incident card with its timeline when not (tap the status to preview)</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
+      <ul><li>My sites: one ring per site, 30 day segments each, incidents lit amber or red; Services (GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, Proton): a constellation around a check when all is well, an incident card with its timeline when not (tap the status to preview)</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
     </section>
   </div>
   <p class="foot">An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
@@ -557,34 +557,36 @@ svg text { font-family: var(--f-body); }
       // 30 days per site, oldest at 12 o'clock going round to today; [day, 1 blip | 2 down]
       const s = [
         ['example.com', 182, '100%', []],
-        ['Recipes', 241, '99.96%', [[17, 1]]],
-        ['Obsidian sync', 96, '100%', []],
-        ['Harry list', 318, '99.81%', [[9, 2], [22, 1]]],
-        ['Cafe web', 274, '100%', []]
+        ['aoc.example.com', 160, '100%', []],
+        ['hubble.cafe', 274, '99.97%', [[17, 1]]],
+        ['meteor.cafe', 231, '100%', []],
+        ['admin.hubble.cafe', 288, '100%', []],
+        ['harry.hubble.cafe', 318, '99.81%', [[9, 2], [22, 1]]],
+        ['harry-admin', 305, '100%', []]
       ];
       const pt = (r, a) => [50 + r * Math.sin(a * Math.PI / 180), 50 - r * Math.cos(a * Math.PI / 180)];
       const arc = (r, a0, a1) => { const [x0, y0] = pt(r, a0), [x1, y1] = pt(r, a1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
       const rings = s.map((x, k) => {
-        const r = 45 - k * 7.4, op = (.5 - k * .06).toFixed(2);
+        const r = 46 - k * 5.6, op = (.5 - k * .04).toFixed(2);
         return Array.from({ length: 30 }, (_, d) => { const b = x[3].find(y => y[0] === d);
           const c = !b ? `rgba(95,211,156,${op})` : b[1] === 2 ? '#ff6b6b' : '#f0bd5a';
-          return `<path d="${arc(r, d * 12 + 1.6, d * 12 + 10.4)}" stroke="${c}" stroke-width="${b ? 4.4 : 3.4}" stroke-linecap="round" fill="none"${b ? ` filter="url(#gl)"` : ''}/>`; }).join('');
+          return `<path d="${arc(r, d * 12 + 1.6, d * 12 + 10.4)}" stroke="${c}" stroke-width="${b ? 3.6 : 2.7}" stroke-linecap="round" fill="none"${b ? ` filter="url(#gl)"` : ''}/>`; }).join('');
       }).join('');
       return `<div class="row"><span class="k">My sites · 30 days</span><span class="pill ok">ALL UP</span></div>
       <div class="sring">
         <svg viewBox="0 0 100 100" width="100%"><defs><filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
           <radialGradient id="cg"><stop offset="0" stop-color="rgba(95,211,156,.28)"/><stop offset="1" stop-color="rgba(95,211,156,0)"/></radialGradient></defs>
-          <circle cx="50" cy="50" r="14" fill="url(#cg)"/>${rings}
-          <text x="50" y="52.5" text-anchor="middle" font-size="9" font-weight="600" fill="#f1eff7">5/5</text>
-          <text x="50" y="59" text-anchor="middle" font-size="3.6" fill="#b4b1c2" letter-spacing=".5">UP</text>
+          <circle cx="50" cy="50" r="11" fill="url(#cg)"/>${rings}
+          <text x="50" y="52" text-anchor="middle" font-size="7" font-weight="600" fill="#f1eff7">7/7</text>
+          <text x="50" y="57" text-anchor="middle" font-size="3" fill="#b4b1c2" letter-spacing=".5">UP</text>
           <path d="M50 1.5 L50 6" stroke="rgba(255,255,255,.6)" stroke-width=".6"/></svg>
-        <div class="slist">${s.map((x, k) => `<div><span class="sk" style="background:rgba(95,211,156,${(.75 - k * .08).toFixed(2)})"></span><div><div class="sn">${x[0]}</div><div class="sm">${x[2]} · ${x[1]} ms</div></div></div>`).join('')}</div>
+        <div class="slist">${s.map((x, k) => `<div><span class="sk" style="background:${x[3].some(y => y[1] === 2) ? '#ff6b6b' : x[3].length ? '#f0bd5a' : 'rgba(95,211,156,' + (.8 - k * .06).toFixed(2) + ')'}"></span><span class="sn">${x[0]}</span><span class="sm">${x[2]}</span></div>`).join('')}</div>
       </div>
       <div class="grow"></div>
-      <div class="row" style="font-size:3.6cqw;color:var(--ink-2)"><span>Overall <b style="color:var(--ink)">99.95%</b></span><span>Last outage: Harry list, 21 days ago</span></div>`;
+      <div class="row" style="font-size:3.6cqw;color:var(--ink-2)"><span>Overall <b style="color:var(--ink)">99.95%</b></span><span>Last outage 21 days ago</span></div>`;
     },
     services: () => {
-      const sv = [['GitHub', '#8b949e'], ['Cloudflare', '#f38020'], ['Proton', '#8a6cf2'], ['Tailscale', '#c8c8d0'], ['Hetzner', '#d50c2d'], ['Docker Hub', '#2496ed'], ['Spotify', '#1ed760'], ['iCloud', '#5ac8fa'], ['Telegram', '#2aabee']];
+      const sv = [['GitHub', '#8b949e'], ['Cloudflare', '#f38020'], ['Docker Hub', '#2496ed'], ['Tailscale', '#c8c8d0'], ['Hetzner', '#d50c2d'], ['Proton', '#8a6cf2']];
       if (!st.svcIncident) {
         const orbs = sv.map((x, i) => { const a = i / sv.length * Math.PI * 2 - Math.PI / 2, X = 50 + 40 * Math.cos(a), Y = 50 + 40 * Math.sin(a);
           return `<div class="orb" style="left:${X.toFixed(1)}%;top:${Y.toFixed(1)}%;--c:${x[1]}"><span>${x[0][0]}</span><em>${x[0]}</em></div>`; }).join('');
@@ -601,7 +603,7 @@ svg text { font-family: var(--f-body); }
       </div>
       <div class="grow"></div>
       <div class="orbrow">${sv.slice(1).map(x => `<span class="mini" style="--c:${x[1]}" title="${x[0]}">${x[0][0]}</span>`).join('')}</div>
-      <div class="sub" style="font-size:3.6cqw;text-align:center">The other 8 are operational</div>`;
+      <div class="sub" style="font-size:3.6cqw;text-align:center">The other 5 are operational</div>`;
     },
     nas: () => {
       const ring = (v, label, warn) => {
