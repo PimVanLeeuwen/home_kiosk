@@ -439,11 +439,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   and how long it has run, the incident's timeline (Investigating, Identified, Resolved) and a
   softly pulsing halo; the other services as a row of small icons below.
 - **Apple devices** (Home, moved from House 2026-10-10): the two Apple TVs and the HomePods,
-  each with whether it is online, and what it plays. Design: a small map of the house, rooms as
-  soft zones, each device as a glowing glyph where it stands, playing devices sending out slow
-  ripples in the colour of what they play, an offline device in amber with since when, and the
-  Thread mesh between them as faint dotted lines, including the air sensor's link; below the map
-  what plays where. Room positions are set once in Settings.
+  each with whether it is online, and what it plays. Design (2026-10-12): a lit floor plan;
+  rooms are outlined zones, and a room where something plays glows in that colour; each device
+  is a luminous orb with a halo, playing ones sending out ripples; small pulses of light travel
+  along the Thread mesh between them, and a link to an offline device turns into a broken amber
+  line with the device dashed in amber; the air sensor sits on the mesh. Below the plan a
+  now-playing bar with a thumbnail, the title, the room and a moving equaliser. Room positions are set once in Settings.
   The devices (2026-10-10): living room, an Apple TV and two big HomePods as a stereo pair (shown
   as one group with the TV, as they play its sound); bedroom, an Apple TV and a HomePod mini;
   bathroom, a HomePod mini. To check when building: which are Thread border routers (the

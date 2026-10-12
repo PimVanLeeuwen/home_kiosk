@@ -323,13 +323,17 @@ svg text { font-family: var(--f-body); }
 .more .mtt { font-size: 3.8cqw; font-weight: 600; line-height: 1.2; }
 .clim { display: grid; grid-template-columns: 1fr 34cqw; gap: 3cqw; align-items: center; margin-top: 1cqw; }
 .cword { font-size: 5.6cqw; font-weight: 600; text-align: right; margin-top: -1cqw; }
-.house { display: block; margin-top: 1cqw; overflow: visible; }
-.playing2 { display: grid; gap: 1.4cqw; font-size: 3.6cqw; }
-.playing2 > div { display: flex; align-items: center; gap: .4cqw; }
-.playing2 span { color: var(--ink-2); }
-.playing2 em { font-style: normal; font-weight: 600; }
+.house { display: block; overflow: visible; }
+.house .pulse { stroke-dasharray: 2.2 40; animation: meshflow 3.6s linear infinite; opacity: .9; }
+@keyframes meshflow { from { stroke-dashoffset: 42; } to { stroke-dashoffset: 0; } }
 .house .wave { transform-box: fill-box; transform-origin: center; animation: wave 3.2s ease-out infinite; opacity: 0; }
 .house .w2 { animation-delay: 1.6s; }
+.npbar { display: grid; grid-template-columns: 9cqw 1fr auto; gap: 3cqw; align-items: center; padding: 1.8cqw 3cqw; border-radius: 4cqw; background: rgba(90, 169, 255, .1); border: 1px solid rgba(90, 169, 255, .3); }
+.npthumb { aspect-ratio: 1; border-radius: 2cqw; box-shadow: 0 0 4cqw rgba(90, 169, 255, .4); }
+.npt { font-size: 4cqw; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nps { font-size: 3.4cqw; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.offl { display: flex; align-items: center; gap: 2cqw; font-size: 3.4cqw; color: var(--warn); }
+.offl b { width: 2cqw; height: 2cqw; border-radius: 50%; background: var(--warn); box-shadow: 0 0 1.8cqw var(--warn); }
 @keyframes wave { from { transform: scale(.9); opacity: .8; } to { transform: scale(2.1); opacity: 0; } }
 .vinyl-wrap { position: relative; height: 35cqw; }
 .vinyl-wrap .art { position: relative; z-index: 1; }
@@ -422,7 +426,7 @@ svg text { font-family: var(--f-body); }
   .unit figcaption { margin-top: 18px; }
   .notes { grid-template-columns: minmax(0, 1fr); }
 }
-@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo, .fline i, .ripple i, .aico, .house .wave, .disc.spin, .eq i, .dbar i, .glassdoor i { transition: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo, .fline i, .ripple i, .aico, .house .wave, .house .pulse, .disc.spin, .eq i, .dbar i, .glassdoor i { transition: none; animation: none; } }
 </style>
 
 <div class="wrap">
@@ -454,7 +458,7 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>Home</h2>
-      <ul><li>The living room only: the 3 kitchen spots and the 2 lamps, each glowing in the white they have now</li><li>Tap to switch, hold and drag for brightness; warm to cool white for the kitchen spots</li><li>Air: temperature, humidity, CO₂ as a ring with Fresh, Getting stuffy or Open a window, PM2.5, and CO₂ over the last 8 hours; the Christmas plugs only in the season</li><li>Laundry (only while a machine runs or is done): the Hisense washer and dryer as portholes with water turning while they run, a ring counting down and when they are ready</li><li>Apple devices: a small map of the house, each Apple TV and HomePod where it stands, playing ones rippling in the colour of what they play, the Thread mesh and the air sensor</li><li>Music: Now Playing first while music plays; otherwise a card with favourite playlists to start from the desk</li></ul>
+      <ul><li>The living room only: the 3 kitchen spots and the 2 lamps, each glowing in the white they have now</li><li>Tap to switch, hold and drag for brightness; warm to cool white for the kitchen spots</li><li>Air: temperature, humidity, CO₂ as a ring with Fresh, Getting stuffy or Open a window, PM2.5, and CO₂ over the last 8 hours; the Christmas plugs only in the season</li><li>Laundry (only while a machine runs or is done): the Hisense washer and dryer as portholes with water turning while they run, a ring counting down and when they are ready</li><li>Apple devices: a lit floor plan, rooms glowing with what plays in them, each Apple TV and HomePod as an orb, light running along the Thread mesh, an offline device with a broken amber link, and what plays below</li><li>Music: Now Playing first while music plays; otherwise a card with favourite playlists to start from the desk</li></ul>
     </section>
     <section>
       <h2>House</h2>
@@ -828,41 +832,51 @@ svg text { font-family: var(--f-body); }
       <div class="sub" style="font-size:3.4cqw;color:var(--ink-3);text-align:center">Updated 1 min ago · ConnectLife</div>`;
     },
     apple: () => {
-      // A small map of the house: rooms as zones, devices where they stand, the Thread mesh between them.
-      const zones = [['Living room', 3, 3, 94, 38], ['Bedroom', 3, 44, 58, 30], ['Bathroom', 64, 44, 33, 30]];
-      // Living room: Apple TV with two HomePods as a stereo pair (its sound); bedroom: Apple TV and a
-      // HomePod mini; bathroom: a HomePod mini.
+      // A lit floor plan: rooms glow with what plays in them, devices are orbs, light runs along the Thread mesh.
       const film = '#5aa9ff';
+      const zones = [['Living room', 2, 2, 96, 36, film], ['Bedroom', 2, 41, 60, 29, null], ['Bathroom', 65, 41, 33, 29, null]];
       const dev = [
-        { id: 'lrl', kind: 'pod', x: 22, y: 24, on: 1, play: 'The Long Coast', col: film },
-        { id: 'lrtv', kind: 'tv', x: 50, y: 24, on: 1, play: 'The Long Coast', col: film },
-        { id: 'lrr', kind: 'pod', x: 78, y: 24, on: 1, play: 'The Long Coast', col: film },
-        { id: 'bdtv', kind: 'tv', x: 18, y: 62, on: 1 },
-        { id: 'bdpod', kind: 'mini', x: 44, y: 62, on: 1 },
-        { id: 'bath', kind: 'mini', x: 80, y: 60, on: 0, lx: 80, la: 'middle', ly: 70.5 }
+        { id: 'lrl', kind: 'pod', x: 20, y: 22, on: 1, col: film },
+        { id: 'lrtv', kind: 'tv', x: 50, y: 20, on: 1, col: film },
+        { id: 'lrr', kind: 'pod', x: 80, y: 22, on: 1, col: film },
+        { id: 'bdtv', kind: 'tv', x: 18, y: 58, on: 1 },
+        { id: 'bdpod', kind: 'mini', x: 44, y: 58, on: 1 },
+        { id: 'bath', kind: 'mini', x: 82, y: 58, on: 0 }
       ];
-      const sensor = { x: 64, y: 12 };
+      const sensor = { x: 64, y: 9 };
       const D = Object.fromEntries(dev.map(d => [d.id, d]));
       const mesh = [['lrl', 'lrtv'], ['lrtv', 'lrr'], ['lrtv', 'bdtv'], ['bdtv', 'bdpod'], ['lrr', 'bath'], ['bdpod', 'bath']];
+      const curve = (a, b, k = .18) => { const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y; return `M${a.x} ${a.y} Q${(mx - dy * k).toFixed(1)} ${(my + dx * k).toFixed(1)} ${b.x} ${b.y}`; };
       const glyph = d => d.kind === 'tv'
-        ? `<rect x="${d.x - 3.6}" y="${d.y - 2.4}" width="7.2" height="4.6" rx="1" fill="none" stroke="currentColor" stroke-width=".8"/><path d="M${d.x - 1.6} ${d.y + 3.4}h3.2" stroke="currentColor" stroke-width=".8"/>`
-        : `<rect x="${d.x - (d.kind === 'pod' ? 2.6 : 2.4)}" y="${d.y - (d.kind === 'pod' ? 3.4 : 2.4)}" width="${d.kind === 'pod' ? 5.2 : 4.8}" height="${d.kind === 'pod' ? 6.8 : 4.8}" rx="${d.kind === 'pod' ? 2.4 : 2.4}" fill="none" stroke="currentColor" stroke-width=".8"/>`;
-      const off = dev.filter(d => !d.on).length;
-      return `<div class="row"><span class="k">Apple devices</span><span class="pill ${off ? 'warn' : 'ok'}">${off ? off + ' OFFLINE' : 'ALL ONLINE'}</span></div>
-      <svg class="house" viewBox="0 0 100 75" width="84%" style="margin:0 auto">
-        ${zones.map(z => `<rect x="${z[1]}" y="${z[2]}" width="${z[3]}" height="${z[4]}" rx="4" fill="rgba(255,255,255,.035)" stroke="rgba(255,255,255,.08)" stroke-width=".4"/><text x="${z[1] + 3}" y="${z[2] + 6}" font-size="4.2" fill="#7d7a8c" letter-spacing=".3">${z[0].toUpperCase()}</text>`).join('')}
-        ${mesh.map(m => `<line x1="${D[m[0]].x}" y1="${D[m[0]].y}" x2="${D[m[1]].x}" y2="${D[m[1]].y}" stroke="rgba(180,169,255,.35)" stroke-width=".5" stroke-dasharray="1 1.6"/>`).join('')}
-        <line x1="${sensor.x}" y1="${sensor.y}" x2="${D.lrtv.x}" y2="${D.lrtv.y}" stroke="rgba(95,211,156,.5)" stroke-width=".5" stroke-dasharray="1 1.6"/>
-        <path d="M${D.lrl.x} ${D.lrl.y + 8} Q50 ${D.lrl.y + 16} ${D.lrr.x} ${D.lrr.y + 8}" fill="none" stroke="rgba(90,169,255,.45)" stroke-width=".5"/>
-        <text x="50" y="${D.lrl.y + 14.6}" text-anchor="middle" font-size="3.6" fill="rgba(90,169,255,.8)">stereo</text>
-        ${dev.map(d => `${d.play ? `<circle class="wave" cx="${d.x}" cy="${d.y}" r="7" fill="none" stroke="${d.col}" stroke-width=".6"/><circle class="wave w2" cx="${d.x}" cy="${d.y}" r="7" fill="none" stroke="${d.col}" stroke-width=".6"/>` : ''}
-          <circle cx="${d.x}" cy="${d.y}" r="6.4" fill="${d.on ? (d.play ? d.col + '33' : 'rgba(255,255,255,.06)') : 'rgba(240,189,90,.08)'}" stroke="${d.on ? (d.play ? d.col : 'rgba(255,255,255,.22)') : '#f0bd5a'}" stroke-width=".6"${d.play ? ` style="filter:drop-shadow(0 0 2px ${d.col})"` : ''}/>
-          <g color="${d.on ? '#f1eff7' : '#f0bd5a'}">${glyph(d)}</g>
-          ${!d.on ? `<text x="${d.lx}" y="${d.ly}" text-anchor="${d.la}" font-size="4.4" fill="#f0bd5a">offline 11:20</text>` : ''}`).join('')}
-        <circle cx="${sensor.x}" cy="${sensor.y}" r="2" fill="#5fd39c" style="filter:drop-shadow(0 0 2px #5fd39c)"/><text x="${sensor.x}" y="${sensor.y - 3.6}" text-anchor="middle" font-size="3.8" fill="#5fd39c">air</text>
+        ? `<rect x="${d.x - 2.8}" y="${d.y - 1.9}" width="5.6" height="3.6" rx=".8" fill="none" stroke="currentColor" stroke-width=".6"/><path d="M${d.x - 1.2} ${d.y + 2.7}h2.4" stroke="currentColor" stroke-width=".6" stroke-linecap="round"/>`
+        : d.kind === 'pod' ? `<rect x="${d.x - 2}" y="${d.y - 2.7}" width="4" height="5.4" rx="1.9" fill="none" stroke="currentColor" stroke-width=".6"/>`
+        : `<circle cx="${d.x}" cy="${d.y}" r="2" fill="none" stroke="currentColor" stroke-width=".6"/><circle cx="${d.x}" cy="${d.y - .2}" r=".7" fill="currentColor"/>`;
+      const on = dev.filter(d => d.on).length;
+      return `<div class="row"><span class="k">Apple devices</span><span class="pill warn">1 OFFLINE</span></div>
+      <svg class="house" viewBox="0 0 100 72" width="80%" style="margin:0 auto">
+        <defs>
+          <radialGradient id="lrlight" cx="50%" cy="45%" r="65%"><stop offset="0" stop-color="${film}" stop-opacity=".2"/><stop offset="1" stop-color="${film}" stop-opacity="0"/></radialGradient>
+          <radialGradient id="orb"><stop offset="0" stop-color="rgba(255,255,255,.22)"/><stop offset="1" stop-color="rgba(255,255,255,.03)"/></radialGradient>
+          <radialGradient id="halo"><stop offset="0" stop-color="${film}" stop-opacity=".45"/><stop offset="1" stop-color="${film}" stop-opacity="0"/></radialGradient>
+          <radialGradient id="haloA"><stop offset="0" stop-color="#f0bd5a" stop-opacity=".3"/><stop offset="1" stop-color="#f0bd5a" stop-opacity="0"/></radialGradient>
+        </defs>
+        ${zones.map(z => `<rect x="${z[1]}" y="${z[2]}" width="${z[3]}" height="${z[4]}" rx="3.4" fill="${z[5] ? 'url(#lrlight)' : 'rgba(255,255,255,.025)'}" stroke="${z[5] ? 'rgba(90,169,255,.35)' : 'rgba(255,255,255,.1)'}" stroke-width=".35"/>
+          <text x="${z[1] + 2.6}" y="${z[2] + 5.4}" font-size="3.6" fill="${z[5] ? 'rgba(160,200,255,.8)' : '#7d7a8c'}" letter-spacing=".4">${z[0].toUpperCase()}</text>`).join('')}
+        ${mesh.map(([a, b]) => { const bad = !D[a].on || !D[b].on, d = curve(D[a], D[b]);
+          return bad ? `<path d="${d}" fill="none" stroke="rgba(240,189,90,.45)" stroke-width=".4" stroke-dasharray=".8 1.6"/>`
+            : `<path d="${d}" fill="none" stroke="rgba(180,169,255,.22)" stroke-width=".45"/><path class="pulse" d="${d}" fill="none" stroke="#c3b9ff" stroke-width=".8" stroke-linecap="round"/>`; }).join('')}
+        <path d="${curve(sensor, D.lrtv, -.25)}" fill="none" stroke="rgba(95,211,156,.5)" stroke-width=".45" stroke-dasharray=".8 1.4"/>
+        ${dev.map(d => `${d.on && d.col ? `<circle class="wave" cx="${d.x}" cy="${d.y}" r="6" fill="none" stroke="${d.col}" stroke-width=".5"/><circle class="wave w2" cx="${d.x}" cy="${d.y}" r="6" fill="none" stroke="${d.col}" stroke-width=".5"/>` : ''}
+          <circle cx="${d.x}" cy="${d.y}" r="10" fill="url(#${d.on ? (d.col ? 'halo' : 'orb') : 'haloA'})" opacity="${d.on && !d.col ? .5 : 1}"/>
+          <circle cx="${d.x}" cy="${d.y}" r="5" fill="url(#orb)" stroke="${d.on ? (d.col || 'rgba(255,255,255,.3)') : '#f0bd5a'}" stroke-width=".45"${d.on ? '' : ' stroke-dasharray="1.2 1"'}/>
+          <g color="${d.on ? '#f1eff7' : '#f0bd5a'}">${glyph(d)}</g>`).join('')}
+        <circle cx="${sensor.x}" cy="${sensor.y}" r="3.2" fill="rgba(95,211,156,.18)"/><circle cx="${sensor.x}" cy="${sensor.y}" r="1.5" fill="#5fd39c"/>
+        <text x="${sensor.x + 3.4}" y="${sensor.y + 1.2}" font-size="3.2" fill="#5fd39c">air</text>
       </svg>
       <div class="grow"></div>
-      <div class="playing2"><div><b class="okd" style="background:${film};box-shadow:0 0 1.6cqw ${film}"></b><span>Living room · Apple TV and stereo HomePods</span></div><div><em style="margin-left:4cqw">The Long Coast · S1 E4</em></div></div>`;
+      <div class="npbar"><span class="npthumb" style="background:linear-gradient(160deg, #3a6ea5, #14213d)"></span>
+        <div style="min-width:0"><div class="npt">The Long Coast · S1 E4</div><div class="nps">Living room · TV and HomePods</div></div>
+        <span class="eq">${'<i></i>'.repeat(4)}</span></div>`;
     },
     nas: () => {
       const v = 88, R = 40, cx = 50, cy = 52, P = a => [cx - R * Math.cos(a * Math.PI), cy - R * Math.sin(a * Math.PI)];
