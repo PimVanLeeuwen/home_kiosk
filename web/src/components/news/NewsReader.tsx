@@ -11,13 +11,15 @@ interface Props {
   /** The article from the loaded list; fetched when opened from elsewhere. */
   known: Article | undefined
   groupTitle: (id: string) => string
+  /** The group's chip colours, as in the list. */
+  groupColour: (id: string) => { bg: string; fg: string }
   onReadChange: (id: string, read: boolean) => void
 }
 
 type SaveState = { state: 'idle' | 'saving' | 'saved' } | { state: 'failed'; message: string }
 
 /** One news article in the reader. Opening it marks it read for the household. */
-export function NewsReader({ id, known, groupTitle, onReadChange }: Props) {
+export function NewsReader({ id, known, groupTitle, groupColour, onReadChange }: Props) {
   const fetched = useApi<Article>(`/api/news/articles/${id}`)
   const article = known ?? fetched.data
   const content = useApi<ArticleContent>(`/api/news/articles/${id}/content`)
@@ -67,7 +69,12 @@ export function NewsReader({ id, known, groupTitle, onReadChange }: Props) {
       back={{ to: '/news', label: 'News' }}
       meta={
         <>
-          <span className="mr-1 rounded-full bg-raised px-2.5 py-0.5 text-muted">{groupTitle(article.group_id)}</span>
+          <span
+            className="mr-1 rounded-[6px] px-1.5 py-px text-[11px] font-semibold"
+            style={{ backgroundColor: groupColour(article.group_id).bg, color: groupColour(article.group_id).fg }}
+          >
+            {groupTitle(article.group_id)}
+          </span>
           <span>
             {article.source} · {formatAgo(article.published)}
           </span>

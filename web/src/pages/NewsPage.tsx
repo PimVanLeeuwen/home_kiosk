@@ -203,6 +203,7 @@ export function NewsPage() {
             id={selected}
             known={list.items.find((a) => a.id === selected)}
             groupTitle={groupTitle}
+            groupColour={colourOf}
             onReadChange={onReadChange}
           />
         ) : (

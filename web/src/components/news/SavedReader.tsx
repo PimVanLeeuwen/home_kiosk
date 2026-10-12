@@ -1,8 +1,9 @@
 import { Archive, ArchiveRestore, ExternalLink, Trash2 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ApiError, sendJson } from '../../lib/api'
 import { formatAgo } from '../../lib/format'
+import { progressOf } from '../../lib/readProgress'
 import type { ArticleContent, Bookmark } from '../../lib/newsTypes'
 import { useApi } from '../../lib/useApi'
 import { ArticleView, ReaderAction } from './ArticleView'
@@ -17,19 +18,14 @@ interface Props {
 
 const PROGRESS_DELAY_MS = 1500
 
-/** How far the article body has been scrolled past, 0 to 100. */
-function progressOf(body: HTMLElement): number {
-  const rect = body.getBoundingClientRect()
-  if (rect.height <= 0) return 0
-  const seen = (window.innerHeight - rect.top) / rect.height
-  return Math.round(Math.min(1, Math.max(0, seen)) * 100)
-}
-
 /** A Readeck bookmark in the reader. Scrolling reports read progress to Readeck. */
 export function SavedReader({ id, known, onChange, onDeleted }: Props) {
   const navigate = useNavigate()
   const content = useApi<ArticleContent>(`/api/saved/${id}/content`)
   const body = useRef<HTMLDivElement>(null)
+  const attachBody = useCallback((el: HTMLDivElement | null) => {
+    body.current = el
+  }, [])
   const [archived, setArchived] = useState(known?.archived ?? false)
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -94,11 +90,11 @@ export function SavedReader({ id, known, onChange, onDeleted }: Props) {
       content={content}
       title={title}
       url={known?.url ?? ''}
-      bodyRef={body}
+      bodyRef={attachBody}
       back={{ to: '/saved', label: 'Saved' }}
       meta={
         <>
-          {archived && <span className="mr-1 rounded-full bg-raised px-2.5 py-0.5 text-muted">Archived</span>}
+          {archived && <span className="mr-1 rounded-[6px] border border-glass-line bg-glass px-1.5 py-px text-[11px] font-semibold text-muted">Archived</span>}
           <span>
             {[known?.site ?? content.data?.site, known?.created && `saved ${formatAgo(known.created)}`]
               .filter(Boolean)

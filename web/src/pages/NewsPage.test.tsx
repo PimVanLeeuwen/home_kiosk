@@ -111,6 +111,27 @@ describe('NewsPage', () => {
     expect(screen.queryByRole('button', { name: /Show more/ })).not.toBeInTheDocument()
   })
 
+  it('shows a leading image as the hero, a reading-progress line and the group in its colour', async () => {
+    setup(
+      { '/api/news/articles/a1/content': { ...CONTENT, blocks: [CONTENT.blocks[2], ...CONTENT.blocks.filter((_, i) => i !== 2)] } },
+      '/news?a=a1',
+    )
+
+    const reader = await screen.findByRole('article', { name: /Miljoenennota/ })
+    const hero = await within(reader).findByRole('img', { name: 'Prinsjesdag' })
+    // The hero stands above the text, not inside it.
+    expect(hero.closest('figure')?.nextElementSibling?.textContent).toMatch(/^Het kabinet/)
+    expect(within(reader).getByRole('progressbar', { name: 'Read' })).toHaveAttribute('aria-valuemax', '100')
+    expect(within(reader).getByText('Nederland')).toHaveStyle({ color: '#b4aaff' })
+  })
+
+  it('leaves an image later in the article where it is', async () => {
+    setup({}, '/news?a=a1')
+    const reader = await screen.findByRole('article', { name: /Miljoenennota/ })
+    const image = await within(reader).findByRole('img', { name: 'Prinsjesdag' })
+    expect(image.closest('figure')?.previousElementSibling?.textContent).toBe('Wat verandert er')
+  })
+
   it('marks everything read', async () => {
     const { fetchMock } = setup({ 'POST /api/news/read-all': { marked: 2 } })
 
