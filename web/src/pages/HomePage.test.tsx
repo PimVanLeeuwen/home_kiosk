@@ -255,12 +255,16 @@ describe('HomePage', () => {
     })
 
     const weather = await screen.findByRole('region', { name: 'Weather' })
-    expect(within(weather).getByText('13 °C')).toBeInTheDocument()
+    // The temperature sits inside the rain ring, now at the top.
+    const ring = within(weather).getByRole('img', { name: 'Rain from 15:10, up to 1,4 mm/h' })
+    expect(ring).toHaveTextContent('13°')
+    expect(ring.querySelectorAll('[data-wet]')).toHaveLength(2)
+    expect(within(weather).getByText('Rain from 15:10, up to 1,4 mm/h')).toBeInTheDocument()
     expect(within(weather).getByText('Zwaar bewolkt')).toBeInTheDocument()
     expect(within(weather).getByText('Feels like 11 °C · Wind 4 Bft ZW · Humidity 94%')).toBeInTheDocument()
     expect(within(weather).getByRole('img', { name: 'Rain from 15:10, up to 1,4 mm/h' })).toBeInTheDocument()
     expect(within(weather).getByRole('link', { name: 'Buienradar' })).toHaveAttribute('href', 'https://www.buienradar.nl')
-    expect(weather).toHaveTextContent('Sunset 18:57')
+    expect(weather).toHaveTextContent('Sunrise 15:00 · Sunset 18:57')
     expect(weather).toHaveTextContent(', De Bilt')
   })
 

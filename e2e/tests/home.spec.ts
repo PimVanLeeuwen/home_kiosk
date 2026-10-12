@@ -50,7 +50,8 @@ test('Home shows the weather with the rain in the next two hours', async ({ page
   await page.goto('/')
 
   const card = page.getByRole('region', { name: 'Weather' })
-  await expect(card).toContainText('13 °C')
-  await expect(card.getByRole('img', { name: 'Dry for the next 2 hours' })).toBeVisible()
+  const ring = card.getByRole('img', { name: 'Dry for the next 2 hours' })
+  await expect(ring).toBeVisible()
+  await expect(ring).toContainText('13°')
   await expect(card.getByRole('link', { name: 'Buienradar' })).toBeVisible()
 })
