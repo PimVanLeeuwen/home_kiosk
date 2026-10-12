@@ -6,6 +6,7 @@ import { AllocationCard } from '../components/portfolio/AllocationCard'
 import { DegiroImport } from '../components/portfolio/DegiroImport'
 import { HoldingView } from '../components/portfolio/HoldingView'
 import { HoldingsCard } from '../components/portfolio/HoldingsCard'
+import { MoversCard } from '../components/portfolio/MoversCard'
 import { MarketsCard } from '../components/portfolio/MarketsCard'
 import { ValueCard } from '../components/portfolio/ValueCard'
 import { cn } from '../lib/cn'
@@ -97,6 +98,7 @@ export function PortfolioPage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="min-w-0 space-y-4">
+          <MoversCard holdings={data.holdings} />
           <HoldingsCard holdings={data.holdings} currency={data.currency} />
         </div>
         <div className="min-w-0 space-y-4">

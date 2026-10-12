@@ -28,7 +28,9 @@ test('Portfolio shows the summary and opens a holding', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'Value' })).toContainText('€ 9.143')
   await expect(page.getByRole('region', { name: 'Summary' })).toContainText('Total gain')
   await expect(page.getByRole('img', { name: /Portfolio value, 1Y/ })).toBeVisible()
-  await page.getByRole('link', { name: /NVDA/ }).filter({ visible: true }).click()
+  // The heat map's tile and the holdings row both open the holding.
+  await expect(page.getByRole('region', { name: "Today's movers" }).getByRole('link', { name: /^NVDA, / }).filter({ visible: true })).toHaveAttribute('href', '/portfolio?h=YAHOO%2FNVDA')
+  await page.getByRole('region', { name: /^Holdings/ }).getByRole('link', { name: /NVDA/ }).filter({ visible: true }).click()
 
   await expect(page).toHaveURL('/portfolio?h=YAHOO%2FNVDA')
   await expect(page.getByRole('heading', { name: 'NVDA', level: 1 })).toBeVisible()

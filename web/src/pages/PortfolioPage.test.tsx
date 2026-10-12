@@ -76,6 +76,13 @@ describe('PortfolioPage', () => {
     expect(symbols()).toEqual(['NVDA', 'ASML.AS', 'XDWT.DE'])
 
     expect(within(table).getAllByRole('link')[0]).toHaveAttribute('href', '/portfolio?h=YAHOO%2FNVDA')
+    // Today as a tinted pill, and a thin bar for the weight against the biggest holding.
+    const first = within(table).getAllByRole('row')[1]
+    expect(within(first).getByText('+1,09%')).toHaveClass('text-up')
+    expect((first.querySelector('[aria-hidden="true"] > span') as HTMLElement).style.width).toMatch(/^97\.39/)
+    // The movers sit above, one tile per holding.
+    const movers = screen.getByRole('region', { name: "Today's movers" })
+    expect(movers).toHaveTextContent('2 up · 1 down')
   })
 
   it('shows allocation and markets', async () => {
