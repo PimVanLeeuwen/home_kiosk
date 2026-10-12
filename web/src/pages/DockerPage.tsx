@@ -1,20 +1,23 @@
 import { Search } from 'lucide-react'
 import { useState } from 'react'
 import { ContainerRow } from '../components/docker/ContainerRow'
+import { DockerTiles } from '../components/docker/DockerTiles'
 import { Card, Loading, StaleNote, Unavailable } from '../components/home/Card'
 import { PageHeader } from '../components/PageHeader'
+import { Pill } from '../components/ui/Pill'
+import { cn } from '../lib/cn'
 import { containerStatus } from '../lib/containers'
-import { formatBytes, formatWhen } from '../lib/format'
-import type { ContainerLoad, ContainerUpdate, DockerOverview, Sparklines } from '../lib/types'
+import { formatWhen } from '../lib/format'
+import type { ContainerLoad, ContainerUpdate, DockerOverview, Nas, Sparklines } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
 type Order = 'stack' | 'cpu' | 'memory' | 'name'
 
 const ORDERS: Record<Order, string> = {
   stack: 'By stack',
-  cpu: 'Most CPU',
-  memory: 'Most memory',
-  name: 'By name',
+  cpu: 'CPU',
+  memory: 'Memory',
+  name: 'Name',
 }
 
 function sortRows(rows: ContainerLoad[], order: Order): ContainerLoad[] {
@@ -33,6 +36,7 @@ export function DockerPage() {
   const overview = useApi<DockerOverview>('/api/docker', 60_000)
   const sparks = useApi<Sparklines>('/api/docker/sparklines', 300_000)
   const updates = useApi<ContainerUpdate[]>('/api/docker/updates', 300_000)
+  const nas = useApi<Nas>('/api/nas', 300_000)
   const [order, setOrder] = useState<Order>('stack')
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState<string | null>(null)
@@ -42,9 +46,7 @@ export function DockerPage() {
   const q = query.trim().toLowerCase()
   const rows = sortRows(all.filter((c) => !q || `${c.name} ${c.image} ${c.project ?? ''}`.toLowerCase().includes(q)), order)
   const updatesFor = (name: string) => (updates.data ?? []).filter((u) => u.name === name)
-  // Measured from the snapshot's own time, so rendering stays pure.
-  const weekAgo = new Date(overview.data?.as_of ?? 0).getTime() - 7 * 86_400_000
-  const recentUpdates = (updates.data ?? []).filter((u) => new Date(u.at).getTime() > weekAgo).length
+  const needLook = all.filter((c) => ['down', 'unhealthy'].includes(containerStatus(c))).length
 
   const groups: [string, ContainerLoad[]][] =
     order === 'stack'
@@ -77,28 +79,20 @@ export function DockerPage() {
       <PageHeader
         title="Docker"
         subtitle={overview.data ? `${running} of ${all.length} running` : 'Containers, their load and update history'}
+        actions={
+          overview.data &&
+          (needLook ? <Pill tone="warn">{needLook} need{needLook === 1 ? 's' : ''} a look</Pill> : <Pill tone="up">All running</Pill>)
+        }
       />
 
       {!overview.data && (overview.error ? <Unavailable what="Container data" /> : <Loading />)}
 
       {overview.data && (
         <>
-          <dl className="mb-5 grid grid-cols-2 gap-2.5 md:gap-4 xl:grid-cols-4">
-            {[
-              ['Running', `${running} / ${all.length}`],
-              ['CPU, all containers', `${overview.data.cpu_pct.toFixed(1).replace('.', ',')}% of the NAS`],
-              ['Memory, all containers', formatBytes(overview.data.mem_bytes)],
-              ['Updates, last 7 days', String(recentUpdates)],
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-[14px] border border-line-soft bg-card px-4 py-3.5">
-                <dt className="text-[12.5px] text-muted">{label}</dt>
-                <dd className="text-[15px] font-semibold">{value}</dd>
-              </div>
-            ))}
-          </dl>
+          <DockerTiles overview={overview.data} updates={updates.data ?? []} memTotal={nas.data?.mem_total_bytes} />
 
           <div className="mb-4 flex flex-wrap items-center gap-3">
-            <label className="flex min-w-0 flex-1 basis-64 items-center gap-2 rounded-[10px] border border-line bg-card px-3 py-2 text-muted focus-within:border-accent-line">
+            <label className="flex min-w-0 flex-1 basis-64 items-center gap-2 rounded-[11px] border border-glass-line bg-glass px-3 py-2 text-muted focus-within:border-accent-line">
               <Search aria-hidden="true" className="size-4 shrink-0" />
               <span className="sr-only">Filter containers</span>
               <input
@@ -109,20 +103,27 @@ export function DockerPage() {
                 className="min-w-0 flex-1 bg-transparent text-fg placeholder:text-faint focus:outline-none"
               />
             </label>
-            <label className="flex items-center gap-2 text-[13px] text-muted">
-              Order
-              <select
-                value={order}
-                onChange={(e) => setOrder(e.target.value as Order)}
-                className="rounded-[10px] border border-line bg-card px-3 py-2 text-fg"
-              >
-                {Object.entries(ORDERS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div
+              role="radiogroup"
+              aria-label="Order"
+              className="flex w-full gap-0.5 rounded-[11px] border border-glass-line bg-glass p-[3px] text-[12.5px] sm:w-auto"
+            >
+              {(Object.entries(ORDERS) as [Order, string][]).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={order === value}
+                  onClick={() => setOrder(value)}
+                  className={cn(
+                    'flex-1 rounded-[8px] px-2.5 py-1.5 whitespace-nowrap sm:flex-none',
+                    order === value ? 'bg-accent/20 text-fg shadow-[inset_0_0_0_1px_rgb(143_128_255/0.4)]' : 'text-muted hover:text-fg',
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <Card title="Containers">

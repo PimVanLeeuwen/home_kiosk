@@ -61,10 +61,31 @@ describe('DockerPage', () => {
     renderRoute('/docker')
 
     expect(await screen.findByText('4 of 5 running')).toBeInTheDocument()
-    expect(screen.getByText('14,6% of the NAS')).toBeInTheDocument()
-    expect(screen.getByText('2,4 GB')).toBeInTheDocument()
+    // One container stopped: the header says it needs a look.
+    expect(screen.getByText('1 needs a look')).toBeInTheDocument()
+    const tile = (name: string) => screen.getByRole('region', { name })
+    expect(tile('Running')).toHaveTextContent('4 / 5')
+    expect(tile('Running').querySelectorAll('i.bg-down')).toHaveLength(1)
+    expect(tile('CPU, all containers')).toHaveTextContent('14,6%of the NAS')
+    // The busiest containers as bars, busiest first.
+    expect(within(tile('CPU, all containers')).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+      'jellyfin12,5%', 'gluetun1,2%', 'node-exporter1,2%',
+    ])
+    expect(tile('Memory, all containers')).toHaveTextContent('2,4 GB')
+    expect(within(tile('Memory, all containers')).getAllByRole('listitem')[0]).toHaveTextContent('jellyfin')
     // Only the update from today counts as the last 7 days.
-    expect(within(screen.getByText('Updates, last 7 days').parentElement!).getByText('1')).toBeInTheDocument()
+    expect(tile('Updates, last 7 days')).toHaveTextContent('1image replaced')
+  })
+
+  it('says all are running, and the NAS memory when it is known', async () => {
+    setup({
+      '/api/docker': { ...OVERVIEW, containers: OVERVIEW.containers.filter((x) => x.state === 'running') },
+      '/api/nas': { mem_total_bytes: 32e9 },
+    })
+    renderRoute('/docker')
+
+    expect(await screen.findByText('All running')).toBeInTheDocument()
+    expect(await within(screen.getByRole('region', { name: 'Memory, all containers' })).findByText('of 32 GB')).toBeInTheDocument()
   })
 
   it('groups containers by stack with a running count', async () => {
@@ -83,7 +104,8 @@ describe('DockerPage', () => {
     renderRoute('/docker')
     await screen.findByText('4 of 5 running')
 
-    fireEvent.change(screen.getByRole('combobox', { name: 'Order' }), { target: { value: 'cpu' } })
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Order' })).getByRole('radio', { name: 'CPU' }))
+    expect(screen.getByRole('radio', { name: 'CPU' })).toHaveAttribute('aria-checked', 'true')
     const all = screen.getByRole('region', { name: 'Containers' })
     expect(names(all).slice(0, 2)).toEqual(['jellyfin', 'gluetun'])
 
