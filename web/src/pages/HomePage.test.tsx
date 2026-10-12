@@ -122,7 +122,22 @@ describe('HomePage', () => {
     expect(links[0]).toHaveAttribute('href', '/news?a=a1')
     expect(links[0]).toHaveTextContent('unread')
     expect(links[2]).not.toHaveTextContent('unread')
-    expect(await within(news).findByText(/NOS · Nederland/)).toBeInTheDocument()
+    // The group is a chip in its own colour before the source; the newest story leads.
+    const chip = await within(news).findByText('Nederland')
+    expect(chip).toHaveStyle({ color: '#b4aaff' })
+    expect(within(news).getAllByText('Tech')[0]).toHaveStyle({ color: '#8cc4ff' })
+    expect(within(news).getByText(/^NOS · /)).toBeInTheDocument()
+    expect(within(news).getByText(/Kabinet presenteert Miljoenennota/)).toHaveClass('text-[17px]')
+    expect(within(news).getByText(/Jellyfin 12.1 lands/)).not.toHaveClass('text-[17px]')
+    expect(within(news).getByText('2 unread')).toBeInTheDocument()
+  })
+
+  it('leaves the unread pill out when everything is read', async () => {
+    setup({ '/api/news/groups': NEWS_GROUPS.map((g) => ({ ...g, unread: 0 })) })
+
+    const news = await screen.findByRole('region', { name: 'Latest news' })
+    await within(news).findByText('Nederland')
+    expect(within(news).queryByText(/^\d+ unread$/)).not.toBeInTheDocument()
   })
 
   it('shows the last backup and service tiles with stats', async () => {
