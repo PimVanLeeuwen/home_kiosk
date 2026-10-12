@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of the hub's Docker page in the desk panels' visual language, calmer, as Home,
+     NAS and Backups (docs/hub-*-mockup.html). Example data only. Not served by the hub. -->
+<title>Home hub: Docker restyled</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .07);
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.chrome { max-width: 1480px; margin: 0 auto; padding: 22px 20px 10px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+.chrome h1 { margin: 0; font-size: 22px; font-weight: 600; } .chrome p { margin: 3px 0 0; color: var(--muted); max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { background: #17181c; border: 1px solid var(--line); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: rgba(124, 108, 242, .18); border-color: var(--accent); }
+.stage { display: flex; justify-content: center; padding: 14px 20px 40px; }
+.device { width: 1440px; height: 900px; border-radius: 14px; overflow: hidden; border: 1px solid #1a1b1f; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.device.mobile { width: 390px; height: 844px; border-radius: 44px; border: 10px solid #000; }
+.app { display: flex; height: 100%; background: var(--canvas); position: relative; }
+.side { width: 240px; flex: none; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; }
+.side b.brand { font-size: 15px; padding: 0 10px; } .side small.host { color: var(--faint); padding: 0 10px 14px; font-size: 12px; }
+.side .grp { font-size: 11px; letter-spacing: .08em; color: var(--faint); padding: 14px 10px 4px; text-transform: uppercase; font-weight: 600; }
+.side a { padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; display: flex; gap: 10px; align-items: center; }
+.side a.on { background: rgba(124,108,242,.14); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent-line); }
+.side a i { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; opacity: .7; }
+.main { flex: 1; margin: 8px 8px 8px 0; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); overflow: auto; }
+.mobile .side { display: none; } .mobile .main { margin: 0; border-radius: 0; border: 0; padding-bottom: 74px; }
+.tabbar { display: none; }
+.mobile .tabbar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 74px; background: rgba(8,9,10,.92); border-top: 1px solid var(--line-soft); justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); }
+.mobile .tabbar span { display: grid; justify-items: center; gap: 3px; } .mobile .tabbar span.on { color: var(--accent-fg); }
+.mobile .tabbar i { width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 5px; }
+.page { padding: 36px 44px 48px; } .mobile .page { padding: 58px 16px 24px; }
+.ph { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.ph h2 { font-size: 26px; font-weight: 600; margin: 0; } .ph p { margin: 4px 0 0; color: var(--muted); }
+
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 20px 24px; min-width: 0; position: relative; overflow: hidden; }
+.mobile .card { padding: 18px; }
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; white-space: nowrap; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.14); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--f-mono); }
+.up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); } .muted { color: var(--muted); } .faint { color: var(--faint); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; background: var(--c, var(--up)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--up)) 18%, transparent), 0 0 10px var(--c, var(--up)); }
+.dot.pulse { animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent), 0 0 18px var(--c); } }
+
+
+.tiles4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.mobile .tiles4 { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.tiles4 .card { padding: 16px 18px; } .mobile .tiles4 .card { padding: 13px 14px; }
+.fig { font-size: 26px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; } .mobile .fig { font-size: 21px; }
+.sub2 { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.cdots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+.cdots i { width: 7px; height: 7px; border-radius: 50%; background: #3fb97f; box-shadow: 0 0 5px rgba(63,185,127,.7); }
+.cdots i.w { background: #e0a23b; box-shadow: 0 0 6px #e0a23b; } .cdots i.d { background: #e5646a; box-shadow: 0 0 6px #e5646a; }
+.topbars { display: grid; gap: 5px; margin-top: 10px; font-size: 11.5px; }
+.topbars div { display: grid; grid-template-columns: 74px 1fr 34px; gap: 8px; align-items: center; }
+.mobile .topbars div { grid-template-columns: 56px 1fr 30px; }
+.topbars b { font-weight: 400; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--f-mono); font-size: 11px; }
+.topbars span.bar { height: 4px; border-radius: 3px; background: var(--raised); overflow: hidden; } .topbars span.bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #6f60ea, #b4a9ff); }
+.split { display: flex; height: 8px; border-radius: 5px; overflow: hidden; gap: 2px; margin-top: 12px; background: var(--raised); }
+.split i { display: block; height: 100%; }
+.split-l { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; color: var(--muted); margin-top: 6px; } .split-l i { display: inline-block; width: 7px; height: 7px; border-radius: 2px; margin-right: 4px; }
+.week { display: flex; gap: 6px; margin-top: 12px; align-items: end; }
+.week span { display: grid; justify-items: center; gap: 3px; font-size: 10px; color: var(--faint); }
+.week b { width: 10px; border-radius: 3px; background: rgba(143,128,255,.25); display: block; } .week b.on { background: #8f80ff; box-shadow: 0 0 6px #8f80ff; }
+
+.ctrl { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+.search { flex: 1 1 260px; display: flex; gap: 8px; align-items: center; border-radius: 11px; border: 1px solid var(--glass-line); background: var(--glass); padding: 9px 12px; color: var(--faint); font-size: 13.5px; }
+.search svg { width: 15px; height: 15px; }
+.seg { display: inline-flex; border-radius: 11px; border: 1px solid var(--glass-line); background: var(--glass); padding: 3px; gap: 2px; font-size: 12.5px; }
+.seg span { padding: 5px 11px; border-radius: 8px; color: var(--muted); white-space: nowrap; } .seg span.on { background: rgba(124,108,242,.2); color: var(--fg); box-shadow: inset 0 0 0 1px rgba(143,128,255,.4); }
+.mobile .seg { width: 100%; justify-content: space-between; } .mobile .seg span { padding: 5px 8px; }
+
+.stack { margin-top: 16px; } .stack:first-child { margin-top: 0; }
+.stack h4 { margin: 0 0 6px; display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+.stack h4 .cnt { letter-spacing: 0; text-transform: none; font-weight: 600; font-size: 10.5px; border-radius: 6px; padding: 1px 6px; background: rgba(63,185,127,.13); color: var(--up); }
+.stack h4 .cnt.w { background: rgba(224,162,59,.15); color: var(--warn); } .stack h4 .cnt.d { background: rgba(229,100,106,.14); color: var(--down); }
+.crow { display: grid; grid-template-columns: minmax(0, 1fr) 90px 90px 110px 150px 14px; gap: 14px; align-items: center; padding: 9px 10px; border-radius: 10px; }
+.crow:hover, .crow.open { background: rgba(255,255,255,.03); }
+.crow.bad { background: linear-gradient(90deg, rgba(229,100,106,.10), transparent 60%); }
+.crow .nm { display: flex; gap: 10px; align-items: center; min-width: 0; } .crow .nm .mono { font-size: 13px; display: block; } .crow .nm small { display: block; font-size: 11.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crow .v { font-size: 13px; text-align: right; } .crow .v .lbar { height: 3px; border-radius: 2px; background: var(--raised); margin-top: 4px; overflow: hidden; } .crow .v .lbar i { display: block; height: 100%; background: #8f80ff; border-radius: 2px; }
+.crow .net { font-size: 12px; color: var(--muted); text-align: right; white-space: nowrap; }
+.crow .chev { color: var(--faint); font-size: 11px; }
+.mobile .crow { grid-template-columns: minmax(0, 1fr) 64px 60px; gap: 8px; } .mobile .crow .hide-m { display: none; }
+.detail { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 6px 10px 14px 28px; }
+.mobile .detail { grid-template-columns: 1fr; padding-left: 10px; }
+.detail .panel { border-radius: 11px; border: 1px solid var(--glass-line); background: var(--glass); padding: 10px 12px 0; overflow: hidden; }
+.detail .panel .area { margin: 6px -12px 0; }
+.detail dl { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 12.5px; margin: 0; } .detail dt { color: var(--muted); } .detail dd { margin: 0; }
+
+.upd { display: grid; gap: 0; border-left: 1px solid var(--line); margin-left: 6px; padding-left: 18px; }
+.upd div { position: relative; display: grid; grid-template-columns: 150px 150px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding: 7px 0; font-size: 13px; }
+.upd div::before { content: ''; position: absolute; left: -22px; top: 13px; width: 7px; height: 7px; border-radius: 50%; background: #8f80ff; box-shadow: 0 0 7px #8f80ff; }
+.upd div.old::before { background: var(--faint); box-shadow: none; }
+.mobile .upd div { grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; } .mobile .upd .img, .mobile .upd .idc { grid-column: 1 / -1; }
+.crow .nm .mono { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .crow .nm > span:last-child { min-width: 0; overflow: hidden; }
+.idc { font-family: var(--f-mono); font-size: 11px; color: var(--muted); white-space: nowrap; } .idc span { border-radius: 5px; padding: 1px 5px; background: var(--glass); border: 1px solid var(--glass-line); } .idc span.new { border-color: rgba(143,128,255,.4); color: var(--accent-fg); }
+.notes { max-width: 1440px; margin: 0 auto; padding: 0 20px 50px; color: var(--muted); columns: 2 420px; column-gap: 40px; }
+.notes h4 { color: var(--fg); margin: 0 0 6px; font-size: 14px; } .notes ul { margin: 0 0 16px; padding-left: 18px; } .notes li { margin: 3px 0; break-inside: avoid; }
+@media (prefers-reduced-motion: reduce) { .dot.pulse { animation: none; } }
+</style>
+
+<div class="chrome">
+  <div>
+    <h1>Docker, restyled <span class="pill acc" style="margin-left:8px;vertical-align:3px">example data</span></h1>
+    <p>The Docker page in the language of the restyled Home, NAS and Backups: four instrument tiles, a segmented order switch, rows with glowing status dots and CPU lines and thin load bars, glowing 24-hour areas when a row opens, and the image updates as a timeline. Same data as today.</p>
+  </div>
+  <div class="ctl">
+    <button data-v="desktop" aria-pressed="true">Desktop</button>
+    <button data-v="mobile" aria-pressed="false">Mobile</button>
+    <button data-s="ok" aria-pressed="true">All well</button>
+    <button data-s="look" aria-pressed="false">Something needs a look</button>
+  </div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<div class="notes">
+  <h4>What changes</h4>
+  <ul>
+    <li><b>Header:</b> as today, plus an All running / N need a look pill.</li>
+    <li><b>Running:</b> the count with a dot per container, unhealthy amber and stopped red (pulsing).</li>
+    <li><b>CPU, all containers:</b> the share of the NAS with the three busiest containers as bars. <b>Memory:</b> the total as one bar split by the biggest users, the rest in grey.</li>
+    <li><b>Updates, last 7 days:</b> the count with a bar per day, lit on days with an update.</li>
+  </ul>
+  <ul>
+    <li><b>Filter and order:</b> a glass search field and a segmented switch (By stack, CPU, Memory, Name) instead of a select.</li>
+    <li><b>Containers:</b> per stack a heading with a tinted count; each row with a glowing status dot (pulsing when it needs a look), name and image, a glowing 24-hour CPU line, CPU and memory with a thin load bar, and network; a stopped or unhealthy row is tinted. Opened, two glass panels with the 24-hour CPU and memory areas (as on the NAS page) and the status, image and last update.</li>
+    <li><b>Image updates:</b> a timeline, newest first, with the container, image and the old and new image ids as chips (the new one lit).</li>
+  </ul>
+</div>
+
+<script>
+const st = { view: 'desktop', state: 'ok' };
+const nl = (n, d = 1) => n.toFixed(d).replace('.', ',');
+const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+function area(vals, color, { line2 = null, W = 300, H = 70, peak = true } = {}) {
+  const max = Math.max(...vals, ...(line2 || [])), min = 0, sp = max - min || 1;
+  const P = (v, i, n) => `${(i / (n - 1) * W).toFixed(1)},${(6 + (1 - (v - min) / sp) * (H - 10)).toFixed(1)}`;
+  const pts = vals.map((v, i) => P(v, i, vals.length)).join(' ');
+  const pk = vals.indexOf(Math.max(...vals)), [px, py] = P(vals[pk], pk, vals.length).split(',');
+  const id = 'a' + Math.random().toString(36).slice(2, 7);
+  return `<svg class="area" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="calc(100% + 48px)" height="${st.view === 'mobile' ? 48 : 64}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px ${color})"/>
+    ${line2 ? `<polyline points="${line2.map((v, i) => P(v, i, line2.length)).join(' ')}" fill="none" stroke="#9a9ea7" stroke-width="1" stroke-opacity=".7" vector-effect="non-scaling-stroke"/>` : ''}
+    ${peak ? `<circle cx="${px}" cy="${py}" r="2.2" fill="${color}" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${color})"/>` : ''}</svg>`;
+}
+
+function gauge(v, warnAt = 90) {
+  const R = 40, cx = 50, cy = 52, P = (a, r = R) => [cx - r * Math.cos(a * Math.PI), cy - r * Math.sin(a * Math.PI)];
+  const arc = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+  const ticks = Array.from({ length: 21 }, (_, i) => { const a = i / 20, [x0, y0] = P(a, R + 6), [x1, y1] = P(a, R + (i % 5 ? 7.5 : 9)); return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,${i % 5 ? .14 : .32})" stroke-width=".5"/>`; }).join('');
+  const [tx, ty] = P(warnAt / 100, R + 8), over = v >= warnAt, id = 'g' + Math.random().toString(36).slice(2, 7);
+  return `<svg viewBox="0 2 100 56"><defs><linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="#6f60ea"/><stop offset=".75" stop-color="#b4a9ff"/><stop offset="1" stop-color="${over ? '#e0a23b' : '#cfc8ff'}"/></linearGradient>
+    <filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${ticks}
+    <path d="${arc(0, 1)}" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="${arc(0, v / 100)}" stroke="url(#${id})" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#${id}f)"/>
+    <circle cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="1.3" fill="#e5646a"/>
+    <text x="50" y="50" text-anchor="middle" font-size="19" font-weight="600" fill="#ecedef" letter-spacing="-.8">${Math.round(v)}%</text></svg>`;
+}
+
+function ring(pct, color, inner, sub) {
+  const r = 42, c = 2 * Math.PI * r;
+  return `<svg viewBox="0 0 100 100" width="100%"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 4px ${color})"/>
+    <text x="50" y="52" text-anchor="middle" font-size="20" font-weight="600" fill="#ecedef">${inner}</text><text x="50" y="66" text-anchor="middle" font-size="8.5" fill="#9a9ea7">${sub}</text></svg>`;
+}
+
+function seal(ok, size = 64) {
+  const c = ok ? '#3fb97f' : '#e5646a';
+  return `<svg viewBox="0 0 60 60" width="${size}"><circle cx="30" cy="30" r="25" fill="none" stroke="${c}" stroke-opacity=".45" stroke-dasharray="1.5 2.4"/>
+    <path d="M30 11 L45 17 V29 C45 39 38 46 30 49 C22 46 15 39 15 29 V17 Z" fill="${c}" fill-opacity=".13" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/>
+    ${ok ? `<path d="M23.5 30l4.5 4.5 8.5-9" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="M30 22v10M30 37v.5" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`}</svg>`;
+}
+
+
+const C = (name, stack, img, cpu, mem, rx, tx, s = 'up') => ({ name, stack, img, cpu, mem, rx, tx, s });
+function containers(look) {
+  return [
+    C('dockge', 'dockge', 'louislam/dockge:1', .3, .09, '1 kB/s', '0 kB/s'),
+    C('ghostfolio', 'ghostfolio', 'ghostfolio/ghostfolio:latest', 1.2, .41, '4 kB/s', '2 kB/s'), C('ghostfolio-postgres', 'ghostfolio', 'postgres:17', .4, .18, '1 kB/s', '1 kB/s'), C('ghostfolio-redis', 'ghostfolio', 'redis:8', .2, .02, '0 kB/s', '0 kB/s'),
+    C('home-kiosk-collector', 'home_kiosk', 'pimvanleeuwen/home-kiosk-collector', 2.1, .16, '12 kB/s', '3 kB/s'), C('home-kiosk-dashboard', 'home_kiosk', 'pimvanleeuwen/home-kiosk-dashboard', .1, .02, '2 kB/s', '9 kB/s'),
+    C('immich_server', 'immich', 'ghcr.io/immich-app/immich-server:v1', 3.4, 1.2, '40 kB/s', '880 kB/s', look ? 'unhealthy' : 'up'), C('immich_ml', 'immich', 'ghcr.io/immich-app/immich-machine-learning:v1', .6, 2.1, '0 kB/s', '0 kB/s'),
+    C('jellyfin', 'jellyfin', 'jellyfin/jellyfin:latest', 12.5, 1.4, '1,2 MB/s', '6,4 MB/s'),
+    C('transmission', 'qbittorrent', 'linuxserver/transmission', look ? null : .8, look ? null : .3, look ? '–' : '310 kB/s', look ? '' : '40 kB/s', look ? 'down' : 'up'),
+    C('sonarr', 'arr', 'linuxserver/sonarr', .9, .31, '2 kB/s', '1 kB/s'), C('radarr', 'arr', 'linuxserver/radarr', .7, .29, '2 kB/s', '1 kB/s'),
+  ];
+}
+const col = s => s === 'up' ? '#3fb97f' : s === 'unhealthy' ? '#e0a23b' : '#e5646a';
+function line(seed, n = 48) { const r = seeded(seed); return Array.from({ length: n }, (_, i) => 1 + 2 * Math.abs(Math.sin(i / 5 + seed)) + (i % 13 === 0 ? 4 : 0) + r()); }
+function mini(vals) { const max = Math.max(...vals), pts = vals.map((v, i) => `${(i / (vals.length - 1) * 80).toFixed(1)},${(18 - v / max * 15).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 80 20" width="80" height="20" style="display:block;overflow:visible"><polyline points="${pts}" fill="none" stroke="#8f80ff" stroke-width="1.3" stroke-linejoin="round" style="filter:drop-shadow(0 0 2px #8f80ff)"/></svg>`; }
+function render() {
+  const look = st.state === 'look', mob = st.view === 'mobile';
+  const list = containers(look), all = 37, bad = list.filter(c => c.s !== 'up');
+  const nav = [['', 'Home'], ['Read', 'News'], ['', 'Saved'], ['Money', 'Portfolio'], ['House', 'NAS'], ['', 'Docker', 1], ['', 'Backups'], ['', 'Services'], ['Code', 'Repos'], ['System', 'Alerts'], ['', 'Settings']];
+  const stacks = [...new Set(list.map(c => c.stack))].sort();
+  const top = [...list].filter(c => c.cpu != null).sort((a, b) => b.cpu - a.cpu).slice(0, 3);
+  const memTop = [['immich_ml', 2.1, '#8f80ff'], ['jellyfin', 1.4, '#7cc4ff'], ['immich_server', 1.2, '#7fe0b0']];
+  const memAll = 7.3;
+  const row = (c, open) => `<div class="crow ${c.s !== 'up' ? 'bad' : ''} ${open ? 'open' : ''}"><span class="nm"><span class="dot ${c.s !== 'up' ? 'pulse' : ''}" style="--c:${col(c.s)}"></span><span style="min-width:0"><span class="mono">${c.name}</span><small>${c.img}</small></span></span>
+    <span class="hide-m">${c.cpu == null ? '' : mini(line(c.name.length))}</span>
+    <span class="v">${c.cpu == null ? '–' : `${nl(c.cpu)}%<div class="lbar"><i style="width:${Math.min(100, c.cpu / 15 * 100)}%"></i></div>`}</span>
+    <span class="v">${c.mem == null ? '–' : `${c.mem < 1 ? Math.round(c.mem * 1000) + ' MB' : nl(c.mem) + ' GB'}<div class="lbar"><i style="width:${Math.min(100, c.mem / 2.5 * 100)}%;background:#7cc4ff"></i></div>`}</span>
+    <span class="net hide-m">${c.s === 'down' ? '<span class="down">exited 2 h ago</span>' : `↓ ${c.rx} ↑ ${c.tx}`}</span><span class="chev hide-m">${open ? '▲' : '▼'}</span></div>`;
+  const detail = `<div class="detail"><div class="panel"><div style="display:flex;justify-content:space-between;font-size:12.5px"><span class="muted">CPU, last 24 hours</span><span>peak 18%</span></div>${area(line(4, 96).map((v, i) => v * 3 + (i > 60 && i < 70 ? 8 : 0)), '#8f80ff')}</div>
+    <div class="panel"><div style="display:flex;justify-content:space-between;font-size:12.5px"><span class="muted">Memory, last 24 hours</span><span>limit 8 GB</span></div>${area(Array.from({ length: 96 }, (_, i) => 1.2 + Math.sin(i / 20) * .15), '#7cc4ff')}</div>
+    <dl><dt>Status</dt><dd>Up 2 days</dd><dt>Image</dt><dd class="mono" style="font-size:12px">jellyfin/jellyfin:latest</dd><dt>Last update</dt><dd>Sat 10 Oct 04:02</dd></dl></div>`;
+  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'], upd = [0, 1, 0, 0, 3, 0, 1];
+  const d = document.getElementById('device');
+  d.className = 'device' + (mob ? ' mobile' : '');
+  d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">dev-minotaur</small>
+    ${nav.map(x => `${x[0] ? `<span class="grp">${x[0]}</span>` : ''}<a href="#" class="${x[2] ? 'on' : ''}"><i></i>${x[1]}</a>`).join('')}</nav>
+    <main class="main"><div class="page">
+      <div class="ph"><div><h2>Docker</h2><p>${look ? 36 : 37} of ${all} running</p></div><span class="pill ${look ? 'warn' : 'up'}">${look ? '2 need a look' : 'All running'}</span></div>
+      <div class="tiles4">
+        <section class="card"><div class="head" style="margin-bottom:6px"><h3>Running</h3></div><div class="fig">${look ? 36 : 37} <span class="muted" style="font-size:.55em;font-weight:500">/ ${all}</span></div>
+          <div class="cdots">${Array.from({ length: all }, (_, i) => `<i class="${look && i === 30 ? 'd' : look && i === 12 ? 'w' : ''}"></i>`).join('')}</div></section>
+        <section class="card"><div class="head" style="margin-bottom:6px"><h3>CPU, all containers</h3></div><div class="fig">13,5%</div><div class="sub2">of the NAS</div>
+          <div class="topbars">${top.map(c => `<div><b>${c.name}</b><span class="bar"><i style="width:${c.cpu / 13.5 * 100}%"></i></span><span style="text-align:right">${nl(c.cpu)}%</span></div>`).join('')}</div></section>
+        <section class="card"><div class="head" style="margin-bottom:6px"><h3>Memory, all containers</h3></div><div class="fig">${nl(memAll)} GB</div><div class="sub2">of 32 GB</div>
+          <div class="split">${memTop.map(m => `<i style="width:${m[1] / memAll * 100}%;background:${m[2]}"></i>`).join('')}<i style="flex:1;background:rgba(255,255,255,.12)"></i></div>
+          <div class="split-l">${memTop.map(m => `<span><i style="background:${m[2]}"></i>${m[0]}</span>`).join('')}<span><i style="background:rgba(255,255,255,.25)"></i>the rest</span></div></section>
+        <section class="card"><div class="head" style="margin-bottom:6px"><h3>Updates, last 7 days</h3></div><div class="fig">5</div><div class="sub2">images replaced</div>
+          <div class="week">${days.map((x, i) => `<span><b class="${upd[i] ? 'on' : ''}" style="height:${6 + upd[i] * 7}px"></b>${x}</span>`).join('')}</div></section>
+      </div>
+      <div class="ctrl"><span class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Filter by name, image or stack</span>
+        <span class="seg"><span class="on">By stack</span><span>CPU</span><span>Memory</span><span>Name</span></span></div>
+      <section class="card"><div class="head"><h3>Containers</h3></div>
+        ${stacks.map(s => { const cs = list.filter(c => c.stack === s), up = cs.filter(c => c.s === 'up').length, worst = cs.some(c => c.s === 'down') ? 'd' : cs.some(c => c.s !== 'up') ? 'w' : '';
+          return `<div class="stack"><h4>${s} <span class="cnt ${worst}">${up}/${cs.length}</span></h4>${cs.map(c => row(c, c.name === 'jellyfin') + (c.name === 'jellyfin' ? detail : '')).join('')}</div>`; }).join('')}
+      </section>
+      <section class="card" style="margin-top:20px"><div class="head"><h3>Image updates</h3><span class="lab">Watchtower and Dockge</span></div>
+        <div class="upd">${[['today 04:02', 'jellyfin', 'jellyfin/jellyfin:latest', 'a1f3c9e20b77', '9c2e4d1a7f30'], ['Fri 9 Oct 04:01', 'sonarr', 'linuxserver/sonarr', '41bb0c9d2e11', '7d02ea93c4b5'], ['Fri 9 Oct 04:01', 'radarr', 'linuxserver/radarr', '0c5a2f1e8d34', 'b81f60c2a9e7'], ['Fri 9 Oct 04:00', 'immich_server', 'ghcr.io/immich-app/immich-server:v1', 'e4c9d2b0a1f6', '3a7c18e9d2b4'], ['Tue 6 Oct 04:02', 'dockge', 'louislam/dockge:1', '5f2b9a0c3d71', 'c90e4a7b21d8']].map((u, i) => `<div class="${i > 0 ? 'old' : ''}"><span class="faint">${u[0]}</span><span class="mono">${u[1]}</span><span class="img muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u[2]}</span><span class="idc"><span>${u[3]}</span> → <span class="new">${u[4]}</span></span></div>`).join('')}</div>
+      </section>
+    </div></main>
+    <div class="tabbar">${['Home', 'News', 'Portfolio', 'NAS', 'More'].map((t, i) => `<span class="${i === 4 ? 'on' : ''}"><i></i>${t}</span>`).join('')}</div></div>`;
+}
+document.querySelectorAll('.ctl button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.v) { st.view = b.dataset.v; document.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if (b.dataset.s) { st.state = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  render();
+}));
+render();
+</script>
+</html>
