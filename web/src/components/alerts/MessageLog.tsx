@@ -21,18 +21,28 @@ function sourceLabel(source: string): string {
   return SOURCE_LABEL[source] ?? source
 }
 
-function delivery(m: AlertMessage, chatLabel: string): { text: string; className: string } {
+function delivery(m: AlertMessage, chatLabel: string): { text: string; className: string; mark: string; markClass: string } {
   switch (m.status) {
     case 'sent':
-      return { text: `Sent to ${chatLabel}`, className: 'text-faint' }
+      return { text: `Sent to ${chatLabel}`, className: 'text-faint', mark: '✓', markClass: 'text-up' }
     case 'held':
-      return { text: 'Held for the morning digest', className: 'text-warn' }
+      return { text: 'Held for the morning digest', className: 'text-warn', mark: '◷', markClass: 'text-warn' }
     case 'digested':
-      return { text: 'Sent in the morning digest', className: 'text-faint' }
+      return { text: 'Sent in the morning digest', className: 'text-faint', mark: '✓', markClass: 'text-up' }
     default:
-      return { text: `Not sent: ${m.error ?? 'unknown reason'}`, className: 'text-down' }
+      return { text: `Not sent: ${m.error ?? 'unknown reason'}`, className: 'text-down', mark: '!', markClass: 'text-down font-bold' }
   }
 }
+
+/** The dot on the timeline, in the severity's colour. */
+const DOT: Record<AlertMessage['severity'], string> = {
+  error: 'bg-down shadow-[0_0_7px_var(--color-down)]',
+  warning: 'bg-warn shadow-[0_0_7px_var(--color-warn)]',
+  ok: 'bg-up shadow-[0_0_7px_var(--color-up)]',
+  info: 'bg-accent-line shadow-[0_0_7px_var(--color-accent-line)]',
+}
+
+const GLASS = 'rounded-[11px] border border-glass-line bg-glass text-fg'
 
 export function MessageLog({ settings }: { settings: AlertSettings }) {
   const [category, setCategory] = useState<string | null>(null)
@@ -68,7 +78,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
   ]
 
   return (
-    <Card title="Messages">
+    <Card title="Messages" actions={<span className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">Last 100</span>}>
       <form onSubmit={send} aria-label="Send a message" className="mb-4 flex flex-wrap items-start gap-2">
         <label className="min-w-0 flex-1 basis-64">
           <span className="sr-only">Message</span>
@@ -79,7 +89,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
             maxLength={3000}
             rows={1}
             placeholder="Send a message… (first line is the title)"
-            className="block min-h-[42px] w-full resize-y rounded-[10px] border border-line bg-raised px-3 py-2.5 text-fg placeholder:text-faint focus:border-accent-line focus:outline-none"
+            className={cn(GLASS, 'block min-h-[42px] w-full resize-y px-3 py-2.5 placeholder:text-faint focus:border-accent-line focus:outline-none')}
           />
         </label>
         <label className="flex items-center gap-2 text-[13px] text-muted">
@@ -87,7 +97,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
           <select
             value={chat}
             onChange={(e) => setChat(e.target.value)}
-            className="rounded-[10px] border border-line bg-raised px-3 py-2.5 text-fg"
+            className={cn(GLASS, 'px-3 py-2.5')}
           >
             {settings.chats.map((c) => (
               <option key={c.key} value={c.key}>
@@ -99,7 +109,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
         <button
           type="submit"
           disabled={sending || !text.trim()}
-          className="inline-flex items-center gap-1.5 rounded-[9px] border border-accent bg-accent px-3.5 py-2.5 font-medium text-white hover:brightness-110 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-[11px] border border-accent bg-accent px-3.5 py-2.5 font-medium text-white shadow-[0_0_14px_-4px_var(--color-accent-line)] hover:brightness-110 disabled:opacity-50"
         >
           <Send aria-hidden="true" className="size-4" />
           {sending ? 'Sending…' : 'Send'}
@@ -121,8 +131,8 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
             className={cn(
               'rounded-full border px-3 py-1 text-[12.5px]',
               category === key
-                ? 'border-accent-line/40 bg-accent-soft text-accent-fg'
-                : 'border-transparent bg-raised text-muted hover:text-fg',
+                ? 'border-accent-line/40 bg-accent/20 text-fg'
+                : 'border-glass-line bg-glass text-muted hover:text-fg',
             )}
           >
             {label}
@@ -133,26 +143,27 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
       {log.data && log.data.length === 0 && (
         <p className="py-4 text-muted">No messages yet. Everything the hub sends to Telegram shows up here.</p>
       )}
-      <ul>
+      <ul className="ml-1.5 border-l border-line pl-4">
         {(log.data ?? []).map((m) => {
           const d = delivery(m, chats[m.chat] ?? m.chat)
           return (
-            <li key={m.id} className="grid gap-x-4 gap-y-1 border-t border-line-soft py-3 first:border-t-0 md:grid-cols-[8.5rem_minmax(0,1fr)]">
-              <div className="text-[12px] text-faint">
-                {formatWhen(m.ts)}
-                <span className="md:block">
-                  <span className="md:hidden"> · </span>
+            <li key={m.id} className="relative border-t border-line-soft py-3 first:border-t-0 first:pt-0.5">
+              <span aria-hidden="true" className={cn('absolute -left-[20.5px] size-[7px] rounded-full', DOT[m.severity], 'top-[1.15rem] in-[li:first-child]:top-[0.55rem]')} />
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-faint">
+                <span>{formatWhen(m.ts)}</span>
+                <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 text-[10.5px] font-semibold tracking-[0.04em] text-muted">
                   {sourceLabel(m.source)}
                 </span>
-              </div>
-              <div className="min-w-0">
-                <p className="flex flex-wrap items-center gap-2">
-                  <SeverityPill severity={m.severity} />
-                  <span className="font-semibold">{m.title}</span>
-                </p>
-                {m.body && <p className="mt-0.5 text-[13px] whitespace-pre-line text-muted">{m.body}</p>}
-                <p className={cn('mt-1 text-[12px]', d.className)}>{d.text}</p>
-              </div>
+                <SeverityPill severity={m.severity} />
+              </p>
+              <p className="mt-1 font-semibold">{m.title}</p>
+              {m.body && <p className="mt-0.5 text-[13px] whitespace-pre-line text-muted">{m.body}</p>}
+              <p className="mt-1 flex items-center gap-1.5 text-[12px]">
+                <span aria-hidden="true" className={d.markClass}>
+                  {d.mark}
+                </span>
+                <span className={d.className}>{d.text}</span>
+              </p>
             </li>
           )
         })}

@@ -60,6 +60,14 @@ describe('AlertsPage', () => {
     expect(within(log).getByText(/Hub rule/)).toBeInTheDocument()
     expect(within(log).getByText('Sent to NAS alerts')).toBeInTheDocument()
     expect(within(log).getByText('Not sent: Telegram answered 403')).toBeInTheDocument()
+    // A timeline: a dot in each message's severity colour, a source chip and a delivery mark.
+    const items = within(log).getAllByRole('listitem')
+    const dot = (li: HTMLElement) => li.querySelector('span[aria-hidden="true"]')!
+    expect(items.some((li) => dot(li).className.includes('bg-warn'))).toBe(true)
+    const failed = within(log).getByText('Not sent: Telegram answered 403').previousElementSibling!
+    expect(failed).toHaveTextContent('!')
+    expect(failed).toHaveClass('text-down')
+    expect(within(log).getByText('Sent to NAS alerts').previousElementSibling).toHaveTextContent('✓')
   })
 
   it('filters the log by category', async () => {
