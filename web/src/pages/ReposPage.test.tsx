@@ -70,6 +70,14 @@ describe('ReposPage', () => {
     const docker = screen.getByRole('article', { name: /nas-docker/ })
     expect(within(docker).getByText('CI failing')).toBeInTheDocument()
     expect(within(docker).getByText('No description')).toBeInTheDocument()
+    // A failing build tints the card and pulses its dot; a fresh push fills most of the bar.
+    expect(docker).toHaveAttribute('data-ci', 'failing')
+    expect(docker.className).toContain('from-down/10')
+    expect(docker.querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
+    expect(kiosk.className).not.toContain('from-down/10')
+    expect(Number(within(kiosk).getByTestId('fresh').style.width.replace('%', ''))).toBeGreaterThan(90)
+    // Open pull requests and issues light up.
+    expect(within(kiosk).getByTitle('Open pull requests')).toHaveClass('text-accent-fg')
   })
 
   it('sums up the owner in four tiles and flags a failing build in the header', async () => {

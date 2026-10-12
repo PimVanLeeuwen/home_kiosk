@@ -1,30 +1,30 @@
 import {
-  CircleCheck,
-  CircleDashed,
   CircleDot,
-  CircleX,
   GitFork,
   GitPullRequest,
   HardDrive,
-  LoaderCircle,
   Lock,
   Star,
   Tag,
 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../lib/cn'
 import { formatAgo, formatCount, formatWhen } from '../../lib/format'
 import type { MirroredRepo, Repo } from '../../lib/types'
+import { GlowDot } from '../ui/GlowDot'
 
 /** The repo in the nightly GitHub mirror; `null` when it is not in it (yet). */
 export type RepoBackup = MirroredRepo | null
 
 const CI = {
-  passing: { label: 'CI passing', icon: CircleCheck, className: 'text-up' },
-  failing: { label: 'CI failing', icon: CircleX, className: 'text-down' },
-  running: { label: 'CI running', icon: LoaderCircle, className: 'text-warn' },
-  none: { label: 'No CI', icon: CircleDashed, className: 'text-faint' },
+  passing: { label: 'CI passing', tone: 'up', className: 'text-up' },
+  failing: { label: 'CI failing', tone: 'down', className: 'text-down' },
+  running: { label: 'CI running', tone: 'warn', className: 'text-warn' },
+  none: { label: 'No CI', tone: 'muted', className: 'text-faint' },
 } as const
+
+/** A push this old leaves the freshness bar nearly empty. */
+const FRESH_DAYS = 90
 
 function Meta({ icon: Icon, children, label }: { icon: typeof Star; children: ReactNode; label: string }) {
   return (
@@ -32,6 +32,23 @@ function Meta({ icon: Icon, children, label }: { icon: typeof Star; children: Re
       <Icon aria-hidden="true" className="size-3.5" />
       <span className="sr-only">{label}: </span>
       {children}
+    </span>
+  )
+}
+
+/** A small chip with a count, lit when there is something open. */
+function Count({ icon: Icon, label, n }: { icon: typeof Star; label: string; n: number }) {
+  return (
+    <span
+      title={label}
+      className={cn(
+        'inline-flex items-center gap-1 rounded-[6px] border px-1.5 py-px',
+        n ? 'border-accent-line/35 bg-glass text-accent-fg' : 'border-glass-line bg-glass text-muted',
+      )}
+    >
+      <Icon aria-hidden="true" className="size-3.5" />
+      <span className="sr-only">{label}: </span>
+      {n}
     </span>
   )
 }
@@ -60,11 +77,23 @@ function BackupStatus({ backup }: { backup: RepoBackup }) {
 /** `backup` is left out for owners that are not mirrored. */
 export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) {
   const ci = CI[repo.ci]
+  const colour = repo.language_color ?? 'var(--color-faint)'
+  const age = repo.pushed_at ? (new Date().getTime() - new Date(repo.pushed_at).getTime()) / 86_400_000 : null
+  const fresh = age == null ? 0 : Math.max(4, 100 - (age / FRESH_DAYS) * 100)
 
   return (
     <article
       aria-labelledby={`repo-${repo.full_name}`}
-      className="flex min-w-0 flex-col rounded-[12px] border border-line-soft bg-raised p-4"
+      data-ci={repo.ci}
+      style={{ '--lang': colour } as CSSProperties}
+      className={cn(
+        'relative flex min-w-0 flex-col overflow-hidden rounded-[13px] border p-4',
+        // A thin line along the top in the language's colour.
+        'before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-(--lang) before:opacity-85 before:shadow-[0_0_12px_var(--lang)]',
+        repo.ci === 'failing'
+          ? 'border-down/38 bg-card bg-linear-to-br from-down/10 to-transparent to-55%'
+          : 'border-line-soft bg-card bg-linear-to-b from-white/[0.025] to-transparent to-45%',
+      )}
     >
       <div className="flex items-start gap-2">
         <h3 id={`repo-${repo.full_name}`} className="min-w-0 flex-1 truncate font-semibold">
@@ -74,13 +103,13 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
           </a>
         </h3>
         {repo.private && (
-          <span className="inline-flex items-center gap-1 rounded-md border border-line px-1.5 py-0.5 text-[11px] text-muted">
+          <span className="inline-flex items-center gap-1 rounded-[6px] border border-glass-line bg-glass px-1.5 py-0.5 text-[11px] text-muted">
             <Lock aria-hidden="true" className="size-3" />
             Private
           </span>
         )}
         {repo.fork && (
-          <span className="rounded-md border border-line px-1.5 py-0.5 text-[11px] text-muted">Fork</span>
+          <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 py-0.5 text-[11px] text-muted">Fork</span>
         )}
       </div>
 
@@ -93,8 +122,8 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
           <span className="inline-flex items-center gap-1.5">
             <span
               aria-hidden="true"
-              className="size-2.5 rounded-full"
-              style={{ backgroundColor: repo.language_color ?? 'var(--color-faint)' }}
+              className="size-2 rounded-full"
+              style={{ backgroundColor: colour, boxShadow: `0 0 6px ${colour}` }}
             />
             {repo.language}
           </span>
@@ -104,13 +133,19 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
         {repo.pushed_at && <span>Pushed {formatAgo(repo.pushed_at)}</span>}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1 border-t border-line-soft pt-3 text-[12px]">
-        <span className={cn('inline-flex items-center gap-1 font-medium', ci.className)}>
-          <ci.icon aria-hidden="true" className="size-3.5" />
+      {repo.pushed_at && (
+        <span className="mt-2.5 block h-[3px] overflow-hidden rounded-full bg-raised" aria-hidden="true">
+          <span data-testid="fresh" className="block h-full rounded-full bg-linear-to-r from-[#6f60ea] to-[#b4a9ff]" style={{ width: `${fresh}%` }} />
+        </span>
+      )}
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-line-soft pt-3 text-[12px]">
+        <span className={cn('inline-flex items-center gap-1.5 font-semibold', ci.className)}>
+          <GlowDot tone={ci.tone} halo={repo.ci === 'failing'} className="size-[7px]" />
           {ci.label}
         </span>
-        <Meta icon={GitPullRequest} label="Open pull requests">{repo.open_prs}</Meta>
-        <Meta icon={CircleDot} label="Open issues">{repo.open_issues}</Meta>
+        <Count icon={GitPullRequest} label="Open pull requests" n={repo.open_prs} />
+        <Count icon={CircleDot} label="Open issues" n={repo.open_issues} />
         {backup !== undefined && <BackupStatus backup={backup} />}
         {repo.release && (
           <a
