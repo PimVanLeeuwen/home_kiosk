@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of the hub's Repos page in the desk panels' visual language, calmer, as the
+     other restyled pages (docs/hub-*-mockup.html). Example data only. Not served by the hub. -->
+<title>Home hub: Repos restyled</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .07);
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.chrome { max-width: 1480px; margin: 0 auto; padding: 22px 20px 10px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+.chrome h1 { margin: 0; font-size: 22px; font-weight: 600; } .chrome p { margin: 3px 0 0; color: var(--muted); max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { background: #17181c; border: 1px solid var(--line); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: rgba(124, 108, 242, .18); border-color: var(--accent); }
+.stage { display: flex; justify-content: center; padding: 14px 20px 40px; }
+.device { width: 1440px; height: 900px; border-radius: 14px; overflow: hidden; border: 1px solid #1a1b1f; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.device.mobile { width: 390px; height: 844px; border-radius: 44px; border: 10px solid #000; }
+.app { display: flex; height: 100%; background: var(--canvas); position: relative; }
+.side { width: 240px; flex: none; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; }
+.side b.brand { font-size: 15px; padding: 0 10px; } .side small.host { color: var(--faint); padding: 0 10px 14px; font-size: 12px; }
+.side .grp { font-size: 11px; letter-spacing: .08em; color: var(--faint); padding: 14px 10px 4px; text-transform: uppercase; font-weight: 600; }
+.side a { padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; display: flex; gap: 10px; align-items: center; }
+.side a.on { background: rgba(124,108,242,.14); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent-line); }
+.side a i { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; opacity: .7; }
+.main { flex: 1; margin: 8px 8px 8px 0; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); overflow: auto; }
+.mobile .side { display: none; } .mobile .main { margin: 0; border-radius: 0; border: 0; padding-bottom: 74px; }
+.tabbar { display: none; }
+.mobile .tabbar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 74px; background: rgba(8,9,10,.92); border-top: 1px solid var(--line-soft); justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); }
+.mobile .tabbar span { display: grid; justify-items: center; gap: 3px; } .mobile .tabbar span.on { color: var(--accent-fg); }
+.mobile .tabbar i { width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 5px; }
+.page { padding: 36px 44px 48px; } .mobile .page { padding: 58px 16px 24px; }
+.ph { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.ph h2 { font-size: 26px; font-weight: 600; margin: 0; } .ph p { margin: 4px 0 0; color: var(--muted); }
+
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 20px 24px; min-width: 0; position: relative; overflow: hidden; }
+.mobile .card { padding: 18px; }
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; white-space: nowrap; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.14); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--f-mono); }
+.up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); } .muted { color: var(--muted); } .faint { color: var(--faint); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; background: var(--c, var(--up)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--up)) 18%, transparent), 0 0 10px var(--c, var(--up)); }
+.dot.pulse { animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent), 0 0 18px var(--c); } }
+
+
+.tabs { display: inline-flex; border-radius: 12px; border: 1px solid var(--glass-line); background: var(--glass); padding: 3px; gap: 2px; margin-bottom: 18px; }
+.tabs span { padding: 6px 14px; border-radius: 9px; color: var(--muted); font-weight: 500; white-space: nowrap; } .tabs span b { font-weight: 400; color: var(--faint); margin-left: 4px; }
+.tabs span.on { background: rgba(124,108,242,.2); color: var(--fg); box-shadow: inset 0 0 0 1px rgba(143,128,255,.4); } .tabs span.on b { color: var(--accent-fg); }
+.tiles4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 18px; }
+.mobile .tiles4 { grid-template-columns: 1fr 1fr; gap: 10px; }
+.tiles4 .card { padding: 15px 17px; } .mobile .tiles4 .card { padding: 13px 14px; }
+.fig { font-size: 26px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; } .mobile .fig { font-size: 21px; }
+.sub2 { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.langbar { display: flex; height: 7px; border-radius: 5px; overflow: hidden; gap: 2px; margin-top: 11px; }
+.langl { display: flex; flex-wrap: wrap; gap: 3px 10px; font-size: 11px; color: var(--muted); margin-top: 6px; } .langl i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
+.cidots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 11px; }
+.cidots i { width: 8px; height: 8px; border-radius: 50%; } .cidots i.p { background: #3fb97f; box-shadow: 0 0 5px rgba(63,185,127,.7); } .cidots i.f { background: #e5646a; box-shadow: 0 0 7px #e5646a; animation: halo3 2.4s ease-in-out infinite; } .cidots i.r { background: #e0a23b; box-shadow: 0 0 6px #e0a23b; } .cidots i.n { background: rgba(255,255,255,.14); }
+@keyframes halo3 { 50% { box-shadow: 0 0 0 4px rgba(229,100,106,.2), 0 0 14px #e5646a; } }
+.ctrl { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 14px; }
+.search { flex: 1 1 260px; display: flex; gap: 8px; align-items: center; border-radius: 11px; border: 1px solid var(--glass-line); background: var(--glass); padding: 9px 12px; color: var(--faint); font-size: 13.5px; }
+.sw { width: 32px; height: 18px; border-radius: 999px; background: var(--raised); position: relative; border: 1px solid var(--line); display: inline-block; vertical-align: middle; } .sw i { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--faint); }
+.note { font-size: 13px; color: var(--muted); margin: 0 0 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; } .mobile .grid3 { grid-template-columns: 1fr; gap: 10px; }
+.repo { position: relative; overflow: hidden; border-radius: 13px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.025), transparent 45%), var(--card); padding: 15px 16px 13px; display: flex; flex-direction: column; }
+.repo::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 2px; background: var(--lc); box-shadow: 0 0 12px var(--lc); opacity: .85; }
+.repo.fail { border-color: rgba(229,100,106,.38); background: linear-gradient(160deg, rgba(229,100,106,.10), transparent 55%), var(--card); }
+.repo .top { display: flex; gap: 8px; align-items: center; } .repo .nm { font-weight: 600; font-size: 14.5px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip { font-size: 10.5px; font-weight: 600; letter-spacing: .03em; border-radius: 6px; padding: 1px 6px; background: var(--glass); border: 1px solid var(--glass-line); color: var(--muted); white-space: nowrap; }
+.repo .ds { font-size: 13px; color: var(--muted); margin: 6px 0 10px; line-height: 1.4; min-height: 2.8em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); align-items: center; }
+.meta .ld { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: 0; }
+.fresh { height: 3px; border-radius: 2px; background: var(--raised); margin: 10px 0 0; overflow: hidden; } .fresh i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, #6f60ea, #b4a9ff); }
+.foot { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-soft); font-size: 12px; }
+.ci { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; }
+.cnt { display: inline-flex; gap: 4px; align-items: center; border-radius: 6px; padding: 1px 6px; background: var(--glass); border: 1px solid var(--glass-line); color: var(--muted); }
+.cnt.hot { color: var(--accent-fg); border-color: rgba(143,128,255,.35); }
+.rel { margin-left: auto; font-family: var(--f-mono); font-size: 11.5px; color: var(--accent-fg); }
+.bk { color: var(--faint); } .bk.bad { color: var(--down); }
+.notes { max-width: 1440px; margin: 0 auto; padding: 0 20px 50px; color: var(--muted); columns: 2 420px; column-gap: 40px; }
+.notes h4 { color: var(--fg); margin: 0 0 6px; font-size: 14px; } .notes ul { margin: 0 0 16px; padding-left: 18px; } .notes li { margin: 3px 0; break-inside: avoid; }
+@media (prefers-reduced-motion: reduce) { .cidots i.f, .dot.pulse { animation: none; } }
+</style>
+
+<div class="chrome">
+  <div>
+    <h1>Repos, restyled <span class="pill acc" style="margin-left:8px;vertical-align:3px">example data</span></h1>
+    <p>The Repos page in the language of the other restyled pages: owner tabs in a glass track, four tiles for the owner (repos and languages, CI, pull requests and issues, the backup), and repo cards lit along the top in their language's colour, a failing build tinted red. Same data as today.</p>
+  </div>
+  <div class="ctl">
+    <button data-v="desktop" aria-pressed="true">Desktop</button>
+    <button data-v="mobile" aria-pressed="false">Mobile</button>
+    <button data-s="ok" aria-pressed="true">All green</button>
+    <button data-s="look" aria-pressed="false">A build fails</button>
+  </div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<div class="notes">
+  <h4>What changes</h4>
+  <ul>
+    <li><b>Header:</b> as today, plus an All green / N failing pill for the tab you are on.</li>
+    <li><b>Owners:</b> Mine, Hubble and GEWIS as a glass segmented control with their counts.</li>
+    <li><b>Four tiles:</b> repos with a bar of their languages; CI as a dot per repo (green, amber running, red failing and pulsing, grey without CI); open pull requests and issues; and the backup with when the mirror last ran and how long the token lasts.</li>
+    <li><b>Filter and forks:</b> a glass search field and the forks switch as on Alerts.</li>
+  </ul>
+  <ul>
+    <li><b>Repo cards:</b> a thin glowing line along the top in the language's colour; name, Private and Fork chips, the description; language, stars, forks and when it was pushed, with a thin bar for how recent that is (fuller is fresher, over 90 days); CI as a glowing dot and word, pull requests and issues as small chips (lit when there are any), the backup mark and the latest release. A failing build tints the card red.</li>
+    <li><b>Not here:</b> the 16-week commit grid of the Code panel; the hub does not collect commit activity yet (that comes with the Code screen in M20).</li>
+  </ul>
+</div>
+
+<script>
+const st = { view: 'desktop', state: 'ok' };
+const nl = (n, d = 1) => n.toFixed(d).replace('.', ',');
+const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+function area(vals, color, { line2 = null, W = 300, H = 70, peak = true } = {}) {
+  const max = Math.max(...vals, ...(line2 || [])), min = 0, sp = max - min || 1;
+  const P = (v, i, n) => `${(i / (n - 1) * W).toFixed(1)},${(6 + (1 - (v - min) / sp) * (H - 10)).toFixed(1)}`;
+  const pts = vals.map((v, i) => P(v, i, vals.length)).join(' ');
+  const pk = vals.indexOf(Math.max(...vals)), [px, py] = P(vals[pk], pk, vals.length).split(',');
+  const id = 'a' + Math.random().toString(36).slice(2, 7);
+  return `<svg class="area" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="calc(100% + 48px)" height="${st.view === 'mobile' ? 48 : 64}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px ${color})"/>
+    ${line2 ? `<polyline points="${line2.map((v, i) => P(v, i, line2.length)).join(' ')}" fill="none" stroke="#9a9ea7" stroke-width="1" stroke-opacity=".7" vector-effect="non-scaling-stroke"/>` : ''}
+    ${peak ? `<circle cx="${px}" cy="${py}" r="2.2" fill="${color}" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${color})"/>` : ''}</svg>`;
+}
+
+function gauge(v, warnAt = 90) {
+  const R = 40, cx = 50, cy = 52, P = (a, r = R) => [cx - r * Math.cos(a * Math.PI), cy - r * Math.sin(a * Math.PI)];
+  const arc = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+  const ticks = Array.from({ length: 21 }, (_, i) => { const a = i / 20, [x0, y0] = P(a, R + 6), [x1, y1] = P(a, R + (i % 5 ? 7.5 : 9)); return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,${i % 5 ? .14 : .32})" stroke-width=".5"/>`; }).join('');
+  const [tx, ty] = P(warnAt / 100, R + 8), over = v >= warnAt, id = 'g' + Math.random().toString(36).slice(2, 7);
+  return `<svg viewBox="0 2 100 56"><defs><linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="#6f60ea"/><stop offset=".75" stop-color="#b4a9ff"/><stop offset="1" stop-color="${over ? '#e0a23b' : '#cfc8ff'}"/></linearGradient>
+    <filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${ticks}
+    <path d="${arc(0, 1)}" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="${arc(0, v / 100)}" stroke="url(#${id})" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#${id}f)"/>
+    <circle cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="1.3" fill="#e5646a"/>
+    <text x="50" y="50" text-anchor="middle" font-size="19" font-weight="600" fill="#ecedef" letter-spacing="-.8">${Math.round(v)}%</text></svg>`;
+}
+
+function ring(pct, color, inner, sub) {
+  const r = 42, c = 2 * Math.PI * r;
+  return `<svg viewBox="0 0 100 100" width="100%"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 4px ${color})"/>
+    <text x="50" y="52" text-anchor="middle" font-size="20" font-weight="600" fill="#ecedef">${inner}</text><text x="50" y="66" text-anchor="middle" font-size="8.5" fill="#9a9ea7">${sub}</text></svg>`;
+}
+
+function seal(ok, size = 64) {
+  const c = ok ? '#3fb97f' : '#e5646a';
+  return `<svg viewBox="0 0 60 60" width="${size}"><circle cx="30" cy="30" r="25" fill="none" stroke="${c}" stroke-opacity=".45" stroke-dasharray="1.5 2.4"/>
+    <path d="M30 11 L45 17 V29 C45 39 38 46 30 49 C22 46 15 39 15 29 V17 Z" fill="${c}" fill-opacity=".13" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/>
+    ${ok ? `<path d="M23.5 30l4.5 4.5 8.5-9" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="M30 22v10M30 37v.5" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`}</svg>`;
+}
+
+
+const LANG = { TypeScript: '#3178c6', Python: '#3572A5', HTML: '#e34c26', Shell: '#89e051', Kotlin: '#A97BFF', Go: '#00ADD8' };
+function repos(look) {
+  return [
+    ['home_kiosk', 'Home hub and the kiosk: one stack on the NAS', 'Python', false, false, 3, 0, 1, 2, 2, look ? 'running' : 'passing', 'v1.14.0'],
+    ['nas-docker', 'Compose files for every stack on the Ugreen NAS', 'Shell', true, false, 0, 0, 0, 0, 5, 'passing', null],
+    ['hubble-website', 'The Hubble community café site', 'TypeScript', false, false, 4, 1, 2, 3, 1, look ? 'failing' : 'passing', 'v3.2.1'],
+    ['advent-of-code', 'Solutions, one folder per year', 'Kotlin', false, false, 12, 2, 0, 0, 40, 'none', null],
+    ['dotfiles', 'Shell, git and editor settings', 'Shell', false, false, 2, 0, 0, 0, 12, 'none', null],
+    ['example.com', 'Personal site', 'HTML', false, false, 1, 0, 0, 1, 70, 'passing', null],
+  ].map(([name, ds, lang, priv, fork, stars, forks, prs, issues, days, ci, rel]) => ({ name, ds, lang, priv, fork, stars, forks, prs, issues, days, ci, rel }));
+}
+const CI = { passing: ['#3fb97f', 'CI passing', 'p'], failing: ['#e5646a', 'CI failing', 'f'], running: ['#e0a23b', 'CI running', 'r'], none: ['#7e828b', 'No CI', 'n'] };
+const ago = d => d === 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`;
+function render() {
+  const look = st.state === 'look', mob = st.view === 'mobile', list = repos(look);
+  const nav = [['', 'Home'], ['Read', 'News'], ['', 'Saved'], ['Money', 'Portfolio'], ['House', 'NAS'], ['', 'Docker'], ['', 'Backups'], ['', 'Services'], ['Code', 'Repos', 1], ['System', 'Alerts'], ['', 'Settings']];
+  const langs = Object.entries(list.reduce((a, r) => (a[r.lang] = (a[r.lang] || 0) + 1, a), {})).sort((a, b) => b[1] - a[1]);
+  const failing = list.filter(r => r.ci === 'failing').length;
+  const d = document.getElementById('device');
+  d.className = 'device' + (mob ? ' mobile' : '');
+  d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">dev-minotaur</small>
+    ${nav.map(x => `${x[0] ? `<span class="grp">${x[0]}</span>` : ''}<a href="#" class="${x[2] ? 'on' : ''}"><i></i>${x[1]}</a>`).join('')}</nav>
+    <main class="main"><div class="page">
+      <div class="ph"><div><h2>Repos</h2><p>From GitHub, updated 12 min ago</p></div><span class="pill ${failing ? 'down' : 'up'}">${failing ? `${failing} failing` : 'All green'}</span></div>
+      <div class="tabs"><span class="on">Mine<b>6</b></span><span>Hubble<b>12</b></span><span>GEWIS<b>3</b></span></div>
+      <div class="tiles4">
+        <section class="card"><div class="head" style="margin-bottom:6px"><h3>Repos</h3></div><div class="fig">${list.length}</div><div class="sub2">1 private · 0 forks hidden</div>
+          <div class="langbar">${langs.map(([l, n]) => `<i style="width:${n / list.length * 100}%;background:${LANG[l]}"></i>`).join('')}</div>
+          <div class="langl">${langs.slice(0, mob ? 3 : 4).map(([l]) => `<span><i style="background:${LANG[l]}"></i>${l}</span>`).join('')}</div></section>
+        <section class="card"><div class="head" style="margin-bottom:6px"><h3>CI</h3></div><div class="fig ${failing ? 'down' : ''}">${failing ? `${failing} failing` : 'All green'}</div><div class="sub2">${list.filter(r => r.ci !== 'none').length} repos with CI</div>
+          <div class="cidots">${list.map(r => `<i class="${CI[r.ci][2]}" title="${r.name}"></i>`).join('')}</div></section>
+        <section class="card"><div class="head" style="margin-bottom:6px"><h3>Open work</h3></div><div class="fig">3 <span class="muted" style="font-size:.5em;font-weight:500">pull requests</span></div><div class="sub2">6 issues · across 3 repos</div></section>
+        <section class="card"><div class="head" style="margin-bottom:6px"><h3>Backup</h3></div><div class="fig" style="font-size:${mob ? 16 : 19}px;margin-top:4px"><span class="dot" style="--c:#3fb97f;margin-right:8px;vertical-align:2px"></span>6 mirrored</div><div class="sub2">last run today 02:04</div><div class="sub2" style="margin-top:6px">Token expires in 41 days</div></section>
+      </div>
+      <div class="ctrl"><span class="search">⌕ Filter by name, description or language</span><span style="font-size:13px;color:var(--muted)"><span class="sw"><i></i></span> Show forks (0)</span></div>
+      <div class="grid3">${list.map(r => { const ci = CI[r.ci], fresh = Math.max(4, 100 - r.days / 90 * 100);
+        return `<article class="repo ${r.ci === 'failing' ? 'fail' : ''}" style="--lc:${LANG[r.lang]}"><div class="top"><span class="nm">${r.name}</span>${r.priv ? '<span class="chip">🔒 Private</span>' : ''}</div>
+          <div class="ds">${r.ds}</div>
+          <div class="meta"><span><i class="ld" style="background:${LANG[r.lang]};box-shadow:0 0 6px ${LANG[r.lang]}"></i>${r.lang}</span><span>★ ${r.stars}</span><span>⑂ ${r.forks}</span><span>Pushed ${ago(r.days)}</span></div>
+          <div class="fresh"><i style="width:${fresh}%"></i></div>
+          <div class="foot"><span class="ci" style="color:${ci[0]}"><span class="dot ${r.ci === 'failing' ? 'pulse' : ''}" style="--c:${ci[0]};${r.ci === 'none' ? 'box-shadow:none' : ''}"></span>${ci[1]}</span>
+            <span class="cnt ${r.prs ? 'hot' : ''}">⇄ ${r.prs}</span><span class="cnt ${r.issues ? 'hot' : ''}">◉ ${r.issues}</span><span class="bk">⛁ Backed up</span>${r.rel ? `<span class="rel">⌂ ${r.rel}</span>` : ''}</div></article>`; }).join('')}</div>
+    </div></main>
+    <div class="tabbar">${['Home', 'News', 'Portfolio', 'NAS', 'More'].map((t, i) => `<span class="${i === 4 ? 'on' : ''}"><i></i>${t}</span>`).join('')}</div></div>`;
+}
+document.querySelectorAll('.ctl button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.v) { st.view = b.dataset.v; document.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if (b.dataset.s) { st.state = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  render();
+}));
+render();
+</script>
+</html>
