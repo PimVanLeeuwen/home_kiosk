@@ -15,3 +15,8 @@ export function statsSummary(stats: Stat[], limit?: number): string {
     .map((s) => `${FORMAT[s.unit](s.value)} ${s.label.toLowerCase()}`)
     .join(' · ')
 }
+
+/** A stat as its figure and its word, for a chip: ["1.812", "movies"]. */
+export function statParts(s: Stat): [string, string] {
+  return [FORMAT[s.unit](s.value), s.label.toLowerCase()]
+}

@@ -16,7 +16,7 @@ export function ServiceIcon({ icon, label, index }: Props) {
 
   if (url && !failed) {
     return (
-      <span aria-hidden="true" className="grid size-[30px] shrink-0 place-items-center rounded-lg bg-canvas">
+      <span aria-hidden="true" className="grid size-[30px] shrink-0 place-items-center rounded-lg border border-glass-line bg-canvas">
         <img src={url} alt="" width={20} height={20} className="size-5 object-contain" onError={() => setFailed(true)} />
       </span>
     )
@@ -27,7 +27,7 @@ export function ServiceIcon({ icon, label, index }: Props) {
     <span
       aria-hidden="true"
       className="grid size-[30px] shrink-0 place-items-center rounded-lg text-xs font-bold"
-      style={{ backgroundColor: colour.bg, color: colour.fg }}
+      style={{ backgroundColor: colour.bg, color: colour.fg, boxShadow: `0 0 14px -5px ${colour.fg}` }}
     >
       {label}
     </span>

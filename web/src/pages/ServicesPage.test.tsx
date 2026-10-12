@@ -87,6 +87,24 @@ describe('ServicesPage', () => {
     expect(screen.getByRole('link', { name: /CouchDB/ })).toHaveAccessibleName(/Stopped/)
   })
 
+  it('sums up with a pill, a dot per service, and a tinted count and tile per problem', async () => {
+    stubApi({ '/api/services': SERVICES, '/api/hosts': HOSTS })
+    renderRoute('/services')
+
+    const media = await screen.findByRole('region', { name: 'Media' })
+    expect(screen.getByText('2 need a look', { selector: '.uppercase' })).toBeInTheDocument()
+    const summary = screen.getByRole('region', { name: 'Running' })
+    expect(summary).toHaveTextContent('1 / 3 running')
+    expect([...summary.querySelectorAll('[data-status]')].map((d) => d.getAttribute('data-status'))).toEqual(['up', 'unhealthy', 'down'])
+    // Media holds one unhealthy service: an amber count; Apps a stopped one: red.
+    expect(media.querySelector('[data-tone]')).toHaveAttribute('data-tone', 'warn')
+    expect(screen.getByRole('region', { name: 'Apps' }).querySelector('[data-tone]')).toHaveAttribute('data-tone', 'down')
+    expect(within(media).getByRole('link', { name: /Immich/ })).toHaveAttribute('data-trouble', 'warn')
+    const couchdb = screen.getByRole('link', { name: /CouchDB/ })
+    expect(couchdb).toHaveAttribute('data-trouble', 'down')
+    expect(couchdb).toHaveTextContent('Stopped')
+  })
+
   it('links to the NAS LAN address when the hub runs on this computer', async () => {
     stubApi({ '/api/services': SERVICES, '/api/hosts': HOSTS })
     renderRoute('/services')
