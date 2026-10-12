@@ -34,7 +34,7 @@ test('it opens without the hub, showing the last data as stale', async ({ page, 
   await page.waitForFunction(async () => (await navigator.serviceWorker.ready).active !== null)
   // Once the worker controls the page, the data passes through it and is kept.
   await page.reload()
-  await expect(page.getByRole('region', { name: 'Weather' })).toContainText('15 °C')
+  await expect(page.getByRole('region', { name: 'Weather' })).toContainText('15°')
 
   // A mocked route answers even offline, so drop it: the hub is now really gone.
   await context.unroute('**/api/weather')
@@ -42,7 +42,7 @@ test('it opens without the hub, showing the last data as stale', async ({ page, 
   await page.reload()
 
   const weather = page.getByRole('region', { name: 'Weather' })
-  await expect(weather).toContainText('15 °C')
+  await expect(weather).toContainText('15°')
   await expect(weather).toContainText('Showing the last known figures.')
   await context.setOffline(false)
 })
