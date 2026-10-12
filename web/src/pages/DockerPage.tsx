@@ -46,6 +46,9 @@ export function DockerPage() {
   const q = query.trim().toLowerCase()
   const rows = sortRows(all.filter((c) => !q || `${c.name} ${c.image} ${c.project ?? ''}`.toLowerCase().includes(q)), order)
   const updatesFor = (name: string) => (updates.data ?? []).filter((u) => u.name === name)
+  // The bars in each row compare against the busiest container.
+  const cpuTop = Math.max(0.5, ...all.map((c) => c.cpu_pct ?? 0))
+  const memTop = Math.max(1, ...all.map((c) => c.mem_bytes ?? 0))
   const needLook = all.filter((c) => ['down', 'unhealthy'].includes(containerStatus(c))).length
 
   const groups: [string, ContainerLoad[]][] =
@@ -69,6 +72,8 @@ export function DockerPage() {
           updates={updatesFor(c.name)}
           open={open === c.name}
           onToggle={() => setOpen((v) => (v === c.name ? null : c.name))}
+          cpuTop={cpuTop}
+          memTop={memTop}
         />
       ))}
     </ul>
@@ -130,13 +135,20 @@ export function DockerPage() {
             {order === 'stack'
               ? groups.map(([stack, list]) => {
                   const up = list.filter((c) => containerStatus(c) === 'up').length
+                  const stopped = list.some((c) => containerStatus(c) === 'down')
                   // One card with stacks as headed sections: most stacks hold one container.
                   return (
                     <section key={stack} aria-label={`${stack} · ${up}/${list.length}`} className="mt-4 first:mt-0">
-                      <h3 className="mb-1 px-1 text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">
-                        {stack}{' '}
-                        <span className="font-normal tracking-normal normal-case">
-                          · {up}/{list.length}
+                      <h3 className="mb-1 flex items-center gap-2 px-2.5 text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">
+                        {stack}
+                        <span
+                          data-tone={up === list.length ? 'up' : stopped ? 'down' : 'warn'}
+                          className={cn(
+                            'rounded-[6px] px-1.5 text-[10.5px] tracking-normal normal-case',
+                            up === list.length ? 'bg-up/13 text-up' : stopped ? 'bg-down/14 text-down' : 'bg-warn/15 text-warn',
+                          )}
+                        >
+                          {up}/{list.length}
                         </span>
                       </h3>
                       {renderRows(list)}

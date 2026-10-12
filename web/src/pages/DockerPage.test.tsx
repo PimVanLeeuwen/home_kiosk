@@ -99,6 +99,23 @@ describe('DockerPage', () => {
     expect(screen.getByRole('img', { name: 'jellyfin CPU, last 24 hours' })).toBeInTheDocument()
   })
 
+  it('marks a stopped container, its stack and when it exited', async () => {
+    setup()
+    renderRoute('/docker')
+
+    const torrents = await screen.findByRole('region', { name: 'qbittorrent · 1/2' })
+    const stopped = within(torrents).getByRole('button', { name: /transmission/ })
+    expect(stopped).toHaveTextContent('exited 1 hour ago')
+    expect(stopped).toHaveClass('from-down/10')
+    expect(within(torrents).getByText('1/2')).toHaveAttribute('data-tone', 'down')
+    expect(within(screen.getByRole('region', { name: 'sonarr · 1/1' })).getByText('1/1')).toHaveAttribute('data-tone', 'up')
+    // A running row is not tinted, and its bars compare with the busiest container.
+    const jellyfin = screen.getByRole('button', { name: /jellyfin/ })
+    expect(jellyfin).not.toHaveClass('from-down/10')
+    const bars = [...jellyfin.querySelectorAll('[aria-hidden="true"] > span')] as HTMLElement[]
+    expect(bars.map((b) => b.style.width)).toEqual(['100%', '100%'])
+  })
+
   it('orders by CPU across stacks and filters', async () => {
     setup()
     renderRoute('/docker')
@@ -121,6 +138,8 @@ describe('DockerPage', () => {
 
     expect(screen.getByRole('button', { name: /jellyfin/, expanded: true })).toBeInTheDocument()
     expect(await screen.findByRole('img', { name: 'jellyfin memory, last 24 hours' })).toBeInTheDocument()
+    // Glowing areas with their peak marked, as on the NAS page.
+    expect(document.querySelectorAll('#container-jellyfin [data-testid="peak"]')).toHaveLength(2)
     expect(screen.getByText(/peak 13%/)).toBeInTheDocument()
     expect(screen.getByText(/limit 8,0 GB/)).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith('/api/docker/history/jellyfin', expect.anything())

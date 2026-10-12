@@ -4,13 +4,16 @@ interface Props {
   values: number[]
   label: string
   tone?: Tone
+  /** The scale: from `min` (else the lowest value) to at least `floor`, so a near-idle line stays flat. */
+  min?: number
+  floor?: number
 }
 
 /** A thin glowing line for a glass tile: the shape of the last hours, no axes. */
-export function MiniSparkline({ values, label, tone = 'accent' }: Props) {
+export function MiniSparkline({ values, label, tone = 'accent', min: low, floor }: Props) {
   if (values.length < 2) return null
-  const min = Math.min(...values)
-  const span = Math.max(...values) - min || 1
+  const min = low ?? Math.min(...values)
+  const span = Math.max(...values, floor ?? -Infinity) - min || 1
   const points = values
     .map((v, i) => `${((i / (values.length - 1)) * 60).toFixed(1)},${(17 - ((v - min) / span) * 13).toFixed(1)}`)
     .join(' ')
