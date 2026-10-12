@@ -267,6 +267,33 @@ class Hosts(Envelope):
     tailscale: TailscaleHost
 
 
+class TailnetDevice(BaseModel):
+    name: str  # host name, e.g. "pim-macbook"
+    dns_name: str  # MagicDNS name, no trailing dot
+    os: str  # as tailscaled reports it: "macOS", "iOS", "linux", "windows", ...
+    ipv4: str | None
+    ipv6: str | None
+    online: bool
+    last_seen: datetime | None  # offline devices only
+    # direct: a peer-to-peer path; relay: through a DERP relay; idle: online,
+    # but no recent traffic, so no path yet. None for the NAS itself.
+    connection: Literal["direct", "relay", "idle"] | None
+    relay: str | None  # DERP region code, e.g. "ams": the relay in use, or the NAS's home relay
+    endpoint: str | None  # ip:port of a direct path
+    exit_node: bool  # offers itself as an exit node
+    rx_bytes: int = 0
+    tx_bytes: int = 0
+
+
+class Tailnet(Envelope):
+    """The NAS's tailnet: every device, how it connects, and tailscaled's health."""
+
+    name: str  # the MagicDNS suffix's first label, e.g. "tail1234"; never the owner's login
+    self: TailnetDevice
+    peers: list[TailnetDevice]  # online first, then by name
+    health: list[str]  # tailscaled's own warnings; empty when all checks pass
+
+
 class ContainerState(BaseModel):
     name: str
     state: str  # Docker's State: running, exited, restarting, paused, created, dead

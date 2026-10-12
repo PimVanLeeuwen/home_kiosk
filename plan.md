@@ -528,11 +528,16 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked).
   and second DNS. SSH over Tailscale only, unattended-upgrades, compose files in a `hetzner/`
   folder in nas-docker. Not worth it: Headscale, media or Immich on the VPS.
 - Backlog (2026-10-12): Tailscale status and the connected devices, with their names and
-  addresses, first as a desk panel screen, then as a page in the hub (phone first). Design first,
-  panel then page, after the restyle of the existing hub pages. Source: the collector already
-  reads tailscaled's LocalAPI (`GET /localapi/v0/status`, read-only) for the NAS's own name; the
-  same answer lists every peer (host and MagicDNS name, Tailscale IPs, OS, online, last seen, exit
-  node, traffic), so no key or cloud is needed. Which panel shows it is decided with the design.
+  addresses, first as a desk panel screen, then as a page in the hub (phone first). Source: the
+  collector already reads tailscaled's LocalAPI (`GET /localapi/v0/status`, read-only) for the
+  NAS's own name; the same answer lists every peer (host and MagicDNS name, Tailscale IPs, OS,
+  online, last seen, direct or relay, exit node, traffic) and tailscaled's health warnings, so no
+  key or cloud is needed. Designed 2026-10-12: a Tailnet card on the House panel (the NAS in the
+  middle, every device around it, a running line for a direct connection and a dashed violet one
+  through a relay, the online devices listed below; `docs/desk-panels-mockup.html`) and a
+  Tailscale page under House (the same map, the NAS's names and addresses, every device as a tile
+  that opens for its details; `docs/hub-tailscale-mockup.html`). The warning state is
+  tailscaled's own health warnings, not key expiry: keys do not expire on this tailnet (M13).
 - Backlog (2026-10-09): a richer Jellyfin overview in the hub, in the spirit of Tracearr's history:
   library counts (movies, series, episodes), what is pending or downloading (Jellyseerr, Sonarr,
   Radarr, the download clients), watch stats and a per-user leaderboard. Not planned into a

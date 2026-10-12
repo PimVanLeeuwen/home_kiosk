@@ -48,6 +48,7 @@ WIDGETS_INTERVAL_SECONDS = 60  # tile stats
 REPOS_INTERVAL_SECONDS = 1800  # GitHub repos; well inside the API limits
 BACKUPS_INTERVAL_SECONDS = 300  # the run file changes once a day
 HOSTS_INTERVAL_SECONDS = 600  # the tailnet name practically never changes
+TAILNET_INTERVAL_SECONDS = 60  # devices come and go; a local socket call
 NEWS_INTERVAL_SECONDS = 600       # §5: feeds every 10 minutes
 PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
 WEATHER_INTERVAL_SECONDS = 300  # Buienradar's rain forecast moves in 5-minute steps
@@ -160,6 +161,17 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         seconds=HOSTS_INTERVAL_SECONDS,
         args=[store, "hosts", lambda: tailscale.collect(cfg)],
         id="hosts",
+        next_run_time=None,
+        max_instances=1,
+        coalesce=True,
+    )
+
+    scheduler.add_job(
+        _run,
+        "interval",
+        seconds=TAILNET_INTERVAL_SECONDS,
+        args=[store, tailscale.TAILNET_CACHE_KEY, lambda: tailscale.collect_tailnet(cfg)],
+        id="tailnet",
         next_run_time=None,
         max_instances=1,
         coalesce=True,

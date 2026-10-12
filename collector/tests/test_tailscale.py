@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import UTC, datetime
 
 import pytest
 
@@ -118,3 +119,116 @@ def test_parse_serve_config_maps_local_ports_to_https_ports():
 def test_parse_serve_config_empty():
     assert tailscale.parse_serve_config({}) == {}
     assert tailscale.parse_serve_config({"Web": None}) == {}
+
+
+NOW = datetime(2026, 10, 12, 20, 0, tzinfo=UTC)
+
+TAILNET_STATUS = {
+    "BackendState": "Running",
+    "MagicDNSSuffix": "tail1234.ts.net",
+    "CurrentTailnet": {"Name": "owner@example.com", "MagicDNSSuffix": "tail1234.ts.net"},
+    "Health": ["Tailscale can't reach the configured DNS servers."],
+    "Self": {
+        "HostName": "dev-minotaur",
+        "DNSName": "dev-minotaur.tail1234.ts.net.",
+        "OS": "linux",
+        "TailscaleIPs": ["100.70.0.10", "fd7a:115c:a1e0::1"],
+        "Relay": "ams",
+        "Online": True,
+    },
+    "Peer": {
+        "k1": {
+            "HostName": "pim-macbook", "DNSName": "pim-macbook.tail1234.ts.net.", "OS": "macOS",
+            "TailscaleIPs": ["100.71.12.4", "fd7a:115c:a1e0::2"], "Online": True, "Active": True,
+            "CurAddr": "192.168.1.23:41641", "Relay": "ams", "RxBytes": 1800, "TxBytes": 412,
+            "LastSeen": "0001-01-01T00:00:00Z",
+        },
+        "k2": {
+            "HostName": "pim-iphone", "DNSName": "pim-iphone.tail1234.ts.net.", "OS": "iOS",
+            "TailscaleIPs": ["100.88.3.51"], "Online": True, "Active": True,
+            "CurAddr": "", "Relay": "ams",
+        },
+        "k3": {
+            "HostName": "appletv", "DNSName": "appletv.tail1234.ts.net.", "OS": "tvOS",
+            "TailscaleIPs": ["100.64.9.17"], "Online": True, "Active": False, "Relay": "ams",
+            "ExitNodeOption": True,
+        },
+        "k4": {
+            "HostName": "desk-pc", "DNSName": "desk-pc.tail1234.ts.net.", "OS": "windows",
+            "TailscaleIPs": ["100.102.7.88"], "Online": False, "LastSeen": "2026-10-12T15:00:00Z",
+        },
+        "k5": {
+            "HostName": "Amsterdam 12", "DNSName": "nl-ams-wg-012.mullvad.ts.net.", "OS": "linux",
+            "TailscaleIPs": ["100.120.1.1"], "Online": True, "ExitNodeOption": True,
+            "Location": {"Country": "Netherlands", "City": "Amsterdam"},
+        },
+    },
+}
+
+
+def test_parse_tailnet_names_the_tailnet_by_its_suffix_never_the_login():
+    net = tailscale.parse_tailnet(TAILNET_STATUS, NOW)
+
+    assert net.name == "tail1234"
+    assert "owner@example.com" not in net.model_dump_json()
+    assert net.as_of == NOW and not net.stale
+
+
+def test_parse_tailnet_describes_the_nas_itself():
+    me = tailscale.parse_tailnet(TAILNET_STATUS, NOW).self
+
+    assert me.name == "dev-minotaur"
+    assert me.dns_name == "dev-minotaur.tail1234.ts.net"
+    assert (me.ipv4, me.ipv6) == ("100.70.0.10", "fd7a:115c:a1e0::1")
+    assert me.online and me.connection is None
+    assert me.relay == "ams"  # the home relay
+
+
+def test_parse_tailnet_tells_direct_relay_and_idle_apart():
+    peers = {p.name: p for p in tailscale.parse_tailnet(TAILNET_STATUS, NOW).peers}
+
+    mac, phone, tv = peers["pim-macbook"], peers["pim-iphone"], peers["appletv"]
+    assert (mac.connection, mac.endpoint, mac.relay) == ("direct", "192.168.1.23:41641", None)
+    assert (mac.rx_bytes, mac.tx_bytes) == (1800, 412)
+    assert (phone.connection, phone.relay, phone.endpoint) == ("relay", "ams", None)
+    assert (tv.connection, tv.relay) == ("idle", None)
+    assert tv.exit_node and not mac.exit_node
+
+
+def test_parse_tailnet_keeps_last_seen_for_offline_devices_only():
+    peers = {p.name: p for p in tailscale.parse_tailnet(TAILNET_STATUS, NOW).peers}
+
+    assert peers["desk-pc"].last_seen == datetime(2026, 10, 12, 15, 0, tzinfo=UTC)
+    assert peers["desk-pc"].connection is None and not peers["desk-pc"].online
+    assert peers["pim-macbook"].last_seen is None
+
+
+def test_parse_tailnet_lists_online_first_and_skips_mullvad_nodes():
+    net = tailscale.parse_tailnet(TAILNET_STATUS, NOW)
+
+    assert [p.name for p in net.peers] == ["appletv", "pim-iphone", "pim-macbook", "desk-pc"]
+
+
+def test_parse_tailnet_passes_health_warnings_through():
+    assert tailscale.parse_tailnet(TAILNET_STATUS, NOW).health == [
+        "Tailscale can't reach the configured DNS servers."
+    ]
+    healthy = {**TAILNET_STATUS, "Health": None}
+    assert tailscale.parse_tailnet(healthy, NOW).health == []
+
+
+def test_parse_tailnet_without_peers_or_a_name():
+    alone = {
+        "Self": {"DNSName": "nas.tail1234.ts.net.", "HostName": "nas"},
+        "MagicDNSSuffix": "tail1234.ts.net",
+    }
+    assert tailscale.parse_tailnet(alone, NOW).peers == []
+    with pytest.raises(ValueError):
+        tailscale.parse_tailnet({}, NOW)
+
+
+def test_collect_tailnet_raises_without_the_socket_so_the_last_one_goes_stale(tmp_path):
+    cfg = {"tailscale": {"socket": str(tmp_path / "ts.sock")}}
+
+    with pytest.raises(FileNotFoundError):
+        asyncio.run(tailscale.collect_tailnet(cfg))

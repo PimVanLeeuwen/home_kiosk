@@ -37,6 +37,7 @@ from .sources import (
     github_mirror,
     outside_services,
     readeck,
+    tailscale,
     ups,
     weather,
 )
@@ -165,6 +166,11 @@ def nas() -> Any:
 @app.get("/api/hosts")
 def hosts() -> Any:
     return _serve("hosts")
+
+
+@app.get("/api/tailnet")
+def tailnet() -> Any:
+    return _serve(tailscale.TAILNET_CACHE_KEY)
 
 
 @app.get("/api/containers")
