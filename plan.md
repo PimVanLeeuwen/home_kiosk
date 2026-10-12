@@ -66,7 +66,7 @@ Telegram uses long polling (`getUpdates`), so no inbound webhook and no public U
 Each milestone is a series of small steps. Every step: tests, build and lint green, one proposed
 commit message, screenshots for visual changes.
 
-**M1. Foundation**
+**M1. Foundation**. **Done 2026-09-30.**
 - `web/` app shell: sidebar and bottom tab bar, routes for every section (empty states), design
   tokens from the mockups, self-hosted fonts.
 - Caddy: `web/` at `/`, carousel at `/kiosk/`. Existing `/api/*` responses unchanged.
@@ -131,7 +131,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   READMEs, copy the stack into nas-docker, and remove the old DEGIRO converter script.
 - The `/kiosk/` restyle is postponed: the Pi kiosk is not in use yet.
 
-**M9. Repos** (added 2026-10-01)
+**M9. Repos** (added 2026-10-01). **Done 2026-10-01.**
 - A "Code" sidebar group with a Repos page: tabs Mine (PimVanLeeuwen), Hubble
   (Hubble-Community-Cafe) and GEWIS (only repos with your pull requests or commits). Private repos
   included through read-only fine-grained tokens, one per owner.
@@ -139,7 +139,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   issues, CI state of the default branch, latest release. Archived repos hidden.
 - One GraphQL query per owner every 30 minutes, cached; the last good list stays on errors.
 
-**M10. GitHub mirror** (added 2026-10-04)
+**M10. GitHub mirror** (added 2026-10-04). **Done 2026-10-04.**
 - A backup of the git history in case GitHub goes away: every repo of PimVanLeeuwen and
   Hubble-Community-Cafe (no forks, archived ones included), nothing of GEWIS. Issues and pull
   requests are not kept.
@@ -153,7 +153,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Shown on the Backups page (a GitHub mirror card) and per repo on the Repos page. A failed run
   sends a Telegram message; the backup_missing rule also covers the mirror, and `/backup` lists it.
 
-**M11. Message templates** (added 2026-10-04)
+**M11. Message templates** (added 2026-10-04). **Done 2026-10-08.**
 - Settings → Messages: the wording of the alert rules (and Resolved), the portfolio report, the
   GitHub mirror failure, and the messages from the NAS (backup, Watchtower, Uptime Kuma) is
   editable. Bot replies and messages typed on the Alerts page are not.
@@ -312,8 +312,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the kitchen spots. (A scenes card was dropped on 2026-10-10: it would not be used.)
 - Second card: **Air** in the living room: the temperature large, humidity, PM2.5, CO₂ as a ring
   (Fresh below 800 ppm, Getting stuffy to 1200, Open a window above) with the outside
-  temperature from Buienradar beside it, and CO₂ over the last 8 hours. Needs a sensor, not
-  chosen yet:
+  temperature from Buienradar beside it, and CO₂ over the last 8 hours. Needs a sensor; the ALPSTUGA (option 1) is
+  ordered:
   1. **IKEA ALPSTUGA**, EUR 29.99 at IKEA NL: CO₂, PM2.5, temperature, humidity (no VOC).
      Matter over Thread, so it needs a Thread border router (an Apple TV 4K or HomePod mini in
      Apple Home is one) and then shows in Apple Home too. For the hub to read it, a Matter
@@ -328,7 +328,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   The Hue motion sensor only gives temperature. Recommended (2026-10-10): option 1, the
   ALPSTUGA. The house has two Apple TVs and several HomePods, which are Thread border routers
   already, so it joins Apple Home directly; the hub reads it through matter-server on the NAS
-  (host network, IPv6 on the LAN). Not bought yet.
+  (host network, IPv6 on the LAN). Ordered, not arrived yet (2026-10-12).
 - The Hue plugs are used for Christmas decorations: their switches only show in the season
   (dates set in Settings).
 - No light strips for now (2026-10-10). If ever: Hue's own strip is the only one that also shows
