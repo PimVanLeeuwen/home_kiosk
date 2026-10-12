@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react'
 import { renderRoute } from '../test/renderRoute'
-import { BACKUPS, PORTFOLIO, SERVICES, nasFixture } from '../test/fixtures'
+import { BACKUPS, PORTFOLIO, SERVICES, backupRun, nasFixture } from '../test/fixtures'
 import { ARTICLES, NEWS_GROUPS } from '../test/newsFixtures'
 import { stubApi } from '../test/stubApi'
 
@@ -109,14 +109,70 @@ describe('HomePage', () => {
     expect(await within(services).findByRole('link', { name: /Jellyfin/ })).toHaveTextContent('1 streaming')
   })
 
-  it('shows the latest run per volume once there is run history', async () => {
+  it('shows a failed night with its seal, the failed volume and the nights before', async () => {
     setup({ '/api/backups': BACKUPS })
 
     const card = await screen.findByRole('region', { name: 'Backups' })
-    expect(await within(card).findByText('Failed')).toBeInTheDocument()
-    expect(within(card).getByText(/OK · 4 min · 2,5 GB/)).toBeInTheDocument()
-    expect(within(card).getByText(/Failed · 19 min/)).toBeInTheDocument()
+    expect(await within(card).findByRole('img', { name: 'Backup failed' })).toBeInTheDocument()
+    expect(within(card).getAllByText('Failed')).toHaveLength(2) // the pill and the result
+    expect(within(card).getByText('volume3')).toBeInTheDocument()
+    expect(within(card).getByText('Failed · 19 min')).toBeInTheDocument()
+    expect(within(card).queryByText('volume1')).not.toBeInTheDocument() // fine volumes stay in the count
+    expect(within(card).getByText('2 volumes · 23 min · 2,5 GB')).toBeInTheDocument()
+    // The route stops moving after a failed night.
+    expect(within(card).getByRole('img', { name: 'NAS to Hetzner · encrypted' }).querySelector('i')).toBeNull()
+    const bars = within(card).getByRole('img', { name: 'Backup durations, last 3 nights' })
+    expect(bars.querySelectorAll('rect')[2]).toHaveAttribute('fill', 'var(--color-down)')
+    expect(within(card).getByText('last night: failed')).toBeInTheDocument()
     expect(within(card).getByText(/Next run due/)).toBeInTheDocument()
+  })
+
+  it('names last night\'s failure under the bars, not an older slow night', async () => {
+    const run = (day: number, minutes: number, ok = true) => ({
+      ...backupRun(day, ok), finished: new Date(new Date(backupRun(day).started).getTime() + minutes * 60_000).toISOString(),
+    })
+    setup({ '/api/backups': { ...BACKUPS, runs: [run(28, 20, false), run(27, 20), run(26, 45), run(25, 20)] } })
+
+    const card = await screen.findByRole('region', { name: 'Backups' })
+    const label = await within(card).findByText('last night: failed')
+    expect(label).toHaveAttribute('fill', 'var(--color-down)')
+    expect(within(card).queryByText('slow')).not.toBeInTheDocument()
+  })
+
+  it('shows a good night as all safe, a slow night in amber and the restore check', async () => {
+    const night = (daysAgo: number, minutes: number) => {
+      const start = new Date()
+      start.setDate(start.getDate() - daysAgo)
+      start.setHours(Math.min(start.getHours(), 3), 0, 0, 0)
+      if (daysAgo === 0 && start > new Date()) start.setTime(Date.now() - 3_600_000)
+      return { ...backupRun(1), started: start.toISOString(), finished: new Date(start.getTime() + minutes * 60_000).toISOString() }
+    }
+    setup({
+      '/api/backups': { ...BACKUPS, runs: [night(0, 20), night(1, 21), night(2, 40), night(3, 20)] },
+      '/api/database-dumps': { as_of: '', stale: false, databases: [], runs: [], restore_checks: [], last_verified: new Date(Date.now() - 12 * 86_400_000).toISOString() },
+    })
+
+    const card = await screen.findByRole('region', { name: 'Backups' })
+    expect(await within(card).findByText('All safe')).toBeInTheDocument()
+    expect(within(card).getByRole('img', { name: 'Backup succeeded' })).toBeInTheDocument()
+    expect(await within(card).findByText('Restore verified 12 days ago')).toHaveClass('text-up')
+    expect(within(card).getByRole('img', { name: 'NAS to Hetzner · encrypted' }).querySelector('i')).not.toBeNull()
+    const rects = within(card).getByRole('img', { name: 'Backup durations, last 4 nights' }).querySelectorAll('rect')
+    expect(rects[1]).toHaveAttribute('fill', 'var(--color-warn)') // 40 min against a usual 20
+    expect(within(card).getByText('slow')).toBeInTheDocument()
+  })
+
+  it('warns when the newest restore check failed', async () => {
+    setup({
+      '/api/backups': BACKUPS,
+      '/api/database-dumps': {
+        as_of: '', stale: false, databases: [], runs: [], last_verified: '2026-09-01T05:20:00Z',
+        restore_checks: [{ started: new Date(Date.now() - 2 * 86_400_000).toISOString(), finished: new Date(Date.now() - 2 * 86_400_000).toISOString(), ok: false, checks: [] }],
+      },
+    })
+
+    const card = await screen.findByRole('region', { name: 'Backups' })
+    expect(await within(card).findByText('Last restore check failed 2 days ago')).toHaveClass('text-down')
   })
 
   it('raises what needs a look in the strip and the subtitle', async () => {

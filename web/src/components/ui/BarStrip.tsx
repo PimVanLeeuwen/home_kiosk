@@ -12,19 +12,23 @@ interface Props {
   start?: string
   end?: string
   markLabel?: string
+  /** Which marked bar the label goes under; the first one by default. */
+  markAt?: number
 }
 
 const W = 300
 const H = 46
 
 /** A row of bars, oldest left, with the newest lit: 30 nights of backups and the like. */
-export function BarStrip({ values, label, tone = 'up', marks = {}, start, end, markLabel }: Props) {
+export function BarStrip({ values, label, tone = 'up', marks = {}, start, end, markLabel, markAt }: Props) {
   const id = useId()
   if (values.length === 0) return null
   const top = Math.max(...values) || 1
   const bw = W / values.length
   const color = TONE_COLOR[tone]
-  const marked = Object.keys(marks).map(Number)
+  const labelled = markAt ?? Object.keys(marks).map(Number)[0]
+  // A label under the newest bar would sit on the end words: they share one line instead.
+  const atEnd = labelled === values.length - 1 && !!end && !!markLabel && !!marks[labelled]
   return (
     <svg role="img" aria-label={label} viewBox={`0 0 ${W} ${H + 12}`} className="block w-full overflow-visible">
       <defs>
@@ -62,14 +66,14 @@ export function BarStrip({ values, label, tone = 'up', marks = {}, start, end, m
           {start}
         </text>
       )}
-      {markLabel && marked.length > 0 && (
-        <text x={(marked[0] * bw + bw / 2).toFixed(1)} y={H + 11} fontSize="9" fill={TONE_COLOR[marks[marked[0]]]} textAnchor="middle">
+      {markLabel && labelled != null && marks[labelled] && !atEnd && (
+        <text x={(labelled * bw + bw / 2).toFixed(1)} y={H + 11} fontSize="9" fill={TONE_COLOR[marks[labelled]]} textAnchor="middle">
           {markLabel}
         </text>
       )}
       {end && (
-        <text x={W} y={H + 11} fontSize="9" fill="var(--color-faint)" textAnchor="end">
-          {end}
+        <text x={W} y={H + 11} fontSize="9" fill={atEnd ? TONE_COLOR[marks[labelled]] : 'var(--color-faint)'} textAnchor="end">
+          {atEnd ? `${end}: ${markLabel}` : end}
         </text>
       )}
     </svg>
