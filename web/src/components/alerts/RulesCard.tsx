@@ -83,7 +83,7 @@ export function RulesCard() {
                         value={rule[field] ?? ''}
                         disabled={!rule.enabled}
                         onChange={(e) => change(name, { [field]: Number(e.target.value) })}
-                        className="w-16 rounded-md border border-line bg-raised px-2 py-1 text-fg disabled:opacity-50"
+                        className="w-14 rounded-[7px] border border-glass-line bg-glass px-1.5 py-0.5 text-center text-fg focus:border-accent-line focus:outline-none disabled:opacity-50"
                       />
                       {after}
                     </label>
@@ -97,7 +97,7 @@ export function RulesCard() {
               type="button"
               onClick={save}
               disabled={!draft}
-              className="rounded-[9px] border border-accent bg-accent px-3 py-1.5 font-medium text-white hover:brightness-110 disabled:opacity-40"
+              className="rounded-[10px] border border-accent bg-accent px-3 py-1.5 font-medium text-white shadow-[0_0_14px_-4px_var(--color-accent-line)] hover:brightness-110 disabled:opacity-40 disabled:shadow-none"
             >
               Save rules
             </button>

@@ -62,8 +62,8 @@ export function AlertsPage() {
               <Card title="Bot commands">
                 <ul className="space-y-1.5 text-[13px]">
                   {COMMANDS.map(([command, what]) => (
-                    <li key={command} className="flex justify-between gap-3">
-                      <span className="font-mono">{command}</span>
+                    <li key={command} className="flex items-center justify-between gap-3">
+                      <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 font-mono text-[12px]">{command}</span>
                       <span className="text-faint">{what}</span>
                     </li>
                   ))}

@@ -19,7 +19,7 @@ export function Switch({ checked, onChange, label, disabled }: Props) {
       onClick={() => onChange(!checked)}
       className={cn(
         'relative h-5 w-[34px] shrink-0 rounded-full border transition-colors disabled:opacity-50',
-        checked ? 'border-accent bg-accent' : 'border-line bg-raised',
+        checked ? 'border-accent-line/50 bg-accent/60 shadow-[0_0_10px_-2px_var(--color-accent-line)]' : 'border-line bg-raised',
       )}
     >
       <span
