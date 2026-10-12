@@ -68,6 +68,7 @@ test('the NAS page flags a public hostname that is not allowed', async ({ page }
 
   const card = page.getByRole('region', { name: 'Exposure' })
   await expect(card.getByRole('listitem')).toHaveCount(2)
-  await expect(card).toContainText('1 hostname not on the allowlist.')
+  await expect(card).toContainText('1 hostname not on the allowlist')
+  await expect(card.getByRole('img', { name: 'Something unexpected is public' })).toBeVisible()
   await expect(card).toContainText('No open ports (all 65.535 checked).')
 })

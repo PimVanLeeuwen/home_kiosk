@@ -156,6 +156,11 @@ describe('NasPage', () => {
     const cuts = within(card).getAllByRole('listitem')
     expect(cuts[0]).toHaveTextContent('Tue 6 Oct 10:02, 39 min, down to 62%')
     expect(cuts[1]).toHaveTextContent('2 h 5 min, down to 14% (services stopped)')
+    // A cut that stopped the services has a red dot on the timeline.
+    expect(cuts[1].querySelector('.bg-down')).not.toBeNull()
+    expect(cuts[0].querySelector('.bg-down')).toBeNull()
+    expect(within(card).getByRole('meter', { name: 'Battery' })).toHaveAttribute('data-tone', 'up')
+    expect(within(card).getByText('Stops at').nextElementSibling).toHaveTextContent('15%')
   })
 
   it('says since when the UPS is on battery', async () => {
@@ -171,7 +176,10 @@ describe('NasPage', () => {
     const card = await screen.findByRole('region', { name: 'UPS' })
     expect(within(card).getByText('Status').nextElementSibling).toHaveTextContent(/On battery since today/)
     expect(within(card).getByText('None recorded.')).toBeInTheDocument()
-    expect(within(card).getByRole('meter', { name: 'Battery' }).firstElementChild).toHaveClass('bg-warn')
+    // The ring and the pill turn amber while on battery.
+    expect(within(card).getByRole('meter', { name: 'Battery' })).toHaveAttribute('data-tone', 'warn')
+    expect(within(card).getByRole('meter', { name: 'Battery' })).toHaveTextContent('71%')
+    expect(within(card).getAllByText('On battery')).toHaveLength(2)
   })
 
   it('leaves the UPS out when the hub has no UPS data', async () => {
@@ -195,12 +203,23 @@ describe('NasPage', () => {
     const card = await screen.findByRole('region', { name: 'Exposure' })
     const hosts = within(card).getAllByRole('listitem')
     expect(hosts[0]).toHaveTextContent('couchdb.example.comAllowed')
-    expect(hosts[0]).toHaveTextContent('Tunnel to http://192.168.1.10:5984 · answers 200')
+    expect(hosts[0]).toHaveTextContent('Tunnelhttp://192.168.1.10:5984· answers 200')
     expect(hosts[1]).toHaveTextContent('Not allowed')
     expect(hosts[1]).toHaveTextContent('no answer')
     expect(within(card).getByText(/1 hostname not on the allowlist/)).toHaveClass('text-down')
+    expect(within(card).getByRole('img', { name: 'Something unexpected is public' })).toBeInTheDocument()
+    expect(hosts[1].querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
     // The home IP is not shown.
     expect(card).not.toHaveTextContent('203.0.113.7')
+  })
+
+  it('shows a green shield when everything public is allowed', async () => {
+    stubApi({ '/api/nas': NAS, '/api/exposure': { ...EXPOSURE, hosts: [EXPOSURE.hosts[0]] } })
+    renderRoute('/nas')
+
+    const card = await screen.findByRole('region', { name: 'Exposure' })
+    expect(within(card).getByRole('img', { name: 'Nothing unexpected is public' })).toBeInTheDocument()
+    expect(within(card).getByText('Nothing public beyond the allowlist')).not.toHaveClass('text-down')
   })
 
   it('says why the audit could not run', async () => {
@@ -213,6 +232,7 @@ describe('NasPage', () => {
     const card = await screen.findByRole('region', { name: 'Exposure' })
     expect(within(card).getByRole('status')).toHaveTextContent('No Cloudflare API token set')
     expect(within(card).queryByText(/Nothing public beyond the allowlist/)).not.toBeInTheDocument()
+    expect(within(card).queryByRole('img', { name: /is public/ })).not.toBeInTheDocument()
   })
   const scanRun = (open: number[], error: string | null = null) => ({
     started: '2026-10-09T03:30:00Z', finished: '2026-10-09T03:36:00Z', ports_checked: error ? 0 : 65535, open, error,
@@ -227,6 +247,7 @@ describe('NasPage', () => {
 
     const card = await screen.findByRole('region', { name: 'Exposure' })
     expect(within(card).getByText(/Open on the home IP: 22, 32400\./)).toHaveClass('text-down')
+    expect(card.querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
   })
 
   it('says the scan found nothing, or why it failed, or that none came in', async () => {

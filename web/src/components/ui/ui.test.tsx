@@ -7,6 +7,7 @@ import { GlowArea } from './GlowArea'
 import { GlowDot } from './GlowDot'
 import { MiniSparkline } from './MiniSparkline'
 import { Pill } from './Pill'
+import { RingMeter } from './RingMeter'
 import { Seal } from './Seal'
 
 describe('ArcGauge', () => {
@@ -166,5 +167,19 @@ describe('small pieces', () => {
   it('a pill shows its words', () => {
     render(<Pill tone="up">All safe</Pill>)
     expect(screen.getByText('All safe')).toHaveClass('text-up')
+  })
+})
+
+describe('RingMeter', () => {
+  it('is a meter with its figure and tone, empty at zero', () => {
+    const { container, rerender } = render(<RingMeter pct={64} tone="warn" label="Battery" caption="battery" />)
+    const ring = screen.getByRole('meter', { name: 'Battery' })
+    expect(ring).toHaveAttribute('aria-valuenow', '64')
+    expect(ring).toHaveAttribute('data-tone', 'warn')
+    expect(ring).toHaveTextContent('64%battery')
+    expect(container.querySelectorAll('circle')).toHaveLength(2)
+
+    rerender(<RingMeter pct={0} tone="down" label="Battery" />)
+    expect(container.querySelectorAll('circle')).toHaveLength(1)
   })
 })
