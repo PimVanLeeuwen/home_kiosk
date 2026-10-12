@@ -6,11 +6,11 @@ There is no login and nothing is exposed to the internet.
 
 | Section | What it does |
 |---------|--------------|
-| Home | Status at a glance: NAS health, portfolio, latest news, last backup, services, and the weather (rain in the next 2 hours, from Buienradar) |
+| Home | Status at a glance: NAS health, portfolio, latest news, last backup, services, the weather (rain in the next 2 hours, from Buienradar), and the outside services the house depends on |
 | News, Saved | Feeds read in the hub (text only, images through the hub), search, read state; Readeck bookmarks in the same reader |
 | Portfolio | Ghostfolio overview: value history, holdings, allocation, holding detail, markets; **Update from DEGIRO** imports new trades |
 | NAS, Docker, Backups | Live figures and history, the UPS and its power cuts, what is public on the internet, container load and image updates, rclone runs per volume, storage box space, database dumps, the GitHub mirror |
-| Services | Links to every app, LAN or Tailscale depending on how the hub was opened, with live stats |
+| Services | Links to every app, LAN or Tailscale depending on how the hub was opened, with live stats; the status of GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP and Proton with any open incident |
 | Repos | GitHub repos: your own, Hubble and GEWIS, with the backup status of each mirrored repo and when each token expires |
 | Alerts | Every Telegram message the hub sends, routing, quiet hours and the hub's own alert rules |
 | Settings | Service catalog, news feeds, and the wording of every Telegram message (templates with a live preview and a test send) |

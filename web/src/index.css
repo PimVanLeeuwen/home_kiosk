@@ -30,6 +30,18 @@
 
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* A slow glow for something that needs a look (an outside incident). */
+  --animate-halo: halo 2.4s ease-in-out infinite;
+  @keyframes halo {
+    0%,
+    100% {
+      box-shadow: 0 0 10px -4px var(--glow);
+    }
+    50% {
+      box-shadow: 0 0 22px 2px var(--glow);
+    }
+  }
 }
 
 :root {

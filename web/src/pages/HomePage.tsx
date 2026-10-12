@@ -5,6 +5,7 @@ import { PortfolioCard } from '../components/home/PortfolioCard'
 import { ServicesCard } from '../components/home/ServicesCard'
 import { StatusStrip } from '../components/home/StatusStrip'
 import { WeatherCard } from '../components/home/WeatherCard'
+import { OutsideServicesCard } from '../components/outside/OutsideServicesCard'
 import { PageHeader } from '../components/PageHeader'
 import { attentionItems } from '../lib/attention'
 import { greeting } from '../lib/greeting'
@@ -38,6 +39,7 @@ export function HomePage() {
         <BackupCard nas={nas.data} error={nas.error} />
         <ServicesCard services={all} error={services.error} />
         <WeatherCard />
+        <OutsideServicesCard />
       </div>
     </>
   )

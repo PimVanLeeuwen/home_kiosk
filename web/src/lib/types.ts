@@ -452,3 +452,35 @@ export interface Incident {
   last_seen_at: string
   resolved_at: string | null
 }
+
+/** Worst first is "outage"; "unknown" means the status page has never answered. */
+export type OutsideState = 'ok' | 'maintenance' | 'degraded' | 'outage' | 'unknown'
+
+export interface OutsideIncident {
+  title: string
+  impact: 'maintenance' | 'degraded' | 'outage'
+  status: string
+  started_at: string | null
+  url: string | null
+  /** Oldest first, the last few. */
+  updates: { at: string; status: string; text: string }[]
+}
+
+export interface OutsideService {
+  key: string
+  name: string
+  url: string
+  state: OutsideState
+  incidents: OutsideIncident[]
+  as_of: string
+  /** The page could not be read; this is its last answer. */
+  stale: boolean
+  error: string | null
+}
+
+/** Outside services from their status pages (GET /api/outside-services). */
+export interface OutsideServices {
+  as_of: string
+  stale: boolean
+  services: OutsideService[]
+}

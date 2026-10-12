@@ -68,7 +68,8 @@ describe('ServicesPage', () => {
     stubApi({ '/api/services': () => new Promise(() => {}) as unknown })
     renderRoute('/services')
 
-    expect(screen.getByRole('status')).toHaveTextContent('Loading services')
+    // The outside services section below has a loading state of its own.
+    expect(screen.getAllByRole('status')[0]).toHaveTextContent('Loading services')
   })
 
   it('groups services with their status and a count of running ones', async () => {

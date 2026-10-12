@@ -1,4 +1,5 @@
 import { RefreshCw } from 'lucide-react'
+import { OutsideServicesSection } from '../components/outside/OutsideServicesSection'
 import { PageHeader } from '../components/PageHeader'
 import { ServiceTile } from '../components/ServiceTile'
 import { uniqueMonograms } from '../lib/monogram'
@@ -88,6 +89,8 @@ export function ServicesPage() {
           ))}
         </div>
       )}
+
+      <OutsideServicesSection />
     </>
   )
 }
