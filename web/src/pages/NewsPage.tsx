@@ -183,7 +183,7 @@ export function NewsPage() {
           <button
             type="button"
             onClick={list.loadMore}
-            className="mt-3 w-full rounded-[10px] border border-line bg-raised py-2.5 text-[13px] text-muted hover:text-fg"
+            className="mt-3 w-full rounded-[11px] border border-glass-line bg-glass py-2.5 text-[13px] text-muted hover:text-fg"
           >
             Show more ({list.total - list.items.length} left)
           </button>

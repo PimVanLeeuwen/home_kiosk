@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
 import { FilterPill } from '../components/news/FilterPill'
 import { SavedReader } from '../components/news/SavedReader'
+import { Pill } from '../components/ui/Pill'
 import { cn } from '../lib/cn'
 import { formatAgo } from '../lib/format'
 import type { Bookmark } from '../lib/newsTypes'
@@ -18,6 +19,31 @@ function details(b: Bookmark): string {
   ]
     .filter(Boolean)
     .join(' · ')
+}
+
+const inProgress = (b: Bookmark) => b.progress > 0 && b.progress < 100
+
+/** How far a bookmark has been read, as a small ring on its thumbnail. */
+function ProgressRing({ pct }: { pct: number }) {
+  const r = 9
+  const c = 2 * Math.PI * r
+  return (
+    <svg aria-hidden="true" data-progress={pct} viewBox="0 0 24 24" className="absolute -right-1.5 -bottom-1.5 size-6">
+      <circle cx="12" cy="12" r={r} fill="var(--color-panel)" stroke="rgb(255 255 255 / 0.15)" strokeWidth="3" />
+      <circle
+        cx="12"
+        cy="12"
+        r={r}
+        fill="none"
+        stroke="var(--color-accent-line)"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeDasharray={`${((c * pct) / 100).toFixed(1)} ${c.toFixed(1)}`}
+        transform="rotate(-90 12 12)"
+        style={{ filter: 'drop-shadow(0 0 3px var(--color-accent-line))' }}
+      />
+    </svg>
+  )
 }
 
 /** Readeck bookmarks, read in the hub; the open one is `?b=<id>`. */
@@ -37,7 +63,11 @@ export function SavedPage() {
   return (
     <div className="lg:grid lg:grid-cols-[minmax(300px,400px)_minmax(0,1fr)] lg:gap-10">
       <section aria-label="Bookmarks" className={cn(selected && 'hidden lg:block')}>
-        <PageHeader title="Saved" subtitle={list.loading || list.error ? undefined : `${list.total} in Readeck`} />
+        <PageHeader
+          title="Saved"
+          subtitle={list.loading || list.error ? undefined : `${list.total} in Readeck`}
+          actions={!archived && !list.loading && !list.error && <Pill tone={list.total ? 'accent' : 'muted'}>{list.total} to read</Pill>}
+        />
         <div role="group" aria-label="Show" className="mb-4 flex gap-1.5">
           <FilterPill on={!archived} onClick={() => setArchived(false)}>
             Reading list
@@ -69,22 +99,30 @@ export function SavedPage() {
                 to={`/saved?b=${b.id}`}
                 aria-current={b.id === selected ? 'true' : undefined}
                 className={cn(
-                  '-mx-3 flex items-start gap-3 rounded-[10px] px-3 py-2.5 hover:bg-raised',
-                  b.id === selected && 'bg-accent-soft hover:bg-accent-soft',
+                  '-mx-3 flex items-center gap-3 rounded-[11px] border border-transparent px-3 py-2.5 hover:bg-white/[0.03]',
+                  b.id === selected &&
+                    'border-accent-line/30 bg-accent/12 shadow-[inset_2px_0_0_var(--color-accent-line)] hover:bg-accent/12',
                 )}
               >
                 <span className="min-w-0 flex-1">
                   <span className="block font-medium">{b.title}</span>
                   <span className="mt-0.5 block text-[12px] text-faint">{details(b)}</span>
                 </span>
-                {b.thumbnail && (
-                  <img
-                    src={`/api/saved/${b.id}/thumbnail`}
-                    alt=""
-                    loading="lazy"
-                    className="size-14 shrink-0 rounded-[8px] bg-raised object-cover"
-                    onError={(e) => (e.currentTarget.hidden = true)}
-                  />
+                {(b.thumbnail || inProgress(b)) && (
+                  <span className="relative shrink-0">
+                    {b.thumbnail ? (
+                      <img
+                        src={`/api/saved/${b.id}/thumbnail`}
+                        alt=""
+                        loading="lazy"
+                        className="size-14 rounded-[10px] border border-glass-line bg-raised object-cover"
+                        onError={(e) => (e.currentTarget.style.visibility = 'hidden')}
+                      />
+                    ) : (
+                      <span className="block size-14 rounded-[10px] border border-glass-line bg-glass" />
+                    )}
+                    {inProgress(b) && <ProgressRing pct={b.progress} />}
+                  </span>
                 )}
               </Link>
             </li>
@@ -94,7 +132,7 @@ export function SavedPage() {
           <button
             type="button"
             onClick={list.loadMore}
-            className="mt-3 w-full rounded-[10px] border border-line bg-raised py-2.5 text-[13px] text-muted hover:text-fg"
+            className="mt-3 w-full rounded-[11px] border border-glass-line bg-glass py-2.5 text-[13px] text-muted hover:text-fg"
           >
             Show more ({list.total - list.items.length} left)
           </button>

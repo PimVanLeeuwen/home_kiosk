@@ -29,6 +29,10 @@ describe('SavedPage', () => {
     expect(first).toHaveTextContent('40% read')
     expect(first.querySelector('img')).toHaveAttribute('src', '/api/saved/b1/thumbnail')
     expect(second).toHaveTextContent('not readable here')
+    // A ring on the thumbnail for a half-read bookmark; the header counts what is left to read.
+    expect(first.querySelector('[data-progress]')).toHaveAttribute('data-progress', '40')
+    expect(second.querySelector('[data-progress]')).toBeNull()
+    expect(screen.getByText('2 to read')).toBeInTheDocument()
   })
 
   it('switches to the archive', async () => {
