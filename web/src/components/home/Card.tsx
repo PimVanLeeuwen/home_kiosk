@@ -27,12 +27,16 @@ export function Card({ title, link, actions, className, children }: Props) {
         <h2 id={id} className="text-[13px] font-semibold text-muted">
           {title}
         </h2>
-        {link && (
-          <Link to={link.to} className="text-[13px] font-medium text-accent-fg hover:underline">
-            {link.label} →
-          </Link>
+        {(actions || link) && (
+          <div className="flex flex-wrap items-center gap-3">
+            {actions}
+            {link && (
+              <Link to={link.to} className="text-[13px] font-medium text-accent-fg hover:underline">
+                {link.label} →
+              </Link>
+            )}
+          </div>
         )}
-        {actions}
       </div>
       {children}
     </section>

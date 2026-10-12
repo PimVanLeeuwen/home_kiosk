@@ -41,13 +41,48 @@ describe('HomePage', () => {
     expect(within(portfolio).getByRole('img', { name: /last 30 days/ })).toBeInTheDocument()
   })
 
-  it('shows NAS meters and the fullest pools', async () => {
-    setup()
+  it('shows the fullest pool on a dial, load with 24-hour lines and a dot per disk', async () => {
+    const point = (h: number, cpu: number, ram: number) => ({ t: new Date(2026, 9, 12, h).toISOString(), cpu, ram, temp: 44, rx_mbps: 1, tx_mbps: 1 })
+    setup({
+      '/api/nas/history': [point(8, 9, 23), point(9, 14, 24), point(10, 11, 24)],
+      '/api/ups': { as_of: '', stale: false, name: 'ups0', model: null, status: 'online', status_raw: 'OL', charge: 100, charge_low: 20, load: 12, outages: [] },
+    })
 
     const nas = await screen.findByRole('region', { name: 'NAS' })
-    expect(await within(nas).findByRole('meter', { name: 'CPU' })).toHaveAttribute('aria-valuenow', '11')
-    expect(within(nas).getByRole('meter', { name: 'volume3' })).toBeInTheDocument()
-    expect(within(nas).getByText(/19,2 Mbit\/s/)).toBeInTheDocument()
+    // The fullest pool is the dial; the next one a thin bar.
+    expect(await within(nas).findByRole('meter', { name: 'volume3' })).toHaveAttribute('aria-valuenow', '36')
+    expect(within(nas).getByText('volume3 · 1,4 TB of 4,0 TB')).toBeInTheDocument()
+    expect(within(nas).getByText('No growth trend yet')).toBeInTheDocument()
+    expect(within(nas).getByRole('meter', { name: 'volume1' })).toBeInTheDocument()
+    expect(within(nas).getByText('Healthy')).toBeInTheDocument()
+
+    expect(within(nas).getByText('CPU · 44 °C')).toBeInTheDocument()
+    expect(within(nas).getByText('11%')).toBeInTheDocument()
+    expect(await within(nas).findByRole('img', { name: 'CPU, last 24 hours' })).toBeInTheDocument()
+    expect(within(nas).getByRole('img', { name: 'Memory, last 24 hours' })).toBeInTheDocument()
+    expect(within(nas).getByText('1 of 1')).toBeInTheDocument()
+    expect(within(nas).getByRole('img', { name: 'sda: healthy' })).toBeInTheDocument()
+
+    expect(within(nas).getByText(/Network ↓ 19,2 Mbit\/s/)).toBeInTheDocument()
+    expect(await within(nas).findByText('UPS on mains · 100%')).toBeInTheDocument()
+  })
+
+  it('flags a short runway and a failing disk in the NAS card', async () => {
+    setup({
+      '/api/nas': nasFixture({
+        storage: { used_pct: 80, pools: [{ name: 'volume2', used_bytes: 5.5e12, total_bytes: 6e12, used_pct: 91.7, free_bytes: 5e11, projection_months: 1.4 }] },
+        disks: [{ name: 'sda', temp_c: 35, smart: 'ok' }, { name: 'sdb', temp_c: 41, smart: 'fail' }],
+      }),
+    })
+
+    const nas = await screen.findByRole('region', { name: 'NAS' })
+    expect(await within(nas).findByText('Full in about 1 month')).toHaveClass('text-warn')
+    expect(within(nas).getByText('Needs a look')).toBeInTheDocument()
+    expect(within(nas).getByText('1 of 2')).toBeInTheDocument()
+    expect(within(nas).getByRole('img', { name: 'sdb: failing' })).toBeInTheDocument()
+    expect(within(nas).getByText('Disks · 41 °C')).toBeInTheDocument()
+    // No UPS answering: the line leaves it out.
+    expect(within(nas).queryByText(/UPS/)).not.toBeInTheDocument()
   })
 
   it('lists the newest headlines, each opening in the reader', async () => {
@@ -96,7 +131,7 @@ describe('HomePage', () => {
 
     expect(await screen.findByText(/1 thing needs a look/)).toBeInTheDocument()
     expect(screen.getByText('volume2 98% full')).toBeInTheDocument()
-    expect(screen.getByText('Needs a look')).toBeInTheDocument()
+    expect(within(card('NAS')).getByText('Needs a look')).toBeInTheDocument()
     expect(within(card('NAS')).getByRole('meter', { name: 'volume2' })).toBeInTheDocument()
     // The chips that need a look are tinted and their dots pulse; the rest stay quiet.
     const chip = (label: string) => screen.getByText(label, { selector: 'p' }).closest('[data-tone]')!
@@ -138,6 +173,6 @@ describe('HomePage', () => {
     setup({ '/api/portfolio': new Error('offline') })
 
     expect(await within(card('Portfolio')).findByText('The portfolio is not available right now.')).toBeInTheDocument()
-    expect(await within(card('NAS')).findByRole('meter', { name: 'CPU' })).toBeInTheDocument()
+    expect(await within(card('NAS')).findByRole('meter', { name: 'volume3' })).toBeInTheDocument()
   })
 })
