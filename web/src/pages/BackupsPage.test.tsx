@@ -54,7 +54,10 @@ describe('BackupsPage', () => {
     expect(within(v1).getByText('Succeeded')).toBeInTheDocument()
     expect(within(v1).getByText('2,5 GB · 118 files')).toBeInTheDocument()
 
+    // Each volume is a glass tile with an LED; a failed one pulses.
+    expect(v1.querySelector('.motion-safe\\:animate-halo')).toBeNull()
     const v3 = screen.getByRole('region', { name: 'volume3' })
+    expect(v3.querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
     expect(within(v3).getByText('(exit code 7)')).toBeInTheDocument()
     expect(within(v3).getByText('quota exceeded')).toBeInTheDocument()
     // The 28th failed for volume3, so its last success is the day before.
@@ -66,12 +69,17 @@ describe('BackupsPage', () => {
     renderRoute('/backups')
 
     const history = await screen.findByRole('region', { name: 'Last 3 runs' })
-    expect(within(history).getByRole('img', { name: 'Duration of the last 3 runs; 1 failed.' })).toBeInTheDocument()
     const rows = within(history).getAllByRole('row').slice(1)
     expect(rows).toHaveLength(3)
     expect(rows[0]).toHaveTextContent('Failed')
     expect(rows[0]).toHaveTextContent('failed')
+    expect(rows[0]).toHaveTextContent('23 min')
     expect(rows[1]).toHaveTextContent('500 MB · 118 files')
+    // A bar per run with a segment per volume, the failed one red, in the legend's colours.
+    const segments = (row: HTMLElement) => [...row.querySelectorAll('td:nth-child(3) i')] as HTMLElement[]
+    expect(segments(rows[0]).map((i) => i.style.backgroundColor)).toEqual(['rgb(143, 128, 255)', 'var(--color-down)'])
+    expect(segments(rows[1]).map((i) => i.style.backgroundColor)).toEqual(['rgb(143, 128, 255)', 'rgb(124, 196, 255)'])
+    expect(within(history).getByText('volume1', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('shows the storage box space with its runway, warning when nearly full', async () => {
@@ -87,10 +95,11 @@ describe('BackupsPage', () => {
     renderRoute('/backups')
 
     const card = await screen.findByRole('region', { name: 'Storage box' })
-    expect(within(card).getByText('945 GB / 1,1 TB')).toBeInTheDocument()
-    expect(within(card).getByText('85,9% used · 155 GB free')).toBeInTheDocument()
-    expect(within(card).getByText('Full in about 4 months')).toBeInTheDocument()
-    expect(within(card).getByRole('meter', { name: 'Hetzner' }).firstElementChild).toHaveClass('bg-warn')
+    expect(within(card).getByText('945 GB of 1,1 TB · 155 GB free')).toBeInTheDocument()
+    expect(within(card).getByText('Full in about 4 months')).toHaveClass('text-warn')
+    expect(within(card).getByRole('meter', { name: 'Hetzner' })).toHaveAttribute('aria-valuenow', '86')
+    expect(within(card).getByText('Nearly full')).toBeInTheDocument()
+    expect(within(card).getByText(/Measured after the backup of/)).toBeInTheDocument()
   })
 
   it('leaves the storage box out until a run has measured it', async () => {

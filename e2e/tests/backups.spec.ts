@@ -27,10 +27,11 @@ test('Backups shows per-volume results and the run history', async ({ page }) =>
   await page.goto('/backups')
 
   await expect(page.getByRole('region', { name: 'volume3' })).toContainText('quota exceeded')
-  await expect(page.getByRole('img', { name: 'Duration of the last 3 runs; 1 failed.' })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Last night' }).getByRole('img', { name: 'Backup durations, last 3 nights' })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Last 3 runs' }).getByRole('row')).toHaveCount(4)
   const box = page.getByRole('region', { name: 'Storage box' })
-  await expect(box).toContainText('235 GB / 1,1 TB')
+  await expect(box).toContainText('235 GB of 1,1 TB')
+  await expect(box.getByRole('meter', { name: 'Hetzner' })).toBeVisible()
   await expect(box).toContainText('Full in about 3 years')
 })
 
