@@ -31,6 +31,21 @@
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
+  /* Glass surfaces inside cards (tiles, chips), as on the desk panels. */
+  --color-glass: rgb(255 255 255 / 0.035);
+  --color-glass-line: rgb(255 255 255 / 0.07);
+
+  /* A light running along a line (the backup route), left to right. */
+  --animate-flow: flow 3.6s ease-in-out infinite;
+  @keyframes flow {
+    from {
+      left: -30%;
+    }
+    to {
+      left: 100%;
+    }
+  }
+
   /* A slow glow for something that needs a look (an outside incident). */
   --animate-halo: halo 2.4s ease-in-out infinite;
   @keyframes halo {
