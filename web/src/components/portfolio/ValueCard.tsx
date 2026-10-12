@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { cn } from '../../lib/cn'
-import { formatMoney, formatSignedMoney } from '../../lib/format'
+import { formatMoney, formatSignedMoney, formatSignedPct } from '../../lib/format'
 import type { ChartRange, PortfolioHistory } from '../../lib/portfolioTypes'
 import { useApi } from '../../lib/useApi'
 import { Card, Loading, Unavailable } from '../home/Card'
-import { FilterPill } from '../news/FilterPill'
+import { Pill } from '../ui/Pill'
+import { Segmented } from '../ui/Segmented'
 import { LineChart } from './LineChart'
 
 const RANGES: [ChartRange, string, string][] = [
@@ -14,8 +15,15 @@ const RANGES: [ChartRange, string, string][] = [
   ['max', 'Max', 'Gain since the start'],
 ]
 
-/** Value over time with what was put in; the gain leaves deposits out. */
-export function ValueCard({ currency }: { currency: string }) {
+interface Props {
+  currency: string
+  /** The value now, large, with today's move as a pill beside it. */
+  total: number
+  todayPct: number
+}
+
+/** The portfolio's value now and over time with what was put in; the gain leaves deposits out. */
+export function ValueCard({ currency, total, todayPct }: Props) {
   const [range, setRange] = useState<ChartRange>('year')
   const { data, error } = useApi<PortfolioHistory>(`/api/portfolio/history?range=${range}`)
   const points = data?.range === range ? data.points : undefined
@@ -33,21 +41,18 @@ export function ValueCard({ currency }: { currency: string }) {
   return (
     <Card
       title="Value"
-      actions={
-        <div role="group" aria-label="Period" className="flex gap-1">
-          {RANGES.map(([r, label]) => (
-            <FilterPill key={r} on={range === r} onClick={() => setRange(r)}>
-              {label}
-            </FilterPill>
-          ))}
-        </div>
-      }
+      className="pb-0 md:pb-0"
+      actions={<Segmented label="Period" options={RANGES.map(([r, label]) => [r, label])} value={range} onChange={setRange} />}
     >
-      {!points && (error ? <Unavailable what="The value history" /> : <Loading />)}
+      <p className="-mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="text-[31px] leading-tight font-semibold tracking-tight md:text-[38px]">{money(total)}</span>
+        <Pill tone={todayPct > 0 ? 'up' : todayPct < 0 ? 'down' : 'muted'}>{formatSignedPct(todayPct)} today</Pill>
+      </p>
+      {!points && <div className="pb-5">{error ? <Unavailable what="The value history" /> : <Loading />}</div>}
       {points && (
         <>
           {gain != null && (
-            <p className="mb-3 text-[13px] text-muted">
+            <p className="mt-1 mb-3 text-[13px] text-muted">
               {gainLabel}:{' '}
               <span className={cn('font-semibold', gain > 0 ? 'text-up' : gain < 0 ? 'text-down' : 'text-fg')}>
                 {formatSignedMoney(gain, currency)}
@@ -61,6 +66,7 @@ export function ValueCard({ currency }: { currency: string }) {
             bLabel="Invested"
             format={money}
             label={`Portfolio value, ${short}: from ${money(first!.v)} to ${money(last!.v)}.`}
+            bleed
           />
         </>
       )}

@@ -25,7 +25,8 @@ test('Portfolio shows the summary and opens a holding', async ({ page }) => {
   await page.route('**/api/portfolio/holdings/YAHOO/NVDA', (r) => r.fulfill({ json: NVDA }))
   await page.goto('/portfolio')
 
-  await expect(page.getByRole('region', { name: 'Summary' })).toContainText('€ 9.143')
+  await expect(page.getByRole('region', { name: 'Value' })).toContainText('€ 9.143')
+  await expect(page.getByRole('region', { name: 'Summary' })).toContainText('Total gain')
   await expect(page.getByRole('img', { name: /Portfolio value, 1Y/ })).toBeVisible()
   await page.getByRole('link', { name: /NVDA/ }).filter({ visible: true }).click()
 

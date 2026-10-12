@@ -1,4 +1,5 @@
 import { useId, useState, type PointerEvent } from 'react'
+import { cn } from '../../lib/cn'
 import { formatChartDate, formatDate } from '../../lib/format'
 
 export interface LinePoint {
@@ -16,13 +17,16 @@ interface Props {
   format: (n: number) => string
   /** Spoken summary of the chart. */
   label: string
+  /** Run the chart to the card's edges (the readout and dates keep the padding). */
+  bleed?: boolean
 }
 
 const WIDTH = 800
 const HEIGHT = 220
 
-/** A line over time with a readout: the latest point, or the one under the pointer. */
-export function LineChart({ points, aLabel, bLabel, format, label }: Props) {
+/** A line over time with a readout: the latest point, or the one under the pointer. Green or
+ * red by the period's direction, glowing, with the period's high marked. */
+export function LineChart({ points, aLabel, bLabel, format, label, bleed }: Props) {
   const gradient = useId()
   const [hover, setHover] = useState<number | null>(null)
   if (points.length < 2) return <p className="py-16 text-center text-[13px] text-faint">Not enough history yet.</p>
@@ -47,6 +51,11 @@ export function LineChart({ points, aLabel, bLabel, format, label }: Props) {
   const days = (Date.parse(points.at(-1)!.d) - Date.parse(points[0].d)) / 86_400_000
   const long = days > 300
   const shown = points[hover ?? points.length - 1]
+  const rising = points.at(-1)!.a >= points[0].a
+  const colour = rising ? 'var(--color-up)' : 'var(--color-down)'
+  const top = points.reduce((best, p, i) => (p.a > points[best].a ? i : best), 0)
+  const topX = (x(top) / WIDTH) * 100
+  const topY = (y(points[top].a) / HEIGHT) * 100
 
   function onMove(event: PointerEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect()
@@ -59,7 +68,7 @@ export function LineChart({ points, aLabel, bLabel, format, label }: Props) {
       <p aria-live="off" className="mb-2 flex flex-wrap items-baseline gap-x-4 gap-y-0.5 text-[13px]">
         <span className="text-faint">{formatDate(shown.d)}</span>
         <span>
-          <span className="mr-1.5 inline-block size-2 rounded-full bg-accent-line align-middle" aria-hidden="true" />
+          <span className="mr-1.5 inline-block size-2 rounded-full align-middle" style={{ backgroundColor: colour, boxShadow: `0 0 6px ${colour}` }} aria-hidden="true" />
           {aLabel} <span className="font-semibold">{format(shown.a)}</span>
         </span>
         {bLabel && shown.b != null && (
@@ -70,7 +79,8 @@ export function LineChart({ points, aLabel, bLabel, format, label }: Props) {
         )}
       </p>
       <div
-        className="relative touch-pan-y"
+        data-tone={rising ? 'up' : 'down'}
+        className={cn('relative touch-pan-y', bleed && '-mx-5 md:-mx-6')}
         onPointerMove={onMove}
         onPointerDown={onMove}
         onPointerLeave={() => setHover(null)}
@@ -78,34 +88,47 @@ export function LineChart({ points, aLabel, bLabel, format, label }: Props) {
         <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none" role="img" aria-label={label} className="h-[200px] w-full md:h-[240px]">
           <defs>
             <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="var(--color-accent-line)" stopOpacity="0.25" />
-              <stop offset="1" stopColor="var(--color-accent-line)" stopOpacity="0" />
+              <stop offset="0" stopColor={colour} stopOpacity="0.3" />
+              <stop offset="1" stopColor={colour} stopOpacity="0" />
             </linearGradient>
           </defs>
           {[0.25, 0.5, 0.75].map((f) => (
-            <line key={f} x1="0" x2={WIDTH} y1={HEIGHT * f} y2={HEIGHT * f} stroke="var(--color-line-soft)" vectorEffect="non-scaling-stroke" />
+            <line key={f} x1="0" x2={WIDTH} y1={HEIGHT * f} y2={HEIGHT * f} stroke="rgb(255 255 255 / 0.04)" vectorEffect="non-scaling-stroke" />
           ))}
           <path d={`${line} L${WIDTH} ${HEIGHT} L0 ${HEIGHT} Z`} fill={`url(#${gradient})`} />
           {reference && (
             <path d={reference} fill="none" stroke="var(--color-muted)" strokeWidth="1.5" strokeDasharray="5 5" vectorEffect="non-scaling-stroke" />
           )}
-          <path d={line} fill="none" stroke="var(--color-accent-line)" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          <path
+            d={line}
+            fill="none"
+            stroke={colour}
+            strokeWidth="2.2"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+            style={{ filter: `drop-shadow(0 0 4px ${colour})` }}
+          />
         </svg>
         {hover != null && (
           <>
             <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 w-px bg-faint/60" style={{ left: `${(x(hover) / WIDTH) * 100}%` }} />
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-panel bg-accent-line"
-              style={{ left: `${(x(hover) / WIDTH) * 100}%`, top: `${(y(points[hover].a) / HEIGHT) * 100}%` }}
+              className="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-panel"
+              style={{ backgroundColor: colour, left: `${(x(hover) / WIDTH) * 100}%`, top: `${(y(points[hover].a) / HEIGHT) * 100}%` }}
             />
           </>
         )}
-        <span aria-hidden="true" className="pointer-events-none absolute top-0 right-0 text-[11px] text-faint">{format(hi)}</span>
-        <span aria-hidden="true" className="pointer-events-none absolute right-0 bottom-0 text-[11px] text-faint">{format(lo)}</span>
+        {/* The period's high as a glowing dot; its amount sits in the date row below. */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ left: `${topX}%`, top: `${topY}%`, backgroundColor: colour, boxShadow: `0 0 8px ${colour}` }}
+        />
       </div>
-      <div aria-hidden="true" className="mt-1.5 flex justify-between text-[11px] text-faint">
+      <div aria-hidden="true" className={cn('mt-1.5 flex justify-between text-[11px] text-faint', bleed && 'pb-4')}>
         <span>{formatChartDate(points[0].d, long)}</span>
+        <span className="text-muted">high {format(points[top].a)}</span>
         <span>{formatChartDate(points.at(-1)!.d, long)}</span>
       </div>
     </div>

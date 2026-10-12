@@ -13,7 +13,6 @@ import { formatMoney, formatSignedMoney, formatSignedPct, formatWhen } from '../
 import { dayMove, parseHolding } from '../lib/portfolio'
 import type { PortfolioFull } from '../lib/portfolioTypes'
 import { useApi } from '../lib/useApi'
-import { buttonClass } from '../components/settings/fields'
 
 const tone = (n: number | null | undefined) => (!n ? 'text-fg' : n > 0 ? 'text-up' : 'text-down')
 
@@ -64,7 +63,11 @@ export function PortfolioPage() {
         title="Portfolio"
         subtitle={`From Ghostfolio, ${formatWhen(data.as_of)}`}
         actions={
-          <Link to="/portfolio?import" aria-label="Update from DEGIRO" className={buttonClass}>
+          <Link
+            to="/portfolio?import"
+            aria-label="Update from DEGIRO"
+            className="inline-flex items-center gap-1.5 rounded-[10px] border border-glass-line bg-glass px-3 py-2 text-[13px] font-medium hover:border-line"
+          >
             <FileUp aria-hidden="true" className="size-4" />
             <span className="hidden sm:inline">Update from DEGIRO</span>
             <span className="sm:hidden">DEGIRO</span>
@@ -72,26 +75,28 @@ export function PortfolioPage() {
         }
       />
 
-      <section aria-label="Summary" className="mb-4 rounded-[14px] border border-line-soft bg-card px-5 py-5 md:px-6">
-        <p className="text-[13px] font-semibold text-muted">Value</p>
-        <p className="text-[32px] font-semibold tracking-tight md:text-[38px]">{money(data.total_value)}</p>
-        <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
+      <ValueCard currency={data.currency} total={data.total_value} todayPct={dayPct} />
+      {data.stale && <StaleNote />}
+
+      <section aria-label="Summary" className="my-5">
+        <dl className="grid grid-cols-2 gap-2.5 md:gap-4 xl:grid-cols-4">
           {summary.map(([label, value, detail, colour]) => (
-            <div key={label}>
-              <dt className="text-[12px] text-faint">{label}</dt>
-              <dd className={cn('font-semibold', colour)}>
+            <div
+              key={label}
+              className="rounded-[14px] border border-line-soft bg-card bg-linear-to-b from-white/[0.03] to-white/[0.01] px-4 py-3.5"
+            >
+              <dt className="text-[12.5px] text-muted">{label}</dt>
+              <dd className={cn('mt-0.5 text-[16px] font-semibold md:text-[19px]', colour)}>
                 {value}
-                {detail && <span className="ml-1.5 text-[12.5px] font-normal opacity-80">{detail}</span>}
+                {detail && <span className="block text-[12px] font-normal text-muted">{detail}</span>}
               </dd>
             </div>
           ))}
         </dl>
-        {data.stale && <StaleNote />}
       </section>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="min-w-0 space-y-4">
-          <ValueCard currency={data.currency} />
           <HoldingsCard holdings={data.holdings} currency={data.currency} />
         </div>
         <div className="min-w-0 space-y-4">

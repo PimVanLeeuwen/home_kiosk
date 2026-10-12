@@ -22,7 +22,10 @@ describe('PortfolioPage', () => {
     setup()
 
     await screen.findByRole('region', { name: 'Summary' })
-    expect(summary().getByText('€ 9.143')).toBeInTheDocument()
+    // The value itself leads the Value card, with today's move as a pill.
+    const value = screen.getByRole('region', { name: 'Value' })
+    expect(within(value).getByText('€ 9.143')).toBeInTheDocument()
+    expect(within(value).getByText(/today$/)).toHaveTextContent(/^−0,0\d% today$/)
     // Today is the sum of the holdings' moves, like the daily report: 22,11 + 7,88 - 32.
     expect(figure(summary(), 'Today')).toHaveTextContent('−€ 2')
     expect(figure(summary(), 'Total gain')).toHaveTextContent('+€ 4.452+103,87%')
@@ -40,9 +43,24 @@ describe('PortfolioPage', () => {
     expect(await within(card).findByText('+€ 2.086')).toBeInTheDocument()
     expect(within(card).getByRole('img', { name: /Portfolio value, 1Y: from €\s6\.000 to €\s9\.155\./ })).toBeInTheDocument()
 
+    // The chart is green for a rising period, glows, and marks the period's high.
+    const chart = within(card).getByRole('img', { name: /Portfolio value, 1Y/ }).parentElement!
+    expect(chart).toHaveAttribute('data-tone', 'up')
+    expect(within(card).getByText(/^high €\s9\.155$/)).toBeInTheDocument()
+    expect(within(card).getByRole('button', { name: '1Y' })).toHaveAttribute('aria-pressed', 'true')
+
     fireEvent.click(within(card).getByRole('button', { name: 'Max' }))
     expect(await within(card).findByText(/Gain since the start/)).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith('/api/portfolio/history?range=max', expect.anything())
+  })
+
+  it('draws a falling period in red', async () => {
+    const points = [...HISTORY.points].reverse().map((p, i) => ({ ...p, d: HISTORY.points[i].d }))
+    setup('/portfolio', { '/api/portfolio/history?range=year': { ...HISTORY, points } })
+
+    const card = await screen.findByRole('region', { name: 'Value' })
+    const chart = (await within(card).findByRole('img', { name: /Portfolio value, 1Y/ })).parentElement!
+    expect(chart).toHaveAttribute('data-tone', 'down')
   })
 
   it('lists holdings sortable by value, today and gain', async () => {
