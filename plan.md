@@ -379,16 +379,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   above the temperature curve and the chance of rain.
 - **Laundry** (Home, added 2026-10-12): the washer and dryer (ConnectLife app) as two portholes:
   water turning inside while a machine runs, a ring counting down, the program and when it will
-  be ready; a finished machine glows green with "Take it out", and Telegram says when it is
-  done. Source: ConnectLife has no local API, only its cloud. The open-source `connectlife`
+  be ready; a finished machine glows green with "Take it out". No Telegram message (decided
+  2026-10-12): the ConnectLife app already notifies; the card is for a glance now and then. Source: ConnectLife has no local API, only its cloud. The open-source `connectlife`
   Python library (used by the connectlife-ha integration) logs in with the app account; the
   collector polls it about once a minute, read-only, with the account in `.env`. It is
   unofficial and can break when ConnectLife changes its API or terms. Decided 2026-10-12: both machines
   are Hisense; the card only shows while a machine runs or is done (then it is gone until the
   next run, after the door has been opened if ConnectLife reports it, otherwise after a tap on
-  "Taken out" or two hours). connectlife-ha's device list has tumble dryers with Hisense model
-  codes (such as DH3S802BW3) and many washers without a brand named, so check the exact model
-  numbers against it first. ConnectLife also publishes its own Home Assistant plugin for Hisense
+  "Taken out" or two hours). The models are a WF5S1043BW washer and a DH3S802BW2 dryer. They
+  are not in connectlife-ha's device list, but their siblings are, with the same device type
+  codes: the WF5S1045BW washer (type 025) and the DH3S802BW3 dryer (type 030). So support is
+  likely; the property mapping may need the two models added. ConnectLife also publishes its own Home Assistant plugin for Hisense
   appliances (Connectlife-LLC/HomeAssistantPlugin), a second reference for the API.
 - **Calendar** (Now): today's events only. Design (2026-10-10): the next event large with a ring
   counting down to it in its calendar's colour, the day from 07:00 to 23:00 as a ribbon of

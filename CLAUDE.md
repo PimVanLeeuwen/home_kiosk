@@ -103,7 +103,8 @@ python3 dashboard/serve.py
 - 2026-10-10: an Apple devices card on Home, as a map of the house (online state, what plays,
   the Thread mesh). plan.md M20.
 - 2026-10-12: a laundry card on Home for the Hisense washer and dryer (ConnectLife), read from
-  the ConnectLife cloud (no local API), shown only while a machine runs or is done. plan.md M20.
+  the ConnectLife cloud (no local API), shown only while a machine runs or is done; no
+  Telegram for it, the app already notifies. plan.md M20.
 
 ## Gotchas
 

@@ -378,8 +378,9 @@ svg text { font-family: var(--f-body); }
 .rc-w { font-size: 4cqw; color: var(--ink-2); }
 .ports { display: grid; grid-template-columns: 1fr 1fr; gap: 5cqw; margin-top: 2cqw; }
 .pm { display: grid; justify-items: center; gap: .6cqw; text-align: center; }
-.port { position: relative; width: 82%; }
-.glassdoor { position: absolute; inset: 15%; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+.port { position: relative; width: 82%; aspect-ratio: 1; }
+.port > svg { display: block; width: 100%; height: 100%; }
+.glassdoor { position: absolute; inset: 13%; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
   background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .14), rgba(255, 255, 255, .02) 60%), #0e0e14; box-shadow: inset 0 0 0 .6cqw rgba(255, 255, 255, .08), inset 0 -2cqw 4cqw rgba(0, 0, 0, .5); }
 .glassdoor i { position: absolute; left: -50%; width: 200%; height: 200%; top: 55%; border-radius: 42%; background: color-mix(in srgb, var(--wc) 35%, transparent); }
 .glassdoor.run i { animation: drum 6s linear infinite; }
@@ -814,17 +815,17 @@ svg text { font-family: var(--f-body); }
     },
     laundry: () => {
       const m = [
-        { name: 'Washer', prog: 'Cotton 40° · spin', left: 38, total: 95, done: '10:52', col: '#9c8ffb', run: true },
+        { name: 'Washer', prog: 'Cotton 40° · rinse', left: 38, total: 95, done: '10:52', col: '#9c8ffb', run: true },
         { name: 'Dryer', prog: 'Cupboard dry', left: 0, total: 1, done: '09:41', col: '#5fd39c', run: false }
       ];
       const port = x => { const r = 44, c = 2 * Math.PI * r, f = x.run ? 1 - x.left / x.total : 1;
         return `<div class="port"><svg viewBox="0 0 100 100" width="100%"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/>
           <circle cx="50" cy="50" r="${r}" fill="none" stroke="${x.col}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 3px ${x.col})"/></svg>
-          <div class="glassdoor${x.run ? ' run' : ' done'}" style="--wc:${x.col}"><i></i><span>${x.run ? x.left + '<small>min</small>' : '<svg viewBox="0 0 24 24" width="40%"><path d="M5 12.5l4.5 4.5 9.5-10" fill="none" stroke="#5fd39c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'}</span></div></div>`; };
+          <div class="glassdoor${x.run ? ' run' : ' done'}" style="--wc:${x.col}"><i style="top:${x.run ? (45 + 30 * (1 - x.left / x.total)).toFixed(0) + '%' : '100%'}"></i><span>${x.run ? x.left + '<small>min</small>' : '<svg viewBox="0 0 24 24" width="40%"><path d="M5 12.5l4.5 4.5 9.5-10" fill="none" stroke="#5fd39c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'}</span></div></div>`; };
       return `<div class="row"><span class="k">Laundry</span><span class="pill" style="color:#c9c1ff;background:rgba(124,108,242,.2)">WASHER RUNNING</span></div>
       <div class="ports">${m.map(x => `<div class="pm">${port(x)}<div class="pn">${x.name}</div><div class="ps">${x.run ? x.prog : 'Done at ' + x.done}</div><div class="ps2" style="color:${x.col}">${x.run ? 'Ready at ' + x.done : 'Take it out'}</div></div>`).join('')}</div>
       <div class="grow"></div>
-      <div class="sub" style="font-size:3.4cqw;color:var(--ink-3);text-align:center">Telegram tells you when it is done</div>`;
+      <div class="sub" style="font-size:3.4cqw;color:var(--ink-3);text-align:center">Updated 1 min ago · ConnectLife</div>`;
     },
     apple: () => {
       // A small map of the house: rooms as zones, devices where they stand, the Thread mesh between them.
