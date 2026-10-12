@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of the hub's News and Saved pages and the reader in the desk panels' visual
+     language, calmer, as the other restyled pages (docs/hub-*-mockup.html). Example data only. -->
+<title>Home hub: News restyled</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .07);
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.chrome { max-width: 1480px; margin: 0 auto; padding: 22px 20px 10px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+.chrome h1 { margin: 0; font-size: 22px; font-weight: 600; } .chrome p { margin: 3px 0 0; color: var(--muted); max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { background: #17181c; border: 1px solid var(--line); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: rgba(124, 108, 242, .18); border-color: var(--accent); }
+.stage { display: flex; justify-content: center; padding: 14px 20px 40px; }
+.device { width: 1440px; height: 900px; border-radius: 14px; overflow: hidden; border: 1px solid #1a1b1f; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.device.mobile { width: 390px; height: 844px; border-radius: 44px; border: 10px solid #000; }
+.app { display: flex; height: 100%; background: var(--canvas); position: relative; }
+.side { width: 240px; flex: none; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; }
+.side b.brand { font-size: 15px; padding: 0 10px; } .side small.host { color: var(--faint); padding: 0 10px 14px; font-size: 12px; }
+.side .grp { font-size: 11px; letter-spacing: .08em; color: var(--faint); padding: 14px 10px 4px; text-transform: uppercase; font-weight: 600; }
+.side a { padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; display: flex; gap: 10px; align-items: center; }
+.side a.on { background: rgba(124,108,242,.14); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent-line); }
+.side a i { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; opacity: .7; }
+.main { flex: 1; margin: 8px 8px 8px 0; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); overflow: auto; }
+.mobile .side { display: none; } .mobile .main { margin: 0; border-radius: 0; border: 0; padding-bottom: 74px; }
+.tabbar { display: none; }
+.mobile .tabbar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 74px; background: rgba(8,9,10,.92); border-top: 1px solid var(--line-soft); justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); }
+.mobile .tabbar span { display: grid; justify-items: center; gap: 3px; } .mobile .tabbar span.on { color: var(--accent-fg); }
+.mobile .tabbar i { width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 5px; }
+.page { padding: 36px 44px 48px; } .mobile .page { padding: 58px 16px 24px; }
+.ph { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.ph h2 { font-size: 26px; font-weight: 600; margin: 0; } .ph p { margin: 4px 0 0; color: var(--muted); }
+
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 20px 24px; min-width: 0; position: relative; overflow: hidden; }
+.mobile .card { padding: 18px; }
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; white-space: nowrap; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.14); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--f-mono); }
+.up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); } .muted { color: var(--muted); } .faint { color: var(--faint); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; background: var(--c, var(--up)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--up)) 18%, transparent), 0 0 10px var(--c, var(--up)); }
+.dot.pulse { animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent), 0 0 18px var(--c); } }
+
+
+.split { display: grid; grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); gap: 36px; }
+.mobile .split { grid-template-columns: 1fr; }
+.search { display: flex; gap: 8px; align-items: center; border-radius: 11px; border: 1px solid var(--glass-line); background: var(--glass); padding: 9px 12px; color: var(--faint); font-size: 13.5px; margin-bottom: 10px; }
+.filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
+.filters span { flex: none; font-size: 12.5px; padding: 4px 11px; border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-line); color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+.filters span.on { background: rgba(124,108,242,.2); border-color: rgba(143,128,255,.4); color: var(--fg); }
+.filters i { width: 7px; height: 7px; border-radius: 50%; } .filters b { font-weight: 500; color: var(--faint); }
+.btn { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; border-radius: 10px; border: 1px solid var(--glass-line); background: var(--glass); padding: 7px 12px; color: var(--muted); }
+.btn.pri { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 0 14px -4px var(--accent-line); }
+.day { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin: 16px 0 4px; display: flex; align-items: center; gap: 8px; } .day::after { content: ''; flex: 1; height: 1px; background: var(--line-soft); }
+.day:first-of-type { margin-top: 0; }
+.row { display: grid; grid-template-columns: 10px 1fr; gap: 10px; padding: 9px 10px; margin: 0 -10px; border-radius: 11px; border: 1px solid transparent; }
+.row.sel { background: rgba(124,108,242,.12); border-color: rgba(143,128,255,.3); box-shadow: inset 2px 0 0 var(--accent-line); }
+.row .u { width: 7px; height: 7px; border-radius: 50%; margin-top: 7px; } .row .u.on { background: var(--accent-line); box-shadow: 0 0 8px var(--accent-line); }
+.row .t { font-weight: 500; } .row.read .t { color: var(--muted); font-weight: 400; }
+.row .m { font-size: 12px; color: var(--faint); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.gchip { font-size: 10.5px; font-weight: 600; border-radius: 6px; padding: 1px 6px; }
+/* Reader */
+.reader { max-width: 68ch; }
+.rbar { height: 2px; border-radius: 2px; background: var(--raised); margin-bottom: 18px; overflow: hidden; } .rbar i { display: block; height: 100%; width: 34%; background: linear-gradient(90deg, #6f60ea, #b4a9ff); box-shadow: 0 0 8px #8f80ff; }
+.rmeta { font-size: 12.5px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.reader h1 { font-size: 30px; line-height: 1.2; letter-spacing: -.01em; margin: 10px 0 6px; } .mobile .reader h1 { font-size: 24px; }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 22px; }
+.hero { height: 220px; border-radius: 14px; background: radial-gradient(120% 90% at 20% 10%, #34405f, #151826 70%); border: 1px solid var(--glass-line); margin-bottom: 22px; position: relative; overflow: hidden; }
+.mobile .hero { height: 160px; }
+.hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(transparent 55%, rgba(16,17,20,.7)); }
+.reader p { font-size: 16.5px; line-height: 1.7; color: rgba(236,237,239,.9); margin: 0 0 18px; } .reader p.lead { font-size: 18px; color: var(--fg); }
+.reader blockquote { margin: 20px 0; padding: 4px 0 4px 16px; border-left: 2px solid var(--accent-line); color: var(--muted); font-style: italic; box-shadow: -6px 0 14px -10px var(--accent-line); }
+/* Saved */
+.saved { display: grid; grid-template-columns: 1fr 56px; gap: 12px; padding: 10px; margin: 0 -10px; border-radius: 11px; align-items: center; border: 1px solid transparent; }
+.saved.sel { background: rgba(124,108,242,.12); border-color: rgba(143,128,255,.3); box-shadow: inset 2px 0 0 var(--accent-line); }
+.thumb { width: 56px; height: 56px; border-radius: 10px; position: relative; background: var(--c); border: 1px solid var(--glass-line); }
+.thumb svg { position: absolute; right: -6px; bottom: -6px; }
+.notes { max-width: 1440px; margin: 0 auto; padding: 0 20px 50px; color: var(--muted); columns: 2 420px; column-gap: 40px; }
+.notes h4 { color: var(--fg); margin: 0 0 6px; font-size: 14px; } .notes ul { margin: 0 0 16px; padding-left: 18px; } .notes li { margin: 3px 0; break-inside: avoid; }
+</style>
+
+<div class="chrome">
+  <div>
+    <h1>News, restyled <span class="pill acc" style="margin-left:8px;vertical-align:3px">example data</span></h1>
+    <p>News, Saved and the reader in the language of the other restyled pages: glass search and filters with a colour per group, unread dots that glow, the open article lit in the list, a quiet reader with a reading-progress line, and Saved with a progress ring on each thumbnail. Same data as today.</p>
+  </div>
+  <div class="ctl">
+    <button data-v="desktop" aria-pressed="true">Desktop</button>
+    <button data-v="mobile" aria-pressed="false">Mobile</button>
+    <button data-p="news" aria-pressed="true">News</button>
+    <button data-p="saved" aria-pressed="false">Saved</button>
+    <button data-r="list" aria-pressed="true">List (phone)</button>
+    <button data-r="reader" aria-pressed="false">Reader (phone)</button>
+  </div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<div class="notes">
+  <h4>What changes</h4>
+  <ul>
+    <li><b>Header:</b> the unread count as a pill; Mark all read as a glass button.</li>
+    <li><b>Search and filters:</b> glass; each group pill carries its colour (the same as the group chips on Home) and its unread count.</li>
+    <li><b>The list:</b> day headings with a hairline, unread dots that glow, read titles quieter, a group chip in its colour before the source; the open article lit with an accent edge.</li>
+  </ul>
+  <ul>
+    <li><b>Reader:</b> a thin reading-progress line at the top that follows the scroll (for Saved it is also Readeck's stored progress, which the reader already syncs), the group chip and reading time, the title large, the actions as glass buttons with Save glowing, the first image as a hero when the article has one, quotes with a soft accent edge. The text itself stays as it is.</li>
+    <li><b>Saved:</b> Unread / Archived as glass pills; each bookmark with its thumbnail and a progress ring on it, the site and reading time.</li>
+  </ul>
+</div>
+
+<script>
+const st = { view: 'desktop', page: 'news', r: 'list' };
+const nl = (n, d = 1) => n.toFixed(d).replace('.', ',');
+const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+function area(vals, color, { line2 = null, W = 300, H = 70, peak = true } = {}) {
+  const max = Math.max(...vals, ...(line2 || [])), min = 0, sp = max - min || 1;
+  const P = (v, i, n) => `${(i / (n - 1) * W).toFixed(1)},${(6 + (1 - (v - min) / sp) * (H - 10)).toFixed(1)}`;
+  const pts = vals.map((v, i) => P(v, i, vals.length)).join(' ');
+  const pk = vals.indexOf(Math.max(...vals)), [px, py] = P(vals[pk], pk, vals.length).split(',');
+  const id = 'a' + Math.random().toString(36).slice(2, 7);
+  return `<svg class="area" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="calc(100% + 48px)" height="${st.view === 'mobile' ? 48 : 64}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px ${color})"/>
+    ${line2 ? `<polyline points="${line2.map((v, i) => P(v, i, line2.length)).join(' ')}" fill="none" stroke="#9a9ea7" stroke-width="1" stroke-opacity=".7" vector-effect="non-scaling-stroke"/>` : ''}
+    ${peak ? `<circle cx="${px}" cy="${py}" r="2.2" fill="${color}" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${color})"/>` : ''}</svg>`;
+}
+
+function gauge(v, warnAt = 90) {
+  const R = 40, cx = 50, cy = 52, P = (a, r = R) => [cx - r * Math.cos(a * Math.PI), cy - r * Math.sin(a * Math.PI)];
+  const arc = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+  const ticks = Array.from({ length: 21 }, (_, i) => { const a = i / 20, [x0, y0] = P(a, R + 6), [x1, y1] = P(a, R + (i % 5 ? 7.5 : 9)); return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,${i % 5 ? .14 : .32})" stroke-width=".5"/>`; }).join('');
+  const [tx, ty] = P(warnAt / 100, R + 8), over = v >= warnAt, id = 'g' + Math.random().toString(36).slice(2, 7);
+  return `<svg viewBox="0 2 100 56"><defs><linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="#6f60ea"/><stop offset=".75" stop-color="#b4a9ff"/><stop offset="1" stop-color="${over ? '#e0a23b' : '#cfc8ff'}"/></linearGradient>
+    <filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${ticks}
+    <path d="${arc(0, 1)}" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="${arc(0, v / 100)}" stroke="url(#${id})" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#${id}f)"/>
+    <circle cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="1.3" fill="#e5646a"/>
+    <text x="50" y="50" text-anchor="middle" font-size="19" font-weight="600" fill="#ecedef" letter-spacing="-.8">${Math.round(v)}%</text></svg>`;
+}
+
+function ring(pct, color, inner, sub) {
+  const r = 42, c = 2 * Math.PI * r;
+  return `<svg viewBox="0 0 100 100" width="100%"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 4px ${color})"/>
+    <text x="50" y="52" text-anchor="middle" font-size="20" font-weight="600" fill="#ecedef">${inner}</text><text x="50" y="66" text-anchor="middle" font-size="8.5" fill="#9a9ea7">${sub}</text></svg>`;
+}
+
+function seal(ok, size = 64) {
+  const c = ok ? '#3fb97f' : '#e5646a';
+  return `<svg viewBox="0 0 60 60" width="${size}"><circle cx="30" cy="30" r="25" fill="none" stroke="${c}" stroke-opacity=".45" stroke-dasharray="1.5 2.4"/>
+    <path d="M30 11 L45 17 V29 C45 39 38 46 30 49 C22 46 15 39 15 29 V17 Z" fill="${c}" fill-opacity=".13" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/>
+    ${ok ? `<path d="M23.5 30l4.5 4.5 8.5-9" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="M30 22v10M30 37v.5" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`}</svg>`;
+}
+
+
+const G = { nl: ['Nederland', '#b4aaff', '#2a1f4d'], tech: ['Tech', '#8cc4ff', '#1b2f45'], local: ['Utrecht', '#f5b86a', '#352617'], sci: ['Science', '#6ee0b0', '#16322a'] };
+const news = [['Today', [['Kabinet presenteert plannen voor betaalbare huurwoningen', 'NOS', 'nl', '12 min', 0, 1], ['Raspberry Pi kondigt nieuwe Compute Module aan', 'Tweakers', 'tech', '40 min', 0], ['The quiet return of the desk gadget', 'The Verge', 'tech', '1 hour', 1], ['Nieuwe fietsbrug over het Utrechts Kanaal open', 'Studio 040', 'local', '2 hours', 0]]],
+  ['Yesterday', [['Webb ziet water in de atmosfeer van een rotsachtige exoplaneet', 'NOS', 'sci', '1 day', 1], ['Jellyfin 10.11 lands with a faster library scan', 'Jellyfin', 'tech', '1 day', 1], ['Glow De Bilt maakt programma bekend', 'ED', 'local', '1 day', 0]]]];
+function ring(p) { const r = 9, c = 2 * Math.PI * r; return `<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="${r}" fill="#101114" stroke="rgba(255,255,255,.15)" stroke-width="3"/><circle cx="12" cy="12" r="${r}" fill="none" stroke="#8f80ff" stroke-width="3" stroke-linecap="round" stroke-dasharray="${(c * p / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 12 12)" style="filter:drop-shadow(0 0 3px #8f80ff)"/></svg>`; }
+function list() {
+  if (st.page === 'saved') return `<div class="ph" style="margin-bottom:14px"><div><h2>Saved</h2><p>Your Readeck bookmarks</p></div><span class="pill acc">6 to read</span></div>
+    <div class="filters"><span class="on">Unread</span><span>Archived</span></div>
+    ${[['How SQLite stays fast at scale', 'fly.io', 12, 34, '#2a3b5c', 1], ['A field guide to tidy home networks', 'jvns.ca', 8, 0, '#3b2a2a'], ['The case for small, boring dashboards', 'brandur.org', 6, 80, '#23392e'], ['Fietsen door de Kempen: vijf routes', 'ED', 4, 0, '#3a3420'], ['What I learned running a NAS for ten years', 'blog.example', 15, 12, '#2f2440']].map(b => `<div class="saved ${b[5] ? 'sel' : ''}"><div><div style="font-weight:500">${b[0]}</div><div style="font-size:12px;color:var(--faint);margin-top:3px">${b[1]} · ${b[2]} min${b[3] ? ` · ${b[3]}% read` : ''}</div></div><span class="thumb" style="--c:${b[4]}">${b[3] ? ring(b[3]) : ''}</span></div>`).join('')}`;
+  return `<div class="ph" style="margin-bottom:14px"><div><h2>News</h2><p>The last week from your feeds</p></div><span class="pill acc">9 unread</span></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px"><span class="search" style="flex:1;margin:0">⌕ Search articles…</span><span class="btn">✓✓ Mark all read</span></div>
+    <div class="filters"><span class="on">All</span><span>Unread</span>${Object.values(G).map((g, i) => `<span><i style="background:${g[1]};box-shadow:0 0 5px ${g[1]}"></i>${g[0]}<b>${[4, 3, 2, 0][i]}</b></span>`).join('')}</div>
+    ${news.map(([d, items]) => `<div class="day">${d}</div>${items.map(a => { const g = G[a[2]]; return `<div class="row ${a[4] ? 'read' : ''} ${a[5] ? 'sel' : ''}"><span class="u ${a[4] ? '' : 'on'}"></span><div><div class="t">${a[0]}</div><div class="m"><span class="gchip" style="background:${g[2]};color:${g[1]}">${g[0]}</span>${a[1]} · ${a[3]} ago</div></div></div>`; }).join('')}`).join('')}`;
+}
+function reader() {
+  const saved = st.page === 'saved';
+  return `<div class="reader">${st.view === 'mobile' ? `<div style="font-size:13px;color:var(--accent-fg);margin-bottom:12px">‹ ${saved ? 'Saved' : 'News'}</div>` : ''}<div class="rbar"><i style="width:${saved ? 34 : 18}%"></i></div>
+    <div class="rmeta">${saved ? '<span class="gchip" style="background:var(--glass);color:var(--muted);border:1px solid var(--glass-line)">fly.io</span>' : `<span class="gchip" style="background:${G.nl[2]};color:${G.nl[1]}">Nederland</span>NOS · 12 min ago`} · ${saved ? 12 : 4} min read</div>
+    <h1>${saved ? 'How SQLite stays fast at scale' : 'Kabinet presenteert plannen voor betaalbare huurwoningen'}</h1>
+    <div style="font-size:13px;color:var(--muted)">${saved ? 'Ben Johnson' : 'Redactie NOS'}</div>
+    <div class="acts">${saved ? '<span class="btn pri">✓ Archive</span><span class="btn">↗ Original</span><span class="btn" style="color:var(--down);border-color:rgba(229,100,106,.4)">Delete</span>' : '<span class="btn pri">＋ Save to Readeck</span><span class="btn">↗ Open original</span><span class="btn">○ Mark unread</span>'}</div>
+    <div class="hero"></div>
+    <p class="lead">${saved ? 'SQLite is often treated as a toy database, but a single file on a fast disk handles far more than most people expect.' : 'Het kabinet wil de komende vier jaar 100.000 extra betaalbare huurwoningen laten bouwen, zo blijkt uit plannen die vandaag zijn gepresenteerd.'}</p>
+    <p>${saved ? 'The trick is to keep writes short and let readers run without waiting. Write-ahead logging does most of the work; the rest is choosing indexes with care.' : 'Gemeenten krijgen meer ruimte om grond aan te wijzen voor sociale huur. Corporaties moeten daarnaast sneller kunnen bouwen, onder meer door kortere procedures.'}</p>
+    <blockquote>${saved ? 'Most applications never outgrow a single machine.' : '"We willen dat jongeren en starters weer een plek kunnen vinden."'}</blockquote>
+    <p>${saved ? 'This post walks through the settings that matter, and the few that do not.' : 'De oppositie noemt de plannen een goede eerste stap, maar mist een concrete financiering.'}</p></div>`;
+}
+function render() {
+  const mob = st.view === 'mobile';
+  const nav = [['', 'Home'], ['Read', 'News', st.page === 'news'], ['', 'Saved', st.page === 'saved'], ['Money', 'Portfolio'], ['House', 'NAS'], ['', 'Docker'], ['', 'Backups'], ['', 'Services'], ['Code', 'Repos'], ['System', 'Alerts'], ['', 'Settings']];
+  const d = document.getElementById('device');
+  d.className = 'device' + (mob ? ' mobile' : '');
+  d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">dev-minotaur</small>
+    ${nav.map(x => `${x[0] ? `<span class="grp">${x[0]}</span>` : ''}<a href="#" class="${x[2] ? 'on' : ''}"><i></i>${x[1]}</a>`).join('')}</nav>
+    <main class="main"><div class="page">${mob ? (st.r === 'reader' ? reader() : `<div>${list()}</div>`) : `<div class="split"><div>${list()}</div>${reader()}</div>`}</div></main>
+    <div class="tabbar">${['Home', 'News', 'Portfolio', 'NAS', 'More'].map((t, i) => `<span class="${i === 1 ? 'on' : ''}"><i></i>${t}</span>`).join('')}</div></div>`;
+}
+document.querySelectorAll('.ctl button').forEach(b => b.addEventListener('click', () => {
+  for (const k of ['v', 'p', 'r']) if (b.dataset[k]) { st[{ v: 'view', p: 'page', r: 'r' }[k]] = b.dataset[k]; document.querySelectorAll(`[data-${k}]`).forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  render();
+}));
+render();
+</script>
+</html>

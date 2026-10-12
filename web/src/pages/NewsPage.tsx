@@ -2,6 +2,8 @@ import { CheckCheck, Search } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
+import { Pill } from '../components/ui/Pill'
+import { tileColour } from '../lib/monogram'
 import { FilterPill } from '../components/news/FilterPill'
 import { NewsReader } from '../components/news/NewsReader'
 import { sendJson } from '../lib/api'
@@ -49,6 +51,8 @@ export function NewsPage() {
 
   const titles = useMemo(() => new Map((groups.data ?? []).map((g) => [g.id, g.title])), [groups.data])
   const groupTitle = useCallback((id: string) => titles.get(id) ?? id, [titles])
+  // A group keeps its colour by its place in the group list, as on Home.
+  const colourOf = (id: string) => tileColour(Math.max(0, (groups.data ?? []).findIndex((g) => g.id === id)))
   const unread = (groups.data ?? []).reduce((sum, g) => sum + g.unread, 0)
 
   // Read changes made here, kept apart so they also apply to pages that load later.
@@ -76,21 +80,11 @@ export function NewsPage() {
       <section aria-label="Articles" className={cn(selected && 'hidden lg:block')}>
         <PageHeader
           title="News"
-          subtitle={groups.data ? `${unread} unread` : undefined}
-          actions={
-            unread > 0 && (
-              <button
-                type="button"
-                onClick={markAllRead}
-                className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-raised px-3 py-2 text-[13px] text-muted hover:text-fg"
-              >
-                <CheckCheck aria-hidden="true" className="size-4" />
-                Mark all read
-              </button>
-            )
-          }
+          subtitle="The last week from your feeds"
+          actions={groups.data && <Pill tone={unread ? 'accent' : 'muted'}>{unread ? `${unread} unread` : 'All read'}</Pill>}
         />
-        <label className="mb-3 flex items-center gap-2 rounded-[10px] border border-line bg-raised px-3 py-2.5 text-muted focus-within:border-accent-line">
+        <div className="mb-3 flex gap-2">
+        <label className="flex min-w-0 flex-1 items-center gap-2 rounded-[11px] border border-glass-line bg-glass px-3 py-2.5 text-muted focus-within:border-accent-line">
           <Search aria-hidden="true" className="size-4 shrink-0" />
           <span className="sr-only">Search articles</span>
           <input
@@ -102,6 +96,18 @@ export function NewsPage() {
             className="min-w-0 flex-1 bg-transparent text-fg placeholder:text-faint focus:outline-none"
           />
         </label>
+          {unread > 0 && (
+            <button
+              type="button"
+              onClick={markAllRead}
+              aria-label="Mark all read"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-[11px] border border-glass-line bg-glass px-3 text-[13px] text-muted hover:text-fg"
+            >
+              <CheckCheck aria-hidden="true" className="size-4" />
+              <span className="hidden sm:inline">Mark all read</span>
+            </button>
+          )}
+        </div>
         <div role="group" aria-label="Filter" className="mb-4 flex gap-1.5 overflow-x-auto pb-1">
           <FilterPill on={!group && !unreadOnly} onClick={() => (setGroup(null), setUnreadOnly(false))}>
             All
@@ -109,8 +115,8 @@ export function NewsPage() {
           <FilterPill on={unreadOnly} onClick={() => setUnreadOnly(!unreadOnly)}>
             Unread
           </FilterPill>
-          {(groups.data ?? []).map((g) => (
-            <FilterPill key={g.id} on={group === g.id} onClick={() => setGroup(group === g.id ? null : g.id)}>
+          {(groups.data ?? []).map((g, i) => (
+            <FilterPill key={g.id} on={group === g.id} onClick={() => setGroup(group === g.id ? null : g.id)} colour={tileColour(i).fg}>
               {g.title}
               {g.unread > 0 && <span className="ml-1.5 text-faint">{g.unread}</span>}
             </FilterPill>
@@ -130,7 +136,9 @@ export function NewsPage() {
         )}
         {byDay(list.items).map(([day, articles]) => (
           <div key={day}>
-            <h2 className="mt-4 mb-1 text-[12px] font-semibold tracking-wide text-faint uppercase first:mt-0">{day}</h2>
+            <h2 className="mt-4 mb-1 flex items-center gap-2 text-[11px] font-semibold tracking-[0.08em] text-faint uppercase after:h-px after:flex-1 after:bg-line-soft first:mt-0">
+              {day}
+            </h2>
             <ul>
               {articles.map((a) => (
                 <li key={a.id}>
@@ -138,18 +146,30 @@ export function NewsPage() {
                     to={`/news?a=${a.id}`}
                     aria-current={a.id === selected ? 'true' : undefined}
                     className={cn(
-                      '-mx-3 flex gap-3 rounded-[10px] px-3 py-2.5 hover:bg-raised',
-                      a.id === selected && 'bg-accent-soft hover:bg-accent-soft',
+                      '-mx-3 flex gap-3 rounded-[11px] border border-transparent px-3 py-2.5 hover:bg-white/[0.03]',
+                      a.id === selected &&
+                        'border-accent-line/30 bg-accent/12 shadow-[inset_2px_0_0_var(--color-accent-line)] hover:bg-accent/12',
                     )}
                   >
                     <span
                       aria-hidden="true"
-                      className={cn('mt-2 size-1.5 shrink-0 rounded-full', !isRead(a) && 'bg-accent')}
+                      className={cn(
+                        'mt-2 size-[7px] shrink-0 rounded-full',
+                        !isRead(a) && 'bg-accent-line shadow-[0_0_8px_var(--color-accent-line)]',
+                      )}
                     />
                     <span className="min-w-0">
-                      <span className={cn('block font-medium', isRead(a) && 'text-muted')}>{a.title}</span>
-                      <span className="mt-0.5 block text-[12px] text-faint">
-                        {a.source} · {groupTitle(a.group_id)} · {formatAgo(a.published)}
+                      <span className={cn('block', isRead(a) ? 'text-muted' : 'font-medium')}>{a.title}</span>
+                      <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[12px] text-faint">
+                        <span
+                          className="rounded-[6px] px-1.5 text-[10.5px] font-semibold"
+                          style={{ backgroundColor: colourOf(a.group_id).bg, color: colourOf(a.group_id).fg }}
+                        >
+                          {groupTitle(a.group_id)}
+                        </span>
+                        <span>
+                          {a.source} · {formatAgo(a.published)}
+                        </span>
                         {!isRead(a) && <span className="sr-only"> · unread</span>}
                       </span>
                     </span>
