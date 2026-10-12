@@ -345,9 +345,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Shows what plays on any device on the account (phone, Mac, speakers, AirPlay from the phone),
   podcasts included. Polled every 3 seconds while playing, slower when idle; the panel moves the
   progress bar between polls. Album art is fetched by the hub, so panels never contact Spotify.
-- When nothing plays, Home's third card is Music: four favourite playlists to start from the desk
-  on the last used device (tap the device to change it), and what played last.
-- Now Playing on the Home panel (moved from Now, 2026-10-10): art with a blurred art background,
+- When nothing plays, Home's last card is Music: four favourite playlists as large covers with a
+  play button, to start from the desk on the last used device (tap the device to change it),
+  and what played last.
+- Now Playing on the Home panel (moved from Now, 2026-10-10; redesigned 2026-10-12): the cover
+  with a record sliding out behind it that spins while music plays (the album art as its label),
+  an equaliser that moves with playback, a progress line with a glowing thumb and a play button
+  lit in the album's colour, on a blurred art background;
   title, artist, progress, previous / play-pause / next, volume, and the device name (tap to
   move playback). When music starts it becomes Home's first card and the panel shows it; Home
   never rotates, so it stays there until you swipe to the lights. Two minutes after a pause the
@@ -381,11 +385,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   one to save it to Readeck, and its bookmark fills.
 - **Code** (House): 16 weeks of commit activity as a grid, then the CI state of the default
   branches and running pull requests from the Repos data (M9); a failing build stands out.
-- **Jellyfin** (House): continue watching with progress, recently added posters, and what Sonarr
-  and Radarr are downloading. Posters are fetched and resized by the hub. Shares its data with
-  the backlog's richer Jellyfin overview in the hub.
-- **Top movers** (House, Money): diverging bars from a centre line, ticker and name, the change
-  in green or red; the count up and down in the header.
+- **Media** (House; refocused 2026-10-12): not what is being watched (the owner knows), but what
+  needs attention: what is downloading (poster, episode or movie, size, an animated progress bar,
+  percentage and time left, from the Sonarr and Radarr queues and the download clients) and
+  missing episodes (aired but not downloaded, from Sonarr's wanted list, with how long ago and
+  whether it is still searching), plus the next episode to air. Posters are fetched and resized
+  by the hub. Shares its data with the backlog's richer Jellyfin overview in the hub.
+- **Top movers** (House, Money; redesigned 2026-10-12): a heat map of the holdings, each tile
+  sized by its share of the portfolio and tinted green or red by today's move, with the ticker,
+  the change and the name; the S&P 500, Nasdaq 100 and AEX below.
 - **My sites** (House, added 2026-10-10): the owner's own sites: example.com,
   aoc.example.com, hubble.cafe, meteor.cafe, admin.hubble.cafe, harry.hubble.cafe and
   harry-admin.hubble.cafe. The list is grouped Personal and Hubble with short names (aoc, admin,
@@ -446,7 +454,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
     The mockup's stop times are examples; the real ones come from the NS API.
 - **Scenes, Portfolio and Alerts** (redesigned 2026-10-10): each scene tile is lit in the colours
   of its lights, with a dot per light and the active scene marked; Portfolio has a day, week,
-  month and year switch, its line green or red with the change for that period; Alerts shows a
+  month and year switch, its line green or red with the change for that period, and since
+  2026-10-12 the chart runs edge to edge with a glowing line and the period's high; Alerts shows a
   calm "All quiet" with a check when nothing is open, instead of an empty list.
 - No ambient mode (dropped 2026-10-10): the panels always show these screens; an idle art mode
   would defeat their purpose.

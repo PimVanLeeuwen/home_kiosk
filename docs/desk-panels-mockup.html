@@ -177,7 +177,7 @@ svg text { font-family: var(--f-body); }
 .prog i { display: block; height: 100%; background: #fff; border-radius: 99px; }
 .ctl { display: flex; justify-content: center; align-items: center; gap: 9cqw; }
 .ctl button { font: inherit; border: 0; background: transparent; color: #fff; cursor: pointer; padding: 0; display: grid; place-items: center; }
-.ctl .pp { width: 19cqw; height: 19cqw; border-radius: 50%; background: #fff; color: #111; }
+.ctl .pp { width: 16cqw; height: 16cqw; border-radius: 50%; background: #fff; color: #111; }
 .ctl svg { display: block; }
 
 /* Night, alerts */
@@ -331,6 +331,56 @@ svg text { font-family: var(--f-body); }
 .house .wave { transform-box: fill-box; transform-origin: center; animation: wave 3.2s ease-out infinite; opacity: 0; }
 .house .w2 { animation-delay: 1.6s; }
 @keyframes wave { from { transform: scale(.9); opacity: .8; } to { transform: scale(2.1); opacity: 0; } }
+.vinyl-wrap { position: relative; height: 35cqw; }
+.vinyl-wrap .art { position: relative; z-index: 1; }
+.disc { position: absolute; left: 19cqw; top: 1.5cqw; width: 32cqw; height: 32cqw; border-radius: 50%; display: grid; place-items: center;
+  background: repeating-radial-gradient(circle, #0c0c0f 0 .5cqw, #18171d .5cqw .9cqw); box-shadow: 0 2cqw 6cqw rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(255, 255, 255, .06); }
+.disc i { width: 11cqw; height: 11cqw; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, .4); }
+.disc::after { content: ""; position: absolute; width: 1.6cqw; height: 1.6cqw; border-radius: 50%; background: #0b0b10; }
+.disc.spin { animation: spin 4s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.eq { display: flex; align-items: flex-end; gap: .8cqw; height: 5cqw; flex: none; }
+.eq i { width: 1.1cqw; background: #fff; border-radius: 99px; animation: eq 1s ease-in-out infinite; }
+.eq i:nth-child(1) { height: 40%; } .eq i:nth-child(2) { height: 90%; animation-delay: .2s; } .eq i:nth-child(3) { height: 60%; animation-delay: .4s; } .eq i:nth-child(4) { height: 80%; animation-delay: .1s; }
+.eq.paused i { animation: none; opacity: .4; }
+@keyframes eq { 50% { transform: scaleY(.35); } }
+.eq i { transform-origin: bottom; }
+.prog.glowp { height: 1.2cqw; overflow: visible; }
+.prog.glowp i { background: #fff; box-shadow: 0 0 2.4cqw var(--pc); position: relative; }
+.prog.glowp i::after { content: ""; position: absolute; right: -1.2cqw; top: 50%; width: 3cqw; height: 3cqw; margin-top: -1.5cqw; border-radius: 50%; background: #fff; box-shadow: 0 0 2.4cqw var(--pc); }
+.covers { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; margin-top: 1cqw; }
+.covers button { position: relative; aspect-ratio: 1.45; border: 0; border-radius: 4cqw; cursor: pointer; overflow: hidden; display: flex; align-items: flex-end; padding: 3cqw; font: inherit; }
+.covers button::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, .55)); }
+.cname { position: relative; color: #fff; font-size: 4cqw; font-weight: 600; }
+.cplay { position: absolute; right: 2.6cqw; top: 2.6cqw; width: 8cqw; height: 8cqw; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .92); color: #111; }
+.cplay svg { width: 4cqw; height: 4cqw; }
+.bleed { display: block; margin: 0 -7.5cqw; width: calc(100% + 15cqw); height: 30cqw; }
+.bleedlab { position: relative; height: 0; }
+.hl2 { position: absolute; top: -29cqw; transform: translateX(-100%); font-size: 3.4cqw; color: var(--ink-2); white-space: nowrap; }
+.heat2 { display: grid; grid-template-columns: 1.25fr 1fr .8fr; grid-template-rows: 1fr 1fr .85fr; grid-template-areas: "a b b" "a c d" "a c e"; gap: 2cqw; flex: 1; min-height: 0; margin-top: 1cqw; }
+.ht { border-radius: 3.4cqw; border: 1px solid; padding: 2.6cqw; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; overflow: hidden; }
+.ht .mono { font-size: 3.6cqw; color: #fff; }
+.ht b { font-size: 5.6cqw; font-weight: 600; color: #fff; letter-spacing: -.01em; }
+.ht small { font-size: 3cqw; color: rgba(255, 255, 255, .7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.idx { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2cqw; }
+.idx span { display: grid; gap: .2cqw; font-size: 3.4cqw; }
+.idx em { font-style: normal; color: var(--ink-3); }
+.idx b { font-size: 4cqw; }
+.dls { display: grid; gap: 3cqw; margin-top: 1cqw; }
+.dl { display: grid; grid-template-columns: 11cqw 1fr auto; gap: 3cqw; align-items: center; }
+.dl .poster { width: 11cqw; }
+.dlt { font-size: 4.2cqw; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dbar { height: 1.6cqw; border-radius: 99px; background: rgba(255, 255, 255, .08); overflow: hidden; margin-top: 1.4cqw; }
+.dbar i { display: block; height: 100%; border-radius: 99px; background: repeating-linear-gradient(-45deg, #9c8ffb 0 1.4cqw, #7c6cf2 1.4cqw 2.8cqw); background-size: 4cqw 4cqw; animation: stripes 1.2s linear infinite; box-shadow: 0 0 2.4cqw rgba(124, 108, 242, .6); }
+@keyframes stripes { to { background-position: 4cqw 0; } }
+.dlp { display: grid; justify-items: end; }
+.dlp b { font-size: 5cqw; font-weight: 600; }
+.dlp span { font-size: 3.4cqw; color: var(--ink-3); }
+.miss { display: grid; gap: 1.6cqw; }
+.miss > div { display: grid; grid-template-columns: 2cqw auto 1fr; gap: 2.4cqw; align-items: center; font-size: 3.8cqw; }
+.miss b { width: 2cqw; height: 2cqw; border-radius: 50%; background: var(--warn); box-shadow: 0 0 1.8cqw var(--warn); }
+.miss em { font-style: normal; color: var(--warn); font-family: var(--f-mono); font-size: 3.4cqw; }
+.miss .ms { font-size: 3.4cqw; color: var(--ink-3); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .poster { aspect-ratio: 2 / 3; border-radius: 2cqw; box-shadow: 0 2cqw 5cqw rgba(0, 0, 0, .45); }
 .mutebtn { font: inherit; font-size: 4.2cqw; font-weight: 600; color: var(--ink); background: rgba(124, 108, 242, .18); border: 1px solid var(--accent); border-radius: 99px; padding: 2.4cqw 5cqw; cursor: pointer; }
 
@@ -348,7 +398,7 @@ svg text { font-family: var(--f-body); }
   .unit figcaption { margin-top: 18px; }
   .notes { grid-template-columns: minmax(0, 1fr); }
 }
-@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo, .fline i, .ripple i, .aico, .house .wave { transition: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo, .fline i, .ripple i, .aico, .house .wave, .disc.spin, .eq i, .dbar i { transition: none; animation: none; } }
 </style>
 
 <div class="wrap">
@@ -384,7 +434,7 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>House</h2>
-      <ul><li>My sites: one ring per site, 30 day segments each, incidents lit amber or red; Services (GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP, Proton, with their logos): a constellation around a check when all is well, an incident card with its timeline when not (tap the status to preview)</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: portfolio with a day, week, month or year switch, then top movers as diverging bars</li><li>Code: 16 weeks of activity, CI state and pull requests. Jellyfin: continue watching, recently added, downloads</li><li>Night: screen off, unless an alert needs you</li></ul>
+      <ul><li>My sites: one ring per site, 30 day segments each, incidents lit amber or red; Services (GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP, Proton, with their logos): a constellation around a check when all is well, an incident card with its timeline when not (tap the status to preview)</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: the portfolio over an edge-to-edge chart with a day, week, month or year switch; top movers as a heat map sized by holding, with the indices</li><li>Code: 16 weeks of activity, CI state and pull requests. Media: what is downloading with progress and time left, and missing episodes from Sonarr</li><li>Night: screen off, unless an alert needs you</li></ul>
     </section>
   </div>
   <p class="foot">An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
@@ -555,21 +605,20 @@ svg text { font-family: var(--f-body); }
       ${daySvg()}
       <div class="row" style="font-size:3.4cqw;color:var(--ink-3)"><span>Sunrise 07:58 · Sunset 18:57</span><span>Buienradar</span></div>`,
     playing: () => {
-      const t = tracks[st.t];
-      const c = t.c;
-      return `<div class="np card" style="padding:7.5cqw 7.5cqw 11cqw">
+      const t = tracks[st.t], c = t.c;
+      const eq = `<span class="eq${st.playing ? '' : ' paused'}">${'<i></i>'.repeat(4)}</span>`;
+      return `<div class="np card" style="padding:6.5cqw 7.5cqw 11cqw">
         <div class="amb2" style="inset:-10%;background:radial-gradient(70% 60% at 30% 25%, ${rgb(c[0], .55)}, transparent 70%), radial-gradient(70% 70% at 80% 80%, ${rgb(c[1], .5)}, transparent 70%), ${rgb(c[2])}"></div>
-        <div style="display:flex;gap:5cqw;align-items:flex-end">
-          <div class="art" style="background:${art(t)}"></div>
-          <div style="min-width:0;display:grid;gap:2.4cqw">
-            <button class="dev" data-act="device">${t.device}</button>
-            <div><div class="title">${t.title}</div><div class="artist">${t.artist}</div></div>
-          </div>
+        <div class="vinyl-wrap">
+          <div class="disc${st.playing ? ' spin' : ''}"><i style="background:${art(t)}"></i></div>
+          <div class="art" style="width:35cqw;background:${art(t)};box-shadow:0 3cqw 10cqw ${rgb(c[0], .45)}, 0 2cqw 5cqw rgba(0,0,0,.5)"></div>
+          <button class="dev" data-act="device" style="position:absolute;right:0;top:0">${t.device}</button>
         </div>
+        <div class="row" style="align-items:flex-end"><div style="min-width:0"><div class="title">${t.title}</div><div class="artist">${t.artist}</div></div>${eq}</div>
         <div class="grow"></div>
-        <div class="prog"><i data-prog style="width:${(st.pos / t.len * 100).toFixed(1)}%"></i></div>
-        <div class="row" style="font-size:3.4cqw;color:rgba(255,255,255,.7);margin-top:-1cqw"><span data-pos>${mmss(st.pos)}</span><span>${mmss(t.len)}</span></div>
-        <div class="ctl"><button data-act="prev" aria-label="Previous">${ico.prev}</button><button class="pp" data-act="pp" aria-label="${st.playing ? 'Pause' : 'Play'}">${st.playing ? ico.pause : ico.play}</button><button data-act="next" aria-label="Next">${ico.next}</button></div>
+        <div class="prog glowp" style="--pc:${rgb(c[0])}"><i data-prog style="width:${(st.pos / t.len * 100).toFixed(1)}%"></i></div>
+        <div class="row" style="font-size:3.4cqw;color:rgba(255,255,255,.7);margin-top:-1.4cqw"><span data-pos>${mmss(st.pos)}</span><span>${mmss(t.len)}</span></div>
+        <div class="ctl"><button data-act="prev" aria-label="Previous">${ico.prev}</button><button class="pp" data-act="pp" aria-label="${st.playing ? 'Pause' : 'Play'}" style="box-shadow:0 0 6cqw ${rgb(c[0], .55)}">${st.playing ? ico.pause : ico.play}</button><button data-act="next" aria-label="Next">${ico.next}</button></div>
       </div>`;
     },
     rooms: () => {
@@ -585,9 +634,8 @@ svg text { font-family: var(--f-body); }
     music: () => {
       const pl = [['Daily Mix', [239, 112, 74], [126, 58, 160]], ['Focus Flow', [72, 180, 190], [40, 70, 160]], ['Sunday Morning', [245, 200, 90], [210, 90, 120]], ['Liked Songs', [124, 108, 242], [40, 30, 90]]];
       return `<div class="row"><span class="k">Music</span><button class="dev" data-act="device">${tracks[st.t].device}</button></div>
-      <div class="mid" style="font-weight:500">Play something</div>
+      <div class="covers">${pl.map((x, i) => `<button data-act="playlist" data-i="${i}" style="background:radial-gradient(circle at 28% 28%, ${rgb(x[1])}, transparent 62%), linear-gradient(135deg, ${rgb(x[2])}, #111);box-shadow:0 2cqw 7cqw ${rgb(x[1], .3)}"><span class="cname">${x[0]}</span><span class="cplay">${ico.play}</span></button>`).join('')}</div>
       <div class="grow"></div>
-      <div class="plist">${pl.map((x, i) => `<button data-act="playlist" data-i="${i}"><span class="cover" style="background:radial-gradient(circle at 30% 30%, ${rgb(x[1])}, transparent 60%), linear-gradient(135deg, ${rgb(x[2])}, #111)"></span><span>${x[0]}</span></button>`).join('')}</div>
       <div class="sub" style="font-size:3.6cqw">Last played: Low Tide Static · Marlow Hayes</div>`;
     },
     climate: () => {
@@ -792,24 +840,26 @@ svg text { font-family: var(--f-body); }
     },
     money: () => {
       const P = periods[st.period], s = P.s, d = s[s.length - 1] - s[0], up = d >= 0, col = up ? '#5fd39c' : '#ff7d7d';
-      return `<div class="row"><span class="k">Portfolio</span><span class="k">${P.label}</span></div>
-      <div class="big">${eur(s[s.length - 1])}</div>
-      <div class="row" style="justify-content:flex-start"><span class="${up ? 'up' : 'down'}" style="font-size:5cqw;font-weight:600">${up ? '+' : '−'}${eur(Math.abs(d))}</span><span class="${up ? 'up' : 'down'}" style="font-size:5cqw">${pct((s[s.length - 1] / s[0] - 1) * 100)}</span></div>
+      const W = 240, H = 84, min = Math.min(...s), max = Math.max(...s), x = i => i / (s.length - 1) * W, y = v => 10 + (1 - (v - min) / (max - min)) * (H - 22);
+      const pts = s.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' '), L = s.length - 1, hi = s.indexOf(max), lo = s.indexOf(min);
+      return `<div class="row"><span class="k">Portfolio · ${P.label}</span><span class="pill" style="color:${col};background:${up ? 'rgba(95,211,156,.13)' : 'rgba(255,125,125,.14)'}">${pct((s[L] / s[0] - 1) * 100)}</span></div>
+      <div class="big" style="font-size:12.5cqw">${eur(s[L])}</div>
+      <div class="sub" style="font-size:4.4cqw;color:${col};font-weight:600;margin-top:-1cqw">${up ? '+' : '−'}${eur(Math.abs(d))}</div>
       <div class="grow"></div>
-      ${spark(s, col)}
-      <div class="row" style="font-size:3.4cqw;color:var(--ink-3);margin-top:-1cqw"><span>${P.from}</span><span>${P.to}</span></div>
+      <svg class="bleed" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="100%"><defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+        ${[.25, .5, .75].map(f => `<line x1="0" y1="${(H * f).toFixed(1)}" x2="${W}" y2="${(H * f).toFixed(1)}" stroke="rgba(255,255,255,.05)"/>`).join('')}
+        <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#mg)"/>
+        <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linejoin="round" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 4px ${col})"/></svg>
+      <div class="bleedlab" style="--hi:${(x(hi) / W * 100).toFixed(1)}%;--lo:${(x(lo) / W * 100).toFixed(1)}%"><span class="hl2" style="left:var(--hi)">high ${eur(max)}</span></div>
       <div class="seg">${Object.keys(periods).map(k => `<button class="${k === st.period ? 'on' : ''}" data-act="period" data-v="${k}">${k}</button>`).join('')}</div>`;
     },
     movers: () => {
-      const m = [['NVDA', 'Nvidia', 2.84], ['ASML', 'ASML', 1.92], ['VWRL', 'All-World', .41], ['SHELL', 'Shell', -.62], ['ADYEN', 'Adyen', -1.37]];
-      const max = Math.max(...m.map(x => Math.abs(x[2])));
+      const m = { VWRL: ['FTSE All-World', .41, 'a'], NVDA: ['Nvidia', 2.84, 'b'], ASML: ['ASML', 1.92, 'c'], ADYEN: ['Adyen', -1.37, 'd'], SHELL: ['Shell', -.62, 'e'] };
+      const tile = (k, v) => { const up = v[1] >= 0, a = (.18 + Math.min(Math.abs(v[1]) / 3, 1) * .55).toFixed(2), c = up ? '95,211,156' : '255,107,107';
+        return `<div class="ht" style="grid-area:${v[2]};background:linear-gradient(150deg, rgba(${c},${a}), rgba(${c},${(a * .45).toFixed(2)}));border-color:rgba(${c},.35)"><span class="mono">${k}</span><b>${pct(v[1])}</b><small>${v[0]}</small></div>`; };
       return `<div class="row"><span class="k">Top movers today</span><span class="k">3 up · 2 down</span></div>
-      <div class="movers">${m.map(x => {
-        const w = Math.abs(x[2]) / max * 50, up = x[2] >= 0;
-        return `<div class="mv"><div><div class="mono" style="font-size:4.4cqw;color:var(--ink)">${x[0]}</div><div style="font-size:3.4cqw;color:var(--ink-3)">${x[1]}</div></div>
-          <div class="mvbar"><i style="${up ? 'left:50%' : 'right:50%'};width:${w.toFixed(1)}%;background:${up ? 'linear-gradient(90deg, rgba(95,211,156,.35), #5fd39c)' : 'linear-gradient(270deg, rgba(255,125,125,.35), #ff7d7d)'}"></i></div>
-          <div class="${up ? 'up' : 'down'}" style="font-weight:600;font-size:4.4cqw;text-align:right">${pct(x[2])}</div></div>`;
-      }).join('')}</div>`;
+      <div class="heat2">${Object.entries(m).map(([k, v]) => tile(k, v)).join('')}</div>
+      <div class="idx">${[['S&amp;P 500', .38], ['Nasdaq 100', .71], ['AEX', -.24]].map(x => `<span><em>${x[0]}</em><b class="${x[1] >= 0 ? 'up' : 'down'}">${pct(x[1])}</b></span>`).join('')}</div>`;
     },
     code: () => {
       let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -825,16 +875,18 @@ svg text { font-family: var(--f-body); }
     },
     media: () => {
       const post = (a, b) => `background:linear-gradient(160deg, ${a}, ${b})`;
-      return `<div class="row"><span class="k">Jellyfin</span><span class="k">2 downloading</span></div>
-      <div style="display:flex;gap:4cqw;align-items:flex-end">
-        <div class="poster" style="width:24cqw;${post('#3a6ea5', '#14213d')}"></div>
-        <div style="min-width:0;display:grid;gap:1.4cqw;flex:1"><span class="k" style="font-size:3.4cqw">Continue watching</span><div style="font-size:5.4cqw;font-weight:600;line-height:1.1">The Long Coast</div><div class="sub" style="font-size:3.8cqw">S1 E4 · 23 min left</div><div class="prog" style="background:rgba(255,255,255,.14)"><i style="width:62%;background:var(--accent)"></i></div></div>
-      </div>
+      const dl = [['Harbour Lights', 'S2 E5 · 1.4 GB', 72, '6 min', '#3a6ea5', '#14213d'], ['Glass Harbour (2025)', 'Movie · 8.2 GB', 31, '24 min', '#b5543c', '#3d1a14']];
+      const miss = [['Northbound', 'S3 E2', 'aired 2 days ago · searching'], ['The Long Coast', 'S1 E5', 'aired yesterday · no release yet']];
+      return `<div class="row"><span class="k">Media</span><span class="pill" style="color:#c9c1ff;background:rgba(124,108,242,.2)">2 DOWNLOADING</span></div>
+      <div class="dls">${dl.map(x => `<div class="dl"><span class="poster" style="${post(x[4], x[5])}"></span>
+        <div style="min-width:0"><div class="dlt">${x[0]}</div><div class="sub" style="font-size:3.4cqw">${x[1]}</div>
+          <div class="dbar"><i style="width:${x[2]}%"></i></div></div>
+        <div class="dlp"><b>${x[2]}%</b><span>${x[3]}</span></div></div>`).join('')}</div>
       <div class="grow"></div>
-      <span class="k" style="font-size:3.4cqw">Recently added</span>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2.4cqw">${[['#b5543c', '#3d1a14'], ['#4f8a6b', '#16261d'], ['#7c6cf2', '#221c4a'], ['#c9a227', '#3a2d08']].map(c => `<div class="poster" style="${post(c[0], c[1])}"></div>`).join('')}</div>`;
+      <div class="row"><span class="k" style="color:var(--warn)">Missing · 2 episodes</span><span class="k">Sonarr</span></div>
+      <div class="miss">${miss.map(x => `<div><b></b><span class="mt2">${x[0]} <em>${x[1]}</em></span><span class="ms">${x[2]}</span></div>`).join('')}</div>
+      <div class="sub" style="font-size:3.4cqw;color:var(--ink-3)">Next to air: The Long Coast S1 E6, Friday</div>`;
     },
-
     backups: () => {
       const n = [68, 71, 70, 66, 72, 69, 70, 73, 71, 68, 70, 72, 69, 67, 71, 70, 94, 69, 70, 71, 68, 73, 70, 69, 72, 71, 70, 68, 71, 72], slow = 16;
       const W = 240, H = 46, bw = W / n.length;
