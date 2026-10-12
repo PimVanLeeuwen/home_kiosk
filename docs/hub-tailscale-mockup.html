@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of a new hub page, Tailscale, in the desk panels' visual language, calmer, as the
+     other restyled pages (docs/hub-*-mockup.html). Example data only. Not served by the hub. -->
+<title>Home hub: Tailscale</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .07);
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.chrome { max-width: 1480px; margin: 0 auto; padding: 22px 20px 10px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+.chrome h1 { margin: 0; font-size: 22px; font-weight: 600; } .chrome p { margin: 3px 0 0; color: var(--muted); max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { background: #17181c; border: 1px solid var(--line); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: rgba(124, 108, 242, .18); border-color: var(--accent); }
+.stage { display: flex; justify-content: center; padding: 14px 20px 40px; }
+.device { width: 1440px; height: 900px; border-radius: 14px; overflow: hidden; border: 1px solid #1a1b1f; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.device.mobile { width: 390px; height: 844px; border-radius: 44px; border: 10px solid #000; }
+.app { display: flex; height: 100%; background: var(--canvas); position: relative; }
+.side { width: 240px; flex: none; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; }
+.side b.brand { font-size: 15px; padding: 0 10px; } .side small.host { color: var(--faint); padding: 0 10px 14px; font-size: 12px; }
+.side .grp { font-size: 11px; letter-spacing: .08em; color: var(--faint); padding: 14px 10px 4px; text-transform: uppercase; font-weight: 600; }
+.side a { padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; display: flex; gap: 10px; align-items: center; }
+.side a.on { background: rgba(124,108,242,.14); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent-line); }
+.side a i { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; opacity: .7; }
+.main { flex: 1; margin: 8px 8px 8px 0; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); overflow: auto; }
+.mobile .side { display: none; } .mobile .main { margin: 0; border-radius: 0; border: 0; padding-bottom: 74px; }
+.tabbar { display: none; }
+.mobile .tabbar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 74px; background: rgba(8,9,10,.92); border-top: 1px solid var(--line-soft); justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); }
+.mobile .tabbar span { display: grid; justify-items: center; gap: 3px; } .mobile .tabbar span.on { color: var(--accent-fg); }
+.mobile .tabbar i { width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 5px; }
+.page { padding: 36px 44px 48px; } .mobile .page { padding: 58px 16px 24px; }
+.ph { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.ph h2 { font-size: 26px; font-weight: 600; margin: 0; } .ph p { margin: 4px 0 0; color: var(--muted); }
+
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 20px 24px; min-width: 0; position: relative; overflow: hidden; }
+.mobile .card { padding: 18px; }
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; white-space: nowrap; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.14); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--f-mono); }
+.up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); } .muted { color: var(--muted); } .faint { color: var(--faint); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; background: var(--c, var(--up)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--up)) 18%, transparent), 0 0 10px var(--c, var(--up)); }
+.dot.pulse { animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent), 0 0 18px var(--c); } }
+
+
+.hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; align-items: center; }
+.mobile .hero { grid-template-columns: 1fr; gap: 26px; }
+.tsmap { position: relative; width: 100%; max-width: 520px; aspect-ratio: 1.55; margin: 6px auto 0; }
+.tsmap svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.tsmap .flow { stroke-dasharray: 2 6; animation: tsflow 2.4s linear infinite; }
+@keyframes tsflow { to { stroke-dashoffset: -16; } }
+.tsnode { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 5px; }
+.tsnode.up { transform: translate(-50%, calc(-100% + var(--h) / 2)); }
+.tsnode span { position: relative; width: var(--h); height: var(--h); border-radius: 30%; display: grid; place-items: center; font-weight: 700; font-size: calc(var(--h) * .34); background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); box-shadow: 0 0 18px -4px var(--c), inset 0 1px 0 rgba(255,255,255,.06); }
+.tsnode.off span { opacity: .4; box-shadow: none; border-style: dashed; border-color: rgba(255,255,255,.2); }
+.tsnode em { font-style: normal; font-size: 12px; color: var(--muted); white-space: nowrap; } .tsnode.off em { color: var(--faint); }
+.tsnode b.exit { position: absolute; top: -7px; right: -10px; font-size: 9.5px; padding: 0 5px; border-radius: 99px; background: var(--accent); color: #fff; }
+.self { display: grid; gap: 12px; }
+.self .nm { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 600; }
+.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 7px 16px; font-size: 13px; align-items: baseline; }
+.kv dt { color: var(--faint); }
+.mobile .kv { grid-template-columns: 1fr; gap: 0; } .mobile .kv dt { font-size: 11.5px; margin-top: 8px; } .mobile .kv dt:first-child { margin-top: 0; }
+.more .kv { grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); } .mobile .more .kv { grid-template-columns: 1fr; } .kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.copy { margin-left: 6px; border: 1px solid var(--glass-line); background: var(--glass); border-radius: 6px; font-size: 10.5px; padding: 0 6px; color: var(--muted); cursor: pointer; vertical-align: 1px; }
+.health { display: flex; gap: 14px; align-items: flex-start; border-color: rgba(224,162,59,.35); background: linear-gradient(160deg, rgba(224,162,59,.12), rgba(224,162,59,.03)); margin-bottom: 16px; }
+.health b { color: var(--warn); }
+.hic { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: var(--warn); background: rgba(224,162,59,.14); border: 1px solid rgba(224,162,59,.45); box-shadow: 0 0 14px -3px var(--warn); }
+.stale { font-size: 12.5px; color: var(--warn); margin: -14px 0 16px; }
+.devs { margin-top: 16px; }
+.grp { margin: 0 0 10px; display: flex; gap: 8px; align-items: center; }
+.cnt { font-weight: 600; font-size: 10.5px; border-radius: 6px; padding: 1px 6px; background: rgba(63,185,127,.13); color: var(--up); letter-spacing: 0; text-transform: none; }
+.cnt.l { background: var(--raised); color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; } .mobile .tiles { grid-template-columns: 1fr; }
+.tile { border-radius: 12px; border: 1px solid var(--glass-line); background: var(--glass); padding: 12px 14px; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; cursor: pointer; }
+.tile.off { opacity: .75; }
+.tiles { align-items: start; } .tile.open { grid-column: 1 / -1; border-color: rgba(143,128,255,.35); background: linear-gradient(160deg, rgba(124,108,242,.10), rgba(124,108,242,.02)); }
+.ic { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font-weight: 700; font-size: 13px; background: var(--raised); border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); box-shadow: 0 0 14px -5px var(--c); }
+.tile.off .ic { box-shadow: none; border-style: dashed; border-color: rgba(255,255,255,.18); color: var(--faint); }
+.tile .nm { font-weight: 500; font-size: 14px; display: flex; gap: 8px; align-items: center; }
+.tile .dns { font-family: var(--f-mono); font-size: 11.5px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tile .ip { font-family: var(--f-mono); font-size: 13px; text-align: right; }
+.chips { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.chip { font-size: 11px; border-radius: 6px; padding: 0 7px; background: rgba(255,255,255,.05); border: 1px solid var(--glass-line); color: var(--muted); white-space: nowrap; }
+.chip.d { color: var(--up); border-color: rgba(63,185,127,.25); } .chip.r { color: var(--accent-fg); border-color: rgba(143,128,255,.3); } .chip.x { color: #fff; background: var(--accent); border-color: transparent; }
+.more { grid-column: 2 / -1; margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--glass-line); }
+.more .kv { font-size: 12.5px; } .more .mono { font-size: 12px; }
+.notes { max-width: 1440px; margin: 0 auto; padding: 0 20px 50px; color: var(--muted); columns: 2 420px; column-gap: 40px; }
+.notes h4 { color: var(--fg); margin: 0 0 6px; font-size: 14px; } .notes ul { margin: 0 0 16px; padding-left: 18px; } .notes li { margin: 3px 0; break-inside: avoid; }
+@media (prefers-reduced-motion: reduce) { .tsmap .flow, .dot.pulse { animation: none; } }
+</style>
+
+<div class="chrome">
+  <div>
+    <h1>Tailscale <span class="pill acc" style="margin-left:8px;vertical-align:3px">example data</span></h1>
+    <p>A new page under House: the tailnet as the House panel draws it (the NAS in the middle, every device around it, a running line for a direct connection, a dashed violet one through a relay), the NAS's own names and addresses beside it, and below every device as a glass tile with its MagicDNS name, addresses and how it connects. Tap a device for its details.</p>
+  </div>
+  <div class="ctl">
+    <button data-v="desktop" aria-pressed="true">Desktop</button>
+    <button data-v="mobile" aria-pressed="false">Mobile</button>
+    <button data-s="ok" aria-pressed="true">Healthy</button>
+    <button data-s="warn" aria-pressed="false">Health issue</button>
+    <button data-s="stale" aria-pressed="false">Stale</button>
+  </div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<div class="notes">
+  <h4>What the page shows</h4>
+  <ul>
+    <li><b>Header:</b> the tailnet name and how many devices are online; a Healthy pill, or the number of health issues in amber.</li>
+    <li><b>Health:</b> tailscaled's own health warnings (DNS, relays, the NAS logged out), each as an amber card above the map, only when there is one. Keys do not expire on this tailnet, so there is no key state.</li>
+    <li><b>Map:</b> the same drawing as the House panel, sized to the page; on the phone it comes first, full width.</li>
+    <li><b>This NAS:</b> host name, MagicDNS name, IPv4 and IPv6 with a copy button, the relay it calls home, and how many hub services it serves over HTTPS.</li>
+  </ul>
+  <ul>
+    <li><b>Devices:</b> online first, then offline with when they were last seen. Each tile: an icon by OS glowing green, the name, the MagicDNS name, the IPv4 address, and chips for the OS, direct or which relay, and Exit node.</li>
+    <li><b>Details on tap:</b> IPv6, the endpoint for a direct connection, traffic since tailscaled started, and the copy buttons. One tile open at a time.</li>
+    <li><b>Source:</b> <span class="mono">GET /localapi/v0/status</span> on the tailscaled socket the collector already reads; read-only. When it can't be read, the last good answer with a stale note, as every page.</li>
+    <li><b>Same as the panel:</b> names, colours and the line style, so the two read as one design.</li>
+  </ul>
+</div>
+
+<script>
+const st = { view: 'desktop', state: 'ok', open: 'pim-macbook' };
+const nl = (n, d = 1) => n.toFixed(d).replace('.', ',');
+const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+function area(vals, color, { line2 = null, W = 300, H = 70, peak = true } = {}) {
+  const max = Math.max(...vals, ...(line2 || [])), min = 0, sp = max - min || 1;
+  const P = (v, i, n) => `${(i / (n - 1) * W).toFixed(1)},${(6 + (1 - (v - min) / sp) * (H - 10)).toFixed(1)}`;
+  const pts = vals.map((v, i) => P(v, i, vals.length)).join(' ');
+  const pk = vals.indexOf(Math.max(...vals)), [px, py] = P(vals[pk], pk, vals.length).split(',');
+  const id = 'a' + Math.random().toString(36).slice(2, 7);
+  return `<svg class="area" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="calc(100% + 48px)" height="${st.view === 'mobile' ? 48 : 64}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px ${color})"/>
+    ${line2 ? `<polyline points="${line2.map((v, i) => P(v, i, line2.length)).join(' ')}" fill="none" stroke="#9a9ea7" stroke-width="1" stroke-opacity=".7" vector-effect="non-scaling-stroke"/>` : ''}
+    ${peak ? `<circle cx="${px}" cy="${py}" r="2.2" fill="${color}" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${color})"/>` : ''}</svg>`;
+}
+
+function gauge(v, warnAt = 90) {
+  const R = 40, cx = 50, cy = 52, P = (a, r = R) => [cx - r * Math.cos(a * Math.PI), cy - r * Math.sin(a * Math.PI)];
+  const arc = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+  const ticks = Array.from({ length: 21 }, (_, i) => { const a = i / 20, [x0, y0] = P(a, R + 6), [x1, y1] = P(a, R + (i % 5 ? 7.5 : 9)); return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,${i % 5 ? .14 : .32})" stroke-width=".5"/>`; }).join('');
+  const [tx, ty] = P(warnAt / 100, R + 8), over = v >= warnAt, id = 'g' + Math.random().toString(36).slice(2, 7);
+  return `<svg viewBox="0 2 100 56"><defs><linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="#6f60ea"/><stop offset=".75" stop-color="#b4a9ff"/><stop offset="1" stop-color="${over ? '#e0a23b' : '#cfc8ff'}"/></linearGradient>
+    <filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${ticks}
+    <path d="${arc(0, 1)}" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="${arc(0, v / 100)}" stroke="url(#${id})" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#${id}f)"/>
+    <circle cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="1.3" fill="#e5646a"/>
+    <text x="50" y="50" text-anchor="middle" font-size="19" font-weight="600" fill="#ecedef" letter-spacing="-.8">${Math.round(v)}%</text></svg>`;
+}
+
+function ring(pct, color, inner, sub) {
+  const r = 42, c = 2 * Math.PI * r;
+  return `<svg viewBox="0 0 100 100" width="100%"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 4px ${color})"/>
+    <text x="50" y="52" text-anchor="middle" font-size="20" font-weight="600" fill="#ecedef">${inner}</text><text x="50" y="66" text-anchor="middle" font-size="8.5" fill="#9a9ea7">${sub}</text></svg>`;
+}
+
+function seal(ok, size = 64) {
+  const c = ok ? '#3fb97f' : '#e5646a';
+  return `<svg viewBox="0 0 60 60" width="${size}"><circle cx="30" cy="30" r="25" fill="none" stroke="${c}" stroke-opacity=".45" stroke-dasharray="1.5 2.4"/>
+    <path d="M30 11 L45 17 V29 C45 39 38 46 30 49 C22 46 15 39 15 29 V17 Z" fill="${c}" fill-opacity=".13" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/>
+    ${ok ? `<path d="M23.5 30l4.5 4.5 8.5-9" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="M30 22v10M30 37v.5" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`}</svg>`;
+}
+
+
+const PEERS = [
+  { n: 'pim-macbook', l: 'Mb', os: 'macOS', ip: '100.71.12.4', v6: 'fd7a:115c:a1e0::4a01:c04', on: 1, via: 'direct', ep: '192.168.1.23:41641', rx: '1,8 GB', tx: '412 MB', x: 14, y: 20 },
+  { n: 'pim-iphone', l: 'iP', os: 'iOS', ip: '100.88.3.51', v6: 'fd7a:115c:a1e0::5833', on: 1, via: 'relay ams', rx: '96 MB', tx: '22 MB', x: 86, y: 20 },
+  { n: 'appletv', l: 'TV', os: 'tvOS', ip: '100.64.9.17', v6: 'fd7a:115c:a1e0::4009:11', on: 1, via: 'direct', ep: '192.168.1.40:41641', rx: '3 MB', tx: '1 MB', exit: 1, x: 86, y: 74 },
+  { n: 'desk-pc', l: 'PC', os: 'Windows', ip: '100.102.7.88', v6: 'fd7a:115c:a1e0::6607:58', on: 0, seen: '5 h ago', x: 14, y: 74 },
+  { n: 'ipad', l: 'iPd', os: 'iPadOS', ip: '100.77.40.2', v6: 'fd7a:115c:a1e0::4d28:2', on: 0, seen: '2 days ago', x: 50, y: 92 },
+];
+const SUFFIX = 'tail1234.ts.net';
+const col = p => p.via === 'direct' ? '#5fd39c' : '#b4a9ff';
+
+// The map in its own proportions (155 × 100); each line stops short of both tiles.
+function tsmap(warn, width) {
+  const W = 155, H = 100, cx = 50, cy = 48, h = st.view === 'mobile' ? 40 : 46, hs = h * 1.4;
+  const u = W / width, rSelf = hs / 2 * u + 4, rPeer = h / 2 * u + 4;
+  const P = (x, y) => [x / 100 * W, y / 100 * H];
+  const seg = p => { const [x0, y0] = P(cx, cy), [x1, y1] = P(p.x, p.y), d = Math.hypot(x1 - x0, y1 - y0), ux = (x1 - x0) / d, uy = (y1 - y0) / d;
+    return [x0 + ux * rSelf, y0 + uy * rSelf, x1 - ux * rPeer, y1 - uy * rPeer].map(n => n.toFixed(1)); };
+  const lines = PEERS.map(p => { const [a, b, c, d] = seg(p);
+    return p.on ? `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${col(p)}" stroke-opacity=".3" stroke-width=".6" ${p.via === 'direct' ? '' : 'stroke-dasharray="2 2"'}/>
+        <line class="flow" x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${col(p)}" stroke-width="1" stroke-linecap="round" style="filter:drop-shadow(0 0 1.2px ${col(p)})"/>`
+      : `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="rgba(255,255,255,.12)" stroke-width=".5" stroke-dasharray="1.2 2.4"/>`; }).join('');
+  const node = p => { const above = p.y < cy, em = `<em>${p.n}${p.on ? '' : ` · ${p.seen}`}</em>`;
+    return `<div class="tsnode ${p.on ? '' : 'off'} ${above ? 'up' : ''}" style="left:${p.x}%;top:${p.y}%;--c:${col(p)};--h:${h}px">${above ? em : ''}<span>${p.l}${p.exit ? '<b class="exit">EXIT</b>' : ''}</span>${above ? '' : em}</div>`; };
+  const sc = warn ? '#e0a23b' : '#8f80ff';
+  return `<div class="tsmap" style="max-width:${width}px"><svg viewBox="0 0 155 100">${lines}</svg>${PEERS.map(node).join('')}
+    <div class="tsnode" style="left:${cx}%;top:${cy}%;--c:${sc};--h:${hs}px"><span>NAS</span></div></div>`;
+}
+
+function tile(p) {
+  const open = st.open === p.n;
+  return `<div class="tile ${p.on ? '' : 'off'} ${open ? 'open' : ''}" data-dev="${p.n}">
+    <span class="ic" style="--c:${p.on ? '#3fb97f' : '#7e828b'};color:${p.on ? 'var(--fg)' : ''}">${p.l}</span>
+    <div style="min-width:0"><div class="nm">${p.n} ${p.on ? '<span class="dot" style="--c:#3fb97f;width:6px;height:6px"></span>' : ''}</div><div class="dns">${p.n}.${SUFFIX}</div></div>
+    <span class="ip">${p.ip}</span>
+    <div class="chips"><span class="chip">${p.os}</span>${p.on ? `<span class="chip ${p.via === 'direct' ? 'd' : 'r'}">${p.via}</span>` : `<span class="chip">last seen ${p.seen}</span>`}${p.exit ? '<span class="chip x">Exit node</span>' : ''}</div>
+    ${open ? `<div class="more"><dl class="kv">
+      <dt>IPv4</dt><dd class="mono">${p.ip}<button class="copy">Copy</button></dd>
+      <dt>IPv6</dt><dd class="mono">${p.v6}<button class="copy">Copy</button></dd>
+      <dt>MagicDNS</dt><dd class="mono">${p.n}.${SUFFIX}<button class="copy">Copy</button></dd>
+      ${p.on ? `<dt>Connection</dt><dd>${p.via === 'direct' ? `direct to <span class="mono">${p.ep}</span>` : `through the DERP relay in Amsterdam`}</dd>
+      <dt>Traffic</dt><dd>${p.rx} in · ${p.tx} out <span class="faint">since tailscaled started</span></dd>` : `<dt>Last seen</dt><dd>${p.seen}</dd>`}
+    </dl></div>` : ''}
+  </div>`;
+}
+
+function render() {
+  const mob = st.view === 'mobile', warn = st.state === 'warn', stale = st.state === 'stale';
+  const on = PEERS.filter(p => p.on), off = PEERS.filter(p => !p.on), total = PEERS.length + 1;
+  const nav = [['', 'Home'], ['Read', 'News'], ['', 'Saved'], ['Money', 'Portfolio'], ['House', 'NAS'], ['', 'Docker'], ['', 'Backups'], ['', 'Services'], ['', 'Tailscale', 1], ['Code', 'Repos'], ['System', 'Alerts'], ['', 'Settings']];
+  const d = document.getElementById('device');
+  d.className = 'device' + (mob ? ' mobile' : '');
+  const self = `<div class="self"><div class="nm"><span class="dot ${warn ? 'pulse' : ''}" style="--c:${warn ? '#e0a23b' : '#8f80ff'}"></span>dev-minotaur <span class="faint" style="font-size:13px;font-weight:400">this NAS</span></div>
+    <dl class="kv"><dt>MagicDNS</dt><dd class="mono">dev-minotaur.${SUFFIX}<button class="copy">Copy</button></dd>
+      <dt>IPv4</dt><dd class="mono">100.70.0.10<button class="copy">Copy</button></dd>
+      <dt>IPv6</dt><dd class="mono">fd7a:115c:a1e0::5d63:632f</dd>
+      <dt>Home relay</dt><dd>Amsterdam</dd>
+      <dt>Serves</dt><dd>9 hub services over HTTPS</dd>
+      <dt>Health</dt><dd>${warn ? '<span class="warn-t">1 issue</span>' : '<span class="up">All checks pass</span>'}</dd></dl></div>`;
+  d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">dev-minotaur</small>
+    ${nav.map(x => `${x[0] ? `<span class="grp">${x[0]}</span>` : ''}<a href="#" class="${x[2] ? 'on' : ''}"><i></i>${x[1]}</a>`).join('')}</nav>
+    <main class="main"><div class="page">
+      <div class="ph"><div><h2>Tailscale</h2><p>tail1234 · ${on.length + 1} of ${total} online</p></div><span class="pill ${warn ? 'warn' : stale ? '' : 'up'}" style="${stale ? 'color:var(--muted);background:var(--raised)' : ''}">${warn ? '1 health issue' : stale ? 'Stale' : 'Healthy'}</span></div>
+      ${stale ? '<p class="stale">Can\'t reach tailscaled since 20:31; this is the last known state.</p>' : ''}
+      ${warn ? `<section class="card health"><span class="hic">!</span><div><b>DNS unreachable</b><div class="muted" style="font-size:13px;margin-top:2px">Tailscale can't reach the DNS servers it was given, so names outside the tailnet may not resolve on the NAS. From tailscaled's health checks, since 20:12.</div></div></section>` : ''}
+      <section class="card"><div class="hero">${tsmap(warn, mob ? 320 : 500)}${self}</div></section>
+      <div class="devs">
+        <h3 class="lab grp">Online <span class="cnt">${on.length}</span></h3><div class="tiles">${on.map(tile).join('')}</div>
+        <h3 class="lab grp">Offline <span class="cnt l">${off.length}</span></h3><div class="tiles">${off.map(tile).join('')}</div>
+      </div>
+    </div></main>
+    <div class="tabbar">${['Home', 'News', 'Portfolio', 'NAS', 'More'].map((t, i) => `<span class="${i === 4 ? 'on' : ''}"><i></i>${t}</span>`).join('')}</div></div>`;
+  d.querySelectorAll('[data-dev]').forEach(t => t.addEventListener('click', e => { if (e.target.closest('.copy')) return; st.open = st.open === t.dataset.dev ? null : t.dataset.dev; render(); }));
+}
+document.querySelectorAll('.ctl button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.v) { st.view = b.dataset.v; document.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if (b.dataset.s) { st.state = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  render();
+}));
+render();
+</script>
+</html>
