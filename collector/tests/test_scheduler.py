@@ -62,3 +62,11 @@ def test_the_github_mirror_runs_nightly_and_catches_up_after_startup(store):
     assert not hasattr(later, "next_run_time")
 
     assert scheduler.build(mirror_cfg(False), store).get_job("github-mirror") is None
+
+
+def test_the_status_pages_are_read_only_when_services_are_listed(store):
+    base = {"timezone": "Europe/Amsterdam", "nas": {"docker_socket": "/nope"}}
+    listed = {**base, "outside_services": [{"key": "github", "url": "https://gh"}]}
+
+    assert scheduler.build(listed, store).get_job("outside-services") is not None
+    assert scheduler.build(base, store).get_job("outside-services") is None

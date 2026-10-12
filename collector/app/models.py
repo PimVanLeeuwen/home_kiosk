@@ -656,3 +656,41 @@ class Weather(Envelope):
     sunrise: datetime | None = None
     sunset: datetime | None = None
     rain: list[RainPoint] = []  # the next 2 hours in 5-minute steps
+
+
+# --- Home hub: outside services ---------------------------------------------------
+
+# Worst first is "outage"; "unknown" means the status page has never answered.
+OutsideState = Literal["ok", "maintenance", "degraded", "outage", "unknown"]
+
+
+class OutsideUpdate(BaseModel):
+    at: datetime
+    status: str  # the page's own word: investigating, identified, monitoring, ...
+    text: str
+
+
+class OutsideIncident(BaseModel):
+    title: str
+    impact: Literal["maintenance", "degraded", "outage"]
+    status: str
+    started_at: datetime | None = None
+    url: str | None = None
+    updates: list[OutsideUpdate] = []  # oldest first, the last few
+
+
+class OutsideService(BaseModel):
+    key: str
+    name: str
+    url: str  # the public status page
+    state: OutsideState
+    incidents: list[OutsideIncident] = []
+    # Each page is fetched on its own: one that fails keeps its last answer,
+    # flagged stale with the reason.
+    as_of: datetime
+    stale: bool = False
+    error: str | None = None
+
+
+class OutsideServices(Envelope):
+    services: list[OutsideService]

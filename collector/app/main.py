@@ -30,7 +30,16 @@ from .news import store as news_store
 from .portfolio import api as portfolio_api
 from .portfolio import degiro_import
 from .security import same_origin_json
-from .sources import container_stats, exposure, feeds, github_mirror, readeck, ups, weather
+from .sources import (
+    container_stats,
+    exposure,
+    feeds,
+    github_mirror,
+    outside_services,
+    readeck,
+    ups,
+    weather,
+)
 from .sources import nas as nas_source
 from .sources import services as service_catalog
 from .store import Store
@@ -188,6 +197,11 @@ def exposure_audit() -> Any:
 @app.get("/api/weather")
 def weather_now() -> Any:
     return _serve(weather.CACHE_KEY)
+
+
+@app.get("/api/outside-services")
+def outside_services_status() -> Any:
+    return _serve(outside_services.CACHE_KEY)
 
 
 @app.get("/api/ups")

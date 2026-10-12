@@ -432,7 +432,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   (DNS and the tunnel for the public sites), Docker Hub (the hub's images and Watchtower's pulls),
   Tailscale (remote access, the exposure scan), Hetzner (the Storage Box backups and the Docker
   server the Hubble sites run on), TransIP (DNS for the Hubble sites) and Proton (mail). Not listed: Spotify, Telegram and iCloud, whose own cards go stale when they fail. Read from their public status pages (most use Statuspage's `/api/v2/summary.json`),
-  every 5 minutes by the collector, never by the panels. Each service shows its own logo (Simple
+  every 5 minutes by the collector, never by the panels. Decided 2026-10-12: only the components
+  the house uses count (Cloudflare's headline status nearly always reports a far-away colo),
+  listed in config.yaml; Hetzner has no API, so the collector reads the data its status page
+  embeds, and counts only the Storage Box, Cloud Server and the German locations; TransIP's
+  TransNOC is plain HTML and counts as fine only while it says all services are available;
+  maintenance shows only while it runs; an incident sends a Telegram warning when it starts and
+  when it is resolved. Served at `/api/outside-services`, with a Home tile and a section on the
+  Services page in the hub. Each service shows its own logo (Simple
   Icons, CC0, bundled with the hub and converted for the panels, never loaded from a CDN; TransIP
   has none there, so it gets a letter tile), on a dark glass tile with a glow in its brand colour.
   When all is well: the services as a ring around a glowing check. During an incident: a card with the service, its state

@@ -30,6 +30,7 @@ from .sources import (
     github,
     github_mirror,
     nas,
+    outside_services,
     spotlight,
     tailscale,
     ups,
@@ -51,6 +52,7 @@ NEWS_INTERVAL_SECONDS = 600       # §5: feeds every 10 minutes
 PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
 WEATHER_INTERVAL_SECONDS = 300  # Buienradar's rain forecast moves in 5-minute steps
 EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
+OUTSIDE_INTERVAL_SECONDS = 300  # status pages; incidents move in minutes
 UPS_INTERVAL_SECONDS = 15  # outages are timed from these readings
 MIRROR_STARTUP_DELAY = timedelta(minutes=2)  # let the startup refreshes go first
 
@@ -238,6 +240,19 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             seconds=WEATHER_INTERVAL_SECONDS,
             args=[store, weather.CACHE_KEY, lambda: weather.collect(cfg)],
             id="weather",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
+
+    if outside_services.settings(cfg):
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=OUTSIDE_INTERVAL_SECONDS,
+            args=[store, outside_services.CACHE_KEY,
+                  lambda: outside_services.collect(cfg, store)],
+            id="outside-services",
             next_run_time=None,
             max_instances=1,
             coalesce=True,
