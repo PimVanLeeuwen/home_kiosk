@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react'
+import { cn } from '../../lib/cn'
 
 interface Props {
   /** 0 to 100. */
@@ -8,6 +9,8 @@ interface Props {
   label: string
   /** Below the figure: what is measured and how long it lasts. */
   children?: ReactNode
+  /** The wrapper's size; centred at 72% of its container by default. */
+  className?: string
 }
 
 const R = 40
@@ -29,13 +32,13 @@ const TICKS = Array.from({ length: 21 }, (_, i) => {
 })
 
 /** An instrument-style half dial with ticks and a glowing arc, as on the House panel. */
-export function ArcGauge({ pct, alertAt, label, children }: Props) {
+export function ArcGauge({ pct, alertAt, label, children, className }: Props) {
   const id = useId()
   const value = Math.min(100, Math.max(0, pct))
   const over = alertAt != null && value >= alertAt
   const mark = alertAt != null ? at(alertAt / 100, R + 8) : null
   return (
-    <div className="mx-auto w-[72%] max-w-[270px] text-center">
+    <div className={cn('text-center', className ?? 'mx-auto w-[72%] max-w-[270px]')}>
       <svg
         role="meter"
         aria-label={label}

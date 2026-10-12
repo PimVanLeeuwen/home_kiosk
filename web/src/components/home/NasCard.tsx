@@ -1,6 +1,7 @@
 import { POOL_FULL_PCT } from '../../lib/attention'
 import { cn } from '../../lib/cn'
 import { formatBytes, formatMbit, formatRunway } from '../../lib/format'
+import { nasNeedsLook, shortRunway } from '../../lib/nasHealth'
 import type { Nas, NasPoint, Ups } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { ArcGauge } from '../ui/ArcGauge'
@@ -11,9 +12,6 @@ import { Pill } from '../ui/Pill'
 import { Card, Loading, StaleNote, Unavailable } from './Card'
 import { Meter } from './Meter'
 
-/** A runway shorter than this is worth a look. */
-const SHORT_RUNWAY_MONTHS = 6
-const HOT_CPU_C = 80
 
 const UPS_LABEL: Record<Ups['status'], string> = {
   online: 'on mains',
@@ -38,10 +36,7 @@ export function NasCard({ nas, error }: Props) {
   // Pools arrive fullest first.
   const [fullest, ...others] = nas?.storage.pools ?? []
   const badDisks = nas?.disks.filter((d) => d.smart !== 'ok') ?? []
-  const needsLook =
-    !!nas &&
-    ((fullest?.used_pct ?? 0) >= POOL_FULL_PCT || badDisks.length > 0 || (nas.cpu_temp_c ?? 0) >= HOT_CPU_C)
-  const shortRunway = fullest?.projection_months != null && fullest.projection_months < SHORT_RUNWAY_MONTHS
+  const needsLook = !!nas && nasNeedsLook(nas)
   const hottest = Math.max(...(nas?.disks.map((d) => d.temp_c ?? 0) ?? [0]))
 
   return (
@@ -58,7 +53,7 @@ export function NasCard({ nas, error }: Props) {
               <p className="text-muted">
                 {fullest.name} · {formatBytes(fullest.used_bytes)} of {formatBytes(fullest.total_bytes)}
               </p>
-              <p className={shortRunway ? 'text-warn' : 'text-faint'}>{formatRunway(fullest.projection_months)}</p>
+              <p className={shortRunway(fullest) ? 'text-warn' : 'text-faint'}>{formatRunway(fullest.projection_months)}</p>
             </ArcGauge>
           )}
 

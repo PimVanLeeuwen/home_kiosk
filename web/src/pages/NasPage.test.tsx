@@ -90,15 +90,35 @@ describe('NasPage', () => {
     expect(within(storage).getByText('No growth trend yet')).toBeInTheDocument()
     expect(within(storage).getByText('Full in about 3 years')).toBeInTheDocument()
     expect(within(storage).getByText('Full in about 7 months')).toBeInTheDocument()
-    expect(within(storage).getByText(/92,4% used · 800 GB free/)).toBeInTheDocument()
+    expect(within(storage).getByText('5,2 TB of 6,0 TB')).toBeInTheDocument()
+    expect(within(storage).getByText('800 GB free')).toBeInTheDocument()
+    // Every pool is a dial; the runway turns amber when it is short.
+    expect(within(storage).getByRole('meter', { name: 'volume1' })).toHaveAttribute('aria-valuenow', '17')
+    expect(within(storage).getByText('Full in about 7 months')).not.toHaveClass('text-warn')
+    // All pools together: 6,28 of 10,48 TB.
+    expect(within(storage).getByRole('meter', { name: 'All pools' })).toHaveAttribute('aria-valuenow', '60')
+    expect(within(storage).getByText('6,3 TB of 10,5 TB used')).toBeInTheDocument()
+  })
+
+  it('says the NAS needs a look in the header when a pool is full or a disk has trouble', async () => {
+    setup()
+    expect(await screen.findByText('Needs a look')).toBeInTheDocument()
   })
 
   it('shows disk temperatures and SMART health', async () => {
     setup()
 
     const disks = await screen.findByRole('region', { name: 'Disks' })
-    const rows = within(disks).getAllByRole('row').slice(1)
-    expect(rows.map((r) => r.textContent)).toEqual(['sda42 °CHealthy', 'sdb51 °CWarnings', 'sdc–Failing'])
+    const bays = within(within(disks).getByRole('list', { name: /SMART health/ })).getAllByRole('listitem')
+    expect(bays.map((r) => r.textContent)).toEqual(['sda42 °CHealthy', 'sdb51 °CWarnings', 'sdc–Failing'])
+    // A warm disk reads amber; a disk in trouble pulses; the header counts the worst.
+    expect(within(bays[1]).getByText('51 °C')).toHaveClass('text-warn')
+    expect(bays[0].querySelector('.motion-safe\\:animate-halo')).toBeNull()
+    expect(bays[2].querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
+    expect(within(disks).getByText('2 failing')).toBeInTheDocument()
+    // The temperature bar fills from 25 °C to 60 °C: 42 °C is about half.
+    expect((bays[0].querySelector('.absolute') as HTMLElement).style.width).toMatch(/^48\.57/)
+    expect(within(disks).getByText(/Containers: 37 of 37 running/)).toBeInTheDocument()
     expect(within(disks).getByRole('link', { name: 'Open Docker' })).toHaveAttribute('href', '/docker')
   })
 
