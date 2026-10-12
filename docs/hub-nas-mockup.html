@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of the hub's NAS page in the desk panels' visual language, calmer, as Home
+     (docs/hub-home-mockup.html). Example data only. Not served by the hub. -->
+<title>Home hub: NAS restyled</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .07);
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.chrome { max-width: 1480px; margin: 0 auto; padding: 22px 20px 10px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+.chrome h1 { margin: 0; font-size: 22px; font-weight: 600; } .chrome p { margin: 3px 0 0; color: var(--muted); max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { background: #17181c; border: 1px solid var(--line); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: rgba(124, 108, 242, .18); border-color: var(--accent); }
+.stage { display: flex; justify-content: center; padding: 14px 20px 40px; }
+.device { width: 1440px; height: 900px; border-radius: 14px; overflow: hidden; border: 1px solid #1a1b1f; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.device.mobile { width: 390px; height: 844px; border-radius: 44px; border: 10px solid #000; }
+.app { display: flex; height: 100%; background: var(--canvas); position: relative; }
+.side { width: 240px; flex: none; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; }
+.side b.brand { font-size: 15px; padding: 0 10px; } .side small.host { color: var(--faint); padding: 0 10px 14px; font-size: 12px; }
+.side .grp { font-size: 11px; letter-spacing: .08em; color: var(--faint); padding: 14px 10px 4px; text-transform: uppercase; font-weight: 600; }
+.side a { padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; display: flex; gap: 10px; align-items: center; }
+.side a.on { background: rgba(124,108,242,.14); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent-line); }
+.side a i { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; opacity: .7; }
+.main { flex: 1; margin: 8px 8px 8px 0; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); overflow: auto; }
+.mobile .side { display: none; } .mobile .main { margin: 0; border-radius: 0; border: 0; padding-bottom: 74px; }
+.tabbar { display: none; }
+.mobile .tabbar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 74px; background: rgba(8,9,10,.92); border-top: 1px solid var(--line-soft); justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); }
+.mobile .tabbar span { display: grid; justify-items: center; gap: 3px; } .mobile .tabbar span.on { color: var(--accent-fg); }
+.mobile .tabbar i { width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 5px; }
+.page { padding: 36px 44px 48px; } .mobile .page { padding: 58px 16px 24px; }
+.ph { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.ph h2 { font-size: 26px; font-weight: 600; margin: 0; } .ph p { margin: 4px 0 0; color: var(--muted); }
+
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 20px 24px; min-width: 0; position: relative; overflow: hidden; }
+.mobile .card { padding: 18px; }
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; white-space: nowrap; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.14); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--f-mono); }
+.up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); } .muted { color: var(--muted); } .faint { color: var(--faint); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; background: var(--c, var(--up)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--up)) 18%, transparent), 0 0 10px var(--c, var(--up)); }
+.dot.pulse { animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent), 0 0 18px var(--c); } }
+
+/* Instruments: figure, peak, a glowing 24 h area edge to edge. */
+.inst { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.mobile .inst { grid-template-columns: 1fr 1fr; gap: 10px; }
+.inst .card { padding-bottom: 0; }
+.mobile .inst .card { padding: 14px 14px 0; }
+.fig { font-size: 30px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+.mobile .fig { font-size: 23px; }
+.sub2 { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.mobile .sub2 { font-size: 11.5px; }
+.area { display: block; margin: 10px -24px 0; } .mobile .area { margin: 8px -14px 0; }
+.legend { display: flex; gap: 10px; font-size: 11.5px; color: var(--muted); margin-top: 3px; } .legend i { display: inline-block; width: 8px; height: 2px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+
+.row2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; margin-top: 20px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+.mobile .row2, .mobile .row3 { grid-template-columns: 1fr; gap: 14px; margin-top: 14px; }
+
+/* Storage: a dial per pool. */
+.pools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.mobile .pools { grid-template-columns: 1fr; }
+.pool { text-align: center; border-radius: 12px; background: var(--glass); border: 1px solid var(--glass-line); padding: 12px 10px 12px; }
+.pool .nm { font-weight: 600; font-family: var(--f-mono); font-size: 12.5px; } .pool .d1 { font-size: 12.5px; color: var(--muted); } .pool .d2 { font-size: 12px; }
+.pool svg { width: 82%; max-width: 200px; display: block; margin: 0 auto; overflow: visible; }
+.mobile .pool { display: grid; grid-template-columns: 130px 1fr; align-items: center; text-align: left; gap: 10px; }
+.mobile .pool svg { width: 100%; }
+
+/* Disks as drive bays: an LED, the name, a temperature bar. */
+.bays { display: grid; gap: 8px; }
+.bay { display: grid; grid-template-columns: 14px 64px 1fr 56px 74px; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.015)); border: 1px solid var(--glass-line); font-size: 13px; }
+.bay .grill { display: grid; grid-template-columns: repeat(3, 3px); gap: 2px; } .bay .grill i { width: 3px; height: 3px; border-radius: 1px; background: rgba(255,255,255,.12); }
+.mobile .bay { grid-template-columns: 14px 54px 1fr 46px; } .mobile .bay .sm { display: none; }
+.thermo { height: 5px; border-radius: 3px; background: var(--raised); position: relative; overflow: hidden; }
+.thermo i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: linear-gradient(90deg, #4fa3e8, #3fb97f 45%, #e0a23b 75%, #e5646a); background-size: var(--w) 100%; }
+.cont { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line-soft); font-size: 13px; }
+.cont a { color: var(--accent-fg); text-decoration: none; margin-left: auto; font-weight: 500; font-size: 13px; }
+
+/* UPS: a battery ring, the state, load, and power cuts on a timeline. */
+.ups { display: grid; grid-template-columns: 130px 1fr; gap: 18px; align-items: center; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13.5px; } .kv dt { color: var(--muted); } .kv dd { margin: 0; }
+.tl { margin-top: 16px; border-left: 1px solid var(--line); padding-left: 14px; display: grid; gap: 9px; font-size: 12.5px; }
+.tl div { position: relative; } .tl div::before { content: ''; position: absolute; left: -18px; top: .5em; width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--faint)); box-shadow: 0 0 8px var(--c, transparent); }
+.note { font-size: 12px; color: var(--faint); margin-top: 12px; }
+
+/* Exposure: a shield seal, hosts with their route, the port scan. */
+.shield { display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: center; margin-bottom: 14px; }
+.shield .t { font-size: 17px; font-weight: 600; line-height: 1.25; } .shield .s { font-size: 12.5px; color: var(--muted); }
+.hosts { display: grid; gap: 8px; }
+.host { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 9px 12px; border-radius: 10px; background: var(--glass); border: 1px solid var(--glass-line); }
+.host.bad { border-color: rgba(229,100,106,.4); background: linear-gradient(160deg, rgba(229,100,106,.12), rgba(229,100,106,.03)); }
+.host .h { font-family: var(--f-mono); font-size: 12.5px; word-break: break-all; } .host .r { font-size: 12px; color: var(--muted); grid-column: 1 / -1; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.chip { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; border-radius: 6px; padding: 1px 6px; background: rgba(124,108,242,.16); color: var(--accent-fg); }
+.chip.dns { background: rgba(140,196,255,.14); color: #8cc4ff; }
+.scan { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line-soft); display: flex; gap: 12px; align-items: center; font-size: 13px; }
+.scan .ports { margin-left: auto; font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.notes { max-width: 1440px; margin: 0 auto; padding: 0 20px 50px; color: var(--muted); columns: 2 420px; column-gap: 40px; }
+.notes h4 { color: var(--fg); margin: 0 0 6px; font-size: 14px; } .notes ul { margin: 0 0 16px; padding-left: 18px; } .notes li { margin: 3px 0; break-inside: avoid; }
+@media (prefers-reduced-motion: reduce) { .dot.pulse { animation: none; } }
+</style>
+
+<div class="chrome">
+  <div>
+    <h1>NAS, restyled <span class="pill acc" style="margin-left:8px;vertical-align:3px">example data</span></h1>
+    <p>The NAS page in the same language as the restyled Home: instruments with glowing 24-hour lines, a dial per pool, disks as drive bays, the UPS as a battery ring, and the exposure audit behind a shield. Same data as today.</p>
+  </div>
+  <div class="ctl">
+    <button data-v="desktop" aria-pressed="true">Desktop</button>
+    <button data-v="mobile" aria-pressed="false">Mobile</button>
+    <button data-s="ok" aria-pressed="true">All well</button>
+    <button data-s="look" aria-pressed="false">Something needs a look</button>
+  </div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<div class="notes">
+  <h4>What changes</h4>
+  <ul>
+    <li><b>Header:</b> host and uptime as today, plus a Healthy / Needs a look pill (the same rule as the Home card).</li>
+    <li><b>CPU, Memory, CPU temperature, Network:</b> the figure large with its 24-hour peak, and the day as a glowing area running edge to edge, the peak marked with a dot. Temperature turns amber from 70 °C; network shows download as the area and upload as a thin line.</li>
+    <li><b>Storage:</b> an arc gauge per pool (the same as on Home), used and free below, the runway in amber under 6 months, fullest first; one thin bar for all pools together.</li>
+    <li><b>Disks:</b> each disk as a drive bay: an LED in its SMART colour (pulsing when it is not healthy), the name, a temperature bar from cool blue to red, the figure and the SMART word. Containers below with a link to Docker.</li>
+  </ul>
+  <ul>
+    <li><b>UPS:</b> the battery as a ring in its state's colour with the charge inside, the state, load and model beside it; power cuts as a timeline (red when services stopped), and the note about 15%.</li>
+    <li><b>Exposure:</b> a shield seal with the verdict, every public hostname as a glass row with a Tunnel or DNS chip, its target and answer (an unexpected one tinted red), and the port scan as its own line with the number of ports checked.</li>
+    <li><b>Motion:</b> only the pulse on a disk, UPS or host that needs a look; it stops with reduced motion.</li>
+  </ul>
+</div>
+
+<script>
+const st = { view: 'desktop', state: 'ok' };
+const nl = (n, d = 1) => n.toFixed(d).replace('.', ',');
+const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+function area(vals, color, { line2 = null, W = 300, H = 70, peak = true } = {}) {
+  const max = Math.max(...vals, ...(line2 || [])), min = 0, sp = max - min || 1;
+  const P = (v, i, n) => `${(i / (n - 1) * W).toFixed(1)},${(6 + (1 - (v - min) / sp) * (H - 10)).toFixed(1)}`;
+  const pts = vals.map((v, i) => P(v, i, vals.length)).join(' ');
+  const pk = vals.indexOf(Math.max(...vals)), [px, py] = P(vals[pk], pk, vals.length).split(',');
+  const id = 'a' + Math.random().toString(36).slice(2, 7);
+  return `<svg class="area" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="calc(100% + 48px)" height="${st.view === 'mobile' ? 48 : 64}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px ${color})"/>
+    ${line2 ? `<polyline points="${line2.map((v, i) => P(v, i, line2.length)).join(' ')}" fill="none" stroke="#9a9ea7" stroke-width="1" stroke-opacity=".7" vector-effect="non-scaling-stroke"/>` : ''}
+    ${peak ? `<circle cx="${px}" cy="${py}" r="2.2" fill="${color}" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${color})"/>` : ''}</svg>`;
+}
+
+function gauge(v, warnAt = 90) {
+  const R = 40, cx = 50, cy = 52, P = (a, r = R) => [cx - r * Math.cos(a * Math.PI), cy - r * Math.sin(a * Math.PI)];
+  const arc = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+  const ticks = Array.from({ length: 21 }, (_, i) => { const a = i / 20, [x0, y0] = P(a, R + 6), [x1, y1] = P(a, R + (i % 5 ? 7.5 : 9)); return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,${i % 5 ? .14 : .32})" stroke-width=".5"/>`; }).join('');
+  const [tx, ty] = P(warnAt / 100, R + 8), over = v >= warnAt, id = 'g' + Math.random().toString(36).slice(2, 7);
+  return `<svg viewBox="0 2 100 56"><defs><linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="#6f60ea"/><stop offset=".75" stop-color="#b4a9ff"/><stop offset="1" stop-color="${over ? '#e0a23b' : '#cfc8ff'}"/></linearGradient>
+    <filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${ticks}
+    <path d="${arc(0, 1)}" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="${arc(0, v / 100)}" stroke="url(#${id})" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#${id}f)"/>
+    <circle cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="1.3" fill="#e5646a"/>
+    <text x="50" y="50" text-anchor="middle" font-size="19" font-weight="600" fill="#ecedef" letter-spacing="-.8">${Math.round(v)}%</text></svg>`;
+}
+
+function ring(pct, color, inner, sub) {
+  const r = 42, c = 2 * Math.PI * r;
+  return `<svg viewBox="0 0 100 100" width="100%"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 4px ${color})"/>
+    <text x="50" y="52" text-anchor="middle" font-size="20" font-weight="600" fill="#ecedef">${inner}</text><text x="50" y="66" text-anchor="middle" font-size="8.5" fill="#9a9ea7">${sub}</text></svg>`;
+}
+
+function seal(ok, size = 64) {
+  const c = ok ? '#3fb97f' : '#e5646a';
+  return `<svg viewBox="0 0 60 60" width="${size}"><circle cx="30" cy="30" r="25" fill="none" stroke="${c}" stroke-opacity=".45" stroke-dasharray="1.5 2.4"/>
+    <path d="M30 11 L45 17 V29 C45 39 38 46 30 49 C22 46 15 39 15 29 V17 Z" fill="${c}" fill-opacity=".13" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/>
+    ${ok ? `<path d="M23.5 30l4.5 4.5 8.5-9" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="M30 22v10M30 37v.5" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`}</svg>`;
+}
+
+function render() {
+  const look = st.state === 'look', mob = st.view === 'mobile';
+  const r = seeded(11), n = 96;
+  const cpu = Array.from({ length: n }, (_, i) => 6 + 6 * Math.abs(Math.sin(i / 7)) + (i % 23 === 0 ? 18 : 0) + r() * 3);
+  const ram = Array.from({ length: n }, (_, i) => 22 + Math.sin(i / 16) * 2 + r());
+  const temp = Array.from({ length: n }, (_, i) => (look ? 58 : 41) + Math.sin(i / 10) * 3 + (look && i > 80 ? (i - 80) * .8 : 0) + r());
+  const rx = Array.from({ length: n }, (_, i) => 4 + (i > 30 && i < 44 ? 38 + r() * 10 : r() * 8));
+  const tx = Array.from({ length: n }, () => 1 + r() * 2);
+  const tNow = Math.round(temp[n - 1]);
+  const inst = [
+    ['CPU', '11%', `Peak ${Math.round(Math.max(...cpu))}% in 24 hours`, area(cpu, '#8f80ff')],
+    ['Memory', '24%', '7,6 GB of 32 GB', area(ram, '#8f80ff')],
+    ['CPU temperature', `${tNow} °C`, `Peak ${Math.round(Math.max(...temp))} °C in 24 hours`, area(temp, tNow >= 70 ? '#e0a23b' : '#7cc4ff'), tNow >= 70],
+    ['Network', '↓ 19,2<span style="font-size:.55em;font-weight:500;color:var(--muted)"> Mbit/s</span>', '↑ 2,4 Mbit/s now', area(rx, '#8f80ff', { line2: tx }) + `<div class="legend" style="margin:4px 0 12px"><span><i style="background:#8f80ff"></i>down</span><span><i style="background:#9a9ea7"></i>up</span></div>`],
+  ];
+  const pools = (look ? [['volume2', 5.52, 6, 1.2], ['volume1', 2.1, 4, 60], ['volume3', .6, 2, null]] : [['volume2', 4.1, 6, 38], ['volume1', 2.1, 4, 60], ['volume3', .6, 2, null]]);
+  const runway = m => m == null ? 'No growth trend yet' : m >= 24 ? `Full in about ${Math.round(m / 12)} years` : `Full in about ${Math.max(1, Math.round(m))} month${Math.round(m) === 1 ? '' : 's'}`;
+  const disks = [['sda', 35, 'ok'], ['sdb', 36, 'ok'], ['sdc', look ? 52 : 34, look ? 'warn' : 'ok'], ['sdd', 37, 'ok']];
+  const nav = [['', 'Home'], ['Read', 'News'], ['', 'Saved'], ['Money', 'Portfolio'], ['House', 'NAS', 1], ['', 'Docker'], ['', 'Backups'], ['', 'Services'], ['Code', 'Repos'], ['System', 'Alerts'], ['', 'Settings']];
+  const hosts = [['recipes.example.com', 'tunnel', 'http://tandoor:8080', '200', true], ['couchdb.example.com', 'tunnel', 'http://couchdb:5984', '401', true]];
+  if (look) hosts.push(['immich.example.com', 'tunnel', 'http://192.168.1.10:2283', '200', false]);
+  const ups = look ? { st: 'On battery', c: '#e0a23b', charge: 64, since: ' since today 10:41' } : { st: 'On mains', c: '#3fb97f', charge: 100, since: '' };
+
+  const d = document.getElementById('device');
+  d.className = 'device' + (mob ? ' mobile' : '');
+  d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">dev-minotaur</small>
+    ${nav.map(x => `${x[0] ? `<span class="grp">${x[0]}</span>` : ''}<a href="#" class="${x[2] ? 'on' : ''}"><i></i>${x[1]}</a>`).join('')}</nav>
+    <main class="main"><div class="page">
+      <div class="ph"><div><h2>NAS</h2><p>dev-minotaur · up 23 days</p></div><span class="pill ${look ? 'warn' : 'up'}">${look ? 'Needs a look' : 'Healthy'}</span></div>
+      <div class="inst">${inst.map(i => `<section class="card"><div class="head" style="margin-bottom:6px"><h3>${i[0]}</h3></div><div class="fig ${i[4] ? 'warn-t' : ''}">${i[1]}</div><div class="sub2">${i[2]}</div>${i[3]}</section>`).join('')}</div>
+
+      <div class="row2">
+        <section class="card"><div class="head"><h3>Storage</h3><span class="lab">Fullest first</span></div>
+          <div class="pools">${pools.map(p => { const pct = p[1] / p[2] * 100, short = p[3] != null && p[3] < 6;
+            return `<div class="pool">${gauge(pct)}<div><div class="nm">${p[0]}</div><div class="d1">${nl(p[1])} of ${nl(p[2])} TB · ${nl(p[2] - p[1])} TB free</div><div class="d2 ${short ? 'warn-t' : 'faint'}">${runway(p[3])}</div></div></div>`; }).join('')}</div>
+          <div class="cont" style="margin-top:16px"><span class="lab" style="letter-spacing:.06em">All pools</span><span style="flex:1;height:5px;border-radius:3px;background:var(--raised);overflow:hidden;margin:0 6px"><i style="display:block;height:100%;width:${(pools.reduce((s, p) => s + p[1], 0) / 12 * 100).toFixed(0)}%;border-radius:3px;background:linear-gradient(90deg,#6f60ea,#b4a9ff)"></i></span><span>${nl(pools.reduce((s, p) => s + p[1], 0))} of 12,0 TB used</span></div>
+        </section>
+        <section class="card"><div class="head"><h3>Disks</h3><span class="pill ${look ? 'warn' : 'up'}">${look ? '1 warning' : 'All healthy'}</span></div>
+          <div class="bays">${disks.map(k => { const col = k[2] === 'ok' ? '#3fb97f' : '#e0a23b', w = Math.min(100, Math.max(6, (k[1] - 25) / 35 * 100));
+            return `<div class="bay"><span class="dot ${k[2] === 'ok' ? '' : 'pulse'}" style="--c:${col}"></span><span class="mono">${k[0]}</span>
+              <span class="thermo"><i style="width:${w}%;--w:${(100 / w * 100).toFixed(0)}%"></i></span><span style="text-align:right" class="${k[1] >= 50 ? 'warn-t' : ''}">${k[1]} °C</span>
+              <span class="sm ${k[2] === 'ok' ? 'up' : 'warn-t'}" style="text-align:right;font-weight:600;font-size:12.5px">${k[2] === 'ok' ? 'Healthy' : 'Warnings'}</span></div>`; }).join('')}</div>
+          <div class="cont"><span class="dot"></span>Containers: 37 of 37 running<a href="#">Open Docker →</a></div>
+        </section>
+      </div>
+
+      <div class="row3">
+        <section class="card"><div class="head"><h3>UPS</h3><span class="pill ${look ? 'warn' : 'up'}">${ups.st}</span></div>
+          <div class="ups">${ring(ups.charge, ups.c, ups.charge + '%', 'battery')}
+            <dl class="kv"><dt>Status</dt><dd><span style="color:${ups.c};font-weight:600">${ups.st}</span><span class="muted">${ups.since}</span></dd><dt>Load</dt><dd>14%</dd><dt>Model</dt><dd>UGREEN US3000</dd><dt>Stops at</dt><dd>15%</dd></dl></div>
+          <div class="lab" style="margin-top:16px">Power cuts</div>
+          <div class="tl">${look ? `<div style="--c:#e0a23b"><b style="font-weight:500">Now</b> <span class="muted">· on battery since 10:41, 64% left</span></div>` : ''}
+            <div style="--c:#7e828b">Sun 4 Oct 02:13 <span class="muted">· 6 min, down to 91%</span></div>
+            <div style="--c:#e5646a">Tue 15 Sept 14:02 <span class="muted">· 2 h 4 min, down to 15%</span> <span class="down">· services stopped</span></div></div>
+          <p class="note">Telegram gets one message per power cut once the internet is back.</p>
+        </section>
+        <section class="card"><div class="head"><h3>Exposure</h3><span class="lab">Every 6 hours</span></div>
+          <div class="shield">${seal(!look)}<div><div class="t ${look ? 'down' : ''}">${look ? '1 hostname not on the allowlist' : 'Nothing public beyond the allowlist'}</div><div class="s">Public names in <span class="mono" style="font-size:12px">example.com</span> that lead to the house, requested from outside. Checked today 06:00.</div></div></div>
+          <div class="hosts">${hosts.map(h => `<div class="host ${h[4] ? '' : 'bad'}"><span class="h">${h[0]}</span><span class="${h[4] ? 'up' : 'down'}" style="font-weight:600;font-size:12.5px;display:flex;gap:7px;align-items:center">${h[4] ? '' : '<span class="dot pulse" style="--c:#e5646a"></span>'}${h[4] ? 'Allowed' : 'Not allowed'}</span>
+            <span class="r"><span class="chip ${h[1] === 'dns' ? 'dns' : ''}">${h[1] === 'tunnel' ? 'TUNNEL' : 'DNS'}</span><span class="mono" style="font-size:11.5px">${h[2]}</span>· answers ${h[3]}</span></div>`).join('')}</div>
+          <div class="scan"><span class="dot" style="--c:${look ? '#e5646a' : '#3fb97f'}"></span><span>${look ? '<b class="down" style="font-weight:600">Port 32400 open</b> on the home IP' : 'No open ports on the home IP'}</span><span class="ports">65.535 checked · today 04:21</span></div>
+        </section>
+      </div>
+    </div></main>
+    <div class="tabbar">${['Home', 'News', 'Portfolio', 'NAS', 'More'].map((t, i) => `<span class="${i === 3 ? 'on' : ''}"><i></i>${t}</span>`).join('')}</div></div>`;
+}
+
+document.querySelectorAll('.ctl button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.v) { st.view = b.dataset.v; document.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if (b.dataset.s) { st.state = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  render();
+}));
+render();
+</script>
+</html>
