@@ -2,12 +2,12 @@ import { Search } from 'lucide-react'
 import { useState } from 'react'
 import { ContainerRow } from '../components/docker/ContainerRow'
 import { DockerTiles } from '../components/docker/DockerTiles'
+import { UpdatesCard } from '../components/docker/UpdatesCard'
 import { Card, Loading, StaleNote, Unavailable } from '../components/home/Card'
 import { PageHeader } from '../components/PageHeader'
 import { Pill } from '../components/ui/Pill'
 import { cn } from '../lib/cn'
 import { containerStatus } from '../lib/containers'
-import { formatWhen } from '../lib/format'
 import type { ContainerLoad, ContainerUpdate, DockerOverview, Nas, Sparklines } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
@@ -29,8 +29,6 @@ function sortRows(rows: ContainerLoad[], order: Order): ContainerLoad[] {
   }[order]
   return [...rows].sort(by)
 }
-
-const shortId = (id: string) => id.replace(/^sha256:/, '').slice(0, 12)
 
 export function DockerPage() {
   const overview = useApi<DockerOverview>('/api/docker', 60_000)
@@ -160,26 +158,7 @@ export function DockerPage() {
           </Card>
           {overview.data.stale && <StaleNote />}
 
-          <Card title="Image updates" className="mt-5">
-            {(updates.data ?? []).length === 0 ? (
-              <p className="text-muted">
-                No updates seen yet. The hub notices when Watchtower or Dockge recreates a container from a new image.
-              </p>
-            ) : (
-              <ul>
-                {(updates.data ?? []).slice(0, 25).map((u) => (
-                  <li key={`${u.at}-${u.name}`} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 border-t border-line-soft py-2 first:border-t-0 text-[13px]">
-                    <span className="w-36 shrink-0 text-faint">{formatWhen(u.at)}</span>
-                    <span className="font-mono">{u.name}</span>
-                    <span className="min-w-0 flex-1 truncate text-muted">{u.image}</span>
-                    <span className="font-mono text-[12px] text-faint">
-                      {shortId(u.old_image_id)} → {shortId(u.new_image_id)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
+          <UpdatesCard updates={updates.data ?? []} />
         </>
       )}
     </>

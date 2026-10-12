@@ -150,7 +150,12 @@ describe('DockerPage', () => {
     renderRoute('/docker')
 
     const log = await screen.findByRole('region', { name: 'Image updates' })
-    expect(within(log).getByText('aaaaaaaaaaaa → bbbbbbbbbbbb')).toBeInTheDocument()
+    // The old and new image ids as chips, the new one lit; the newest entry's dot is lit too.
+    const entries = within(log).getAllByRole('listitem')
+    expect(within(entries[0]).getByText('aaaaaaaaaaaa')).not.toHaveClass('text-accent-fg')
+    expect(within(entries[0]).getByText('bbbbbbbbbbbb')).toHaveClass('text-accent-fg')
+    expect(entries[0].querySelector('.bg-accent-line')).not.toBeNull()
+    expect(entries[1].querySelector('.bg-accent-line')).toBeNull()
     expect(within(log).getAllByText('radarr')).toHaveLength(2) // name and image
   })
 
