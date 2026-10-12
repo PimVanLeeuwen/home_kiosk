@@ -113,6 +113,10 @@ describe('PortfolioPage', () => {
     expect(rows[0]).toHaveTextContent('9 Sept 2024Sell5')
     // No euro value from Ghostfolio: the amount in the trade's own currency.
     expect(rows[1]).toHaveTextContent('US$ 454,91')
+    // A coloured chip per type, a gain pill in the header, and the chart edge to edge.
+    expect(within(rows[0]).getByText('Sell')).toHaveStyle({ color: '#7cc4ff' })
+    expect(screen.getByText('+120,62% gain')).toHaveClass('text-up')
+    expect(screen.getByRole('img', { name: /NVDA price since you first bought it/ }).parentElement).toHaveClass('-mx-5')
     expect(within(screen.getByRole('main')).getByRole('link', { name: 'Portfolio' })).toHaveAttribute('href', '/portfolio')
   })
 

@@ -6,6 +6,7 @@ import type { HoldingDetail } from '../../lib/portfolioTypes'
 import { useApi } from '../../lib/useApi'
 import { PageHeader } from '../PageHeader'
 import { Card } from '../home/Card'
+import { Pill } from '../ui/Pill'
 import { LineChart } from './LineChart'
 
 const TYPES: Record<string, string> = {
@@ -15,6 +16,16 @@ const TYPES: Record<string, string> = {
   FEE: 'Fee',
   INTEREST: 'Interest',
   LIABILITY: 'Liability',
+}
+
+/** A colour per transaction type for its dot and chip; money in green, costs amber. */
+const TYPE_COLOURS: Record<string, string> = {
+  BUY: 'var(--color-accent-line)',
+  SELL: '#7cc4ff',
+  DIVIDEND: 'var(--color-up)',
+  INTEREST: 'var(--color-up)',
+  FEE: 'var(--color-warn)',
+  LIABILITY: 'var(--color-down)',
 }
 
 interface Props {
@@ -77,30 +88,49 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
         subtitle={[data.name, data.isin, data.first_activity && `held since ${formatDate(data.first_activity)}`]
           .filter(Boolean)
           .join(' · ')}
+        actions={
+          data.gain_pct != null && (
+            <Pill tone={data.gain_pct > 0 ? 'up' : data.gain_pct < 0 ? 'down' : 'muted'}>{formatSignedPct(data.gain_pct)} gain</Pill>
+          )
+        }
       />
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Card title="Price">
-          <LineChart
-            points={data.history.map((p) => ({ d: p.d, a: p.price, b: data.average_price }))}
-            aLabel="Price"
-            bLabel="Your average now"
-            format={(n) => formatPrice(n, own)}
-            label={`${data.symbol} price since you first bought it, now ${formatPrice(data.price, own)}; your average price is ${formatPrice(data.average_price, own)}.`}
-          />
-        </Card>
-        <Card title="Position">
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-[13.5px]">
-            {figures.map(([label, value, tone]) => (
-              <div key={label}>
-                <dt className="text-[12px] text-faint">{label}</dt>
-                <dd className={cn('font-medium', tone)}>{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </Card>
-      </div>
 
-      <Card title="Transactions" className="mt-4">
+      <Card title="Price" className="pb-0 md:pb-0">
+        <p className="-mt-1 mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="text-[31px] leading-tight font-semibold tracking-tight md:text-[38px]">{formatMoney(data.value, currency)}</span>
+          {data.gain_abs != null && (
+            <span className={cn('text-[14px] font-semibold', gainTone)}>
+              {formatSignedMoney(data.gain_abs, currency)}
+              {data.gain_pct != null && ` · ${formatSignedPct(data.gain_pct)}`}
+            </span>
+          )}
+        </p>
+        <LineChart
+          points={data.history.map((p) => ({ d: p.d, a: p.price, b: data.average_price }))}
+          aLabel="Price"
+          bLabel="Your average now"
+          format={(n) => formatPrice(n, own)}
+          label={`${data.symbol} price since you first bought it, now ${formatPrice(data.price, own)}; your average price is ${formatPrice(data.average_price, own)}.`}
+          bleed
+        />
+      </Card>
+
+      <Card title="Position" className="mt-5">
+        <dl className="grid grid-cols-2 gap-2.5 text-[13.5px] md:grid-cols-4">
+          {figures.map(([label, value, tone]) => (
+            <div key={label} className="min-w-0 rounded-[11px] border border-glass-line bg-glass px-3 py-2">
+              <dt className="text-[10px] font-semibold tracking-[0.08em] text-faint uppercase">{label}</dt>
+              <dd className={cn('mt-0.5 truncate text-[15px] font-semibold', tone)}>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </Card>
+
+      <Card
+        title="Transactions"
+        className="mt-5"
+        actions={<span className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">From Ghostfolio</span>}
+      >
         {data.activities.length === 0 ? (
           <p className="text-muted">No transactions recorded.</p>
         ) : (
@@ -108,6 +138,9 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
             <caption className="sr-only">Transactions in {data.symbol}, newest first</caption>
             <thead>
               <tr className="text-left text-[12px] text-faint">
+                <th scope="col" className="w-5 pb-2">
+                  <span className="sr-only">Kind</span>
+                </th>
                 <th scope="col" className="pb-2 font-medium">Date</th>
                 <th scope="col" className="pb-2 font-medium">Type</th>
                 <th scope="col" className="pb-2 text-right font-medium">Quantity</th>
@@ -118,8 +151,24 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
             <tbody>
               {data.activities.map((a, i) => (
                 <tr key={i} className="border-t border-line-soft">
-                  <td className="py-2 whitespace-nowrap">{formatDate(a.date)}</td>
-                  <td className="py-2">{TYPES[a.type] ?? a.type}</td>
+                  <td className="py-2" aria-hidden="true">
+                    <span
+                      className="block size-[7px] rounded-full"
+                      style={{ backgroundColor: TYPE_COLOURS[a.type] ?? 'var(--color-faint)', boxShadow: `0 0 6px ${TYPE_COLOURS[a.type] ?? 'transparent'}` }}
+                    />
+                  </td>
+                  <td className="py-2 whitespace-nowrap text-muted">{formatDate(a.date)}</td>
+                  <td className="py-2">
+                    <span
+                      className="rounded-[6px] px-1.5 py-px text-[10.5px] font-semibold tracking-[0.04em] uppercase"
+                      style={{
+                        color: TYPE_COLOURS[a.type] ?? 'var(--color-muted)',
+                        backgroundColor: `color-mix(in srgb, ${TYPE_COLOURS[a.type] ?? 'var(--color-muted)'} 16%, transparent)`,
+                      }}
+                    >
+                      {TYPES[a.type] ?? a.type}
+                    </span>
+                  </td>
                   <td className="py-2 text-right">{formatQuantity(a.quantity)}</td>
                   <td className="hidden py-2 text-right whitespace-nowrap sm:table-cell">{formatPrice(a.unit_price, a.currency)}</td>
                   <td className="py-2 text-right whitespace-nowrap">
