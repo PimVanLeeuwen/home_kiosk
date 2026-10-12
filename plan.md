@@ -383,9 +383,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   done. Source: ConnectLife has no local API, only its cloud. The open-source `connectlife`
   Python library (used by the connectlife-ha integration) logs in with the app account; the
   collector polls it about once a minute, read-only, with the account in `.env`. It is
-  unofficial and can break when ConnectLife changes its API or terms. Questions: the brand and
-  models (Hisense, Gorenje, ASKO, ATAG and others use ConnectLife) to check support; whether the
-  card should only show while a machine runs or is done.
+  unofficial and can break when ConnectLife changes its API or terms. Decided 2026-10-12: both machines
+  are Hisense; the card only shows while a machine runs or is done (then it is gone until the
+  next run, after the door has been opened if ConnectLife reports it, otherwise after a tap on
+  "Taken out" or two hours). connectlife-ha's device list has tumble dryers with Hisense model
+  codes (such as DH3S802BW3) and many washers without a brand named, so check the exact model
+  numbers against it first. ConnectLife also publishes its own Home Assistant plugin for Hisense
+  appliances (Connectlife-LLC/HomeAssistantPlugin), a second reference for the API.
 - **Calendar** (Now): today's events only. Design (2026-10-10): the next event large with a ring
   counting down to it in its calendar's colour, the day from 07:00 to 23:00 as a ribbon of
   coloured blocks with a glowing now line, then the later events. Read-only, no
