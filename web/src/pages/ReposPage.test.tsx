@@ -72,6 +72,24 @@ describe('ReposPage', () => {
     expect(within(docker).getByText('No description')).toBeInTheDocument()
   })
 
+  it('sums up the owner in four tiles and flags a failing build in the header', async () => {
+    stubApi({ '/api/repos': REPOS })
+    renderRoute('/repos')
+
+    const tile = async (name: string) => screen.findByRole('region', { name })
+    expect(await tile('Repos')).toHaveTextContent('21 private · 1 forks hidden')
+    expect(within(await tile('Repos')).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['TypeScript', 'Python'])
+    expect(await tile('CI')).toHaveTextContent('1 failing')
+    expect((await tile('CI')).querySelectorAll('[data-ci]')).toHaveLength(2)
+    expect(await tile('Open work')).toHaveTextContent('4 pull requests10 issues · across 2 repos')
+    expect(await tile('Backup')).toHaveTextContent('Not mirrored')
+    expect(screen.getByText('1 failing', { selector: '.uppercase' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('tab', { name: /Hubble/ }))
+    expect(await tile('CI')).toHaveTextContent('All green')
+    expect(screen.getByText('All green', { selector: '.uppercase' })).toBeInTheDocument()
+  })
+
   it('shows forks behind the switch', async () => {
     stubApi({ '/api/repos': REPOS })
     renderRoute('/repos')

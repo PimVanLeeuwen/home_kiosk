@@ -3,7 +3,10 @@ import { useId, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
 import { RepoCard } from '../components/repos/RepoCard'
+import { ReposTiles } from '../components/repos/ReposTiles'
 import { TokenNote } from '../components/repos/TokenNote'
+import { Pill } from '../components/ui/Pill'
+import { Switch } from '../components/ui/Switch'
 import { cn } from '../lib/cn'
 import { formatAgo, formatWhen } from '../lib/format'
 import type { GitHubMirror, MirroredRepo, Repo, ReposResponse } from '../lib/types'
@@ -45,6 +48,7 @@ export function ReposPage() {
   const active = groups.find((g) => g.label === params.get('tab')) ?? groups[0]
   const forks = active?.repos.filter((r) => r.fork).length ?? 0
   const shown = (active?.repos ?? []).filter((r) => (showForks || !r.fork) && matches(r, query))
+  const failing = (active?.repos ?? []).filter((r) => r.ci === 'failing' && (showForks || !r.fork)).length
 
   // Backup state per repo, for owners in the mirror that has run at least once.
   const mirrorOwner =
@@ -62,6 +66,7 @@ export function ReposPage() {
       <PageHeader
         title="Repos"
         subtitle={data ? `From GitHub, updated ${formatAgo(data.as_of)}` : 'GitHub repos: yours, Hubble and GEWIS'}
+        actions={active && (failing ? <Pill tone="down">{failing} failing</Pill> : <Pill tone="up">All green</Pill>)}
       />
 
       {loading && !data && (
@@ -81,7 +86,11 @@ export function ReposPage() {
 
       {active && (
         <>
-          <div role="tablist" aria-label="Owners" className="mb-5 flex gap-1 overflow-x-auto border-b border-line-soft">
+          <div
+            role="tablist"
+            aria-label="Owners"
+            className="mb-5 inline-flex max-w-full gap-0.5 overflow-x-auto rounded-[12px] border border-glass-line bg-glass p-[3px]"
+          >
             {groups.map((g) => {
               const selected = g === active
               const count = g.repos.filter((r) => showForks || !r.fork).length
@@ -95,11 +104,11 @@ export function ReposPage() {
                   aria-controls={`${ids}-panel`}
                   onClick={() => setParams({ tab: g.label }, { replace: true })}
                   className={cn(
-                    '-mb-px border-b-2 px-3.5 py-2.5 font-medium whitespace-nowrap',
-                    selected ? 'border-accent-line text-fg' : 'border-transparent text-muted hover:text-fg',
+                    'rounded-[9px] px-3.5 py-1.5 font-medium whitespace-nowrap',
+                    selected ? 'bg-accent/20 text-fg shadow-[inset_0_0_0_1px_rgb(143_128_255/0.4)]' : 'text-muted hover:text-fg',
                   )}
                 >
-                  {g.label} <span className="text-faint">{count}</span>
+                  {g.label} <span className={selected ? 'text-accent-fg' : 'text-faint'}>{count}</span>
                 </button>
               )
             })}
@@ -110,8 +119,20 @@ export function ReposPage() {
             id={`${ids}-panel`}
             aria-labelledby={`${ids}-tab-${active.login}`}
           >
+            <ReposTiles
+              repos={(active.repos ?? []).filter((r) => showForks || !r.fork)}
+              forksHidden={showForks ? 0 : forks}
+              mirrored={mirrorOwner ? mirrorOwner.repos.filter((r) => r.ok).length : null}
+              backup={
+                <>
+                  {mirror?.enabled && <MirrorNote mirror={mirror} login={active.login} />}
+                  <TokenNote token={data?.tokens?.find((t) => t.owners.includes(active.label))} />
+                </>
+              }
+            />
+
             <div className="mb-4 flex flex-wrap items-center gap-3">
-              <label className="flex min-w-0 flex-1 basis-64 items-center gap-2 rounded-[10px] border border-line bg-card px-3 py-2 text-muted focus-within:border-accent-line">
+              <label className="flex min-w-0 flex-1 basis-64 items-center gap-2 rounded-[11px] border border-glass-line bg-glass px-3 py-2 text-muted focus-within:border-accent-line">
                 <Search aria-hidden="true" className="size-4 shrink-0" />
                 <span className="sr-only">Filter repos</span>
                 <input
@@ -123,32 +144,13 @@ export function ReposPage() {
                 />
               </label>
               {forks > 0 && (
-                <label className="flex items-center gap-2.5 text-[13px] text-muted">
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={showForks}
-                    onClick={() => setShowForks((v) => !v)}
-                    className={cn(
-                      'relative h-5 w-[34px] rounded-full border transition-colors',
-                      showForks ? 'border-accent bg-accent' : 'border-line bg-raised',
-                    )}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        'absolute top-[2px] size-3.5 rounded-full transition-[left]',
-                        showForks ? 'left-[16px] bg-white' : 'left-[2px] bg-faint',
-                      )}
-                    />
-                  </button>
-                  Show forks ({forks})
-                </label>
+                <span className="flex items-center gap-2.5 text-[13px] text-muted">
+                  <Switch checked={showForks} onChange={setShowForks} label={`Show forks (${forks})`} />
+                  <span aria-hidden="true">Show forks ({forks})</span>
+                </span>
               )}
             </div>
 
-            {mirror?.enabled && <MirrorNote mirror={mirror} login={active.login} />}
-            <TokenNote token={data?.tokens?.find((t) => t.owners.includes(active.label))} />
 
             {active.error && (
               <p role="status" className="mb-4 text-[13px] text-warn">

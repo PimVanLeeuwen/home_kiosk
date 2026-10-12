@@ -3,7 +3,7 @@ import { ApiError, sendJson } from '../../lib/api'
 import type { AlertSettings, QuietHours } from '../../lib/types'
 import { Card } from '../home/Card'
 import { QuietRing } from './QuietRing'
-import { Switch } from './Switch'
+import { Switch } from '../ui/Switch'
 
 const FIELD = 'rounded-[7px] border border-glass-line bg-glass px-2 py-1 text-fg focus:border-accent-line focus:outline-none'
 

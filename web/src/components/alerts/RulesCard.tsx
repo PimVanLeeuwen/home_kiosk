@@ -3,7 +3,7 @@ import { ApiError, sendJson } from '../../lib/api'
 import type { AlertRules, RuleSettings } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { Card, Loading, Unavailable } from '../home/Card'
-import { Switch } from './Switch'
+import { Switch } from '../ui/Switch'
 
 type NumberField = Exclude<keyof RuleSettings, 'enabled'>
 
