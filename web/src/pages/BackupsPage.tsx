@@ -57,13 +57,15 @@ export function BackupsPage() {
         </>
       )}
 
-      {dumps && <DumpsCard dumps={dumps} />}
       {dumps && (
-        <RestoreCheckCard
-          checks={dumps.restore_checks ?? []}
-          lastVerified={dumps.last_verified ?? null}
-          stale={dumps.stale}
-        />
+        <div className="mt-5 grid items-start gap-5 lg:grid-cols-2">
+          <DumpsCard dumps={dumps} />
+          <RestoreCheckCard
+            checks={dumps.restore_checks ?? []}
+            lastVerified={dumps.last_verified ?? null}
+            stale={dumps.stale}
+          />
+        </div>
       )}
       {mirror?.enabled && <MirrorCard mirror={mirror} />}
     </>

@@ -8,6 +8,7 @@ import { GlowDot } from './GlowDot'
 import { MiniSparkline } from './MiniSparkline'
 import { Pill } from './Pill'
 import { RingMeter } from './RingMeter'
+import { RunDots } from './RunDots'
 import { Seal } from './Seal'
 
 describe('ArcGauge', () => {
@@ -181,5 +182,15 @@ describe('RingMeter', () => {
 
     rerender(<RingMeter pct={0} tone="down" label="Battery" />)
     expect(container.querySelectorAll('circle')).toHaveLength(1)
+  })
+})
+
+describe('RunDots', () => {
+  it('draws a dot per run oldest first, the newest lit and failed ones red', () => {
+    render(<RunDots runs={[{ ok: false }, { ok: true }, { ok: true }]} label="runs" />)
+    const dots = [...screen.getByRole('img', { name: 'runs' }).querySelectorAll('i')]
+    expect(dots.map((d) => d.getAttribute('data-ok'))).toEqual(['true', 'true', 'false'])
+    expect(dots[2]).toHaveClass('bg-down')
+    expect(dots[0]).toHaveClass('bg-up/55')
   })
 })

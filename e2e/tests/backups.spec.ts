@@ -56,7 +56,9 @@ test('Backups shows the GitHub mirror and what failed', async ({ page }) => {
   await page.goto('/backups')
 
   const card = page.getByRole('region', { name: 'GitHub mirror' })
-  await expect(card).toContainText('Mine 1 · Hubble 1 · 1 failed')
+  await expect(card).toContainText('Mine repos')
+  await expect(card).toContainText('Hubble repos')
+  await expect(card.getByText('failed', { exact: true })).toBeVisible()
   await expect(card).toContainText('Hubble-Community-Cafe/web: fatal: repository not found')
   await card.getByRole('link', { name: /Repos/ }).click()
   await expect(page).toHaveURL(/\/repos$/)

@@ -123,10 +123,16 @@ describe('BackupsPage', () => {
     const card = await screen.findByRole('region', { name: 'GitHub mirror' })
     const value = (label: string) => within(card).getByText(label).nextElementSibling
     expect(value('Last run')).toHaveTextContent('Failed')
-    expect(value('Repos')).toHaveTextContent('Mine 2 · Hubble 1 · 1 failed')
-    expect(value('Size')).toHaveTextContent('13 MB')
+    // The owners as tiles with their repo counts, the failed ones and the size.
+    expect(within(card).getByText('Mine repos').previousElementSibling).toHaveTextContent('2')
+    expect(within(card).getByText('Hubble repos').previousElementSibling).toHaveTextContent('1')
+    expect(within(card).getByText('failed').previousElementSibling).toHaveClass('text-down')
+    expect(within(card).getByText('on the NAS').previousElementSibling).toHaveTextContent('13 MB')
     expect(value('Removed')).toHaveTextContent('PimVanLeeuwen/old-thing')
     expect(value('Succeeded, last 2')).toHaveTextContent('1 of 2')
+    // A dot per run, oldest left: the newest failed.
+    const dots = within(card).getByRole('img', { name: 'The last 2 mirror runs, oldest first' }).querySelectorAll('i')
+    expect([...dots].map((d) => d.getAttribute('data-ok'))).toEqual(['true', 'false'])
     expect(within(card).getByText('Hubble-Community-Cafe/community-cafe-web: fatal: repository not found')).toBeInTheDocument()
     expect(within(card).getByRole('link', { name: /Repos/ })).toHaveAttribute('href', '/repos')
   })
@@ -164,6 +170,10 @@ describe('BackupsPage', () => {
     expect(items[1]).toHaveTextContent('pg_dump: error: connection refused')
     expect(items[3]).toHaveTextContent('SQLite')
     expect(within(card).getByText(/recent runs succeeded/)).toHaveTextContent('Host job: 1 of 2 recent runs succeeded')
+    expect(within(card).getByRole('img', { name: 'The last 2 dump runs, oldest first' })).toBeInTheDocument()
+    // The failed dump's LED pulses; the others stay still.
+    expect(items[1].querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
+    expect(items[0].querySelector('.motion-safe\\:animate-halo')).toBeNull()
   })
 
   it('explains where the dumps come from before the first host run', async () => {
@@ -208,6 +218,7 @@ describe('BackupsPage', () => {
     const steps = within(card).getAllByRole('listitem')
     expect(steps[0]).toHaveTextContent('OKDownload of the dumps3 files, identical to the local copies')
     expect(steps[1]).toHaveTextContent('FailedGhostfolio restorepg_restore failed: invalid archive')
+    expect(within(card).getByRole('img', { name: 'Restore check failed' })).toBeInTheDocument()
   })
 
   it('says how the restore check runs before the first one', async () => {
