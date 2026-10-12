@@ -104,6 +104,19 @@ describe('charts', () => {
     expect(screen.getByRole('img', { name: 'CPU, last 24 hours' })).toBeInTheDocument()
   })
 
+  it('marks the peak, draws a second line and keeps a fixed scale', () => {
+    const { container } = render(<GlowArea values={[10, 50, 20]} label="cpu" min={0} max={100} peak secondary={[5, 5, 5]} />)
+    expect(container.querySelector('[data-testid="peak"]')).not.toBeNull()
+    expect(container.querySelector('[data-testid="secondary"]')).not.toBeNull()
+    // On a 0 to 100 scale, 50 sits halfway down the plot (12 + 0.5 * 94).
+    expect(container.querySelector('polyline')?.getAttribute('points')).toContain('300.0,59.0')
+  })
+
+  it('takes a colour of its own', () => {
+    const { container } = render(<GlowArea values={[1, 2]} label="t" color="#7cc4ff" />)
+    expect(container.querySelector('polyline')).toHaveAttribute('stroke', '#7cc4ff')
+  })
+
   it('draws a flat series in the middle instead of failing', () => {
     const { container } = render(<MiniSparkline values={[5, 5, 5]} label="flat" />)
     expect(container.querySelector('polyline')?.getAttribute('points')).not.toMatch(/NaN/)

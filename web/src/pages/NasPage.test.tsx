@@ -46,6 +46,42 @@ describe('NasPage', () => {
     expect(within(screen.getByRole('region', { name: 'CPU temperature' })).getByText('Peak 66 °C in 24 hours')).toBeInTheDocument()
   })
 
+  it('draws each instrument edge to edge with its peak, upload under download', async () => {
+    setup()
+
+    const cpu = await screen.findByRole('region', { name: 'CPU' })
+    expect(within(cpu).getByRole('img', { name: 'CPU, last 24 hours' }).querySelector('[data-testid="peak"]')).not.toBeNull()
+    // A 35% peak tops a scale of 42%, so the day's shape reads instead of a flat line.
+    const cpuLine = within(cpu).getByRole('img', { name: 'CPU, last 24 hours' }).querySelector('polyline')!
+    expect(cpuLine.getAttribute('points')).toContain('300.0,27.7')
+    const network = screen.getByRole('region', { name: 'Network' })
+    expect(within(network).getByText('↓ 19,2')).toBeInTheDocument()
+    const chart = within(network).getByRole('img', { name: 'Network download and upload, last 24 hours' })
+    expect(chart.querySelector('[data-testid="secondary"]')).not.toBeNull()
+  })
+
+  it('draws a cool temperature in blue, and turns amber from 70 °C and red from 80 °C', async () => {
+    const line = () =>
+      within(screen.getByRole('region', { name: 'CPU temperature' }))
+        .getByRole('img', { name: 'CPU temperature, last 24 hours' })
+        .querySelector('polyline')!
+    stubApi({ '/api/nas': nasFixture({ cpu_temp_c: 48 }), '/api/nas/history': [point(0), point(10)] })
+    const { unmount } = renderRoute('/nas')
+    expect(await screen.findByText('48 °C')).not.toHaveClass('text-warn')
+    expect(line()).toHaveAttribute('stroke', '#7cc4ff')
+    unmount()
+
+    stubApi({ '/api/nas': nasFixture({ cpu_temp_c: 74 }), '/api/nas/history': [point(0), point(10)] })
+    const second = renderRoute('/nas')
+    expect(await screen.findByText('74 °C')).toHaveClass('text-warn')
+    expect(line()).toHaveAttribute('stroke', 'var(--color-warn)')
+    second.unmount()
+
+    stubApi({ '/api/nas': nasFixture({ cpu_temp_c: 83 }), '/api/nas/history': [point(0), point(10)] })
+    renderRoute('/nas')
+    expect(await screen.findByText('83 °C')).toHaveClass('text-down')
+  })
+
   it('lists pools with free space and how long until they are full', async () => {
     setup()
 

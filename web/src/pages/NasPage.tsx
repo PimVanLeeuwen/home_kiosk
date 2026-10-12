@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 import { Card, Loading, StaleNote, Unavailable } from '../components/home/Card'
 import { Meter } from '../components/home/Meter'
-import { ChartCard } from '../components/nas/ChartCard'
+import { InstrumentCard } from '../components/nas/InstrumentCard'
 import { ExposureCard } from '../components/nas/ExposureCard'
 import { UpsCard } from '../components/nas/UpsCard'
 import { PageHeader } from '../components/PageHeader'
@@ -12,6 +12,22 @@ import type { Nas, NasPoint } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
 const one = (n: number) => n.toFixed(1).replace('.', ',')
+/** The figure of formatMbit without its unit, which the Network card sets smaller. */
+const mbit = (n: number) => formatMbit(n).replace(/ Mbit\/s$/, '')
+
+/**
+ * The top of a percentage chart: a fifth above the day's peak, so its shape
+ * reads, but never below `floor`, so an idle NAS does not look busy.
+ */
+const headroom = (top: number | null, floor = 10) => Math.min(100, Math.max(floor, (top ?? 0) * 1.2))
+/** Temperatures start here rather than at 0 °C, which would leave a solid block. */
+const TEMP_FLOOR_C = 20
+
+/** CPU temperature: amber from here, red from the Home card's hot mark. */
+const WARM_C = 70
+const HOT_C = 80
+/** The temperature line when all is well: a cool blue rather than the accent. */
+const COOL = '#7cc4ff'
 
 function peak(points: NasPoint[], key: 'cpu' | 'ram' | 'temp' | 'rx_mbps' | 'tx_mbps'): number | null {
   const values = points.map((p) => p[key]).filter((v): v is number => v != null)
@@ -44,36 +60,45 @@ export function NasPage() {
 
       {n && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <ChartCard
+          <div className="grid grid-cols-2 gap-2.5 md:gap-4 xl:grid-cols-4">
+            <InstrumentCard
               title="CPU"
               now={`${Math.round(n.cpu_pct)}%`}
               detail={peak(points, 'cpu') != null && `Peak ${Math.round(peak(points, 'cpu')!)}% in 24 hours`}
               values={points.map((p) => p.cpu)}
               label="CPU, last 24 hours"
-              max={100}
+              max={headroom(peak(points, 'cpu'))}
             />
-            <ChartCard
+            <InstrumentCard
               title="Memory"
               now={`${Math.round(n.ram_pct)}%`}
               detail={memUsed != null && n.mem_total_bytes ? `${formatBytes(memUsed)} of ${formatBytes(n.mem_total_bytes)}` : undefined}
               values={points.map((p) => p.ram)}
               label="Memory, last 24 hours"
-              max={100}
+              max={headroom(peak(points, 'ram'))}
             />
-            <ChartCard
+            <InstrumentCard
               title="CPU temperature"
               now={n.cpu_temp_c != null ? `${Math.round(n.cpu_temp_c)} °C` : '–'}
               detail={peak(points, 'temp') != null && `Peak ${Math.round(peak(points, 'temp')!)} °C in 24 hours`}
               values={points.map((p) => p.temp)}
               label="CPU temperature, last 24 hours"
+              min={TEMP_FLOOR_C}
+              tone={n.cpu_temp_c == null ? undefined : n.cpu_temp_c >= HOT_C ? 'down' : n.cpu_temp_c >= WARM_C ? 'warn' : undefined}
+              color={COOL}
             />
-            <ChartCard
+            <InstrumentCard
               title="Network"
-              now={`↓ ${formatMbit(n.network.rx_mbps)}`}
+              now={
+                <>
+                  ↓ {mbit(n.network.rx_mbps)}
+                  <span className="text-[0.55em] font-medium text-muted"> Mbit/s</span>
+                </>
+              }
               detail={`↑ ${formatMbit(n.network.tx_mbps)} now`}
               values={points.map((p) => p.rx_mbps)}
-              label="Network download, last 24 hours"
+              label="Network download and upload, last 24 hours"
+              secondary={{ values: points.map((p) => p.tx_mbps), label: 'up', primaryLabel: 'down' }}
             />
           </div>
 
