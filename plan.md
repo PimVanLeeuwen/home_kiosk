@@ -31,7 +31,9 @@ repo in `~/Pictures/pr-screenshots/home_kiosk/2026-09-30-mockups/`.
 | Article reading | Backend extraction with trafilatura, cached in SQLite; falls back to "Open original". Readeck stays as "Save for later". |
 | Search | News only. |
 | Container actions | Out of scope; use Dockge. The Docker socket stays read-only. |
-| Pi kiosk controls | Out of scope for now (dimming, rotation choice). |
+| Pi kiosk controls | Out of scope for now (dimming, rotation choice). Superseded 2026-10-09: three ESP32-P4 desk panels replace the Pi kiosk, with rotation, night hours and touch controls (M16). |
+| Home control | Hue Bridge local API only, no cloud; Apple Home follows through the bridge (M17). |
+| Music | Spotify Web API with the owner's Premium account; any device on the account (M18). |
 | Service logins | Sonarr, Radarr, Prowlarr: "Disabled for Local Addresses" plus "Trust CGNAT IP Addresses" (covers Tailscale). Apps with real accounts rely on long-lived sessions plus a password manager. No SSO for now. |
 | Bookmarks | External links live in the service catalog (a `url` instead of a port), editable in Settings; homepage's three bookmarks were migrated. |
 | Telegram | The hub owns the bot token (NAS-only `.env`). Two chats, as today: **NAS alerts** and **Portfolio**. The bot only accepts commands from those chats. |
@@ -169,7 +171,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Telegram allows no tags inside `<pre>`, so saving checks that too. Texts saved with the old
   `{icon}` and `{dot}` placeholders are rewritten when read.
 
-**M12. Backup hardening** (added 2026-10-08)
+**M12. Backup hardening** (added 2026-10-08). **Done 2026-10-09.**
 - Done 2026-10-08, outside the code: automatic snapshots on the Hetzner Storage Box (Robot). The
   NAS's sftp login cannot delete them, so a bad state that reaches Hetzner by `rclone sync` can
   still be rolled back. RECOVERY.md gets the restore steps from a snapshot.
@@ -230,7 +232,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   `gpsgadget.buienradar.nl/data/raintext?lat=52.11&lon=5.18` (5-minute steps) as a bar chart,
   and current weather from the nearest station in `data.buienradar.nl/2.0/feed/json`. Fetched
   by the collector every 5 minutes, cached with `as_of` and `stale`; a Home tile. Buienradar asks
-  for attribution, so the tile names it. A kiosk slide waits for the kiosk restyle (M8).
+  for attribution, so the tile names it. The kiosk slide moves to the desk panels' Now panel (M16).
 - The hub as a real PWA, replacing today's plain "Add to Home Screen" bookmark: a web app
   manifest (`display: standalone`, name, icons, theme colour), iOS safe-area padding, and a
   service worker that caches the app shell and the last API payloads, so the app opens offline
@@ -240,19 +242,320 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   alone. The existing home screen icon has to be removed and added again from the ts.net
   address.
 
+**M16. Desk panels** (added 2026-10-09; replaces the planned Pi kiosk)
+- Hardware: three Waveshare ESP32-P4-WIFI6-Touch-LCD-4B (4", 720×720, 5-point touch, Wi-Fi 6 on
+  2.4 GHz through an ESP32-C6, 5 V over USB-C or the back header). Ordered 2026-10-09, not
+  arrived yet. The microphones stay off in the firmware; the speaker is unused.
+- Research, links and shops: [docs/desk-panels.md](docs/desk-panels.md). Clickable mockup of
+  the three panels: [docs/desk-panels-mockup.html](docs/desk-panels-mockup.html) (open the file
+  in a browser; it is not served by the hub).
+- Design is a requirement, not polish (decided 2026-10-09): the panels are for information and
+  for home, music and other control, and they must also be beautiful desk pieces. The three read
+  as one object: same margins, header line and dot position. Each throws meaningful light: Now
+  follows the sky, Home glows in the warm or cool white its lights have
+  right now, or the album colours, House stays a
+  quiet violet, an error turns all three red. Calm motion, a few large type sizes, nothing below
+  24 px. Every screen is checked on a real panel (photos) before it ships, not only in tests.
+  Details in [docs/desk-panels.md](docs/desk-panels.md#design).
+- Roles, editable in the hub (Settings → Desk panels): left **Now** (clock, weather, Buienradar
+  rain, the morning train, calendar, the day view, headlines), middle **Home** (the living room's
+  lights, its air and the Christmas plugs, M17; the Apple devices, M20; Now Playing while music plays, otherwise a music
+  card with favourite playlists, M18; never rotates), right **House** (NAS, Money, Code, Jellyfin, backups, alerts). The screens
+  beyond the basics are M20. Each panel rotates through its cards; a touch
+  pauses its rotation for 60 seconds. An ERROR alert takes over all three until dismissed. Night
+  hours: Now shows a dim clock, Home and House dim, Money is off.
+- Firmware: one ESP-IDF + LVGL 9 build for all three; a panel only knows its name. It fetches
+  its layout and data from `/api/desk/<name>` (every payload with `as_of` and `stale`; stale
+  cards are dimmed with their age). Built in GitHub Actions, updated over Wi-Fi from the hub, no
+  cloud. The Wi-Fi password is a build secret, never in the repo.
+- Writes from a panel (mute, lights, music) use a per-panel device key created in the hub, since
+  `same_origin_json` only protects browsers. Keys can be revoked in Settings.
+- Heartbeat: the hub alerts when a panel has not polled for 10 minutes.
+- Stand. Nothing ordered yet; first test the angles with three cheap phone stands.
+  - Requirements: about 15° tilted back, the outer panels turned 12 to 15° in, 8 to 10 mm
+    gaps, one row of about 30 cm below the monitor. Heavy enough not to slide or tip when
+    the panels are touched (wood, a steel weight or a weighted print, rubber feet). Room
+    behind each board for its components and the USB-C port, and a cable channel.
+  - Before designing: measure one board (depth, mounting holes, USB-C position). Waveshare
+    gives only the outline (86.5 × 86.5 mm, display 71.93 × 71.93 mm).
+  - Options: a ready-made single-panel stand for this board on MakerWorld (print three; not
+    checked for fit); a parametric OpenSCAD stand for all three, written in this repo
+    (angles and gaps as parameters), printed by a friend, a print service or TU/e's maker
+    facilities, possibly split in two for a small printer; the same design laser-cut as
+    stacked plywood or acrylic (for example Snijlab), exported to 2D from the model; or an
+    oak or walnut block (about 30 × 6 × 4.5 cm) with three angled pockets from a carpenter
+    or a CNC router. Preferred: the OpenSCAD model, then print or laser-cut.
+- Power. Nothing ordered yet. Each board takes 5 V, over USB-C or the 5 V and GND pins on its
+  back header.
+  - Preferred: one cable to the stand. A USB-C PD trigger board set to 5 V, or a 5 V 4 A
+    supply, feeds a 5 V line inside the stand that powers each board through its header pins.
+    Measure one board's draw at full brightness first (expected around 2 W, not verified)
+    and size the supply with headroom for three.
+  - Fallback: three short USB-C cables to a 3-port USB charger behind the monitor.
+  - Not used: the Ethernet variant (ESP32-P4-86-Panel-ETH-2RO, 6 to 30 V); a wired network
+    needs a switch on the desk and only suits a wall mount.
+- Order of work: test one board on a phone stand and settle the angles, measure it, write the
+  OpenSCAD model, choose print or laser-cut, then buy the power parts.
+- The 720×1280 `/kiosk/` carousel retires once the panels run.
+
+**M17. Home control** (added 2026-10-09)
+- The hub talks to the Hue Bridge's local CLIP v2 API with an application key (created once with
+  the bridge's link button, kept in `.env`). No Hue cloud. The bridge's event stream keeps the
+  hub's state live, so changes from the Home app, Siri or a switch show at once.
+- Everything in the house is Hue (lights and smart plugs), so Apple Home follows on its own: it
+  reads the same bridge. Non-Hue HomeKit devices would need Home Assistant; there are none now.
+- The panel controls only the room the desk is in (decided 2026-10-10): the living room with its
+  open kitchen. Its lights: 3 White Ambiance GU10 spots in the kitchen part (warm to cool white,
+  no colour) and 2 white bulbs (brightness only). Other rooms are never controlled from the desk.
+- Home panel, first card: a tile for the kitchen spots and one for the lamps (tap on/off, hold
+  and drag for brightness), each glowing in the white it has now; five warm-to-cool swatches for
+  the kitchen spots. (A scenes card was dropped on 2026-10-10: it would not be used.)
+- Second card: **Air** in the living room: the temperature large, humidity, PM2.5, CO₂ as a ring
+  (Fresh below 800 ppm, Getting stuffy to 1200, Open a window above) with the outside
+  temperature from Buienradar beside it, and CO₂ over the last 8 hours. Needs a sensor, not
+  chosen yet:
+  1. **IKEA ALPSTUGA**, EUR 29.99 at IKEA NL: CO₂, PM2.5, temperature, humidity (no VOC).
+     Matter over Thread, so it needs a Thread border router (an Apple TV 4K or HomePod mini in
+     Apple Home is one) and then shows in Apple Home too. For the hub to read it, a Matter
+     controller runs on the NAS (the open-source matter-server in Docker), added as a second
+     controller from Apple Home. Cheapest, but the most moving parts, and reviews call its
+     sensors noisier than dedicated monitors.
+  2. **AirGradient ONE**, about EUR 290 at EU resellers (USD 230 direct): CO₂, PM, TVOC, NOx,
+     temperature, humidity, open source, with a local HTTP API the collector reads directly
+     over Wi-Fi. Simplest to connect and the most accurate.
+  3. **Apollo AIR-1** (ESPHome), EUR 130 without CO₂ to EUR 208 with CO₂ and gas at Domadoo;
+     EU distributor SlimHuisje.nl. Local ESPHome API.
+  The Hue motion sensor only gives temperature. Recommended (2026-10-10): option 1, the
+  ALPSTUGA. The house has two Apple TVs and several HomePods, which are Thread border routers
+  already, so it joins Apple Home directly; the hub reads it through matter-server on the NAS
+  (host network, IPv6 on the LAN). Not bought yet.
+- The Hue plugs are used for Christmas decorations: their switches only show in the season
+  (dates set in Settings).
+- No light strips for now (2026-10-10). If ever: Hue's own strip is the only one that also shows
+  in Apple Home; cheaper Zigbee strips (Innr Flex Light Colour, about EUR 44 for 2 m and EUR 70
+  for 4 m at Amazon.nl and GAMMA; Gledopto controllers plus any strip; Lidl Livarno when in
+  stock) work with the Hue Bridge and this hub, but not in Apple Home or Hue Entertainment.
+- A Lights page in the hub with the same controls.
+- A new deliberate write (decided 2026-10-09): lights, plugs and scenes on the Hue Bridge.
+
+**M18. Music** (added 2026-10-09)
+- Spotify Web API with the owner's Premium account: a developer app in development mode (owner
+  must keep Premium; up to 5 users). Logged in once through the hub; the redirect URI is the
+  hub's Tailscale HTTPS address. The refresh token stays on the NAS.
+- Shows what plays on any device on the account (phone, Mac, speakers, AirPlay from the phone),
+  podcasts included. Polled every 3 seconds while playing, slower when idle; the panel moves the
+  progress bar between polls. Album art is fetched by the hub, so panels never contact Spotify.
+- When nothing plays, Home's last card is Music: four favourite playlists as large covers with a
+  play button, to start from the desk on the last used device (tap the device to change it),
+  and what played last.
+- Now Playing on the Home panel (moved from Now, 2026-10-10; redesigned 2026-10-12): the cover
+  with a record sliding out behind it that spins while music plays (the album art as its label),
+  an equaliser that moves with playback, a progress line with a glowing thumb and a play button
+  lit in the album's colour, on a blurred art background;
+  title, artist, progress, previous / play-pause / next, volume, and the device name (tap to
+  move playback). When music starts it becomes Home's first card and the panel shows it; Home
+  never rotates, so it stays there until you swipe to the lights. Two minutes after a pause the
+  card goes and the lights are back.
+- A new deliberate write (decided 2026-10-09): Spotify playback control.
+
+**M19. Desk PC power** (parked 2026-10-10)
+- Left out for now (decided 2026-10-10): there is no ready-made option that works locally out of
+  the box, and the owner does not want to build one. The research is kept under Open items, in
+  case a ready-made product turns up.
+
+**M20. Panel screens** (added 2026-10-10)
+- **Your train** (Now, weekday mornings): the owner takes the direct 07:16 from Leiden
+  Centraal to Rotterdam Centraal every weekday. The collector follows that departure with
+  the NS API (free key from the NS API portal, in `.env`) from about 06:00 until it leaves:
+  cancelled, delayed, platform change, disruptions on the route. Decided 2026-10-10: every
+  weekday; Telegram only for problems (no "on time" message); these messages skip quiet hours.
+  The card must not read as a clock: the time sits in a labelled "Departure" box, the status
+  (On time, 6 min late, Cancelled) is the large line, then "Leaves in 34 min from platform 3",
+  or the next direct train when it is cancelled.
+- **Clock and Your day** (Now, redesigned 2026-10-12): the clock sits inside a ring of the next
+  two hours of Buienradar rain in 5-minute segments, starting at the top at now and going round
+  clockwise, segment length by intensity, with "Rain 07:11 to 07:56, peak 2,8 mm/u" below. The
+  day view lays the sun's arc over a sky band that runs from night through dawn, day and dusk,
+  above the temperature curve and the chance of rain.
+- **Laundry** (Home, added 2026-10-12): the washer and dryer (ConnectLife app) as two portholes:
+  water turning inside while a machine runs, a ring counting down, the program and when it will
+  be ready; a finished machine glows green with "Take it out". No Telegram message (decided
+  2026-10-12): the ConnectLife app already notifies; the card is for a glance now and then. Source: ConnectLife has no local API, only its cloud. The open-source `connectlife`
+  Python library (used by the connectlife-ha integration) logs in with the app account; the
+  collector polls it about once a minute, read-only, with the account in `.env`. It is
+  unofficial and can break when ConnectLife changes its API or terms. Decided 2026-10-12: both machines
+  are Hisense; the card only shows while a machine runs or is done (then it is gone until the
+  next run, after the door has been opened if ConnectLife reports it, otherwise after a tap on
+  "Taken out" or two hours). The models are a WF5S1043BW washer and a DH3S802BW2 dryer. They
+  are not in connectlife-ha's device list, but their siblings are, with the same device type
+  codes: the WF5S1045BW washer (type 025) and the DH3S802BW3 dryer (type 030). So support is
+  likely; the property mapping may need the two models added. ConnectLife also publishes its own Home Assistant plugin for Hisense
+  appliances (Connectlife-LLC/HomeAssistantPlugin), a second reference for the API.
+- **Calendar** (Now): today's events only. Design (2026-10-10): the next event large with a ring
+  counting down to it in its calendar's colour, the day from 07:00 to 23:00 as a ribbon of
+  coloured blocks with a glowing now line, then the later events. Read-only, no
+  reminders, no bin days. Decided 2026-10-10: CalDAV to `caldav.icloud.com` with an
+  app-specific password from the Apple account page, kept in `.env` (it also opens iCloud mail
+  and contacts, so NAS-only, revocable any time). All calendars are in Apple Calendar. Settings
+  → Desk panels lists them with their colours and a switch each, so some never show; events
+  from the chosen ones show with their full titles.
+- **Headlines** (Now): the top stories from the News reader (M6): the lead story full-bleed over
+  its image (proxied by the hub) with the source as a badge, then two more with thumbnails; tap
+  one to save it to Readeck, and its bookmark fills.
+- **Code** (House): 16 weeks of commit activity as a grid, then the CI state of the default
+  branches and running pull requests from the Repos data (M9); a failing build stands out.
+- **Media** (House; refocused 2026-10-12): not what is being watched (the owner knows), but what
+  needs attention: what is downloading (poster, episode or movie, size, an animated progress bar,
+  percentage and time left, from the Sonarr and Radarr queues and the download clients) and
+  missing episodes (aired but not downloaded, from Sonarr's wanted list, with how long ago and
+  whether it is still searching), plus the next episode to air. Posters are fetched and resized
+  by the hub. Shares its data with the backlog's richer Jellyfin overview in the hub.
+- **Top movers** (House, Money; redesigned 2026-10-12): a heat map of the holdings, each tile
+  sized by its share of the portfolio and tinted green or red by today's move, with the ticker,
+  the change and the name (type scales with the tile; the name is left out on the smallest);
+  the S&P 500, Nasdaq 100 and AEX below.
+- **My sites** (House, added 2026-10-10): the owner's own sites: example.com,
+  aoc.example.com, hubble.cafe, meteor.cafe, admin.hubble.cafe, harry.hubble.cafe and
+  harry-admin.hubble.cafe. The list is grouped Personal and Hubble with short names (aoc, admin,
+  harry, harry-admin); only a percentage below 100% is shown.
+  Design: one ring per site, split into 30 day-segments from 30 days ago round to today; healthy
+  days a quiet green, a blip amber and an outage red with a soft glow, so incidents stand out;
+  the count of sites up in the centre and a list with each site's uptime beside it.
+  Source (decided 2026-10-10): Uptime Kuma, already running, with an HTTP monitor per site and a
+  second status page that the collector reads. Kuma already sends a Telegram message through the
+  hub when a site goes down. The collector keeps its own daily up, blip or down record per site
+  in SQLite from Kuma's heartbeats, so the 30 days do not depend on how much history Kuma's
+  status page returns. These checks run on the NAS, so they cannot report the NAS itself being
+  down (see the Hetzner VPS open item).
+- **Services** (House, added 2026-10-10): only outside services something here depends on
+  (kept short on purpose, 2026-10-10): GitHub (code, CI, image builds, the mirror), Cloudflare
+  (DNS and the tunnel for the public sites), Docker Hub (the hub's images and Watchtower's pulls),
+  Tailscale (remote access, the exposure scan), Hetzner (the Storage Box backups and the Docker
+  server the Hubble sites run on), TransIP (DNS for the Hubble sites) and Proton (mail). Not listed: Spotify, Telegram and iCloud, whose own cards go stale when they fail. Read from their public status pages (most use Statuspage's `/api/v2/summary.json`),
+  every 5 minutes by the collector, never by the panels. Each service shows its own logo (Simple
+  Icons, CC0, bundled with the hub and converted for the panels, never loaded from a CDN; TransIP
+  has none there, so it gets a letter tile), on a dark glass tile with a glow in its brand colour.
+  When all is well: the services as a ring around a glowing check. During an incident: a card with the service, its state
+  and how long it has run, the incident's timeline (Investigating, Identified, Resolved) and a
+  softly pulsing halo; the other services as a row of small icons below.
+- **Apple devices** (Home, moved from House 2026-10-10): the two Apple TVs and the HomePods,
+  each with whether it is online, and what it plays. Design (2026-10-12): a lit floor plan;
+  rooms are outlined zones, and a room where something plays glows in that colour; each device
+  is a luminous orb with a halo, playing ones sending out ripples; small pulses of light travel
+  along the Thread mesh between them, and a link to an offline device turns into a broken amber
+  line with the device dashed in amber; the air sensor sits on the mesh. Below the plan a
+  now-playing bar with a thumbnail, the title, the room and a moving equaliser. Room positions are set once in Settings.
+  The devices (2026-10-10): living room, an Apple TV and two big HomePods as a stereo pair (shown
+  as one group with the TV, as they play its sound); bedroom, an Apple TV and a HomePod mini;
+  bathroom, a HomePod mini. To check when building: which are Thread border routers (the
+  HomePod mini and HomePod 2nd generation are; the Apple TV 4K Wi-Fi-only 64 GB model and the
+  first HomePod are not). Possible locally: every device announces itself on
+  the LAN over Bonjour (mDNS), so the hub sees which are online; Thread border routers announce
+  `_meshcop._udp`, so it can show whether Thread (which the air sensor needs) is up; pyatv
+  (open source) reads what an Apple TV plays after a one-time pairing, and HomePods report
+  what they play over AirPlay. Not possible: firmware updates, which device is the active home
+  hub, or anything else inside Apple Home. Bonjour is multicast, so the collector needs the
+  host network or a small host-network helper; the collector container is on a bridge network
+  today. Device names to fill in; the mockup uses examples. An Apple TV or HomePod going
+  offline for 10 minutes is a warning.
+- **NAS, Backups, Alerts and the train**, redesigned again 2026-10-10 to be desk pieces:
+  - NAS: an instrument-style arc gauge for the fullest volume (ticks, a glow, a red mark where
+    it would alert), its size and runway below, then tiles for CPU and memory with live
+    sparklines and one for the disks (a glowing dot per disk) and the UPS.
+  - Backups: a verified seal with last night's time, duration and size and the last verified
+    restore, a NAS to Hetzner (encrypted) line with a gentle moving light, and the last 30 nights
+    as bars (a slow night in amber, last night bright).
+  - Alerts: an open alert gets a large pulsing icon, the severity, a big title, how long it has
+    been open and when Telegram was told, and a bar with the warning and error thresholds; All
+    quiet gets slow ripples round a check, how long it has been quiet and a dot per day of the
+    week (amber on days that had an alert).
+  - Train: the departure box and the status word, a ring counting down to departure (or the
+    next train when cancelled), and the route with its stops and times (Leiden Centraal,
+    Den Haag HS, Delft, Rotterdam Centraal); a delay moves the times.
+    The mockup's stop times are examples; the real ones come from the NS API.
+- **Scenes, Portfolio and Alerts** (redesigned 2026-10-10): each scene tile is lit in the colours
+  of its lights, with a dot per light and the active scene marked; Portfolio has a day, week,
+  month and year switch, its line green or red with the change for that period, and since
+  2026-10-12 the chart runs edge to edge with a glowing line and the period's high; Alerts shows a
+  calm "All quiet" with a check when nothing is open, instead of an empty list.
+- No ambient mode (dropped 2026-10-10): the panels always show these screens; an idle art mode
+  would defeat their purpose.
+- Each screen follows the design bar in M16 and is checked on a real panel.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15.
+M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked).
 
 ## 4. Open items
 
-- Pi kiosk URL: the carousel now lives at `/kiosk/`, so the Pi's Chromium `--app` URL becomes
-  `http://<nas>:8083/kiosk/?data=api`. Without `?data=api` the carousel shows its fixture data.
-  `/kiosk` and the old `/read.html` redirect.
-- Ad and tracker blocking (DNS): options under discussion, not yet decided.
+- The Pi kiosk is replaced by the desk panels (M16, decided 2026-10-09). Until they run, the
+  carousel stays at `/kiosk/` (`?data=api` for live data; `/kiosk` and `/read.html` redirect).
+- Secrets in nas-docker (found 2026-10-08, not decided): the cloudflared tunnel token, the
+  CouchDB admin password (CouchDB is public through the tunnel), the NordVPN credentials
+  (qbittorrent) and Tracearr's JWT, cookie and Postgres secrets are written in the compose
+  files, so they are in git history, the GitHub mirror and the Hetzner backup. Proposed: move
+  them to each stack's `.env`, rotate them (removing them from the files does not remove them
+  from history), keep the recovery copies in the password manager, and add gitleaks to CI in
+  both repos. CouchDB first, as it is public. RECOVERY.md points to these files today.
+- Password manager (discussed 2026-10-09, not decided): no self-hosting (Vaultwarden was
+  considered and dropped: the vault would hold the passwords needed to rebuild the NAS).
+  Compared Bitwarden and NordPass; recommended Bitwarden in the EU region (open source, yearly
+  published audits, a CLI, a later move to Vaultwarden without new apps), Families if shared
+  with the household, otherwise Premium. NordPass mainly wins on price, for example in a bundle
+  with NordVPN. Either way: a paper emergency sheet away from the NAS (master password, 2FA
+  recovery codes for Tailscale, Hetzner and GitHub, the rclone crypt passwords, the LiveSync
+  passphrase) and 2FA for Tailscale and Hetzner on a passkey, not only a TOTP in the vault.
+- Ad and tracker blocking (DNS), not decided. Software: AdGuard Home (UI, encrypted upstream,
+  per-device rules), Pi-hole, Blocky (one config file, easy to run twice, Prometheus metrics),
+  Technitium, or hosted NextDNS (nothing to run, but it sees every lookup). Upstream: Quad9 or
+  Mullvad over DoH/DoT, or Unbound resolving itself. Handed out by the router (whole house) or
+  Tailscale DNS (devices anywhere); one instance on the NAS means no DNS when the NAS is down,
+  so run two (NAS plus a VPS or the router). iCloud Private Relay and browser DoH bypass it.
+  Proposed: AdGuard Home on the NAS and a second box, and a "blocked today" tile. Open
+  question: which router (some can run AdGuard themselves).
+- Hetzner VPS next to the NAS (discussed 2026-10-08, not decided; the exposure scan went to a
+  GitHub workflow instead). A small cloud server (CX22 or CAX11, about EUR 4 to 5 a month) on the
+  tailnet could be: an outside uptime watcher that also notices the NAS losing power or
+  internet; a weekly restore drill into throwaway containers; an append-only restic
+  `rest-server`, so a compromised NAS cannot delete backups; a Caddy proxy replacing cloudflared
+  so Cloudflare no longer sees the traffic (but one more public box to maintain); an exit node
+  and second DNS. SSH over Tailscale only, unattended-upgrades, compose files in a `hetzner/`
+  folder in nas-docker. Not worth it: Headscale, media or Immich on the VPS.
 - Backlog (2026-10-09): a richer Jellyfin overview in the hub, in the spirit of Tracearr's history:
   library counts (movies, series, episodes), what is pending or downloading (Jellyseerr, Sonarr,
   Radarr, the download clients), watch stats and a per-user leaderboard. Not planned into a
   milestone yet.
+- Backlog, ideas not yet chosen (2026-10-08): dynamic energy prices for today and tomorrow
+  (EnergyZero, no key), an Immich "on this day" photo, a command palette (Cmd-K) for services,
+  pages and repos, and a morning digest in Telegram (overnight updates, backup, disk, weather).
+  Desk panels: house and productivity widgets and actions, later. (The calendar and the morning
+  train moved to M20; there are no bin days to show.)
+- Desk panel screen ideas (2026-10-10). Chosen into M20 on 2026-10-10: calendar, the morning
+  train (instead of general departures), Jellyfin, code and headlines (ambient was chosen,
+  then dropped). Not chosen yet:
+  1. Ride: the next dry window to cycle (from Buienradar).
+  2. Focus: one tap starts a 50-minute ring timer, the lights go to a Focus scene, a
+     focus playlist starts and Telegram alerts are held until the end.
+  3. Memories: an Immich "on this day" photo, full-bleed, LAN only, off at night.
+  4. Air: outdoor air quality at home from Luchtmeetnet (RIVM), with pollen if a free
+     source exists.
+  5. Timers: tea or kitchen timers that chime on a panel's speaker (a speaker is not fitted
+     yet).
+- Desk PC power (parked 2026-10-10, was M19): turn the Wi-Fi desk PC on from the Home panel.
+  Wake-on-WLAN mostly only wakes from sleep; a Hue plug with "Restore on AC power loss" can boot
+  it but cannot shut it down and must never cut a running PC. What works is an ESP on the
+  power-button header, running ESPHome: the nearest to ready-made is the Sinilink XY-WPCE
+  (an ESP8266 PCIe card, about EUR 10 to 15 on AliExpress, cloud firmware until flashed with
+  ESPHome over 1 mm serial pads, https://devices.esphome.io/devices/sinilink-xy-wpce/), or a DIY
+  ESP32-C3 SuperMini with a PC817 optocoupler, powered from the motherboard's USB 2.0 header
+  with ErP off (designs: pixelwave Wake-On-ESP32, Erriez ESPHomePCPowerControlHomeAssistant).
+  Tuya and eWeLink PCIe cards on Amazon need a cloud app. Revisit if a local ready-made card
+  appears.
+- Considered and dropped (2026-10-08 and 09): a Docker socket proxy; pinned image versions
+  with Renovate PRs (updates stay automatic, no PRs); a rollback command from the previous image
+  digest; a Tailscale key expiry rule (keys do not expire on this tailnet); a privacy blur for
+  amounts on the kiosk; Tailscale identity headers to gate writes; self-hosting a password
+  manager. Watchtower: containrrr/watchtower was archived on 2025-12-17 (forks such as
+  `nickfedor/watchtower`, or What's Up Docker); the owner parked this on 2026-10-09.
 
 ## 5. Non-goals
 
@@ -260,3 +563,4 @@ M12, M13, M14, M15.
 - No container control; Dockge does that.
 - No trading, order entry or investment recommendations. The only writes to Ghostfolio are
   confirmed DEGIRO imports (M7).
+- No microphone or voice control on the desk panels.

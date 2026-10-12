@@ -156,6 +156,8 @@ def test_watchtower_report_is_read_back_or_left_alone(store):
 
 
 def test_notify_endpoint_words_backup_with_the_saved_template(client, store):
+    # Off, or an "ok" message is held whenever CI runs during quiet hours.
+    core.put_setting(store, "quiet", {"enabled": False})
     templates.save(store, "backup_ok", "{level} Backup done in {minutes} min")
     body = {"source": "backup", "category": "backup", "severity": "ok",
             "title": "NAS backup OK", "body": "old text",

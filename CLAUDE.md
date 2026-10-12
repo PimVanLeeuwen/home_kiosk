@@ -7,8 +7,11 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
 
 ## Project rules
 
-- **The Pi kiosk must keep working.** It is a dumb Chromium on a Pi pointed at this stack; any
-  change to URLs or `/api/*` shapes has to keep it rendering.
+- **The kiosk must keep working.** Today the `/kiosk/` carousel; from M16 the three ESP32-P4
+  desk panels that replace the Pi kiosk. Any change to URLs or `/api/*` shapes has to keep them
+  rendering.
+- **The desk panels are desk pieces.** Information and control, but also beautiful objects:
+  design quality is part of done for every panel screen (docs/desk-panels.md, Design).
 - **Private, LAN and Tailscale only.** No login, no internet exposure, no third-party CDNs,
   tracking or analytics. Fonts and assets are self-hosted.
 - **Never 500 to the frontend.** Every payload carries `as_of` and `stale`; on a source failure
@@ -17,7 +20,8 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
   commits.
 - **Read-only towards other services**, except the deliberate writes: Readeck (save, archive,
   delete, read progress), Telegram messages, and DEGIRO imports into Ghostfolio after you confirm
-  them. The GitHub mirror only reads from GitHub; it writes to `/volume3/backups/github`.
+  them. Planned (M17, M18, M20): Hue lights, plugs and scenes, Spotify playback control, and
+  saving a headline to Readeck from a panel. The GitHub mirror only reads from GitHub; it writes to `/volume3/backups/github`.
 - Style: see plan.md §1. Dark first, violet accent, mono only for technical values.
 
 ## Architecture
@@ -30,6 +34,7 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
 | `caddy/Caddyfile` | One origin on :8083: `web/`, `/kiosk/`, `/api/*` to the collector. Image `pimvanleeuwen/home-kiosk-dashboard` |
 | `e2e/` | Playwright, desktop and mobile |
 | `docs/kiosk-build-spec.md` | The original kiosk spec: Pi hardware and setup, Ghostfolio pitfalls |
+| `docs/desk-panels.md` | Research for the desk panels, Hue and Spotify (M16 to M18); mockup in `docs/desk-panels-mockup.html` |
 
 ## Commands
 
@@ -80,6 +85,26 @@ python3 dashboard/serve.py
 - 2026-10-09: no Docker socket proxy; database dumps and restore checks run as a NAS host job,
   so no container gets more Docker access; the PWA is installed from the Tailscale HTTPS
   address. plan.md M12 to M15.
+- 2026-10-09: three ESP32-P4 4" touch panels replace the Pi kiosk; Hue control through the
+  local bridge API and Spotify playback control become deliberate writes. plan.md M16 to M18.
+- 2026-10-10: desk PC power through an ESP32 on the power-button header, on the Home panel;
+  panel screens for the train, calendar, headlines, code and Jellyfin; no ambient mode, the
+  panels always show their screens. plan.md M19, M20.
+- 2026-10-10: the 07:16 train is watched every weekday, Telegram only for problems and past
+  quiet hours; the calendar reads iCloud over CalDAV with a per-calendar filter, today only, full
+  titles. plan.md M20.
+- 2026-10-10: Now Playing moves to the Home panel, which never rotates. plan.md M16, M18.
+- 2026-10-10: desk PC power is parked: no ready-made local option. plan.md M19, Open items.
+- 2026-10-10: the Home panel controls only the living room (3 White Ambiance spots, 2 white
+  bulbs); the Hue plugs are seasonal Christmas switches; no light strips for now. plan.md M17.
+- 2026-10-10: status cards on House for the owner's own sites and the outside services in use. plan.md M20.
+- 2026-10-10: the scenes card is dropped; Home's second card shows the living room's air, with
+  an IKEA ALPSTUGA recommended (Thread through the Apple TVs and HomePods). plan.md M17.
+- 2026-10-10: an Apple devices card on Home, as a map of the house (online state, what plays,
+  the Thread mesh). plan.md M20.
+- 2026-10-12: a laundry card on Home for the Hisense washer and dryer (ConnectLife), read from
+  the ConnectLife cloud (no local API), shown only while a machine runs or is done; no
+  Telegram for it, the app already notifies. plan.md M20.
 
 ## Gotchas
 
