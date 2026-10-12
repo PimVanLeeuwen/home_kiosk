@@ -17,6 +17,7 @@ import { SavedPage } from './pages/SavedPage'
 import { SectionPage } from './pages/SectionPage'
 import { ServicesPage } from './pages/ServicesPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { TailscalePage } from './pages/TailscalePage'
 
 /** Sections that are built; the rest show their placeholder. */
 const PAGES: Record<string, ReactElement> = {
@@ -31,6 +32,7 @@ const PAGES: Record<string, ReactElement> = {
   '/news': <NewsPage />,
   '/saved': <SavedPage />,
   '/portfolio': <PortfolioPage />,
+  '/tailscale': <TailscalePage />,
 }
 
 export const BUILT_ROUTES = Object.keys(PAGES)

@@ -46,6 +46,14 @@
     }
   }
 
+  /* Light running along a dashed SVG line (the tailnet map), away from the start. */
+  --animate-dash: dash 2.4s linear infinite;
+  @keyframes dash {
+    to {
+      stroke-dashoffset: -16;
+    }
+  }
+
   /* Slow rings spreading from a check, for "All quiet". */
   --animate-ripple: ripple 3.6s ease-out infinite;
   @keyframes ripple {

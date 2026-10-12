@@ -1,4 +1,4 @@
-import type { BackupHistory, BackupRun, DatabaseDumps, GitHubMirror, MirroredRepo, Nas, Portfolio, ServicesResponse } from '../lib/types'
+import type { BackupHistory, BackupRun, DatabaseDumps, GitHubMirror, MirroredRepo, Nas, Portfolio, ServicesResponse, Tailnet, TailnetDevice } from '../lib/types'
 
 /** Shared API fixtures for page tests. Times are relative to now so "today" holds. */
 export function nasFixture(over: Partial<Nas> = {}): Nas {
@@ -152,5 +152,28 @@ export const DUMPS: DatabaseDumps = {
   runs: [
     { started: '2026-10-09T00:30:00Z', finished: '2026-10-09T00:30:05Z', ok: false, failed: 1 },
     { started: '2026-10-08T00:30:00Z', finished: '2026-10-08T00:30:04Z', ok: true, failed: 0 },
+  ],
+}
+
+const device = (d: Partial<TailnetDevice> & Pick<TailnetDevice, 'name' | 'os' | 'online'>): TailnetDevice => ({
+  dns_name: `${d.name}.tail1234.ts.net`, ipv4: null, ipv6: null, last_seen: null, connection: null, relay: null,
+  endpoint: null, exit_node: false, rx_bytes: 0, tx_bytes: 0, ...d,
+})
+
+export const TAILNET: Tailnet = {
+  as_of: '2026-10-12T20:00:00Z',
+  stale: false,
+  name: 'tail1234',
+  health: [],
+  self: device({ name: 'dev-minotaur', os: 'linux', online: true, ipv4: '100.70.0.10', ipv6: 'fd7a:115c:a1e0::1', relay: 'ams' }),
+  peers: [
+    device({ name: 'appletv', os: 'tvOS', online: true, ipv4: '100.64.9.17', connection: 'direct', endpoint: '192.168.1.40:41641', exit_node: true }),
+    device({ name: 'pim-iphone', os: 'iOS', online: true, ipv4: '100.88.3.51', connection: 'relay', relay: 'ams' }),
+    device({
+      name: 'pim-macbook', os: 'macOS', online: true, ipv4: '100.71.12.4', ipv6: 'fd7a:115c:a1e0::2',
+      connection: 'direct', endpoint: '192.168.1.23:41641', rx_bytes: 1_800_000_000, tx_bytes: 412_000_000,
+    }),
+    device({ name: 'work-laptop', os: 'windows', online: true, ipv4: '100.110.4.9', connection: 'idle' }),
+    device({ name: 'desk-pc', os: 'windows', online: false, ipv4: '100.102.7.88', last_seen: new Date(Date.now() - 5 * 3_600_000).toISOString() }),
   ],
 }

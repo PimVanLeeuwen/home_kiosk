@@ -32,6 +32,7 @@ describe('routes', () => {
       'Docker',
       'Backups',
       'Services',
+      'Tailscale',
       'Repos',
       'Alerts',
       'Settings',

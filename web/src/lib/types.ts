@@ -45,6 +45,39 @@ export interface Hosts {
   } | null
 }
 
+/** One device on the tailnet, from tailscaled's status (`/api/tailnet`). */
+export interface TailnetDevice {
+  name: string
+  dns_name: string
+  os: string
+  ipv4: string | null
+  ipv6: string | null
+  online: boolean
+  /** Offline devices only. */
+  last_seen: string | null
+  /** Idle: online, but no recent traffic, so no path yet. Null for the NAS itself. */
+  connection: 'direct' | 'relay' | 'idle' | null
+  /** DERP region code ("ams"): the relay in use, or the NAS's home relay. */
+  relay: string | null
+  /** ip:port of a direct path. */
+  endpoint: string | null
+  exit_node: boolean
+  rx_bytes: number
+  tx_bytes: number
+}
+
+export interface Tailnet {
+  as_of: string
+  stale: boolean
+  /** The MagicDNS suffix's first label, e.g. "tail1234". */
+  name: string
+  self: TailnetDevice
+  /** Online first, then by name. */
+  peers: TailnetDevice[]
+  /** tailscaled's own health warnings; empty when all checks pass. */
+  health: string[]
+}
+
 /** A catalog entry as edited in Settings (no status or stats). */
 export type CatalogService = Omit<Service, 'status' | 'stats' | 'stats_error'>
 
