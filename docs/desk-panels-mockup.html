@@ -256,6 +256,22 @@ svg text { font-family: var(--f-body); }
 .tline .on { color: var(--ink); }
 .tline .on b { background: var(--warn); box-shadow: 0 0 2.4cqw var(--warn); }
 .tline em { font-style: normal; margin-left: auto; font-family: var(--f-mono); font-size: 3.4cqw; }
+.tsmap { position: relative; width: 64cqw; aspect-ratio: 1.55; margin: 1cqw auto 0; }
+.tsmap svg.lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.tsmap .flow { stroke-dasharray: 2 6; animation: tsflow 2.4s linear infinite; }
+@keyframes tsflow { to { stroke-dashoffset: -16; } }
+.tsnode { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: .7cqw; }
+.tsnode span { position: relative; z-index: 1; background-color: var(--screen); width: 9cqw; height: 9cqw; border-radius: 2.8cqw; display: grid; place-items: center; font-size: 3.4cqw; font-weight: 700; color: var(--ink);
+  background: linear-gradient(160deg, rgba(255,255,255,.1), rgba(255,255,255,.03)); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 0 5cqw color-mix(in srgb, var(--c) 45%, transparent); }
+.tsnode.up { transform: translate(-50%, calc(-100% + 4.5cqw)); }
+.tsnode.self span { width: 13cqw; height: 13cqw; border-radius: 4cqw; font-size: 4.2cqw; }
+.tsnode.off span { opacity: .4; box-shadow: none; border-style: dashed; }
+.tsnode em { font-style: normal; font-size: 2.9cqw; color: var(--ink-2); white-space: nowrap; text-shadow: 0 0 1.4cqw var(--screen), 0 0 1.4cqw var(--screen), 0 0 .6cqw var(--screen); } .tsnode.off em { color: var(--ink-3); }
+.tsnode b.exit { position: absolute; top: -1.2cqw; right: -1.6cqw; font-size: 2.4cqw; padding: .2cqw 1cqw; border-radius: 99px; background: #7c6cf2; color: #fff; }
+.tslist { display: grid; gap: 1.2cqw; font-size: 3.5cqw; }
+.tslist div { display: grid; grid-template-columns: 2.2cqw 1fr auto auto; gap: 2.2cqw; align-items: center; }
+.tslist i { width: 2.2cqw; height: 2.2cqw; border-radius: 50%; }
+.tslist .ip { font-family: var(--f-mono); font-size: 3.1cqw; color: var(--ink-2); } .tslist small { font-size: 2.9cqw; color: var(--ink-3); text-align: right; }
 .orbrow { display: flex; justify-content: center; gap: 2.2cqw; }
 .mini { width: 7.4cqw; height: 7.4cqw; border-radius: 2.2cqw; display: grid; place-items: center; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); box-shadow: 0 0 3.4cqw color-mix(in srgb, var(--c) 35%, transparent); }
 .nt { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.4cqw; }
@@ -426,7 +442,7 @@ svg text { font-family: var(--f-body); }
   .unit figcaption { margin-top: 18px; }
   .notes { grid-template-columns: minmax(0, 1fr); }
 }
-@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo, .fline i, .ripple i, .aico, .house .wave, .house .pulse, .disc.spin, .eq i, .dbar i, .glassdoor i { transition: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .tsmap .flow, .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo, .fline i, .ripple i, .aico, .house .wave, .house .pulse, .disc.spin, .eq i, .dbar i, .glassdoor i { transition: none; animation: none; } }
 </style>
 
 <div class="wrap">
@@ -462,7 +478,7 @@ svg text { font-family: var(--f-body); }
     </section>
     <section>
       <h2>House</h2>
-      <ul><li>My sites: one ring per site, 30 day segments each, incidents lit amber or red; Services (GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP, Proton, with their logos): a constellation around a check when all is well, an incident card with its timeline when not (tap the status to preview)</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: the portfolio over an edge-to-edge chart with a day, week, month or year switch; top movers as a heat map sized by holding, with the indices</li><li>Code: 16 weeks of activity, CI state and pull requests. Media: what is downloading with progress and time left, and missing episodes from Sonarr</li><li>Night: screen off, unless an alert needs you</li></ul>
+      <ul><li>My sites: one ring per site, 30 day segments each, incidents lit amber or red; Services (GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP, Proton, with their logos): a constellation around a check when all is well, an incident card with its timeline when not (tap the status to preview)</li><li>Tailnet: the NAS in the middle and every device on the tailnet around it, a glowing line with light running along it for a direct connection and a dashed violet one through a relay, each line stopping short of the tiles and the names kept on the outside, offline devices dimmed with when they were last seen, the exit node marked; below, the NAS and each online device with its Tailscale address and how it connects (tap the status to preview the NAS key about to expire)</li><li>NAS as three rings with the storage runway; backups as the last 14 nights; alerts with Mute 1h, or All quiet when nothing is open (tap the status to preview)</li><li>Money: the portfolio over an edge-to-edge chart with a day, week, month or year switch; top movers as a heat map sized by holding, with the indices</li><li>Code: 16 weeks of activity, CI state and pull requests. Media: what is downloading with progress and time left, and missing episodes from Sonarr</li><li>Night: screen off, unless an alert needs you</li></ul>
     </section>
   </div>
   <p class="foot">An error alert takes over all three panels until dismissed. Which cards each panel shows, their order and timing, and the night hours are set in the hub under Settings → Desk panels. Album art here is generated colour, not real covers. All figures are made up.</p>
@@ -506,7 +522,7 @@ svg text { font-family: var(--f-body); }
     { title: 'Glasshouse', artist: 'Noor & the Quiet Hours', len: 251, device: 'MacBook', c: [[72, 180, 190], [40, 70, 160], [12, 22, 40]] },
     { title: 'Polder Lights', artist: 'Fenna Dijk', len: 189, device: 'Living room speakers', c: [[245, 200, 90], [210, 90, 120], [40, 20, 36]] }
   ];
-  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, train: 0, saved: {}, scene: 0, period: '1D', alertsOpen: true, svcIncident: true };
+  const st = { muted: false, music: false, playing: false, t: 0, pos: 37, pausedAt: 0, train: 0, saved: {}, scene: 0, period: '1D', alertsOpen: true, svcIncident: true, tsWarn: false };
   const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
   const art = t => `radial-gradient(circle at 28% 30%, ${rgb(t.c[0])}, transparent 58%), radial-gradient(circle at 78% 72%, ${rgb(t.c[1])}, transparent 60%), linear-gradient(135deg, ${rgb(t.c[2])}, ${rgb(t.c[1], .8)})`;
 
@@ -817,6 +833,41 @@ svg text { font-family: var(--f-body); }
       <div class="orbrow">${sv.slice(1).map(x => `<span class="mini" style="--c:${glowOf(x)}" title="${x}">${logo(x, 4)}</span>`).join('')}</div>
       <div class="sub" style="font-size:3.6cqw;text-align:center">The other 6 are operational</div>`;
     },
+    tailnet: () => {
+      // The tailnet from the NAS's point of view, as tailscaled's status reports it.
+      const peers = [
+        { n: 'pim-macbook', l: 'Mb', os: 'macOS', ip: '100.71.12.4', on: 1, via: 'direct', x: 14, y: 20 },
+        { n: 'pim-iphone', l: 'iP', os: 'iOS', ip: '100.88.3.51', on: 1, via: 'relay ams', x: 86, y: 20 },
+        { n: 'appletv', l: 'TV', os: 'tvOS', ip: '100.64.9.17', on: 1, via: 'direct', x: 86, y: 74, exit: 1 },
+        { n: 'desk-pc', l: 'PC', os: 'Windows', ip: '100.102.5.8', on: 0, seen: '5 h ago', x: 14, y: 74 },
+        { n: 'ipad', l: 'iPd', os: 'iPadOS', ip: '100.77.40.2', on: 0, seen: '2 days ago', x: 50, y: 92 },
+      ];
+      const on = peers.filter(p => p.on).length + 1;
+      // Lines in the map's own proportions (155 × 100), each stopping short of both tiles.
+      const W = 155, H = 100, C2 = { cx: 50, cy: 48 }, R_SELF = 19, R_PEER = 14;
+      const P = (x, y) => [x / 100 * W, y / 100 * H];
+      const seg = (p) => {
+        const [x0, y0] = P(C2.cx, C2.cy), [x1, y1] = P(p.x, p.y), d = Math.hypot(x1 - x0, y1 - y0), ux = (x1 - x0) / d, uy = (y1 - y0) / d;
+        return [x0 + ux * R_SELF, y0 + uy * R_SELF, x1 - ux * R_PEER, y1 - uy * R_PEER].map(n => n.toFixed(1));
+      };
+      const col = p => p.via === 'direct' ? '#5fd39c' : '#b4a9ff';
+      const lines = peers.map(p => { const [a, b, c, d] = seg(p);
+        return p.on
+          ? `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${col(p)}" stroke-opacity=".3" stroke-width=".6" ${p.via === 'direct' ? '' : 'stroke-dasharray="2 2"'}/>
+             <line class="flow" x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${col(p)}" stroke-width="1.1" stroke-linecap="round" style="filter:drop-shadow(0 0 1.2px ${col(p)})"/>`
+          : `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="rgba(255,255,255,.1)" stroke-width=".5" stroke-dasharray="1.2 2.4"/>`; }).join('');
+      // Names on the outside: above a tile in the top half, below it in the bottom half.
+      const node = p => { const above = p.y < C2.cy, em = `<em>${p.n}${p.on ? '' : ` · ${p.seen}`}</em>`;
+        return `<div class="tsnode ${p.on ? '' : 'off'} ${above ? 'up' : ''}" style="left:${p.x}%;top:${p.y}%;--c:${col(p)}">${above ? em : ''}<span>${p.l}${p.exit ? '<b class="exit">EXIT</b>' : ''}</span>${above ? '' : em}</div>`; };
+      const warn = st.tsWarn;
+      return `<div class="amb2" style="background:radial-gradient(55% 45% at 50% 42%, ${warn ? 'rgba(240,189,90,.16)' : 'rgba(124,108,242,.16)'}, transparent 70%)"></div>
+      <div class="row"><span class="k">Tailnet · tail1234</span><button class="pillbtn" data-act="tsprev"><span class="pill ${warn ? 'warn' : 'ok'}">${warn ? 'KEY · 6 DAYS' : `${on} OF ${peers.length + 1} ONLINE`}</span></button></div>
+      <div class="tsmap"><svg class="lines" viewBox="0 0 155 100">${lines}</svg>
+        <div class="tsnode self" style="left:${C2.cx}%;top:${C2.cy}%;--c:${warn ? '#f0bd5a' : '#7c6cf2'}"><span>NAS</span></div>${peers.map(node).join('')}</div>
+      <div class="grow"></div>
+      <div class="tslist"><div><i style="background:${warn ? '#f0bd5a' : '#7c6cf2'};box-shadow:0 0 2cqw ${warn ? '#f0bd5a' : '#7c6cf2'}"></i><span>dev-minotaur</span><span class="ip">100.70.0.10</span><small style="color:${warn ? 'var(--warn)' : ''}">${warn ? 'key expires 18 Oct' : 'this NAS'}</small></div>${peers.filter(p => p.on).map(p => `<div><i style="background:${p.on ? (p.via === 'direct' ? '#5fd39c' : '#b4a9ff') : 'rgba(255,255,255,.2)'};${p.on ? `box-shadow:0 0 2cqw ${p.via === 'direct' ? '#5fd39c' : '#b4a9ff'}` : ''}"></i><span style="color:${p.on ? 'var(--ink)' : 'var(--ink-3)'}">${p.n}</span><span class="ip">${p.ip}</span><small>${p.via}</small></div>`).join('')}
+</div>`;
+    },
     laundry: () => {
       const m = [
         { name: 'Washer', prog: 'Cotton 40° · rinse', left: 38, total: 95, done: '10:52', col: '#9c8ffb', run: true },
@@ -1002,7 +1053,7 @@ svg text { font-family: var(--f-body); }
   const decks = {
     now: () => ['clock', 'train', 'agenda', 'forecast', 'headlines'],
     home: () => st.music ? ['playing', 'rooms', 'climate', 'laundry', 'apple'] : ['rooms', 'climate', 'laundry', 'apple', 'music'],
-    house: () => ['nas', 'sites', 'services', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
+    house: () => ['nas', 'sites', 'services', 'tailnet', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
   };
   const intervals = { now: 10000, home: 0, house: 9000 };
 
@@ -1127,6 +1178,7 @@ svg text { font-family: var(--f-body); }
         const bm = document.getElementById('btn-music'); bm.setAttribute('aria-pressed', 'true'); bm.textContent = 'Stop music'; return p.render(); }
       if (act === 'period') { st.period = b.dataset.v; return p.render(); }
       if (act === 'svcprev') { st.svcIncident = !st.svcIncident; return p.render(); }
+      if (act === 'tsprev') { st.tsWarn = !st.tsWarn; return p.render(); }
       if (act === 'alertprev') { st.alertsOpen = !st.alertsOpen; return p.render(); }
       if (act === 'scene') {
         const s = scenes[+b.dataset.i];
