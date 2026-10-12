@@ -98,6 +98,19 @@ describe('HomePage', () => {
     expect(screen.getByText('volume2 98% full')).toBeInTheDocument()
     expect(screen.getByText('Needs a look')).toBeInTheDocument()
     expect(within(card('NAS')).getByRole('meter', { name: 'volume2' })).toBeInTheDocument()
+    // The chips that need a look are tinted and their dots pulse; the rest stay quiet.
+    const chip = (label: string) => screen.getByText(label, { selector: 'p' }).closest('[data-tone]')!
+    expect(chip('NAS')).toHaveAttribute('data-tone', 'warn')
+    expect(chip('NAS').querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
+    expect(chip('Containers')).toHaveAttribute('data-tone', 'ok')
+    expect(chip('Containers').querySelector('.motion-safe\\:animate-halo')).toBeNull()
+  })
+
+  it('lights the top of the page in the colour of the time of day', async () => {
+    setup()
+
+    await screen.findByText(/everything is running/)
+    expect(screen.getByTestId('sky').style.getPropertyValue('--sky')).toMatch(/^rgb\(/)
   })
 
   it('shows the weather with a rain summary and chart, and names Buienradar', async () => {

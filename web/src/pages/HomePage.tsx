@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { BackupCard } from '../components/home/BackupCard'
 import { NasCard } from '../components/home/NasCard'
 import { NewsCard } from '../components/home/NewsCard'
@@ -9,6 +10,7 @@ import { OutsideServicesCard } from '../components/outside/OutsideServicesCard'
 import { PageHeader } from '../components/PageHeader'
 import { attentionItems } from '../lib/attention'
 import { greeting } from '../lib/greeting'
+import { skyGlow } from '../lib/sky'
 import type { Nas, ServicesResponse } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
@@ -29,18 +31,27 @@ export function HomePage() {
         : `${attention.length} ${attention.length === 1 ? 'thing needs' : 'things need'} a look`
 
   return (
-    <>
-      <PageHeader title={greeting(now.getHours())} subtitle={`${dateLine.format(now)} · ${summary}`} documentTitle="Home" />
-      <StatusStrip nas={nas.data} attention={attention} />
-      <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
-        <PortfolioCard />
-        <NasCard nas={nas.data} error={nas.error} />
-        <NewsCard />
-        <BackupCard nas={nas.data} error={nas.error} />
-        <ServicesCard services={all} error={services.error} />
-        <WeatherCard />
-        <OutsideServicesCard />
+    <div className="relative">
+      {/* One soft glow at the top that follows the time of day; nothing ambient below it. */}
+      <div
+        aria-hidden="true"
+        data-testid="sky"
+        style={{ '--sky': skyGlow(now.getHours()) } as CSSProperties}
+        className="pointer-events-none absolute -inset-x-4 -top-2 h-[340px] bg-[radial-gradient(60%_100%_at_18%_0%,var(--sky),transparent_70%)] md:-inset-x-8 md:-top-8 lg:-inset-x-11 lg:-top-9"
+      />
+      <div className="relative">
+        <PageHeader title={greeting(now.getHours())} subtitle={`${dateLine.format(now)} · ${summary}`} documentTitle="Home" />
+        <StatusStrip nas={nas.data} attention={attention} />
+        <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
+          <PortfolioCard />
+          <NasCard nas={nas.data} error={nas.error} />
+          <NewsCard />
+          <BackupCard nas={nas.data} error={nas.error} />
+          <ServicesCard services={all} error={services.error} />
+          <WeatherCard />
+          <OutsideServicesCard />
+        </div>
       </div>
-    </>
+    </div>
   )
 }

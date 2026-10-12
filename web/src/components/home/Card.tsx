@@ -17,7 +17,11 @@ export function Card({ title, link, actions, className, children }: Props) {
   return (
     <section
       aria-labelledby={id}
-      className={cn('min-w-0 rounded-[14px] border border-line-soft bg-card px-5 py-5 md:px-6', className)}
+      className={cn(
+        // A faint sheen at the top, as on the desk panels' glass.
+        'relative min-w-0 overflow-hidden rounded-[14px] border border-line-soft bg-card bg-linear-to-b from-white/[0.022] to-transparent to-40% px-5 py-5 md:px-6',
+        className,
+      )}
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 id={id} className="text-[13px] font-semibold text-muted">
