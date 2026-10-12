@@ -124,7 +124,7 @@ data only). Now: clock and rain, the 07:16 departure (tap Preview for delayed an
 cancelled), today's calendar from the chosen calendars, the day view, headlines (tap to save). Home: Now Playing first while music plays (it
 stays, as Home never rotates), the living room's kitchen spots and lamps in their white (tap, or hold and drag
 for brightness), warm to cool white for the spots, the Christmas plugs, an air card (temperature, humidity,
-CO₂ ring, PM2.5, 8 hours of CO₂), the Apple devices as a map of the house,
+CO₂ ring, PM2.5, 8 hours of CO₂), the washer and dryer as portholes, the Apple devices as a map of the house,
 and a music card with favourite playlists. House: NAS as rings, my sites as 30-day uptime rings, services as
 a constellation or an incident card, portfolio with a period switch, top movers, code with an activity grid, Jellyfin, backups as
 the last 14 nights, alerts (or All quiet). Buttons on the page

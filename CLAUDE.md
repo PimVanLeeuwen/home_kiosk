@@ -102,6 +102,8 @@ python3 dashboard/serve.py
   an IKEA ALPSTUGA recommended (Thread through the Apple TVs and HomePods). plan.md M17.
 - 2026-10-10: an Apple devices card on Home, as a map of the house (online state, what plays,
   the Thread mesh). plan.md M20.
+- 2026-10-12: a laundry card on Home for the ConnectLife washer and dryer, read from the
+  ConnectLife cloud (no local API). plan.md M20.
 
 ## Gotchas
 

@@ -372,6 +372,20 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   The card must not read as a clock: the time sits in a labelled "Departure" box, the status
   (On time, 6 min late, Cancelled) is the large line, then "Leaves in 34 min from platform 3",
   or the next direct train when it is cancelled.
+- **Clock and Your day** (Now, redesigned 2026-10-12): the clock sits inside a ring of the next
+  two hours of Buienradar rain in 5-minute segments, starting at the top at now and going round
+  clockwise, segment length by intensity, with "Rain 07:11 to 07:56, peak 2,8 mm/u" below. The
+  day view lays the sun's arc over a sky band that runs from night through dawn, day and dusk,
+  above the temperature curve and the chance of rain.
+- **Laundry** (Home, added 2026-10-12): the washer and dryer (ConnectLife app) as two portholes:
+  water turning inside while a machine runs, a ring counting down, the program and when it will
+  be ready; a finished machine glows green with "Take it out", and Telegram says when it is
+  done. Source: ConnectLife has no local API, only its cloud. The open-source `connectlife`
+  Python library (used by the connectlife-ha integration) logs in with the app account; the
+  collector polls it about once a minute, read-only, with the account in `.env`. It is
+  unofficial and can break when ConnectLife changes its API or terms. Questions: the brand and
+  models (Hisense, Gorenje, ASKO, ATAG and others use ConnectLife) to check support; whether the
+  card should only show while a machine runs or is done.
 - **Calendar** (Now): today's events only. Design (2026-10-10): the next event large with a ring
   counting down to it in its calendar's colour, the day from 07:00 to 23:00 as a ribbon of
   coloured blocks with a glowing now line, then the later events. Read-only, no
@@ -393,7 +407,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   by the hub. Shares its data with the backlog's richer Jellyfin overview in the hub.
 - **Top movers** (House, Money; redesigned 2026-10-12): a heat map of the holdings, each tile
   sized by its share of the portfolio and tinted green or red by today's move, with the ticker,
-  the change and the name; the S&P 500, Nasdaq 100 and AEX below.
+  the change and the name (type scales with the tile; the name is left out on the smallest);
+  the S&P 500, Nasdaq 100 and AEX below.
 - **My sites** (House, added 2026-10-10): the owner's own sites: example.com,
   aoc.example.com, hubble.cafe, meteor.cafe, admin.hubble.cafe, harry.hubble.cafe and
   harry-admin.hubble.cafe. The list is grouped Personal and Hubble with short names (aoc, admin,

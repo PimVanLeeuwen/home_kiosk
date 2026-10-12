@@ -121,7 +121,7 @@ svg text { font-family: var(--f-body); }
 .dots { position: absolute; left: 0; right: 0; bottom: 4.2cqw; display: flex; justify-content: center; gap: 2.2cqw; z-index: 2; }
 .dot { width: 2.2cqw; height: 2.2cqw; border-radius: 50%; border: 0; padding: 0; background: rgba(255, 255, 255, .18); cursor: pointer; transition: width .3s ease, background .3s ease; }
 .dot.on { width: 6cqw; border-radius: 99px; background: rgba(255, 255, 255, .85); }
-.paused { position: absolute; top: 3.2cqw; right: 3.6cqw; font-size: 3cqw; color: var(--ink-3); letter-spacing: .1em; text-transform: uppercase; z-index: 2; }
+.paused { position: absolute; bottom: 3.4cqw; right: 4cqw; width: 3.2cqw; height: 3.2cqw; z-index: 2; font-size: 0; border-left: .9cqw solid rgba(255, 255, 255, .45); border-right: .9cqw solid rgba(255, 255, 255, .45); box-sizing: border-box; }
 
 /* Home */
 .rooms { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; flex: 1; }
@@ -357,17 +357,40 @@ svg text { font-family: var(--f-body); }
 .bleed { display: block; margin: 0 -7.5cqw; width: calc(100% + 15cqw); height: 30cqw; }
 .bleedlab { position: relative; height: 0; }
 .hl2 { position: absolute; top: -29cqw; transform: translateX(-100%); font-size: 3.4cqw; color: var(--ink-2); white-space: nowrap; }
-.heat2 { display: grid; grid-template-columns: 1.25fr 1fr .8fr; grid-template-rows: 1fr 1fr .85fr; grid-template-areas: "a b b" "a c d" "a c e"; gap: 2cqw; flex: 1; min-height: 0; margin-top: 1cqw; }
-.ht { border-radius: 3.4cqw; border: 1px solid; padding: 2.6cqw; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; overflow: hidden; }
-.ht .mono { font-size: 3.6cqw; color: #fff; }
-.ht b { font-size: 5.6cqw; font-weight: 600; color: #fff; letter-spacing: -.01em; }
-.ht small { font-size: 3cqw; color: rgba(255, 255, 255, .7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.heat2 { display: grid; grid-template-columns: 1.2fr 1fr .95fr; grid-template-rows: 1fr 1fr .85fr; grid-template-areas: "a b b" "a c d" "a c e"; gap: 2cqw; flex: 1; min-height: 0; margin-top: 1cqw; }
+@property --u { syntax: '<length>'; inherits: true; initial-value: 7px; }
+.card { --u: 1cqw; }
+.ht { container-type: size; border-radius: 3.4cqw; border: 1px solid; padding: 2.4cqw; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; overflow: hidden; }
+.ht .mono { font-size: min(16cqw, calc(var(--u) * 3.6)); color: #fff; }
+.ht .hb { display: grid; gap: .4cqw; }
+.ht b { font-size: min(24cqw, 34cqh, calc(var(--u) * 7.5)); font-weight: 600; color: #fff; letter-spacing: -.02em; line-height: 1; white-space: nowrap; }
+.ht small { font-size: min(13cqw, calc(var(--u) * 3.2)); color: rgba(255, 255, 255, .7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@container (max-height: 60px) { .ht small { display: none; } }
 .idx { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2cqw; }
 .idx span { display: grid; gap: .2cqw; font-size: 3.4cqw; }
 .idx em { font-style: normal; color: var(--ink-3); }
 .idx b { font-size: 4cqw; }
 .dls { display: grid; gap: 3cqw; margin-top: 1cqw; }
 .dl { display: grid; grid-template-columns: 11cqw 1fr auto; gap: 3cqw; align-items: center; }
+.rclock { position: relative; width: 62%; margin: 0 auto; }
+.rc-in { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: .6cqw; }
+.rc-t { font-size: 12.5cqw; font-weight: 500; letter-spacing: -.04em; line-height: 1; }
+.rc-w { font-size: 4cqw; color: var(--ink-2); }
+.ports { display: grid; grid-template-columns: 1fr 1fr; gap: 5cqw; margin-top: 2cqw; }
+.pm { display: grid; justify-items: center; gap: .6cqw; text-align: center; }
+.port { position: relative; width: 82%; }
+.glassdoor { position: absolute; inset: 15%; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .14), rgba(255, 255, 255, .02) 60%), #0e0e14; box-shadow: inset 0 0 0 .6cqw rgba(255, 255, 255, .08), inset 0 -2cqw 4cqw rgba(0, 0, 0, .5); }
+.glassdoor i { position: absolute; left: -50%; width: 200%; height: 200%; top: 55%; border-radius: 42%; background: color-mix(in srgb, var(--wc) 35%, transparent); }
+.glassdoor.run i { animation: drum 6s linear infinite; }
+.glassdoor.done i { top: 100%; }
+.glassdoor.done { box-shadow: inset 0 0 0 .6cqw rgba(95, 211, 156, .35), 0 0 6cqw rgba(95, 211, 156, .25); }
+@keyframes drum { to { transform: rotate(360deg); } }
+.glassdoor span { position: relative; font-size: 7cqw; font-weight: 600; display: grid; place-items: center; line-height: 1; }
+.glassdoor small { font-size: 3cqw; font-weight: 400; color: var(--ink-2); }
+.pn { font-size: 4.4cqw; font-weight: 600; margin-top: 1cqw; }
+.ps { font-size: 3.4cqw; color: var(--ink-2); }
+.ps2 { font-size: 3.6cqw; font-weight: 600; }
 .dl .poster { width: 11cqw; }
 .dlt { font-size: 4.2cqw; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dbar { height: 1.6cqw; border-radius: 99px; background: rgba(255, 255, 255, .08); overflow: hidden; margin-top: 1.4cqw; }
@@ -398,7 +421,7 @@ svg text { font-family: var(--f-body); }
   .unit figcaption { margin-top: 18px; }
   .notes { grid-template-columns: minmax(0, 1fr); }
 }
-@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo, .fline i, .ripple i, .aico, .house .wave, .disc.spin, .eq i, .dbar i { transition: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .track, .unit, .scr, .amb, .tile, .dot, .mono2.halo, .fline i, .ripple i, .aico, .house .wave, .disc.spin, .eq i, .dbar i, .glassdoor i { transition: none; animation: none; } }
 </style>
 
 <div class="wrap">
@@ -426,11 +449,11 @@ svg text { font-family: var(--f-body); }
   <div class="notes">
     <section>
       <h2>Now</h2>
-      <ul><li>Clock, weather and Buienradar rain, on a sky that follows the time of day</li><li>Your train: the 07:16 departure to Rotterdam Centraal, on weekday mornings only (tap Preview for delayed and cancelled)</li><li>Today: the next event with a countdown ring, the day as a ribbon with a now line, and what comes later</li><li>Your day: the sun's arc, the temperature curve and the chance of rain, with a one-line summary</li><li>Headlines: a full-bleed lead story, two more with thumbnails; tap one to save it to Readeck (the bookmark fills)</li><li>Night: a dim clock only</li></ul>
+      <ul><li>Clock with the next two hours of Buienradar rain as a ring around it, starting at now</li><li>Your train: the 07:16 departure to Rotterdam Centraal, on weekday mornings only (tap Preview for delayed and cancelled)</li><li>Today: the next event with a countdown ring, the day as a ribbon with a now line, and what comes later</li><li>Your day: the sun's arc over a sky band from night through dawn, day and dusk, the temperature curve and the chance of rain</li><li>Headlines: a full-bleed lead story, two more with thumbnails; tap one to save it to Readeck (the bookmark fills)</li><li>Night: a dim clock only</li></ul>
     </section>
     <section>
       <h2>Home</h2>
-      <ul><li>The living room only: the 3 kitchen spots and the 2 lamps, each glowing in the white they have now</li><li>Tap to switch, hold and drag for brightness; warm to cool white for the kitchen spots</li><li>Air: temperature, humidity, CO₂ as a ring with Fresh, Getting stuffy or Open a window, PM2.5, and CO₂ over the last 8 hours; the Christmas plugs only in the season</li><li>Apple devices: a small map of the house, each Apple TV and HomePod where it stands, playing ones rippling in the colour of what they play, the Thread mesh and the air sensor</li><li>Music: Now Playing first while music plays; otherwise a card with favourite playlists to start from the desk</li></ul>
+      <ul><li>The living room only: the 3 kitchen spots and the 2 lamps, each glowing in the white they have now</li><li>Tap to switch, hold and drag for brightness; warm to cool white for the kitchen spots</li><li>Air: temperature, humidity, CO₂ as a ring with Fresh, Getting stuffy or Open a window, PM2.5, and CO₂ over the last 8 hours; the Christmas plugs only in the season</li><li>Laundry: the washer and dryer as portholes with water turning while they run, a ring counting down and when they are ready</li><li>Apple devices: a small map of the house, each Apple TV and HomePod where it stands, playing ones rippling in the colour of what they play, the Thread mesh and the air sensor</li><li>Music: Now Playing first while music plays; otherwise a card with favourite playlists to start from the desk</li></ul>
     </section>
     <section>
       <h2>House</h2>
@@ -553,10 +576,12 @@ svg text { font-family: var(--f-body); }
         <linearGradient id="tg" x1="0" x2="1"><stop offset="0" stop-color="#8ab4ff"/><stop offset=".55" stop-color="#ffb86b"/><stop offset="1" stop-color="#8ab4ff"/></linearGradient>
         <linearGradient id="tf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb86b" stop-opacity=".18"/><stop offset="1" stop-color="#ffb86b" stop-opacity="0"/></linearGradient>
         <linearGradient id="rb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4a9ff"/><stop offset="1" stop-color="#6f60ea"/></linearGradient>
+        <linearGradient id="skyb" x1="0" x2="1"><stop offset="0" stop-color="#121633"/><stop offset="${(x(sr) / W - .03).toFixed(3)}" stop-color="#2a2552"/><stop offset="${(x(sr) / W + .02).toFixed(3)}" stop-color="#b8606a"/><stop offset="${(x(sr) / W + .1).toFixed(3)}" stop-color="#4a6fae"/><stop offset="${(x(13) / W).toFixed(3)}" stop-color="#3f73b8"/><stop offset="${(x(ss) / W - .06).toFixed(3)}" stop-color="#5e6fa8"/><stop offset="${(x(ss) / W).toFixed(3)}" stop-color="#d07a4e"/><stop offset="${(x(ss) / W + .06).toFixed(3)}" stop-color="#3a2650"/><stop offset="1" stop-color="#121633"/></linearGradient>
         <radialGradient id="sun"><stop offset="0" stop-color="#ffe2a8"/><stop offset=".45" stop-color="#ffb86b" stop-opacity=".55"/><stop offset="1" stop-color="#ffb86b" stop-opacity="0"/></radialGradient>
       </defs>
-      <line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="rgba(255,255,255,.12)"/>
-      <polyline points="${arc.join(' ')}" fill="none" stroke="rgba(255,226,168,.35)" stroke-width="1.4" stroke-dasharray="2 4" stroke-linecap="round"/>
+      <rect x="0" y="-2" width="${W}" height="${base + 2}" rx="7" fill="url(#skyb)" opacity=".75"/>
+      <line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="rgba(255,255,255,.18)"/>
+      <polyline points="${arc.join(' ')}" fill="none" stroke="rgba(255,236,200,.55)" stroke-width="1.2" stroke-dasharray="2 4" stroke-linecap="round"/>
       ${up ? `<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="14" fill="url(#sun)"/><circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="4.5" fill="#fff2d6"/>`
            : `<circle cx="${x(nh).toFixed(1)}" cy="${base - 24}" r="5" fill="#c9c4ee"/><circle cx="${(x(nh) + 2.6).toFixed(1)}" cy="${base - 25.6}" r="4.4" fill="#0f0f1a"/>`}
       <path d="${d} L${W},94 L0,94 Z" fill="url(#tf)"/>
@@ -593,12 +618,26 @@ svg text { font-family: var(--f-body); }
 
   // --- cards ---------------------------------------------------------------------------
   const C = {
-    clock: () => `<div class="row"><span class="k">De Bilt</span><span class="k">${now.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</span></div>
-      <div class="huge" data-clock>${hhmm(new Date())}</div>
-      <div class="row" style="justify-content:flex-start;gap:4cqw;align-items:center"><span class="mid" style="font-weight:500">14°</span><span class="sub">Cloudy<br>Wind 3 Bft SW</span></div>
+    clock: () => {
+      const segs = rainVals.map((v, i) => {
+        const a0 = i * 15 + 1.6, a1 = (i + 1) * 15 - 1.6, mm = Math.min(mmh(v), 3), len = mm > 0 ? 2.5 + mm / 3 * 7.5 : 1.2, r0 = 40;
+        const P = (r, a) => [50 + r * Math.sin(a * Math.PI / 180), 50 - r * Math.cos(a * Math.PI / 180)];
+        const [x0, y0] = P(r0, a0), [x1, y1] = P(r0, a1), [x2, y2] = P(r0 + len, a1), [x3, y3] = P(r0 + len, a0);
+        return `<path d="M${x0.toFixed(2)} ${y0.toFixed(2)} A${r0} ${r0} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)} L${x2.toFixed(2)} ${y2.toFixed(2)} A${r0 + len} ${r0 + len} 0 0 0 ${x3.toFixed(2)} ${y3.toFixed(2)} Z" fill="${mm > 0 ? 'url(#rr)' : 'rgba(255,255,255,.14)'}"/>`;
+      }).join('');
+      const at = m => hhmm(new Date(now.getTime() + m * 60000));
+      return `<div class="row"><span class="k">De Bilt · Buienradar</span><span class="k">${now.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</span></div>
+      <div class="rclock">
+        <svg viewBox="0 0 100 100" width="100%"><defs><radialGradient id="rr" cx="50" cy="50" r="52" gradientUnits="userSpaceOnUse"><stop offset=".72" stop-color="#6f60ea"/><stop offset="1" stop-color="#c3b9ff"/></radialGradient>
+          <radialGradient id="cglow"><stop offset="0" stop-color="rgba(124,108,242,.22)"/><stop offset="1" stop-color="rgba(124,108,242,0)"/></radialGradient></defs>
+          <circle cx="50" cy="50" r="34" fill="url(#cglow)"/>${segs}
+          <path d="M50 4.5 L50 9" stroke="#fff" stroke-width=".8" stroke-linecap="round"/>
+</svg>
+        <div class="rc-in"><div class="rc-t" data-clock>${hhmm(new Date())}</div><div class="rc-w">14° · cloudy</div></div>
+      </div>
       <div class="grow"></div>
-      <div class="row"><span class="k">Rain · Buienradar</span><span class="k" style="color:#b4a9ff">2,8 mm/u at ${hhmm(new Date(now.getTime() + 45 * 60000))}</span></div>
-      ${rainSvg()}`,
+      <div class="row" style="font-size:3.8cqw"><span style="color:#b4a9ff;font-weight:600">Rain ${at(25)} to ${at(70)}</span><span style="color:var(--ink-3)">peak 2,8 mm/u</span></div>`;
+    },
     forecast: () => `<div class="row"><span class="k">Your day</span><span class="k">High 16° · Low 9°</span></div>
       <div class="mid" style="font-size:6.6cqw;font-weight:500;line-height:1.15">Showers around noon,<br><span style="color:var(--ink-2)">dry again from 15:00.</span></div>
       <div class="grow"></div>
@@ -773,6 +812,20 @@ svg text { font-family: var(--f-body); }
       <div class="orbrow">${sv.slice(1).map(x => `<span class="mini" style="--c:${glowOf(x)}" title="${x}">${logo(x, 4)}</span>`).join('')}</div>
       <div class="sub" style="font-size:3.6cqw;text-align:center">The other 6 are operational</div>`;
     },
+    laundry: () => {
+      const m = [
+        { name: 'Washer', prog: 'Cotton 40° · spin', left: 38, total: 95, done: '10:52', col: '#9c8ffb', run: true },
+        { name: 'Dryer', prog: 'Cupboard dry', left: 0, total: 1, done: '09:41', col: '#5fd39c', run: false }
+      ];
+      const port = x => { const r = 44, c = 2 * Math.PI * r, f = x.run ? 1 - x.left / x.total : 1;
+        return `<div class="port"><svg viewBox="0 0 100 100" width="100%"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/>
+          <circle cx="50" cy="50" r="${r}" fill="none" stroke="${x.col}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 3px ${x.col})"/></svg>
+          <div class="glassdoor${x.run ? ' run' : ' done'}" style="--wc:${x.col}"><i></i><span>${x.run ? x.left + '<small>min</small>' : '<svg viewBox="0 0 24 24" width="40%"><path d="M5 12.5l4.5 4.5 9.5-10" fill="none" stroke="#5fd39c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'}</span></div></div>`; };
+      return `<div class="row"><span class="k">Laundry</span><span class="pill" style="color:#c9c1ff;background:rgba(124,108,242,.2)">WASHER RUNNING</span></div>
+      <div class="ports">${m.map(x => `<div class="pm">${port(x)}<div class="pn">${x.name}</div><div class="ps">${x.run ? x.prog : 'Done at ' + x.done}</div><div class="ps2" style="color:${x.col}">${x.run ? 'Ready at ' + x.done : 'Take it out'}</div></div>`).join('')}</div>
+      <div class="grow"></div>
+      <div class="sub" style="font-size:3.4cqw;color:var(--ink-3);text-align:center">Telegram tells you when it is done</div>`;
+    },
     apple: () => {
       // A small map of the house: rooms as zones, devices where they stand, the Thread mesh between them.
       const zones = [['Living room', 3, 3, 94, 38], ['Bedroom', 3, 44, 58, 30], ['Bathroom', 64, 44, 33, 30]];
@@ -856,7 +909,7 @@ svg text { font-family: var(--f-body); }
     movers: () => {
       const m = { VWRL: ['FTSE All-World', .41, 'a'], NVDA: ['Nvidia', 2.84, 'b'], ASML: ['ASML', 1.92, 'c'], ADYEN: ['Adyen', -1.37, 'd'], SHELL: ['Shell', -.62, 'e'] };
       const tile = (k, v) => { const up = v[1] >= 0, a = (.18 + Math.min(Math.abs(v[1]) / 3, 1) * .55).toFixed(2), c = up ? '95,211,156' : '255,107,107';
-        return `<div class="ht" style="grid-area:${v[2]};background:linear-gradient(150deg, rgba(${c},${a}), rgba(${c},${(a * .45).toFixed(2)}));border-color:rgba(${c},.35)"><span class="mono">${k}</span><b>${pct(v[1])}</b><small>${v[0]}</small></div>`; };
+        return `<div class="ht" style="grid-area:${v[2]};background:linear-gradient(150deg, rgba(${c},${a}), rgba(${c},${(a * .45).toFixed(2)}));border-color:rgba(${c},.35)"><span class="mono">${k}</span><span class="hb"><b>${pct(v[1])}</b><small>${v[0]}</small></span></div>`; };
       return `<div class="row"><span class="k">Top movers today</span><span class="k">3 up · 2 down</span></div>
       <div class="heat2">${Object.entries(m).map(([k, v]) => tile(k, v)).join('')}</div>
       <div class="idx">${[['S&amp;P 500', .38], ['Nasdaq 100', .71], ['AEX', -.24]].map(x => `<span><em>${x[0]}</em><b class="${x[1] >= 0 ? 'up' : 'down'}">${pct(x[1])}</b></span>`).join('')}</div>`;
@@ -933,7 +986,7 @@ svg text { font-family: var(--f-body); }
   };
   const decks = {
     now: () => ['clock', 'train', 'agenda', 'forecast', 'headlines'],
-    home: () => st.music ? ['playing', 'rooms', 'climate', 'apple'] : ['rooms', 'climate', 'apple', 'music'],
+    home: () => st.music ? ['playing', 'rooms', 'climate', 'laundry', 'apple'] : ['rooms', 'climate', 'laundry', 'apple', 'music'],
     house: () => ['nas', 'sites', 'services', 'money', 'movers', 'code', 'media', 'backups', 'alerts']
   };
   const intervals = { now: 10000, home: 0, house: 9000 };
