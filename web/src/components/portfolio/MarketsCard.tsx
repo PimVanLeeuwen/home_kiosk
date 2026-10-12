@@ -11,19 +11,30 @@ export function MarketsCard() {
   const { data } = useApi<Indices>('/api/indices', 900_000)
   if (!data?.indices.length) return null
   return (
-    <Card title="Markets">
-      <ul className="space-y-2 text-[13.5px]">
+    <Card
+      title="Markets"
+      actions={<span className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">Last session</span>}
+    >
+      <ul className="grid gap-2 text-[13.5px]">
         {data.indices.map((q) => (
-          <li key={q.symbol} className="flex items-baseline gap-3">
-            <span className="min-w-0 flex-1 truncate whitespace-nowrap">{q.label}</span>
-            <span className="text-[12.5px] text-muted">{decimals.format(q.price)}</span>
-            <span className={cn('w-16 text-right font-medium', q.day_pct > 0 ? 'text-up' : q.day_pct < 0 ? 'text-down' : 'text-muted')}>
+          // Read in order: name, level, move; the move is placed at the right.
+          <li
+            key={q.symbol}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 rounded-[11px] border border-glass-line bg-glass px-3 py-2.5"
+          >
+            <span className="col-start-1 row-start-1 truncate">{q.label}</span>
+            <span className="col-start-1 row-start-2 text-[12px] text-muted">{decimals.format(q.price)}</span>
+            <span
+              className={cn(
+                'col-start-2 row-span-2 row-start-1 rounded-[7px] px-1.5 py-0.5 text-[12.5px] font-semibold',
+                q.day_pct > 0 ? 'bg-up/12 text-up' : q.day_pct < 0 ? 'bg-down/13 text-down' : 'bg-raised text-muted',
+              )}
+            >
               {formatSignedPct(q.day_pct)}
             </span>
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-[12px] text-faint">Last session's move.</p>
       {data.stale && <StaleNote />}
     </Card>
   )

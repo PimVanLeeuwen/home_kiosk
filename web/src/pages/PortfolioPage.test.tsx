@@ -89,9 +89,14 @@ describe('PortfolioPage', () => {
     setup()
 
     const allocation = await screen.findByRole('region', { name: 'Allocation' })
-    expect(within(allocation).getByText('Equities').nextElementSibling).toHaveTextContent('65,3%')
+    // The legend, with the largest slice also named in the ring's middle.
+    expect(within(allocation).getByText('Equities', { selector: 'span' }).nextElementSibling).toHaveTextContent('65,3%')
+    const ring = within(allocation).getByRole('img', { name: 'Allocation: Equities 65,3%, ETFs 34,6%, Cash 0,1%' })
+    expect(ring).toHaveTextContent('65%Equities')
+    expect(ring.querySelectorAll('circle')).toHaveLength(4) // the track and a slice each
     const markets = await screen.findByRole('region', { name: 'Markets' })
     expect(within(markets).getByText('AEX').parentElement).toHaveTextContent('AEX1.102,63−1,10%')
+    expect(within(markets).getByText('−1,10%')).toHaveClass('text-down')
   })
 
   it('opens a holding with its figures, price chart and transactions', async () => {
