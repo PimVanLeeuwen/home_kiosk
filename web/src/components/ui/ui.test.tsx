@@ -67,13 +67,13 @@ describe('BarStrip', () => {
 
   it('puts the label under the bar it is given', () => {
     render(<BarStrip values={[70, 94, 71, 72]} label="n" marks={{ 1: 'warn', 2: 'down' }} markLabel="failed" markAt={2} end="last night" />)
-    expect(screen.getByText('failed')).toHaveAttribute('fill', 'var(--color-down)')
+    expect(screen.getByText('failed')).toHaveAttribute('data-tone', 'down')
     expect(screen.getByText('last night')).toBeInTheDocument()
   })
 
   it('shares the end words when the label belongs to the newest bar', () => {
     render(<BarStrip values={[70, 94, 71]} label="n" marks={{ 2: 'down' }} markLabel="failed" markAt={2} end="last night" />)
-    expect(screen.getByText('last night: failed')).toHaveAttribute('fill', 'var(--color-down)')
+    expect(screen.getByText('last night: failed')).toHaveAttribute('data-tone', 'down')
     expect(screen.queryByText('failed')).not.toBeInTheDocument()
   })
 

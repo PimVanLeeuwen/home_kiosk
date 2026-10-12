@@ -1,10 +1,13 @@
 import { DumpsCard } from '../components/backups/DumpsCard'
 import { MirrorCard } from '../components/backups/MirrorCard'
 import { RestoreCheckCard } from '../components/backups/RestoreCheckCard'
+import { LastNightCard } from '../components/backups/LastNightCard'
 import { RunBars } from '../components/backups/RunBars'
 import { StorageBoxCard } from '../components/backups/StorageBoxCard'
 import { Card, Loading, StaleNote, Unavailable } from '../components/home/Card'
 import { PageHeader } from '../components/PageHeader'
+import { Pill } from '../components/ui/Pill'
+import { backupVerdict, VERDICT_PILL } from '../lib/backups'
 import { cn } from '../lib/cn'
 import { formatBytes, formatCount, formatDuration, formatWhen } from '../lib/format'
 import type { BackupHistory, BackupRun, BackupVolume, DatabaseDumps, GitHubMirror } from '../lib/types'
@@ -28,11 +31,16 @@ export function BackupsPage() {
   const { data: dumps } = useApi<DatabaseDumps>('/api/database-dumps', 300_000)
   const last = data?.runs[0]
   const recent = data?.runs.slice(0, 30) ?? []
-  const succeeded = recent.filter((r) => r.ok).length
+  const now = new Date()
+  const verdict = last && VERDICT_PILL[backupVerdict(last, now)]
 
   return (
     <>
-      <PageHeader title="Backups" subtitle="Nightly rclone runs to the Hetzner storage box, encrypted" />
+      <PageHeader
+        title="Backups"
+        subtitle="Nightly rclone runs to the Hetzner storage box, encrypted"
+        actions={verdict && <Pill tone={verdict.tone}>{verdict.label}</Pill>}
+      />
 
       {!data && (error ? <Unavailable what="Backup history" /> : <Loading />)}
 
@@ -47,28 +55,9 @@ export function BackupsPage() {
 
       {data && last && (
         <>
-          <dl className="mb-5 grid grid-cols-2 gap-2.5 md:gap-4 xl:grid-cols-4">
-            <div className="rounded-[14px] border border-line-soft bg-card px-4 py-3.5">
-              <dt className="text-[12.5px] text-muted">Last run</dt>
-              <dd className="text-[15px]">
-                <Outcome ok={last.ok} /> <span className="text-muted">{formatWhen(last.finished)}</span>
-              </dd>
-            </div>
-            <div className="rounded-[14px] border border-line-soft bg-card px-4 py-3.5">
-              <dt className="text-[12.5px] text-muted">Took</dt>
-              <dd className="text-[15px] font-semibold">{formatDuration(runSeconds(last))}</dd>
-            </div>
-            <div className="rounded-[14px] border border-line-soft bg-card px-4 py-3.5">
-              <dt className="text-[12.5px] text-muted">Next run due</dt>
-              <dd className="text-[15px] font-semibold">{data.next_due ? formatWhen(data.next_due) : 'Unknown'}</dd>
-            </div>
-            <div className="rounded-[14px] border border-line-soft bg-card px-4 py-3.5">
-              <dt className="text-[12.5px] text-muted">Succeeded, last {recent.length} runs</dt>
-              <dd className={cn('text-[15px] font-semibold', succeeded < recent.length && 'text-warn')}>
-                {succeeded} of {recent.length}
-              </dd>
-            </div>
-          </dl>
+          <div className="mb-5">
+            <LastNightCard last={last} history={data} dumps={dumps} now={now} />
+          </div>
 
           {data.storage_box && <StorageBoxCard box={data.storage_box} />}
 

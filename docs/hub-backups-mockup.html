@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of the hub's Backups page in the desk panels' visual language, calmer, as Home
+     and NAS (docs/hub-home-mockup.html, docs/hub-nas-mockup.html). Example data only. Not served by the hub. -->
+<title>Home hub: Backups restyled</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .07);
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.chrome { max-width: 1480px; margin: 0 auto; padding: 22px 20px 10px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+.chrome h1 { margin: 0; font-size: 22px; font-weight: 600; } .chrome p { margin: 3px 0 0; color: var(--muted); max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { background: #17181c; border: 1px solid var(--line); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: rgba(124, 108, 242, .18); border-color: var(--accent); }
+.stage { display: flex; justify-content: center; padding: 14px 20px 40px; }
+.device { width: 1440px; height: 900px; border-radius: 14px; overflow: hidden; border: 1px solid #1a1b1f; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.device.mobile { width: 390px; height: 844px; border-radius: 44px; border: 10px solid #000; }
+.app { display: flex; height: 100%; background: var(--canvas); position: relative; }
+.side { width: 240px; flex: none; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; }
+.side b.brand { font-size: 15px; padding: 0 10px; } .side small.host { color: var(--faint); padding: 0 10px 14px; font-size: 12px; }
+.side .grp { font-size: 11px; letter-spacing: .08em; color: var(--faint); padding: 14px 10px 4px; text-transform: uppercase; font-weight: 600; }
+.side a { padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; display: flex; gap: 10px; align-items: center; }
+.side a.on { background: rgba(124,108,242,.14); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent-line); }
+.side a i { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; opacity: .7; }
+.main { flex: 1; margin: 8px 8px 8px 0; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); overflow: auto; }
+.mobile .side { display: none; } .mobile .main { margin: 0; border-radius: 0; border: 0; padding-bottom: 74px; }
+.tabbar { display: none; }
+.mobile .tabbar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 74px; background: rgba(8,9,10,.92); border-top: 1px solid var(--line-soft); justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); }
+.mobile .tabbar span { display: grid; justify-items: center; gap: 3px; } .mobile .tabbar span.on { color: var(--accent-fg); }
+.mobile .tabbar i { width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 5px; }
+.page { padding: 36px 44px 48px; } .mobile .page { padding: 58px 16px 24px; }
+.ph { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.ph h2 { font-size: 26px; font-weight: 600; margin: 0; } .ph p { margin: 4px 0 0; color: var(--muted); }
+
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 20px 24px; min-width: 0; position: relative; overflow: hidden; }
+.mobile .card { padding: 18px; }
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; white-space: nowrap; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.14); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--f-mono); }
+.up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); } .muted { color: var(--muted); } .faint { color: var(--faint); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; background: var(--c, var(--up)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--up)) 18%, transparent), 0 0 10px var(--c, var(--up)); }
+.dot.pulse { animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent), 0 0 18px var(--c); } }
+
+
+/* Hero: last night as a seal, the route to Hetzner, three facts, 30 nights. */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 28px; align-items: center; }
+.mobile .hero { grid-template-columns: 1fr; gap: 16px; }
+.seal-row { display: grid; grid-template-columns: 80px 1fr; gap: 16px; align-items: center; }
+.seal-row .t { font-size: 24px; font-weight: 600; line-height: 1.15; } .seal-row .s { font-size: 13px; color: var(--muted); }
+.flow { display: flex; align-items: center; gap: 10px; margin: 16px 0 14px; font-size: 12px; }
+.flow .c2 { padding: 3px 9px; border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-line); color: var(--muted); white-space: nowrap; }
+.flow .line { flex: 1; height: 2px; border-radius: 2px; background: rgba(63,185,127,.22); position: relative; overflow: hidden; }
+.flow .line.bad { background: rgba(229,100,106,.35); }
+.flow .line i { position: absolute; top: -1px; width: 28%; height: 4px; border-radius: 4px; background: linear-gradient(90deg, transparent, #7fe0b0, transparent); animation: flow 3.6s ease-in-out infinite; }
+@keyframes flow { from { left: -30%; } to { left: 100%; } }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.fact { border-radius: 10px; background: var(--glass); border: 1px solid var(--glass-line); padding: 8px 10px; min-width: 0; }
+.fact .lab { font-size: 10px; } .fact b { display: block; font-size: 14px; font-weight: 600; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.row2 { display: grid; grid-template-columns: 1fr 1.6fr; gap: 20px; margin-top: 20px; }
+.row4 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+.mobile .row2, .mobile .row4 { grid-template-columns: 1fr; gap: 14px; margin-top: 14px; }
+.full { margin-top: 20px; } .mobile .full { margin-top: 14px; }
+.gwrap svg { width: 70%; max-width: 240px; display: block; margin: 0 auto; overflow: visible; }
+
+/* Volumes as glass tiles with an LED. */
+.vols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.mobile .vols { grid-template-columns: 1fr; }
+.vol { align-content: start; border-radius: 12px; background: var(--glass); border: 1px solid var(--glass-line); padding: 12px 13px; display: grid; gap: 6px; font-size: 12.5px; }
+.vol.bad { border-color: rgba(229,100,106,.4); background: linear-gradient(160deg, rgba(229,100,106,.12), rgba(229,100,106,.03)); }
+.vol .top { display: flex; align-items: center; gap: 8px; } .vol .top .mono { font-weight: 600; font-size: 13px; }
+.vol dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; } .vol dt { color: var(--muted); } .vol dd { margin: 0; text-align: right; }
+.err { border-radius: 8px; border: 1px solid rgba(229,100,106,.4); background: rgba(229,100,106,.1); padding: 6px 9px; font-family: var(--f-mono); font-size: 11.5px; word-break: break-word; }
+
+/* Run history: a stacked bar per run, one segment per volume. */
+.runs { width: 100%; border-collapse: collapse; font-size: 13px; }
+.runs th { text-align: left; font-size: 11.5px; color: var(--faint); font-weight: 500; padding: 0 8px 8px 0; }
+.runs td { padding: 7px 8px 7px 0; border-top: 1px solid var(--line-soft); vertical-align: middle; }
+.runs tr.bad td { background: rgba(229,100,106,.06); }
+.stack { display: flex; height: 7px; border-radius: 4px; overflow: hidden; background: var(--raised); gap: 2px; }
+.stack i { display: block; height: 100%; }
+.legend2 { display: flex; gap: 14px; font-size: 11.5px; color: var(--muted); margin: 0 0 10px; flex-wrap: wrap; } .legend2 i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.mobile .runs .hide-m { display: none; }
+
+/* Dumps, restore check, mirror */
+.rows { display: grid; gap: 8px; }
+.rowg { display: grid; grid-template-columns: 12px 1fr auto; gap: 4px 10px; align-items: center; padding: 9px 12px; border-radius: 10px; background: var(--glass); border: 1px solid var(--glass-line); font-size: 13px; }
+.rowg.bad { border-color: rgba(229,100,106,.4); background: linear-gradient(160deg, rgba(229,100,106,.12), rgba(229,100,106,.03)); }
+.rowg .meta { grid-column: 2 / -1; font-size: 12px; color: var(--muted); }
+.chip { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; border-radius: 6px; padding: 1px 6px; background: rgba(124,108,242,.16); color: var(--accent-fg); margin-left: 6px; }
+.chip.sq { background: rgba(140,196,255,.14); color: #8cc4ff; }
+.dots { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.dots i { width: 7px; height: 7px; border-radius: 2px; background: rgba(63,185,127,.55); } .dots i.bad { background: #e5646a; box-shadow: 0 0 6px #e5646a; } .dots i.last { background: #3fb97f; box-shadow: 0 0 6px #3fb97f; }
+.foot { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line-soft); font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.steps { display: grid; gap: 7px; margin-top: 14px; border-left: 1px solid var(--line); padding-left: 16px; font-size: 13px; }
+.steps div { position: relative; } .steps div::before { content: '✓'; position: absolute; left: -24px; top: 0; width: 15px; height: 15px; border-radius: 50%; background: rgba(63,185,127,.16); color: #3fb97f; font-size: 9.5px; display: grid; place-items: center; font-weight: 700; }
+.steps div.bad::before { content: '×'; background: rgba(229,100,106,.18); color: #e5646a; font-size: 12px; }
+.steps small { display: block; color: var(--muted); font-size: 12px; }
+.owners { display: flex; gap: 8px; flex-wrap: wrap; }
+.owner { border-radius: 10px; background: var(--glass); border: 1px solid var(--glass-line); padding: 8px 12px; } .owner b { font-size: 18px; font-weight: 600; display: block; } .owner span { font-size: 12px; color: var(--muted); }
+.mgrid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: start; }
+.mobile .mgrid { grid-template-columns: 1fr; gap: 12px; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13.5px; margin: 0; } .kv dt { color: var(--muted); } .kv dd { margin: 0; }
+.mobile .facts { grid-template-columns: 1fr; }
+.barlab { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--faint); margin-top: 4px; }
+.notes { max-width: 1440px; margin: 0 auto; padding: 0 20px 50px; color: var(--muted); columns: 2 420px; column-gap: 40px; }
+.notes h4 { color: var(--fg); margin: 0 0 6px; font-size: 14px; } .notes ul { margin: 0 0 16px; padding-left: 18px; } .notes li { margin: 3px 0; break-inside: avoid; }
+@media (prefers-reduced-motion: reduce) { .dot.pulse, .flow .line i { animation: none; } }
+</style>
+
+<div class="chrome">
+  <div>
+    <h1>Backups, restyled <span class="pill acc" style="margin-left:8px;vertical-align:3px">example data</span></h1>
+    <p>The Backups page in the language of the restyled Home and NAS: last night as a seal with the route to Hetzner and 30 nights, the storage box on a dial, volumes as glass tiles, a stacked bar per run, and the dumps, restore check and mirror as checklists. Same data as today.</p>
+  </div>
+  <div class="ctl">
+    <button data-v="desktop" aria-pressed="true">Desktop</button>
+    <button data-v="mobile" aria-pressed="false">Mobile</button>
+    <button data-s="ok" aria-pressed="true">All well</button>
+    <button data-s="look" aria-pressed="false">Something needs a look</button>
+  </div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<div class="notes">
+  <h4>What changes</h4>
+  <ul>
+    <li><b>Header:</b> as today, plus an All safe / Failed pill.</li>
+    <li><b>Last night:</b> replaces the four summary chips. A seal with the result, time, how long it took and how much changed; the NAS to Hetzner line with its slow light (red and still after a failure); next run, success count and the restore check as three small facts; the last 30 nights as bars on the right, failed red and slow amber (as on Home).</li>
+    <li><b>Storage box:</b> an arc gauge with the red mark at the 85% alert, used and free, the runway, and when it was measured.</li>
+    <li><b>Volumes:</b> a glass tile each with an LED, last success, what changed, how long it took and errors; a failed volume is tinted red with rclone's last error.</li>
+  </ul>
+  <ul>
+    <li><b>Last 30 runs:</b> the table stays, with an LED per run and a stacked bar of how long each volume took (a colour per volume), so a slow volume shows at a glance; failed rows are tinted. On a phone the per-volume columns give way to the bar.</li>
+    <li><b>Database dumps:</b> a glass row per database with a pg_dump or SQLite chip, its LED, size and last success; the host job as a dot per recent run.</li>
+    <li><b>Restore check:</b> a seal with the verdict and its steps as a checklist with ticks (a cross on a failed step, with its detail).</li>
+    <li><b>GitHub mirror:</b> the owners as tiles with their repo counts, size, last run and next run, a dot per recent run, and failed repos in red.</li>
+  </ul>
+</div>
+
+<script>
+const st = { view: 'desktop', state: 'ok' };
+const nl = (n, d = 1) => n.toFixed(d).replace('.', ',');
+const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+function area(vals, color, { line2 = null, W = 300, H = 70, peak = true } = {}) {
+  const max = Math.max(...vals, ...(line2 || [])), min = 0, sp = max - min || 1;
+  const P = (v, i, n) => `${(i / (n - 1) * W).toFixed(1)},${(6 + (1 - (v - min) / sp) * (H - 10)).toFixed(1)}`;
+  const pts = vals.map((v, i) => P(v, i, vals.length)).join(' ');
+  const pk = vals.indexOf(Math.max(...vals)), [px, py] = P(vals[pk], pk, vals.length).split(',');
+  const id = 'a' + Math.random().toString(36).slice(2, 7);
+  return `<svg class="area" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="calc(100% + 48px)" height="${st.view === 'mobile' ? 48 : 64}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px ${color})"/>
+    ${line2 ? `<polyline points="${line2.map((v, i) => P(v, i, line2.length)).join(' ')}" fill="none" stroke="#9a9ea7" stroke-width="1" stroke-opacity=".7" vector-effect="non-scaling-stroke"/>` : ''}
+    ${peak ? `<circle cx="${px}" cy="${py}" r="2.2" fill="${color}" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${color})"/>` : ''}</svg>`;
+}
+
+function gauge(v, warnAt = 90) {
+  const R = 40, cx = 50, cy = 52, P = (a, r = R) => [cx - r * Math.cos(a * Math.PI), cy - r * Math.sin(a * Math.PI)];
+  const arc = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+  const ticks = Array.from({ length: 21 }, (_, i) => { const a = i / 20, [x0, y0] = P(a, R + 6), [x1, y1] = P(a, R + (i % 5 ? 7.5 : 9)); return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,${i % 5 ? .14 : .32})" stroke-width=".5"/>`; }).join('');
+  const [tx, ty] = P(warnAt / 100, R + 8), over = v >= warnAt, id = 'g' + Math.random().toString(36).slice(2, 7);
+  return `<svg viewBox="0 2 100 56"><defs><linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="#6f60ea"/><stop offset=".75" stop-color="#b4a9ff"/><stop offset="1" stop-color="${over ? '#e0a23b' : '#cfc8ff'}"/></linearGradient>
+    <filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${ticks}
+    <path d="${arc(0, 1)}" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="${arc(0, v / 100)}" stroke="url(#${id})" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#${id}f)"/>
+    <circle cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="1.3" fill="#e5646a"/>
+    <text x="50" y="50" text-anchor="middle" font-size="19" font-weight="600" fill="#ecedef" letter-spacing="-.8">${Math.round(v)}%</text></svg>`;
+}
+
+function ring(pct, color, inner, sub) {
+  const r = 42, c = 2 * Math.PI * r;
+  return `<svg viewBox="0 0 100 100" width="100%"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 4px ${color})"/>
+    <text x="50" y="52" text-anchor="middle" font-size="20" font-weight="600" fill="#ecedef">${inner}</text><text x="50" y="66" text-anchor="middle" font-size="8.5" fill="#9a9ea7">${sub}</text></svg>`;
+}
+
+function seal(ok, size = 64) {
+  const c = ok ? '#3fb97f' : '#e5646a';
+  return `<svg viewBox="0 0 60 60" width="${size}"><circle cx="30" cy="30" r="25" fill="none" stroke="${c}" stroke-opacity=".45" stroke-dasharray="1.5 2.4"/>
+    <path d="M30 11 L45 17 V29 C45 39 38 46 30 49 C22 46 15 39 15 29 V17 Z" fill="${c}" fill-opacity=".13" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/>
+    ${ok ? `<path d="M23.5 30l4.5 4.5 8.5-9" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="M30 22v10M30 37v.5" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`}</svg>`;
+}
+
+
+function sealOk(ok, size = 80) {
+  const c = ok ? '#3fb97f' : '#e5646a', id = 's' + Math.random().toString(36).slice(2, 7);
+  return `<svg viewBox="0 0 60 60" width="${size}"><defs><radialGradient id="${id}"><stop offset="0" stop-color="${c}" stop-opacity=".3"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient></defs>
+    <circle cx="30" cy="30" r="29" fill="url(#${id})"/><circle cx="30" cy="30" r="25" fill="none" stroke="${c}" stroke-opacity=".45" stroke-dasharray="1.5 2.4"/>
+    <circle cx="30" cy="30" r="20" fill="${c}" fill-opacity=".12" stroke="${c}" stroke-width="1.6"/>
+    ${ok ? `<path d="M22 30.5l5.5 5.5 11-12" fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="M23.5 23.5l13 13M36.5 23.5l-13 13" fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`}</svg>`;
+}
+function bars(n, slow, failedLast) {
+  const W = 300, H = 70, bw = W / n.length;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${st.view === 'mobile' ? 64 : 110}" preserveAspectRatio="none" style="display:block;overflow:visible"><defs><linearGradient id="bkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(63,185,127,.5)"/><stop offset="1" stop-color="rgba(63,185,127,.1)"/></linearGradient>
+    <filter id="bkl" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    ${n.map((m, i) => { const h = m / Math.max(...n) * (H - 4), last = i === n.length - 1, fill = last && failedLast ? '#e5646a' : i === slow ? '#e0a23b' : last ? '#3fb97f' : 'url(#bkg)';
+      return `<rect x="${(i * bw + 1.3).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${(bw - 2.6).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${fill}"${last ? ' filter="url(#bkl)"' : ''}/>`; }).join('')}
+    </svg><div class="barlab"><span>30 nights</span>${failedLast ? '' : '<span class="warn-t">a slow night</span>'}<span class="${failedLast ? 'down' : ''}">${failedLast ? 'last night: failed' : 'last night'}</span></div>`;
+}
+
+function render() {
+  const look = st.state === 'look', mob = st.view === 'mobile';
+  const VOLS = [['volume1', '#8f80ff'], ['volume2', '#7cc4ff'], ['volume3', '#7fe0b0']];
+  const n = [68, 71, 70, 66, 72, 69, 70, 73, 71, 68, 70, 72, 69, 67, 71, 70, 94, 69, 70, 71, 68, 73, 70, 69, 72, 71, 70, 68, 71, 72];
+  const days = Array.from({ length: 10 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - i); return d; });
+  const day = d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  const runs = days.map((d, i) => { const m = n[n.length - 1 - i], fail = look && i === 0;
+    return { when: i === 0 ? 'today 04:13' : i === 1 ? 'yesterday 04:11' : `${day(d)} 04:${10 + (i % 5)}`, ok: !fail, mins: m, split: [.45, .35, .2], changed: ['1,8 GB · 412 files', fail ? 'failed' : '1,4 GB · 96 files', '820 MB · 1.204 files'] }; });
+  const nav = [['', 'Home'], ['Read', 'News'], ['', 'Saved'], ['Money', 'Portfolio'], ['House', 'NAS'], ['', 'Docker'], ['', 'Backups', 1], ['', 'Services'], ['Code', 'Repos'], ['System', 'Alerts'], ['', 'Settings']];
+  const box = look ? 87 : 64;
+  const d = document.getElementById('device');
+  d.className = 'device' + (mob ? ' mobile' : '');
+  d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">dev-minotaur</small>
+    ${nav.map(x => `${x[0] ? `<span class="grp">${x[0]}</span>` : ''}<a href="#" class="${x[2] ? 'on' : ''}"><i></i>${x[1]}</a>`).join('')}</nav>
+    <main class="main"><div class="page">
+      <div class="ph"><div><h2>Backups</h2><p>Nightly rclone runs to the Hetzner storage box, encrypted</p></div><span class="pill ${look ? 'down' : 'up'}">${look ? 'Failed' : 'All safe'}</span></div>
+
+      <section class="card"><div class="head"><h3>Last night</h3><span class="lab">Hetzner · encrypted</span></div>
+        <div class="hero"><div>
+          <div class="seal-row">${sealOk(!look)}<div><div class="t ${look ? 'down' : 'up'}">${look ? 'Failed' : 'Succeeded'} <span class="muted" style="font-size:14px;font-weight:400">today 04:13</span></div>
+            <div class="s">3 volumes · 1 h 12 min · ${look ? '2,6 GB' : '4,1 GB'} changed</div>${look ? '<div class="s down">volume2: quota exceeded</div>' : ''}</div></div>
+          <div class="flow"><span class="c2">NAS</span><span class="line ${look ? 'bad' : ''}">${look ? '' : '<i></i>'}</span><span class="c2">Hetzner · encrypted</span></div>
+          <div class="facts"><div class="fact"><span class="lab">Next run</span><b>tomorrow 03:00</b></div><div class="fact"><span class="lab">Last 30</span><b class="${look ? 'warn-t' : ''}">${look ? '29' : '30'} of 30 ok</b></div><div class="fact"><span class="lab">Restore</span><b class="up">verified 12 days ago</b></div></div>
+        </div><div>${bars(n, 16, look)}</div></div>
+      </section>
+
+      <div class="row2">
+        <section class="card"><div class="head"><h3>Storage box</h3><span class="pill ${look ? 'warn' : 'up'}">${look ? 'Nearly full' : 'Room left'}</span></div>
+          <div class="gwrap">${gauge(box, 85)}</div>
+          <div style="text-align:center;font-size:12.5px"><div class="muted">${nl(box / 100 * 5, 1)} of 5,0 TB · ${nl(5 - box / 100 * 5, 1)} TB free</div><div class="${look ? 'warn-t' : 'faint'}">${look ? 'Full in about 3 months' : 'Full in about 2 years'}</div><div class="faint" style="margin-top:6px">Measured after the backup of today 04:13</div></div>
+        </section>
+        <section class="card"><div class="head"><h3>Volumes</h3><span class="lab">Last run</span></div>
+          <div class="vols">${VOLS.map(([v, c], i) => { const bad = look && v === 'volume2';
+            return `<div class="vol ${bad ? 'bad' : ''}"><div class="top"><span class="dot ${bad ? 'pulse' : ''}" style="--c:${bad ? '#e5646a' : '#3fb97f'}"></span><span class="mono">${v}</span><span style="margin-left:auto;width:9px;height:9px;border-radius:3px;background:${c}"></span></div>
+              <dl><dt>Last success</dt><dd>${bad ? 'yesterday 04:11' : 'today 04:13'}</dd><dt>Changed</dt><dd>${bad ? '–' : runs[0].changed[i]}</dd><dt>Took</dt><dd>${[30, 23, 13][i]} min</dd>${bad ? '<dt>Errors</dt><dd class="down">1</dd>' : ''}</dl>
+              ${bad ? '<div class="err">Failed to copy: quota exceeded (exit code 7)</div>' : ''}</div>`; }).join('')}</div>
+        </section>
+      </div>
+
+      <section class="card full"><div class="head"><h3>Last 30 runs</h3><span class="lab">How long each volume took</span></div>
+        <div class="legend2">${VOLS.map(([v, c]) => `<span><i style="background:${c}"></i>${v}</span>`).join('')}</div>
+        <table class="runs"><thead><tr><th style="width:18px"></th><th>Finished</th><th style="width:${mob ? 34 : 30}%">Took</th><th></th>${VOLS.map(([v]) => `<th class="hide-m" style="text-align:right">${v}</th>`).join('')}</tr></thead>
+          <tbody>${runs.slice(0, mob ? 6 : 8).map(r => `<tr class="${r.ok ? '' : 'bad'}"><td><span class="dot" style="--c:${r.ok ? '#3fb97f' : '#e5646a'}"></span></td><td>${r.when}</td>
+            <td><div class="stack" style="width:${(r.mins / 94 * 100).toFixed(0)}%">${r.split.map((f, i) => `<i style="width:${f * 100}%;background:${VOLS[i][1]};${!r.ok && i === 1 ? 'background:#e5646a' : ''}"></i>`).join('')}</div></td>
+            <td class="muted" style="white-space:nowrap">${Math.floor(r.mins / 60) ? `1 h ${r.mins - 60} min` : `${r.mins} min`}</td>
+            ${r.changed.map(c => `<td class="hide-m ${c === 'failed' ? 'down' : 'muted'}" style="text-align:right;white-space:nowrap">${c}</td>`).join('')}</tr>`).join('')}</tbody></table>
+      </section>
+
+      <div class="row4">
+        <section class="card"><div class="head"><h3>Database dumps</h3><span class="lab">02:30 · 02:45</span></div>
+          <div class="rows">${[['Ghostfolio', 'pg', '184 MB', true], ['Tandoor', 'pg', '22 MB', !look], ['Tracearr', 'pg', '41 MB', true], ['Hub', 'sq', '12 MB', true]].map(([nm, k, sz, ok]) => `<div class="rowg ${ok ? '' : 'bad'}"><span class="dot ${ok ? '' : 'pulse'}" style="--c:${ok ? '#3fb97f' : '#e5646a'}"></span><span><b style="font-weight:600">${nm}</b><span class="chip ${k === 'sq' ? 'sq' : ''}">${k === 'sq' ? 'SQLite' : 'pg_dump'}</span></span><span class="${ok ? 'muted' : 'down'}" style="font-weight:${ok ? 400 : 600}">${ok ? sz : 'Failed'}</span>
+            <span class="meta">${ok ? 'Last success today 02:31' : 'Last success yesterday 02:31'}</span>${ok ? '' : '<span class="meta" style="grid-column:1/-1"><span class="err" style="display:block">pg_dump: connection to server failed: role "tandoor" does not exist</span></span>'}</div>`).join('')}</div>
+          <div class="foot"><span>Host job</span><span class="dots">${Array.from({ length: 30 }, (_, i) => `<i class="${look && i === 29 ? 'bad' : i === 29 ? 'last' : ''}"></i>`).join('')}</span><span style="margin-left:auto">${look ? '29' : '30'} of 30</span></div>
+        </section>
+        <section class="card"><div class="head"><h3>Restore check</h3><span class="lab">Monthly, the 1st</span></div>
+          <div class="seal-row" style="grid-template-columns:64px 1fr">${sealOk(true, 64)}<div><div class="t up" style="font-size:19px">Passed <span class="muted" style="font-size:13.5px;font-weight:400">Thu 1 Oct 05:22</span></div><div class="s">Last verified restore 12 days ago</div></div></div>
+          <div class="steps"><div>Download of the dumps<small>3 dumps, identical to the local files</small></div><div>Download of the hub database<small>identical to the local copy</small></div><div>Ghostfolio restore<small>184 MB into a throwaway Postgres, 41 tables</small></div><div>Hub database opens<small>in a throwaway collector, schema version 14</small></div></div>
+          <p class="note" style="font-size:12px;color:var(--faint);margin-top:12px">The NAS downloads the dumps and the hub database from Hetzner, compares them with the local files and loads them into throwaway containers.</p>
+        </section>
+      </div>
+
+      <section class="card full"><div class="head"><h3>GitHub mirror</h3><a href="#" style="font-size:13px;color:var(--accent-fg);text-decoration:none;font-weight:500">Repos →</a></div>
+        <div class="mgrid"><div>
+          <div class="owners"><div class="owner"><b>38</b><span>PimVanLeeuwen</span></div><div class="owner"><b>12</b><span>Hubble-Community-Cafe</span></div><div class="owner"><b>1,9 GB</b><span>on the NAS</span></div></div>
+          <p style="font-size:12.5px;color:var(--muted);margin:12px 0 0">A bare git copy of every repo (no forks) in <span class="mono" style="font-size:12px">/volume3/backups/github</span>, taken to Hetzner by the nightly backup. Repos deleted on GitHub are deleted here too.</p></div>
+          <div><dl class="kv" style="font-size:13px"><dt>Last run</dt><dd><span class="${look ? 'down' : 'up'}" style="font-weight:600">${look ? 'Failed' : 'Succeeded'}</span> <span class="muted">today 02:04</span></dd><dt>Next run</dt><dd>tomorrow 02:00</dd><dt>Last 30</dt><dd><span class="dots" style="display:inline-flex">${Array.from({ length: 30 }, (_, i) => `<i class="${look && i === 29 ? 'bad' : i === 29 ? 'last' : ''}"></i>`).join('')}</span></dd></dl>
+          ${look ? '<div class="err" style="margin-top:10px">Hubble-Community-Cafe/community-cafe-web: fatal: repository not found</div>' : ''}</div></div>
+      </section>
+    </div></main>
+    <div class="tabbar">${['Home', 'News', 'Portfolio', 'NAS', 'More'].map((t, i) => `<span class="${i === 4 ? 'on' : ''}"><i></i>${t}</span>`).join('')}</div></div>`;
+}
+document.querySelectorAll('.ctl button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.v) { st.view = b.dataset.v; document.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if (b.dataset.s) { st.state = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  render();
+}));
+render();
+</script>
+</html>

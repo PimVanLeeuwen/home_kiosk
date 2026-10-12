@@ -1,52 +1,13 @@
-import { BACKUP_MAX_AGE_HOURS } from '../../lib/attention'
-import { formatAgo, formatBytes, formatDuration, formatWhen } from '../../lib/format'
+import { backupVerdict, nightStrip, runSeconds, VERDICT_PILL } from '../../lib/backups'
+import { formatBytes, formatDuration, formatWhen } from '../../lib/format'
 import type { BackupHistory, BackupRun, DatabaseDumps, Nas } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { BarStrip } from '../ui/BarStrip'
 import { FlowLine } from '../ui/FlowLine'
 import { Pill } from '../ui/Pill'
 import { Seal } from '../ui/Seal'
-import type { Tone } from '../ui/tones'
+import { RestoreLine } from '../backups/RestoreLine'
 import { Card, Loading, Unavailable } from './Card'
-
-const NIGHTS = 30
-/** A night this much slower than usual stands out in amber. */
-const SLOW_FACTOR = 1.3
-/** The backup_missing rule's default: a restore check older than this needs a new one. */
-const RESTORE_MAX_DAYS = 45
-
-const seconds = (run: BackupRun) => (new Date(run.finished).getTime() - new Date(run.started).getTime()) / 1000
-
-function median(values: number[]): number {
-  const sorted = [...values].sort((a, b) => a - b)
-  return sorted[Math.floor(sorted.length / 2)] ?? 0
-}
-
-/** The last nights oldest first, failed ones red and slow ones amber. */
-function nights(runs: BackupRun[]) {
-  const shown = runs.slice(0, NIGHTS).reverse()
-  const minutes = shown.map((r) => seconds(r) / 60)
-  const usual = median(minutes)
-  const marks: Record<number, Tone> = {}
-  shown.forEach((r, i) => {
-    if (!r.ok) marks[i] = 'down'
-    else if (usual > 0 && minutes[i] > usual * SLOW_FACTOR) marks[i] = 'warn'
-  })
-  // Name the newest failure if there is one, else the first slow night.
-  const failedAt = Object.keys(marks).map(Number).filter((i) => marks[i] === 'down').pop()
-  const slowAt = Object.keys(marks).map(Number).find((i) => marks[i] === 'warn')
-  const markAt = failedAt ?? slowAt
-  return { minutes, marks, markAt, markLabel: failedAt != null ? 'failed' : slowAt != null ? 'slow' : undefined }
-}
-
-function RestoreLine({ dumps, now }: { dumps: DatabaseDumps | undefined; now: Date }) {
-  const newest = dumps?.restore_checks?.[0]
-  if (newest && !newest.ok) return <p className="text-[12.5px] text-down">Last restore check failed {formatAgo(newest.finished, now)}</p>
-  const verified = dumps?.last_verified
-  if (!verified) return null
-  const old = now.getTime() - new Date(verified).getTime() > RESTORE_MAX_DAYS * 86_400_000
-  return <p className={`text-[12.5px] ${old ? 'text-warn' : 'text-up'}`}>Restore verified {formatAgo(verified, now)}</p>
-}
 
 /**
  * The latest nightly run with the nights before it: per volume from the run
@@ -59,14 +20,8 @@ export function BackupCard({ nas, error }: { nas: Nas | undefined; error: Error 
   const runs = history.data?.runs ?? []
   const last = runs[0]
   const now = new Date()
-  const overdue = !!last && now.getTime() - new Date(last.finished).getTime() > BACKUP_MAX_AGE_HOURS * 3_600_000
-  const pill = !last ? null : !last.ok ? (
-    <Pill tone="down">Failed</Pill>
-  ) : overdue ? (
-    <Pill tone="warn">Overdue</Pill>
-  ) : (
-    <Pill tone="up">All safe</Pill>
-  )
+  const verdict = last && VERDICT_PILL[backupVerdict(last, now)]
+  const pill = verdict && <Pill tone={verdict.tone}>{verdict.label}</Pill>
 
   return (
     <Card title="Backups" link={{ to: '/backups', label: 'History' }} actions={pill}>
@@ -108,7 +63,7 @@ interface LastRunProps {
 function LastRun({ last, runs, history, dumps, now }: LastRunProps) {
   const bytes = last.volumes.reduce((sum, v) => sum + (v.ok && v.bytes != null ? v.bytes : 0), 0)
   const failed = last.volumes.filter((v) => !v.ok)
-  const strip = nights(runs)
+  const strip = nightStrip(runs)
   const n = strip.minutes.length
   return (
     <>
@@ -120,7 +75,7 @@ function LastRun({ last, runs, history, dumps, now }: LastRunProps) {
             <span className="ml-2 text-[14px] font-normal text-muted">{formatWhen(last.finished)}</span>
           </p>
           <p className="text-[12.5px] text-muted">
-            {last.volumes.length} {last.volumes.length === 1 ? 'volume' : 'volumes'} · {formatDuration(seconds(last))}
+            {last.volumes.length} {last.volumes.length === 1 ? 'volume' : 'volumes'} · {formatDuration(runSeconds(last))}
             {bytes > 0 && ` · ${formatBytes(bytes)}`}
           </p>
           <RestoreLine dumps={dumps} now={now} />

@@ -4,16 +4,46 @@ import { renderRoute } from '../test/renderRoute'
 import { stubApi } from '../test/stubApi'
 
 describe('BackupsPage', () => {
-  it('sums up the last run, next run and success rate', async () => {
-    stubApi({ '/api/backups': BACKUPS })
+  it('leads with last night: a seal, what failed, the route and three facts', async () => {
+    stubApi({ '/api/backups': BACKUPS, '/api/database-dumps': DUMPS })
     renderRoute('/backups')
 
-    // The summary list at the top; volume cards repeat some of its labels.
-    await screen.findByText('Next run due')
-    const summary = within(screen.getByText('Next run due').closest('dl')!)
-    expect(summary.getByText('Last run').nextElementSibling).toHaveTextContent('Failed')
-    expect(summary.getByText('Took').nextElementSibling).toHaveTextContent('23 min')
-    expect(summary.getByText('Succeeded, last 3 runs').nextElementSibling).toHaveTextContent('2 of 3')
+    const hero = await screen.findByRole('region', { name: 'Last night' })
+    expect(within(hero).getByRole('img', { name: 'Backup failed' })).toBeInTheDocument()
+    expect(within(hero).getByText('2 volumes · took 23 min · 2,5 GB changed')).toBeInTheDocument()
+    expect(within(hero).getByText('volume3: quota exceeded')).toHaveClass('text-down')
+    // The route stops after a failed night.
+    expect(within(hero).getByRole('img', { name: 'NAS to Hetzner · encrypted' }).querySelector('i')).toBeNull()
+    expect(within(hero).getByText('Next run').nextElementSibling).toHaveTextContent(/29 Sept/)
+    expect(within(hero).getByText('Last 3').nextElementSibling).toHaveTextContent('2 of 3 ok')
+    expect(within(hero).getByText('2 of 3 ok')).toHaveClass('text-warn')
+    expect(within(hero).getByRole('img', { name: 'Backup durations, last 3 nights' })).toBeInTheDocument()
+    expect(within(hero).getByText('last night: failed')).toHaveAttribute('data-tone', 'down')
+    // The header says it too.
+    expect(screen.getAllByText('Failed').length).toBeGreaterThan(1)
+  })
+
+  it('shows a good night as all safe with the restore check', async () => {
+    const good = { ...BACKUPS, runs: BACKUPS.runs.slice(1) }
+    stubApi({
+      '/api/backups': good,
+      '/api/database-dumps': { ...DUMPS, restore_checks: [], last_verified: new Date(Date.now() - 3 * 86_400_000).toISOString() },
+    })
+    renderRoute('/backups')
+
+    const hero = await screen.findByRole('region', { name: 'Last night' })
+    expect(within(hero).getByRole('img', { name: 'Backup succeeded' })).toBeInTheDocument()
+    expect(within(hero).getByText('Restore').nextElementSibling).toHaveTextContent('Verified 3 days ago')
+    // Its last run was in September, so the header says it is overdue rather than safe.
+    expect(screen.getByText('Overdue')).toBeInTheDocument()
+  })
+
+  it('says the restore check has not run yet', async () => {
+    stubApi({ '/api/backups': BACKUPS, '/api/database-dumps': { ...DUMPS, restore_checks: [], last_verified: null } })
+    renderRoute('/backups')
+
+    const hero = await screen.findByRole('region', { name: 'Last night' })
+    expect(await within(hero).findByText('Not checked yet')).toBeInTheDocument()
   })
 
   it('shows each volume with its last success, changes and error', async () => {
@@ -66,7 +96,7 @@ describe('BackupsPage', () => {
   it('leaves the storage box out until a run has measured it', async () => {
     stubApi({ '/api/backups': BACKUPS })
     renderRoute('/backups')
-    await screen.findByText('Next run due')
+    await screen.findByRole('region', { name: 'Last night' })
     expect(screen.queryByRole('region', { name: 'Storage box' })).not.toBeInTheDocument()
   })
 
@@ -107,7 +137,7 @@ describe('BackupsPage', () => {
   it('leaves the mirror out when it is off or not answering', async () => {
     stubApi({ '/api/backups': BACKUPS, '/api/github-mirror': { ...MIRROR, enabled: false } })
     renderRoute('/backups')
-    await screen.findByText('Next run due')
+    await screen.findByRole('region', { name: 'Last night' })
     expect(screen.queryByRole('region', { name: 'GitHub mirror' })).not.toBeInTheDocument()
   })
 

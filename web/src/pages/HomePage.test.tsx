@@ -174,7 +174,7 @@ describe('HomePage', () => {
 
     const card = await screen.findByRole('region', { name: 'Backups' })
     const label = await within(card).findByText('last night: failed')
-    expect(label).toHaveAttribute('fill', 'var(--color-down)')
+    expect(label).toHaveAttribute('data-tone', 'down')
     expect(within(card).queryByText('slow')).not.toBeInTheDocument()
   })
 
