@@ -135,6 +135,15 @@ CATALOG: dict[str, Template] = {
         "rules", "warning", {"hours": ("The rule's limit", "48"),
                              "last": ("When it last worked", "Thu 08 Oct 04:21"),
                              "error": ("The last error, if any", "Home IP not found")}),
+    "outside_incident": _msg(
+        RULES, "Outside service", "An outside service reports a problem on a part the house uses.",
+        "<b>{level}</b> · <b>{service}: {what}</b>\n"
+        "{state} on their status page.\n{url}",
+        "rules", "warning",
+        {"service": ("The service", "Cloudflare"),
+         "what": ("The incident's title", "Tunnel errors in Western Europe"),
+         "state": ("Degraded or Outage", "Degraded"),
+         "url": ("The incident on the status page", "https://stspg.io/abc123")}),
     "smart_failing": _msg(
         RULES, "Disk failing (SMART)", "Scrutiny marks a disk as failed.",
         "<b>{level}</b> · <b>Disk {disk} is failing (SMART)</b>\n"

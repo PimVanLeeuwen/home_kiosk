@@ -41,6 +41,7 @@ DEFAULT_RULES: dict[str, dict[str, Any]] = {
     "token_expiry": {"enabled": True, "days": 14},
     "exposure": {"enabled": True},
     "port_scan": {"enabled": True, "hours": 48},
+    "outside_services": {"enabled": True},
     "smart": {"enabled": True},
     "portfolio_move": {"enabled": False, "threshold_pct": 3},
 }
@@ -53,6 +54,7 @@ RULE_LABELS = {
     "token_expiry": "GitHub token expiry",
     "exposure": "Exposure audit",
     "port_scan": "Open ports",
+    "outside_services": "Outside services",
     "smart": "Disk SMART",
     "portfolio_move": "Portfolio move",
 }
@@ -221,6 +223,34 @@ def port_scan(scan: dict[str, Any] | None, settings: dict[str, Any],
         problems += [Problem(f"port_scan:{port}", "port_scan", "error", "port_open",
                              {"port": port, "ports_checked": good[0]["ports_checked"]})
                      for port in good[0]["open"]]
+    return problems
+
+
+OUTSIDE_STATE = {"degraded": "Degraded", "outage": "Outage"}
+
+
+def outside_services(status: dict[str, Any] | None,
+                     open_keys: set[str]) -> list[Problem] | None:
+    """An outside service reports a problem on a part the house uses (planned
+    maintenance does not count). A status page that could not be read keeps an
+    open incident as it is, so a page hiccup never "resolves" an outage."""
+    if status is None:
+        return None
+    problems = []
+    for svc in status.get("services") or []:
+        key = f"outside_services:{svc['key']}"
+        judged = not svc.get("stale") and svc.get("state") != "unknown"
+        if judged and svc.get("state") not in OUTSIDE_STATE:
+            continue
+        if not judged and key not in open_keys:
+            continue
+        incident = next((i for i in svc.get("incidents") or []
+                         if i.get("impact") != "maintenance"), None)
+        problems.append(Problem(key, "outside_services", "warning", "outside_incident", {
+            "service": svc["name"],
+            "what": incident["title"] if incident else "a problem on the status page",
+            "state": OUTSIDE_STATE.get(svc.get("state"), "Unknown"),
+            "url": (incident or {}).get("url") or svc["url"]}))
     return problems
 
 
@@ -494,6 +524,8 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
         "token_expiry": token_expiry(store.get_cache("repos"), settings["token_expiry"], now),
         "exposure": exposure(store.get_cache("exposure")),
         "port_scan": port_scan(store.get_cache("port_scan"), settings["port_scan"], now),
+        "outside_services": outside_services(_fresh(store.get_cache("outside_services"), now),
+                                             set(open_incidents(store))),
         "portfolio_move": portfolio_move(_fresh(store.get_cache("portfolio"), now),
                                          settings["portfolio_move"],
                                          core.local(now, cfg).date().isoformat()),

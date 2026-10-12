@@ -105,6 +105,10 @@ python3 dashboard/serve.py
 - 2026-10-12: a laundry card on Home for the Hisense washer and dryer (ConnectLife), read from
   the ConnectLife cloud (no local API), shown only while a machine runs or is done; no
   Telegram for it, the app already notifies. plan.md M20.
+- 2026-10-12: outside services are read from their status pages, counting only the components
+  the house uses (config.yaml); Hetzner from its page's embedded data, TransIP from TransNOC's
+  all-clear sentence; maintenance only while it runs; a Telegram warning when an incident starts
+  and ends. plan.md M20.
 
 ## Gotchas
 

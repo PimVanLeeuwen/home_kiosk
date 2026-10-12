@@ -29,6 +29,7 @@ const FIELDS: Record<string, { field: NumberField; before: string; after: string
 const NOTES: Record<string, string> = {
   smart: 'Scrutiny reports a warning or failure',
   exposure: 'A public hostname leads to the house but is not on the allowlist',
+  outside_services: 'GitHub, Cloudflare, Hetzner and the others report a problem on a part the house uses',
 }
 
 export function RulesCard() {

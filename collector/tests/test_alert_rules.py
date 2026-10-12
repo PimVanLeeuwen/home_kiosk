@@ -264,6 +264,58 @@ def test_portfolio_move_beyond_the_threshold():
     )
 
 
+def outside(state="ok", stale=False, incidents=(), key="cloudflare"):
+    return {"key": key, "name": "Cloudflare", "url": "https://www.cloudflarestatus.com",
+            "state": state, "stale": stale, "incidents": list(incidents),
+            "as_of": NOW.isoformat()}
+
+
+TUNNEL = {"title": "Tunnel errors", "impact": "degraded", "url": "https://stspg.io/x"}
+MAINTENANCE = {"title": "AMS maintenance", "impact": "maintenance", "url": "https://m"}
+
+
+def test_an_outside_problem_is_a_warning_with_its_incident():
+    (p,) = rules.outside_services(
+        {"services": [outside("degraded", incidents=[MAINTENANCE, TUNNEL]), outside(key="gh")]},
+        set())
+
+    assert (p.key, p.severity) == ("outside_services:cloudflare", "warning")
+    assert (p.title, p.body) == ("Cloudflare: Tunnel errors",
+                                 "Degraded on their status page.\nhttps://stspg.io/x")
+
+
+def test_outside_maintenance_and_unread_pages_open_nothing():
+    status = {"services": [outside("maintenance", incidents=[MAINTENANCE]),
+                           outside("unknown", stale=True, key="hz")]}
+
+    assert rules.outside_services(status, set()) == []
+    assert rules.outside_services(None, set()) is None
+
+
+def test_an_unread_page_keeps_its_open_outside_incident():
+    status = {"services": [outside("ok", stale=True)]}
+
+    (p,) = rules.outside_services(status, {"outside_services:cloudflare"})
+    assert p.key == "outside_services:cloudflare"
+
+
+def test_an_outside_incident_starts_and_resolves_once(rule_store):
+    def put(state, incidents=(), at=NOW):
+        rule_store.put_cache("outside_services", {
+            "as_of": at.isoformat(), "stale": False,
+            "services": [outside(state, incidents=incidents)]})
+
+    put("outage", [TUNNEL | {"impact": "outage"}])
+    assert run_check(rule_store) == [
+        "<b>WARNING</b> · <b>Cloudflare: Tunnel errors</b>\n"
+        "Outage on their status page.\nhttps://stspg.io/x"]
+
+    later = NOW + timedelta(minutes=50)
+    put("ok", at=later)
+    assert run_check(rule_store, later) == [
+        "<b>OK</b> · <b>Resolved: Cloudflare: Tunnel errors</b>\nafter 50 min"]
+
+
 # --- start and resolve -------------------------------------------------------------------
 
 
