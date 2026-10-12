@@ -39,6 +39,30 @@ describe('HomePage', () => {
     expect(within(portfolio).getByText(/\+0,91% today/)).toBeInTheDocument()
     expect(within(portfolio).getAllByRole('row')).toHaveLength(3)
     expect(within(portfolio).getByRole('img', { name: /last 30 days/ })).toBeInTheDocument()
+    // Today in a pill, the month beside today's amount, and the period's high under the chart.
+    expect(within(portfolio).getByText('+0,91% today')).toHaveClass('text-up')
+    expect(within(portfolio).getByText('· +2,04% in 30 days')).toHaveClass('text-up')
+    expect(within(portfolio).getByText('High € 24.490 · 30 Sept')).toBeInTheDocument()
+    expect(within(portfolio).getByText('VWRL')).toBeInTheDocument()
+  })
+
+  it('draws a falling month in red', async () => {
+    setup({
+      '/api/portfolio': {
+        ...PORTFOLIO,
+        history: [
+          { d: '2026-09-28', v: 25714 },
+          { d: '2026-09-29', v: 25000 },
+          { d: '2026-09-30', v: 24490 },
+        ],
+      },
+    })
+
+    const portfolio = await screen.findByRole('region', { name: 'Portfolio' })
+    expect(await within(portfolio).findByText('· −4,76% in 30 days')).toHaveClass('text-down')
+    expect(within(portfolio).getByText('High € 25.714 · 28 Sept')).toBeInTheDocument()
+    const line = within(portfolio).getByRole('img', { name: /last 30 days/ }).querySelector('polyline')
+    expect(line).toHaveAttribute('stroke', 'var(--color-down)')
   })
 
   it('shows the fullest pool on a dial, load with 24-hour lines and a dot per disk', async () => {
