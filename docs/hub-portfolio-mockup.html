@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of the hub's Portfolio page in the desk panels' visual language, calmer, as Home,
+     NAS, Backups and Docker (docs/hub-*-mockup.html). Example data only. Not served by the hub. -->
+<title>Home hub: Portfolio restyled</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .07);
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.chrome { max-width: 1480px; margin: 0 auto; padding: 22px 20px 10px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+.chrome h1 { margin: 0; font-size: 22px; font-weight: 600; } .chrome p { margin: 3px 0 0; color: var(--muted); max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { background: #17181c; border: 1px solid var(--line); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: rgba(124, 108, 242, .18); border-color: var(--accent); }
+.stage { display: flex; justify-content: center; padding: 14px 20px 40px; }
+.device { width: 1440px; height: 900px; border-radius: 14px; overflow: hidden; border: 1px solid #1a1b1f; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.device.mobile { width: 390px; height: 844px; border-radius: 44px; border: 10px solid #000; }
+.app { display: flex; height: 100%; background: var(--canvas); position: relative; }
+.side { width: 240px; flex: none; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; }
+.side b.brand { font-size: 15px; padding: 0 10px; } .side small.host { color: var(--faint); padding: 0 10px 14px; font-size: 12px; }
+.side .grp { font-size: 11px; letter-spacing: .08em; color: var(--faint); padding: 14px 10px 4px; text-transform: uppercase; font-weight: 600; }
+.side a { padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; display: flex; gap: 10px; align-items: center; }
+.side a.on { background: rgba(124,108,242,.14); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent-line); }
+.side a i { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; opacity: .7; }
+.main { flex: 1; margin: 8px 8px 8px 0; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); overflow: auto; }
+.mobile .side { display: none; } .mobile .main { margin: 0; border-radius: 0; border: 0; padding-bottom: 74px; }
+.tabbar { display: none; }
+.mobile .tabbar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 74px; background: rgba(8,9,10,.92); border-top: 1px solid var(--line-soft); justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); }
+.mobile .tabbar span { display: grid; justify-items: center; gap: 3px; } .mobile .tabbar span.on { color: var(--accent-fg); }
+.mobile .tabbar i { width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 5px; }
+.page { padding: 36px 44px 48px; } .mobile .page { padding: 58px 16px 24px; }
+.ph { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.ph h2 { font-size: 26px; font-weight: 600; margin: 0; } .ph p { margin: 4px 0 0; color: var(--muted); }
+
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 20px 24px; min-width: 0; position: relative; overflow: hidden; }
+.mobile .card { padding: 18px; }
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; white-space: nowrap; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.14); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--f-mono); }
+.up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); } .muted { color: var(--muted); } .faint { color: var(--faint); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; background: var(--c, var(--up)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--up)) 18%, transparent), 0 0 10px var(--c, var(--up)); }
+.dot.pulse { animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent), 0 0 18px var(--c); } }
+
+
+.hero { padding-bottom: 0; }
+.big { font-size: 38px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; } .mobile .big { font-size: 31px; }
+.seg { display: inline-flex; border-radius: 11px; border: 1px solid var(--glass-line); background: var(--glass); padding: 3px; gap: 2px; font-size: 12.5px; }
+.seg span { padding: 4px 10px; border-radius: 8px; color: var(--muted); white-space: nowrap; } .seg span.on { background: rgba(124,108,242,.2); color: var(--fg); box-shadow: inset 0 0 0 1px rgba(143,128,255,.4); }
+.readout { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; margin: 14px 0 4px; }
+.readout i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 0; } .readout i.dash { width: 12px; height: 0; border-radius: 0; border-top: 2px dashed var(--muted); vertical-align: 3px; }
+.chartwrap { margin: 0 -24px; position: relative; } .mobile .chartwrap { margin: 0 -18px; }
+.chartwrap .hi { position: absolute; font-size: 11px; color: var(--muted); transform: translate(-50%, -150%); white-space: nowrap; }
+.chartfoot { display: flex; justify-content: space-between; font-size: 11px; color: var(--faint); padding: 6px 0 16px; }
+.facts4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 20px 0; }
+.mobile .facts4 { grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+.fact { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)), var(--card); padding: 14px 16px; }
+.fact .k { font-size: 12.5px; color: var(--muted); } .fact b { display: block; font-size: 19px; font-weight: 600; margin-top: 2px; } .fact small { font-size: 12px; color: var(--muted); }
+.mobile .fact b { font-size: 16px; }
+.cols { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 20px; }
+.mobile .cols { grid-template-columns: 1fr; gap: 14px; }
+.stackc { display: grid; gap: 20px; align-content: start; } .mobile .stackc { gap: 14px; }
+
+/* Today's movers: a heat map, each holding sized by its weight and tinted by today's move. */
+.heat { position: relative; height: 230px; border-radius: 12px; overflow: hidden; } .mobile .heat { height: 200px; }
+.ht { position: absolute; border-radius: 9px; padding: 8px 9px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border: 1px solid; }
+.ht .mono { font-size: 12.5px; font-weight: 600; } .ht b { font-size: 15px; font-weight: 600; } .ht small { font-size: 11px; color: rgba(236,237,239,.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ht.sm b { font-size: 12px; } .ht.sm small { display: none !important; } .ht.xs { padding: 5px 6px; } .ht.xs .mono { font-size: 10.5px; } .ht.xs b { display: none; }
+
+.htable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.htable th { text-align: right; font-size: 11.5px; color: var(--faint); font-weight: 500; padding: 0 0 8px 12px; } .htable th:first-child { text-align: left; padding-left: 0; }
+.htable td { padding: 9px 0 9px 12px; border-top: 1px solid var(--line-soft); text-align: right; white-space: nowrap; } .htable td:first-child { text-align: left; padding-left: 0; }
+.tick { font-family: var(--f-mono); font-size: 12px; padding: 2px 6px; border-radius: 6px; background: var(--glass); border: 1px solid var(--glass-line); display: inline-block; min-width: 54px; text-align: center; }
+.nm { color: var(--muted); font-size: 12.5px; margin-left: 10px; }
+.wbar { display: inline-block; width: 60px; height: 4px; border-radius: 3px; background: var(--raised); vertical-align: middle; margin-left: 8px; overflow: hidden; } .wbar i { display: block; height: 100%; background: linear-gradient(90deg, #6f60ea, #b4a9ff); }
+.chg { font-weight: 600; font-size: 12.5px; border-radius: 7px; padding: 2px 6px; } .chg.up { background: rgba(63,185,127,.12); } .chg.down { background: rgba(229,100,106,.13); }
+.sub3 { display: block; font-size: 11.5px; opacity: .8; font-weight: 400; margin-top: 2px; }
+.hlist div { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line-soft); font-size: 13px; } .hlist div:first-child { border-top: 0; }
+.ring { width: 150px; margin: 0 auto 12px; display: block; }
+.legend3 li { display: flex; align-items: center; gap: 9px; font-size: 13px; padding: 3px 0; } .legend3 ul { margin: 0; padding: 0; list-style: none; } .legend3 i { width: 9px; height: 9px; border-radius: 3px; } .legend3 span:last-child { margin-left: auto; color: var(--muted); }
+.mkts { display: grid; gap: 8px; } .mkt { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 10px 12px; border-radius: 11px; background: var(--glass); border: 1px solid var(--glass-line); font-size: 13px; }
+.mkt small { color: var(--muted); font-size: 12px; }
+.btn { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; border-radius: 10px; border: 1px solid var(--glass-line); background: var(--glass); padding: 7px 12px; }
+.back { font-size: 13px; color: var(--accent-fg); margin-bottom: 14px; display: inline-block; }
+.figs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; } .mobile .figs { grid-template-columns: 1fr 1fr; }
+.figs div { border-radius: 11px; background: var(--glass); border: 1px solid var(--glass-line); padding: 9px 12px; } .figs .lab { font-size: 10px; } .figs b { display: block; font-size: 15px; font-weight: 600; margin-top: 2px; }
+.tx { border-left: 1px solid var(--line); margin-left: 6px; padding-left: 18px; display: grid; }
+.tx div { position: relative; display: grid; grid-template-columns: 120px 80px 1fr auto; gap: 12px; padding: 7px 0; font-size: 13px; align-items: baseline; }
+.mobile .tx div { grid-template-columns: auto auto 1fr; } .mobile .tx div .hide-m { display: none; }
+.tx div::before { content: ''; position: absolute; left: -22px; top: 13px; width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 6px var(--c); }
+.ttype { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; border-radius: 6px; padding: 1px 6px; text-transform: uppercase; justify-self: start; }
+.notes { max-width: 1440px; margin: 0 auto; padding: 0 20px 50px; color: var(--muted); columns: 2 420px; column-gap: 40px; }
+.notes h4 { color: var(--fg); margin: 0 0 6px; font-size: 14px; } .notes ul { margin: 0 0 16px; padding-left: 18px; } .notes li { margin: 3px 0; break-inside: avoid; }
+</style>
+
+<div class="chrome">
+  <div>
+    <h1>Portfolio, restyled <span class="pill acc" style="margin-left:8px;vertical-align:3px">example data</span></h1>
+    <p>The Portfolio page in the language of the restyled Home, NAS, Backups and Docker: the value edge to edge with the invested line and the period's high, four glass facts, today's movers as a heat map (as on the Money panel), holdings with ticker chips and weight bars, allocation as a ring, and a holding's own page in the same style. Same data as today.</p>
+  </div>
+  <div class="ctl">
+    <button data-v="desktop" aria-pressed="true">Desktop</button>
+    <button data-v="mobile" aria-pressed="false">Mobile</button>
+    <button data-s="ok" aria-pressed="true">Up day</button>
+    <button data-s="look" aria-pressed="false">Down day</button>
+    <button data-p="overview" aria-pressed="true">Overview</button>
+    <button data-p="holding" aria-pressed="false">A holding</button>
+  </div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<div class="notes">
+  <h4>What changes</h4>
+  <ul>
+    <li><b>Value:</b> the figure large with today's change as a pill; the chart runs edge to edge as a glowing area, green or red by the period's direction, with the invested line dashed and the period's high marked; the period as a segmented switch (1M, YTD, 1Y, Max) and the gain without deposits under it. The readout under the pointer stays.</li>
+    <li><b>Today, Total gain, Invested, Cash:</b> four glass tiles under the chart, tinted figures where they move.</li>
+    <li><b>Today's movers:</b> new on this page, the Money panel's heat map: every holding a tile sized by its weight and tinted green or red by today's move (stronger for bigger moves), the ticker, the change and, where it fits, the name. Each opens the holding. On a phone, holdings under 3% merge into one "N others" tile (it opens the holdings list), so no tile is too thin to read.</li>
+  </ul>
+  <ul>
+    <li><b>Holdings:</b> ticker chips, a thin bar for the weight, today as a tinted pill with the amount, the gain tinted; the sort as a segmented switch. On a phone: chip, name, value and the sorted change.</li>
+    <li><b>Allocation:</b> a ring instead of a bar, with the legend. <b>Markets:</b> each index as a glass tile with its level and tinted move.</li>
+    <li><b>A holding:</b> the same language: the value and gain large, its price against your average price edge to edge, the figures as glass tiles, and the transactions as a timeline with a coloured chip per type.</li>
+    <li><b>Update from DEGIRO:</b> the button becomes a glass button; the import flow itself only takes over the card styling.</li>
+  </ul>
+</div>
+
+<script>
+const st = { view: 'desktop', state: 'ok', page: 'overview' };
+const nl = (n, d = 1) => n.toFixed(d).replace('.', ',');
+const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+function area(vals, color, { line2 = null, W = 300, H = 70, peak = true } = {}) {
+  const max = Math.max(...vals, ...(line2 || [])), min = 0, sp = max - min || 1;
+  const P = (v, i, n) => `${(i / (n - 1) * W).toFixed(1)},${(6 + (1 - (v - min) / sp) * (H - 10)).toFixed(1)}`;
+  const pts = vals.map((v, i) => P(v, i, vals.length)).join(' ');
+  const pk = vals.indexOf(Math.max(...vals)), [px, py] = P(vals[pk], pk, vals.length).split(',');
+  const id = 'a' + Math.random().toString(36).slice(2, 7);
+  return `<svg class="area" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="calc(100% + 48px)" height="${st.view === 'mobile' ? 48 : 64}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px ${color})"/>
+    ${line2 ? `<polyline points="${line2.map((v, i) => P(v, i, line2.length)).join(' ')}" fill="none" stroke="#9a9ea7" stroke-width="1" stroke-opacity=".7" vector-effect="non-scaling-stroke"/>` : ''}
+    ${peak ? `<circle cx="${px}" cy="${py}" r="2.2" fill="${color}" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${color})"/>` : ''}</svg>`;
+}
+
+function gauge(v, warnAt = 90) {
+  const R = 40, cx = 50, cy = 52, P = (a, r = R) => [cx - r * Math.cos(a * Math.PI), cy - r * Math.sin(a * Math.PI)];
+  const arc = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+  const ticks = Array.from({ length: 21 }, (_, i) => { const a = i / 20, [x0, y0] = P(a, R + 6), [x1, y1] = P(a, R + (i % 5 ? 7.5 : 9)); return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,${i % 5 ? .14 : .32})" stroke-width=".5"/>`; }).join('');
+  const [tx, ty] = P(warnAt / 100, R + 8), over = v >= warnAt, id = 'g' + Math.random().toString(36).slice(2, 7);
+  return `<svg viewBox="0 2 100 56"><defs><linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="#6f60ea"/><stop offset=".75" stop-color="#b4a9ff"/><stop offset="1" stop-color="${over ? '#e0a23b' : '#cfc8ff'}"/></linearGradient>
+    <filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${ticks}
+    <path d="${arc(0, 1)}" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="${arc(0, v / 100)}" stroke="url(#${id})" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#${id}f)"/>
+    <circle cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="1.3" fill="#e5646a"/>
+    <text x="50" y="50" text-anchor="middle" font-size="19" font-weight="600" fill="#ecedef" letter-spacing="-.8">${Math.round(v)}%</text></svg>`;
+}
+
+function ring(pct, color, inner, sub) {
+  const r = 42, c = 2 * Math.PI * r;
+  return `<svg viewBox="0 0 100 100" width="100%"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 4px ${color})"/>
+    <text x="50" y="52" text-anchor="middle" font-size="20" font-weight="600" fill="#ecedef">${inner}</text><text x="50" y="66" text-anchor="middle" font-size="8.5" fill="#9a9ea7">${sub}</text></svg>`;
+}
+
+function seal(ok, size = 64) {
+  const c = ok ? '#3fb97f' : '#e5646a';
+  return `<svg viewBox="0 0 60 60" width="${size}"><circle cx="30" cy="30" r="25" fill="none" stroke="${c}" stroke-opacity=".45" stroke-dasharray="1.5 2.4"/>
+    <path d="M30 11 L45 17 V29 C45 39 38 46 30 49 C22 46 15 39 15 29 V17 Z" fill="${c}" fill-opacity=".13" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/>
+    ${ok ? `<path d="M23.5 30l4.5 4.5 8.5-9" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="M30 22v10M30 37v.5" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`}</svg>`;
+}
+
+
+const eur = n => '€ ' + Math.round(n).toLocaleString('nl-NL');
+const pct = n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(2).replace('.', ',') + '%';
+const H = [['VWRL', 'Vanguard FTSE All-World', 61240, .41, 18.2], ['NVDA', 'Nvidia', 23870, 2.84, 141.0], ['ASML', 'ASML Holding', 18110, -1.12, 22.4], ['MSFT', 'Microsoft', 7290, .62, 31.8],
+  ['ADYEN', 'Adyen', 6870, -1.37, -4.1], ['SHELL', 'Shell', 6120, -.62, 9.8], ['AAPL', 'Apple', 5960, .18, 12.0], ['IWDA', 'iShares Core MSCI World', 5210, .38, 16.6], ['BESI', 'BE Semiconductor', 3120, 3.9, 44.2], ['ASRNL', 'ASR Nederland', 2410, -.21, 7.1]];
+function holdings(down) { return H.map(h => ({ s: h[0], n: h[1], v: h[2], d: down ? -Math.abs(h[3]) * (h[0] === 'SHELL' ? -.4 : 1) - .3 : h[3], g: h[4] })); }
+
+// Squarified treemap (Bruls, Huizing, van Wijk) in real pixel proportions, so tiles stay close to square.
+function squarify(items, x, y, w, h) {
+  const total = items.reduce((a, b) => a + b.v, 0), scale = (w * h) / total, out = [];
+  let rest = items.map(i => ({ ...i, a: i.v * scale }));
+  while (rest.length) {
+    const side = Math.min(w, h); let row = [rest[0]], best = Infinity;
+    const worst = r => { const s = r.reduce((a, b) => a + b.a, 0), mx = Math.max(...r.map(i => i.a)), mn = Math.min(...r.map(i => i.a)); return Math.max(side * side * mx / (s * s), (s * s) / (side * side * mn)); };
+    best = worst(row);
+    for (let k = 1; k < rest.length; k++) { const next = [...row, rest[k]], wv = worst(next); if (wv > best) break; row = next; best = wv; }
+    const sum = row.reduce((a, b) => a + b.a, 0);
+    if (w >= h) { const cw = sum / h; let cy = y; row.forEach(i => { const ih = i.a / cw; out.push({ ...i, x, y: cy, w: cw, h: ih }); cy += ih; }); x += cw; w -= cw; }
+    else { const ch = sum / w; let cx = x; row.forEach(i => { const iw = i.a / ch; out.push({ ...i, x: cx, y, w: iw, h: ch }); cx += iw; }); y += ch; h -= ch; }
+    rest = rest.slice(row.length);
+  }
+  return out;
+}
+function heat(list) {
+  const W = st.view === 'mobile' ? 320 : 660, Hh = st.view === 'mobile' ? 200 : 230;
+  const tiles = squarify([...list].sort((a, b) => b.v - a.v), 0, 0, W, Hh);
+  return `<div class="heat">${tiles.map(t => { const up = t.d >= 0, a = (.16 + Math.min(Math.abs(t.d) / 3, 1) * .5).toFixed(2), c = up ? '63,185,127' : '229,100,106', small = Math.min(t.w, t.h);
+    return `<div class="ht ${small < 44 ? 'xs' : small < 70 || t.w < 90 ? 'sm' : ''}" style="left:calc(${t.x / W * 100}% + 2px);top:calc(${t.y / Hh * 100}% + 2px);width:calc(${t.w / W * 100}% - 4px);height:calc(${t.h / Hh * 100}% - 4px);background:linear-gradient(150deg, rgba(${c},${a}), rgba(${c},${(a * .45).toFixed(2)}));border-color:rgba(${c},.35)">
+      <span class="mono">${t.s}</span><span><b>${pct(t.d)}</b><small style="display:block">${t.n}</small></span></div>`; }).join('')}</div>`;
+}
+function valueChart(down) {
+  const r = seeded(down ? 5 : 9), n = 52; let v = 128000; const vals = [], inv = [];
+  for (let i = 0; i < n; i++) { v += (r() - (down ? .55 : .42)) * 2400 + (i === 30 ? 6000 : 0); vals.push(v); inv.push(112000 + Math.floor(i / 13) * 2000 + (i >= 30 ? 6000 : 0)); }
+  const W = 800, Hh = 220, all = [...vals, ...inv], min = Math.min(...all) * .985, max = Math.max(...all) * 1.01;
+  const X = i => i / (n - 1) * W, Y = v => Hh - (v - min) / (max - min) * Hh;
+  const pts = vals.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' '), ipts = inv.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+  const col = vals[n - 1] >= vals[0] ? '#3fb97f' : '#e5646a', hi = vals.indexOf(Math.max(...vals));
+  return { last: vals[n - 1], first: vals[0], col, svg: `<div class="chartwrap"><svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none" width="100%" height="${st.view === 'mobile' ? 170 : 230}" style="display:block">
+    <defs><linearGradient id="vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".3"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+    ${[.25, .5, .75].map(f => `<line x1="0" x2="${W}" y1="${Hh * f}" y2="${Hh * f}" stroke="rgba(255,255,255,.04)" vector-effect="non-scaling-stroke"/>`).join('')}
+    <polygon points="0,${Hh} ${pts} ${W},${Hh}" fill="url(#vg)"/>
+    <polyline points="${ipts}" fill="none" stroke="#9a9ea7" stroke-width="1.4" stroke-dasharray="5 5" vector-effect="non-scaling-stroke"/>
+    <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px ${col})"/>
+    <line x1="${X(hi)}" x2="${X(hi)}" y1="${Y(vals[hi]) - .5}" y2="${Y(vals[hi]) + .5}" stroke="${col}" stroke-width="7" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
+    <span class="hi" style="left:${Math.min(92, Math.max(8, X(hi) / W * 100)).toFixed(1)}%;top:${(Y(vals[hi]) / Hh * 100).toFixed(1)}%;transform:translate(-50%, ${Y(vals[hi]) / Hh < .2 ? '60%' : '-150%'})">high ${eur(vals[hi])}</span></div>` };
+}
+function ringSvg(slices) {
+  const r = 40, c = 2 * Math.PI * r; let off = 0;
+  return `<svg class="ring" viewBox="0 0 100 100">${slices.map(s => { const len = c * s[1] / 100 - 2, el = `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${s[2]}" stroke-width="10" stroke-dasharray="${len.toFixed(1)} ${c.toFixed(1)}" stroke-dashoffset="${(-off).toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 3px ${s[2]})"/>`; off += c * s[1] / 100; return el; }).join('')}
+    <text x="50" y="49" text-anchor="middle" font-size="9" fill="#9a9ea7">10 holdings</text><text x="50" y="61" text-anchor="middle" font-size="11" font-weight="600" fill="#ecedef">+ cash</text></svg>`;
+}
+
+function overview(down, mob) {
+  const list = holdings(down), today = down ? -1840 : 1288, todayP = down ? -1.27 : .91;
+  const ch = valueChart(down), gain = ch.last - ch.first - 6000 - 6000;
+  const alloc = [['Equity', 78.4, '#8f80ff'], ['ETF', 16.1, '#7fe0b0'], ['Cash', 5.5, '#e0a23b']];
+  return `<div class="ph"><div><h2>Portfolio</h2><p>From Ghostfolio, today 17:31</p></div><span class="btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5M12 18v-6m-3 3 3-3 3 3"/><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/></svg>${mob ? 'DEGIRO' : 'Update from DEGIRO'}</span></div>
+    <section class="card hero"><div class="head"><h3>Value</h3><span class="seg"><span>1M</span><span>YTD</span><span class="on">1Y</span><span>Max</span></span></div>
+      <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><span class="big">${eur(24286 + (down ? -521 : 0))}</span><span class="pill ${down ? 'down' : 'up'}">${pct(todayP)} today</span></div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">Gain over the last year: <b class="${gain >= 0 ? 'up' : 'down'}">${gain >= 0 ? '+' : '−'}${eur(Math.abs(gain)).slice(2)}</b> <span class="faint">(deposits and withdrawals left out)</span></div>
+      <div class="readout"><span class="faint">today</span><span><i style="background:${ch.col};box-shadow:0 0 6px ${ch.col}"></i>Value <b>${eur(24286 + (down ? -521 : 0))}</b></span><span class="muted"><i class="dash"></i>Invested <b style="color:var(--fg);font-weight:500">${eur(21110)}</b></span></div>
+      ${ch.svg}<div class="chartfoot"><span>Oct 2025</span><span>Oct 2026</span></div></section>
+    <div class="facts4">
+      <div class="fact"><span class="k">Today</span><b class="${down ? 'down' : 'up'}">${down ? '−' : '+'}${eur(Math.abs(today)).slice(2)}</b><small>${pct(todayP)}</small></div>
+      <div class="fact"><span class="k">Total gain</span><b class="up">+€ 3.176</b><small>+15,04%</small></div>
+      <div class="fact"><span class="k">Invested</span><b>€ 21.110</b></div>
+      <div class="fact"><span class="k">Cash</span><b>€ 7.860</b><small>€ 412 dividends</small></div></div>
+    <div class="cols"><div class="stackc">
+      <section class="card"><div class="head"><h3>Today's movers</h3><span class="lab">${list.filter(h => h.d >= 0).length} up · ${list.filter(h => h.d < 0).length} down</span></div>${heat(list)}</section>
+      <section class="card"><div class="head"><h3>Holdings (10)</h3><span class="seg"><span class="on">Value</span><span>Today</span><span>Gain</span></span></div>
+        ${mob ? `<div class="hlist">${list.map(h => `<div><span class="tick">${h.s}</span><span class="muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px">${h.n}</span><span style="text-align:right">${eur(h.v)}<span class="sub3 ${h.d >= 0 ? 'up' : 'down'}">${pct(h.d)} today</span></span></div>`).join('')}</div>`
+        : `<table class="htable"><thead><tr><th>Holding</th><th>Value</th><th>Weight</th><th>Today</th><th>Gain</th></tr></thead><tbody>${list.map(h => `<tr><td><span class="tick">${h.s}</span><span class="nm">${h.n}</span></td><td>${eur(h.v)}</td><td class="muted">${(h.v / 1428.6).toFixed(1).replace('.', ',')}%<span class="wbar"><i style="width:${h.v / 61240 * 100}%"></i></span></td>
+          <td><span class="chg ${h.d >= 0 ? 'up' : 'down'}">${pct(h.d)}</span><span class="sub3 muted">${h.d >= 0 ? '+' : '−'}€ ${Math.abs(Math.round(h.v * h.d / 100))}</span></td><td class="${h.g >= 0 ? 'up' : 'down'}">${pct(h.g)}<span class="sub3">${h.g >= 0 ? '+' : '−'}€ ${Math.abs(Math.round(h.v * h.g / (100 + h.g))).toLocaleString('nl-NL')}</span></td></tr>`).join('')}</tbody></table>`}
+      </section></div>
+      <div class="stackc">
+        <section class="card legend3"><div class="head"><h3>Allocation</h3></div>${ringSvg(alloc)}<ul>${alloc.map(a => `<li><i style="background:${a[2]};box-shadow:0 0 5px ${a[2]}"></i>${a[0]}<span>${a[1].toFixed(1).replace('.', ',')}%</span></li>`).join('')}</ul></section>
+        <section class="card"><div class="head"><h3>Markets</h3><span class="lab">Last session</span></div><div class="mkts">${[['S&amp;P 500', '6.712,40', down ? -.94 : .38], ['Nasdaq 100', '24.810,15', down ? -1.42 : .71], ['AEX', '958,22', -.24]].map(m => `<div class="mkt"><span>${m[0]}</span><span class="chg ${m[2] >= 0 ? 'up' : 'down'} ${m[2] >= 0 ? 'up' : 'down'}">${pct(m[2])}</span><small>${m[1]}</small></div>`).join('')}</div></section>
+      </div></div>`;
+}
+
+function holding(down, mob) {
+  const r = seeded(3), n = 60; let p = 118; const vals = [], avg = [];
+  for (let i = 0; i < n; i++) { p += (r() - .4) * 4; vals.push(p); avg.push(96.4); }
+  const W = 800, Hh = 220, min = 80, max = Math.max(...vals) * 1.05, X = i => i / (n - 1) * W, Y = v => Hh - (v - min) / (max - min) * Hh;
+  const pts = vals.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+  const tx = [['Thu 2 Oct 2026', 'Buy', '#8f80ff', '20 at € 168,40', '€ 3.368'], ['Fri 12 Sept 2026', 'Dividend', '#3fb97f', '€ 0,01 per share', '€ 1'], ['Mon 3 Mar 2026', 'Buy', '#8f80ff', '50 at € 108,20', '€ 5.410'], ['Tue 4 Jun 2024', 'Buy', '#8f80ff', '60 at € 82,10', '€ 4.926'], ['Tue 4 Jun 2024', 'Fee', '#e0a23b', 'DEGIRO transaction fee', '€ 2']];
+  return `<a class="back">‹ Portfolio</a><div class="ph"><div><h2 style="display:flex;gap:10px;align-items:center"><span class="tick" style="font-size:15px">NVDA</span>Nvidia</h2><p>NASDAQ · USD · ISIN US67066G1040</p></div><span class="pill up">+2,84% today</span></div>
+    <section class="card hero"><div class="head"><h3>Price</h3><span class="seg"><span>1M</span><span>YTD</span><span class="on">1Y</span><span>Max</span></span></div>
+      <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><span class="big">€ 23.870</span><span class="up" style="font-weight:600">+€ 9.990 · +71,97% gain</span></div>
+      <div class="readout"><span class="faint">today</span><span><i style="background:#3fb97f;box-shadow:0 0 6px #3fb97f"></i>Price <b>$ 184,12</b></span><span class="muted"><i class="dash"></i>Your average <b style="color:var(--fg);font-weight:500">$ 106,94</b></span></div>
+      <div class="chartwrap"><svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none" width="100%" height="${mob ? 160 : 210}" style="display:block"><defs><linearGradient id="pg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3fb97f" stop-opacity=".3"/><stop offset="1" stop-color="#3fb97f" stop-opacity="0"/></linearGradient></defs>
+        <polygon points="0,${Hh} ${pts} ${W},${Hh}" fill="url(#pg2)"/><line x1="0" x2="${W}" y1="${Y(96.4)}" y2="${Y(96.4)}" stroke="#9a9ea7" stroke-width="1.4" stroke-dasharray="5 5" vector-effect="non-scaling-stroke"/>
+        <polyline points="${pts}" fill="none" stroke="#3fb97f" stroke-width="2.2" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 4px #3fb97f)"/></svg></div><div class="chartfoot"><span>Oct 2025</span><span>Oct 2026</span></div></section>
+    <section class="card" style="margin-top:20px"><div class="head"><h3>Position</h3></div><div class="figs">${[['Quantity', '130'], ['Price', '$ 184,12'], ['Average price', '$ 106,94'], ['Invested', '€ 13.880'], ['Weight', '16,7%'], ['Dividends', '€ 4'], ['Fees', '€ 6,00'], ['Gain', '+€ 9.990']].map(f => `<div><span class="lab">${f[0]}</span><b class="${f[0] === 'Gain' ? 'up' : ''}">${f[1]}</b></div>`).join('')}</div></section>
+    <section class="card" style="margin-top:20px"><div class="head"><h3>Transactions</h3><span class="lab">From Ghostfolio</span></div>
+      <div class="tx">${tx.map(t => `<div style="--c:${t[2]}"><span class="faint">${t[0]}</span><span class="ttype" style="color:${t[2]};background:color-mix(in srgb, ${t[2]} 16%, transparent)">${t[1]}</span><span class="muted hide-m">${t[3]}</span><span style="text-align:right">${t[4]}</span></div>`).join('')}</div></section>`;
+}
+
+function render() {
+  const down = st.state === 'look', mob = st.view === 'mobile';
+  const nav = [['', 'Home'], ['Read', 'News'], ['', 'Saved'], ['Money', 'Portfolio', 1], ['House', 'NAS'], ['', 'Docker'], ['', 'Backups'], ['', 'Services'], ['Code', 'Repos'], ['System', 'Alerts'], ['', 'Settings']];
+  const d = document.getElementById('device');
+  d.className = 'device' + (mob ? ' mobile' : '');
+  d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">dev-minotaur</small>
+    ${nav.map(x => `${x[0] ? `<span class="grp">${x[0]}</span>` : ''}<a href="#" class="${x[2] ? 'on' : ''}"><i></i>${x[1]}</a>`).join('')}</nav>
+    <main class="main"><div class="page">${st.page === 'holding' ? holding(down, mob) : overview(down, mob)}</div></main>
+    <div class="tabbar">${['Home', 'News', 'Portfolio', 'NAS', 'More'].map((t, i) => `<span class="${i === 2 ? 'on' : ''}"><i></i>${t}</span>`).join('')}</div></div>`;
+}
+document.querySelectorAll('.ctl button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.v) { st.view = b.dataset.v; document.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if (b.dataset.s) { st.state = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if (b.dataset.p) { st.page = b.dataset.p; document.querySelectorAll('[data-p]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  render();
+}));
+render();
+</script>
+</html>
