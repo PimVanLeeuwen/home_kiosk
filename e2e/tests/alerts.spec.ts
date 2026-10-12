@@ -23,7 +23,7 @@ test('Alerts lists messages and sends one', async ({ page }) => {
   await page.goto('/alerts')
 
   await expect(page.getByRole('region', { name: 'Messages' })).toContainText('NAS backup OK')
-  await expect(page.getByRole('region', { name: 'Open alerts' })).toContainText('Nothing needs a look')
+  await expect(page.getByRole('region', { name: 'Open alerts' })).toContainText('All quiet')
   const form = page.getByRole('form', { name: 'Send a message' })
   await form.getByLabel('Message', { exact: true }).fill('Hello')
   await form.getByRole('button', { name: 'Send' }).click()

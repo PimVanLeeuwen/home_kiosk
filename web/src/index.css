@@ -46,6 +46,19 @@
     }
   }
 
+  /* Slow rings spreading from a check, for "All quiet". */
+  --animate-ripple: ripple 3.6s ease-out infinite;
+  @keyframes ripple {
+    from {
+      transform: scale(0.7);
+      opacity: 0.9;
+    }
+    to {
+      transform: scale(1.35);
+      opacity: 0;
+    }
+  }
+
   /* A slow glow for something that needs a look (an outside incident). */
   --animate-halo: halo 2.4s ease-in-out infinite;
   @keyframes halo {

@@ -104,9 +104,39 @@ describe('AlertsPage', () => {
     setup()
     renderRoute('/alerts')
 
-    const open = await screen.findByRole('region', { name: 'Open alerts (1)' })
-    expect(within(open).getByText('volume2 is 92% full')).toBeInTheDocument()
+    const open = await screen.findByRole('region', { name: 'Open alerts' })
+    expect(await within(open).findByText('volume2 is 92% full')).toBeInTheDocument()
     expect(within(open).queryByText('Disk sdb has SMART warnings')).not.toBeInTheDocument()
+    expect(within(open).getByText('1 open')).toBeInTheDocument()
+    expect(screen.getAllByText('1 open')).toHaveLength(2) // the card and the page header
+    // A warning card with a pulsing icon.
+    expect(within(open).getAllByRole('listitem')[0].querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
+  })
+
+  it('says all is quiet since the last alert ended, with the last seven days', async () => {
+    const day = (n: number, h = 9) => new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - n, h).toISOString()
+    setup({
+      '/api/alerts/incidents': [
+        { ...INCIDENTS[0], severity: 'error', opened_at: day(3), resolved_at: day(3, 11) },
+        { ...INCIDENTS[1], opened_at: day(5), resolved_at: day(5, 10) },
+      ],
+    })
+    renderRoute('/alerts')
+
+    const card = await screen.findByRole('region', { name: 'Open alerts' })
+    expect(await within(card).findByText('All quiet')).toBeInTheDocument()
+    expect(within(card).getByText(/^Nothing has needed you for \d+ (h|days)$/)).toBeInTheDocument()
+    const dots = within(within(card).getByRole('list', { name: 'The last 7 days' })).getAllByRole('listitem')
+    expect(dots.map((d) => d.querySelector('b')?.getAttribute('data-worst'))).toEqual(['none', 'warning', 'none', 'error', 'none', 'none', 'none'])
+    expect(screen.getByText('All quiet', { selector: '.uppercase' })).toBeInTheDocument()
+  })
+
+  it('puts open alerts before the messages, for a phone', async () => {
+    setup()
+    renderRoute('/alerts')
+    const open = await screen.findByRole('region', { name: 'Open alerts' })
+    const messages = screen.getByRole('region', { name: 'Messages' })
+    expect(open.compareDocumentPosition(messages) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('edits and saves rules', async () => {

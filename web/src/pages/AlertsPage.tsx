@@ -5,7 +5,8 @@ import { MessageLog } from '../components/alerts/MessageLog'
 import { RulesCard } from '../components/alerts/RulesCard'
 import { Card, Loading, Unavailable } from '../components/home/Card'
 import { PageHeader } from '../components/PageHeader'
-import type { AlertSettings } from '../lib/types'
+import { Pill } from '../components/ui/Pill'
+import type { AlertSettings, Incident } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
 const COMMANDS = [
@@ -16,6 +17,9 @@ const COMMANDS = [
 
 export function AlertsPage() {
   const loaded = useApi<AlertSettings>('/api/alerts/settings')
+  const incidents = useApi<Incident[]>('/api/alerts/incidents', 60_000)
+  const now = new Date()
+  const open = (incidents.data ?? []).filter((i) => !i.resolved_at).length
   const [saved, setSaved] = useState<AlertSettings>()
   const settings = saved ?? loaded.data
 
@@ -27,7 +31,11 @@ export function AlertsPage() {
 
   return (
     <>
-      <PageHeader title="Alerts" subtitle="Everything the hub sends to Telegram, and what it listens to" />
+      <PageHeader
+        title="Alerts"
+        subtitle="Everything the hub sends to Telegram, and what it listens to"
+        actions={incidents.data && (open ? <Pill tone="down">{open} open</Pill> : <Pill tone="up">All quiet</Pill>)}
+      />
 
       {!settings && (loaded.error ? <Unavailable what="Alert settings" /> : <Loading />)}
 
@@ -39,10 +47,15 @@ export function AlertsPage() {
               the NAS.
             </p>
           )}
+          {/* On a phone: open alerts, then the messages, then the settings. */}
           <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
-            <MessageLog settings={settings} />
-            <div className="space-y-5">
-              <IncidentsCard />
+            <div className="xl:col-start-2 xl:row-start-1">
+              <IncidentsCard incidents={incidents.data} now={now} />
+            </div>
+            <div className="min-w-0 xl:col-start-1 xl:row-span-2 xl:row-start-1">
+              <MessageLog settings={settings} />
+            </div>
+            <div className="space-y-5 xl:col-start-2 xl:row-start-2">
               <RulesCard />
               {/* Keyed on the saved settings, so the form resets to what was stored. */}
               <DeliveryCard key={JSON.stringify(settings)} settings={settings} onSaved={setSaved} />
