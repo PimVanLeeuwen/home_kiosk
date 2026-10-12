@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of the hub's Home page in the desk panels' visual language, calmer: glows,
+     rings and halos only where they carry meaning. Example data only. Not served by the hub.
+     Fonts are the hub's own self-hosted files (open this file from the repo). -->
+<title>Home hub: Home restyled</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+
+/* The hub's tokens (web/src/index.css), plus the glass and glow additions this mockup proposes. */
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  /* new */
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .07);
+  --glow-up: rgba(63, 185, 127, .16); --glow-warn: rgba(224, 162, 59, .18); --glow-accent: rgba(143, 128, 255, .18);
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+
+/* Mockup chrome */
+.chrome { max-width: 1480px; margin: 0 auto; padding: 22px 20px 10px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+.chrome h1 { margin: 0; font-size: 22px; font-weight: 600; }
+.chrome p { margin: 3px 0 0; color: var(--muted); max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { background: #17181c; border: 1px solid var(--line); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: rgba(124, 108, 242, .18); border-color: var(--accent); }
+.stage { display: flex; justify-content: center; padding: 14px 20px 40px; }
+.device { width: 1440px; height: 900px; border-radius: 14px; overflow: hidden; border: 1px solid #1a1b1f; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.device.mobile { width: 390px; height: 844px; border-radius: 44px; border: 10px solid #000; }
+
+/* App shell (as today) */
+.app { display: flex; height: 100%; background: var(--canvas); }
+.side { width: 240px; flex: none; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; }
+.side b.brand { font-size: 15px; padding: 0 10px; } .side small.host { color: var(--faint); padding: 0 10px 14px; font-size: 12px; }
+.side .grp { font-size: 11px; letter-spacing: .08em; color: var(--faint); padding: 14px 10px 4px; text-transform: uppercase; font-weight: 600; }
+.side a { padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; display: flex; gap: 10px; align-items: center; }
+.side a.on { background: var(--accent-soft, rgba(124,108,242,.14)); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent-line); }
+.side a i { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; opacity: .7; }
+.main { flex: 1; margin: 8px 8px 8px 0; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); overflow: auto; position: relative; }
+.mobile .side { display: none; }
+.mobile .main { margin: 0; border-radius: 0; border: 0; padding-bottom: 74px; }
+.tabbar { display: none; }
+.mobile .tabbar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 74px; background: rgba(8,9,10,.92); backdrop-filter: blur(12px); border-top: 1px solid var(--line-soft); justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); }
+.mobile .tabbar span { display: grid; justify-items: center; gap: 3px; } .mobile .tabbar span.on { color: var(--accent-fg); }
+.mobile .tabbar i { width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 5px; }
+.mobile .app { position: relative; }
+
+/* The page: one quiet glow at the top that follows the time of day, nothing ambient below it. */
+.page { padding: 44px 44px 48px; position: relative; }
+.mobile .page { padding: 58px 16px 24px; }
+.sky { position: absolute; inset: 0 0 auto 0; height: 340px; pointer-events: none; background: radial-gradient(60% 100% at 18% 0%, var(--sky, rgba(124,108,242,.13)), transparent 70%); }
+.page > * { position: relative; }
+h2.hello { font-size: 28px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+.mobile h2.hello { font-size: 25px; }
+.page > p.sub { margin: 4px 0 22px; color: var(--muted); }
+
+/* Status strip: glass chips, a glowing dot; something that needs a look gets a slow halo. */
+.strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.mobile .strip { grid-template-columns: 1fr 1fr; gap: 10px; }
+.chip { display: flex; gap: 12px; align-items: center; padding: 14px 18px; border-radius: 14px; background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)), var(--card); border: 1px solid var(--line-soft); min-width: 0; }
+.chip .k { font-size: 12.5px; color: var(--muted); } .chip .v { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--c, var(--up)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--up)) 18%, transparent), 0 0 10px var(--c, var(--up)); }
+.chip.warn { border-color: rgba(224,162,59,.35); background: linear-gradient(160deg, rgba(224,162,59,.10), rgba(224,162,59,.02)), var(--card); --c: var(--warn); }
+.chip.warn .dot { animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent), 0 0 18px var(--c); } }
+
+/* Cards */
+.grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 20px; }
+.mobile .grid { grid-template-columns: 1fr; gap: 14px; }
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 20px 24px; min-width: 0; position: relative; overflow: hidden; }
+.mobile .card { padding: 18px 18px; }
+.card.span { grid-column: 1 / -1; }
+.card .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; }
+.card .head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.card .head a { font-size: 13px; color: var(--accent-fg); font-weight: 500; text-decoration: none; }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.14); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--f-mono); }
+.up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); } .muted { color: var(--muted); } .faint { color: var(--faint); }
+
+/* Portfolio: the chart runs edge to edge with a glowing line and the period's high. */
+.big { font-size: 34px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+.mobile .big { font-size: 30px; }
+.bleed { margin: 10px -24px 0; display: block; }
+.mobile .bleed { margin-inline: -18px; }
+.hold { display: grid; gap: 2px; margin-top: 10px; }
+.hold div { display: grid; grid-template-columns: 58px 1fr auto 70px; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line-soft); font-size: 13.5px; }
+.hold div:first-child { border-top: 0; }
+.tick { font-family: var(--f-mono); font-size: 12px; padding: 2px 6px; border-radius: 6px; background: var(--glass); border: 1px solid var(--glass-line); text-align: center; }
+.chg { text-align: right; font-weight: 600; font-size: 12.5px; border-radius: 7px; padding: 2px 6px; }
+.chg.up { background: rgba(63,185,127,.12); } .chg.down { background: rgba(229,100,106,.13); }
+
+/* NAS: an instrument arc for the fullest pool, glass tiles with 24 h sparklines. */
+.nas { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.gauge { width: 72%; max-width: 270px; margin: -4px auto 0; text-align: center; }
+.gauge small { display: block; color: var(--muted); font-size: 12.5px; margin-top: -4px; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.glass { border-radius: 11px; background: var(--glass); border: 1px solid var(--glass-line); padding: 9px 11px; min-width: 0; }
+.glass .lab { font-size: 10px; } .glass b { display: block; font-size: 17px; font-weight: 600; margin: 1px 0 3px; }
+.disks { display: flex; gap: 5px; align-items: center; height: 18px; }
+.disks i { width: 7px; height: 7px; border-radius: 50%; background: var(--up); box-shadow: 0 0 6px var(--up); }
+.disks small { margin-left: 4px; color: var(--muted); font-size: 11px; }
+.pools { display: grid; gap: 8px; font-size: 12.5px; }
+.pools .bar { height: 4px; border-radius: 3px; background: var(--raised); overflow: hidden; margin-top: 4px; }
+.pools .bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #6f60ea, #b4a9ff); }
+.net { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line-soft); padding-top: 10px; }
+
+/* Backups: a verified seal, the route to Hetzner with a slow light, 30 nights as bars. */
+.bhero { display: grid; grid-template-columns: 74px 1fr; gap: 16px; align-items: center; }
+.bhero .t { font-size: 22px; font-weight: 600; } .bhero .s { font-size: 12.5px; color: var(--muted); }
+.flow { display: flex; align-items: center; gap: 10px; margin: 14px 0 12px; font-size: 12px; }
+.flow .c2 { padding: 3px 9px; border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-line); color: var(--muted); white-space: nowrap; }
+.flow .line { flex: 1; height: 2px; border-radius: 2px; background: rgba(63,185,127,.22); position: relative; overflow: hidden; }
+.flow .line i { position: absolute; top: -1px; width: 28%; height: 4px; border-radius: 4px; background: linear-gradient(90deg, transparent, #7fe0b0, transparent); animation: flow 3.6s ease-in-out infinite; }
+@keyframes flow { from { left: -30%; } to { left: 100%; } }
+
+/* News: unread items carry a soft violet dot; the first story leads. */
+.news li { list-style: none; display: grid; grid-template-columns: 10px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line-soft); }
+.news li:first-child { border-top: 0; padding-top: 0; }
+.news ul { margin: 0; padding: 0; }
+.news .u { width: 7px; height: 7px; border-radius: 50%; margin-top: 8px; }
+.news .u.on { background: var(--accent-line); box-shadow: 0 0 8px var(--accent-line); }
+.news .tt { font-weight: 500; } .news li.lead .tt { font-size: 17px; font-weight: 600; line-height: 1.3; }
+.news .m { font-size: 12px; color: var(--faint); margin-top: 2px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; border-radius: 6px; padding: 1px 6px; }
+
+/* Services: as today, with a glowing status dot. */
+.svc { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.mobile .svc { grid-template-columns: 1fr; }
+.st { display: flex; gap: 11px; align-items: center; padding: 10px 12px; border-radius: 11px; background: var(--raised); border: 1px solid transparent; }
+.st .mg { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 11.5px; font-weight: 600; }
+.st .nm { font-weight: 500; font-size: 13.5px; } .st .ds { font-size: 11.5px; color: var(--muted); }
+.st .dot { margin-left: auto; width: 7px; height: 7px; }
+
+/* Weather: the temperature inside a ring of the next two hours of rain, the sun's day below. */
+.wx { display: grid; grid-template-columns: 170px 1fr; gap: 18px; align-items: center; }
+.mobile .wx { grid-template-columns: 150px 1fr; gap: 12px; }
+.wx .temp { font-size: 30px; font-weight: 600; } .wx .d { color: var(--muted); font-size: 13px; }
+.wx .facts { display: grid; gap: 3px; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+.rainline { font-size: 13.5px; font-weight: 500; margin-top: 12px; }
+
+/* Outside services (built in step 3) */
+.orbs { position: relative; width: 210px; aspect-ratio: 1; margin: 0 auto; }
+.orb { position: absolute; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 28%; display: grid; place-items: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 0 14px -4px var(--g); }
+.orb b { font-size: 13px; }
+.incard { border-radius: 12px; border: 1px solid rgba(224,162,59,.35); background: linear-gradient(160deg, rgba(224,162,59,.12), rgba(224,162,59,.03)); padding: 14px; display: grid; gap: 8px; }
+.incard .orb { position: static; transform: none; width: 38px; height: 38px; --g: #f1eff7; animation: halo2 2.4s ease-in-out infinite; }
+@keyframes halo2 { 50% { box-shadow: 0 0 22px 2px var(--g); } }
+
+.foot { font-size: 12px; color: var(--faint); margin-top: 10px; }
+.notes { max-width: 1440px; margin: 0 auto; padding: 0 20px 50px; color: var(--muted); columns: 2 420px; column-gap: 40px; }
+.notes h4 { color: var(--fg); margin: 0 0 6px; font-size: 14px; } .notes ul { margin: 0 0 16px; padding-left: 18px; } .notes li { margin: 3px 0; break-inside: avoid; }
+@media (prefers-reduced-motion: reduce) { .chip.warn .dot, .flow .line i, .incard .orb { animation: none; } }
+</style>
+
+<div class="chrome">
+  <div>
+    <h1>Home, restyled <span class="pill acc" style="margin-left:8px;vertical-align:3px">example data</span></h1>
+    <p>The hub's Home page in the desk panels' language, calmer: rings, glows and halos only where they carry meaning (state, progress, something that needs you). Same cards, same data the API already has.</p>
+  </div>
+  <div class="ctl">
+    <button data-v="desktop" aria-pressed="true">Desktop</button>
+    <button data-v="mobile" aria-pressed="false">Mobile</button>
+    <button data-s="ok" aria-pressed="true">All well</button>
+    <button data-s="look" aria-pressed="false">Something needs a look</button>
+  </div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<div class="notes">
+  <h4>What changes, per card</h4>
+  <ul>
+    <li><b>Page:</b> one soft glow at the top that follows the time of day (violet by day, deeper at night); cards get a faint top sheen. No ambient light behind individual cards.</li>
+    <li><b>Status strip:</b> glowing dots; a chip that needs a look turns amber with a slow halo, the only motion on a calm page.</li>
+    <li><b>Portfolio:</b> the 30-day chart bleeds to the card edges with a glowing line, a gradient and the period's high; holdings with ticker chips and tinted day changes.</li>
+    <li><b>NAS:</b> an arc gauge for the fullest pool (ticks, a red mark at the alert threshold, the runway below), glass tiles with 24-hour sparklines for CPU and memory, a glowing dot per disk and the UPS.</li>
+    <li><b>Backups:</b> a verified seal with last night's time, duration and size, the restore check, the route to Hetzner with a slow light, and 30 nights as bars (a slow night amber, last night bright).</li>
+  </ul>
+  <h4>&nbsp;</h4>
+  <ul>
+    <li><b>News:</b> the newest story leads in larger type; group chips in their own colour; unread dots glow. (No thumbnails: the article list has no images today.)</li>
+    <li><b>Services:</b> unchanged apart from glowing status dots.</li>
+    <li><b>Weather:</b> the temperature inside a ring of the next two hours of rain (as on the Now panel), and the sun's day as an arc with where the sun is now.</li>
+    <li><b>Outside services:</b> as built in step 3.</li>
+    <li><b>Motion:</b> only the amber halo, the backup light and the incident halo; all of it stops with reduced motion.</li>
+  </ul>
+</div>
+
+<script>
+const st = { view: 'desktop', state: 'ok' };
+const eur = n => '€ ' + Math.round(n).toLocaleString('nl-NL');
+const pct = n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(2).replace('.', ',') + '%';
+const nl = (n, d = 1) => n.toFixed(d).replace('.', ',');
+
+// Simple Icons paths (CC0) for the outside services card, as in the panel mockup.
+const LOGO = {
+  github: ['#f1eff7', 'M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'],
+  cloudflare: ['#F38020', 'M16.5088 16.8447c.1475-.5068.0908-.9707-.1553-1.3154-.2246-.3164-.6045-.499-1.0615-.5205l-8.6592-.1123a.1559.1559 0 0 1-.1333-.0713c-.0283-.042-.0351-.0986-.021-.1553.0278-.084.1123-.1484.2036-.1562l8.7359-.1123c1.0351-.0489 2.1601-.8868 2.5537-1.9136l.499-1.3013c.0215-.0561.0293-.1128.0147-.168-.5625-2.5463-2.835-4.4453-5.5499-4.4453-2.5039 0-4.6284 1.6177-5.3876 3.8614-.4927-.3658-1.1187-.5625-1.794-.499-1.2026.119-2.1665 1.083-2.2861 2.2856-.0283.31-.0069.6128.0635.894C1.5683 13.171 0 14.7754 0 16.752c0 .1748.0142.3515.0352.5273.0141.083.0844.1475.1689.1475h15.9814c.0909 0 .1758-.0645.2032-.1553l.12-.4268zm2.7568-5.5634c-.0771 0-.1611 0-.2383.0112-.0566 0-.1054.0415-.127.0976l-.3378 1.1744c-.1475.5068-.0918.9707.1543 1.3164.2256.3164.6055.498 1.0625.5195l1.8437.1133c.0557 0 .1055.0263.1329.0703.0283.043.0351.1074.0214.1562-.0283.084-.1132.1485-.204.1553l-1.921.1123c-1.041.0488-2.1582.8867-2.5527 1.914l-.1406.3585c-.0283.0713.0215.1416.0986.1416h6.5977c.0771 0 .1474-.0489.169-.126.1122-.4082.1757-.837.1757-1.2803 0-2.6025-2.125-4.727-4.7344-4.727'],
+  docker: ['#2496ED', 'M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z'],
+  tailscale: ['#f1eff7', 'M24 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm-9 9a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm0-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm6-6a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM3 24a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm18 .5a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM6 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm9-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm-3 2.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM6 3a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM3 5.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z'],
+  hetzner: ['#D50C2D', 'M0 0v24h24V0H0zm4.602 4.025h2.244c.509 0 .716.215.716.717v5.64h8.883v-5.64c0-.509.215-.717.717-.717h2.229c.5 0 .71.23.724.717v14.516c0 .509-.215.717-.717.717h-2.23c-.51 0-.717-.215-.717-.717v-5.735H7.562v5.735c0 .516-.215.717-.716.717H4.602c-.51 0-.717-.208-.717-.717V4.742c0-.509.207-.717.717-.717z'],
+  transip: ['#b4aaff', null],
+  proton: ['#6D4AFF', 'M2.474 17.75V24h4.401v-5.979c0-.582.232-1.14.645-1.551a2.204 2.204 0 0 1 1.556-.643h4.513a7.955 7.955 0 0 0 5.612-2.318 7.907 7.907 0 0 0 2.325-5.595 7.91 7.91 0 0 0-2.325-5.596A7.958 7.958 0 0 0 13.587 0H2.474v7.812h4.401V4.129h6.416c.995 0 1.951.394 2.656 1.097.704.7 1.1 1.653 1.101 2.646a3.742 3.742 0 0 1-1.101 2.648 3.766 3.766 0 0 1-2.656 1.097H8.627a6.158 6.158 0 0 0-4.352 1.795 6.133 6.133 0 0 0-1.801 4.338Z'],
+};
+const logo = (k, size = 18) => { const [c, d] = LOGO[k]; return d ? `<svg viewBox="0 0 24 24" width="${size}" height="${size}"><path fill="${c}" d="${d}"/></svg>` : `<b>T</b>`; };
+
+// --- cards ---------------------------------------------------------------------------------
+function strip() {
+  const look = st.state === 'look';
+  const chip = (k, v, cls = '') => `<div class="chip ${cls}"><span class="dot"></span><div style="min-width:0"><div class="k">${k}</div><div class="v">${v}</div></div></div>`;
+  return `<div class="strip">${chip('NAS', look ? 'volume2 92% full' : 'Healthy', look ? 'warn' : '')}${chip('Containers', '37 / 37')}${chip('Last backup', 'today 03:13')}${chip('Alerts', look ? '1 open' : 'None', look ? 'warn' : '')}</div>`;
+}
+
+function portfolio() {
+  const s = [138.2, 138.9, 138.4, 139.6, 140.1, 139.2, 139.9, 140.8, 141.2, 140.4, 139.8, 140.6, 141.5, 142.1, 141.6, 140.9, 141.8, 142.6, 143.1, 142.2, 141.4, 141.9, 142.4, 141.7, 142.3, 142.9, 142.1, 141.6, 142.2, 142.86].map(v => v * 170);
+  const W = 600, H = 120, min = Math.min(...s), max = Math.max(...s), x = i => i / (s.length - 1) * W, y = v => 12 + (1 - (v - min) / (max - min)) * (H - 26);
+  const pts = s.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' '), hi = s.indexOf(max);
+  const rows = [['VWRL', 'Vanguard FTSE All-World', 61240, .41], ['NVDA', 'Nvidia', 23870, 2.84], ['ASML', 'ASML Holding', 18110, -1.12]];
+  return `<section class="card"><div class="head"><h3>Portfolio</h3><span style="display:flex;gap:12px;align-items:center"><span class="pill up">${pct(.91)} today</span><a href="#">Open →</a></span></div>
+    <div class="big">${eur(24286)}</div>
+    <div class="up" style="font-weight:600;font-size:13.5px;margin-top:2px">+€ 1.288 today · ${pct(3.37)} in 30 days</div>
+    <svg class="bleed" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="calc(100% + 48px)" height="${st.view === 'mobile' ? 92 : 118}">
+      <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3fb97f" stop-opacity=".3"/><stop offset="1" stop-color="#3fb97f" stop-opacity="0"/></linearGradient></defs>
+      ${[.33, .66].map(f => `<line x1="0" x2="${W}" y1="${H * f}" y2="${H * f}" stroke="rgba(255,255,255,.04)"/>`).join('')}
+      <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#pg)"/>
+      <polyline points="${pts}" fill="none" stroke="#3fb97f" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px rgba(63,185,127,.8))"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;margin-top:6px"><span class="lab">Last 30 days</span><span class="lab" style="color:var(--muted)">High ${eur(max)} · ${hi === s.length - 1 ? 'today' : '11 Oct'}</span></div>
+    <div class="hold">${rows.map(r => `<div><span class="tick">${r[0]}</span><span class="muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r[1]}</span><span>${eur(r[2])}</span><span class="chg ${r[3] >= 0 ? 'up' : 'down'}">${pct(r[3])}</span></div>`).join('')}</div>
+  </section>`;
+}
+
+function gauge(v, warnAt) {
+  const R = 40, cx = 50, cy = 52, P = (a, r = R) => [cx - r * Math.cos(a * Math.PI), cy - r * Math.sin(a * Math.PI)];
+  const arc = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+  const ticks = Array.from({ length: 21 }, (_, i) => { const a = i / 20, [x0, y0] = P(a, R + 6), [x1, y1] = P(a, R + (i % 5 ? 7.5 : 9));
+    return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,${i % 5 ? .14 : .32})" stroke-width=".5"/>`; }).join('');
+  const [tx, ty] = P(warnAt / 100, R + 8);
+  const over = v >= warnAt;
+  return `<svg viewBox="0 2 100 56" width="100%" style="display:block;overflow:visible">
+    <defs><linearGradient id="ng" x1="0" x2="1"><stop offset="0" stop-color="#6f60ea"/><stop offset=".75" stop-color="#b4a9ff"/><stop offset="1" stop-color="${over ? '#e0a23b' : '#cfc8ff'}"/></linearGradient>
+    <filter id="nglow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    ${ticks}
+    <path d="${arc(0, 1)}" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="${arc(0, v / 100)}" stroke="url(#ng)" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#nglow)"/>
+    <circle cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="1.3" fill="#e5646a"/>
+    <text x="50" y="50" text-anchor="middle" font-size="19" font-weight="600" fill="#ecedef" letter-spacing="-.8">${v}%</text></svg>`;
+}
+const spark = (vals, col) => { const max = Math.max(...vals), min = Math.min(...vals), pts = vals.map((x, i) => `${(i / (vals.length - 1) * 60).toFixed(1)},${(17 - (x - min) / (max - min || 1) * 13).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 60 20" width="100%" height="20" preserveAspectRatio="none" style="display:block;overflow:visible"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.4" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round" style="filter:drop-shadow(0 0 2px ${col})"/></svg>`; };
+
+function nas() {
+  const look = st.state === 'look', v = look ? 92 : 68;
+  return `<section class="card"><div class="head"><h3>NAS</h3><span style="display:flex;gap:12px;align-items:center"><span class="pill ${look ? 'warn' : 'up'}">${look ? 'Needs a look' : 'Healthy'}</span><a href="#">Details →</a></span></div>
+    <div class="nas">
+      <div class="gauge">${gauge(v, 90)}<small>volume2 · ${look ? '5,5' : '4,1'} of 6,0 TB</small><small class="${look ? 'warn-t' : 'faint'}" style="margin-top:0">${look ? 'full in about 5 weeks' : 'full in about 3 years'}</small></div>
+      <div class="tiles">
+        <div class="glass"><span class="lab">CPU</span><b>11%</b>${spark([8, 9, 14, 11, 22, 12, 10, 15, 13, 9, 11, 18, 12, 11], '#b4a9ff')}</div>
+        <div class="glass"><span class="lab">Memory</span><b>24%</b>${spark([22, 23, 23, 24, 25, 24, 24, 26, 24, 23, 24, 24, 25, 24], '#b4a9ff')}</div>
+        <div class="glass"><span class="lab">Disks</span><b>4 of 4</b><span class="disks"><i></i><i></i><i></i><i></i><small>44 °C</small></span></div>
+      </div>
+      <div class="pools">${[['volume1', 2.1, 4.0], ['volume3', 0.6, 2.0]].map(p => `<div><div style="display:flex;justify-content:space-between"><span class="muted">${p[0]}</span><span>${nl(p[1])} / ${nl(p[2])} TB</span></div><div class="bar"><i style="width:${p[1] / p[2] * 100}%"></i></div></div>`).join('')}</div>
+      <div class="net"><span>Network ↓ 19,2 · ↑ 2,4 Mbit/s</span><span>UPS on mains · 100%</span></div>
+    </div></section>`;
+}
+
+function backups() {
+  const n = [68, 71, 70, 66, 72, 69, 70, 73, 71, 68, 70, 72, 69, 67, 71, 70, 94, 69, 70, 71, 68, 73, 70, 69, 72, 71, 70, 68, 71, 72], slow = 16;
+  const W = 300, H = 46, bw = W / n.length;
+  const bars = n.map((m, i) => { const h = m / 100 * (H - 4), last = i === n.length - 1;
+    return `<rect x="${(i * bw + 1.3).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${(bw - 2.6).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${i === slow ? '#e0a23b' : last ? '#3fb97f' : 'url(#bkg)'}"${last ? ' filter="url(#bkl)"' : ''}/>`; }).join('');
+  return `<section class="card"><div class="head"><h3>Backups</h3><span style="display:flex;gap:12px;align-items:center"><span class="pill up">All safe</span><a href="#">History →</a></span></div>
+    <div class="bhero">
+      <svg viewBox="0 0 60 60" width="74"><defs><radialGradient id="sealg"><stop offset="0" stop-color="rgba(63,185,127,.3)"/><stop offset="1" stop-color="rgba(63,185,127,0)"/></radialGradient></defs>
+        <circle cx="30" cy="30" r="29" fill="url(#sealg)"/><circle cx="30" cy="30" r="25" fill="none" stroke="rgba(63,185,127,.45)" stroke-width="1" stroke-dasharray="1.5 2.4"/>
+        <circle cx="30" cy="30" r="20" fill="rgba(63,185,127,.12)" stroke="#3fb97f" stroke-width="1.6"/><path d="M22 30.5l5.5 5.5 11-12" fill="none" stroke="#3fb97f" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div><div class="t">Succeeded <span class="muted" style="font-size:14px;font-weight:400">today 03:13</span></div>
+        <div class="s">3 volumes · 1 h 12 min · 4,1 GB</div><div class="s up">Restore verified 12 days ago</div></div>
+    </div>
+    <div class="flow"><span class="c2">NAS</span><span class="line"><i></i></span><span class="c2">Hetzner · encrypted</span></div>
+    <svg viewBox="0 0 ${W} ${H + 12}" width="100%" style="display:block;overflow:visible"><defs><linearGradient id="bkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(63,185,127,.5)"/><stop offset="1" stop-color="rgba(63,185,127,.1)"/></linearGradient>
+      <filter id="bkl" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${bars}
+      <text x="0" y="${H + 11}" font-size="9" fill="#7e828b">30 nights</text><text x="${(slow * bw + bw / 2).toFixed(1)}" y="${H + 11}" font-size="9" fill="#e0a23b" text-anchor="middle">slow</text><text x="${W}" y="${H + 11}" font-size="9" fill="#7e828b" text-anchor="end">last night</text></svg>
+    <p class="foot">Next run due tomorrow 03:00</p></section>`;
+}
+
+function news() {
+  const G = { News: '#b4aaff', Tech: '#7cc4ff', Local: '#7fe0b0' };
+  const items = [['Kabinet presenteert plannen voor betaalbare huurwoningen', 'NOS', 'News', '12 min ago', 1], ['Raspberry Pi kondigt nieuwe Compute Module aan', 'Tweakers', 'Tech', '40 min ago', 1], ['The quiet return of the desk gadget', 'The Verge', 'Tech', '1 hour ago', 0], ['Nieuwe fietsbrug over het Utrechts Kanaal open', 'Studio 040', 'Local', '2 hours ago', 1], ['Jellyfin 10.11 lands with a faster library scan', 'Jellyfin', 'Tech', '3 hours ago', 0]];
+  return `<section class="card news"><div class="head"><h3>Latest news</h3><span style="display:flex;gap:12px;align-items:center"><span class="pill acc">3 unread</span><a href="#">All →</a></span></div>
+    <ul>${items.map((a, i) => `<li class="${i === 0 ? 'lead' : ''}"><span class="u ${a[4] ? 'on' : ''}"></span><div><div class="tt ${a[4] ? '' : 'muted'}">${a[0]}</div>
+      <div class="m"><span class="grp" style="color:${G[a[2]]};background:color-mix(in srgb, ${G[a[2]]} 14%, transparent)">${a[2]}</span>${a[1]} · ${a[3]}</div></div></li>`).join('')}</ul></section>`;
+}
+
+function services() {
+  const s = [['Jellyfin', '2 streaming', '#7c6cf2'], ['Immich', '48.211 photos', '#3a8bd8'], ['Jellyseerr', '1 request', '#c35a9c'], ['Sonarr', '2 queued', '#2fa0a8'], ['Radarr', 'Nothing queued', '#e0a23b'], ['Uptime Kuma', '14 up', '#3fb97f'], ['Ghostfolio', 'Portfolio', '#6d5ce8'], ['Readeck', '12 saved', '#b5543c']];
+  return `<section class="card span"><div class="head"><h3>Services</h3><a href="#">All →</a></div>
+    <div class="svc">${s.slice(0, st.view === 'mobile' ? 4 : 8).map(x => `<div class="st"><span class="mg" style="background:color-mix(in srgb, ${x[2]} 22%, transparent);color:color-mix(in srgb, ${x[2]} 60%, white)">${x[0].slice(0, 2)}</span><div><div class="nm">${x[0]}</div><div class="ds">${x[1]}</div></div><span class="dot"></span></div>`).join('')}</div></section>`;
+}
+
+function weather() {
+  const rain = [0, 0, 0, 0, 0, 0, 0, .2, .6, 1.1, 1.2, .9, .4, .1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  const segs = rain.map((mm, i) => { const a0 = i * 15 + 1.6, a1 = (i + 1) * 15 - 1.6, len = mm > 0 ? 3 + Math.min(mm, 3) / 3 * 8 : 1.4, r0 = 38;
+    const P = (r, a) => [50 + r * Math.sin(a * Math.PI / 180), 50 - r * Math.cos(a * Math.PI / 180)];
+    const [x0, y0] = P(r0, a0), [x1, y1] = P(r0, a1), [x2, y2] = P(r0 + len, a1), [x3, y3] = P(r0 + len, a0);
+    return `<path d="M${x0.toFixed(2)} ${y0.toFixed(2)} A${r0} ${r0} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)} L${x2.toFixed(2)} ${y2.toFixed(2)} A${r0 + len} ${r0 + len} 0 0 0 ${x3.toFixed(2)} ${y3.toFixed(2)} Z" fill="${mm > 0 ? 'url(#rr)' : 'rgba(255,255,255,.12)'}"/>`; }).join('');
+  // the sun's day: sunrise 07:58, sunset 18:54, now 10:04
+  const f = (10.07 - 7.97) / (18.9 - 7.97), sx = 6 + f * 88, sy = 34 - Math.sin(f * Math.PI) * 26;
+  return `<section class="card"><div class="head"><h3>Weather</h3><span class="lab" style="letter-spacing:.04em">De Bilt · Buienradar</span></div>
+    <div class="wx">
+      <div style="position:relative">
+        <svg viewBox="0 0 100 100" width="100%"><defs><radialGradient id="rr" cx="50" cy="50" r="52" gradientUnits="userSpaceOnUse"><stop offset=".7" stop-color="#6f60ea"/><stop offset="1" stop-color="#c3b9ff"/></radialGradient>
+          <radialGradient id="cg"><stop offset="0" stop-color="rgba(124,108,242,.2)"/><stop offset="1" stop-color="rgba(124,108,242,0)"/></radialGradient></defs>
+          <circle cx="50" cy="50" r="33" fill="url(#cg)"/>${segs}<path d="M50 6 L50 10.5" stroke="#fff" stroke-width=".9" stroke-linecap="round"/>
+          <text x="50" y="52" text-anchor="middle" font-size="17" font-weight="600" fill="#ecedef">13°</text><text x="50" y="63" text-anchor="middle" font-size="6.5" fill="#9a9ea7">feels 11°</text></svg>
+      </div>
+      <div><div class="d">Zwaar bewolkt</div><div class="rainline">Rain 10:39 to 11:09, up to 1,2 mm/h</div>
+        <div class="facts"><span>Wind 4 Bft ZW · Humidity 94%</span></div>
+        <div class="lab" style="margin-top:14px">Sun · 07:58 to 18:54</div><svg viewBox="0 0 100 36" width="100%" style="max-width:260px;margin-top:4px;display:block;overflow:visible"><defs><linearGradient id="sun" x1="0" x2="1"><stop offset="0" stop-color="rgba(224,162,59,.15)"/><stop offset=".5" stop-color="rgba(224,162,59,.55)"/><stop offset="1" stop-color="rgba(229,100,106,.2)"/></linearGradient></defs>
+          <line x1="2" x2="98" y1="34" y2="34" stroke="rgba(255,255,255,.08)"/>
+          <path d="M6 34 Q50 -18 94 34" fill="none" stroke="url(#sun)" stroke-width="1.4" stroke-dasharray="1.5 2"/>
+          <circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="3" fill="#f2c45a" style="filter:drop-shadow(0 0 4px #f2c45a)"/>
+          </svg>
+      </div>
+    </div></section>`;
+}
+
+function outside() {
+  const keys = ['github', 'cloudflare', 'docker', 'tailscale', 'hetzner', 'transip', 'proton'];
+  if (st.state !== 'look') {
+    const orbs = keys.map((k, i) => { const a = i / keys.length * 2 * Math.PI - Math.PI / 2; return `<span class="orb" style="left:${50 + 41 * Math.cos(a)}%;top:${50 + 41 * Math.sin(a)}%;--g:${LOGO[k][0]}">${logo(k)}</span>`; }).join('');
+    return `<section class="card"><div class="head"><h3>Outside services</h3><a href="#">Details →</a></div>
+      <div class="orbs"><div style="position:absolute;inset:18%;border-radius:50%;background:radial-gradient(circle, rgba(63,185,127,.16), transparent 70%)"></div>
+        <svg viewBox="0 0 60 60" style="position:absolute;inset:32%"><circle cx="30" cy="30" r="22" fill="rgba(63,185,127,.14)" stroke="rgba(63,185,127,.45)" stroke-width="1.5"/><path d="M21 30.5l6 6 12-13" fill="none" stroke="#3fb97f" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>${orbs}</div>
+      <p style="text-align:center;font-weight:500;margin:8px 0 0">All operational</p></section>`;
+  }
+  return `<section class="card"><div class="head"><h3>Outside services</h3><a href="#">Details →</a></div>
+    <div class="incard"><div style="display:flex;gap:12px;align-items:center"><span class="orb">${logo('github', 21)}</span><div><div style="font-weight:600;font-size:15px;line-height:1.2">GitHub: Actions runs are delayed</div><div style="font-size:12.5px" class="muted"><span class="warn-t">Degraded</span> · for 24 min</div></div></div>
+      <div style="font-size:13.5px">Workflow runs are delayed while a fix rolls out.</div>
+      <div style="font-size:12.5px;display:grid;gap:3px;border-left:1px solid var(--line);padding-left:11px"><span><b style="font-weight:500">Identified</b> <span class="faint">09:44</span></span><span class="muted">Investigating <span class="faint">09:31</span></span></div></div>
+    <div style="display:flex;gap:7px;align-items:center;margin-top:12px;flex-wrap:wrap">${keys.slice(1).map(k => `<span class="orb" style="position:static;transform:none;width:26px;height:26px;--g:${LOGO[k][0]}">${logo(k, 13)}</span>`).join('')}<span class="muted" style="font-size:12.5px">The other 6 are operational</span></div></section>`;
+}
+
+function render() {
+  const h = new Date().getHours(), sky = h >= 21 || h < 6 ? 'rgba(70,60,170,.16)' : h < 9 ? 'rgba(180,110,170,.13)' : h < 17 ? 'rgba(124,108,242,.13)' : 'rgba(200,110,120,.12)';
+  const greet = h < 6 ? 'Good night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const look = st.state === 'look';
+  const nav = [['', 'Home', 1], ['Read', 'News'], ['', 'Saved'], ['Money', 'Portfolio'], ['House', 'NAS'], ['', 'Docker'], ['', 'Backups'], ['', 'Services'], ['Code', 'Repos'], ['System', 'Alerts'], ['', 'Settings']];
+  const d = document.getElementById('device');
+  d.className = 'device' + (st.view === 'mobile' ? ' mobile' : '');
+  d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">dev-minotaur</small>
+      ${nav.map(n => `${n[0] ? `<span class="grp">${n[0]}</span>` : ''}<a href="#" class="${n[2] ? 'on' : ''}"><i></i>${n[1]}</a>`).join('')}</nav>
+    <main class="main"><div class="sky" style="--sky:${sky}"></div><div class="page">
+      <h2 class="hello">${greet}</h2><p class="sub">${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} · ${look ? '2 things need a look' : 'everything is running'}</p>
+      ${strip()}
+      <div class="grid">${portfolio()}${nas()}${news()}${backups()}${services()}${weather()}${outside()}</div>
+    </div></main>
+    <div class="tabbar">${['Home', 'News', 'Portfolio', 'NAS', 'More'].map((t, i) => `<span class="${i ? '' : 'on'}"><i></i>${t}</span>`).join('')}</div></div>`;
+}
+
+document.querySelectorAll('.ctl button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.v) { st.view = b.dataset.v; document.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if (b.dataset.s) { st.state = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  render();
+}));
+render();
+</script>
+</html>
