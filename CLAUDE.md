@@ -109,6 +109,9 @@ python3 dashboard/serve.py
   the house uses (config.yaml); Hetzner from its page's embedded data, TransIP from TransNOC's
   all-clear sentence; maintenance only while it runs; a Telegram warning when an incident starts
   and ends. plan.md M20.
+- 2026-10-13: every desk panel card also gets a view in the hub (the hub mirrors the panels);
+  the morning train shows as a card on Home on weekdays from 06:00 until it has left, and is
+  watched every weekday with no pause switch. plan.md M20.
 
 ## Gotchas
 
