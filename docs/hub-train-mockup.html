@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of the hub's morning train card on Home, the hub's view of the Now panel's
+     "Your train" card (docs/desk-panels-mockup.html). Example data only. Not served by the hub. -->
+<title>Home hub: your train on Home</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .07);
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.chrome { max-width: 1480px; margin: 0 auto; padding: 22px 20px 10px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+.chrome h1 { margin: 0; font-size: 22px; font-weight: 600; } .chrome p { margin: 3px 0 0; color: var(--muted); max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { background: #17181c; border: 1px solid var(--line); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: rgba(124, 108, 242, .18); border-color: var(--accent); }
+.stage { display: flex; justify-content: center; padding: 14px 20px 40px; }
+.device { width: 1440px; height: 900px; border-radius: 14px; overflow: hidden; border: 1px solid #1a1b1f; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.device.mobile { width: 390px; height: 844px; border-radius: 44px; border: 10px solid #000; }
+.app { display: flex; height: 100%; background: var(--canvas); position: relative; }
+.side { width: 240px; flex: none; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; }
+.side b.brand { font-size: 15px; padding: 0 10px; } .side small.host { color: var(--faint); padding: 0 10px 14px; font-size: 12px; }
+.side .grp { font-size: 11px; letter-spacing: .08em; color: var(--faint); padding: 14px 10px 4px; text-transform: uppercase; font-weight: 600; }
+.side a { padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; display: flex; gap: 10px; align-items: center; }
+.side a.on { background: rgba(124,108,242,.14); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent-line); }
+.side a i { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; opacity: .7; }
+.main { flex: 1; margin: 8px 8px 8px 0; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); overflow: auto; }
+.mobile .side { display: none; } .mobile .main { margin: 0; border-radius: 0; border: 0; padding-bottom: 74px; }
+.tabbar { display: none; }
+.mobile .tabbar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 74px; background: rgba(8,9,10,.92); border-top: 1px solid var(--line-soft); justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); }
+.mobile .tabbar span { display: grid; justify-items: center; gap: 3px; } .mobile .tabbar span.on { color: var(--accent-fg); }
+.mobile .tabbar i { width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 5px; }
+.page { padding: 36px 44px 48px; } .mobile .page { padding: 58px 16px 24px; }
+.ph { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.ph h2 { font-size: 26px; font-weight: 600; margin: 0; } .ph p { margin: 4px 0 0; color: var(--muted); }
+
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 20px 24px; min-width: 0; position: relative; overflow: hidden; }
+.mobile .card { padding: 18px; }
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; white-space: nowrap; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.14); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--f-mono); }
+.up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); } .muted { color: var(--muted); } .faint { color: var(--faint); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; background: var(--c, var(--up)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--up)) 18%, transparent), 0 0 10px var(--c, var(--up)); }
+.dot.pulse { animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent), 0 0 18px var(--c); } }
+
+
+.strip { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.strip span { font-size: 12.5px; color: var(--muted); border: 1px solid var(--glass-line); background: var(--glass); border-radius: 99px; padding: 4px 11px; display: inline-flex; gap: 7px; align-items: center; }
+.ghost { opacity: .35; height: 150px; }
+.grid2 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 20px; margin-top: 20px; } .mobile .grid2 { grid-template-columns: 1fr; }
+.train { margin-bottom: 0; }
+.train::before { content: ''; position: absolute; inset: 0; background: radial-gradient(55% 90% at 92% 0%, var(--glow), transparent 70%); pointer-events: none; }
+.tr { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 28px; align-items: center; }
+.mobile .tr { grid-template-columns: 1fr auto; gap: 16px; }
+.dep { border: 1px solid var(--glass-line); background: var(--glass); border-radius: 12px; padding: 10px 14px 12px; min-width: 128px; }
+.dep .lab { display: block; margin-bottom: 2px; }
+.dep .t { font-size: 30px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+.dep .t s { color: var(--faint); font-size: .55em; font-weight: 500; margin-right: 6px; text-decoration-thickness: 1.5px; }
+.stat { font-size: 26px; font-weight: 600; letter-spacing: -.01em; line-height: 1.15; }
+.mobile .stat { font-size: 22px; }
+.sub { color: var(--muted); margin-top: 4px; }
+.plat { display: inline-block; border-radius: 6px; padding: 0 6px; background: var(--raised); color: var(--fg); font-weight: 600; }
+.plat.chg { background: rgba(224,162,59,.16); color: var(--warn); box-shadow: 0 0 0 1px rgba(224,162,59,.4), 0 0 14px -2px rgba(224,162,59,.6); }
+.route { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 22px; }
+.mobile .route { grid-template-columns: 1fr; gap: 0; margin-top: 16px; }
+.route::before { content: ''; position: absolute; left: 6px; right: 12%; top: 5px; height: 2px; background: linear-gradient(90deg, var(--line-c), rgba(255,255,255,.08)); }
+.mobile .route::before { left: 5px; right: auto; top: 6px; bottom: 14px; width: 2px; height: auto; background: linear-gradient(180deg, var(--line-c), rgba(255,255,255,.08)); }
+.stop { position: relative; padding-top: 18px; min-width: 0; }
+.mobile .stop { padding: 0 0 10px 22px; display: grid; grid-template-columns: 48px 1fr; gap: 0 10px; }
+.stop b { position: absolute; left: 0; top: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--card); border: 2px solid rgba(255,255,255,.25); }
+.mobile .stop b { top: 1px; }
+.stop.here b { border-color: var(--line-c); background: var(--line-c); box-shadow: 0 0 0 4px color-mix(in srgb, var(--line-c) 22%, transparent), 0 0 12px var(--line-c); }
+.stop .tm { font-family: var(--f-mono); font-size: 13px; } .stop .tm.late { color: var(--warn); }
+.stop .nm { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.route.gone { opacity: .4; } .route.gone .tm { text-decoration: line-through; }
+.note { position: relative; margin-top: 16px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; border-radius: 10px; padding: 9px 12px; border: 1px solid rgba(224,162,59,.35); background: rgba(224,162,59,.08); }
+.note b { color: var(--warn); }
+.next { position: relative; margin-top: 16px; border-radius: 12px; padding: 12px 14px; border: 1px solid var(--glass-line); background: var(--glass); display: flex; gap: 4px 14px; flex-wrap: wrap; align-items: baseline; }
+.next .t { font-size: 22px; font-weight: 600; }
+.notes { max-width: 1440px; margin: 0 auto; padding: 0 20px 50px; color: var(--muted); columns: 2 420px; column-gap: 40px; }
+.notes h4 { color: var(--fg); margin: 0 0 6px; font-size: 14px; } .notes ul { margin: 0 0 16px; padding-left: 18px; } .notes li { margin: 3px 0; break-inside: avoid; }
+</style>
+
+<div class="chrome">
+  <div>
+    <h1>Your train on Home <span class="pill acc" style="margin-left:8px;vertical-align:3px">example data</span></h1>
+    <p>The hub's view of the Now panel's train card: on weekday mornings, from 06:00 until the 07:16 has left, a card at the top of Home. The departure sits in a labelled box so it does not read as a clock; the status is the large line, then when and from which platform it leaves, the stops with their times, and a ring counting down.</p>
+  </div>
+  <div class="ctl">
+    <button data-v="desktop" aria-pressed="true">Desktop</button>
+    <button data-v="mobile" aria-pressed="false">Mobile</button>
+    <button data-s="ok" aria-pressed="true">On time</button>
+    <button data-s="late" aria-pressed="false">Late</button>
+    <button data-s="plat" aria-pressed="false">Platform change</button>
+    <button data-s="dis" aria-pressed="false">Disruption</button>
+    <button data-s="gone" aria-pressed="false">Cancelled</button>
+  </div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<div class="notes">
+  <h4>When it shows</h4>
+  <ul>
+    <li>Weekdays from 06:00 until the train has left (its actual departure, so a late train stays until it goes). The rest of the day the card is gone and Home looks as today.</li>
+    <li>Above the other cards, full width: it is the one thing on Home with a deadline.</li>
+    <li>Same data as the Now panel and the Telegram warnings, from <span class="mono">/api/train</span>.</li>
+  </ul>
+  <h4>States</h4>
+  <ul>
+    <li><b>On time:</b> green status, a green ring.</li>
+    <li><b>Late:</b> the planned time struck through beside the new one, every stop's time in amber, the status says by how much.</li>
+    <li><b>Platform change:</b> the new platform in an amber chip with the old one struck through; the status stays as it is.</li>
+    <li><b>Disruption on the route:</b> an amber note with NS's own text, under the stops.</li>
+    <li><b>Cancelled:</b> red, the stops dimmed and struck through, and the next direct train in its own box; the ring counts down to that one.</li>
+  </ul>
+  <h4>Also</h4>
+  <ul>
+    <li>Stale: the usual "last known" note when the NS API does not answer.</li>
+    <li>Telegram, as decided: only problems (late by 3 min or more, cancelled, platform change, a new disruption), skipping quiet hours.</li>
+  </ul>
+</div>
+
+<script>
+const st = { view: 'desktop', state: 'ok' };
+const nl = (n, d = 1) => n.toFixed(d).replace('.', ',');
+const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+function area(vals, color, { line2 = null, W = 300, H = 70, peak = true } = {}) {
+  const max = Math.max(...vals, ...(line2 || [])), min = 0, sp = max - min || 1;
+  const P = (v, i, n) => `${(i / (n - 1) * W).toFixed(1)},${(6 + (1 - (v - min) / sp) * (H - 10)).toFixed(1)}`;
+  const pts = vals.map((v, i) => P(v, i, vals.length)).join(' ');
+  const pk = vals.indexOf(Math.max(...vals)), [px, py] = P(vals[pk], pk, vals.length).split(',');
+  const id = 'a' + Math.random().toString(36).slice(2, 7);
+  return `<svg class="area" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="calc(100% + 48px)" height="${st.view === 'mobile' ? 48 : 64}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px ${color})"/>
+    ${line2 ? `<polyline points="${line2.map((v, i) => P(v, i, line2.length)).join(' ')}" fill="none" stroke="#9a9ea7" stroke-width="1" stroke-opacity=".7" vector-effect="non-scaling-stroke"/>` : ''}
+    ${peak ? `<circle cx="${px}" cy="${py}" r="2.2" fill="${color}" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${color})"/>` : ''}</svg>`;
+}
+
+function gauge(v, warnAt = 90) {
+  const R = 40, cx = 50, cy = 52, P = (a, r = R) => [cx - r * Math.cos(a * Math.PI), cy - r * Math.sin(a * Math.PI)];
+  const arc = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+  const ticks = Array.from({ length: 21 }, (_, i) => { const a = i / 20, [x0, y0] = P(a, R + 6), [x1, y1] = P(a, R + (i % 5 ? 7.5 : 9)); return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,${i % 5 ? .14 : .32})" stroke-width=".5"/>`; }).join('');
+  const [tx, ty] = P(warnAt / 100, R + 8), over = v >= warnAt, id = 'g' + Math.random().toString(36).slice(2, 7);
+  return `<svg viewBox="0 2 100 56"><defs><linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="#6f60ea"/><stop offset=".75" stop-color="#b4a9ff"/><stop offset="1" stop-color="${over ? '#e0a23b' : '#cfc8ff'}"/></linearGradient>
+    <filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${ticks}
+    <path d="${arc(0, 1)}" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="${arc(0, v / 100)}" stroke="url(#${id})" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#${id}f)"/>
+    <circle cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="1.3" fill="#e5646a"/>
+    <text x="50" y="50" text-anchor="middle" font-size="19" font-weight="600" fill="#ecedef" letter-spacing="-.8">${Math.round(v)}%</text></svg>`;
+}
+
+function ring(pct, color, inner, sub) {
+  const r = 42, c = 2 * Math.PI * r;
+  return `<svg viewBox="0 0 100 100" width="100%"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 4px ${color})"/>
+    <text x="50" y="52" text-anchor="middle" font-size="20" font-weight="600" fill="#ecedef">${inner}</text><text x="50" y="66" text-anchor="middle" font-size="8.5" fill="#9a9ea7">${sub}</text></svg>`;
+}
+
+function seal(ok, size = 64) {
+  const c = ok ? '#3fb97f' : '#e5646a';
+  return `<svg viewBox="0 0 60 60" width="${size}"><circle cx="30" cy="30" r="25" fill="none" stroke="${c}" stroke-opacity=".45" stroke-dasharray="1.5 2.4"/>
+    <path d="M30 11 L45 17 V29 C45 39 38 46 30 49 C22 46 15 39 15 29 V17 Z" fill="${c}" fill-opacity=".13" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/>
+    ${ok ? `<path d="M23.5 30l4.5 4.5 8.5-9" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="M30 22v10M30 37v.5" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`}</svg>`;
+}
+
+
+const STOPS = [['07:16', 'Leiden Centraal'], ['07:36', "Den Haag HS"], ['08:05', 'Delft'], ['08:41', 'Rotterdam Centraal']];
+const add = (hm, m) => { const [h, mi] = hm.split(':').map(Number), x = h * 60 + mi + m; return String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(x % 60).padStart(2, '0'); };
+const S = {
+  ok:   { word: 'On time', col: '#3fb97f', mins: 34, late: 0 },
+  late: { word: '6 min late', col: '#e0a23b', mins: 40, late: 6 },
+  plat: { word: 'On time', col: '#3fb97f', mins: 34, late: 0, plat: '5' },
+  dis:  { word: 'On time', col: '#3fb97f', mins: 34, late: 0, dis: 1 },
+  gone: { word: 'Cancelled', col: '#e5646a', mins: 64, late: 0, gone: 1 },
+};
+function ring(min, color, sub) {
+  const r = 26, c = 2 * Math.PI * r, f = Math.min(1, min / 60);
+  return `<svg viewBox="0 0 64 64" width="${st.view === 'mobile' ? 76 : 96}" aria-hidden="true"><circle cx="32" cy="32" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4.5"/>
+    <circle cx="32" cy="32" r="${r}" fill="none" stroke="${color}" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 32 32)" style="filter:drop-shadow(0 0 3px ${color})"/>
+    <text x="32" y="33" text-anchor="middle" font-size="16" font-weight="600" fill="#ecedef">${min}</text><text x="32" y="44" text-anchor="middle" font-size="6.5" fill="#9a9ea7">${sub}</text></svg>`;
+}
+function card() {
+  const s = S[st.state], mob = st.view === 'mobile';
+  const glow = s.col + '29';
+  const time = s.late ? `<s>07:16</s>${add('07:16', s.late)}` : '07:16';
+  const plat = s.plat ? `platform <s style="color:var(--faint)">3</s> <span class="plat chg">${s.plat}</span>` : `platform <span class="plat">3</span>`;
+  const sub = s.gone ? `The 07:16 to Rotterdam Centraal does not run` : `Leaves in ${s.mins} min from ${plat}`;
+  return `<section class="card train" style="--glow:${glow};--line-c:${s.col}">
+    <div class="head" style="position:relative"><h3>Your train · direct · Leiden Centraal to Rotterdam Centraal</h3></div>
+    <div class="tr">
+      <div class="dep"><span class="lab">Departure</span><span class="t">${s.gone ? '<s style="font-size:1em;margin:0">07:16</s>' : time}</span></div>
+      ${mob ? ring(s.mins, s.col, s.gone ? 'min to next' : 'min to go') : ''}
+      <div style="${mob ? 'grid-column:1/-1' : ''}"><div class="stat" style="color:${s.col}">${s.word}</div><div class="sub">${sub}</div></div>
+      ${mob ? '' : ring(s.mins, s.col, s.gone ? 'min to next' : 'min to go')}
+    </div>
+    ${s.gone ? `<div class="next"><span class="lab" style="flex-basis:100%">Next direct train</span><span class="t">07:46</span><span>platform <span class="plat">4</span> <span class="muted">· arrives 09:11, 30 min later than planned</span></span></div>` : ''}
+    <div class="route ${s.gone ? 'gone' : ''}">${STOPS.map((x, i) => `<div class="stop ${i === 0 ? 'here' : ''}"><b></b><span class="tm ${s.late ? 'late' : ''}">${s.late ? add(x[0], s.late) : x[0]}</span><div class="nm">${x[1]}</div></div>`).join('')}</div>
+    ${s.dis ? `<div class="note"><span class="dot" style="--c:var(--warn);margin-top:6px"></span><div><b>Works between Delft and Rotterdam.</b> <span class="muted">Fewer trains; travel time up to 10 min longer. Until Friday 17 October. (NS)</span></div></div>` : ''}
+  </section>`;
+}
+function render() {
+  const mob = st.view === 'mobile';
+  const nav = [['', 'Home', 1], ['Read', 'News'], ['', 'Saved'], ['Money', 'Portfolio'], ['House', 'NAS'], ['', 'Docker'], ['', 'Backups'], ['', 'Services'], ['', 'Tailscale'], ['Code', 'Repos'], ['System', 'Alerts'], ['', 'Settings']];
+  const d = document.getElementById('device');
+  d.className = 'device' + (mob ? ' mobile' : '');
+  d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">dev-minotaur</small>
+    ${nav.map(x => `${x[0] ? `<span class="grp">${x[0]}</span>` : ''}<a href="#" class="${x[2] ? 'on' : ''}"><i></i>${x[1]}</a>`).join('')}</nav>
+    <main class="main" style="background:radial-gradient(60% 340px at 18% 0%, rgba(240,170,110,.10), transparent 70%), var(--panel)"><div class="page">
+      <div class="ph"><div><h2>Good morning</h2><p>Tuesday 14 October · everything is running</p></div></div>
+      <div class="strip"><span><span class="dot" style="width:6px;height:6px"></span>NAS healthy</span><span>Backup ok</span><span>9 / 9 running</span></div>
+      ${card()}
+      <div class="grid2"><section class="card ghost"><div class="head"><h3>Portfolio</h3></div></section><section class="card ghost"><div class="head"><h3>NAS</h3></div></section></div>
+    </div></main>
+    <div class="tabbar">${['Home', 'News', 'Portfolio', 'NAS', 'More'].map((t, i) => `<span class="${i === 0 ? 'on' : ''}"><i></i>${t}</span>`).join('')}</div></div>`;
+}
+document.querySelectorAll('.ctl button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.v) { st.view = b.dataset.v; document.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if (b.dataset.s) { st.state = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  render();
+}));
+render();
+</script>
+</html>
