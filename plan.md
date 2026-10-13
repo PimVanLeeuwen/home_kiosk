@@ -216,6 +216,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 **M14. Privacy hardening** (added 2026-10-08). **Done 2026-10-09.**
 - Exposure audit, in two parts (decided 2026-10-09). The tunnel connects outward, so the router
   needs no open port and only Tandoor (`recipes.example.com`) and CouchDB may be public.
+  Changed 2026-10-13: CouchDB, Jellyfin (`jellyfin` and `jellyfin-public`) and Uptime Kuma
+  (`status`) may be public; Tandoor is reached over Tailscale only, and the UGOS admin (`nas`)
+  and the unused `rss` record are taken off the internet.
   1. The collector, every 6 hours, with a read-only Cloudflare API token: the zone's DNS records
      and every tunnel's hostnames; anything that leads to the house (a tunnel route, a CNAME to a
      tunnel, an A/AAAA record on the home IP) and is not on the allowlist is an error alert. Each
