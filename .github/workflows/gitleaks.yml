@@ -1,0 +1,31 @@
+name: gitleaks
+
+# Secret scan with gitleaks (redacted output). A push or pull request scans its
+# new commits; the weekly run and a manual run scan the whole history, so a
+# rewritten history is checked too. Personal account: no GITLEAKS_LICENSE needed.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 5 * * mon'  # UTC, weekly full-history scan
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # the whole history
+
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # A failing check is enough; comments would need pull-requests: write.
+          GITLEAKS_ENABLE_COMMENTS: false

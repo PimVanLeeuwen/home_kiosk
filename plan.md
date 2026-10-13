@@ -499,13 +499,6 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked).
 
 - The Pi kiosk is replaced by the desk panels (M16, decided 2026-10-09). Until they run, the
   carousel stays at `/kiosk/` (`?data=api` for live data; `/kiosk` and `/read.html` redirect).
-- Secrets in nas-docker (found 2026-10-08, not decided): the cloudflared tunnel token, the
-  CouchDB admin password (CouchDB is public through the tunnel), the NordVPN credentials
-  (qbittorrent) and Tracearr's JWT, cookie and Postgres secrets are written in the compose
-  files, so they are in git history, the GitHub mirror and the Hetzner backup. Proposed: move
-  them to each stack's `.env`, rotate them (removing them from the files does not remove them
-  from history), keep the recovery copies in the password manager, and add gitleaks to CI in
-  both repos. CouchDB first, as it is public. RECOVERY.md points to these files today.
 - Password manager (discussed 2026-10-09, not decided): no self-hosting (Vaultwarden was
   considered and dropped: the vault would hold the passwords needed to rebuild the NAS).
   Compared Bitwarden and NordPass; recommended Bitwarden in the EU region (open source, yearly
