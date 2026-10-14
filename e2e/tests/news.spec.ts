@@ -70,3 +70,40 @@ test('Saved lists Readeck bookmarks and reads one', async ({ page }) => {
   await expect(reader.getByRole('button', { name: 'Archive' })).toBeVisible()
   await expect(reader.getByText('Library scans now take half the time')).toBeVisible()
 })
+
+test('News opens with the headlines: one story per group, saved to Readeck from the bookmark', async ({ page }) => {
+  await stubNews(page)
+  const saved: unknown[] = []
+  const minutesAgo = (n: number) => new Date(Date.now() - n * 60_000).toISOString()
+  const story = (id: string, over: Record<string, unknown>) => ({
+    id, group_id: 'self', group: 'Self-hosted', title: `Story ${id}`, source: 'NOS', url: `https://news.example/${id}`,
+    published: minutesAgo(12), summary: null, image: null, ...over,
+  })
+  await page.route('**/api/news/headlines', (r) => r.fulfill({ json: { as_of: now(), stale: false, items: [
+    story('h1', { title: 'Kabinet presenteert plannen', group: 'Nederland', image: 'lead', summary: 'Het kabinet wil sneller bouwen.' }),
+    story('a1', { title: ARTICLE.title, source: 'Jellyfin blog', published: minutesAgo(40) }),
+    story('h3', { group: 'Tech', source: 'The Verge', image: 'thumb', published: minutesAgo(60) }),
+  ] } }))
+  const pictures: string[] = []
+  await page.route('**/api/news/headlines/*/image/*', (r) => {
+    pictures.push(new URL(r.request().url()).pathname)
+    return r.fulfill({ status: 404 })
+  })
+  await page.route('**/api/save', (r) => {
+    saved.push(r.request().postDataJSON())
+    return r.fulfill({ json: { saved: true, bookmark_id: 'b1' } })
+  })
+  await page.goto('/news')
+
+  const headlines = page.getByRole('region', { name: 'Headlines' })
+  await expect(headlines.getByRole('heading', { name: 'Kabinet presenteert plannen' })).toBeVisible()
+  await expect.poll(() => pictures.sort()).toEqual(['/api/news/headlines/h1/image/lead', '/api/news/headlines/h3/image/thumb'])
+
+  await headlines.getByRole('button', { name: 'Save to Readeck: Story h3' }).click()
+  await expect(headlines.getByRole('button', { name: 'Saved to Readeck: Story h3' })).toBeDisabled()
+  expect(saved).toEqual([{ url: 'https://news.example/h3', title: 'Story h3' }])
+
+  await headlines.getByRole('link', { name: /Jellyfin 12.1 lands/ }).click()
+  await expect(page).toHaveURL('/news?a=a1')
+  await expect(page.getByRole('article', { name: ARTICLE.title }).getByRole('heading', { name: 'Tone mapping' })).toBeVisible()
+})

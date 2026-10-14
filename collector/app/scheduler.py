@@ -16,6 +16,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
+from .news import headlines
 from .portfolio import indices
 from .portfolio import report as portfolio_report
 from .sources import (
@@ -56,6 +57,7 @@ BACKUPS_INTERVAL_SECONDS = 300  # the run file changes once a day
 HOSTS_INTERVAL_SECONDS = 600  # the tailnet name practically never changes
 TAILNET_INTERVAL_SECONDS = 60  # devices come and go; a local socket call
 NEWS_INTERVAL_SECONDS = 600       # §5: feeds every 10 minutes
+HEADLINES_INTERVAL_SECONDS = 300  # local reads; a new story's picture is fetched once
 PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
 WEATHER_INTERVAL_SECONDS = 300  # Buienradar's rain forecast moves in 5-minute steps
 EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
@@ -267,6 +269,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         seconds=NEWS_INTERVAL_SECONDS,
         args=[store, "news", lambda: feeds.collect(cfg, store)],
         id="news",
+        next_run_time=None,
+        max_instances=1,
+        coalesce=True,
+    )
+
+    # From the articles the news job stored; a picture is fetched once per story.
+    scheduler.add_job(
+        _run,
+        "interval",
+        seconds=HEADLINES_INTERVAL_SECONDS,
+        args=[store, headlines.CACHE_KEY, lambda: headlines.collect(store)],
+        id="headlines",
         next_run_time=None,
         max_instances=1,
         coalesce=True,

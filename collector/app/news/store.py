@@ -49,6 +49,15 @@ CREATE TABLE IF NOT EXISTS article (
 );
 CREATE INDEX IF NOT EXISTS article_published ON article (published);
 
+-- A headline's image, fetched once and stored small (headlines.py).
+CREATE TABLE IF NOT EXISTS headline_image (
+    article_id TEXT PRIMARY KEY,
+    checked_at TEXT NOT NULL,
+    lead       BLOB,   -- about 900 px wide, only from a big enough original
+    thumb      BLOB,   -- a 240 px square
+    error      TEXT
+);
+
 -- The reader's extracted text, cached per article (see reader.py).
 CREATE TABLE IF NOT EXISTS article_content (
     id         TEXT PRIMARY KEY,
@@ -91,6 +100,11 @@ def article_id(url: str) -> str:
 def ensure_tables(store: Store) -> None:
     with store.connect() as conn:
         conn.executescript(TABLES)
+        columns = {r["name"] for r in conn.execute("PRAGMA table_info(article)")}
+        # Added for Headlines (2026-10-14): the feed's image and a short summary.
+        for column in ("image", "summary"):
+            if column not in columns:
+                conn.execute(f"ALTER TABLE article ADD COLUMN {column} TEXT")
 
 
 # --- feeds -------------------------------------------------------------------------
@@ -200,15 +214,19 @@ def record_fetch(store: Store, feed_id: int, now: datetime, count: int,
 
 def save_articles(store: Store, group_id: str, items: list[dict[str, Any]],
                   now: datetime) -> int:
-    """Insert new articles; known ones keep their read state. Returns how many were new."""
+    """Insert new articles; known ones keep their read state (and gain an image
+    or summary the feed did not have before). Returns how many were new."""
     with store.connect() as conn:
-        before = conn.total_changes
+        before = conn.execute("SELECT COUNT(*) FROM article").fetchone()[0]
         conn.executemany(
-            "INSERT INTO article (id, url, title, source, group_id, published, first_seen) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
+            "INSERT INTO article (id, url, title, source, group_id, published, first_seen, "
+            "image, summary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET "
+            "image = COALESCE(article.image, excluded.image), "
+            "summary = COALESCE(article.summary, excluded.summary)",
             [(article_id(i["url"]), i["url"], i["title"], i["source"], group_id,
-              i["published"].isoformat(), now.isoformat()) for i in items])
-        return conn.total_changes - before
+              i["published"].isoformat(), now.isoformat(), i.get("image"), i.get("summary"))
+             for i in items])
+        return conn.execute("SELECT COUNT(*) FROM article").fetchone()[0] - before
 
 
 def prune(store: Store, now: datetime | None = None) -> int:
@@ -216,6 +234,7 @@ def prune(store: Store, now: datetime | None = None) -> int:
     with store.connect() as conn:
         removed = conn.execute("DELETE FROM article WHERE published < ?", (cutoff,)).rowcount
         conn.execute("DELETE FROM article_content WHERE id NOT IN (SELECT id FROM article)")
+        conn.execute("DELETE FROM headline_image WHERE article_id NOT IN (SELECT id FROM article)")
         return removed
 
 

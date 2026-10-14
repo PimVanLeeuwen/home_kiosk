@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field, field_validator
 
 from ..security import same_origin_json
-from . import reader, saved
+from . import headlines, reader, saved
 from . import store as news
 
 router = APIRouter(prefix="/api")
@@ -81,6 +81,16 @@ async def article_image(article_id: str, index: int, request: Request) -> Respon
     except Exception as exc:
         raise HTTPException(502, "The image could not be loaded.") from exc
     return _image_response(data, kind)
+
+
+@router.get("/news/headlines/{article_id}/image/{size}")
+def headline_image(article_id: str, size: Literal["lead", "thumb"],
+                   request: Request) -> Response:
+    """Only the stored copy of a headline's picture, so this is not an open proxy."""
+    data = headlines.picture(_store(request), article_id, size)
+    if not data:
+        raise HTTPException(404, "No such image.")
+    return _image_response(data, "image/webp")
 
 
 def _image_response(data: bytes, kind: str) -> Response:

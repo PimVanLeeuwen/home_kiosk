@@ -26,6 +26,7 @@ from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
 from .models import ContainerUpdate
 from .news import api as news_api
+from .news import headlines
 from .news import store as news_store
 from .portfolio import api as portfolio_api
 from .portfolio import degiro_import
@@ -153,6 +154,12 @@ def spotlight() -> Any:
 @app.get("/api/news")
 def news() -> Any:
     return _serve(CACHE_KEYS["news"])
+
+
+@app.get("/api/news/headlines")
+def news_headlines() -> Any:
+    """The newest story of each group, the lead first (the Headlines screen)."""
+    return _serve(headlines.CACHE_KEY)
 
 
 @app.get("/api/news/full")

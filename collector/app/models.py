@@ -141,6 +141,9 @@ class NewsItem(BaseModel):
     # The untruncated title, for the Home hub's article store; not part of
     # the kiosk payload.
     _full_title: str = PrivateAttr(default="")
+    # For Headlines, kept in the article store only.
+    _image: str | None = PrivateAttr(default=None)
+    _summary: str | None = PrivateAttr(default=None)
 
 
 class NewsGroup(BaseModel):

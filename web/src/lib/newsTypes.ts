@@ -77,3 +77,23 @@ export interface FeedGroup {
   title: string
   feeds: Feed[]
 }
+
+/** The newest story of each group, the lead first (/api/news/headlines). */
+export interface Headline {
+  id: string
+  group_id: string
+  group: string
+  title: string
+  source: string
+  url: string
+  published: string
+  summary: string | null
+  /** Stored pictures: "lead" has both sizes, "thumb" only the square. */
+  image: 'lead' | 'thumb' | null
+}
+
+export interface HeadlinesResponse {
+  as_of: string
+  stale: boolean
+  items: Headline[]
+}

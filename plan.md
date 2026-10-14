@@ -389,6 +389,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   clockwise, segment length by intensity, with "Rain 07:11 to 07:56, peak 2,8 mm/u" below. The
   day view lays the sun's arc over a sky band that runs from night through dawn, day and dusk,
   above the temperature curve and the chance of rain.
+  Built 2026-10-12 (hub): Home's weather card shows the rain ring around the temperature and the
+  sun's arc (`RainRing`, `SunArc`); the hub has no clock of its own.
 - **Laundry** (Home, added 2026-10-12): the washer and dryer (ConnectLife app) as two portholes:
   water turning inside while a machine runs, a ring counting down, the program and when it will
   be ready; a finished machine glows green with "Take it out". No Telegram message (decided
@@ -435,6 +437,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - **Headlines** (Now): the top stories from the News reader (M6): the lead story full-bleed over
   its image (proxied by the hub) with the source as a badge, then two more with thumbnails; tap
   one to save it to Readeck, and its bookmark fills.
+  Built 2026-10-14 (collector and hub). Decided 2026-10-14: the newest story of each news group,
+  the lead the newest with a picture big enough; at the top of News. The feed job keeps each
+  article's feed image and a short summary; a `headlines` job every 5 minutes picks the three
+  and fetches each picture once (the feed's, else the page's og:image; NU.nl's feed squares are
+  asked for at 1280 px, its pages sit behind DPG's consent wall), through the reader's guarded
+  client, stored with Pillow as WebP (a 900 px lead and a 240 px square). `/api/news/headlines`
+  and `/api/news/headlines/{id}/image/lead|thumb`, which serve only those stored copies (mockup
+  `docs/hub-headlines-mockup.html`).
 - **Code** (House): 16 weeks of commit activity as a grid, then the CI state of the default
   branches and running pull requests from the Repos data (M9); a failing build stands out.
   Built 2026-10-14 (collector and hub): the Repos query also reads each default branch's latest
@@ -458,6 +468,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   sized by its share of the portfolio and tinted green or red by today's move, with the ticker,
   the change and the name (type scales with the tile; the name is left out on the smallest);
   the S&P 500, Nasdaq 100 and AEX below.
+  Built 2026-10-12 (hub): "Today's movers" on the Portfolio page, from the holdings' weights and
+  day moves the collector already serves; on a phone the holdings under 3% share one "N others"
+  tile. The indices are the Markets card beside it (mockup `docs/hub-portfolio-mockup.html`).
 - **My sites** (House, added 2026-10-10): the owner's own sites: example.com,
   aoc.example.com, hubble.cafe, meteor.cafe, admin.hubble.cafe, harry.hubble.cafe and
   harry-admin.hubble.cafe. The list is grouped Personal and Hubble with short names (aoc, admin,

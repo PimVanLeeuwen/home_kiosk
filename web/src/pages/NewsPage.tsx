@@ -5,6 +5,7 @@ import { PageHeader } from '../components/PageHeader'
 import { Pill } from '../components/ui/Pill'
 import { tileColour } from '../lib/monogram'
 import { FilterPill } from '../components/news/FilterPill'
+import { Headlines } from '../components/news/Headlines'
 import { NewsReader } from '../components/news/NewsReader'
 import { sendJson } from '../lib/api'
 import { cn } from '../lib/cn'
@@ -76,13 +77,17 @@ export function NewsPage() {
   }
 
   return (
-    <div className="lg:grid lg:grid-cols-[minmax(300px,400px)_minmax(0,1fr)] lg:gap-10">
-      <section aria-label="Articles" className={cn(selected && 'hidden lg:block')}>
+    <>
+      <div className={cn(selected && 'hidden lg:block')}>
         <PageHeader
           title="News"
           subtitle="The last week from your feeds"
           actions={groups.data && <Pill tone={unread ? 'accent' : 'muted'}>{unread ? `${unread} unread` : 'All read'}</Pill>}
         />
+        <Headlines colourOf={colourOf} />
+      </div>
+      <div className="lg:grid lg:grid-cols-[minmax(300px,400px)_minmax(0,1fr)] lg:gap-10">
+      <section aria-label="Articles" className={cn(selected && 'hidden lg:block')}>
         <div className="mb-3 flex gap-2">
         <label className="flex min-w-0 flex-1 items-center gap-2 rounded-[11px] border border-glass-line bg-glass px-3 py-2.5 text-muted focus-within:border-accent-line">
           <Search aria-hidden="true" className="size-4 shrink-0" />
@@ -210,6 +215,7 @@ export function NewsPage() {
           <p className="pt-24 text-center text-muted">Pick an article to read it here.</p>
         )}
       </section>
-    </div>
+      </div>
+    </>
   )
 }

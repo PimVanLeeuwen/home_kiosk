@@ -50,6 +50,9 @@ USER_AGENT = "Mozilla/5.0 (compatible; desk-dashboard/1.0)"
 SEEN_PER_GROUP = 200
 
 _HN_POINTS = re.compile(r"Points:\s*(\d+)")
+_IMG_SRC = re.compile(r"<img[^>]+src=[\"']([^\"']+)[\"']", re.IGNORECASE)
+_TAG = re.compile(r"<[^>]+>")
+SUMMARY_MAX_CHARS = 280
 
 
 def interleave(
@@ -146,6 +149,35 @@ def _meta(entry: Any) -> str | None:
     return f"{match.group(1)} points" if match else None
 
 
+def _image(entry: Any) -> str | None:
+    """The entry's own picture: the widest media:content or media:thumbnail,
+    an image enclosure, or else the first <img> in its body."""
+    media = [m for m in (entry.get("media_content") or []) + (entry.get("media_thumbnail") or [])
+             if m.get("url") and m.get("medium", "image") == "image"
+             and not (m.get("type") or "image/").startswith(("video", "audio"))]
+    if media:
+        best = max(media, key=lambda m: int(m.get("width") or 0))
+        return best["url"]
+    for link in entry.get("enclosures") or []:
+        if (link.get("type") or "").startswith("image/") and link.get("href"):
+            return link["href"]
+    bodies = [entry.get("summary") or ""]
+    bodies += [c.get("value") or "" for c in entry.get("content") or []]
+    for body in bodies:
+        if match := _IMG_SRC.search(body):
+            return html.unescape(match.group(1))
+    return None
+
+
+def _summary(entry: Any) -> str | None:
+    """The first lines of the entry's summary as plain text; none for Hacker
+    News, whose summary is only links and points."""
+    text = " ".join(html.unescape(_TAG.sub(" ", entry.get("summary") or "")).split())
+    if not text or text.startswith("Article URL:"):
+        return None
+    return truncate(text, SUMMARY_MAX_CHARS)
+
+
 def _normalise(entry: Any, source: str, cfg: dict[str, Any], now: datetime) -> NewsItem | None:
     # Feeds escape their titles ("Apple&#8217;s"); decode before truncating so
     # the entity is not counted toward the character limit or split in half.
@@ -163,6 +195,8 @@ def _normalise(entry: Any, source: str, cfg: dict[str, Any], now: datetime) -> N
         meta=_meta(entry),
     )
     item._full_title = " ".join(title.split())
+    item._image = _image(entry)
+    item._summary = _summary(entry)
     return item
 
 
@@ -263,7 +297,7 @@ async def collect(
             # Every item, untruncated, into the Home hub's article store.
             news_store.save_articles(store, group["id"], [
                 {"url": i.url, "title": i._full_title or i.title, "source": i.source,
-                 "published": i.published}
+                 "published": i.published, "image": i._image, "summary": i._summary}
                 for feed_items in per_feed for i in feed_items
             ], now)
 
