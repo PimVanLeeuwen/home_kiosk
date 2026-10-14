@@ -411,6 +411,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   and contacts, so NAS-only, revocable any time). All calendars are in Apple Calendar. Settings
   → Desk panels lists them with their colours and a switch each, so some never show; events
   from the chosen ones show with their full titles.
+  Built 2026-10-14 (collector and hub): `/api/calendar` every 5 minutes; iCloud's own calendars
+  over CalDAV (a REPORT for today), the subscribed ones (GEWIS, Runna, Bartender Shifts, the
+  Harry List feeds, the holidays) from their own .ics feeds at most every 15 minutes, without the
+  iCloud login; repeating events unfolded with icalendar and recurring-ical-events (decided
+  2026-10-14). Subscription addresses stay in memory only, never logged or served; event titles
+  never logged. A Today card first on Home and a Calendars section in Settings with a switch per
+  calendar (mockup `docs/hub-calendar-mockup.html`).
 - **Headlines** (Now): the top stories from the News reader (M6): the lead story full-bleed over
   its image (proxied by the hub) with the source as a badge, then two more with thumbnails; tap
   one to save it to Readeck, and its bookmark fills.

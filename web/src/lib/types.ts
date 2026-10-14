@@ -45,6 +45,40 @@ export interface Hosts {
   } | null
 }
 
+export interface CalendarEvent {
+  calendar_id: string
+  calendar: string
+  /** "#ff8d28", the calendar's own colour. */
+  color: string
+  title: string
+  /** null for an all-day event. */
+  start: string | null
+  end: string | null
+  all_day: boolean
+}
+
+/** Today's events (`/api/calendar`). */
+export interface Today {
+  as_of: string
+  stale: boolean
+  /** The local date, YYYY-MM-DD. */
+  date: string
+  /** Timed events, by start. */
+  events: CalendarEvent[]
+  all_day: CalendarEvent[]
+  /** Calendar name to a short reason, when one could not be read. */
+  errors: Record<string, string>
+}
+
+/** A calendar in Settings (`/api/settings/calendars`). */
+export interface CalendarInfo {
+  id: string
+  name: string
+  color: string
+  kind: 'icloud' | 'subscribed'
+  shown: boolean
+}
+
 export interface Viewer {
   /** Tracearr's username. */
   name: string

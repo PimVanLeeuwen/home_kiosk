@@ -92,3 +92,20 @@ test('rewords a Telegram message in Settings', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'Alert rules' })).toContainText('Customised')
   expect(saved).toEqual({ text: '{level} <b>Almost full: </b>{pool}' })
 })
+
+test('switches a calendar off in Settings', async ({ page }) => {
+  const calendars = [
+    { id: 'work-id', name: 'Work', color: '#ff8d28', kind: 'icloud', shown: true },
+    { id: 'gewis-id', name: 'GEWIS Activiteiten', color: '#ff6352', kind: 'subscribed', shown: true },
+  ]
+  await page.route('**/api/settings/calendars', (route) => route.fulfill({ json: calendars }))
+  await page.route('**/api/settings/calendars/gewis-id', (route) =>
+    route.fulfill({ json: [calendars[0], { ...calendars[1], shown: false }] }))
+  await page.goto('/settings')
+
+  const section = page.getByRole('region', { name: 'Calendars' })
+  const gewis = section.getByRole('switch', { name: 'Show GEWIS Activiteiten' })
+  await expect(gewis).toHaveAttribute('aria-checked', 'true')
+  await gewis.click()
+  await expect(gewis).toHaveAttribute('aria-checked', 'false')
+})

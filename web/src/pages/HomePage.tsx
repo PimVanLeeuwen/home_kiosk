@@ -5,6 +5,7 @@ import { NewsCard } from '../components/home/NewsCard'
 import { PortfolioCard } from '../components/home/PortfolioCard'
 import { ServicesCard } from '../components/home/ServicesCard'
 import { StatusStrip } from '../components/home/StatusStrip'
+import { TodayCard } from '../components/home/TodayCard'
 import { TrainCard } from '../components/home/TrainCard'
 import { WeatherCard } from '../components/home/WeatherCard'
 import { OutsideServicesCard } from '../components/outside/OutsideServicesCard'
@@ -46,6 +47,7 @@ export function HomePage() {
         <StatusStrip nas={nas.data} attention={attention} />
         <TrainCard />
         <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
+          <TodayCard />
           <PortfolioCard />
           <NasCard nas={nas.data} error={nas.error} />
           <NewsCard />

@@ -89,3 +89,26 @@ test('Home shows the morning train at the top until it leaves', async ({ page })
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await expect(page.getByRole('region', { name: /^Your train/ })).toHaveCount(0)
 })
+
+const CAL_AT = (h: number, m = 0) => new Date(2026, 9, 14, h, m).toISOString()
+const TODAY = {
+  as_of: CAL_AT(9), stale: false, date: '2026-10-14', errors: {},
+  events: [
+    { calendar_id: 'w', calendar: 'Work', color: '#5aa9ff', title: 'Standup', start: CAL_AT(9, 30), end: CAL_AT(10), all_day: false },
+    { calendar_id: 'f', calendar: 'Family', color: '#c8a0ff', title: 'Lunch with Sanne', start: CAL_AT(12, 30), end: CAL_AT(13, 30), all_day: false },
+  ],
+  all_day: [{ calendar_id: 'b', calendar: 'Birthdays', color: '#ff8fa3', title: "Mama's birthday", start: null, end: null, all_day: true }],
+}
+
+test("Home shows today's calendar with the next event first", async ({ page }) => {
+  await page.clock.install({ time: new Date(2026, 9, 14, 9, 6) })
+  await page.route('**/api/calendar', (route) => route.fulfill({ json: TODAY }))
+  await page.goto('/')
+
+  const card = page.getByRole('region', { name: /^Today/ })
+  await expect(card).toContainText('Next · Work')
+  await expect(card).toContainText('Standup')
+  await expect(card.getByRole('img', { name: '24 min' })).toBeVisible()
+  await expect(card.getByRole('list', { name: 'All day' })).toContainText("Mama's birthday")
+  await expect(card.getByRole('img', { name: 'The day from 07:00 to 23:00' })).toBeVisible()
+})
