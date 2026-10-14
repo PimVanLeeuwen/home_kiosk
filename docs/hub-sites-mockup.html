@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of the My sites section on the hub's Services page, the hub's view of the House
+     panel's My sites card (docs/desk-panels-mockup.html). Example data only. Not served by the hub. -->
+<title>Home hub: My sites on Services</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .07);
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.chrome { max-width: 1480px; margin: 0 auto; padding: 22px 20px 10px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+.chrome h1 { margin: 0; font-size: 22px; font-weight: 600; } .chrome p { margin: 3px 0 0; color: var(--muted); max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { background: #17181c; border: 1px solid var(--line); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: rgba(124, 108, 242, .18); border-color: var(--accent); }
+.stage { display: flex; justify-content: center; padding: 14px 20px 40px; }
+.device { width: 1440px; height: 900px; border-radius: 14px; overflow: hidden; border: 1px solid #1a1b1f; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.device.mobile { width: 390px; height: 844px; border-radius: 44px; border: 10px solid #000; }
+.app { display: flex; height: 100%; background: var(--canvas); position: relative; }
+.side { width: 240px; flex: none; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; }
+.side b.brand { font-size: 15px; padding: 0 10px; } .side small.host { color: var(--faint); padding: 0 10px 14px; font-size: 12px; }
+.side .grp { font-size: 11px; letter-spacing: .08em; color: var(--faint); padding: 14px 10px 4px; text-transform: uppercase; font-weight: 600; }
+.side a { padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; display: flex; gap: 10px; align-items: center; }
+.side a.on { background: rgba(124,108,242,.14); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent-line); }
+.side a i { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; opacity: .7; }
+.main { flex: 1; margin: 8px 8px 8px 0; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); overflow: auto; }
+.mobile .side { display: none; } .mobile .main { margin: 0; border-radius: 0; border: 0; padding-bottom: 74px; }
+.tabbar { display: none; }
+.mobile .tabbar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 74px; background: rgba(8,9,10,.92); border-top: 1px solid var(--line-soft); justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); }
+.mobile .tabbar span { display: grid; justify-items: center; gap: 3px; } .mobile .tabbar span.on { color: var(--accent-fg); }
+.mobile .tabbar i { width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 5px; }
+.page { padding: 36px 44px 48px; } .mobile .page { padding: 58px 16px 24px; }
+.ph { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.ph h2 { font-size: 26px; font-weight: 600; margin: 0; } .ph p { margin: 4px 0 0; color: var(--muted); }
+
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 20px 24px; min-width: 0; position: relative; overflow: hidden; }
+.mobile .card { padding: 18px; }
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; white-space: nowrap; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.14); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.lab { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--f-mono); }
+.up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); } .muted { color: var(--muted); } .faint { color: var(--faint); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; background: var(--c, var(--up)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--up)) 18%, transparent), 0 0 10px var(--c, var(--up)); }
+.dot.pulse { animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent), 0 0 18px var(--c); } }
+
+
+.sum { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; margin-bottom: 20px; }
+.mobile .sum { grid-template-columns: 1fr; gap: 10px; }
+.sum .fig { font-size: 30px; font-weight: 600; letter-spacing: -.02em; } .sum .fig span { font-size: .5em; color: var(--muted); font-weight: 500; }
+.svdots { display: flex; flex-wrap: wrap; gap: 5px; }
+.svdots i { width: 9px; height: 9px; border-radius: 50%; background: #3fb97f; box-shadow: 0 0 5px rgba(63,185,127,.7); }
+.svdots i.w { background: #e0a23b; box-shadow: 0 0 7px #e0a23b; } .svdots i.d { background: #e5646a; box-shadow: 0 0 7px #e5646a; } .svdots i.l { background: rgba(255,255,255,.14); box-shadow: none; }
+.grp { margin-top: 20px; } .mobile .grp { margin-top: 14px; }
+.grp h3 { display: flex; align-items: center; gap: 8px; }
+.cnt { letter-spacing: 0; text-transform: none; font-weight: 600; font-size: 10.5px; border-radius: 6px; padding: 1px 6px; background: rgba(63,185,127,.13); color: var(--up); }
+.cnt.w { background: rgba(224,162,59,.15); color: var(--warn); } .cnt.d { background: rgba(229,100,106,.14); color: var(--down); } .cnt.l { background: var(--raised); color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; } .mobile .tiles { grid-template-columns: 1fr; }
+.tile { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--glass-line); background: var(--glass); }
+.tile.bad { border-color: rgba(229,100,106,.4); background: linear-gradient(160deg, rgba(229,100,106,.12), rgba(229,100,106,.03)); }
+.tile.warn { border-color: rgba(224,162,59,.35); background: linear-gradient(160deg, rgba(224,162,59,.11), rgba(224,162,59,.03)); }
+.ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-size: 12px; font-weight: 700; box-shadow: 0 0 14px -5px var(--g); }
+.tile .nm { font-weight: 500; font-size: 13.5px; } .tile .st { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.stat { font-size: 11px; border-radius: 6px; padding: 0 6px; background: rgba(255,255,255,.05); border: 1px solid var(--glass-line); color: var(--muted); white-space: nowrap; } .stat b { color: var(--fg); font-weight: 600; margin-right: 3px; }
+.ds { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.ext { color: var(--faint); font-size: 12px; }
+.osv { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; } .mobile .osv { grid-template-columns: 1fr 1fr; }
+.os { display: flex; gap: 10px; align-items: center; padding: 9px 11px; border-radius: 11px; border: 1px solid var(--glass-line); background: var(--glass); font-size: 13px; }
+.os b { width: 28px; height: 28px; border-radius: 28%; display: grid; place-items: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); font-size: 11px; }
+.sites { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 28px; align-items: center; }
+.mobile .sites { grid-template-columns: 1fr; gap: 14px; justify-items: center; }
+.sites svg.rings { width: 100%; max-width: 260px; }
+.slist { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; } .mobile .slist { grid-template-columns: 1fr; }
+.sg { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin: 2px 0 4px; }
+.srow { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 0; font-size: 13.5px; }
+.srow + .srow { border-top: 1px solid var(--glass-line); }
+.srow i { width: 10px; height: 4px; border-radius: 2px; }
+.srow .u { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; } .srow .u.w { color: var(--warn); } .srow .u.d { color: var(--down); font-weight: 600; }
+.sitesnote { font-size: 12.5px; color: var(--faint); margin: -6px 0 12px; }
+@keyframes beat { 50% { opacity: .35; } }
+.now-down { animation: beat 1.6s ease-in-out infinite; }
+.notes { max-width: 1440px; margin: 0 auto; padding: 0 20px 50px; color: var(--muted); columns: 2 420px; column-gap: 40px; }
+.notes h4 { color: var(--fg); margin: 0 0 6px; font-size: 14px; } .notes ul { margin: 0 0 16px; padding-left: 18px; } .notes li { margin: 3px 0; break-inside: avoid; }
+</style>
+
+<div class="chrome">
+  <div>
+    <h1>My sites on Services <span class="pill acc" style="margin-left:8px;vertical-align:3px">example data</span></h1>
+    <p>A new section on the Services page, above Outside services: the House panel's My sites card in the hub. One ring per site, 30 day segments going round from 30 days ago (at the top) to today; a good day quiet green, a blip amber, an outage red with a glow; the sites up in the middle; beside it the sites in their Kuma groups with their 30-day uptime, shown only below 100%.</p>
+  </div>
+  <div class="ctl">
+    <button data-v="desktop" aria-pressed="true">Desktop</button>
+    <button data-v="mobile" aria-pressed="false">Mobile</button>
+    <button data-s="ok" aria-pressed="true">All up</button>
+    <button data-s="blip" aria-pressed="false">Blips this month</button>
+    <button data-s="down" aria-pressed="false">A site down now</button>
+  </div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<div class="notes">
+  <h4>The section</h4>
+  <ul>
+    <li><b>Rings:</b> one per site, outermost first in the list's order; 30 segments from 30 days ago (at the top, a small tick) round to today. A day counts as an outage when a site was down for more than 5 minutes, a blip for anything shorter; a site down right now pulses its last segment.</li>
+    <li><b>Middle:</b> the sites up now, "7/7 up"; amber or red with the ring when one is not.</li>
+    <li><b>List:</b> Kuma's groups (Personal, Hubble) and its short names; each with its colour key and its 30-day uptime, shown only below 100%; a site down now says since when.</li>
+  </ul>
+  <ul>
+    <li><b>Source:</b> Uptime Kuma's "sites" status page (public, no key), read every minute. The hub keeps its own day record per site in SQLite, so the 30 days do not depend on how much history Kuma returns; the rings fill up from the day it starts.</li>
+    <li><b>Telegram:</b> unchanged, Kuma already sends a message through the hub when a site goes down.</li>
+    <li><b>Home:</b> the status strip counts a site that is down; no card of its own.</li>
+  </ul>
+</div>
+
+<script>
+const st = { view: 'desktop', state: 'ok' };
+const nl = (n, d = 1) => n.toFixed(d).replace('.', ',');
+const seeded = (seed) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+function area(vals, color, { line2 = null, W = 300, H = 70, peak = true } = {}) {
+  const max = Math.max(...vals, ...(line2 || [])), min = 0, sp = max - min || 1;
+  const P = (v, i, n) => `${(i / (n - 1) * W).toFixed(1)},${(6 + (1 - (v - min) / sp) * (H - 10)).toFixed(1)}`;
+  const pts = vals.map((v, i) => P(v, i, vals.length)).join(' ');
+  const pk = vals.indexOf(Math.max(...vals)), [px, py] = P(vals[pk], pk, vals.length).split(',');
+  const id = 'a' + Math.random().toString(36).slice(2, 7);
+  return `<svg class="area" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="calc(100% + 48px)" height="${st.view === 'mobile' ? 48 : 64}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".32"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="0,${H} ${pts} ${W},${H}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px ${color})"/>
+    ${line2 ? `<polyline points="${line2.map((v, i) => P(v, i, line2.length)).join(' ')}" fill="none" stroke="#9a9ea7" stroke-width="1" stroke-opacity=".7" vector-effect="non-scaling-stroke"/>` : ''}
+    ${peak ? `<circle cx="${px}" cy="${py}" r="2.2" fill="${color}" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${color})"/>` : ''}</svg>`;
+}
+
+function gauge(v, warnAt = 90) {
+  const R = 40, cx = 50, cy = 52, P = (a, r = R) => [cx - r * Math.cos(a * Math.PI), cy - r * Math.sin(a * Math.PI)];
+  const arc = (f0, f1) => { const [x0, y0] = P(f0), [x1, y1] = P(f1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+  const ticks = Array.from({ length: 21 }, (_, i) => { const a = i / 20, [x0, y0] = P(a, R + 6), [x1, y1] = P(a, R + (i % 5 ? 7.5 : 9)); return `<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="rgba(255,255,255,${i % 5 ? .14 : .32})" stroke-width=".5"/>`; }).join('');
+  const [tx, ty] = P(warnAt / 100, R + 8), over = v >= warnAt, id = 'g' + Math.random().toString(36).slice(2, 7);
+  return `<svg viewBox="0 2 100 56"><defs><linearGradient id="${id}" x1="0" x2="1"><stop offset="0" stop-color="#6f60ea"/><stop offset=".75" stop-color="#b4a9ff"/><stop offset="1" stop-color="${over ? '#e0a23b' : '#cfc8ff'}"/></linearGradient>
+    <filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${ticks}
+    <path d="${arc(0, 1)}" stroke="rgba(255,255,255,.07)" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="${arc(0, v / 100)}" stroke="url(#${id})" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#${id}f)"/>
+    <circle cx="${tx.toFixed(2)}" cy="${ty.toFixed(2)}" r="1.3" fill="#e5646a"/>
+    <text x="50" y="50" text-anchor="middle" font-size="19" font-weight="600" fill="#ecedef" letter-spacing="-.8">${Math.round(v)}%</text></svg>`;
+}
+
+function ring(pct, color, inner, sub) {
+  const r = 42, c = 2 * Math.PI * r;
+  return `<svg viewBox="0 0 100 100" width="100%"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)" style="filter:drop-shadow(0 0 4px ${color})"/>
+    <text x="50" y="52" text-anchor="middle" font-size="20" font-weight="600" fill="#ecedef">${inner}</text><text x="50" y="66" text-anchor="middle" font-size="8.5" fill="#9a9ea7">${sub}</text></svg>`;
+}
+
+function seal(ok, size = 64) {
+  const c = ok ? '#3fb97f' : '#e5646a';
+  return `<svg viewBox="0 0 60 60" width="${size}"><circle cx="30" cy="30" r="25" fill="none" stroke="${c}" stroke-opacity=".45" stroke-dasharray="1.5 2.4"/>
+    <path d="M30 11 L45 17 V29 C45 39 38 46 30 49 C22 46 15 39 15 29 V17 Z" fill="${c}" fill-opacity=".13" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/>
+    ${ok ? `<path d="M23.5 30l4.5 4.5 8.5-9" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` : `<path d="M30 22v10M30 37v.5" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`}</svg>`;
+}
+
+
+const T = [['#2a1f4d', '#b4aaff'], ['#1b2f45', '#8cc4ff'], ['#352617', '#f5b86a'], ['#16322a', '#6ee0b0'], ['#3a1e22', '#ff9aa0'], ['#1d2a3b', '#9bb8e8'], ['#33301a', '#e8d77a'], ['#2d1d36', '#e0a2f5']];
+function groups(look) {
+  return [
+    ['Media', [['Jellyfin', 'Je', 'up', [['2', 'streaming'], ['1.812', 'movies']]], ['Immich', 'Im', look ? 'unhealthy' : 'up', [['48.211', 'photos']]], ['Jellyseerr', 'Js', 'up', [['1', 'request']]], ['Tracearr', 'Tr', 'up', null, 'Watch history']]],
+    ['Downloads', [['Sonarr', 'So', 'up', [['2', 'queued'], ['3', 'missing']]], ['Radarr', 'Ra', 'up', [['0', 'queued']]], ['Transmission', 'Tm', look ? 'down' : 'up', look ? null : [['310 kB/s', 'down']], 'Torrents'], ['SABnzbd', 'Sb', 'up', [['42 MB/s', 'speed']]], ['Prowlarr', 'Pr', 'up', [['14', 'indexers']]], ['Bazarr', 'Bz', 'up', [['0', 'wanted']]]]],
+    ['Apps', [['Ghostfolio', 'Gf', 'up', null, 'Portfolio'], ['Tandoor', 'Td', 'up', null, 'Recipes'], ['Readeck', 'Rd', 'up', [['12', 'saved']]], ['Dockge', 'Dg', 'up', null, 'Stacks']]],
+    ['Links', [['Router', 'Ro', 'link', null, '192.168.1.1'], ['Hetzner Robot', 'Hz', 'link', null, 'Storage Box']]],
+  ];
+}
+
+const SITES = [['example.com', 'Personal'], ['aoc', 'Personal'], ['hubble.cafe', 'Hubble'], ['meteor.cafe', 'Hubble'], ['admin', 'Hubble'], ['harry', 'Hubble'], ['harry-admin', 'Hubble']];
+function sitesSection(mob) {
+  const blips = st.state === 'ok' ? {} : { 'hubble.cafe': [[17, 1]], harry: [[9, 2], [22, 1]] };
+  const down = st.state === 'down' ? 'meteor.cafe' : null;
+  const up = SITES.length - (down ? 1 : 0);
+  const uptime = { 'hubble.cafe': '99,97%', harry: '99,81%', 'meteor.cafe': down ? '99,92%' : null };
+  const pt = (r, a) => [50 + r * Math.sin(a * Math.PI / 180), 50 - r * Math.cos(a * Math.PI / 180)];
+  const arc = (r, a0, a1) => { const [x0, y0] = pt(r, a0), [x1, y1] = pt(r, a1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+  const rings = SITES.map(([name], k) => {
+    const r = 46 - k * 5.6, op = (.55 - k * .045).toFixed(2), marks = (blips[name] || []);
+    return Array.from({ length: 30 }, (_, d) => {
+      const b = marks.find(y => y[0] === d) || (down === name && d === 29 ? [29, 2] : null);
+      const c = !b ? `rgba(63,185,127,${op})` : b[1] === 2 ? '#e5646a' : '#e0a23b';
+      return `<path class="${down === name && d === 29 ? 'now-down' : ''}" d="${arc(r, d * 12 + 1.6, d * 12 + 10.4)}" stroke="${c}" stroke-width="${b ? 3.6 : 2.7}" stroke-linecap="round" fill="none"${b ? ' filter="url(#gl)"' : ''}/>`; }).join('');
+  }).join('');
+  const tone = down ? '#e5646a' : '#3fb97f';
+  const svg = `<svg class="rings" viewBox="0 0 100 100" role="img" aria-label="${up} of ${SITES.length} sites up"><defs><filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="cg"><stop offset="0" stop-color="${tone}" stop-opacity=".3"/><stop offset="1" stop-color="${tone}" stop-opacity="0"/></radialGradient></defs>
+    <circle cx="50" cy="50" r="10" fill="url(#cg)"/>${rings}
+    <text x="50" y="52" text-anchor="middle" font-size="7" font-weight="600" fill="${down ? '#e5646a' : '#ecedef'}">${up}/${SITES.length}</text>
+    <text x="50" y="57" text-anchor="middle" font-size="3" fill="#9a9ea7" letter-spacing=".5">UP</text>
+    <path d="M50 1.5 L50 5.5" stroke="rgba(255,255,255,.55)" stroke-width=".6"/></svg>`;
+  const groups = ['Personal', 'Hubble'].map(g => `<div><div class="sg">${g}</div>${SITES.map((x, k) => [x, k]).filter(([x]) => x[1] === g).map(([[name], k]) => {
+    const isDown = down === name, b = blips[name] || [];
+    const key = isDown || b.some(y => y[1] === 2) ? '#e5646a' : b.length ? '#e0a23b' : `rgba(63,185,127,${(.85 - k * .06).toFixed(2)})`;
+    const right = isDown ? '<span class="u d">down for 12 min</span>' : uptime[name] ? `<span class="u w">${uptime[name]}</span>` : '<span></span>';
+    return `<div class="srow"><i style="background:${key}"></i><span>${name}</span>${right}</div>`; }).join('')}</div>`).join('');
+  return `<section class="card grp"><div class="head"><h3>My sites <span class="faint" style="font-weight:400">· 30 days</span></h3><span class="pill ${down ? 'down' : 'up'}">${down ? '1 down' : 'All up'}</span></div>
+    <p class="sitesnote">From Uptime Kuma, a segment per day.</p>
+    <div class="sites">${svg}<div class="slist">${groups}</div></div></section>`;
+}
+const COL = { up: '#3fb97f', unhealthy: '#e0a23b', down: '#e5646a' };
+function render() {
+  const look = false, mob = st.view === 'mobile', gs = groups(look);
+  const all = gs.flatMap(g => g[1]); const nas = all.filter(s => s[2] !== 'link'), running = nas.filter(s => s[2] === 'up').length, bad = nas.length - running;
+  const nav = [['', 'Home'], ['Read', 'News'], ['', 'Saved'], ['Money', 'Portfolio'], ['House', 'NAS'], ['', 'Docker'], ['', 'Backups'], ['', 'Services', 1], ['Code', 'Repos'], ['System', 'Alerts'], ['', 'Settings']];
+  let idx = 0;
+  const d = document.getElementById('device');
+  d.className = 'device' + (mob ? ' mobile' : '');
+  d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">dev-minotaur</small>
+    ${nav.map(x => `${x[0] ? `<span class="grp">${x[0]}</span>` : ''}<a href="#" class="${x[2] ? 'on' : ''}"><i></i>${x[1]}</a>`).join('')}</nav>
+    <main class="main"><div class="page">
+      <div class="ph"><div><h2>Services</h2><p>${running} of ${nas.length} running</p></div><span class="pill ${bad ? 'warn' : 'up'}">${bad ? `${bad} need a look` : 'All running'}</span></div>
+      <section class="card"><div class="sum"><div class="fig">${running} <span>/ ${nas.length} running</span></div><div class="svdots">${all.map(s => `<i class="${s[2] === 'link' ? 'l' : s[2] === 'down' ? 'd' : s[2] === 'unhealthy' ? 'w' : ''}"></i>`).join('')}</div></div></section>
+      ${gs.map(([g, list]) => { const worst = list.some(s => s[2] === 'down') ? 'd' : list.some(s => s[2] === 'unhealthy') ? 'w' : list.every(s => s[2] === 'link') ? 'l' : ''; const up = list.filter(s => s[2] === 'up').length;
+        return `<section class="card grp"><div class="head"><h3>${g} <span class="cnt ${worst}">${worst === 'l' ? `${list.length} links` : `${up}/${list.length}`}</span></h3></div><div class="tiles">${list.map(s => { const t = T[idx++ % T.length];
+          return `<div class="tile ${s[2] === 'down' ? 'bad' : s[2] === 'unhealthy' ? 'warn' : ''}"><span class="ic" style="background:${t[0]};color:${t[1]};--g:${t[1]}">${s[1]}</span><div style="min-width:0"><div class="nm">${s[0]}</div>
+            ${s[3] ? `<div class="st">${s[3].map(x => `<span class="stat"><b>${x[0]}</b>${x[1]}</span>`).join('')}</div>` : `<div class="ds">${s[2] === 'down' ? '<span class="down">Stopped</span>' : s[4]}</div>`}</div>
+            ${s[2] === 'link' ? '<span class="ext">↗</span>' : `<span class="dot ${s[2] !== 'up' ? 'pulse' : ''}" style="--c:${COL[s[2]]};width:7px;height:7px"></span>`}</div>`; }).join('')}</div></section>`; }).join('')}
+      ${sitesSection(mob)}
+      <section class="card grp"><div class="head"><h3>Outside services</h3></div><p style="font-size:12.5px;color:var(--faint);margin:-6px 0 12px">As built: what the house depends on, from their status pages.</p>
+        <div class="osv">${['GitHub', 'Cloudflare', 'Docker Hub', 'Tailscale', 'Hetzner', 'TransIP', 'Proton'].map(n => `<div class="os"><b>${n[0]}</b><div><div>${n}</div><div class="up" style="font-size:12px">Operational</div></div></div>`).join('')}</div></section>
+    </div></main>
+    <div class="tabbar">${['Home', 'News', 'Portfolio', 'NAS', 'More'].map((t, i) => `<span class="${i === 4 ? 'on' : ''}"><i></i>${t}</span>`).join('')}</div></div>`;
+}
+document.querySelectorAll('.ctl button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.v) { st.view = b.dataset.v; document.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if (b.dataset.s) { st.state = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  render();
+}));
+render();
+</script>
+</html>
