@@ -35,6 +35,7 @@ from .sources import (
     exposure,
     feeds,
     github_mirror,
+    media_overview,
     media_status,
     my_sites,
     ns,
@@ -182,6 +183,12 @@ def sites() -> Any:
 def media() -> Any:
     """Downloads, missing episodes and what airs next, from Sonarr and Radarr."""
     return _serve(media_status.CACHE_KEY)
+
+
+@app.get("/api/media/overview")
+def media_overview_status() -> Any:
+    """Who watched how much, the library and requests, from Tracearr and Jellyseerr."""
+    return _serve(media_overview.CACHE_KEY)
 
 
 @app.get("/api/media/posters/{source}/{item_id}")

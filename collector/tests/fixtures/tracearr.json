@@ -1,0 +1,628 @@
+{
+ "users": {
+  "data": [
+   {
+    "id": "72f2e792-7ab3-4eb0-b12f-9b0592020283",
+    "username": "sam"
+   },
+   {
+    "id": "8bb4eebe-65cd-4fad-a2a6-6079473cccea",
+    "username": "robin"
+   },
+   {
+    "id": "761ee534-dc23-4d2e-be1c-a38802c1adf8",
+    "username": "pim"
+   },
+   {
+    "id": "310ebdc5-b70b-40c9-9b4d-51b90165dae6",
+    "username": "alex"
+   }
+  ],
+  "meta": {
+   "nextCursor": null,
+   "pageSize": 25
+  }
+ },
+ "stats": {
+  "310ebdc5-b70b-40c9-9b4d-51b90165dae6": {
+   "user_id": "310ebdc5-b70b-40c9-9b4d-51b90165dae6",
+   "windows": {
+    "all_time": {
+     "plays": 413,
+     "watch_time_ms": 993379068
+    },
+    "last_30": {
+     "plays": 113,
+     "watch_time_ms": 291274066
+    },
+    "last_7": {
+     "plays": 45,
+     "watch_time_ms": 115851952
+    }
+   },
+   "top_genres": [
+    {
+     "genre": "Reality-TV",
+     "plays": 230
+    },
+    {
+     "genre": "Game-Show",
+     "plays": 139
+    },
+    {
+     "genre": "Romance",
+     "plays": 136
+    },
+    {
+     "genre": "Animation",
+     "plays": 9
+    },
+    {
+     "genre": "Comedy",
+     "plays": 8
+    },
+    {
+     "genre": "Adventure",
+     "plays": 7
+    },
+    {
+     "genre": "Family",
+     "plays": 7
+    },
+    {
+     "genre": "Sport",
+     "plays": 6
+    },
+    {
+     "genre": "Documentary",
+     "plays": 2
+    },
+    {
+     "genre": "Science Fiction",
+     "plays": 2
+    }
+   ]
+  },
+  "72f2e792-7ab3-4eb0-b12f-9b0592020283": {
+   "user_id": "72f2e792-7ab3-4eb0-b12f-9b0592020283",
+   "windows": {
+    "all_time": {
+     "plays": 5,
+     "watch_time_ms": 15492851
+    },
+    "last_30": {
+     "plays": 0,
+     "watch_time_ms": 0
+    },
+    "last_7": {
+     "plays": 0,
+     "watch_time_ms": 0
+    }
+   },
+   "top_genres": [
+    {
+     "genre": "Crime",
+     "plays": 3
+    },
+    {
+     "genre": "Drama",
+     "plays": 3
+    },
+    {
+     "genre": "Mystery",
+     "plays": 3
+    },
+    {
+     "genre": "Action",
+     "plays": 2
+    },
+    {
+     "genre": "Science Fiction",
+     "plays": 2
+    },
+    {
+     "genre": "Thriller",
+     "plays": 2
+    }
+   ]
+  },
+  "8bb4eebe-65cd-4fad-a2a6-6079473cccea": {
+   "user_id": "8bb4eebe-65cd-4fad-a2a6-6079473cccea",
+   "windows": {
+    "all_time": {
+     "plays": 7,
+     "watch_time_ms": 16353983
+    },
+    "last_30": {
+     "plays": 0,
+     "watch_time_ms": 0
+    },
+    "last_7": {
+     "plays": 0,
+     "watch_time_ms": 0
+    }
+   },
+   "top_genres": [
+    {
+     "genre": "Crime",
+     "plays": 6
+    },
+    {
+     "genre": "Drama",
+     "plays": 6
+    },
+    {
+     "genre": "Mystery",
+     "plays": 6
+    },
+    {
+     "genre": "Reality-TV",
+     "plays": 1
+    },
+    {
+     "genre": "Action",
+     "plays": 0
+    },
+    {
+     "genre": "Adventure",
+     "plays": 0
+    },
+    {
+     "genre": "Animation",
+     "plays": 0
+    },
+    {
+     "genre": "Comedy",
+     "plays": 0
+    },
+    {
+     "genre": "Family",
+     "plays": 0
+    },
+    {
+     "genre": "Martial Arts",
+     "plays": 0
+    }
+   ]
+  },
+  "761ee534-dc23-4d2e-be1c-a38802c1adf8": {
+   "user_id": "761ee534-dc23-4d2e-be1c-a38802c1adf8",
+   "windows": {
+    "all_time": {
+     "plays": 394,
+     "watch_time_ms": 756690473
+    },
+    "last_30": {
+     "plays": 49,
+     "watch_time_ms": 105334242
+    },
+    "last_7": {
+     "plays": 4,
+     "watch_time_ms": 6041001
+    }
+   },
+   "top_genres": [
+    {
+     "genre": "Adventure",
+     "plays": 324
+    },
+    {
+     "genre": "Action",
+     "plays": 263
+    },
+    {
+     "genre": "Drama",
+     "plays": 248
+    },
+    {
+     "genre": "Comedy",
+     "plays": 105
+    },
+    {
+     "genre": "Animation",
+     "plays": 102
+    },
+    {
+     "genre": "Crime",
+     "plays": 38
+    },
+    {
+     "genre": "Game-Show",
+     "plays": 13
+    },
+    {
+     "genre": "Reality-TV",
+     "plays": 13
+    },
+    {
+     "genre": "Sci-Fi",
+     "plays": 7
+    },
+    {
+     "genre": "Science Fiction",
+     "plays": 6
+    }
+   ]
+  }
+ },
+ "libraries": {
+  "data": [
+   {
+    "library_id": "5ddaa59a73205234890fdcfc683e14ed",
+    "item_count": 1591,
+    "movie_count": 0,
+    "episode_count": 1564,
+    "show_count": 27,
+    "track_count": 0,
+    "total_file_size": 3605842983622
+   },
+   {
+    "library_id": "f137a2dd21bbc1b99aa5c0f6bf02a805",
+    "item_count": 127,
+    "movie_count": 127,
+    "episode_count": 0,
+    "show_count": 0,
+    "track_count": 0,
+    "total_file_size": 1120386732723
+   }
+  ]
+ },
+ "recently_added": {
+  "data": [
+   {
+    "id": "029a1312-2e98-4530-b4eb-4327134f4e91",
+    "media_type": "episode",
+    "title": "Episode 32",
+    "added_at": "2026-10-01T11:05:39.942Z",
+    "removed_at": null
+   },
+   {
+    "id": "77085431-d46e-4572-8777-f6dfff57b42b",
+    "media_type": "episode",
+    "title": "Episode 50",
+    "added_at": "2026-10-01T11:04:18.768Z",
+    "removed_at": null
+   },
+   {
+    "id": "4e88aa72-21e2-4114-b58e-58e298eaf083",
+    "media_type": "episode",
+    "title": "Episode 40",
+    "added_at": "2026-10-01T11:04:11.800Z",
+    "removed_at": null
+   },
+   {
+    "id": "edd59e5e-c673-402b-9cbe-d65326cbd5a0",
+    "media_type": "episode",
+    "title": "Episode 39",
+    "added_at": "2026-10-01T11:04:11.032Z",
+    "removed_at": null
+   },
+   {
+    "id": "f15755f0-605c-43f3-9b6e-345eda74c1fc",
+    "media_type": "episode",
+    "title": "Episode 38",
+    "added_at": "2026-10-01T11:04:10.412Z",
+    "removed_at": null
+   },
+   {
+    "id": "cdd31f7e-e5a9-4dbc-889e-ffe73a76a4dd",
+    "media_type": "episode",
+    "title": "Episode 33",
+    "added_at": "2026-10-01T11:02:41.771Z",
+    "removed_at": null
+   },
+   {
+    "id": "da4dcdeb-9b08-4feb-8a37-daa792b4eb60",
+    "media_type": "episode",
+    "title": "Episode 37",
+    "added_at": "2026-10-01T10:59:20.056Z",
+    "removed_at": null
+   },
+   {
+    "id": "9bf4a60a-62e9-4093-b887-d13bcd4e114d",
+    "media_type": "episode",
+    "title": "Episode 36",
+    "added_at": "2026-10-01T10:58:18.203Z",
+    "removed_at": null
+   },
+   {
+    "id": "ba78645b-8890-44de-bdb8-6104ab67e677",
+    "media_type": "episode",
+    "title": "Episode 101",
+    "added_at": "2026-09-27T16:19:05.449Z",
+    "removed_at": null
+   },
+   {
+    "id": "5ae35b73-b1ea-4a0a-adb0-a0e279e4aaee",
+    "media_type": "episode",
+    "title": "Episode 102",
+    "added_at": "2026-09-27T16:17:35.703Z",
+    "removed_at": null
+   },
+   {
+    "id": "ceeece34-925b-4ca8-8f2e-2065c01a5cad",
+    "media_type": "episode",
+    "title": "Episode 56",
+    "added_at": "2026-09-27T16:16:05.622Z",
+    "removed_at": null
+   },
+   {
+    "id": "3bc8d468-7088-4003-bb86-8704f11c53f3",
+    "media_type": "episode",
+    "title": "Episode 54",
+    "added_at": "2026-09-27T16:14:37.113Z",
+    "removed_at": null
+   },
+   {
+    "id": "fe36a437-3697-45da-a1eb-79beed1a7f70",
+    "media_type": "episode",
+    "title": "Episode 103",
+    "added_at": "2026-09-27T16:14:35.485Z",
+    "removed_at": null
+   },
+   {
+    "id": "fd2b28ab-29ea-4d76-b617-32933b1329af",
+    "media_type": "episode",
+    "title": "Episode 53",
+    "added_at": "2026-09-27T16:13:05.863Z",
+    "removed_at": null
+   },
+   {
+    "id": "2431a8ab-7145-43da-a264-0c0ac85676a6",
+    "media_type": "episode",
+    "title": "Episode 52",
+    "added_at": "2026-09-27T16:11:36.138Z",
+    "removed_at": null
+   },
+   {
+    "id": "b63b1252-e474-44cf-b56b-dea59220ff84",
+    "media_type": "episode",
+    "title": "Episode 51",
+    "added_at": "2026-09-27T16:08:35.752Z",
+    "removed_at": null
+   },
+   {
+    "id": "1b64c2c2-8a88-4d78-8e72-b90f4e667bbc",
+    "media_type": "episode",
+    "title": "Episode 49",
+    "added_at": "2026-09-27T16:07:06.458Z",
+    "removed_at": null
+   },
+   {
+    "id": "719b8bf1-350a-489e-b189-243874f675da",
+    "media_type": "episode",
+    "title": "Episode 104",
+    "added_at": "2026-09-27T16:04:06.228Z",
+    "removed_at": null
+   },
+   {
+    "id": "bd338a75-6934-4245-a96d-8f41edadc5bc",
+    "media_type": "episode",
+    "title": "Episode 47",
+    "added_at": "2026-09-27T16:02:35.870Z",
+    "removed_at": null
+   },
+   {
+    "id": "57c34f1d-0bce-4039-a910-85f12b52b258",
+    "media_type": "episode",
+    "title": "Episode 46",
+    "added_at": "2026-09-27T15:59:35.504Z",
+    "removed_at": null
+   },
+   {
+    "id": "77ae505f-624d-4359-a00e-3634dc3f8f2c",
+    "media_type": "episode",
+    "title": "Episode 45",
+    "added_at": "2026-09-27T15:58:05.710Z",
+    "removed_at": null
+   },
+   {
+    "id": "62bc6977-513f-45a7-a210-b7cf1c003a7c",
+    "media_type": "episode",
+    "title": "Episode 44",
+    "added_at": "2026-09-27T15:55:05.672Z",
+    "removed_at": null
+   },
+   {
+    "id": "9a8d3c7a-45cc-419b-b581-26e2528b435b",
+    "media_type": "episode",
+    "title": "Episode 43",
+    "added_at": "2026-09-27T15:53:36.387Z",
+    "removed_at": null
+   },
+   {
+    "id": "48e1a494-a573-4dee-8131-6835f162dc20",
+    "media_type": "episode",
+    "title": "Episode 42",
+    "added_at": "2026-09-27T15:50:35.456Z",
+    "removed_at": null
+   },
+   {
+    "id": "ec37296f-e599-4293-a552-506ceadd34de",
+    "media_type": "episode",
+    "title": "Episode 105",
+    "added_at": "2026-09-27T15:49:06.347Z",
+    "removed_at": null
+   },
+   {
+    "id": "6b31ab4c-7ea3-4e39-a8c0-ad45ff160772",
+    "media_type": "episode",
+    "title": "Episode 35",
+    "added_at": "2026-09-27T15:47:36.109Z",
+    "removed_at": null
+   },
+   {
+    "id": "25206975-dc35-4b4d-8d83-0751479649a0",
+    "media_type": "episode",
+    "title": "Episode 106",
+    "added_at": "2026-09-27T15:43:05.190Z",
+    "removed_at": null
+   },
+   {
+    "id": "f9fc64c2-9bc2-41bb-b7d0-4fb4c939961f",
+    "media_type": "episode",
+    "title": "Episode 31",
+    "added_at": "2026-09-27T15:41:36.624Z",
+    "removed_at": null
+   },
+   {
+    "id": "8be1b846-e1a1-4509-bd1f-e76f2bf5df80",
+    "media_type": "episode",
+    "title": "Episode 30",
+    "added_at": "2026-09-27T15:38:35.298Z",
+    "removed_at": null
+   },
+   {
+    "id": "74f39ac3-a9fd-4594-a178-01014ef91ef0",
+    "media_type": "episode",
+    "title": "Episode 23",
+    "added_at": "2026-09-27T15:37:05.088Z",
+    "removed_at": null
+   },
+   {
+    "id": "d1e5e140-25c0-4934-97ad-28b020d43eee",
+    "media_type": "episode",
+    "title": "Episode 29",
+    "added_at": "2026-09-27T15:35:35.571Z",
+    "removed_at": null
+   },
+   {
+    "id": "53a077d2-1299-403d-849b-18f91fda4add",
+    "media_type": "episode",
+    "title": "Episode 28",
+    "added_at": "2026-09-27T15:34:05.410Z",
+    "removed_at": null
+   },
+   {
+    "id": "c9567424-e659-41dd-90e6-df354982af33",
+    "media_type": "episode",
+    "title": "Episode 107",
+    "added_at": "2026-09-27T15:32:35.333Z",
+    "removed_at": null
+   },
+   {
+    "id": "4d35dab6-c043-4281-8595-6be0eb693fd6",
+    "media_type": "episode",
+    "title": "Episode 26",
+    "added_at": "2026-09-27T15:31:19.072Z",
+    "removed_at": null
+   },
+   {
+    "id": "70abb93e-dbb4-4710-bb42-cd600fc50ec6",
+    "media_type": "episode",
+    "title": "Episode 25",
+    "added_at": "2026-09-27T15:27:20.040Z",
+    "removed_at": null
+   },
+   {
+    "id": "08bca280-73b7-4cc8-9b24-5786fa5ca611",
+    "media_type": "episode",
+    "title": "Episode 24",
+    "added_at": "2026-09-27T15:24:15.045Z",
+    "removed_at": null
+   },
+   {
+    "id": "5efa180a-2519-4e51-bba4-18c4eba861d4",
+    "media_type": "episode",
+    "title": "Episode 2",
+    "added_at": "2026-09-27T15:24:05.173Z",
+    "removed_at": null
+   },
+   {
+    "id": "14c56b45-85a0-4f68-aecb-e11a7d7f1736",
+    "media_type": "episode",
+    "title": "Episode 22",
+    "added_at": "2026-09-27T09:21:00.481Z",
+    "removed_at": null
+   },
+   {
+    "id": "0a820bbd-7161-4e7e-aa70-7396c260f108",
+    "media_type": "episode",
+    "title": "Episode 21",
+    "added_at": "2026-09-27T09:19:20.427Z",
+    "removed_at": null
+   },
+   {
+    "id": "44573d89-e823-4f7a-9bef-203e952f708c",
+    "media_type": "episode",
+    "title": "Episode 108",
+    "added_at": "2026-09-27T08:57:30.333Z",
+    "removed_at": null
+   },
+   {
+    "id": "effe782a-f220-4cfd-9292-63522d1db7ba",
+    "media_type": "movie",
+    "title": "Episode 109",
+    "added_at": "2026-09-08T03:40:03.236Z",
+    "removed_at": null
+   },
+   {
+    "id": "abf46430-2c60-4eae-8162-596f5c3326fa",
+    "media_type": "movie",
+    "title": "Episode 110",
+    "added_at": "2026-08-29T16:58:28.888Z",
+    "removed_at": null
+   },
+   {
+    "id": "bf636b00-9137-4290-a954-b55a9226e74f",
+    "media_type": "movie",
+    "title": "Episode 111",
+    "added_at": "2026-08-29T16:49:24.853Z",
+    "removed_at": null
+   },
+   {
+    "id": "57376690-e88c-46dc-8673-f2b03d0cd6b6",
+    "media_type": "movie",
+    "title": "Episode 112",
+    "added_at": "2026-08-27T07:24:32.331Z",
+    "removed_at": null
+   },
+   {
+    "id": "bca31980-381c-4afc-9884-97945716d8b5",
+    "media_type": "episode",
+    "title": "Episode 113",
+    "added_at": "2026-08-24T06:58:15.402Z",
+    "removed_at": null
+   },
+   {
+    "id": "9159adaa-8792-4a93-9fca-b40090c7c7e3",
+    "media_type": "episode",
+    "title": "Episode 114",
+    "added_at": "2026-08-24T06:58:14.742Z",
+    "removed_at": null
+   },
+   {
+    "id": "f52287a3-8b61-4af7-8376-0b1c82784e08",
+    "media_type": "episode",
+    "title": "Episode 115",
+    "added_at": "2026-08-24T06:58:13.882Z",
+    "removed_at": null
+   },
+   {
+    "id": "f4e5d69d-3a7e-40ea-b5fb-c47277a7509e",
+    "media_type": "episode",
+    "title": "Episode 116",
+    "added_at": "2026-08-24T06:53:44.530Z",
+    "removed_at": null
+   },
+   {
+    "id": "26b01b64-fcd9-4758-b70b-f640b0d533a9",
+    "media_type": "episode",
+    "title": "Episode 117",
+    "added_at": "2026-08-24T06:52:20.497Z",
+    "removed_at": null
+   },
+   {
+    "id": "e9b11e07-0f9c-4eb1-bd22-a77633d88c74",
+    "media_type": "episode",
+    "title": "Episode 118",
+    "added_at": "2026-08-24T06:52:15.501Z",
+    "removed_at": null
+   }
+  ],
+  "meta": {
+   "nextCursor": null,
+   "pageSize": 50
+  }
+ }
+}

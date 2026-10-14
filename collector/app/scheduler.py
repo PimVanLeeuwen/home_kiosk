@@ -29,6 +29,7 @@ from .sources import (
     ghostfolio,
     github,
     github_mirror,
+    media_overview,
     media_status,
     my_sites,
     nas,
@@ -59,6 +60,7 @@ EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
 OUTSIDE_INTERVAL_SECONDS = 300  # status pages; incidents move in minutes
 SITES_INTERVAL_SECONDS = 60  # Kuma beats once a minute; 100 kept, so no gaps
 MEDIA_INTERVAL_SECONDS = 60  # local calls to Sonarr and Radarr
+OVERVIEW_INTERVAL_SECONDS = 300  # watch stats and library counts move slowly
 TRAIN_INTERVAL_SECONDS = 120  # calls NS only between the watch start and departure
 UPS_INTERVAL_SECONDS = 15  # outages are timed from these readings
 MIRROR_STARTUP_DELAY = timedelta(minutes=2)  # let the startup refreshes go first
@@ -190,6 +192,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             seconds=SITES_INTERVAL_SECONDS,
             args=[store, my_sites.CACHE_KEY, lambda: my_sites.collect(cfg, store)],
             id="sites",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
+
+    if media_overview.settings(cfg, store)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=OVERVIEW_INTERVAL_SECONDS,
+            args=[store, media_overview.CACHE_KEY, lambda: media_overview.collect(cfg, store)],
+            id="media-overview",
             next_run_time=None,
             max_instances=1,
             coalesce=True,
