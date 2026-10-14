@@ -39,18 +39,20 @@ TIMEOUT_SECONDS = 20
 DONE_FOR = timedelta(hours=2)
 TOKEN_FOR = timedelta(hours=12)
 
-# The ConnectLife app's own public identifiers, as in the MIT reference.
+# The ConnectLife app's own public identifiers, as in the MIT reference: the same
+# in every copy of the app, not secrets of ours (hence gitleaks:allow; see
+# .gitleaksignore for the commit that added them).
 GIGYA = "https://accounts.eu1.gigya.com"
 OAUTH = "https://oauth.hijuconn.com/oauth"
 GATEWAY = "https://clife-eu-gateway.hijuconn.com"
-API_KEY = "4_yhTWQmHFpZkQZDSV1uV-_A"
+API_KEY = "4_yhTWQmHFpZkQZDSV1uV-_A"  # gitleaks:allow
 GMID = ("gmid.ver4.AtLt3mZAMA.C8m5VqSTEQDrTRrkYYDgOaJWcyQ-XHow5nzQSXJF3EO3TnqTJ8tKUmQaaQ6z8p0s."
         "zcTbHe6Ax6lHfvTN7JUj7VgO4x8Vl-vk1u0kZcrkKmKWw8K9r0shyut_at5Q0ri6zTewnAv2g1Dc8dauuyd-Sw.sc3")
 CLIENT_ID = "5065059336212"
-CLIENT_SECRET = "07swfKgvJhC3ydOUS9YV_SwVz0i4LKqlOLGNUukYHVMsJRF1b-iWeUGcNlXyYCeK"
+CLIENT_SECRET = "07swfKgvJhC3ydOUS9YV_SwVz0i4LKqlOLGNUukYHVMsJRF1b-iWeUGcNlXyYCeK"  # gitleaks:allow
 REDIRECT = "https://api.connectlife.io/swagger/oauth2-redirect.html"
 APP_ID = "47110565134383"
-APP_SECRET = "yOzhz6junYno-nmULM3Wr7PU_dpSZN22ZdluvVWZ4uW5ZwwG8fIGCHTbrhcnU-iv"
+APP_SECRET = "yOzhz6junYno-nmULM3Wr7PU_dpSZN22ZdluvVWZ4uW5ZwwG8fIGCHTbrhcnU-iv"  # gitleaks:allow
 SIGN_SALT = "D9519A4B756946F081B7BB5B5E8D1197"
 PUBLIC_KEY = (
     "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyyWrNG6q475HIHu7sMVu"

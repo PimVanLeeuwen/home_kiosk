@@ -4,6 +4,7 @@ import { NasCard } from '../components/home/NasCard'
 import { NewsCard } from '../components/home/NewsCard'
 import { PortfolioCard } from '../components/home/PortfolioCard'
 import { ServicesCard } from '../components/home/ServicesCard'
+import { LaundryCard } from '../components/home/LaundryCard'
 import { StatusStrip } from '../components/home/StatusStrip'
 import { TodayCard } from '../components/home/TodayCard'
 import { TrainCard } from '../components/home/TrainCard'
@@ -48,6 +49,7 @@ export function HomePage() {
         <TrainCard />
         <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
           <TodayCard />
+          <LaundryCard />
           <PortfolioCard />
           <NasCard nas={nas.data} error={nas.error} />
           <NewsCard />

@@ -6,7 +6,7 @@ There is no login and nothing is exposed to the internet.
 
 | Section | What it does |
 |---------|--------------|
-| Home | Status at a glance: today's calendar (iCloud and subscribed calendars, the next event with a countdown and the day as a ribbon), NAS health, portfolio, latest news, last backup, services, the weather (rain in the next 2 hours, from Buienradar), and the outside services the house depends on; on weekday mornings the 07:16 to Rotterdam Centraal until it leaves (NS: delay, platform, cancellation with the next direct train, works on the route), and the evening before when tomorrow's train has a problem, with Telegram warnings for both |
+| Home | Status at a glance: the washer and dryer while one runs or is done (ConnectLife), today's calendar (iCloud and subscribed calendars, the next event with a countdown and the day as a ribbon), NAS health, portfolio, latest news, last backup, services, the weather (rain in the next 2 hours, from Buienradar), and the outside services the house depends on; on weekday mornings the 07:16 to Rotterdam Centraal until it leaves (NS: delay, platform, cancellation with the next direct train, works on the route), and the evening before when tomorrow's train has a problem, with Telegram warnings for both |
 | News, Saved | Feeds read in the hub (text only, images through the hub), search, read state; Readeck bookmarks in the same reader |
 | Portfolio | Ghostfolio overview: value history, holdings, allocation, holding detail, markets; **Update from DEGIRO** imports new trades |
 | NAS, Docker, Backups | Live figures and history, the UPS and its power cuts, what is public on the internet, container load and image updates, rclone runs per volume, storage box space, database dumps, the GitHub mirror |

@@ -54,6 +54,14 @@
     }
   }
 
+  /* Water turning in a washer or dryer's glass door (the Laundry card). */
+  --animate-drum: drum 6s linear infinite;
+  @keyframes drum {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   /* Slow rings spreading from a check, for "All quiet". */
   --animate-ripple: ripple 3.6s ease-out infinite;
   @keyframes ripple {

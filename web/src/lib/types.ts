@@ -45,6 +45,36 @@ export interface Hosts {
   } | null
 }
 
+export type MachineState = 'idle' | 'running' | 'paused' | 'done' | 'error'
+
+export interface Machine {
+  /** A short hash of ConnectLife's device id. */
+  id: string
+  /** As named in the ConnectLife app. */
+  name: string
+  kind: 'washer' | 'dryer'
+  state: MachineState
+  online: boolean
+  program: string | null
+  remaining_minutes: number | null
+  total_minutes: number | null
+  ready_at: string | null
+  done_at: string | null
+  door_open: boolean
+  /** "F05", or a reason ConnectLife names. */
+  error: string | null
+}
+
+/** The washer and dryer (`/api/laundry`). */
+export interface Laundry {
+  as_of: string
+  stale: boolean
+  /** Washers first. */
+  machines: Machine[]
+  /** A machine runs, is paused, has an error or is done. */
+  showing: boolean
+}
+
 export interface CalendarEvent {
   calendar_id: string
   calendar: string

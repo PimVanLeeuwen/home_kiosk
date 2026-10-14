@@ -1,0 +1,6 @@
+# Findings that are not secrets of ours, by fingerprint (commit:file:rule:line).
+# The ConnectLife app's built-in public identifiers in the laundry client: the
+# same in every copy of the app and in the MIT project it is written from.
+d8955889df4d2bda2877e6bfd514e905aea4b576:collector/app/sources/laundry.py:generic-api-key:46
+d8955889df4d2bda2877e6bfd514e905aea4b576:collector/app/sources/laundry.py:generic-api-key:50
+d8955889df4d2bda2877e6bfd514e905aea4b576:collector/app/sources/laundry.py:generic-api-key:53

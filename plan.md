@@ -403,6 +403,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   codes: the WF5S1045BW washer (type 025) and the DH3S802BW3 dryer (type 030). So support is
   likely; the property mapping may need the two models added. ConnectLife also publishes its own Home Assistant plugin for Hisense
   appliances (Connectlife-LLC/HomeAssistantPlugin), a second reference for the API.
+  Built 2026-10-14 (collector and hub). The `connectlife` library is GPL-3.0 and the collector
+  image on Docker Hub is public, so the hub has a small client of its own instead (decided
+  2026-10-14), written from the MIT-licensed bilan/connectlife-api-connector with the standard
+  library: Gigya login, an OAuth token reused for hours, and the gateway's status call signed with
+  ConnectLife's RSA public key (PKCS#1 v1.5, done by hand). The hub logs in with an account of its
+  own (CONNECTLIFE_USERNAME/PASSWORD; the owner signs in with Apple) that the machines are shared
+  with. Meanings per type from the community mappings: dryer 030 with program names, washer 025
+  with statuses and error codes (its program names once it is shared). A machine that stops
+  running stays done until its door opens, or two hours. `/api/laundry`; a Laundry card on Home
+  after Today (mockup `docs/hub-laundry-mockup.html`). The app's built-in identifiers in the
+  client are marked `gitleaks:allow` and listed in `.gitleaksignore`.
 - **Calendar** (Now): today's events only. Design (2026-10-10): the next event large with a ring
   counting down to it in its calendar's colour, the day from 07:00 to 23:00 as a ribbon of
   coloured blocks with a glowing now line, then the later events. Read-only, no

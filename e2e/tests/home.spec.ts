@@ -112,3 +112,30 @@ test("Home shows today's calendar with the next event first", async ({ page }) =
   await expect(card.getByRole('list', { name: 'All day' })).toContainText("Mama's birthday")
   await expect(card.getByRole('img', { name: 'The day from 07:00 to 23:00' })).toBeVisible()
 })
+
+const LAUNDRY_AT = (h: number, m: number) => new Date(2026, 9, 14, h, m).toISOString()
+const LAUNDRY = {
+  as_of: LAUNDRY_AT(10, 13), stale: false, showing: true,
+  machines: [
+    { id: 'w', name: 'Washing machine', kind: 'washer', state: 'running', online: true, program: 'Cotton',
+      remaining_minutes: 38, total_minutes: 95, ready_at: LAUNDRY_AT(10, 52), done_at: null, door_open: false, error: null },
+    { id: 'd', name: 'Tumble dryer', kind: 'dryer', state: 'done', online: true, program: 'Cotton',
+      remaining_minutes: null, total_minutes: null, ready_at: null, done_at: LAUNDRY_AT(9, 41), door_open: false, error: null },
+  ],
+}
+
+test('Home shows the laundry while a machine runs or is done', async ({ page }) => {
+  await page.clock.install({ time: new Date(2026, 9, 14, 10, 14) })
+  await page.route('**/api/laundry', (route) => route.fulfill({ json: LAUNDRY }))
+  await page.goto('/')
+
+  const card = page.getByRole('region', { name: 'Laundry' })
+  await expect(card).toContainText('Ready at 10:52')
+  await expect(card).toContainText('Take it out')
+
+  await page.unroute('**/api/laundry')
+  await page.route('**/api/laundry', (route) => route.fulfill({ json: { ...LAUNDRY, showing: false } }))
+  await page.reload()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Laundry' })).toHaveCount(0)
+})
