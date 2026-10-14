@@ -36,6 +36,7 @@ from .sources import (
     exposure,
     feeds,
     github_mirror,
+    laundry,
     media_overview,
     media_status,
     my_sites,
@@ -173,6 +174,12 @@ def nas() -> Any:
 @app.get("/api/hosts")
 def hosts() -> Any:
     return _serve("hosts")
+
+
+@app.get("/api/laundry")
+def laundry_status() -> Any:
+    """The washer and dryer: running, done, paused or with an error."""
+    return _serve(laundry.CACHE_KEY)
 
 
 @app.get("/api/calendar")

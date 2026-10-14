@@ -30,6 +30,7 @@ from .sources import (
     ghostfolio,
     github,
     github_mirror,
+    laundry,
     media_overview,
     media_status,
     my_sites,
@@ -60,6 +61,7 @@ WEATHER_INTERVAL_SECONDS = 300  # Buienradar's rain forecast moves in 5-minute s
 EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
 OUTSIDE_INTERVAL_SECONDS = 300  # status pages; incidents move in minutes
 SITES_INTERVAL_SECONDS = 60  # Kuma beats once a minute; 100 kept, so no gaps
+LAUNDRY_INTERVAL_SECONDS = 60  # one signed status call; the token is reused
 CALENDAR_INTERVAL_SECONDS = 300  # feeds at most every 15 min (agenda.FEED_EVERY)
 MEDIA_INTERVAL_SECONDS = 60  # local calls to Sonarr and Radarr
 OVERVIEW_INTERVAL_SECONDS = 300  # watch stats and library counts move slowly
@@ -186,6 +188,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         max_instances=1,
         coalesce=True,
     )
+
+    if laundry.settings(cfg)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=LAUNDRY_INTERVAL_SECONDS,
+            args=[store, laundry.CACHE_KEY, lambda: laundry.collect(cfg, store)],
+            id="laundry",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
 
     if agenda.settings(cfg)["enabled"]:
         scheduler.add_job(
