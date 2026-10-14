@@ -1,0 +1,98 @@
+import { useState } from 'react'
+import { StaleNote } from '../components/home/Card'
+import { LightTile, type Change } from '../components/lights/LightTile'
+import { PageHeader } from '../components/PageHeader'
+import { Pill } from '../components/ui/Pill'
+import { ApiError, sendJson } from '../lib/api'
+import { cn } from '../lib/cn'
+import { formatAgo } from '../lib/format'
+import type { Lights } from '../lib/types'
+import { useApi } from '../lib/useApi'
+
+/** While the page is open; the hub itself is kept live by the bridge's event stream. */
+const REFRESH_MS = 2_000
+
+/** The living room's lights through the Hue Bridge (plan.md M17). */
+export function LightsPage() {
+  const { data, error, loading, reload } = useApi<Lights>('/api/lights', REFRESH_MS)
+  // The bridge's answer to our own change, until the next poll is newer.
+  const [answer, setAnswer] = useState<Lights | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [failure, setFailure] = useState<string | null>(null)
+
+  const lights = answer && (!data || answer.as_of >= data.as_of) ? answer : data
+  const total = lights?.groups.reduce((n, g) => n + g.lights.length, 0) ?? 0
+  const on = lights?.groups.reduce((n, g) => n + g.lights.filter((l) => l.on).length, 0) ?? 0
+  const disabled = busy || !!lights?.stale
+
+  async function send(method: 'PUT' | 'POST', path: string, body: object) {
+    setBusy(true)
+    setFailure(null)
+    try {
+      setAnswer(await sendJson<Lights>(method, path, body))
+    } catch (err) {
+      setFailure(err instanceof ApiError ? err.message : 'The change did not reach the bridge.')
+    } finally {
+      setBusy(false)
+      reload()
+    }
+  }
+
+  return (
+    <>
+      <PageHeader
+        title="Lights"
+        subtitle={lights ? `${lights.room} · through the Hue Bridge` : 'The living room through the Hue Bridge'}
+        actions={lights && <Pill tone={on ? 'accent' : 'muted'}>{on ? `${on} of ${total} on` : 'All off'}</Pill>}
+      />
+
+      {loading && !lights && (
+        <p role="status" className="text-muted">
+          Loading the lights…
+        </p>
+      )}
+      {error && !lights && (
+        <div role="alert" className="rounded-[14px] border border-line bg-card p-5">
+          <p className="font-medium">The lights are not available yet</p>
+          <p className="mt-1 text-muted">The hub reads them from the Hue Bridge every minute.</p>
+        </div>
+      )}
+
+      {lights && (
+        <>
+          <div className="mb-3.5 flex items-center justify-between gap-2.5">
+            <p className="text-[13px] text-muted">
+              {lights.stale ? 'Last known state: the bridge is not answering right now.' : 'Changes from the switch, Siri or the Home app show here at once.'}
+            </p>
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => send('POST', '/api/lights/room', { on: on === 0 })}
+              className="flex-none rounded-[10px] border border-glass-line bg-glass px-3 py-[7px] text-[13px] whitespace-nowrap hover:border-faint disabled:opacity-50"
+            >
+              {on ? 'All off' : 'All on'}
+            </button>
+          </div>
+          <div className={cn('grid gap-3 md:grid-cols-2 md:gap-[18px]', lights.stale && 'opacity-60')} aria-busy={busy}>
+            {lights.groups.map((group) => (
+              <LightTile
+                key={group.id}
+                group={group}
+                kelvins={lights.kelvins}
+                disabled={disabled}
+                onChange={(change: Change) => send('PUT', `/api/lights/${group.id}`, change)}
+              />
+            ))}
+          </div>
+          {failure && (
+            <p role="alert" className="mt-3 text-[13px] text-down">
+              {failure}
+            </p>
+          )}
+          {lights.stale && <StaleNote />}
+          <p className="mt-3.5 text-[12px] text-faint">Updated {formatAgo(lights.as_of)} · Hue Bridge</p>
+        </>
+      )}
+    </>
+  )
+}

@@ -20,7 +20,7 @@ describe('Layout', () => {
     for (const heading of ['Read', 'Money', 'House', 'Code', 'System']) {
       expect(nav.getByText(heading)).toBeInTheDocument()
     }
-    expect(nav.getAllByRole('link')).toHaveLength(13)
+    expect(nav.getAllByRole('link')).toHaveLength(14)
   })
 
   it('marks the current section in the sidebar', () => {

@@ -6,6 +6,7 @@ import { AlertsPage } from './pages/AlertsPage'
 import { BackupsPage } from './pages/BackupsPage'
 import { DockerPage } from './pages/DockerPage'
 import { HomePage } from './pages/HomePage'
+import { LightsPage } from './pages/LightsPage'
 import { MorePage } from './pages/MorePage'
 import { MediaPage } from './pages/MediaPage'
 import { NasPage } from './pages/NasPage'
@@ -23,6 +24,7 @@ import { TailscalePage } from './pages/TailscalePage'
 /** Sections that are built; the rest show their placeholder. */
 const PAGES: Record<string, ReactElement> = {
   '/': <HomePage />,
+  '/lights': <LightsPage />,
   '/services': <ServicesPage />,
   '/settings': <SettingsPage />,
   '/repos': <ReposPage />,

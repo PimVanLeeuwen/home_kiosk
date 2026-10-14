@@ -28,6 +28,7 @@ describe('routes', () => {
     const main = within(screen.getByRole('main'))
     expect(main.getByRole('heading', { level: 1, name: 'More' })).toBeInTheDocument()
     expect(main.getAllByRole('link').map((link) => link.querySelector('span span')?.textContent)).toEqual([
+      'Lights',
       'Saved',
       'Docker',
       'Backups',

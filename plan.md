@@ -350,6 +350,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   in between; `GET /api/lights`, `PUT /api/lights/{group}` (on, brightness 1 to 100, one of the
   five whites) and `POST /api/lights/room` (all on or off), both same-origin writes that answer
   with what the bridge then reports; only the configured lights are ever touched.
+  Built 2026-10-14 (hub): a Lights page right under Home in the menu (on a phone under More):
+  per group a tile that glows in its current white, the top as the on/off button, a brightness
+  slider sent once it rests (300 ms), five whites for the spots, a chip per light (unreachable in
+  amber), "All off" or "All on" for the room; it asks the hub every 2 s and shows the bridge's
+  answer to each change; while the bridge is away the last known state with the controls off.
 - A new deliberate write (decided 2026-10-09): lights, plugs and scenes on the Hue Bridge.
 
 **M18. Music** (added 2026-10-09)

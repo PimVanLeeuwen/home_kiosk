@@ -65,6 +65,35 @@ export interface Machine {
   error: string | null
 }
 
+export interface Light {
+  id: string
+  name: string
+  on: boolean
+  brightness: number
+  kelvin: number | null
+  reachable: boolean
+}
+
+export interface LightGroup {
+  id: string
+  name: string
+  /** ambiance: whites from warm to cool; white: brightness only. */
+  kind: 'ambiance' | 'white'
+  on: boolean
+  brightness: number
+  kelvin: number | null
+  lights: Light[]
+}
+
+/** The living room's lights through the Hue Bridge (`/api/lights`). */
+export interface Lights {
+  as_of: string
+  stale: boolean
+  room: string
+  groups: LightGroup[]
+  kelvins: number[]
+}
+
 export interface AppleDevice {
   id: string
   name: string
