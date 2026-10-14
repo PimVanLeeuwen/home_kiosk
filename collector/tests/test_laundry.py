@@ -199,10 +199,12 @@ def test_logs_in_once_and_reuses_the_token(store):
 
 
 def test_a_refused_status_logs_in_again_once(store):
-    cloud = ConnectLife([washer(machine_status=2, Selected_program_remaining_time_in_minutes=40)],
-                        gateway_refuses_once=True)
+    cloud = ConnectLife([washer(machine_status=2, Selected_program_remaining_time_in_minutes=40)])
+    client = laundry.Client(transport=cloud.transport())
+    collect(store, cloud, client)
+    cloud.refuse = True
 
-    result = collect(store, cloud)
+    result = collect(store, cloud, client, NOW + timedelta(minutes=1))
 
     assert result.showing is True and result.machines[0].state == "running"
     assert sum(1 for s in cloud.seen if s.endswith("/accounts.login")) == 2
@@ -228,6 +230,41 @@ def test_a_refused_login_raises_so_the_last_answer_goes_stale(store):
         collect(store, Refusing([]))
 
 
+def test_after_a_refused_login_it_waits_longer_each_time_before_trying_again(store):
+    class RateLimited(ConnectLife):
+        refusing = True
+
+        def transport(self):
+            inner = super().transport()
+
+            def handler(request):
+                if request.url.path == "/accounts.login" and self.refusing:
+                    self.seen.append("refused")
+                    return httpx.Response(200, json={"errorCode": 403048})
+                return inner.handle_request(request)
+
+            return httpx.MockTransport(handler)
+
+    cloud = RateLimited([washer()])
+    client = laundry.Client(transport=cloud.transport())
+
+    def attempt(minutes: int) -> str:
+        try:
+            collect(store, cloud, client, NOW + timedelta(minutes=minutes))
+        except laundry.ConnectLifeError as exc:
+            return str(exc)
+        return "ok"
+
+    assert attempt(0) == "login refused (Gigya 403048)"
+    assert attempt(1) == "login paused until 08:15 UTC after a refusal"
+    assert attempt(15) == "login refused (Gigya 403048)"
+    assert attempt(30) == "login paused until 08:45 UTC after a refusal"
+    assert cloud.seen.count("refused") == 2
+    cloud.refusing = False
+    assert attempt(45) == "ok"
+    assert client.pause == laundry.LOGIN_PAUSE and client.paused_until is None
+
+
 def test_switched_off_without_an_account():
     assert laundry.settings(CFG)["enabled"] is True
     assert laundry.settings({"connectlife": {"username": "x"}})["enabled"] is False
@@ -246,3 +283,23 @@ def test_the_route_serves_the_answer(store):
     answer = client.get("/api/laundry").json()
     assert answer["machines"][0]["name"] == "Washing machine"
     assert "test-washer-puid" not in json.dumps(answer)
+
+
+def test_a_failing_status_call_never_puts_the_token_in_the_error(store):
+    class Failing(ConnectLife):
+        def transport(self):
+            inner = super().transport()
+
+            def handler(request):
+                if request.url.path.endswith("get_device_status_list"):
+                    return httpx.Response(502)
+                return inner.handle_request(request)
+
+            return httpx.MockTransport(handler)
+
+    with pytest.raises(laundry.ConnectLifeError) as caught:
+        collect(store, Failing([]))
+
+    assert str(caught.value) == "get_device_status_list: HTTP 502"
+    assert "token" not in str(caught.value) and caught.value.__cause__ is None
+    assert caught.value.__suppress_context__ is True

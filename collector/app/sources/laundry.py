@@ -38,6 +38,10 @@ TIMEOUT_SECONDS = 20
 # A finished machine shows until its door opens, or this long at most.
 DONE_FOR = timedelta(hours=2)
 TOKEN_FOR = timedelta(hours=12)
+# After a refused login Gigya keeps refusing (403048) while it is asked again,
+# so the client waits before the next try: 15 minutes, doubling up to 2 hours.
+LOGIN_PAUSE = timedelta(minutes=15)
+LOGIN_PAUSE_MAX = timedelta(hours=2)
 
 # The ConnectLife app's own public identifiers, as in the MIT reference: the same
 # in every copy of the app, not secrets of ours (hence gitleaks:allow; see
@@ -171,6 +175,23 @@ class Client:
         self.transport = transport  # for tests
         self.token: str | None = None
         self.token_until: datetime | None = None
+        self.pause = LOGIN_PAUSE
+        self.paused_until: datetime | None = None
+
+    async def _fresh_token(self, http: httpx.AsyncClient, user: str, password: str,
+                           now: datetime) -> str:
+        if self.paused_until and now < self.paused_until:
+            raise ConnectLifeError(
+                f"login paused until {self.paused_until:%H:%M} UTC after a refusal")
+        try:
+            token = await self._login(http, user, password)
+        except ConnectLifeError:
+            self.paused_until = now + self.pause
+            self.pause = min(self.pause * 2, LOGIN_PAUSE_MAX)
+            raise
+        self.pause, self.paused_until = LOGIN_PAUSE, None
+        self.token, self.token_until = token, now + TOKEN_FOR
+        return token
 
     async def _login(self, http: httpx.AsyncClient, user: str, password: str) -> str:
         login = (await http.post(f"{GIGYA}/accounts.login", data={
@@ -205,18 +226,31 @@ class Client:
         return answer["deviceList"]
 
     async def devices(self, user: str, password: str, now: datetime) -> list[dict[str, Any]]:
+        """Every failure comes out as a ConnectLifeError naming the step only:
+        httpx's own errors carry the request address, and for the status call
+        that holds the access token, so they must not reach the log."""
+        try:
+            return await self._devices(user, password, now)
+        except ConnectLifeError:
+            raise
+        except httpx.HTTPStatusError as exc:
+            step = exc.request.url.path.rsplit("/", 1)[-1]
+            raise ConnectLifeError(f"{step}: HTTP {exc.response.status_code}") from None
+        except httpx.HTTPError as exc:
+            raise ConnectLifeError(f"{type(exc).__name__} talking to ConnectLife") from None
+        except ValueError:
+            raise ConnectLifeError("an answer that is not JSON") from None
+
+    async def _devices(self, user: str, password: str, now: datetime) -> list[dict[str, Any]]:
         async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS, headers=UA,
                                      transport=self.transport) as http:
-            if not self.token or not self.token_until or now >= self.token_until:
-                self.token = await self._login(http, user, password)
-                self.token_until = now + TOKEN_FOR
-            try:
-                return await self._status(http, self.token)
-            except (ConnectLifeError, httpx.HTTPStatusError):
-                # The token may have expired early: one fresh login, then give up.
-                self.token = await self._login(http, user, password)
-                self.token_until = now + TOKEN_FOR
-                return await self._status(http, self.token)
+            if self.token and self.token_until and now < self.token_until:
+                try:
+                    return await self._status(http, self.token)
+                except (ConnectLifeError, httpx.HTTPStatusError):
+                    # The token may have expired early: one fresh login, then give up.
+                    self.token = None
+            return await self._status(http, await self._fresh_token(http, user, password, now))
 
 
 CLIENT = Client()
