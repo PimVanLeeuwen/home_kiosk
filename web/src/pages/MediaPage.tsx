@@ -1,13 +1,15 @@
 import type { ReactNode } from 'react'
 import { Card, Loading, StaleNote, Unavailable } from '../components/home/Card'
 import { DownloadTile } from '../components/media/DownloadTile'
+import { RequestsCard } from '../components/media/RequestsCard'
+import { LibraryCard, WatchingCard } from '../components/media/WatchingCard'
 import { Poster } from '../components/media/Poster'
 import { PageHeader } from '../components/PageHeader'
 import { GlowDot } from '../components/ui/GlowDot'
 import { Pill } from '../components/ui/Pill'
 import { formatAgo, formatTime } from '../lib/format'
 import { byDay, episodeCode } from '../lib/media'
-import type { Media, MediaEpisode } from '../lib/types'
+import type { Media, MediaEpisode, MediaOverview } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
 const NAMES: Record<string, string> = { sonarr: 'Sonarr', radarr: 'Radarr' }
@@ -38,6 +40,8 @@ function EpisodeRow({ episode, right }: { episode: MediaEpisode; right: ReactNod
 
 export function MediaPage() {
   const { data, error } = useApi<Media>('/api/media', 60_000)
+  // Tracearr and Seerr; left out entirely when not set up (no Tracearr key).
+  const { data: overview } = useApi<MediaOverview>('/api/media/overview', 300_000)
   const now = new Date()
   const needLook = data?.downloads.filter((d) => d.state === 'failed' || d.state === 'warning').length ?? 0
 
@@ -86,17 +90,20 @@ export function MediaPage() {
           </dl>
 
           <div className="grid items-start gap-3.5 md:gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-            <Card title="Downloading" actions={<span className="text-[12px] text-faint">Sonarr · Radarr</span>}>
-              {data.downloads.length ? (
-                <ul className="space-y-2.5">
-                  {data.downloads.map((d) => (
-                    <DownloadTile key={d.id} item={d} />
-                  ))}
-                </ul>
-              ) : (
-                <Empty>Nothing downloading</Empty>
-              )}
-            </Card>
+            <div className="grid gap-3.5 md:gap-5">
+              <Card title="Downloading" actions={<span className="text-[12px] text-faint">Sonarr · Radarr</span>}>
+                {data.downloads.length ? (
+                  <ul className="space-y-2.5">
+                    {data.downloads.map((d) => (
+                      <DownloadTile key={d.id} item={d} />
+                    ))}
+                  </ul>
+                ) : (
+                  <Empty>Nothing downloading</Empty>
+                )}
+              </Card>
+              {overview && <RequestsCard overview={overview} />}
+            </div>
 
             <div className="grid gap-3.5 md:gap-5">
               <Card
@@ -139,7 +146,13 @@ export function MediaPage() {
               </Card>
             </div>
           </div>
-          {data.stale && <StaleNote />}
+          {overview && (
+            <div className="mt-3.5 grid items-start gap-3.5 md:mt-5 md:gap-5 lg:grid-cols-2">
+              <WatchingCard overview={overview} />
+              <LibraryCard overview={overview} />
+            </div>
+          )}
+          {(data.stale || overview?.stale) && <StaleNote />}
         </>
       )}
     </>

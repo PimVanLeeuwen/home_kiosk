@@ -1,5 +1,5 @@
 import { fireEvent, screen, within } from '@testing-library/react'
-import type { Media, MediaDownload } from '../lib/types'
+import type { Media, MediaDownload, MediaOverview } from '../lib/types'
 import { renderRoute } from '../test/renderRoute'
 import { stubApi } from '../test/stubApi'
 
@@ -24,10 +24,22 @@ const MEDIA: Media = {
   ],
 }
 
-function show(media: Media | null) {
+const OVERVIEW: MediaOverview = {
+  as_of: at(14, 10), stale: false, errors: {}, idle_viewers: 2,
+  viewers: [{ name: 'alex', plays: 113, watch_seconds: 291_274 }, { name: 'pim', plays: 49, watch_seconds: 105_334 }],
+  genres: ['Adventure', 'Action', 'Drama'],
+  library: { movies: 127, shows: 27, episodes: 1564, size_bytes: 4_726_229_716_345, added_movies: 0, added_episodes: 8 },
+  requests: { pending: 0, processing: 13, available: 0, completed: 58 },
+  latest_requests: [
+    { title: 'VisionQuest', year: '2026', kind: 'tv', by: 'pim', state: 'failed', poster: null },
+    { title: 'Northbound', year: '2025', kind: 'tv', by: 'pim', state: 'downloading', poster: 'sonarr/53' },
+  ],
+}
+
+function show(media: Media | null, overview: MediaOverview | null = null) {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 9, 14, 10, 0))
-  stubApi(media ? { '/api/media': media } : {})
+  stubApi({ ...(media ? { '/api/media': media } : {}), ...(overview ? { '/api/media/overview': overview } : {}) })
   renderRoute('/media')
 }
 
@@ -101,5 +113,42 @@ describe('MediaPage', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('Loading')
     expect(await screen.findByText('Media is not available right now.')).toBeInTheDocument()
+  })
+
+  it('adds requests, the 30-day leaderboard and the library when Tracearr and Seerr answer', async () => {
+    show(MEDIA, OVERVIEW)
+
+    const requests = await screen.findByRole('region', { name: 'Requests' })
+    expect(within(requests).getByText('done, all time').previousElementSibling).toHaveTextContent('58')
+    const items = within(requests).getAllByRole('listitem')
+    expect(within(items[0]).getByText('Failed')).toHaveAttribute('data-state', 'failed')
+    expect(within(items[0]).getByText('Series · 2026 · pim')).toBeInTheDocument()
+    expect(items[1].querySelector('img')).toHaveAttribute('src', '/api/media/posters/sonarr/53')
+
+    const watching = screen.getByRole('region', { name: 'Watching · 30 days' })
+    const board = within(watching).getAllByRole('listitem').filter((li) => li.closest('ol'))
+    expect(board.map((li) => li.textContent)).toEqual([expect.stringMatching(/^1.*alex.*80,9 h113 plays/), expect.stringMatching(/^2.*pim.*29,3 h49 plays/)])
+    expect(within(watching).getByText('2 more without plays in 30 days.')).toBeInTheDocument()
+    expect(within(watching).getByText('Adventure')).toBeInTheDocument()
+
+    const library = screen.getByRole('region', { name: 'Library' })
+    expect(within(library).getByText('1.564')).toBeInTheDocument()
+    expect(within(library).getByText('+8 this week')).toBeInTheDocument()
+    expect(within(library).getByText('4,7 TB')).toBeInTheDocument()
+  })
+
+  it('says which part could not be read, and leaves the overview out when it is not set up', async () => {
+    show(MEDIA, { ...OVERVIEW, viewers: null, library: null, errors: { tracearr: 'API key refused (401)' } })
+
+    expect(await screen.findByText('Tracearr could not be read (API key refused (401)).')).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Library' })).toBeNull()
+  })
+
+  it('has no overview sections without an overview answer', async () => {
+    show(MEDIA)
+
+    await screen.findByRole('region', { name: 'Downloading' })
+    expect(screen.queryByRole('region', { name: 'Requests' })).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Watching · 30 days' })).toBeNull()
   })
 })

@@ -10,7 +10,7 @@ There is no login and nothing is exposed to the internet.
 | News, Saved | Feeds read in the hub (text only, images through the hub), search, read state; Readeck bookmarks in the same reader |
 | Portfolio | Ghostfolio overview: value history, holdings, allocation, holding detail, markets; **Update from DEGIRO** imports new trades |
 | NAS, Docker, Backups | Live figures and history, the UPS and its power cuts, what is public on the internet, container load and image updates, rclone runs per volume, storage box space, database dumps, the GitHub mirror |
-| Media | What needs attention in the media stack, from Sonarr and Radarr: downloads with poster, progress and time left (stalled or failed ones with their reason), aired episodes that are missing, and what airs in the coming week |
+| Media | What needs attention in the media stack, from Sonarr and Radarr: downloads with poster, progress and time left (stalled or failed ones with their reason), aired episodes that are missing, and what airs in the coming week; Seerr's requests and where they stand, who watched how much in 30 days (Tracearr) and the library's size |
 | Services | Links to every app, LAN or Tailscale depending on how the hub was opened, with live stats; my own websites as 30-day uptime rings from Uptime Kuma; the status of GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP and Proton with any open incident |
 | Tailscale | The tailnet as a map around the NAS and every device on it: MagicDNS name, addresses, direct, relay or idle, exit node, last seen, and tailscaled's own health warnings (read-only, from the NAS's tailscaled) |
 | Repos | GitHub repos: your own, Hubble and GEWIS, with the backup status of each mirrored repo and when each token expires |

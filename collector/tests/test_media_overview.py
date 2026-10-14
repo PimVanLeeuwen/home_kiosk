@@ -14,10 +14,15 @@ from app.models import Service
 from app.sources import media_overview
 
 TRACEARR = json.loads((Path(__file__).parent / "fixtures" / "tracearr.json").read_text())
+SEERR = json.loads((Path(__file__).parent / "fixtures" / "seerr.json").read_text())
 CFG = {"widgets": {"host": "nas", "keys": {"tracearr": "trr_pub_test", "jellyseerr": "js-key"}}}
 NOW = datetime(2026, 10, 6, 12, 0, tzinfo=UTC)  # a week after the fixture's last additions
-COUNTS = {"total": 30, "movie": 12, "tv": 18, "pending": 1, "approved": 13, "declined": 2,
-          "processing": 13, "available": 14}
+COUNTS = SEERR["count"]
+
+
+@pytest.fixture(autouse=True)
+def fresh_titles(monkeypatch):
+    monkeypatch.setattr(media_overview, "_titles", {})
 
 
 @pytest.fixture
@@ -26,6 +31,8 @@ def overview_store(store):
         Service(id="tracearr", name="Tracearr", group="Media", port=3000, container="tracearr"),
         Service(id="jellyseerr", name="Jellyseerr", group="Media", port=5055,
                 container="jellyseerr", widget="jellyseerr"),
+        Service(id="sonarr", name="Sonarr", group="Downloads", port=8989, container="sonarr",
+                widget="sonarr"),
     ])
     return store
 
@@ -42,7 +49,16 @@ class Apps:
                 return httpx.Response(503)
             if app == "jellyseerr":
                 assert request.headers["X-Api-Key"] == "js-key"
-                return httpx.Response(200, json=COUNTS)
+                path = request.url.path.removeprefix("/api/v1")
+                if path == "/request/count":
+                    return httpx.Response(200, json=COUNTS)
+                if path == "/request":
+                    return httpx.Response(200, json=SEERR["requests"])
+                if path == "/tv/213375":
+                    return httpx.Response(200, json=SEERR["media_213375"])
+                kind, tmdb = path.strip("/").split("/")
+                name = "title" if kind == "movie" else "name"
+                return httpx.Response(200, json={name: f"Item {tmdb}", "releaseDate": "2024-05-01"})
             assert request.headers["Authorization"] == "Bearer trr_pub_test"
             path = request.url.path.removeprefix("/api/v2/public")
             if path == "/users":
@@ -83,10 +99,41 @@ def test_library_counts_size_and_this_weeks_additions(overview_store):
     assert (library.added_movies, library.added_episodes) == (0, 8)
 
 
-def test_request_counts_from_jellyseerr(overview_store):
+def test_request_counts_from_seerr(overview_store):
     requests = collect(overview_store, Apps()).requests
 
-    assert (requests.pending, requests.processing, requests.available) == (1, 13, 14)
+    assert (requests.pending, requests.processing, requests.available, requests.completed) == (
+        0, 13, 0, 58)
+
+
+def test_latest_requests_with_titles_states_and_posters(overview_store):
+    latest = collect(overview_store, Apps()).latest_requests
+
+    assert len(latest) == 10
+    first, second, third = latest[:3]
+    assert (first.title, first.year, first.kind, first.by, first.state) == (
+        "VisionQuest", "2026", "tv", "pim", "failed")
+    assert first.poster is None  # Sonarr has no series for it
+    assert (second.state, second.poster) == ("downloading", "sonarr/53")
+    assert (third.kind, third.state, third.poster) == ("movie", "available", "radarr/141")
+
+
+def test_each_title_is_looked_up_once(overview_store):
+    apps = Apps()
+    collect(overview_store, apps)
+    collect(overview_store, apps)
+
+    lookups = [p for app, p, _ in apps.seen if app == "jellyseerr" and "/request" not in p]
+    assert len(lookups) == 10
+
+
+def test_the_request_states_follow_seerr(overview_store):
+    state = media_overview.request_state
+    assert state({"status": 1, "media": {"status": 2}}) == "waiting"
+    assert state({"status": 2, "media": {"status": 2}}) == "approved"
+    assert state({"status": 2, "media": {"status": 3}}) == "downloading"
+    assert state({"status": 5, "media": {"status": 4}}) == "partly"
+    assert state({"status": 3, "media": {"status": 1}}) == "declined"
 
 
 def test_one_source_down_leaves_the_other(overview_store):
@@ -118,3 +165,24 @@ def test_the_route_serves_the_answer(overview_store):
                              collect(overview_store, Apps()).model_dump(mode="json"))
 
     assert client.get("/api/media/overview").json()["library"]["movies"] == 127
+
+
+def test_the_poster_route_serves_a_requests_poster(overview_store):
+    from app.sources import media_status
+
+    overview_store.put_cache(media_overview.CACHE_KEY,
+                             collect(overview_store, Apps()).model_dump(mode="json"))
+    cfg = {"widgets": {"host": "nas", "keys": {"sonarr": "s-key"}}}
+    seen = []
+
+    def sonarr(request: httpx.Request) -> httpx.Response:
+        seen.append(request.url.path)
+        return httpx.Response(200, content=b"jpeg", headers={"content-type": "image/jpeg"})
+
+    data, _ = asyncio.run(media_status.poster(cfg, overview_store, "sonarr", 53,
+                                              transport=httpx.MockTransport(sonarr)))
+
+    assert data == b"jpeg" and seen == ["/api/v3/mediacover/53/poster-250.jpg"]
+    with pytest.raises(LookupError):  # not one of the requests
+        asyncio.run(media_status.poster(cfg, overview_store, "sonarr", 999,
+                                        transport=httpx.MockTransport(sonarr)))

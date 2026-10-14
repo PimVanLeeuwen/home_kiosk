@@ -264,10 +264,16 @@ POSTERS_KEPT = 300
 
 async def poster(cfg: dict[str, Any], store: Store, source: str, item_id: int,
                  transport: httpx.AsyncBaseTransport | None = None) -> tuple[bytes, str]:
-    """A poster from the current answer only, so this is not an open proxy.
+    """A poster from the current answers only, so this is not an open proxy.
     Raises LookupError for anything else."""
     key = f"{source}/{item_id}"
     path = ((store.get_cache(CACHE_KEY) or {}).get("posters") or {}).get(key)
+    if path is None:
+        # A poster of one of the overview's latest requests (Seerr names the
+        # Sonarr series or Radarr movie behind each).
+        requested = (store.get_cache("media_overview") or {}).get("latest_requests") or []
+        if any(r.get("poster") == key for r in requested):
+            path = small_poster(item_id)
     app = settings(cfg, store)["apps"].get(source)
     if not path or not app:
         raise LookupError(key)

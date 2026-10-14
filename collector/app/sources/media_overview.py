@@ -14,7 +14,7 @@ import asyncio
 import logging
 from collections import Counter
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 from pydantic import BaseModel
@@ -28,6 +28,13 @@ log = logging.getLogger(__name__)
 CACHE_KEY = "media_overview"
 TRACEARR_API = "/api/v2/public"
 GENRES_SHOWN = 5
+REQUESTS_SHOWN = 8
+# Seerr's request status (1 waiting, 2 approved, 3 declined, 4 failed, 5 done)
+# and media status (2 pending, 3 processing, 4 partly, 5 available).
+REQUEST_STATE = {1: "waiting", 3: "declined", 4: "failed"}
+MEDIA_STATE = {3: "downloading", 4: "partly", 5: "available"}
+# Titles by "tv/123" or "movie/123": a title does not change, so one lookup each.
+_titles: dict[str, tuple[str, str | None]] = {}
 WEEK = timedelta(days=7)
 # Recently added comes newest first, 50 a page; a busy week rarely needs more.
 ADDED_PAGES = 3
@@ -53,6 +60,18 @@ class RequestCounts(BaseModel):
     pending: int  # waiting for approval
     processing: int  # approved, being fetched
     available: int
+    completed: int = 0  # done, all time
+
+
+class MediaRequest(BaseModel):
+    title: str
+    year: str | None
+    kind: Literal["tv", "movie"]
+    by: str  # Seerr's display name of who asked
+    # Where it stands, from the request's and the item's status in Seerr.
+    state: Literal["waiting", "approved", "downloading", "partly", "available", "declined",
+                   "failed"]
+    poster: str | None = None  # "sonarr/12", served by /api/media/posters/…
 
 
 class MediaOverview(Envelope):
@@ -61,6 +80,7 @@ class MediaOverview(Envelope):
     genres: list[str] = []  # the household's most-watched, all time
     library: MediaLibrary | None
     requests: RequestCounts | None
+    latest_requests: list[MediaRequest] = []
     errors: dict[str, str] = {}  # source -> a short reason
 
 
@@ -152,11 +172,47 @@ async def _tracearr(client: httpx.AsyncClient, app: dict[str, str],
     return viewers, idle, genres, parse_library(libraries, added, now)
 
 
-async def _jellyseerr(client: httpx.AsyncClient, app: dict[str, str]) -> RequestCounts:
-    counts = await _get(client, f"{app['url']}/api/v1/request/count", {"X-Api-Key": app["key"]})
+def request_state(request: dict[str, Any]) -> str:
+    if request.get("status") in REQUEST_STATE:
+        return REQUEST_STATE[request["status"]]
+    return MEDIA_STATE.get((request.get("media") or {}).get("status"), "approved")
+
+
+async def _title(client: httpx.AsyncClient, app: dict[str, str],
+                 media: dict[str, Any]) -> tuple[str, str | None]:
+    ref = f"{'movie' if media.get('mediaType') == 'movie' else 'tv'}/{media.get('tmdbId')}"
+    if ref not in _titles:
+        item = await _get(client, f"{app['url']}/api/v1/{ref}", {"X-Api-Key": app["key"]})
+        date = item.get("releaseDate") or item.get("firstAirDate") or ""
+        _titles[ref] = (item.get("title") or item.get("name") or "?", date[:4] or None)
+    return _titles[ref]
+
+
+async def _jellyseerr(client: httpx.AsyncClient,
+                      app: dict[str, str]) -> tuple[RequestCounts, list[MediaRequest]]:
+    """The counts, and the latest requests with their titles. Of who asked, only
+    the display name is read (a request also carries the person's email)."""
+    auth = {"X-Api-Key": app["key"]}
+    counts, listed = await asyncio.gather(
+        _get(client, f"{app['url']}/api/v1/request/count", auth),
+        _get(client, f"{app['url']}/api/v1/request", auth, take=REQUESTS_SHOWN,
+             sort="added", filter="all"))
+    results = listed.get("results") or []
+    titles = await asyncio.gather(*(_title(client, app, r.get("media") or {}) for r in results))
+    latest = []
+    for request, (title, year) in zip(results, titles, strict=True):
+        media = request.get("media") or {}
+        kind: Literal["tv", "movie"] = "movie" if media.get("mediaType") == "movie" else "tv"
+        owner = media.get("externalServiceId")
+        latest.append(MediaRequest(
+            title=title, year=year, kind=kind,
+            by=(request.get("requestedBy") or {}).get("displayName") or "?",
+            state=request_state(request),
+            poster=f"{'radarr' if kind == 'movie' else 'sonarr'}/{owner}" if owner else None))
     return RequestCounts(pending=int(counts.get("pending") or 0),
                          processing=int(counts.get("processing") or 0),
-                         available=int(counts.get("available") or 0))
+                         available=int(counts.get("available") or 0),
+                         completed=int(counts.get("completed") or 0)), latest
 
 
 async def collect(cfg: dict[str, Any], store: Store, now: datetime | None = None,
@@ -181,7 +237,7 @@ async def collect(cfg: dict[str, Any], store: Store, now: datetime | None = None
         elif name == "tracearr":
             overview.viewers, overview.idle_viewers, overview.genres, overview.library = result
         else:
-            overview.requests = result
+            overview.requests, overview.latest_requests = result
     if jobs and len(overview.errors) == len(jobs):
         raise RuntimeError("neither Tracearr nor Jellyseerr answered")
     return overview

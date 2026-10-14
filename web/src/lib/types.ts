@@ -45,6 +45,50 @@ export interface Hosts {
   } | null
 }
 
+export interface Viewer {
+  /** Tracearr's username. */
+  name: string
+  plays: number
+  watch_seconds: number
+}
+
+export interface MediaLibrary {
+  movies: number
+  shows: number
+  episodes: number
+  size_bytes: number
+  /** In the last 7 days. */
+  added_movies: number
+  added_episodes: number
+}
+
+export type RequestState = 'waiting' | 'approved' | 'downloading' | 'partly' | 'available' | 'declined' | 'failed'
+
+export interface MediaRequest {
+  title: string
+  year: string | null
+  kind: 'tv' | 'movie'
+  /** Seerr's display name of who asked. */
+  by: string
+  state: RequestState
+  poster: string | null
+}
+
+/** Watch stats, the library and requests (`/api/media/overview`). */
+export interface MediaOverview {
+  as_of: string
+  stale: boolean
+  /** With plays in the last 30 days, most watch time first; null when Tracearr could not be read. */
+  viewers: Viewer[] | null
+  idle_viewers: number
+  /** The household's most-watched, all time. */
+  genres: string[]
+  library: MediaLibrary | null
+  requests: { pending: number; processing: number; available: number; completed: number } | null
+  latest_requests: MediaRequest[]
+  errors: Record<string, string>
+}
+
 export type SiteDay = 'up' | 'blip' | 'down' | 'none'
 
 export interface Site {

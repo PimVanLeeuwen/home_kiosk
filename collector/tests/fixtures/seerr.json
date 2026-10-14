@@ -1,0 +1,177 @@
+{
+ "count": {
+  "total": 72,
+  "movie": 49,
+  "tv": 23,
+  "pending": 0,
+  "approved": 13,
+  "declined": 0,
+  "processing": 13,
+  "available": 0,
+  "completed": 58
+ },
+ "requests": {
+  "pageInfo": {
+   "pages": 8,
+   "pageSize": 10,
+   "results": 72,
+   "page": 1
+  },
+  "results": [
+   {
+    "id": 74,
+    "type": "tv",
+    "status": 4,
+    "createdAt": "2026-10-14T11:46:15.000Z",
+    "media": {
+     "mediaType": "tv",
+     "tmdbId": 213375,
+     "status": 4,
+     "externalServiceId": null
+    },
+    "requestedBy": {
+     "displayName": "pim"
+    }
+   },
+   {
+    "id": 73,
+    "type": "tv",
+    "status": 2,
+    "createdAt": "2026-09-06T17:02:15.000Z",
+    "media": {
+     "mediaType": "tv",
+     "tmdbId": 133111,
+     "status": 3,
+     "externalServiceId": 53
+    },
+    "requestedBy": {
+     "displayName": "pim"
+    }
+   },
+   {
+    "id": 72,
+    "type": "movie",
+    "status": 5,
+    "createdAt": "2026-08-29T16:45:25.000Z",
+    "media": {
+     "mediaType": "movie",
+     "tmdbId": 49013,
+     "status": 5,
+     "externalServiceId": 141
+    },
+    "requestedBy": {
+     "displayName": "pim"
+    }
+   },
+   {
+    "id": 71,
+    "type": "movie",
+    "status": 5,
+    "createdAt": "2026-08-29T16:45:25.000Z",
+    "media": {
+     "mediaType": "movie",
+     "tmdbId": 260514,
+     "status": 5,
+     "externalServiceId": 142
+    },
+    "requestedBy": {
+     "displayName": "pim"
+    }
+   },
+   {
+    "id": 70,
+    "type": "tv",
+    "status": 5,
+    "createdAt": "2026-08-23T20:42:12.000Z",
+    "media": {
+     "mediaType": "tv",
+     "tmdbId": 1403,
+     "status": 5,
+     "externalServiceId": 52
+    },
+    "requestedBy": {
+     "displayName": "pim"
+    }
+   },
+   {
+    "id": 69,
+    "type": "movie",
+    "status": 5,
+    "createdAt": "2026-08-19T14:15:26.000Z",
+    "media": {
+     "mediaType": "movie",
+     "tmdbId": 980431,
+     "status": 5,
+     "externalServiceId": 140
+    },
+    "requestedBy": {
+     "displayName": "pim"
+    }
+   },
+   {
+    "id": 68,
+    "type": "tv",
+    "status": 5,
+    "createdAt": "2026-08-16T10:26:09.000Z",
+    "media": {
+     "mediaType": "tv",
+     "tmdbId": 82452,
+     "status": 5,
+     "externalServiceId": 51
+    },
+    "requestedBy": {
+     "displayName": "pim"
+    }
+   },
+   {
+    "id": 67,
+    "type": "movie",
+    "status": 5,
+    "createdAt": "2026-08-10T18:36:55.000Z",
+    "media": {
+     "mediaType": "movie",
+     "tmdbId": 438148,
+     "status": 5,
+     "externalServiceId": 139
+    },
+    "requestedBy": {
+     "displayName": "pim"
+    }
+   },
+   {
+    "id": 66,
+    "type": "movie",
+    "status": 5,
+    "createdAt": "2026-08-10T18:36:42.000Z",
+    "media": {
+     "mediaType": "movie",
+     "tmdbId": 519182,
+     "status": 5,
+     "externalServiceId": 138
+    },
+    "requestedBy": {
+     "displayName": "pim"
+    }
+   },
+   {
+    "id": 65,
+    "type": "movie",
+    "status": 5,
+    "createdAt": "2026-08-10T18:33:23.000Z",
+    "media": {
+     "mediaType": "movie",
+     "tmdbId": 1368337,
+     "status": 5,
+     "externalServiceId": 137
+    },
+    "requestedBy": {
+     "displayName": "pim"
+    }
+   }
+  ]
+ },
+ "media_213375": {
+  "name": "VisionQuest",
+  "firstAirDate": "2026-10-13"
+ }
+}

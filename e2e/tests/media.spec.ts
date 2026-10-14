@@ -39,3 +39,24 @@ test('Media is reachable from the navigation', async ({ page, isMobile }) => {
   }
   await expect(page).toHaveURL('/media')
 })
+
+const OVERVIEW = {
+  as_of: new Date().toISOString(), stale: false, errors: {}, idle_viewers: 0, genres: ['Drama'],
+  viewers: [{ name: 'pim', plays: 49, watch_seconds: 105_334 }],
+  library: { movies: 127, shows: 27, episodes: 1564, size_bytes: 4.7e12, added_movies: 0, added_episodes: 8 },
+  requests: { pending: 1, processing: 13, available: 0, completed: 58 },
+  latest_requests: [{ title: 'VisionQuest', year: '2026', kind: 'tv', by: 'pim', state: 'failed', poster: null }],
+}
+
+test('Media adds requests, who watched and the library', async ({ page }) => {
+  await page.route('**/api/media', (route) => route.fulfill({ json: MEDIA }))
+  await page.route('**/api/media/overview', (route) => route.fulfill({ json: OVERVIEW }))
+  await page.goto('/media')
+
+  const requests = page.getByRole('region', { name: 'Requests' })
+  await expect(requests).toContainText('waiting for approval')
+  await expect(requests).toContainText('VisionQuest')
+  await expect(requests).toContainText('Failed')
+  await expect(page.getByRole('region', { name: 'Watching · 30 days' })).toContainText('29,3 h')
+  await expect(page.getByRole('region', { name: 'Library' })).toContainText('1.564')
+})

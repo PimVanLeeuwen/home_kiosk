@@ -556,8 +556,13 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked).
   tailscaled's own health warnings, not key expiry: keys do not expire on this tailnet (M13).
 - Backlog (2026-10-09): a richer Jellyfin overview in the hub, in the spirit of Tracearr's history:
   library counts (movies, series, episodes), what is pending or downloading (Jellyseerr, Sonarr,
-  Radarr, the download clients), watch stats and a per-user leaderboard. Not planned into a
-  milestone yet.
+  Radarr, the download clients), watch stats and a per-user leaderboard. **Built 2026-10-14** on
+  the Media page (mockup `docs/hub-media-overview-mockup.html`): `/api/media/overview` every five
+  minutes from Tracearr's public API v2 (a `trr_pub_` key in .env: each person's plays and watch
+  time over 30 days, the household's top genres all time, library counts, this week's additions)
+  and Seerr (request counts, the latest requests with title, who asked and where each stands).
+  Usernames and display names only; Tracearr's and Seerr's people records also carry emails.
+  Jellyseerr was replaced by Seerr on 2026-10-14 (same data, same API and key).
 - Backlog, ideas not yet chosen (2026-10-08): dynamic energy prices for today and tomorrow
   (EnergyZero, no key), an Immich "on this day" photo, a command palette (Cmd-K) for services,
   pages and repos, and a morning digest in Telegram (overnight updates, backup, disk, weather).
