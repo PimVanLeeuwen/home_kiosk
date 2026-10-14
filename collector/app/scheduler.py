@@ -29,6 +29,7 @@ from .sources import (
     ghostfolio,
     github,
     github_mirror,
+    media_status,
     nas,
     ns,
     outside_services,
@@ -55,6 +56,7 @@ PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
 WEATHER_INTERVAL_SECONDS = 300  # Buienradar's rain forecast moves in 5-minute steps
 EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
 OUTSIDE_INTERVAL_SECONDS = 300  # status pages; incidents move in minutes
+MEDIA_INTERVAL_SECONDS = 60  # local calls to Sonarr and Radarr
 TRAIN_INTERVAL_SECONDS = 120  # calls NS only between the watch start and departure
 UPS_INTERVAL_SECONDS = 15  # outages are timed from these readings
 MIRROR_STARTUP_DELAY = timedelta(minutes=2)  # let the startup refreshes go first
@@ -178,6 +180,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         max_instances=1,
         coalesce=True,
     )
+
+    if media_status.settings(cfg, store)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=MEDIA_INTERVAL_SECONDS,
+            args=[store, media_status.CACHE_KEY, lambda: media_status.collect(cfg, store)],
+            id="media",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
 
     if ns.settings(cfg)["enabled"]:
         scheduler.add_job(

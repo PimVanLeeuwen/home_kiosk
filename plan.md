@@ -422,6 +422,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   missing episodes (aired but not downloaded, from Sonarr's wanted list, with how long ago and
   whether it is still searching), plus the next episode to air. Posters are fetched and resized
   by the hub. Shares its data with the backlog's richer Jellyfin overview in the hub.
+  Built 2026-10-14 (collector and hub): `/api/media` every minute from Sonarr's and Radarr's
+  queues, Sonarr's wanted list and its calendar for the coming week, with the keys the service
+  tiles already use; one app down leaves the other's part. Posters through the hub
+  (`/api/media/posters/…`, the apps' own 250-pixel versions, only for items in the current
+  answer). In the hub a Media page under House (mockup `docs/hub-media-mockup.html`).
 - **Top movers** (House, Money; redesigned 2026-10-12): a heat map of the holdings, each tile
   sized by its share of the portfolio and tinted green or red by today's move, with the ticker,
   the change and the name (type scales with the tile; the name is left out on the smallest);

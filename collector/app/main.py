@@ -16,7 +16,7 @@ from typing import Any
 
 from apscheduler.triggers.interval import IntervalTrigger
 from fastapi import Depends, FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, HttpUrl
 
 from . import config, exposure_api, scheduler, settings_api
@@ -35,6 +35,7 @@ from .sources import (
     exposure,
     feeds,
     github_mirror,
+    media_status,
     ns,
     outside_services,
     readeck,
@@ -167,6 +168,25 @@ def nas() -> Any:
 @app.get("/api/hosts")
 def hosts() -> Any:
     return _serve("hosts")
+
+
+@app.get("/api/media")
+def media() -> Any:
+    """Downloads, missing episodes and what airs next, from Sonarr and Radarr."""
+    return _serve(media_status.CACHE_KEY)
+
+
+@app.get("/api/media/posters/{source}/{item_id}")
+async def media_poster(source: str, item_id: int) -> Response:
+    """A poster of an item in the current Media answer, through the hub."""
+    try:
+        data, kind = await media_status.poster(app.state.config, app.state.store, source, item_id)
+    except LookupError:
+        return JSONResponse(status_code=404, content={"detail": "No such poster."})
+    except Exception as exc:
+        log.warning("media poster failed: %s", type(exc).__name__)
+        return JSONResponse(status_code=502, content={"detail": "The poster could not be loaded."})
+    return Response(data, media_type=kind, headers={"Cache-Control": "private, max-age=86400"})
 
 
 @app.get("/api/train")

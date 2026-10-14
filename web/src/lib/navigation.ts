@@ -2,6 +2,7 @@ import {
   Bell,
   Bookmark,
   Box,
+  Clapperboard,
   CloudUpload,
   FolderGit2,
   House,
@@ -102,6 +103,13 @@ export const NAV: NavSection[] = [
         icon: LayoutGrid,
         description: 'Every app on the NAS, with status and links',
         milestone: 'M2',
+      },
+      {
+        label: 'Media',
+        to: '/media',
+        icon: Clapperboard,
+        description: 'What is downloading, missing and airing next',
+        milestone: 'M20',
       },
       {
         label: 'Tailscale',

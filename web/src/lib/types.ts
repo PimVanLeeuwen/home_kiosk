@@ -45,6 +45,50 @@ export interface Hosts {
   } | null
 }
 
+export type MediaState = 'downloading' | 'queued' | 'paused' | 'importing' | 'warning' | 'failed'
+
+export interface MediaDownload {
+  /** "sonarr:123", the queue item. */
+  id: string
+  kind: 'tv' | 'movie'
+  title: string
+  /** "S2 E5 · The Breakwater" or "Movie · 2025". */
+  detail: string
+  size_bytes: number
+  left_bytes: number
+  progress_pct: number
+  time_left_seconds: number | null
+  client: string
+  state: MediaState
+  /** Sonarr's or Radarr's own reason for a warning or failure. */
+  message: string | null
+  /** "sonarr/12": served at /api/media/posters/sonarr/12. */
+  poster: string | null
+}
+
+export interface MediaEpisode {
+  series: string
+  season: number
+  episode: number
+  title: string
+  air_date: string | null
+  poster: string | null
+}
+
+/** Downloads, missing episodes and the week ahead (`/api/media`). */
+export interface Media {
+  as_of: string
+  stale: boolean
+  downloads: MediaDownload[]
+  /** Newest first, at most 10. */
+  missing: MediaEpisode[]
+  missing_total: number
+  /** The coming week, soonest first. */
+  upcoming: MediaEpisode[]
+  /** Source to a short reason, when Sonarr or Radarr could not be read. */
+  errors: Record<string, string>
+}
+
 export interface TrainStop {
   name: string
   planned: string
