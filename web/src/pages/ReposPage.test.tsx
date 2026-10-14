@@ -80,7 +80,7 @@ describe('ReposPage', () => {
     expect(within(kiosk).getByTitle('Open pull requests')).toHaveClass('text-accent-fg')
   })
 
-  it('sums up the owner in four tiles and flags a failing build in the header', async () => {
+  it('sums up the owner in four tiles without a state pill in the header (the Code card has it)', async () => {
     stubApi({ '/api/repos': REPOS })
     renderRoute('/repos')
 
@@ -91,11 +91,11 @@ describe('ReposPage', () => {
     expect((await tile('CI')).querySelectorAll('[data-ci]')).toHaveLength(2)
     expect(await tile('Open work')).toHaveTextContent('4 pull requests10 issues · across 2 repos')
     expect(await tile('Backup')).toHaveTextContent('Not mirrored')
-    expect(screen.getByText('1 failing', { selector: '.uppercase' })).toBeInTheDocument()
+    expect(screen.queryByText('1 failing', { selector: '.uppercase' })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('tab', { name: /Hubble/ }))
     expect(await tile('CI')).toHaveTextContent('All green')
-    expect(screen.getByText('All green', { selector: '.uppercase' })).toBeInTheDocument()
+    expect(screen.queryByText('All green', { selector: '.uppercase' })).not.toBeInTheDocument()
   })
 
   it('shows forks behind the switch', async () => {

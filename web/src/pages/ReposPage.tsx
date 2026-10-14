@@ -6,7 +6,6 @@ import { CodeCard } from '../components/repos/CodeCard'
 import { RepoCard } from '../components/repos/RepoCard'
 import { ReposTiles } from '../components/repos/ReposTiles'
 import { TokenNote } from '../components/repos/TokenNote'
-import { Pill } from '../components/ui/Pill'
 import { Switch } from '../components/ui/Switch'
 import { cn } from '../lib/cn'
 import { formatAgo, formatWhen } from '../lib/format'
@@ -49,7 +48,6 @@ export function ReposPage() {
   const active = groups.find((g) => g.label === params.get('tab')) ?? groups[0]
   const forks = active?.repos.filter((r) => r.fork).length ?? 0
   const shown = (active?.repos ?? []).filter((r) => (showForks || !r.fork) && matches(r, query))
-  const failing = (active?.repos ?? []).filter((r) => r.ci === 'failing' && (showForks || !r.fork)).length
 
   // Backup state per repo, for owners in the mirror that has run at least once.
   const mirrorOwner =
@@ -67,7 +65,6 @@ export function ReposPage() {
       <PageHeader
         title="Repos"
         subtitle={data ? `From GitHub, updated ${formatAgo(data.as_of)}` : 'GitHub repos: yours, Hubble and GEWIS'}
-        actions={active && (failing ? <Pill tone="down">{failing} failing</Pill> : <Pill tone="up">All green</Pill>)}
       />
 
       {loading && !data && (
