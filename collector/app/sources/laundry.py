@@ -80,6 +80,9 @@ DRYER_FINISHED_PHASES = {4, 5}  # anti-crease, finished
 DRYER_PROGRAMS = {1: "Auto", 2: "Allergy care", 3: "Refresh", 4: "Sportswear", 5: "Towels",
                   7: "Time", 8: "Cotton", 9: "Baby care", 10: "Synthetic", 11: "Wool",
                   12: "Delicates", 13: "Quick 30", 17: "Shirts", 18: "Bedding", 19: "Down"}
+# Learnt one wash at a time (the numbers do not follow the dial); unknown ones
+# show as "Program 6".
+WASHER_PROGRAMS = {9: "Cotton"}
 WASHER_ERRORS = {100: "Unbalanced load"}
 
 
@@ -278,7 +281,7 @@ def _program(type_code: str, props: dict[str, Any]) -> str | None:
         return None
     if type_code == DRYER:
         return DRYER_PROGRAMS.get(pid, f"Program {pid}")
-    return f"Program {pid}"
+    return WASHER_PROGRAMS.get(pid, f"Program {pid}")
 
 
 def read_machine(device: dict[str, Any], previous: dict[str, Any] | None,

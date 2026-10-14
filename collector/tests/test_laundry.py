@@ -15,7 +15,9 @@ from fastapi.testclient import TestClient
 from app import main
 from app.sources import laundry
 
-DRYER = json.loads((Path(__file__).parent / "fixtures" / "connectlife_dryer.json").read_text())
+FIXTURES = Path(__file__).parent / "fixtures"
+DRYER = json.loads((FIXTURES / "connectlife_dryer.json").read_text())
+WASHER = json.loads((FIXTURES / "connectlife_washer.json").read_text())
 NOW = datetime(2026, 10, 14, 8, 0, tzinfo=UTC)
 CFG = {"connectlife": {"username": "hub@example.com", "password": "secret"}}
 
@@ -81,6 +83,21 @@ def test_the_real_dryer_now_is_off_with_its_door_open():
     assert (machine.name, machine.kind, machine.state, machine.online, machine.door_open) == (
         "Tumble dryer", "dryer", "idle", True, True)
     assert machine.id != "test-dryer-puid" and len(machine.id) == 10
+
+
+def test_the_real_washer_after_a_cotton_wash_is_off_with_its_door_open():
+    device = WASHER["response"]["deviceList"][0]
+
+    machine = laundry.read_machine(device, None, NOW)
+    running = laundry.read_machine(
+        device | {"statusList": device["statusList"] | {"machine_status": "2", "Door_status": "3",
+                  "Selected_program_remaining_time_in_minutes": "100"}}, None, NOW)
+
+    assert (machine.name, machine.kind, machine.state, machine.door_open) == (
+        "Washing Machine", "washer", "idle", True)
+    assert (running.state, running.program, running.total_minutes) == ("running", "Cotton", 239)
+    assert laundry.read_machine(washer(machine_status=2, Selected_program_ID=6), None,
+                                NOW).program == "Program 6"
 
 
 def test_a_running_dryer_with_its_program_and_ready_time():
