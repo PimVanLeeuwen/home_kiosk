@@ -1,5 +1,5 @@
 import { STATUS_LABEL } from './status'
-import type { Nas, Service } from './types'
+import type { Nas, Service, Site } from './types'
 
 export interface Attention {
   level: 'warn' | 'down'
@@ -12,9 +12,14 @@ export const POOL_FULL_PCT = 90
 
 /**
  * What needs looking at, worst first: failing disks and backups, stopped
- * services, then warnings. Drives the Home status strip.
+ * services and sites that are down, then warnings. Drives the Home status strip.
  */
-export function attentionItems(nas: Nas | undefined, services: Service[], now = new Date()): Attention[] {
+export function attentionItems(
+  nas: Nas | undefined,
+  services: Service[],
+  now = new Date(),
+  sites: Site[] = [],
+): Attention[] {
   const items: Attention[] = []
 
   if (nas) {
@@ -39,6 +44,10 @@ export function attentionItems(nas: Nas | undefined, services: Service[], now = 
       items.push({ level: 'down', text: `${service.name}: ${STATUS_LABEL[service.status].toLowerCase()}` })
     if (service.status === 'unhealthy')
       items.push({ level: 'warn', text: `${service.name} is unhealthy` })
+  }
+
+  for (const site of sites) {
+    if (site.up === false) items.push({ level: 'down', text: `${site.name} is down` })
   }
 
   return items.sort((a, b) => (a.level === b.level ? 0 : a.level === 'down' ? -1 : 1))

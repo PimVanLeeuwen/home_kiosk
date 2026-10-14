@@ -1,6 +1,7 @@
 import { RefreshCw } from 'lucide-react'
 import { OutsideServicesSection } from '../components/outside/OutsideServicesSection'
 import { PageHeader } from '../components/PageHeader'
+import { MySitesSection } from '../components/sites/MySitesSection'
 import { Pill } from '../components/ui/Pill'
 import { cn } from '../lib/cn'
 import { ServiceTile } from '../components/ServiceTile'
@@ -145,6 +146,7 @@ export function ServicesPage() {
         </div>
       )}
 
+      <MySitesSection />
       <OutsideServicesSection />
     </>
   )

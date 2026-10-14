@@ -36,6 +36,7 @@ from .sources import (
     feeds,
     github_mirror,
     media_status,
+    my_sites,
     ns,
     outside_services,
     readeck,
@@ -71,6 +72,7 @@ async def lifespan(app: FastAPI):
     news_store.ensure_tables(app.state.store)
     degiro_import.ensure_tables(app.state.store)
     ups.ensure_tables(app.state.store)
+    my_sites.ensure_tables(app.state.store)
     if news_store.seed(app.state.store, app.state.config):
         log.info("feed list seeded from config.yaml")
 
@@ -168,6 +170,12 @@ def nas() -> Any:
 @app.get("/api/hosts")
 def hosts() -> Any:
     return _serve("hosts")
+
+
+@app.get("/api/sites")
+def sites() -> Any:
+    """The owner's websites: up now and 30 days of uptime, from Uptime Kuma."""
+    return _serve(my_sites.CACHE_KEY)
 
 
 @app.get("/api/media")

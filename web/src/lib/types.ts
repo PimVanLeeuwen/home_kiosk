@@ -45,6 +45,31 @@ export interface Hosts {
   } | null
 }
 
+export type SiteDay = 'up' | 'blip' | 'down' | 'none'
+
+export interface Site {
+  id: number
+  /** Kuma's name for the monitor. */
+  name: string
+  /** Kuma's group on the status page, e.g. "Personal". */
+  group: string
+  /** null: no heartbeat yet. */
+  up: boolean | null
+  down_since: string | null
+  ping_ms: number | null
+  /** Over the recorded part of the last 30 days. */
+  uptime_pct: number | null
+  /** 30 of them, oldest first, today last. */
+  days: SiteDay[]
+}
+
+/** The owner's websites from Uptime Kuma (`/api/sites`). */
+export interface Sites {
+  as_of: string
+  stale: boolean
+  sites: Site[]
+}
+
 export type MediaState = 'downloading' | 'queued' | 'paused' | 'importing' | 'warning' | 'failed'
 
 export interface MediaDownload {

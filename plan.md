@@ -444,6 +444,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   in SQLite from Kuma's heartbeats, so the 30 days do not depend on how much history Kuma's
   status page returns. These checks run on the NAS, so they cannot report the NAS itself being
   down (see the Hetzner VPS open item).
+  Built 2026-10-14 (collector and hub): Kuma's status page `sites` (groups Personal and Hubble,
+  Kuma's own monitor names) read every minute; the time between heartbeats is added per site to
+  its local day as up or down seconds (`site_day`), a day with more than 5 minutes down is an
+  outage, less a blip; `/api/sites`. In the hub a My sites section on Services above Outside
+  services (mockup `docs/hub-sites-mockup.html`), and the Home status strip counts a site that is
+  down. Kuma's status pages are public through status.example.com.
 - **Services** (House, added 2026-10-10): only outside services something here depends on
   (kept short on purpose, 2026-10-10): GitHub (code, CI, image builds, the mirror), Cloudflare
   (DNS and the tunnel for the public sites), Docker Hub (the hub's images and Watchtower's pulls),

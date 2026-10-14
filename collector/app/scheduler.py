@@ -30,6 +30,7 @@ from .sources import (
     github,
     github_mirror,
     media_status,
+    my_sites,
     nas,
     ns,
     outside_services,
@@ -56,6 +57,7 @@ PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
 WEATHER_INTERVAL_SECONDS = 300  # Buienradar's rain forecast moves in 5-minute steps
 EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
 OUTSIDE_INTERVAL_SECONDS = 300  # status pages; incidents move in minutes
+SITES_INTERVAL_SECONDS = 60  # Kuma beats once a minute; 100 kept, so no gaps
 MEDIA_INTERVAL_SECONDS = 60  # local calls to Sonarr and Radarr
 TRAIN_INTERVAL_SECONDS = 120  # calls NS only between the watch start and departure
 UPS_INTERVAL_SECONDS = 15  # outages are timed from these readings
@@ -180,6 +182,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         max_instances=1,
         coalesce=True,
     )
+
+    if my_sites.settings(cfg, store)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=SITES_INTERVAL_SECONDS,
+            args=[store, my_sites.CACHE_KEY, lambda: my_sites.collect(cfg, store)],
+            id="sites",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
 
     if media_status.settings(cfg, store)["enabled"]:
         scheduler.add_job(

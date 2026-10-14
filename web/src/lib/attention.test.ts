@@ -71,4 +71,14 @@ describe('attentionItems', () => {
       { level: 'warn', text: 'NAS figures are out of date' },
     ])
   })
+
+  it('flags a site that is down, but not one without heartbeats yet', () => {
+    const site = (name: string, up: boolean | null) => ({
+      id: 1, name, group: 'Hubble', up, down_since: null, ping_ms: null, uptime_pct: null, days: [],
+    })
+
+    expect(attentionItems(nas(), [], NOW, [site('Meteor Website', false), site('Admin Website', null), site('AOC', true)])).toEqual([
+      { level: 'down', text: 'Meteor Website is down' },
+    ])
+  })
 })

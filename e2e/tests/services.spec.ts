@@ -55,3 +55,22 @@ test('shows a retry when the collector is down', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('The hub API is not answering')
   await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
 })
+
+const SITES = {
+  as_of: new Date().toISOString(), stale: false,
+  sites: [
+    { id: 13, name: 'AOC', group: 'Personal', up: true, down_since: null, ping_ms: 120, uptime_pct: 100, days: Array(30).fill('up') },
+    { id: 43, name: 'Meteor Website', group: 'Hubble', up: false, down_since: new Date(Date.now() - 12 * 60_000).toISOString(), ping_ms: null, uptime_pct: 99.92, days: Array(30).fill('up') },
+  ],
+}
+
+test('Services shows my sites with their 30 days and a site that is down', async ({ page }) => {
+  await page.route('**/api/services', (route) => route.fulfill({ json: SERVICES }))
+  await page.route('**/api/sites', (route) => route.fulfill({ json: SITES }))
+  await page.goto('/services')
+
+  const sites = page.getByRole('region', { name: 'My sites' })
+  await expect(sites.getByRole('img', { name: '1 of 2 sites up' })).toBeVisible()
+  await expect(sites).toContainText('1 down')
+  await expect(sites.getByRole('region', { name: 'Hubble' })).toContainText('down for 12 min')
+})

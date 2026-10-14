@@ -12,7 +12,7 @@ import { PageHeader } from '../components/PageHeader'
 import { attentionItems } from '../lib/attention'
 import { greeting } from '../lib/greeting'
 import { skyGlow } from '../lib/sky'
-import type { Nas, ServicesResponse } from '../lib/types'
+import type { Nas, ServicesResponse, Sites } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
 const dateLine = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -21,9 +21,10 @@ export function HomePage() {
   const nas = useApi<Nas>('/api/nas', 60_000)
   const services = useApi<ServicesResponse>('/api/services', 30_000)
   const all = services.data?.groups.flatMap((g) => g.services)
-  const attention = attentionItems(nas.data, all ?? [])
-
+  const sites = useApi<Sites>('/api/sites', 60_000)
   const now = new Date()
+  const attention = attentionItems(nas.data, all ?? [], now, sites.data?.sites)
+
   const summary =
     !nas.data && !services.data
       ? 'checking…'

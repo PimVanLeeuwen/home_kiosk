@@ -31,6 +31,18 @@ describe('HomePage', () => {
     expect(screen.getAllByText(/^today 0?\d:31$/)).toHaveLength(2)
   })
 
+  it('counts a site that is down as something to look at', async () => {
+    setup({
+      '/api/sites': {
+        as_of: new Date().toISOString(),
+        stale: false,
+        sites: [{ id: 43, name: 'Meteor Website', group: 'Hubble', up: false, down_since: null, ping_ms: null, uptime_pct: 99.9, days: [] }],
+      },
+    })
+
+    expect(await screen.findByText(/1 thing needs a look/)).toBeInTheDocument()
+  })
+
   it('shows portfolio value, day change and the top three holdings', async () => {
     setup()
 
