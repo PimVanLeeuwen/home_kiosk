@@ -19,6 +19,7 @@ from .alerts import rules as alert_rules
 from .portfolio import indices
 from .portfolio import report as portfolio_report
 from .sources import (
+    agenda,
     backups,
     container_stats,
     db_copy,
@@ -59,6 +60,7 @@ WEATHER_INTERVAL_SECONDS = 300  # Buienradar's rain forecast moves in 5-minute s
 EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
 OUTSIDE_INTERVAL_SECONDS = 300  # status pages; incidents move in minutes
 SITES_INTERVAL_SECONDS = 60  # Kuma beats once a minute; 100 kept, so no gaps
+CALENDAR_INTERVAL_SECONDS = 300  # feeds at most every 15 min (agenda.FEED_EVERY)
 MEDIA_INTERVAL_SECONDS = 60  # local calls to Sonarr and Radarr
 OVERVIEW_INTERVAL_SECONDS = 300  # watch stats and library counts move slowly
 TRAIN_INTERVAL_SECONDS = 120  # calls NS only between the watch start and departure
@@ -184,6 +186,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         max_instances=1,
         coalesce=True,
     )
+
+    if agenda.settings(cfg)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=CALENDAR_INTERVAL_SECONDS,
+            args=[store, agenda.CACHE_KEY, lambda: agenda.collect(cfg, store)],
+            id="calendar",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
 
     if my_sites.settings(cfg, store)["enabled"]:
         scheduler.add_job(

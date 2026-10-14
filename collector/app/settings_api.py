@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .models import Service
 from .security import same_origin_json
-from .sources import widgets
+from .sources import agenda, widgets
 from .store import Store
 
 router = APIRouter(prefix="/api/settings")
@@ -206,3 +206,27 @@ def rename_group(body: GroupRename, request: Request) -> dict[str, Any]:
     if not store.rename_group(body.old, new):
         raise HTTPException(404, "No such group.")
     return _catalog(store)
+
+
+# --- Calendars (Home's Today card and the Now panel) ------------------------------
+
+
+class CalendarShown(BaseModel):
+    shown: bool
+
+
+@router.get("/calendars")
+def calendars(request: Request) -> list[agenda.CalendarInfo]:
+    """Every iCloud calendar and subscription with its switch; empty until the
+    first read after a start. Never the subscription addresses."""
+    return agenda.calendar_list(_store(request))
+
+
+@router.put("/calendars/{calendar_id}", dependencies=write)
+def show_calendar(calendar_id: str, body: CalendarShown,
+                  request: Request) -> list[agenda.CalendarInfo]:
+    store = _store(request)
+    if calendar_id not in {c.id for c in agenda.calendar_list(store)}:
+        raise HTTPException(404, "No such calendar.")
+    agenda.set_shown(store, calendar_id, body.shown)
+    return agenda.calendar_list(store)

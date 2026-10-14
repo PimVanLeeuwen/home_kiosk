@@ -13,6 +13,9 @@ dependencies = [
     "apscheduler>=3.11,<4",
     "feedparser>=6.0.14",
     "trafilatura>=2.2",
+    # Today's calendar: parsing iCalendar and unfolding repeating events.
+    "icalendar>=7.3",
+    "recurring-ical-events>=3.8.2",
 ]
 
 [project.optional-dependencies]

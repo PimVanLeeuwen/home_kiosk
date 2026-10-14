@@ -31,6 +31,7 @@ from .portfolio import api as portfolio_api
 from .portfolio import degiro_import
 from .security import same_origin_json
 from .sources import (
+    agenda,
     container_stats,
     exposure,
     feeds,
@@ -74,6 +75,7 @@ async def lifespan(app: FastAPI):
     degiro_import.ensure_tables(app.state.store)
     ups.ensure_tables(app.state.store)
     my_sites.ensure_tables(app.state.store)
+    agenda.ensure_tables(app.state.store)
     if news_store.seed(app.state.store, app.state.config):
         log.info("feed list seeded from config.yaml")
 
@@ -171,6 +173,12 @@ def nas() -> Any:
 @app.get("/api/hosts")
 def hosts() -> Any:
     return _serve("hosts")
+
+
+@app.get("/api/calendar")
+def calendar_today() -> Any:
+    """Today's events from the calendars switched on in Settings."""
+    return _serve(agenda.CACHE_KEY)
 
 
 @app.get("/api/sites")
