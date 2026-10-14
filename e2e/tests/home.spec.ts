@@ -139,3 +139,22 @@ test('Home shows the laundry while a machine runs or is done', async ({ page }) 
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Laundry' })).toHaveCount(0)
 })
+
+test('Home shows the Apple devices with what plays per room', async ({ page }) => {
+  const dev = (id: string, kind: string, thread: boolean | null, online = true) => ({ id, name: id, kind, online, offline_since: null, thread })
+  await page.route('**/api/apple', (route) => route.fulfill({ json: {
+    as_of: new Date().toISOString(), stale: false,
+    rooms: [
+      { id: 'living-room', name: 'Living room', devices: [dev('Woonkamer', 'homepod', true), dev('Apple TV Living Room', 'tv', true)],
+        playing: { state: 'playing', media: 'music', title: 'Nightcall', subtitle: 'Kavinsky', app: 'Music', device: 'Woonkamer', artwork: false } },
+      { id: 'bathroom', name: 'Bathroom', devices: [dev('Badkamer', 'homepod_mini', true, false)], playing: null },
+    ],
+  } }))
+  await page.goto('/')
+
+  const card = page.getByRole('region', { name: 'Apple devices' })
+  await expect(card.getByText('1 offline')).toBeVisible()
+  await expect(card.getByRole('img')).toHaveAccessibleName(/Bathroom: 1 device, Badkamer offline/)
+  await expect(card.getByRole('list', { name: 'Playing' })).toContainText('Nightcall')
+  await expect(card).toContainText('Thread · 2 of 3 border routers')
+})

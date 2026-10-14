@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { AppleCard } from '../components/home/AppleCard'
 import { BackupCard } from '../components/home/BackupCard'
 import { NasCard } from '../components/home/NasCard'
 import { NewsCard } from '../components/home/NewsCard'
@@ -50,6 +51,7 @@ export function HomePage() {
         <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
           <TodayCard />
           <LaundryCard />
+          <AppleCard />
           <PortfolioCard />
           <NasCard nas={nas.data} error={nas.error} />
           <NewsCard />

@@ -543,6 +543,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   minute; `/api/apple` (per room the devices online or offline since when, their kind, Thread
   state, and what plays) and `/api/apple/artwork/{room}` (fetched once per item, stored as a
   200 px WebP).
+  Built 2026-10-14 (hub): an Apple devices card on Home after Laundry: the rooms laid out from
+  config.yaml (the first across the top, the others below by their number of devices), each
+  device an orb, the room glowing while something plays (ripples from its HomePods, and its
+  Apple TV for video), the border routers joined as one Thread network with lines that stop at
+  the orbs, an offline device dashed in amber; "N of M online", the Thread count, and a bar per
+  room with what plays.
 - **NAS, Backups, Alerts and the train**, redesigned again 2026-10-10 to be desk pieces:
   - NAS: an instrument-style arc gauge for the fullest volume (ticks, a glow, a red mark where
     it would alert), its size and runway below, then tiles for CPU and memory with live

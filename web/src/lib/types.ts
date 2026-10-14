@@ -65,6 +65,34 @@ export interface Machine {
   error: string | null
 }
 
+export interface AppleDevice {
+  id: string
+  name: string
+  kind: 'tv' | 'homepod' | 'homepod_mini' | null
+  online: boolean
+  offline_since: string | null
+  /** null: not a Thread border router; else whether its Thread interface is active. */
+  thread: boolean | null
+}
+
+export interface ApplePlaying {
+  state: 'playing' | 'paused'
+  media: 'video' | 'music' | 'other'
+  title: string
+  subtitle: string | null
+  app: string | null
+  /** The id of the device that reported it. */
+  device: string
+  artwork: boolean
+}
+
+/** The Apple TVs and HomePods per room (`/api/apple`). */
+export interface AppleDevices {
+  as_of: string
+  stale: boolean
+  rooms: { id: string; name: string; devices: AppleDevice[]; playing: ApplePlaying | null }[]
+}
+
 /** The washer and dryer (`/api/laundry`). */
 export interface Laundry {
   as_of: string
