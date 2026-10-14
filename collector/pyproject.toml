@@ -33,6 +33,10 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 packages = ["app", "app.alerts", "app.news", "app.portfolio", "app.sources", "app.sources.widgets"]
 
+[tool.setuptools.package-data]
+# Signify's root certificates for the Hue Bridge (app/sources/hue.py).
+"app.sources" = ["*.pem"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"

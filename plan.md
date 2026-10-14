@@ -339,6 +339,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   for 4 m at Amazon.nl and GAMMA; Gledopto controllers plus any strip; Lidl Livarno when in
   stock) work with the Hue Bridge and this hub, but not in Apple Home or Hue Entertainment.
 - A Lights page in the hub with the same controls.
+  Decided 2026-10-14: a Lights page only (no Home card), under a new Home group in the menu; the
+  living room only; live from the bridge's event stream; the Christmas plugs as a later step
+  (none are paired on the bridge now). Mockup `docs/hub-lights-mockup.html`.
+  Built 2026-10-14 (collector): `hue` in config.yaml (the bridge at its reserved address
+  192.168.1.20, its id, the key from HUE_APPLICATION_KEY, the two groups by light name: Kitchen
+  spots = Keuken 1 to 3, Hue ambiance, 2200 to 6500 K; Ceiling lamps = Plafondlamp Bank and Tafel,
+  filament). The bridge's certificate must chain to Signify's roots (`hue_ca.pem`, from openHAB,
+  checked against the bridge) and name the bridge id. A full read every minute, the event stream
+  in between; `GET /api/lights`, `PUT /api/lights/{group}` (on, brightness 1 to 100, one of the
+  five whites) and `POST /api/lights/room` (all on or off), both same-origin writes that answer
+  with what the bridge then reports; only the configured lights are ever touched.
 - A new deliberate write (decided 2026-10-09): lights, plugs and scenes on the Hue Bridge.
 
 **M18. Music** (added 2026-10-09)

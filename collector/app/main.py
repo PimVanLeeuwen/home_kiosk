@@ -19,7 +19,7 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, HttpUrl
 
-from . import config, exposure_api, scheduler, settings_api
+from . import config, exposure_api, lights_api, scheduler, settings_api
 from .alerts import api as alerts_api
 from .alerts import bot as alert_bot
 from .alerts import core as alerts_core
@@ -38,6 +38,7 @@ from .sources import (
     exposure,
     feeds,
     github_mirror,
+    hue,
     laundry,
     media_overview,
     media_status,
@@ -99,11 +100,16 @@ async def lifespan(app: FastAPI):
 
     # Telegram commands: long polling in the background (off without a token).
     bot_task = asyncio.create_task(alert_bot.run(app.state.store, app.state.config))
+    # The Hue Bridge's event stream keeps the lights live between full reads.
+    tasks = [bot_task]
+    if hue.settings(app.state.config)["enabled"]:
+        tasks.append(asyncio.create_task(hue.listen(app.state.config, app.state.store)))
 
     try:
         yield
     finally:
-        bot_task.cancel()
+        for task in tasks:
+            task.cancel()
         app.state.scheduler.shutdown(wait=False)
 
 
@@ -114,6 +120,7 @@ app = FastAPI(title="Desk Dashboard Collector", version="0.1.0", lifespan=lifesp
 # endpoints; see security.py.
 app.include_router(settings_api.router)
 app.include_router(exposure_api.router)
+app.include_router(lights_api.router)
 app.include_router(alerts_api.router)
 app.include_router(news_api.router)
 app.include_router(portfolio_api.router)

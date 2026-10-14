@@ -32,6 +32,7 @@ from .sources import (
     ghostfolio,
     github,
     github_mirror,
+    hue,
     laundry,
     media_overview,
     media_status,
@@ -64,6 +65,7 @@ WEATHER_INTERVAL_SECONDS = 300  # Buienradar's rain forecast moves in 5-minute s
 EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
 OUTSIDE_INTERVAL_SECONDS = 300  # status pages; incidents move in minutes
 SITES_INTERVAL_SECONDS = 60  # Kuma beats once a minute; 100 kept, so no gaps
+LIGHTS_INTERVAL_SECONDS = 60  # two local calls; the event stream does the rest
 APPLE_INTERVAL_SECONDS = 60  # local unicast queries, a fraction of a second per device
 LAUNDRY_INTERVAL_SECONDS = 60  # one signed status call; the token is reused
 CALENDAR_INTERVAL_SECONDS = 300  # feeds at most every 15 min (agenda.FEED_EVERY)
@@ -192,6 +194,19 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         max_instances=1,
         coalesce=True,
     )
+
+    if hue.settings(cfg)["enabled"]:
+        # A full read; the event stream (hue.listen) keeps it live in between.
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=LIGHTS_INTERVAL_SECONDS,
+            args=[store, hue.CACHE_KEY, lambda: hue.collect(cfg)],
+            id="lights",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
 
     if apple.settings(cfg)["enabled"]:
         scheduler.add_job(
