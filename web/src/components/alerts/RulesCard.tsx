@@ -24,6 +24,7 @@ const FIELDS: Record<string, { field: NumberField; before: string; after: string
   storage_box: [{ field: 'threshold_pct', before: 'Hetzner box above', after: '%', min: 1, max: 100 }],
   smart: [],
   portfolio_move: [{ field: 'threshold_pct', before: 'Day change beyond ±', after: '%', min: 1, max: 100 }],
+  apple_offline: [{ field: 'offline_minutes', before: 'An Apple TV or HomePod offline for', after: 'min', min: 1, max: 1440 }],
   train: [{ field: 'late_minutes', before: 'The morning train late by', after: 'min, again at 10, 15, 20, 30, 45 and 60', min: 1, max: 60 }],
 }
 

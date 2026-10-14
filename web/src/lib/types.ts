@@ -757,6 +757,7 @@ export interface RuleSettings {
   restore_days?: number
   days?: number
   late_minutes?: number
+  offline_minutes?: number
 }
 
 export interface AlertRules {

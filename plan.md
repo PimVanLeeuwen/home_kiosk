@@ -549,6 +549,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Apple TV for video), the border routers joined as one Thread network with lines that stop at
   the orbs, an offline device dashed in amber; "N of M online", the Thread count, and a bar per
   room with what plays.
+  Built 2026-10-14 (alerts): an `apple_offline` rule warns in the NAS chat when an Apple TV or
+  HomePod has not answered for 10 minutes (editable in Alerts → Hub rules, the wording in
+  Settings → Messages), and says when it is back; a stale answer never resolves it.
 - **NAS, Backups, Alerts and the train**, redesigned again 2026-10-10 to be desk pieces:
   - NAS: an instrument-style arc gauge for the fullest volume (ticks, a glow, a red mark where
     it would alert), its size and runway below, then tiles for CPU and memory with live

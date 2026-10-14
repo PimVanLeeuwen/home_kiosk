@@ -183,6 +183,27 @@ describe('AlertsPage', () => {
     expect(within(rules).getByText(/skipped stops, a platform change and works on the route/)).toBeInTheDocument()
   })
 
+  it('shows the Apple devices rule with its minutes', async () => {
+    const fetchMock = setup({
+      '/api/alerts/rules': {
+        rules: { apple_offline: { enabled: true, offline_minutes: 10 } },
+        labels: { apple_offline: 'Apple devices' },
+      },
+      'PUT /api/alerts/rules': RULES,
+    })
+    renderRoute('/alerts')
+
+    const rules = await screen.findByRole('region', { name: 'Hub rules' })
+    const minutes = await within(rules).findByLabelText(/An Apple TV or HomePod offline for/)
+    expect(minutes).toHaveValue(10)
+    fireEvent.change(minutes, { target: { value: '30' } })
+    fireEvent.click(within(rules).getByRole('button', { name: 'Save rules' }))
+
+    await vi.waitFor(() =>
+      expect(sentBody(fetchMock, 'PUT', '/api/alerts/rules')).toEqual({ apple_offline: { enabled: true, offline_minutes: 30 } }),
+    )
+  })
+
   it('changes quiet hours and routing', async () => {
     const fetchMock = setup({ 'PUT /api/alerts/settings': SETTINGS })
     renderRoute('/alerts')

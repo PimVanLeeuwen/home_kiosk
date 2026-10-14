@@ -430,3 +430,63 @@ def test_rules_endpoints(rule_store):
         == 422
     )
     assert client.get("/api/alerts/incidents").json() == []
+
+
+# --- Apple devices -----------------------------------------------------------------------
+
+
+def apple_payload(offline_since=None, at=NOW, stale=False):
+    bath = {"id": "badkamer", "name": "Badkamer", "kind": "homepod_mini",
+            "online": offline_since is None, "offline_since": offline_since, "thread": True}
+    return {"as_of": at.isoformat(), "stale": stale, "rooms": [
+        {"id": "bathroom", "name": "Bathroom", "devices": [bath], "playing": None}]}
+
+
+def test_an_apple_device_offline_for_ten_minutes_is_a_warning():
+    settings = rules.DEFAULT_RULES["apple_offline"]
+    since = (NOW - timedelta(minutes=12)).isoformat()
+
+    (p,) = rules.apple_offline(apple_payload(since), settings, NOW)
+
+    assert (p.key, p.severity) == ("apple_offline:badkamer", "warning")
+    assert p.title == "Badkamer is offline"
+    assert rules.apple_offline(apple_payload((NOW - timedelta(minutes=9)).isoformat()),
+                               settings, NOW) == []
+    assert rules.apple_offline(apple_payload(), settings, NOW) == []
+    assert rules.apple_offline(None, settings, NOW) is None
+
+
+def test_an_apple_device_warns_once_and_resolves_when_back(rule_store):
+    rule_store.put_cache("apple", apple_payload((NOW - timedelta(minutes=10)).isoformat()))
+    assert run_check(rule_store) == [
+        "<b>WARNING</b> · <b>Badkamer is offline</b>\nNot answering in the Bathroom for 10 min."]
+    later = NOW + timedelta(minutes=5)
+    rule_store.put_cache("apple", apple_payload((NOW - timedelta(minutes=10)).isoformat(), later))
+    assert run_check(rule_store, later) == []
+
+    back = NOW + timedelta(minutes=20)
+    rule_store.put_cache("apple", apple_payload(at=back))
+    assert run_check(rule_store, back) == [
+        "<b>OK</b> · <b>Resolved: Badkamer is offline</b>\nafter 20 min"]
+
+
+def test_a_stale_apple_answer_never_resolves_the_warning(rule_store):
+    rule_store.put_cache("apple", apple_payload((NOW - timedelta(minutes=10)).isoformat()))
+    run_check(rule_store)
+
+    later = NOW + timedelta(minutes=5)
+    rule_store.put_cache("apple", apple_payload(at=later, stale=True))
+
+    assert run_check(rule_store, later) == []
+    assert "apple_offline:badkamer" in rules.open_incidents(rule_store)
+
+
+def test_the_apple_minutes_can_be_changed_in_settings(rule_store):
+    main.app.state.store = rule_store
+    client = TestClient(main.app, headers={"origin": "http://testserver"})
+
+    saved = client.put("/api/alerts/rules",
+                       json={"apple_offline": {"enabled": True, "offline_minutes": 30}})
+
+    assert saved.json()["rules"]["apple_offline"] == {"enabled": True, "offline_minutes": 30}
+    assert saved.json()["labels"]["apple_offline"] == "Apple devices"

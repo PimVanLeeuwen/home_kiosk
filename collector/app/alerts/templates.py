@@ -136,6 +136,15 @@ CATALOG: dict[str, Template] = {
         "rules", "warning", {"hours": ("The rule's limit", "48"),
                              "last": ("When it last worked", "Thu 08 Oct 04:21"),
                              "error": ("The last error, if any", "Home IP not found")}),
+    "apple_offline": _msg(
+        RULES, "Apple device offline",
+        "An Apple TV or HomePod has not answered for the set minutes.",
+        "<b>{level}</b> · <b>{device} is offline</b>\n"
+        "Not answering in the {room} for {minutes} min.",
+        "rules", "warning",
+        {"device": ("The Apple TV or HomePod", "Badkamer"),
+         "room": ("Its room", "Bathroom"),
+         "minutes": ("How long it has been quiet", "10")}),
     "outside_incident": _msg(
         RULES, "Outside service", "An outside service reports a problem on a part the house uses.",
         "<b>{level}</b> · <b>{service}: {what}</b>\n"

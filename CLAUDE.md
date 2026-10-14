@@ -138,6 +138,8 @@ python3 dashboard/serve.py
   browser offline, so unroute before testing offline behaviour.
 - Web tests run in UTC on CI: build expected clock times from local dates
   (`new Date(2026, 9, 6, 10, 2)`), never from `...Z` strings.
+- The collector image only builds for linux/amd64 (as CI does): pyatv's miniaudio has no Linux
+  arm64 wheel for Python 3.14, so on an Apple silicon Mac use `docker build --platform linux/amd64`.
 - GitHub's "Re-run jobs" repeats a run on its original commit; after fixing a workflow, start a
   new run (Run workflow) instead.
 - UGREEN's desktop app runs "Sync Space", which is Syncthing (`syncspace_pro`): it opens TCP

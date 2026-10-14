@@ -45,6 +45,7 @@ DEFAULT_RULES: dict[str, dict[str, Any]] = {
     "smart": {"enabled": True},
     "portfolio_move": {"enabled": False, "threshold_pct": 3},
     "train": {"enabled": True, "late_minutes": 3},
+    "apple_offline": {"enabled": True, "offline_minutes": 10},
 }
 
 RULE_LABELS = {
@@ -59,6 +60,7 @@ RULE_LABELS = {
     "smart": "Disk SMART",
     "portfolio_move": "Portfolio move",
     "train": "Your train",
+    "apple_offline": "Apple devices",
 }
 
 # Rules whose problems end on their own and need no "resolved" message. A
@@ -262,6 +264,29 @@ def outside_services(status: dict[str, Any] | None,
             "what": incident["title"] if incident else "a problem on the status page",
             "state": OUTSIDE_STATE.get(svc.get("state"), "Unknown"),
             "url": (incident or {}).get("url") or svc["url"]}))
+    return problems
+
+
+def apple_offline(payload: dict[str, Any] | None, settings: dict[str, Any],
+                  now: datetime) -> list[Problem] | None:
+    """An Apple TV or HomePod that has not answered for the set minutes. The
+    collector keeps when it went quiet, so a short Wi-Fi blip opens nothing."""
+    if payload is None:
+        return None
+    limit = timedelta(minutes=settings["offline_minutes"])
+    problems = []
+    for room in payload.get("rooms") or []:
+        for device in room.get("devices") or []:
+            since = device.get("offline_since")
+            if device.get("online") or not since:
+                continue
+            gone = now - datetime.fromisoformat(since)
+            if gone < limit:
+                continue
+            problems.append(Problem(
+                f"apple_offline:{device['id']}", "apple_offline", "warning", "apple_offline",
+                {"device": device["name"], "room": room["name"],
+                 "minutes": int(gone.total_seconds() // 60)}))
     return problems
 
 
@@ -602,6 +627,8 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
         "outside_services": outside_services(_fresh(store.get_cache("outside_services"), now),
                                              set(open_incidents(store))),
         "train": train(_fresh(store.get_cache("train"), now), settings["train"]),
+        "apple_offline": apple_offline(_fresh(store.get_cache("apple"), now),
+                                       settings["apple_offline"], now),
         "portfolio_move": portfolio_move(_fresh(store.get_cache("portfolio"), now),
                                          settings["portfolio_move"],
                                          core.local(now, cfg).date().isoformat()),
