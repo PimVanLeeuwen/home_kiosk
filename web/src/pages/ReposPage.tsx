@@ -2,6 +2,7 @@ import { Search } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
+import { CodeCard } from '../components/repos/CodeCard'
 import { RepoCard } from '../components/repos/RepoCard'
 import { ReposTiles } from '../components/repos/ReposTiles'
 import { TokenNote } from '../components/repos/TokenNote'
@@ -83,6 +84,8 @@ export function ReposPage() {
           </button>
         </div>
       )}
+
+      {data && <CodeCard data={data} />}
 
       {active && (
         <>

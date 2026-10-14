@@ -69,3 +69,34 @@ test('Repos says when the tab\'s GitHub token expires', async ({ page }) => {
 
   await expect(page.getByText(/GitHub token \(Mine and GEWIS\) expires .* \(in 10 days\)/)).toBeVisible()
 })
+
+test('Repos opens with the Code card: activity, builds and pull requests', async ({ page }) => {
+  const day = (offset: number) => {
+    const d = new Date()
+    d.setDate(d.getDate() - offset)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+  const minutesAgo = (n: number) => new Date(Date.now() - n * 60_000).toISOString()
+  await page.route('**/api/repos', (route) => route.fulfill({
+    json: {
+      ...REPOS,
+      activity: { login: 'PimVanLeeuwen', total: 9, error: null, days: [
+        { day: day(1), count: 6, level: 4 }, { day: day(0), count: 3, level: 2 }] },
+      groups: [
+        { ...REPOS.groups[0], own: true, repos: [repo('home_kiosk', {
+          ci: 'failing', branch: 'main', commit_message: 'fix: a thing', committed_at: minutesAgo(12), open_prs: 1,
+          pulls: [{ number: 41, title: 'Code card', url: 'https://github.com/p/41', draft: false, updated_at: minutesAgo(2), ci: 'running' }],
+        })] },
+        { ...REPOS.groups[1], own: false, repos: [repo('aurora', { full_name: 'GEWIS/aurora', committed_at: minutesAgo(1) })] },
+      ],
+    },
+  }))
+  await page.goto('/repos')
+
+  const card = page.getByRole('region', { name: 'Code' })
+  await expect(card.getByText('1 failing')).toBeVisible()
+  await expect(card.getByRole('img', { name: '9 contributions in 16 weeks' })).toBeVisible()
+  await expect(card.getByRole('link', { name: /home_kiosk main · fix: a thing Failed 12 min ago/ })).toBeVisible()
+  await expect(card.getByRole('link', { name: /home_kiosk #41 Code card Running/ })).toBeVisible()
+  await expect(card.getByText('aurora')).toHaveCount(0)
+})

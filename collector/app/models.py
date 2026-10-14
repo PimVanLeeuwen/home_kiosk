@@ -7,7 +7,7 @@ follow at the end.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, PrivateAttr, SerializerFunctionWrapHandler, model_serializer
@@ -426,6 +426,16 @@ class Release(BaseModel):
     url: str
 
 
+class PullRequest(BaseModel):
+    number: int
+    title: str
+    url: str
+    draft: bool
+    updated_at: datetime | None
+    # Combined check state of its latest commit.
+    ci: Literal["passing", "failing", "running", "none"]
+
+
 class Repo(BaseModel):
     name: str
     full_name: str
@@ -443,6 +453,11 @@ class Repo(BaseModel):
     # Combined check state of the default branch's latest commit.
     ci: Literal["passing", "failing", "running", "none"]
     release: Release | None
+    # The default branch and its latest commit, for the Code card.
+    branch: str | None = None
+    commit_message: str | None = None
+    committed_at: datetime | None = None
+    pulls: list[PullRequest] = []  # the five open pull requests updated last
 
 
 class RepoGroup(BaseModel):
@@ -451,6 +466,9 @@ class RepoGroup(BaseModel):
     repos: list[Repo]
     # Short and safe to show; the repos are then the last good list, if any.
     error: str | None = None
+    # False for an owner listed only for your contributions (GEWIS): its builds
+    # and pull requests are other people's, so the Code card leaves them out.
+    own: bool = True
 
 
 class GitHubToken(BaseModel):
@@ -461,9 +479,25 @@ class GitHubToken(BaseModel):
     checked: bool = False  # GitHub has answered a request with it
 
 
+class ContributionDay(BaseModel):
+    day: date
+    count: int
+    level: int  # 0 to 4, GitHub's quartiles
+
+
+class Activity(BaseModel):
+    """Your GitHub contribution calendar for the last 16 weeks, Monday first."""
+
+    login: str
+    total: int
+    days: list[ContributionDay]  # from a Monday up to today
+    error: str | None = None  # then the days are the last good ones
+
+
 class Repos(Envelope):
     groups: list[RepoGroup]
     tokens: list[GitHubToken] = []
+    activity: Activity | None = None
 
 
 # --- Home hub: Docker page ------------------------------------------------------

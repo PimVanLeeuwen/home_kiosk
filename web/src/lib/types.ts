@@ -386,14 +386,47 @@ export interface Repo {
   open_issues: number
   ci: 'passing' | 'failing' | 'running' | 'none'
   release: { tag: string; published_at: string | null; url: string } | null
+  /** The default branch and its latest commit (older answers lack them). */
+  branch?: string | null
+  commit_message?: string | null
+  committed_at?: string | null
+  /** The five open pull requests updated last. */
+  pulls?: PullRequest[]
+}
+
+export interface PullRequest {
+  number: number
+  title: string
+  url: string
+  draft: boolean
+  updated_at: string | null
+  ci: Repo['ci']
+}
+
+export interface ContributionDay {
+  day: string
+  count: number
+  /** 0 to 4, GitHub's quartiles. */
+  level: number
+}
+
+/** Your GitHub contribution calendar for the last 16 weeks, Monday first. */
+export interface Activity {
+  login: string
+  total: number
+  days: ContributionDay[]
+  /** Set when GitHub failed; the days are then the last good ones. */
+  error: string | null
 }
 
 export interface ReposResponse {
   as_of: string
   stale: boolean
-  groups: { login: string; label: string; repos: Repo[]; error: string | null }[]
+  /** `own` is false for an owner listed only for your contributions (GEWIS). */
+  groups: { login: string; label: string; repos: Repo[]; error: string | null; own?: boolean }[]
   /** One per configured token, by the owner labels it reads. */
   tokens?: GitHubToken[]
+  activity?: Activity | null
 }
 
 export interface GitHubToken {

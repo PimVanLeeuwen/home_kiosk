@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from datetime import UTC, date, datetime
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -208,3 +210,91 @@ def test_expiry_header_formats():
     assert github.parse_expiry("2026-11-21 13:05:00 +0100").isoformat() == (
         "2026-11-21T13:05:00+01:00")
     assert github.parse_expiry("next tuesday") is None
+
+
+# --- the Code card ---------------------------------------------------------------------
+
+NOW = datetime(2026, 10, 14, 16, 30, tzinfo=ZoneInfo("Europe/Amsterdam"))  # a Wednesday
+
+
+def test_the_default_branch_commit_and_open_pull_requests():
+    commit = {"messageHeadline": "fix: winter times", "committedDate": "2026-10-14T14:00:00Z",
+              "statusCheckRollup": {"state": "FAILURE"}}
+    pulls = {"nodes": [
+        {"number": 41, "title": "Code card", "url": "https://github.com/p/r/pull/41",
+         "isDraft": False, "updatedAt": "2026-10-14T14:20:00Z",
+         "commits": {"nodes": [{"commit": {"statusCheckRollup": {"state": "PENDING"}}}]}},
+        {"number": 40, "title": "Menu", "url": "https://github.com/p/r/pull/40", "isDraft": True,
+         "updatedAt": "2026-10-12T09:00:00Z", "commits": {"nodes": [{"commit": {}}]}},
+    ]}
+
+    repo = github.parse_repo(node("r", defaultBranchRef={"name": "main", "target": commit},
+                                  openPulls=pulls))
+
+    assert (repo.branch, repo.commit_message, repo.ci) == ("main", "fix: winter times", "failing")
+    assert repo.committed_at == datetime(2026, 10, 14, 14, 0, tzinfo=UTC)
+    assert [(p.number, p.draft, p.ci) for p in repo.pulls] == [
+        (41, False, "running"), (40, True, "none")]
+    assert github.parse_repo(node("bare")).pulls == []
+
+
+def test_an_owner_listed_for_contributions_is_not_own(store):
+    def handler(request):
+        if request.url.path == "/search/commits":
+            return httpx.Response(200, json={"items": []})
+        body = json.loads(request.content)
+        if "search" in body["query"]:
+            return httpx.Response(200, json={"data": {"search": {"nodes": []}}})
+        return httpx.Response(200, json=page([node("a")]))
+
+    result = run(store, handler, [{"login": "PimVanLeeuwen"},
+                                  {"login": "GEWIS", "only_contributed_by": "PimVanLeeuwen"}])
+
+    assert [g.own for g in result.groups] == [True, False]
+
+
+def calendar(days: dict[str, tuple[int, str]]) -> dict:
+    return {"data": {"user": {"contributionsCollection": {"contributionCalendar": {"weeks": [
+        {"contributionDays": [{"date": d, "contributionCount": c, "contributionLevel": lv}
+                              for d, (c, lv) in days.items()]}]}}}}}
+
+
+def activity_run(store, handler, now=NOW):
+    cfg = {"timezone": "Europe/Amsterdam",
+           "github": {"token": TOKEN, "owners": [], "contributions": "PimVanLeeuwen"}}
+    return asyncio.run(github.collect(cfg, store, transport=httpx.MockTransport(handler), now=now))
+
+
+def test_sixteen_weeks_of_contributions_from_a_monday_to_today(store):
+    asked = []
+
+    def handler(request):
+        asked.append(json.loads(request.content)["variables"])
+        # GitHub's weeks start on Sunday, so it also sends the Sunday before.
+        return httpx.Response(200, json=calendar({
+            "2026-06-28": (9, "FOURTH_QUARTILE"), "2026-06-29": (2, "FIRST_QUARTILE"),
+            "2026-10-13": (5, "THIRD_QUARTILE"), "2026-10-14": (0, "NONE")}))
+
+    activity = activity_run(store, handler).activity
+
+    assert github.activity_start(NOW.date()) == date(2026, 6, 29)
+    assert asked == [{"login": "PimVanLeeuwen", "from": "2026-06-29T00:00:00+02:00",
+                      "to": NOW.isoformat()}]
+    assert [(d.day.isoformat(), d.count, d.level) for d in activity.days] == [
+        ("2026-06-29", 2, 1), ("2026-10-13", 5, 3), ("2026-10-14", 0, 0)]
+    assert (activity.login, activity.total, activity.error) == ("PimVanLeeuwen", 7, None)
+
+
+def test_a_failed_calendar_keeps_the_last_days(store):
+    good = activity_run(store, lambda r: httpx.Response(200, json=calendar({
+        "2026-10-14": (4, "SECOND_QUARTILE")})))
+    store.put_cache("repos", good.model_dump(mode="json"))
+
+    failed = activity_run(store, lambda r: httpx.Response(502)).activity
+
+    assert (failed.total, failed.error) == (4, "GitHub answered 502")
+    assert [d.count for d in failed.days] == [4]
+
+
+def test_no_calendar_without_a_login(store):
+    assert run(store, lambda r: httpx.Response(200, json=page([])), []).activity is None

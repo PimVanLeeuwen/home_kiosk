@@ -434,6 +434,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   one to save it to Readeck, and its bookmark fills.
 - **Code** (House): 16 weeks of commit activity as a grid, then the CI state of the default
   branches and running pull requests from the Repos data (M9); a failing build stands out.
+  Built 2026-10-14 (collector and hub): the Repos query also reads each default branch's latest
+  commit (first line, time, checks) and the five open pull requests updated last with their
+  checks, and your GitHub contribution calendar for 16 weeks from a Monday (`github.contributions`
+  in config.yaml, the same numbers as the profile, private contributions counted). Decided
+  2026-10-14: the builds and pull requests of your and Hubble's repos only, not GEWIS. In the hub
+  a Code card at the top of the Repos page (mockup `docs/hub-code-mockup.html`).
 - **Media** (House; refocused 2026-10-12): not what is being watched (the owner knows), but what
   needs attention: what is downloading (poster, episode or movie, size, an animated progress bar,
   percentage and time left, from the Sonarr and Radarr queues and the download clients) and
@@ -486,6 +492,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   When all is well: the services as a ring around a glowing check. During an incident: a card with the service, its state
   and how long it has run, the incident's timeline (Investigating, Identified, Resolved) and a
   softly pulsing halo; the other services as a row of small icons below.
+  Built 2026-10-12 (collector and hub): `/api/outside-services`, an `outside_services` alert rule, the
+  Home tile and the Outside services section on Services (mockup `docs/hub-services-mockup.html`).
 - **Apple devices** (Home, moved from House 2026-10-10): the two Apple TVs and the HomePods,
   each with whether it is online, and what it plays. Design (2026-10-12): a lit floor plan;
   rooms are outlined zones, and a room where something plays glows in that colour; each device

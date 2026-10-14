@@ -11,12 +11,22 @@ read access only, and nothing is ever written to GitHub.
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import httpx
 
-from ..models import GitHubToken, Release, Repo, RepoGroup, Repos
+from ..models import (
+    Activity,
+    ContributionDay,
+    GitHubToken,
+    PullRequest,
+    Release,
+    Repo,
+    RepoGroup,
+    Repos,
+)
 from ..store import Store
 
 log = logging.getLogger(__name__)
@@ -24,6 +34,7 @@ log = logging.getLogger(__name__)
 API = "https://api.github.com"
 TIMEOUT_SECONDS = 20
 MAX_PAGES = 5  # 500 repos per owner is plenty
+ACTIVITY_WEEKS = 16
 
 REPO_FIELDS = """
 fragment RepoFields on Repository {
@@ -31,9 +42,18 @@ fragment RepoFields on Repository {
   primaryLanguage { name color }
   stargazerCount forkCount pushedAt
   pullRequests(states: OPEN) { totalCount }
+  openPulls: pullRequests(states: OPEN, first: 5, orderBy: {field: UPDATED_AT, direction: DESC}) {
+    nodes {
+      number title url isDraft updatedAt
+      commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
+    }
+  }
   issues(states: OPEN) { totalCount }
   latestRelease { tagName publishedAt url }
-  defaultBranchRef { target { ... on Commit { statusCheckRollup { state } } } }
+  defaultBranchRef {
+    name
+    target { ... on Commit { messageHeadline committedDate statusCheckRollup { state } } }
+  }
 }
 """
 
@@ -56,6 +76,21 @@ query($q: String!) {
   }
 }
 """
+
+CONTRIBUTIONS_QUERY = """
+query($login: String!, $from: DateTime!, $to: DateTime!) {
+  user(login: $login) {
+    contributionsCollection(from: $from, to: $to) {
+      contributionCalendar {
+        weeks { contributionDays { date contributionCount contributionLevel } }
+      }
+    }
+  }
+}
+"""
+
+LEVEL = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3,
+         "FOURTH_QUARTILE": 4}
 
 CI_STATE = {
     "SUCCESS": "passing",
@@ -83,11 +118,23 @@ def parse_expiry(value: str) -> datetime | None:
         return None
 
 
+def _ci(commit: dict[str, Any] | None) -> str:
+    rollup = ((commit or {}).get("statusCheckRollup") or {}).get("state")
+    return CI_STATE.get(rollup or "", "none")
+
+
+def parse_pull(node: dict[str, Any]) -> PullRequest:
+    last = ((node.get("commits") or {}).get("nodes") or [None])[-1] or {}
+    return PullRequest(number=node["number"], title=node["title"], url=node["url"],
+                       draft=bool(node.get("isDraft")), updated_at=node.get("updatedAt"),
+                       ci=_ci(last.get("commit")))
+
+
 def parse_repo(node: dict[str, Any]) -> Repo:
     language = node.get("primaryLanguage") or {}
     release = node.get("latestRelease")
-    target = (node.get("defaultBranchRef") or {}).get("target") or {}
-    rollup = (target.get("statusCheckRollup") or {}).get("state")
+    branch = node.get("defaultBranchRef") or {}
+    target = branch.get("target") or {}
     return Repo(
         name=node["name"],
         full_name=node["nameWithOwner"],
@@ -102,12 +149,16 @@ def parse_repo(node: dict[str, Any]) -> Repo:
         pushed_at=node.get("pushedAt"),
         open_prs=(node.get("pullRequests") or {}).get("totalCount", 0),
         open_issues=(node.get("issues") or {}).get("totalCount", 0),
-        ci=CI_STATE.get(rollup or "", "none"),
+        ci=_ci(target),
         release=Release(
             tag=release["tagName"], published_at=release.get("publishedAt"), url=release["url"]
         )
         if release
         else None,
+        branch=branch.get("name"),
+        commit_message=target.get("messageHeadline"),
+        committed_at=target.get("committedDate"),
+        pulls=[parse_pull(n) for n in (node.get("openPulls") or {}).get("nodes") or [] if n],
     )
 
 
@@ -205,6 +256,7 @@ async def _group(
     previous: dict[str, Any] | None,
 ) -> RepoGroup:
     login, label = owner["login"], owner.get("label", owner["login"])
+    own = not owner.get("only_contributed_by")
     token = (owner.get("token") or "").strip() or default_token
     try:
         if not token:
@@ -214,11 +266,47 @@ async def _group(
             repos = await named_repos(client, token, names)
         else:
             repos = await owner_repos(client, token, login)
-        return RepoGroup(login=login, label=label, repos=repos)
+        return RepoGroup(login=login, label=label, repos=repos, own=own)
     except Exception as exc:
         log.warning("github repos for %s failed: %s", login, type(exc).__name__)
         last = (previous or {}).get("repos", [])
-        return RepoGroup(login=login, label=label, repos=last, error=describe(exc))
+        return RepoGroup(login=login, label=label, repos=last, error=describe(exc), own=own)
+
+
+def activity_start(today: date) -> date:
+    """The Monday that opens the 16 weeks ending with this one."""
+    return today - timedelta(days=today.weekday(), weeks=ACTIVITY_WEEKS - 1)
+
+
+async def contributions(client: httpx.AsyncClient, token: str, login: str,
+                        now: datetime) -> Activity:
+    start = activity_start(now.date())
+    since = datetime.combine(start, datetime.min.time(), now.tzinfo)
+    data = await _graphql(client, token, CONTRIBUTIONS_QUERY, {
+        "login": login, "from": since.isoformat(), "to": now.isoformat()})
+    if data.get("user") is None:
+        raise GitHubError(f"No GitHub user called {login}")
+    weeks = data["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
+    days = [
+        ContributionDay(day=d["date"], count=d["contributionCount"],
+                        level=LEVEL.get(d["contributionLevel"], 0))
+        for week in weeks for d in week["contributionDays"]
+        if start <= date.fromisoformat(d["date"]) <= now.date()
+    ]
+    return Activity(login=login, total=sum(d.count for d in days), days=days)
+
+
+async def _activity(client: httpx.AsyncClient, login: str, token: str, now: datetime,
+                    previous: dict[str, Any] | None) -> Activity | None:
+    try:
+        if not token:
+            raise GitHubError("No GitHub token set (GITHUB_TOKEN)")
+        return await contributions(client, token, login, now)
+    except Exception as exc:
+        log.warning("github activity failed: %s", type(exc).__name__)
+        if previous and previous.get("login") == login:
+            return Activity.model_validate(previous | {"error": describe(exc)})
+        return Activity(login=login, total=0, days=[], error=describe(exc))
 
 
 def _tokens(
@@ -250,9 +338,11 @@ def _tokens(
 
 
 async def collect(
-    cfg: dict[str, Any], store: Store, transport: httpx.AsyncBaseTransport | None = None
+    cfg: dict[str, Any], store: Store, transport: httpx.AsyncBaseTransport | None = None,
+    now: datetime | None = None,
 ) -> Repos:
     """`transport` is for tests (httpx.MockTransport)."""
+    now = now or datetime.now(ZoneInfo(cfg.get("timezone", "UTC")))
     gh_cfg = cfg.get("github") or {}
     default_token = (gh_cfg.get("token") or "").strip()
     cached = store.get_cache("repos") or {}
@@ -275,5 +365,9 @@ async def collect(
             await _group(client, owner, default_token, previous.get(owner["login"]))
             for owner in gh_cfg.get("owners", [])
         ]
+        login = (gh_cfg.get("contributions") or "").strip()
+        activity = await _activity(client, login, default_token, now,
+                                   cached.get("activity")) if login else None
     tokens = _tokens(gh_cfg.get("owners", []), default_token, answered, cached.get("tokens", []))
-    return Repos(as_of=datetime.now(UTC), stale=False, groups=groups, tokens=tokens)
+    return Repos(as_of=datetime.now(UTC), stale=False, groups=groups, tokens=tokens,
+                 activity=activity)
