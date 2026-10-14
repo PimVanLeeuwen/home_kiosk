@@ -99,13 +99,13 @@ def time_left(value: str | None) -> int | None:
     return ((days * 24 + hours) * 60 + minutes) * 60 + seconds
 
 
-def small_poster(images: list[dict[str, Any]] | None) -> str | None:
-    """The app's own 250-pixel poster, e.g. /MediaCover/12/poster-250.jpg."""
-    for image in images or []:
-        if image.get("coverType") == "poster" and image.get("url"):
-            path = image["url"].split("?")[0]
-            return re.sub(r"/poster(\.\w+)$", r"/poster-250\1", path)
-    return None
+def small_poster(owner: Any) -> str | None:
+    """The app's own 250-pixel poster of a series or movie, through its API so
+    the API key counts (the /MediaCover/ files ask for a login from outside the
+    app's local network). The answers' `images[].url` are no help: outside the
+    series endpoint they are the remote originals, or left out. A series without
+    a poster is a 404 there and a letters tile in the hub."""
+    return f"/api/v3/mediacover/{owner}/poster-250.jpg" if owner is not None else None
 
 
 def _state(item: dict[str, Any]) -> State:
@@ -153,8 +153,8 @@ def parse_queue(source: str, body: dict[str, Any],
             detail = "Movie" + (f" · {parent['year']}" if parent.get("year") else "")
             kind = "movie"
         poster = None
-        path = small_poster(parent.get("images"))
-        if path and owner is not None:
+        path = small_poster(owner)
+        if path:
             poster = f"{source}/{owner}"
             posters[poster] = path
         found.append(MediaDownload(
@@ -180,8 +180,8 @@ def parse_episodes(records: list[dict[str, Any]], posters: dict[str, str]) -> li
     for record in records:
         series = record.get("series") or {}
         poster = None
-        path = small_poster(series.get("images"))
-        if path and record.get("seriesId") is not None:
+        path = small_poster(record.get("seriesId"))
+        if path:
             poster = f"sonarr/{record['seriesId']}"
             posters[poster] = path
         episodes.append(MediaEpisode(

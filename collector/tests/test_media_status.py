@@ -72,7 +72,7 @@ class Apps:
             self.seen.append((app, request.url.path, request.headers.get("X-Api-Key")))
             if app in self.down:
                 return httpx.Response(503)
-            if request.url.path.startswith("/MediaCover/"):
+            if request.url.path.startswith("/api/v3/mediacover/"):
                 return httpx.Response(200, content=b"jpeg", headers={"content-type": "image/jpeg"})
             answer = {("sonarr", "/api/v3/queue"): QUEUE_TV,
                       ("radarr", "/api/v3/queue"): QUEUE_MOVIES,
@@ -102,8 +102,8 @@ def test_time_left_and_small_posters():
     assert media_status.time_left("00:06:12") == 372
     assert media_status.time_left("1.02:00:00") == 26 * 3600
     assert media_status.time_left(None) is None
-    assert media_status.small_poster(images(12)) == "/MediaCover/12/poster-250.jpg"
-    assert media_status.small_poster([]) is None
+    assert media_status.small_poster(12) == "/api/v3/mediacover/12/poster-250.jpg"
+    assert media_status.small_poster(None) is None
 
 
 def test_downloads_with_progress_states_and_reasons(media_store):
@@ -134,15 +134,17 @@ def test_missing_newest_first_with_the_total_and_the_week_ahead(media_store):
         ("The Long Coast", "High Water"), ("Harbour Lights", "Spring Tide")]
 
 
-def test_posters_are_listed_by_key_only_for_items_that_have_one(media_store):
+def test_posters_are_listed_by_key_from_the_series_or_movie_id(media_store):
     media = collect(media_store, Apps())
 
     assert media.downloads[0].poster == "sonarr/12"
     assert media.downloads[3].poster == "radarr/5"
-    assert media.missing[0].poster is None  # The Long Coast has no poster yet
-    assert media.posters == {"sonarr/12": "/MediaCover/12/poster-250.jpg",
-                             "sonarr/30": "/MediaCover/30/poster-250.jpg",
-                             "radarr/5": "/MediaCover/5/poster-250.jpg"}
+    # No images in the answer: still its poster by id (a 404 there if it has none).
+    assert media.missing[0].poster == "sonarr/44"
+    assert media.posters == {"sonarr/12": "/api/v3/mediacover/12/poster-250.jpg",
+                             "sonarr/30": "/api/v3/mediacover/30/poster-250.jpg",
+                             "sonarr/44": "/api/v3/mediacover/44/poster-250.jpg",
+                             "radarr/5": "/api/v3/mediacover/5/poster-250.jpg"}
 
 
 def test_one_app_down_leaves_the_other(media_store):
@@ -173,7 +175,7 @@ def test_posters_only_for_the_current_answer(media_store):
                                                  transport=apps.transport()))
 
     assert (data, kind) == (b"jpeg", "image/jpeg")
-    assert apps.seen == [("sonarr", "/MediaCover/12/poster-250.jpg", "s-key")]
+    assert apps.seen == [("sonarr", "/api/v3/mediacover/12/poster-250.jpg", "s-key")]
     with pytest.raises(LookupError):
         asyncio.run(media_status.poster(CFG, media_store, "sonarr", 99, transport=apps.transport()))
     with pytest.raises(LookupError):
