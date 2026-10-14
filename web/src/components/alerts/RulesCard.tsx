@@ -24,12 +24,14 @@ const FIELDS: Record<string, { field: NumberField; before: string; after: string
   storage_box: [{ field: 'threshold_pct', before: 'Hetzner box above', after: '%', min: 1, max: 100 }],
   smart: [],
   portfolio_move: [{ field: 'threshold_pct', before: 'Day change beyond ±', after: '%', min: 1, max: 100 }],
+  train: [{ field: 'late_minutes', before: 'The morning train late by', after: 'min, again at 10, 15, 20, 30, 45 and 60', min: 1, max: 60 }],
 }
 
 const NOTES: Record<string, string> = {
   smart: 'Scrutiny reports a warning or failure',
   exposure: 'A public hostname leads to the house but is not on the allowlist',
   outside_services: 'GitHub, Cloudflare, Hetzner and the others report a problem on a part the house uses',
+  train: 'Also cancelled, skipped stops, a platform change and works on the route; the evening before, for tomorrow',
 }
 
 export function RulesCard() {

@@ -55,3 +55,37 @@ test('Home shows the weather with the rain in the next two hours', async ({ page
   await expect(ring).toContainText('13°')
   await expect(card.getByRole('link', { name: 'Buienradar' })).toBeVisible()
 })
+
+// A weekday morning: the train card sits at the top of Home until the train leaves.
+const MORNING = new Date(2026, 9, 14, 6, 42)
+const at = (h: number, m: number) => new Date(2026, 9, 14, h, m).toISOString()
+const stop = (name: string, h: number, m: number, track: string) => ({ name, planned: at(h, m), actual: at(h, m), track, cancelled: false })
+const TRAIN = {
+  as_of: MORNING.toISOString(), stale: false, date: '2026-10-14', route: 'Leiden Centraal to Rotterdam Centraal',
+  departure: '07:16', mode: 'morning', watching: true, departed: false, next_direct: null,
+  disruptions: [{ id: 'w1', kind: 'MAINTENANCE', title: 'Utrecht - Amsterdam.', text: 'Minder treinen.', until: null }],
+  train: {
+    name: 'IC 3522', status: 'on_time', planned_departure: at(7, 16), actual_departure: at(7, 16), delay_minutes: 0,
+    planned_track: '6', actual_track: '4',
+    stops: [stop('Leiden Centraal', 7, 16, '4'), stop("Den Haag HS", 7, 39, '3'), stop('Delft', 8, 11, '7'), stop('Rotterdam Centraal', 8, 28, '2')],
+  },
+}
+
+test('Home shows the morning train at the top until it leaves', async ({ page }) => {
+  await page.clock.install({ time: MORNING })
+  await page.route('**/api/train', (route) => route.fulfill({ json: TRAIN }))
+  await page.goto('/')
+
+  const card = page.getByRole('region', { name: /^Your train/ })
+  await expect(card).toContainText('On time')
+  await expect(card).toContainText('Leaves in 34 min from platform')
+  await expect(card.getByRole('img', { name: '34 min to go' })).toBeVisible()
+  await expect(card.getByRole('list', { name: 'Stops' }).getByRole('listitem')).toHaveCount(4)
+  await expect(card.getByRole('note')).toContainText('Utrecht - Amsterdam.')
+
+  await page.unroute('**/api/train')
+  await page.route('**/api/train', (route) => route.fulfill({ json: { ...TRAIN, watching: false, departed: true } }))
+  await page.reload()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.getByRole('region', { name: /^Your train/ })).toHaveCount(0)
+})

@@ -45,6 +45,56 @@ export interface Hosts {
   } | null
 }
 
+export interface TrainStop {
+  name: string
+  planned: string
+  actual: string | null
+  /** The actual platform, else the planned one. */
+  track: string | null
+  cancelled: boolean
+}
+
+export interface TrainRun {
+  /** "IC 3522". */
+  name: string
+  /** late: one minute or more behind; not_found: NS's planner no longer lists it. */
+  status: 'on_time' | 'late' | 'cancelled' | 'not_found'
+  planned_departure: string
+  actual_departure: string | null
+  delay_minutes: number
+  planned_track: string | null
+  actual_track: string | null
+  stops: TrainStop[]
+}
+
+export interface TrainDisruption {
+  id: string
+  kind: string
+  /** NS's own words, e.g. "Utrecht - Amsterdam." */
+  title: string
+  text: string
+  until: string | null
+}
+
+/** The weekday morning train (`/api/train`). */
+export interface Train {
+  as_of: string
+  stale: boolean
+  /** The local date of the train, YYYY-MM-DD. */
+  date: string
+  route: string
+  /** "07:16", even when NS no longer lists the train. */
+  departure: string
+  /** morning: that day's train until it leaves; evening: tomorrow's, the evening before. */
+  mode: 'morning' | 'evening' | 'idle'
+  /** Show the card: in the morning until it leaves, in the evening only with a problem. */
+  watching: boolean
+  departed: boolean
+  train: TrainRun | null
+  next_direct: TrainRun | null
+  disruptions: TrainDisruption[]
+}
+
 /** One device on the tailnet, from tailscaled's status (`/api/tailnet`). */
 export interface TailnetDevice {
   name: string
@@ -468,6 +518,7 @@ export interface RuleSettings {
   hours?: number
   restore_days?: number
   days?: number
+  late_minutes?: number
 }
 
 export interface AlertRules {

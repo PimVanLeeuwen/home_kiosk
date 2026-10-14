@@ -169,6 +169,20 @@ describe('AlertsPage', () => {
     expect(await within(rules).findByText('Rules saved')).toBeInTheDocument()
   })
 
+  it('shows the train rule with its minutes and what else it reports', async () => {
+    setup({
+      '/api/alerts/rules': {
+        rules: { train: { enabled: true, late_minutes: 3 } },
+        labels: { train: 'Your train' },
+      },
+    })
+    renderRoute('/alerts')
+
+    const rules = await screen.findByRole('region', { name: 'Hub rules' })
+    expect(await within(rules).findByLabelText(/The morning train late by/)).toHaveValue(3)
+    expect(within(rules).getByText(/skipped stops, a platform change and works on the route/)).toBeInTheDocument()
+  })
+
   it('changes quiet hours and routing', async () => {
     const fetchMock = setup({ 'PUT /api/alerts/settings': SETTINGS })
     renderRoute('/alerts')

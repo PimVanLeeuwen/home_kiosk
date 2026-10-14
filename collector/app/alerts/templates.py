@@ -149,11 +149,11 @@ CATALOG: dict[str, Template] = {
         TRAIN, "Train late",
         "The morning train is late (from the set minutes, again when it gets worse).",
         "<b>{level}</b> · <b>The {time} is {delay} min late</b>\n"
-        "{name} now leaves at {new_time} from track {track}.",
+        "{name} now leaves at {new_time} from platform {track}.",
         "train", "warning",
         {"time": ("Its planned departure", "07:16"), "name": ("The train", "IC 3522"),
          "delay": ("Minutes late", 6), "new_time": ("Its expected departure", "07:22"),
-         "track": ("The track", "6")}),
+         "track": ("The platform", "6")}),
     "train_cancelled": _msg(
         TRAIN, "Train cancelled", "The morning train does not run.",
         "<b>{level}</b> · <b>{day}: the {time} does not run</b>\n{name} is cancelled. {next}",
@@ -161,7 +161,7 @@ CATALOG: dict[str, Template] = {
         {"day": ("Today, or Tomorrow the evening before", "Tomorrow"),
          "time": ("Its planned departure", "07:16"), "name": ("The train", "IC 3522"),
          "next": ("The next direct train, or that there is none",
-                  "Next direct train: 07:46 from track 6, arrives 08:58.")}),
+                  "Next direct train: 07:46 from platform 6, arrives 08:58.")}),
     "train_missing": _msg(
         TRAIN, "Train not in the planner", "NS's planner no longer lists the morning train.",
         "<b>{level}</b> · <b>{day}: the {time} is not in NS's planner</b>\n"
@@ -170,13 +170,13 @@ CATALOG: dict[str, Template] = {
         {"day": ("Today, or Tomorrow the evening before", "Tomorrow"),
          "time": ("Its planned departure", "07:16"),
          "next": ("The next direct train, or that there is none",
-                  "Next direct train: 07:46 from track 6, arrives 08:58.")}),
+                  "Next direct train: 07:46 from platform 6, arrives 08:58.")}),
     "train_track": _msg(
-        TRAIN, "Track change", "The morning train leaves from another track.",
-        "<b>{level}</b> · <b>The {time} leaves from track {new}</b>\nNot track {old}.",
+        TRAIN, "Platform change", "The morning train leaves from another platform.",
+        "<b>{level}</b> · <b>The {time} leaves from platform {new}</b>\nNot platform {old}.",
         "train", "warning",
-        {"time": ("Its planned departure", "07:16"), "old": ("The planned track", "6"),
-         "new": ("The new track", "4")}),
+        {"time": ("Its planned departure", "07:16"), "old": ("The planned platform", "6"),
+         "new": ("The new platform", "4")}),
     "train_stops": _msg(
         TRAIN, "Stops cancelled", "The morning train skips stops on the way.",
         "<b>{level}</b> · <b>{day}: the {time} does not stop at {stops}</b>",

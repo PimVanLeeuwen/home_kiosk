@@ -275,7 +275,7 @@ def _next_text(run: dict[str, Any] | None) -> str:
     stops = run.get("stops") or []
     arrives = stops[-1].get("actual") or stops[-1].get("planned") if stops else None
     track = run.get("actual_track") or run.get("planned_track") or "?"
-    return (f"Next direct train: {_hhmm(run['planned_departure'])} from track {track}"
+    return (f"Next direct train: {_hhmm(run['planned_departure'])} from platform {track}"
             + (f", arrives {_hhmm(arrives)}." if arrives else "."))
 
 

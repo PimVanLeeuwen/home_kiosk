@@ -111,7 +111,8 @@ python3 dashboard/serve.py
   and ends. plan.md M20.
 - 2026-10-13: every desk panel card also gets a view in the hub (the hub mirrors the panels);
   the morning train shows as a card on Home on weekdays from 06:00 until it has left, and is
-  watched every weekday with no pause switch. plan.md M20.
+  watched every weekday with no pause switch; it is also checked the evening before each weekday
+  at 20:00 and 22:00, and Home shows it then only when tomorrow's train has a problem. plan.md M20.
 
 ## Gotchas
 

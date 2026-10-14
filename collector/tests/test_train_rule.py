@@ -62,15 +62,15 @@ def test_late_from_three_minutes_and_again_when_clearly_worse():
 
     assert [p.key for p in six] == ["train:2026-10-14:late:3"]
     assert titles(six) == ["The 07:16 is 6 min late"]
-    assert six[0].body == "IC 3522 now leaves at 07:22 from track 6."
+    assert six[0].body == "IC 3522 now leaves at 07:22 from platform 6."
     assert [p.key for p in twelve] == ["train:2026-10-14:late:10"]
 
 
 def test_a_track_change():
     problems = rules.train(payload(train=run(actual_track="4")), SETTINGS)
 
-    assert titles(problems) == ["The 07:16 leaves from track 4"]
-    assert problems[0].body == "Not track 6."
+    assert titles(problems) == ["The 07:16 leaves from platform 4"]
+    assert problems[0].body == "Not platform 6."
 
 
 def test_cancelled_names_the_next_direct_train():
@@ -81,7 +81,7 @@ def test_cancelled_names_the_next_direct_train():
 
     assert titles(problems) == ["Today: the 07:16 does not run"]
     assert problems[0].body == ("IC 3522 is cancelled. "
-                                "Next direct train: 07:46 from track 6, arrives 08:58.")
+                                "Next direct train: 07:46 from platform 6, arrives 08:58.")
 
 
 def test_the_evening_before_says_tomorrow_and_ignores_delays_and_tracks():

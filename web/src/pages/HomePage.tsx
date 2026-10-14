@@ -5,6 +5,7 @@ import { NewsCard } from '../components/home/NewsCard'
 import { PortfolioCard } from '../components/home/PortfolioCard'
 import { ServicesCard } from '../components/home/ServicesCard'
 import { StatusStrip } from '../components/home/StatusStrip'
+import { TrainCard } from '../components/home/TrainCard'
 import { WeatherCard } from '../components/home/WeatherCard'
 import { OutsideServicesCard } from '../components/outside/OutsideServicesCard'
 import { PageHeader } from '../components/PageHeader'
@@ -42,6 +43,7 @@ export function HomePage() {
       <div className="relative">
         <PageHeader title={greeting(now.getHours())} subtitle={`${dateLine.format(now)} · ${summary}`} documentTitle="Home" />
         <StatusStrip nas={nas.data} attention={attention} />
+        <TrainCard />
         <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
           <PortfolioCard />
           <NasCard nas={nas.data} error={nas.error} />
