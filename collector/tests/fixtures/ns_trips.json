@@ -1,0 +1,500 @@
+{
+ "trips": [
+  {
+   "status": "NORMAL",
+   "transfers": 1,
+   "legs": [
+    {
+     "name": "IC 2718",
+     "cancelled": false,
+     "origin": {
+      "name": "Leiden Centraal",
+      "plannedDateTime": "2026-10-14T06:36:00+0200",
+      "actualDateTime": "2026-10-14T06:36:00+0200",
+      "plannedTrack": "4",
+      "actualTrack": "4",
+      "uicCode": "8400390"
+     },
+     "destination": {
+      "name": "Delft",
+      "plannedDateTime": "2026-10-14T07:27:00+0200",
+      "actualDateTime": "2026-10-14T07:27:00+0200",
+      "plannedTrack": "7",
+      "actualTrack": "7",
+      "uicCode": "8400170"
+     },
+     "stops": [
+      {
+       "name": "Leiden Centraal",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T06:36:00+0200",
+       "actualDepartureDateTime": "2026-10-14T06:36:00+0200",
+       "plannedDepartureTrack": "4",
+       "actualDepartureTrack": "4",
+       "plannedArrivalTrack": "4",
+       "actualArrivalTrack": "4",
+       "uicCode": "8400390"
+      },
+      {
+       "name": "Den Haag HS",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T07:00:00+0200",
+       "actualDepartureDateTime": "2026-10-14T07:00:00+0200",
+       "plannedArrivalDateTime": "2026-10-14T06:56:00+0200",
+       "actualArrivalDateTime": "2026-10-14T06:56:00+0200",
+       "plannedDepartureTrack": "3",
+       "actualDepartureTrack": "3",
+       "plannedArrivalTrack": "3",
+       "actualArrivalTrack": "3",
+       "uicCode": "8400280"
+      },
+      {
+       "name": "Delft",
+       "passing": false,
+       "cancelled": false,
+       "plannedArrivalDateTime": "2026-10-14T07:27:00+0200",
+       "actualArrivalDateTime": "2026-10-14T07:27:00+0200",
+       "plannedDepartureTrack": "7",
+       "actualDepartureTrack": "7",
+       "plannedArrivalTrack": "7",
+       "actualArrivalTrack": "7",
+       "uicCode": "8400170"
+      }
+     ]
+    },
+    {
+     "name": "IC 3218",
+     "cancelled": false,
+     "origin": {
+      "name": "Delft",
+      "plannedDateTime": "2026-10-14T07:31:00+0200",
+      "actualDateTime": "2026-10-14T07:31:00+0200",
+      "plannedTrack": "5",
+      "actualTrack": "5",
+      "uicCode": "8400170"
+     },
+     "destination": {
+      "name": "Rotterdam Centraal",
+      "plannedDateTime": "2026-10-14T07:48:00+0200",
+      "actualDateTime": "2026-10-14T07:48:00+0200",
+      "plannedTrack": "2",
+      "actualTrack": "2",
+      "uicCode": "8400530"
+     },
+     "stops": [
+      {
+       "name": "Delft",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T07:31:00+0200",
+       "actualDepartureDateTime": "2026-10-14T07:31:00+0200",
+       "plannedDepartureTrack": "5",
+       "actualDepartureTrack": "5",
+       "plannedArrivalTrack": "5",
+       "actualArrivalTrack": "5",
+       "uicCode": "8400170"
+      },
+      {
+       "name": "Rotterdam Centraal",
+       "passing": false,
+       "cancelled": false,
+       "plannedArrivalDateTime": "2026-10-14T07:48:00+0200",
+       "actualArrivalDateTime": "2026-10-14T07:48:00+0200",
+       "plannedDepartureTrack": "2",
+       "actualDepartureTrack": "2",
+       "plannedArrivalTrack": "2",
+       "actualArrivalTrack": "2",
+       "uicCode": "8400530"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "status": "NORMAL",
+   "transfers": 0,
+   "legs": [
+    {
+     "name": "IC 3520",
+     "cancelled": false,
+     "origin": {
+      "name": "Leiden Centraal",
+      "plannedDateTime": "2026-10-14T06:46:00+0200",
+      "actualDateTime": "2026-10-14T06:46:00+0200",
+      "plannedTrack": "6",
+      "actualTrack": "6",
+      "uicCode": "8400390"
+     },
+     "destination": {
+      "name": "Rotterdam Centraal",
+      "plannedDateTime": "2026-10-14T07:58:00+0200",
+      "actualDateTime": "2026-10-14T07:58:00+0200",
+      "plannedTrack": "2",
+      "actualTrack": "2",
+      "uicCode": "8400530"
+     },
+     "stops": [
+      {
+       "name": "Leiden Centraal",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T06:46:00+0200",
+       "actualDepartureDateTime": "2026-10-14T06:46:00+0200",
+       "plannedDepartureTrack": "6",
+       "actualDepartureTrack": "6",
+       "plannedArrivalTrack": "6",
+       "actualArrivalTrack": "6",
+       "uicCode": "8400390"
+      },
+      {
+       "name": "Den Haag HS",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T07:09:00+0200",
+       "actualDepartureDateTime": "2026-10-14T07:09:00+0200",
+       "plannedArrivalDateTime": "2026-10-14T07:06:00+0200",
+       "actualArrivalDateTime": "2026-10-14T07:06:00+0200",
+       "plannedDepartureTrack": "3",
+       "actualDepartureTrack": "3",
+       "plannedArrivalTrack": "3",
+       "actualArrivalTrack": "3",
+       "uicCode": "8400280"
+      },
+      {
+       "name": "Delft",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T07:41:00+0200",
+       "actualDepartureDateTime": "2026-10-14T07:41:00+0200",
+       "plannedArrivalDateTime": "2026-10-14T07:35:00+0200",
+       "actualArrivalDateTime": "2026-10-14T07:35:00+0200",
+       "plannedDepartureTrack": "7",
+       "actualDepartureTrack": "7",
+       "plannedArrivalTrack": "7",
+       "actualArrivalTrack": "7",
+       "uicCode": "8400170"
+      },
+      {
+       "name": "Rotterdam Centraal",
+       "passing": false,
+       "cancelled": false,
+       "plannedArrivalDateTime": "2026-10-14T07:58:00+0200",
+       "actualArrivalDateTime": "2026-10-14T07:58:00+0200",
+       "plannedDepartureTrack": "2",
+       "actualDepartureTrack": "2",
+       "plannedArrivalTrack": "2",
+       "actualArrivalTrack": "2",
+       "uicCode": "8400530"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "status": "NORMAL",
+   "transfers": 1,
+   "legs": [
+    {
+     "name": "IC 3920",
+     "cancelled": false,
+     "origin": {
+      "name": "Leiden Centraal",
+      "plannedDateTime": "2026-10-14T06:56:00+0200",
+      "actualDateTime": "2026-10-14T06:56:00+0200",
+      "plannedTrack": "5",
+      "actualTrack": "5",
+      "uicCode": "8400390"
+     },
+     "destination": {
+      "name": "Delft",
+      "plannedDateTime": "2026-10-14T07:46:00+0200",
+      "actualDateTime": "2026-10-14T07:46:00+0200",
+      "plannedTrack": "7",
+      "actualTrack": "7",
+      "uicCode": "8400170"
+     },
+     "stops": [
+      {
+       "name": "Leiden Centraal",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T06:56:00+0200",
+       "actualDepartureDateTime": "2026-10-14T06:56:00+0200",
+       "plannedDepartureTrack": "5",
+       "actualDepartureTrack": "5",
+       "plannedArrivalTrack": "5",
+       "actualArrivalTrack": "5",
+       "uicCode": "8400390"
+      },
+      {
+       "name": "Den Haag HS",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T07:20:00+0200",
+       "actualDepartureDateTime": "2026-10-14T07:20:00+0200",
+       "plannedArrivalDateTime": "2026-10-14T07:16:00+0200",
+       "actualArrivalDateTime": "2026-10-14T07:16:00+0200",
+       "plannedDepartureTrack": "3",
+       "actualDepartureTrack": "3",
+       "plannedArrivalTrack": "3",
+       "actualArrivalTrack": "3",
+       "uicCode": "8400280"
+      },
+      {
+       "name": "Delft",
+       "passing": false,
+       "cancelled": false,
+       "plannedArrivalDateTime": "2026-10-14T07:46:00+0200",
+       "actualArrivalDateTime": "2026-10-14T07:46:00+0200",
+       "plannedDepartureTrack": "7",
+       "actualDepartureTrack": "7",
+       "plannedArrivalTrack": "7",
+       "actualArrivalTrack": "7",
+       "uicCode": "8400170"
+      }
+     ]
+    },
+    {
+     "name": "IC 3120",
+     "cancelled": false,
+     "origin": {
+      "name": "Delft",
+      "plannedDateTime": "2026-10-14T07:51:00+0200",
+      "actualDateTime": "2026-10-14T07:51:00+0200",
+      "plannedTrack": "5",
+      "actualTrack": "5",
+      "uicCode": "8400170"
+     },
+     "destination": {
+      "name": "Rotterdam Centraal",
+      "plannedDateTime": "2026-10-14T08:08:00+0200",
+      "actualDateTime": "2026-10-14T08:08:00+0200",
+      "plannedTrack": "2",
+      "actualTrack": "2",
+      "uicCode": "8400530"
+     },
+     "stops": [
+      {
+       "name": "Delft",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T07:51:00+0200",
+       "actualDepartureDateTime": "2026-10-14T07:51:00+0200",
+       "plannedDepartureTrack": "5",
+       "actualDepartureTrack": "5",
+       "plannedArrivalTrack": "5",
+       "actualArrivalTrack": "5",
+       "uicCode": "8400170"
+      },
+      {
+       "name": "Rotterdam Centraal",
+       "passing": false,
+       "cancelled": false,
+       "plannedArrivalDateTime": "2026-10-14T08:08:00+0200",
+       "actualArrivalDateTime": "2026-10-14T08:08:00+0200",
+       "plannedDepartureTrack": "2",
+       "actualDepartureTrack": "2",
+       "plannedArrivalTrack": "2",
+       "actualArrivalTrack": "2",
+       "uicCode": "8400530"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "status": "NORMAL",
+   "transfers": 1,
+   "legs": [
+    {
+     "name": "IC 2720",
+     "cancelled": false,
+     "origin": {
+      "name": "Leiden Centraal",
+      "plannedDateTime": "2026-10-14T07:06:00+0200",
+      "actualDateTime": "2026-10-14T07:06:00+0200",
+      "plannedTrack": "4",
+      "actualTrack": "4",
+      "uicCode": "8400390"
+     },
+     "destination": {
+      "name": "Delft",
+      "plannedDateTime": "2026-10-14T07:57:00+0200",
+      "actualDateTime": "2026-10-14T07:57:00+0200",
+      "plannedTrack": "7",
+      "actualTrack": "7",
+      "uicCode": "8400170"
+     },
+     "stops": [
+      {
+       "name": "Leiden Centraal",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T07:06:00+0200",
+       "actualDepartureDateTime": "2026-10-14T07:06:00+0200",
+       "plannedDepartureTrack": "4",
+       "actualDepartureTrack": "4",
+       "plannedArrivalTrack": "4",
+       "actualArrivalTrack": "4",
+       "uicCode": "8400390"
+      },
+      {
+       "name": "Den Haag HS",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T07:30:00+0200",
+       "actualDepartureDateTime": "2026-10-14T07:30:00+0200",
+       "plannedArrivalDateTime": "2026-10-14T07:26:00+0200",
+       "actualArrivalDateTime": "2026-10-14T07:26:00+0200",
+       "plannedDepartureTrack": "3",
+       "actualDepartureTrack": "3",
+       "plannedArrivalTrack": "3",
+       "actualArrivalTrack": "3",
+       "uicCode": "8400280"
+      },
+      {
+       "name": "Delft",
+       "passing": false,
+       "cancelled": false,
+       "plannedArrivalDateTime": "2026-10-14T07:57:00+0200",
+       "actualArrivalDateTime": "2026-10-14T07:57:00+0200",
+       "plannedDepartureTrack": "7",
+       "actualDepartureTrack": "7",
+       "plannedArrivalTrack": "7",
+       "actualArrivalTrack": "7",
+       "uicCode": "8400170"
+      }
+     ]
+    },
+    {
+     "name": "IC 3220",
+     "cancelled": false,
+     "origin": {
+      "name": "Delft",
+      "plannedDateTime": "2026-10-14T08:01:00+0200",
+      "actualDateTime": "2026-10-14T08:01:00+0200",
+      "plannedTrack": "5",
+      "actualTrack": "5",
+      "uicCode": "8400170"
+     },
+     "destination": {
+      "name": "Rotterdam Centraal",
+      "plannedDateTime": "2026-10-14T08:18:00+0200",
+      "actualDateTime": "2026-10-14T08:18:00+0200",
+      "plannedTrack": "2",
+      "actualTrack": "2",
+      "uicCode": "8400530"
+     },
+     "stops": [
+      {
+       "name": "Delft",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T08:01:00+0200",
+       "actualDepartureDateTime": "2026-10-14T08:01:00+0200",
+       "plannedDepartureTrack": "5",
+       "actualDepartureTrack": "5",
+       "plannedArrivalTrack": "5",
+       "actualArrivalTrack": "5",
+       "uicCode": "8400170"
+      },
+      {
+       "name": "Rotterdam Centraal",
+       "passing": false,
+       "cancelled": false,
+       "plannedArrivalDateTime": "2026-10-14T08:18:00+0200",
+       "actualArrivalDateTime": "2026-10-14T08:18:00+0200",
+       "plannedDepartureTrack": "2",
+       "actualDepartureTrack": "2",
+       "plannedArrivalTrack": "2",
+       "actualArrivalTrack": "2",
+       "uicCode": "8400530"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "status": "NORMAL",
+   "transfers": 0,
+   "legs": [
+    {
+     "name": "IC 3522",
+     "cancelled": false,
+     "origin": {
+      "name": "Leiden Centraal",
+      "plannedDateTime": "2026-10-14T07:16:00+0200",
+      "actualDateTime": "2026-10-14T07:16:00+0200",
+      "plannedTrack": "6",
+      "actualTrack": "6",
+      "uicCode": "8400390"
+     },
+     "destination": {
+      "name": "Rotterdam Centraal",
+      "plannedDateTime": "2026-10-14T08:28:00+0200",
+      "actualDateTime": "2026-10-14T08:28:00+0200",
+      "plannedTrack": "2",
+      "actualTrack": "2",
+      "uicCode": "8400530"
+     },
+     "stops": [
+      {
+       "name": "Leiden Centraal",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T07:16:00+0200",
+       "actualDepartureDateTime": "2026-10-14T07:16:00+0200",
+       "plannedDepartureTrack": "6",
+       "actualDepartureTrack": "6",
+       "plannedArrivalTrack": "6",
+       "actualArrivalTrack": "6",
+       "uicCode": "8400390"
+      },
+      {
+       "name": "Den Haag HS",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T07:39:00+0200",
+       "actualDepartureDateTime": "2026-10-14T07:39:00+0200",
+       "plannedArrivalDateTime": "2026-10-14T07:36:00+0200",
+       "actualArrivalDateTime": "2026-10-14T07:36:00+0200",
+       "plannedDepartureTrack": "3",
+       "actualDepartureTrack": "3",
+       "plannedArrivalTrack": "3",
+       "actualArrivalTrack": "3",
+       "uicCode": "8400280"
+      },
+      {
+       "name": "Delft",
+       "passing": false,
+       "cancelled": false,
+       "plannedDepartureDateTime": "2026-10-14T08:11:00+0200",
+       "actualDepartureDateTime": "2026-10-14T08:11:00+0200",
+       "plannedArrivalDateTime": "2026-10-14T08:05:00+0200",
+       "actualArrivalDateTime": "2026-10-14T08:05:00+0200",
+       "plannedDepartureTrack": "7",
+       "actualDepartureTrack": "7",
+       "plannedArrivalTrack": "7",
+       "actualArrivalTrack": "7",
+       "uicCode": "8400170"
+      },
+      {
+       "name": "Rotterdam Centraal",
+       "passing": false,
+       "cancelled": false,
+       "plannedArrivalDateTime": "2026-10-14T08:28:00+0200",
+       "actualArrivalDateTime": "2026-10-14T08:28:00+0200",
+       "plannedDepartureTrack": "2",
+       "actualDepartureTrack": "2",
+       "plannedArrivalTrack": "2",
+       "actualArrivalTrack": "2",
+       "uicCode": "8400530"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

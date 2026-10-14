@@ -375,6 +375,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   The card must not read as a clock: the time sits in a labelled "Departure" box, the status
   (On time, 6 min late, Cancelled) is the large line, then "Leaves in 34 min from platform 3",
   or the next direct train when it is cancelled.
+  Decided 2026-10-13: also checked the evening before each weekday (20:00 and 22:00), so a
+  cancellation is known in time to set an earlier alarm; Telegram only for problems, and a
+  problem sent in the evening is not sent again in the morning. In the hub: a card on Home on
+  weekday mornings until the train has left, and in the evening only when tomorrow's train has a
+  problem (mockup `docs/hub-train-mockup.html`). Built 2026-10-14 (collector): `/api/train` from
+  NS's trips, journey (the stations it passes, for matching disruptions: a disruption counts when
+  its stretch covers two or more of them) and disruptions; a `train` alert rule (late from 3 min
+  and again at 10, 15, 20, 30, 45, 60; cancelled with the next direct train; skipped stops; a
+  track change; works or a disruption on the route), routed as its own category "Your train".
 - **Clock and Your day** (Now, redesigned 2026-10-12): the clock sits inside a ring of the next
   two hours of Buienradar rain in 5-minute segments, starting at the top at now and going round
   clockwise, segment length by intensity, with "Rain 07:11 to 07:56, peak 2,8 mm/u" below. The

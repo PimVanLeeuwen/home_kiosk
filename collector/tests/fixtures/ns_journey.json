@@ -1,0 +1,377 @@
+{
+ "payload": {
+  "stops": [
+   {
+    "status": "ORIGIN",
+    "stop": {
+     "name": "Venlo",
+     "uicCode": "8400644"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Blerick",
+     "uicCode": "8400117"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Horst-Sevenum",
+     "uicCode": "8400339"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Deurne",
+     "uicCode": "8400172"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Helmond Brouwhuis",
+     "uicCode": "8400299"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Helmond",
+     "uicCode": "8400313"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Helmond 't Hout",
+     "uicCode": "8400300"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Helmond Brandevoort",
+     "uicCode": "8400242"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Eindhoven Centraal",
+     "uicCode": "8400206"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Eindhoven Strijp-S",
+     "uicCode": "8400196"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Best",
+     "uicCode": "8400112"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Boxtel",
+     "uicCode": "8400129"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Vught",
+     "uicCode": "8400667"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "'s-Hertogenbosch",
+     "uicCode": "8400319"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Zaltbommel",
+     "uicCode": "8400732"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Geldermalsen",
+     "uicCode": "8400244"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Culemborg",
+     "uicCode": "8400154"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Houten Castellum",
+     "uicCode": "8400335"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Houten",
+     "uicCode": "8400340"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Utrecht Lunetten",
+     "uicCode": "8400623"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Utrecht Vaartsche Rijn",
+     "uicCode": "8400606"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Utrecht Centraal",
+     "uicCode": "8400621"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Utrecht Zuilen",
+     "uicCode": "8400613"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Maarssen",
+     "uicCode": "8400419"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Breukelen",
+     "uicCode": "8400133"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Abcoude",
+     "uicCode": "8400047"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Amsterdam Holendrecht",
+     "uicCode": "8400231"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Amsterdam Bijlmer ArenA",
+     "uicCode": "8400074"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Amsterdam RAI",
+     "uicCode": "8400056"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Amsterdam Zuid",
+     "uicCode": "8400061"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Schiphol Airport",
+     "uicCode": "8400561"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Hoofddorp",
+     "uicCode": "8400332"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Nieuw Vennep",
+     "uicCode": "8400460"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Sassenheim",
+     "uicCode": "8400603"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Leiden Centraal",
+     "uicCode": "8400390"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "De Vink",
+     "uicCode": "8400188"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Voorschoten",
+     "uicCode": "8400659"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Den Haag Mariahoeve",
+     "uicCode": "8400278"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Den Haag Laan v NOI",
+     "uicCode": "8400380"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Den Haag HS",
+     "uicCode": "8400280"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Den Haag Moerwijk",
+     "uicCode": "8400279"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Rijswijk",
+     "uicCode": "8400505"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Delft",
+     "uicCode": "8400170"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Delft Campus",
+     "uicCode": "8400166"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Schiedam Centrum",
+     "uicCode": "8400553"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Rotterdam Centraal",
+     "uicCode": "8400530"
+    }
+   },
+   {
+    "status": "STOP",
+    "stop": {
+     "name": "Rotterdam Blaak",
+     "uicCode": "8400529"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Rotterdam Zuid",
+     "uicCode": "8400533"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Rotterdam Stadion",
+     "uicCode": "8400534"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Rotterdam Lombardijen",
+     "uicCode": "8400542"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Barendrecht",
+     "uicCode": "8400090"
+    }
+   },
+   {
+    "status": "PASSING",
+    "stop": {
+     "name": "Zwijndrecht",
+     "uicCode": "8400752"
+    }
+   },
+   {
+    "status": "DESTINATION",
+    "stop": {
+     "name": "Dordrecht",
+     "uicCode": "8400180"
+    }
+   }
+  ]
+ }
+}

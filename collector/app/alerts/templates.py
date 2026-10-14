@@ -82,6 +82,7 @@ def _line(group: str, label: str, description: str, default: str, parent: str,
 RULES = "Alert rules"
 REPORTS = "Reports"
 NAS = "From the NAS"
+TRAIN = "Your train"
 
 CATALOG: dict[str, Template] = {
     # --- alert rules ---------------------------------------------------------------
@@ -144,6 +145,54 @@ CATALOG: dict[str, Template] = {
          "what": ("The incident's title", "Tunnel errors in Western Europe"),
          "state": ("Degraded or Outage", "Degraded"),
          "url": ("The incident on the status page", "https://stspg.io/abc123")}),
+    "train_late": _msg(
+        TRAIN, "Train late",
+        "The morning train is late (from the set minutes, again when it gets worse).",
+        "<b>{level}</b> · <b>The {time} is {delay} min late</b>\n"
+        "{name} now leaves at {new_time} from track {track}.",
+        "train", "warning",
+        {"time": ("Its planned departure", "07:16"), "name": ("The train", "IC 3522"),
+         "delay": ("Minutes late", 6), "new_time": ("Its expected departure", "07:22"),
+         "track": ("The track", "6")}),
+    "train_cancelled": _msg(
+        TRAIN, "Train cancelled", "The morning train does not run.",
+        "<b>{level}</b> · <b>{day}: the {time} does not run</b>\n{name} is cancelled. {next}",
+        "train", "warning",
+        {"day": ("Today, or Tomorrow the evening before", "Tomorrow"),
+         "time": ("Its planned departure", "07:16"), "name": ("The train", "IC 3522"),
+         "next": ("The next direct train, or that there is none",
+                  "Next direct train: 07:46 from track 6, arrives 08:58.")}),
+    "train_missing": _msg(
+        TRAIN, "Train not in the planner", "NS's planner no longer lists the morning train.",
+        "<b>{level}</b> · <b>{day}: the {time} is not in NS's planner</b>\n"
+        "It may be cancelled; check the NS app. {next}",
+        "train", "warning",
+        {"day": ("Today, or Tomorrow the evening before", "Tomorrow"),
+         "time": ("Its planned departure", "07:16"),
+         "next": ("The next direct train, or that there is none",
+                  "Next direct train: 07:46 from track 6, arrives 08:58.")}),
+    "train_track": _msg(
+        TRAIN, "Track change", "The morning train leaves from another track.",
+        "<b>{level}</b> · <b>The {time} leaves from track {new}</b>\nNot track {old}.",
+        "train", "warning",
+        {"time": ("Its planned departure", "07:16"), "old": ("The planned track", "6"),
+         "new": ("The new track", "4")}),
+    "train_stops": _msg(
+        TRAIN, "Stops cancelled", "The morning train skips stops on the way.",
+        "<b>{level}</b> · <b>{day}: the {time} does not stop at {stops}</b>",
+        "train", "warning",
+        {"day": ("Today, or Tomorrow the evening before", "Tomorrow"),
+         "time": ("Its planned departure", "07:16"),
+         "stops": ("The skipped stops", "Rotterdam Centraal")}),
+    "train_disruption": _msg(
+        TRAIN, "Disruption on the route",
+        "NS reports a disruption or works on the train's stretch.",
+        "<b>{level}</b> · <b>{day}, on your route: {title}</b>\n{text}\n{until}",
+        "train", "warning",
+        {"day": ("Today, or Tomorrow the evening before", "Tomorrow"),
+         "title": ("NS's title", "Utrecht - Amsterdam."),
+         "text": ("What happens, in NS's words", "Door werkzaamheden rijden er minder treinen."),
+         "until": ("NS's expected end, or empty", "Dit duurt tot ongeveer 10:00 uur.")}),
     "smart_failing": _msg(
         RULES, "Disk failing (SMART)", "Scrutiny marks a disk as failed.",
         "<b>{level}</b> · <b>Disk {disk} is failing (SMART)</b>\n"

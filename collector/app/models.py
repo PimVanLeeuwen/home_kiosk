@@ -294,6 +294,59 @@ class Tailnet(Envelope):
     health: list[str]  # tailscaled's own warnings; empty when all checks pass
 
 
+# --- /api/train ---------------------------------------------------------------
+
+
+class TrainStop(BaseModel):
+    name: str
+    planned: datetime  # departure, or arrival at the last stop
+    actual: datetime | None
+    track: str | None  # the actual track, else the planned one
+    cancelled: bool = False
+
+
+class TrainRun(BaseModel):
+    name: str  # "IC 3522"
+    # late: one minute or more behind; not_found: NS's planner no longer lists it.
+    status: Literal["on_time", "late", "cancelled", "not_found"]
+    planned_departure: datetime
+    actual_departure: datetime | None
+    delay_minutes: int = 0
+    planned_track: str | None = None
+    actual_track: str | None = None
+    stops: list[TrainStop] = []  # where it halts, from the first to the last of the route
+
+
+class TrainDisruption(BaseModel):
+    id: str
+    kind: str  # NS's type: DISRUPTION or MAINTENANCE
+    title: str  # NS's own words, e.g. "Utrecht - Amsterdam."
+    text: str  # what happens, e.g. "minder treinen"
+    until: str | None = None  # NS's own sentence about the expected end
+
+
+class Train(Envelope):
+    """The owner's weekday morning train, followed from the watch window until it leaves."""
+
+    date: str  # the local date of the train this is about, YYYY-MM-DD
+    route: str  # "Leiden Centraal to Rotterdam Centraal"
+    departure: str = ""  # the planned departure followed, "07:16", even when NS drops it
+    # morning: that day's train, until it leaves; evening: tomorrow's, checked the
+    # evening before; idle: nothing to follow (night, weekend, midday).
+    mode: Literal["morning", "evening", "idle"] = "idle"
+    # The card shows and alerts run: in the morning until it leaves, in the
+    # evening only when tomorrow's train has a problem.
+    watching: bool
+    departed: bool  # gone (or its replacement gone)
+    train: TrainRun | None
+    next_direct: TrainRun | None = None  # only when the train itself does not run
+    disruptions: list[TrainDisruption] = []
+    # UIC codes of every station the train passes between the two ends, for
+    # matching disruptions; read once a day from NS's journey details.
+    route_codes: list[str] = []
+    checked_at: datetime | None = None  # the last call to NS
+
+
 class ContainerState(BaseModel):
     name: str
     state: str  # Docker's State: running, exited, restarting, paused, created, dead

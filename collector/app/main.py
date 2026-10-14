@@ -35,6 +35,7 @@ from .sources import (
     exposure,
     feeds,
     github_mirror,
+    ns,
     outside_services,
     readeck,
     tailscale,
@@ -166,6 +167,12 @@ def nas() -> Any:
 @app.get("/api/hosts")
 def hosts() -> Any:
     return _serve("hosts")
+
+
+@app.get("/api/train")
+def train() -> Any:
+    """The weekday morning train; 503 until the first check after startup."""
+    return _serve(ns.CACHE_KEY)
 
 
 @app.get("/api/tailnet")

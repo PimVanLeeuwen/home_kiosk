@@ -23,7 +23,8 @@ def test_health_on_both_paths(client):
 
 @pytest.mark.parametrize(
     "path",
-    ["/api/portfolio", "/api/spotlight", "/api/news", "/api/nas", "/api/hosts", "/api/tailnet"],
+    ["/api/portfolio", "/api/spotlight", "/api/news", "/api/nas", "/api/hosts", "/api/tailnet",
+     "/api/train"],
 )
 def test_cold_start_is_503_with_a_reason(client, path):
     resp = client.get(path)
@@ -42,6 +43,7 @@ def test_cold_start_is_503_with_a_reason(client, path):
         ("/api/nas", "nas"),
         ("/api/hosts", "hosts"),
         ("/api/tailnet", "tailnet"),
+        ("/api/train", "train"),
     ],
 )
 def test_serves_the_cached_payload_including_stale_flag(client, store, path, key):

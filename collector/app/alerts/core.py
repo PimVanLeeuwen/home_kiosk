@@ -52,6 +52,7 @@ CATEGORIES = {
     "uptime": "Uptime Kuma",
     "rules": "Hub alert rules",
     "portfolio": "Portfolio",
+    "train": "Your train",
     "manual": "Sent from the hub",
 }
 

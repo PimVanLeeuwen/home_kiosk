@@ -44,6 +44,7 @@ DEFAULT_RULES: dict[str, dict[str, Any]] = {
     "outside_services": {"enabled": True},
     "smart": {"enabled": True},
     "portfolio_move": {"enabled": False, "threshold_pct": 3},
+    "train": {"enabled": True, "late_minutes": 3},
 }
 
 RULE_LABELS = {
@@ -57,11 +58,21 @@ RULE_LABELS = {
     "outside_services": "Outside services",
     "smart": "Disk SMART",
     "portfolio_move": "Portfolio move",
+    "train": "Your train",
 }
 
 # Rules whose problems end on their own and need no "resolved" message. A
 # renewed token simply stops warning.
-NO_RESOLVE = {"portfolio_move", "token_expiry"}
+NO_RESOLVE = {"portfolio_move", "token_expiry", "train"}
+
+# Where a rule's messages go, when not the general "rules" category.
+RULE_CATEGORY = {"portfolio_move": "portfolio", "train": "train"}
+# Rules whose messages are sent even in quiet hours: the morning train is
+# watched from 06:00, before quiet hours end (plan.md M20).
+BYPASS_QUIET = {"train"}
+
+# Further steps at which a late train is reported again.
+TRAIN_STEPS = (10, 15, 20, 30, 45, 60)
 
 # The second, last warning before a token expires.
 TOKEN_FINAL_DAYS = 3
@@ -251,6 +262,69 @@ def outside_services(status: dict[str, Any] | None,
             "what": incident["title"] if incident else "a problem on the status page",
             "state": OUTSIDE_STATE.get(svc.get("state"), "Unknown"),
             "url": (incident or {}).get("url") or svc["url"]}))
+    return problems
+
+
+def _hhmm(value: str | None) -> str:
+    return datetime.fromisoformat(value).strftime("%H:%M") if value else ""
+
+
+def _next_text(run: dict[str, Any] | None) -> str:
+    if not run:
+        return "No direct train found after it."
+    stops = run.get("stops") or []
+    arrives = stops[-1].get("actual") or stops[-1].get("planned") if stops else None
+    track = run.get("actual_track") or run.get("planned_track") or "?"
+    return (f"Next direct train: {_hhmm(run['planned_departure'])} from track {track}"
+            + (f", arrives {_hhmm(arrives)}." if arrives else "."))
+
+
+def train(payload: dict[str, Any] | None, settings: dict[str, Any]) -> list[Problem] | None:
+    """The morning train (and, the evening before, tomorrow's): not running,
+    skipping stops, late, another track, works or a disruption on the route.
+    Idle (night, weekend) judges nothing, so the evening's problems stay open
+    into the morning instead of being sent twice; a departed train closes them."""
+    if payload is None or payload.get("mode") not in ("morning", "evening"):
+        return None
+    if payload.get("departed"):
+        return []
+    evening = payload["mode"] == "evening"
+    key = f"train:{payload['date']}"
+    day = "Tomorrow" if evening else "Today"
+    run = payload.get("train")
+    time = payload.get("departure") or (_hhmm(run["planned_departure"]) if run else "")
+    name = (run or {}).get("name") or "The train"
+    problems = []
+    if run is None or run.get("status") in ("cancelled", "not_found"):
+        template = "train_cancelled" if run and run["status"] == "cancelled" else "train_missing"
+        problems.append(Problem(f"{key}:cancelled", "train", "warning", template, {
+            "day": day, "time": time, "name": name,
+            "next": _next_text(payload.get("next_direct"))}))
+    else:
+        skipped = [stop["name"] for stop in (run.get("stops") or [])[1:] if stop.get("cancelled")]
+        if skipped:
+            problems.append(Problem(f"{key}:stops", "train", "warning", "train_stops", {
+                "day": day, "time": time, "stops": ", ".join(skipped)}))
+        if not evening:
+            first = settings["late_minutes"]
+            reached = [step for step in (first, *(s for s in TRAIN_STEPS if s > first))
+                       if run.get("delay_minutes", 0) >= step]
+            if reached:
+                problems.append(Problem(f"{key}:late:{reached[-1]}", "train", "warning",
+                                        "train_late", {
+                    "time": time, "name": name, "delay": run["delay_minutes"],
+                    "new_time": _hhmm(run.get("actual_departure")) or time,
+                    "track": run.get("actual_track") or run.get("planned_track") or "?"}))
+            planned, actual = run.get("planned_track"), run.get("actual_track")
+            if planned and actual and planned != actual:
+                problems.append(Problem(f"{key}:track:{actual}", "train", "warning",
+                                        "train_track", {"time": time, "old": planned,
+                                                        "new": actual}))
+    for item in payload.get("disruptions") or []:
+        problems.append(Problem(f"{key}:disruption:{item['id']}", "train", "warning",
+                                "train_disruption", {
+            "day": day, "title": item.get("title", ""), "text": item.get("text", ""),
+            "until": item.get("until") or ""}))
     return problems
 
 
@@ -470,10 +544,11 @@ async def apply(
                     "resolved_at = NULL",
                     (key, rule, problem.severity, sent.title, sent.body,
                      now.isoformat(), now.isoformat()))
-            category = "portfolio" if rule == "portfolio_move" else "rules"
-            await core.notify(store, cfg, source=f"rule.{rule}", category=category,
+            await core.notify(store, cfg, source=f"rule.{rule}",
+                              category=RULE_CATEGORY.get(rule, "rules"),
                               severity=problem.severity, title=sent.title, body=sent.body,
-                              formatted=sent.html, now=now, telegram=telegram)
+                              formatted=sent.html, now=now, telegram=telegram,
+                              bypass_quiet=rule in BYPASS_QUIET)
             changed.append(key)
         for key, incident in open_now.items():
             if incident["rule"] != rule or key in active:
@@ -526,6 +601,7 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
         "port_scan": port_scan(store.get_cache("port_scan"), settings["port_scan"], now),
         "outside_services": outside_services(_fresh(store.get_cache("outside_services"), now),
                                              set(open_incidents(store))),
+        "train": train(_fresh(store.get_cache("train"), now), settings["train"]),
         "portfolio_move": portfolio_move(_fresh(store.get_cache("portfolio"), now),
                                          settings["portfolio_move"],
                                          core.local(now, cfg).date().isoformat()),
