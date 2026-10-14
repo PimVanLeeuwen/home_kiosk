@@ -490,3 +490,15 @@ def test_the_apple_minutes_can_be_changed_in_settings(rule_store):
 
     assert saved.json()["rules"]["apple_offline"] == {"enabled": True, "offline_minutes": 30}
     assert saved.json()["labels"]["apple_offline"] == "Apple devices"
+
+
+def test_the_train_minutes_can_be_changed_in_settings(rule_store):
+    main.app.state.store = rule_store
+    client = TestClient(main.app, headers={"origin": "http://testserver"})
+
+    saved = client.put("/api/alerts/rules", json={"train": {"enabled": True, "late_minutes": 5}})
+
+    assert saved.json()["rules"]["train"] == {"enabled": True, "late_minutes": 5}
+    assert rules.rule_settings(rule_store)["train"]["late_minutes"] == 5
+    too_late = {"train": {"enabled": True, "late_minutes": 61}}
+    assert client.put("/api/alerts/rules", json=too_late).status_code == 422
