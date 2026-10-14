@@ -18,6 +18,9 @@ dependencies = [
     "recurring-ical-events>=3.8.2",
     # Headline images: resized to small WebP files once, for the hub and the panels.
     "pillow>=12.3",
+    # Apple TVs and HomePods: what plays, and unicast DNS-SD (pyatv.core.mdns, internal,
+    # so pinned to the minor version).
+    "pyatv>=0.18,<0.19",
 ]
 
 [project.optional-dependencies]

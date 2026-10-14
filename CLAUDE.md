@@ -113,6 +113,9 @@ python3 dashboard/serve.py
   the morning train shows as a card on Home on weekdays from 06:00 until it has left, and is
   watched every weekday with no pause switch; it is also checked the evening before each weekday
   at 20:00 and 22:00, and Home shows it then only when tomorrow's train has a problem. plan.md M20.
+- 2026-10-14: Pillow in the collector for headline pictures: each is fetched once and stored as a
+  small WebP (900 px lead, 240 px square), so the hub and the panels never load a news site's
+  original. plan.md M20.
 
 ## Gotchas
 

@@ -33,6 +33,7 @@ from .portfolio import degiro_import
 from .security import same_origin_json
 from .sources import (
     agenda,
+    apple,
     container_stats,
     exposure,
     feeds,
@@ -78,6 +79,7 @@ async def lifespan(app: FastAPI):
     ups.ensure_tables(app.state.store)
     my_sites.ensure_tables(app.state.store)
     agenda.ensure_tables(app.state.store)
+    apple.ensure_tables(app.state.store)
     if news_store.seed(app.state.store, app.state.config):
         log.info("feed list seeded from config.yaml")
 
@@ -187,6 +189,22 @@ def hosts() -> Any:
 def laundry_status() -> Any:
     """The washer and dryer: running, done, paused or with an error."""
     return _serve(laundry.CACHE_KEY)
+
+
+@app.get("/api/apple")
+def apple_devices() -> Any:
+    """The Apple TVs and HomePods per room: online, Thread and what plays."""
+    return _serve(apple.CACHE_KEY)
+
+
+@app.get("/api/apple/artwork/{room}")
+def apple_artwork(room: str) -> Response:
+    """The stored artwork of what plays in a room; nothing is fetched here."""
+    data = apple.artwork(app.state.store, room)
+    if not data:
+        return JSONResponse(status_code=404, content={"detail": "No artwork."})
+    return Response(data, media_type="image/webp", headers={
+        "Cache-Control": "private, max-age=300", "X-Content-Type-Options": "nosniff"})
 
 
 @app.get("/api/calendar")

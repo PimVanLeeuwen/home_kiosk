@@ -530,6 +530,19 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   host network or a small host-network helper; the collector container is on a bridge network
   today. Device names to fill in; the mockup uses examples. An Apple TV or HomePod going
   offline for 10 minutes is a warning.
+  Researched 2026-10-14: the living room has an Apple TV 4K (3rd gen) and two HomePods (2nd gen),
+  the bedroom an Apple TV 4K (3rd gen, the Wi-Fi-only model, no Thread) and a HomePod mini, the
+  bathroom a HomePod mini; the other five are Thread border routers on one network. Every device
+  answers unicast DNS-SD at its address (reserved on the router since 2026-10-14), so the
+  collector stays on its bridge network. pyatv reads what HomePods play without pairing (the
+  living room pair reports its Apple TV); an Apple TV needs AirPlay credentials. Decided
+  2026-10-14: pyatv (MIT) in the collector, pinned to 0.18.x as its unicast helper is internal;
+  pair the Bedroom Apple TV once; a card on Home (mockup `docs/hub-apple-mockup.html`); the hub
+  draws the border routers as one Thread network, not the radio links it cannot see.
+  Built 2026-10-14 (collector): `apple` in config.yaml (rooms, names, addresses), read every
+  minute; `/api/apple` (per room the devices online or offline since when, their kind, Thread
+  state, and what plays) and `/api/apple/artwork/{room}` (fetched once per item, stored as a
+  200 px WebP).
 - **NAS, Backups, Alerts and the train**, redesigned again 2026-10-10 to be desk pieces:
   - NAS: an instrument-style arc gauge for the fullest volume (ticks, a glow, a red mark where
     it would alert), its size and runway below, then tiles for CPU and memory with live

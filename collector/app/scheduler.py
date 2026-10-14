@@ -21,6 +21,7 @@ from .portfolio import indices
 from .portfolio import report as portfolio_report
 from .sources import (
     agenda,
+    apple,
     backups,
     container_stats,
     db_copy,
@@ -63,6 +64,7 @@ WEATHER_INTERVAL_SECONDS = 300  # Buienradar's rain forecast moves in 5-minute s
 EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
 OUTSIDE_INTERVAL_SECONDS = 300  # status pages; incidents move in minutes
 SITES_INTERVAL_SECONDS = 60  # Kuma beats once a minute; 100 kept, so no gaps
+APPLE_INTERVAL_SECONDS = 60  # local unicast queries, a fraction of a second per device
 LAUNDRY_INTERVAL_SECONDS = 60  # one signed status call; the token is reused
 CALENDAR_INTERVAL_SECONDS = 300  # feeds at most every 15 min (agenda.FEED_EVERY)
 MEDIA_INTERVAL_SECONDS = 60  # local calls to Sonarr and Radarr
@@ -190,6 +192,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         max_instances=1,
         coalesce=True,
     )
+
+    if apple.settings(cfg)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=APPLE_INTERVAL_SECONDS,
+            args=[store, apple.CACHE_KEY, lambda: apple.collect(cfg, store)],
+            id="apple",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
 
     if laundry.settings(cfg)["enabled"]:
         scheduler.add_job(
