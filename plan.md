@@ -398,7 +398,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   unofficial and can break when ConnectLife changes its API or terms. Decided 2026-10-12: both machines
   are Hisense; the card only shows while a machine runs or is done (then it is gone until the
   next run, after the door has been opened if ConnectLife reports it, otherwise after a tap on
-  "Taken out" or two hours). The models are a WF5S1043BW washer and a DH3S802BW2 dryer. They
+  "Taken out" or two hours). The models are a WF5S1043BW washer (ConnectLife calls it WFSE1114) and a DH3S802BW2 dryer. They
   are not in connectlife-ha's device list, but their siblings are, with the same device type
   codes: the WF5S1045BW washer (type 025) and the DH3S802BW3 dryer (type 030). So support is
   likely; the property mapping may need the two models added. ConnectLife also publishes its own Home Assistant plugin for Hisense
@@ -414,6 +414,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   running stays done until its door opens, or two hours. `/api/laundry`; a Laundry card on Home
   after Today (mockup `docs/hub-laundry-mockup.html`). The app's built-in identifiers in the
   client are marked `gitleaks:allow` and listed in `.gitleaksignore`.
+  The washer was shared with the hub account on 2026-10-14. Its program numbers do not follow
+  the dial, so their names are learnt one wash at a time (9 is Cotton); an unknown one shows as
+  "Program 6".
 - **Calendar** (Now): today's events only. Design (2026-10-10): the next event large with a ring
   counting down to it in its calendar's colour, the day from 07:00 to 23:00 as a ribbon of
   coloured blocks with a glowing now line, then the later events. Read-only, no
