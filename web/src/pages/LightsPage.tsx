@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { StaleNote } from '../components/home/Card'
 import { LightTile, type Change } from '../components/lights/LightTile'
 import { PageHeader } from '../components/PageHeader'
@@ -6,6 +6,7 @@ import { Pill } from '../components/ui/Pill'
 import { ApiError, sendJson } from '../lib/api'
 import { cn } from '../lib/cn'
 import { formatAgo } from '../lib/format'
+import { applyIntent, HOLD_MS, pending, type Intent } from '../lib/lightIntent'
 import type { Lights } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
@@ -17,23 +18,37 @@ export function LightsPage() {
   const { data, error, loading, reload } = useApi<Lights>('/api/lights', REFRESH_MS)
   // The bridge's answer to our own change, until the next poll is newer.
   const [answer, setAnswer] = useState<Lights | null>(null)
-  const [busy, setBusy] = useState(false)
+  // What was just asked per group, shown at once until the bridge reports it.
+  const [intents, setIntents] = useState<Record<string, Intent>>({})
   const [failure, setFailure] = useState<string | null>(null)
 
-  const lights = answer && (!data || answer.as_of >= data.as_of) ? answer : data
+  const reported = answer && (!data || answer.as_of >= data.as_of) ? answer : data
+  const lights = reported && { ...reported, groups: reported.groups.map((g) => applyIntent(g, intents[g.id])) }
   const total = lights?.groups.reduce((n, g) => n + g.lights.length, 0) ?? 0
   const on = lights?.groups.reduce((n, g) => n + g.lights.filter((l) => l.on).length, 0) ?? 0
-  const disabled = busy || !!lights?.stale
+  const disabled = !!lights?.stale
 
-  async function send(method: 'PUT' | 'POST', path: string, body: object) {
-    setBusy(true)
+  // Let go of an intent once the bridge confirms it, or when it has waited too long.
+  useEffect(() => {
+    if (!reported || Object.keys(intents).length === 0) return
+    const left = pending(intents, reported.groups, Date.now())
+    const settled = Object.keys(left).length !== Object.keys(intents).length
+    const next = settled ? 0 : Math.min(...Object.values(left).map((i) => i.until)) - Date.now()
+    const timer = window.setTimeout(() => setIntents((now) => pending(now, reported.groups, Date.now())), Math.max(0, next))
+    return () => window.clearTimeout(timer)
+  }, [reported, intents])
+
+  async function send(method: 'PUT' | 'POST', path: string, body: object, groupIds: string[], intent: Omit<Intent, 'until'>) {
+    const until = Date.now() + HOLD_MS
+    setIntents((now) => ({ ...now, ...Object.fromEntries(groupIds.map((id) => [id, { ...now[id], ...intent, until }])) }))
     setFailure(null)
     try {
       setAnswer(await sendJson<Lights>(method, path, body))
     } catch (err) {
+      // Show what the bridge has, not what was asked.
+      setIntents((now) => Object.fromEntries(Object.entries(now).filter(([id]) => !groupIds.includes(id))))
       setFailure(err instanceof ApiError ? err.message : 'The change did not reach the bridge.')
     } finally {
-      setBusy(false)
       reload()
     }
   }
@@ -67,20 +82,31 @@ export function LightsPage() {
             <button
               type="button"
               disabled={disabled}
-              onClick={() => send('POST', '/api/lights/room', { on: on === 0 })}
+              onClick={() =>
+                send(
+                  'POST',
+                  '/api/lights/room',
+                  { on: on === 0 },
+                  lights.groups.map((g) => g.id),
+                  { on: on === 0 },
+                )
+              }
               className="flex-none rounded-[10px] border border-glass-line bg-glass px-3 py-[7px] text-[13px] whitespace-nowrap hover:border-faint disabled:opacity-50"
             >
               {on ? 'All off' : 'All on'}
             </button>
           </div>
-          <div className={cn('grid gap-3 md:grid-cols-2 md:gap-[18px]', lights.stale && 'opacity-60')} aria-busy={busy}>
+          <div
+            className={cn('grid gap-3 md:grid-cols-2 md:gap-[18px]', lights.stale && 'opacity-60')}
+            aria-busy={Object.keys(intents).length > 0}
+          >
             {lights.groups.map((group) => (
               <LightTile
                 key={group.id}
                 group={group}
                 kelvins={lights.kelvins}
                 disabled={disabled}
-                onChange={(change: Change) => send('PUT', `/api/lights/${group.id}`, change)}
+                onChange={(change: Change) => send('PUT', `/api/lights/${group.id}`, change, [group.id], change)}
               />
             ))}
           </div>

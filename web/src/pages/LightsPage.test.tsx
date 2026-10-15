@@ -138,6 +138,68 @@ describe('LightsPage', () => {
     expect(screen.getByText('Showing the last known figures.')).toBeInTheDocument()
   })
 
+  it('holds a switch while the bridge still answers with the old state, then follows it', async () => {
+    let reported = lights()
+    stubApi({ '/api/lights': () => reported, 'PUT /api/lights/ceiling': () => reported })
+    renderRoute('/lights')
+    const ceiling = await tile('Ceiling lamps')
+
+    fireEvent.click(within(ceiling).getByRole('button', { pressed: true }))
+
+    // The bridge's first answer is still "on": the tile stays off, no flip back.
+    expect(within(ceiling).getByRole('button', { pressed: false })).toHaveTextContent('Off')
+    expect(screen.getByText('3 of 5 on')).toBeInTheDocument()
+    await vi.waitFor(() => expect(screen.getByRole('region', { name: 'Ceiling lamps' }).closest('[aria-busy]')).toHaveAttribute('aria-busy', 'true'))
+
+    // One lamp reports off, the other not yet: still held.
+    reported = lights()
+    reported.groups[1].lights[0].on = false
+    await act(() => new Promise((r) => setTimeout(r, 2_100)))
+    expect(within(ceiling).getByRole('button', { pressed: false })).toHaveTextContent('Off')
+
+    // Both off: confirmed, and the hold lets go.
+    reported = lights({ lampsOn: false })
+    await vi.waitFor(() => expect(screen.getByRole('region', { name: 'Ceiling lamps' }).closest('[aria-busy]')).toHaveAttribute('aria-busy', 'false'), {
+      timeout: 3_000,
+    })
+    expect(within(ceiling).getByRole('button', { pressed: false })).toHaveTextContent('Off')
+  }, 10_000)
+
+  it('keeps the dragged level after letting go until the bridge reports it', async () => {
+    stubApi({ '/api/lights': lights(), 'PUT /api/lights/kitchen': lights() })
+    renderRoute('/lights')
+    const kitchen = await tile('Kitchen spots')
+
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      fireEvent.change(within(kitchen).getByRole('slider'), { target: { value: '30' } })
+      await act(() => vi.advanceTimersByTimeAsync(400))
+    } finally {
+      vi.useRealTimers()
+    }
+
+    // The answer still says 77, but the tile shows the asked 30, not a jump back.
+    await vi.waitFor(() => expect(within(kitchen).getByRole('slider')).toHaveValue('30'))
+    expect(within(kitchen).getByRole('button', { pressed: true })).toHaveTextContent('30%')
+  })
+
+  it('shows what the bridge has once a change is not confirmed in time', async () => {
+    stubApi({ '/api/lights': lights(), 'PUT /api/lights/ceiling': lights() })
+    renderRoute('/lights')
+    const ceiling = await tile('Ceiling lamps')
+
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    try {
+      fireEvent.click(within(ceiling).getByRole('button', { pressed: true }))
+      expect(within(ceiling).getByRole('button', { pressed: false })).toHaveTextContent('Off')
+      await act(() => vi.advanceTimersByTimeAsync(5_100))
+    } finally {
+      vi.useRealTimers()
+    }
+
+    expect(await within(ceiling).findByRole('button', { pressed: true })).toHaveTextContent('55%')
+  })
+
   it('explains when the lights are not read yet', async () => {
     stubApi({})
     renderRoute('/lights')
