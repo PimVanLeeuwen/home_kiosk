@@ -19,9 +19,10 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
 - **Secrets are NAS-only** in `.env` (template: `.env.example`). Never in `config.yaml`, code or
   commits.
 - **Read-only towards other services**, except the deliberate writes: Readeck (save, archive,
-  delete, read progress), Telegram messages, and DEGIRO imports into Ghostfolio after you confirm
-  them. Planned (M17, M18, M20): Hue lights, plugs and scenes, Spotify playback control, and
-  saving a headline to Readeck from a panel. The GitHub mirror only reads from GitHub; it writes to `/volume3/backups/github`.
+  delete, read progress), Telegram messages, DEGIRO imports into Ghostfolio after you confirm
+  them, and the living room's Hue lights (switch, dim, white). Planned (M17, M18, M20): the Hue
+  plugs, Spotify playback control, and saving a headline to Readeck from a panel. The GitHub
+  mirror only reads from GitHub; it writes to `/volume3/backups/github`.
 - Style: see plan.md §1. Dark first, violet accent, mono only for technical values.
 
 ## Architecture
@@ -116,6 +117,9 @@ python3 dashboard/serve.py
 - 2026-10-14: Pillow in the collector for headline pictures: each is fetched once and stored as a
   small WebP (900 px lead, 240 px square), so the hub and the panels never load a news site's
   original. plan.md M20.
+- 2026-10-14: lights through the Hue Bridge's local API, living room only, on a Lights page (no
+  Home card); the hub trusts only Signify's roots and the bridge's own id; live from the bridge's
+  event stream. plan.md M17.
 
 ## Gotchas
 
