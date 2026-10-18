@@ -61,7 +61,7 @@ async def _item(store: Store, item: dict[str, Any]) -> dict[str, Any]:
 async def state(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
     """What plays, the devices, the favourites and, when nothing plays, what played last."""
     base = {"as_of": time.time(), "stale": False, "connected": spotify.connected(store),
-            "default_device": spotify.settings(cfg)["default_device"],
+            "default_device": spotify.settings(cfg)["default_label"],
             "playing": None, "devices": [], "favourites": favourites(store), "last": None}
     if not base["connected"]:
         return base
@@ -69,6 +69,7 @@ async def state(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
                                  {"additional_types": "episode"})
     devices = await CLIENT.cached(cfg, store, "devices", "/me/player/devices")
     base["devices"] = [_device(d) for d in (devices or {}).get("devices") or []]
+    pick(store, base["devices"], spotify.settings(cfg)["default_device"])  # learns its id
     if player and player.get("item"):
         base["playing"] = await _item(store, player["item"]) | {
             "state": "playing" if player.get("is_playing") else "paused",
@@ -156,6 +157,20 @@ async def _devices(cfg: dict[str, Any], store: Store) -> list[dict[str, Any]]:
     return [_device(d) for d in (answer or {}).get("devices") or []]
 
 
+def pick(store: Store, devices: list[dict[str, Any]], name: str) -> str | None:
+    """The default device among those listed. Spotify names every Apple TV the
+    same, so its id is remembered while only one is listed, and preferred when
+    several are."""
+    matches = [d["id"] for d in devices if d["name"] == name and d["id"]]
+    with store.connect() as conn:
+        if len(matches) == 1:
+            conn.execute("INSERT INTO music_device (name, id) VALUES (?, ?) ON CONFLICT(name) "
+                         "DO UPDATE SET id = excluded.id", (name, matches[0]))
+            return matches[0]
+        row = conn.execute("SELECT id FROM music_device WHERE name = ?", (name,)).fetchone()
+    return row["id"] if row and row["id"] in matches else None
+
+
 async def target(cfg: dict[str, Any], store: Store,
                  sleep: Callable[[float], Awaitable[Any]] = asyncio.sleep) -> str:
     """The device a favourite starts on: the one playing now, else the Apple TV,
@@ -165,20 +180,21 @@ async def target(cfg: dict[str, Any], store: Store,
                                  {"additional_types": "episode"})
     if player and player.get("is_playing") and (player.get("device") or {}).get("id"):
         return player["device"]["id"]
-    name = spotify.settings(cfg)["default_device"]
-    for device in await _devices(cfg, store):
-        if device["name"] == name and device["id"]:
-            return device["id"]
+    s = spotify.settings(cfg)
+    name, label = s["default_device"], s["default_label"]
+    found = pick(store, await _devices(cfg, store), name)
+    if found:
+        return found
     if wake is None or not await wake(cfg):
-        raise SpotifyError(f"{name} is not available in Spotify: open Spotify on it first.", 409)
+        raise SpotifyError(f"{label} is not available in Spotify: open Spotify on it first.", 409)
     waited = 0.0
     while waited < WAKE_WAIT_SECONDS:
         await sleep(WAKE_POLL_SECONDS)
         waited += WAKE_POLL_SECONDS
-        for device in await _devices(cfg, store):
-            if device["name"] == name and device["id"]:
-                return device["id"]
-    raise SpotifyError(f"{name} did not show up in Spotify; is it on?", 504)
+        found = pick(store, await _devices(cfg, store), name)
+        if found:
+            return found
+    raise SpotifyError(f"{label} did not show up in Spotify; is it on?", 504)
 
 
 async def play_favourite(cfg: dict[str, Any], store: Store, position: int,

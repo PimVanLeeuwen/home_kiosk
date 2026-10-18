@@ -61,6 +61,12 @@ CREATE TABLE IF NOT EXISTS music_favourite (
     name     TEXT NOT NULL,
     cover    TEXT
 );
+-- Spotify's id for a device name that several devices share ("Apple TV"),
+-- learnt while only one of them was listed.
+CREATE TABLE IF NOT EXISTS music_device (
+    name TEXT PRIMARY KEY,
+    id   TEXT NOT NULL
+);
 -- Covers seen in Spotify's answers, by a short key; the image once fetched.
 CREATE TABLE IF NOT EXISTS music_cover (
     key    TEXT PRIMARY KEY,
@@ -84,7 +90,9 @@ def settings(cfg: dict[str, Any]) -> dict[str, Any]:
     client_id = (music.get("client_id") or "").strip()
     return {"enabled": bool(client_id), "client_id": client_id,
             "redirect_uri": music.get("redirect_uri") or "",
-            "default_device": music.get("default_device") or ""}
+            "default_device": music.get("default_device") or "",
+            # How the page names it; Spotify calls every Apple TV "Apple TV".
+            "default_label": music.get("default_label") or music.get("default_device") or ""}
 
 
 def ensure_tables(store: Store) -> None:

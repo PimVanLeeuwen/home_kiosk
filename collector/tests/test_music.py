@@ -15,7 +15,8 @@ from PIL import Image
 from app import main, music_api
 from app.sources import music, spotify
 
-CFG = {"music": {"client_id": "client-123", "default_device": "Apple TV Living Room",
+CFG = {"music": {"client_id": "client-123", "default_device": "Apple TV",
+                 "default_label": "Apple TV Living Room",
                  "redirect_uri": "https://hub.example.ts.net/api/music/callback"}}
 COVER = "https://i.scdn.co/image/abc"
 
@@ -261,7 +262,7 @@ def test_choosing_favourites(store, cloud):
 def test_a_favourite_starts_where_music_already_plays(store, cloud):
     favourite(store, cloud)
     cloud.player = {"is_playing": True, "item": track(), "device": device("iPhone", True)}
-    cloud.devices.append(device("Apple TV Living Room"))
+    cloud.devices.append(device("Apple TV"))
 
     run(music.play_favourite(CFG, store, 0))
 
@@ -271,7 +272,7 @@ def test_a_favourite_starts_where_music_already_plays(store, cloud):
 def test_otherwise_on_the_apple_tv(store, cloud):
     favourite(store, cloud)
     cloud.player = {"is_playing": False, "item": track(), "device": device("iPhone")}
-    cloud.devices.append(device("Apple TV Living Room", did="atv"))
+    cloud.devices.append(device("Apple TV", did="atv"))
 
     run(music.play_favourite(CFG, store, 1))
 
@@ -288,7 +289,7 @@ def test_an_apple_tv_that_is_not_listed_is_woken_first(store, cloud):
 
     async def tick(seconds):
         if len(cloud.api_calls("/v1/me/player/devices")) >= 2:
-            cloud.devices = [device("Apple TV Living Room", did="atv")]
+            cloud.devices = [device("Apple TV", did="atv")]
 
     music.wake = wake
     run(music.play_favourite(CFG, store, 0, sleep=tick))
@@ -369,3 +370,22 @@ def test_a_failing_spotify_serves_the_last_answer_stale(client, store, cloud):
 def test_not_set_up_without_a_client_id(client):
     main.app.state.config = {"music": {"client_id": ""}}
     assert client.get("/api/music").status_code == 503
+
+
+def test_the_living_room_apple_tv_is_known_by_its_id_once_two_are_listed(store, cloud):
+    favourite(store, cloud)
+    cloud.devices = [device("Apple TV", did="living")]
+    run(music.state(CFG, store))  # only one listed: its id is learnt
+    cloud.devices = [device("Apple TV", did="bedroom"), device("Apple TV", did="living")]
+
+    run(music.play_favourite(CFG, store, 0))
+
+    assert plays(cloud)[0][0] == {"device_id": "living"}
+
+
+def test_two_unknown_apple_tvs_are_not_guessed(store, cloud):
+    favourite(store, cloud)
+    cloud.devices = [device("Apple TV", did="a"), device("Apple TV", did="b")]
+
+    with pytest.raises(spotify.SpotifyError, match="Apple TV Living Room is not available"):
+        run(music.play_favourite(CFG, store, 0))
