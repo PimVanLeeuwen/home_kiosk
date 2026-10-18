@@ -389,6 +389,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   controls (play, pause, next, previous, volume, transfer), playlists and favourites, covers
   through the hub as 300 px WebP (only Spotify's image hosts); writes same-origin only; a failing
   Spotify serves the last answer stale.
+  Built 2026-10-18 (Apple TV wake): `music.wake` in config.yaml (the living room Apple TV's
+  address, Companion credentials from APPLE_TV_LIVING_ROOM_COMPANION after a one-time PIN
+  pairing). When a favourite should start there and Spotify does not list it, the hub switches it
+  on and opens the Spotify app (`com.spotify.client`), then waits up to 15 s for Spotify to list
+  it. Nothing else is sent to the TV.
 
 **M19. Desk PC power** (parked 2026-10-10)
 - Left out for now (decided 2026-10-10): there is no ready-made option that works locally out of

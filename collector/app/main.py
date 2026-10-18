@@ -34,6 +34,7 @@ from .security import same_origin_json
 from .sources import (
     agenda,
     apple,
+    apple_tv,
     container_stats,
     exposure,
     feeds,
@@ -42,6 +43,7 @@ from .sources import (
     laundry,
     media_overview,
     media_status,
+    music,
     my_sites,
     ns,
     outside_services,
@@ -83,6 +85,8 @@ async def lifespan(app: FastAPI):
     agenda.ensure_tables(app.state.store)
     apple.ensure_tables(app.state.store)
     spotify.ensure_tables(app.state.store)
+    # A favourite can wake the living room Apple TV and open Spotify on it.
+    music.wake = apple_tv.wake_spotify
     if news_store.seed(app.state.store, app.state.config):
         log.info("feed list seeded from config.yaml")
 
