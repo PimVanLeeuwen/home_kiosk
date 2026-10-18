@@ -376,6 +376,19 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   never rotates, so it stays there until you swipe to the lights. Two minutes after a pause the
   card goes and the lights are back.
 - A new deliberate write (decided 2026-10-09): Spotify playback control.
+  Decided 2026-10-18: a Music page under Home and Lights, and a Now Playing card on Home while
+  something plays (gone two minutes after a pause); four favourites chosen in Settings → Music;
+  Spotify asked only while someone looks (at most every 2 s, nothing kept about what played);
+  PKCE sign-in with only the Client ID (SPOTIFY_CLIENT_ID), the refresh token in the hub's
+  database. A favourite starts on the device that is already playing, otherwise on the living
+  room Apple TV, which the hub wakes and opens Spotify on when Spotify does not list it (pyatv
+  Companion, a one-time PIN pairing). HomePods are not Spotify Connect devices: AirPlay to them
+  shows as the phone or Mac it comes from. Mockup `docs/hub-music-mockup.html`.
+  Built 2026-10-18 (collector): `/api/music` (what plays with its cover and main colour, the
+  devices, the favourites, what played last), `/api/music/login` and `/callback` (PKCE),
+  controls (play, pause, next, previous, volume, transfer), playlists and favourites, covers
+  through the hub as 300 px WebP (only Spotify's image hosts); writes same-origin only; a failing
+  Spotify serves the last answer stale.
 
 **M19. Desk PC power** (parked 2026-10-10)
 - Left out for now (decided 2026-10-10): there is no ready-made option that works locally out of

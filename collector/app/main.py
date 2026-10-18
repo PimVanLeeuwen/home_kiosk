@@ -19,7 +19,7 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, HttpUrl
 
-from . import config, exposure_api, lights_api, scheduler, settings_api
+from . import config, exposure_api, lights_api, music_api, scheduler, settings_api
 from .alerts import api as alerts_api
 from .alerts import bot as alert_bot
 from .alerts import core as alerts_core
@@ -46,6 +46,7 @@ from .sources import (
     ns,
     outside_services,
     readeck,
+    spotify,
     tailscale,
     ups,
     weather,
@@ -81,6 +82,7 @@ async def lifespan(app: FastAPI):
     my_sites.ensure_tables(app.state.store)
     agenda.ensure_tables(app.state.store)
     apple.ensure_tables(app.state.store)
+    spotify.ensure_tables(app.state.store)
     if news_store.seed(app.state.store, app.state.config):
         log.info("feed list seeded from config.yaml")
 
@@ -121,6 +123,7 @@ app = FastAPI(title="Desk Dashboard Collector", version="0.1.0", lifespan=lifesp
 app.include_router(settings_api.router)
 app.include_router(exposure_api.router)
 app.include_router(lights_api.router)
+app.include_router(music_api.router)
 app.include_router(alerts_api.router)
 app.include_router(news_api.router)
 app.include_router(portfolio_api.router)
