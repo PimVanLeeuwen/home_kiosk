@@ -228,9 +228,12 @@ class Client:
 
     async def cached(self, cfg: dict[str, Any], store: Store, name: str, path: str,
                      params: dict[str, Any] | None = None) -> Any:
-        at, value = self.cache.get(name, (0.0, None))
-        if time.monotonic() - at < FRESH[name]:
-            return value
+        # Only an answer actually fetched counts; monotonic time starts at boot,
+        # so a missing entry must not look like one fetched at 0.
+        if name in self.cache:
+            at, value = self.cache[name]
+            if time.monotonic() - at < FRESH[name]:
+                return value
         value = await self.call(cfg, store, "GET", path, params)
         self.cache[name] = (time.monotonic(), value)
         return value

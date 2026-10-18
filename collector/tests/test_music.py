@@ -389,3 +389,11 @@ def test_two_unknown_apple_tvs_are_not_guessed(store, cloud):
 
     with pytest.raises(spotify.SpotifyError, match="Apple TV Living Room is not available"):
         run(music.play_favourite(CFG, store, 0))
+
+
+def test_a_machine_that_just_booted_still_asks_spotify(store, cloud, monkeypatch):
+    connect(store)
+    cloud.recent = [{"track": track("Wait")}]
+    monkeypatch.setattr(spotify.time, "monotonic", lambda: 5.0)  # 5 s after boot
+
+    assert run(music.state(CFG, store))["last"]["title"] == "Wait"
