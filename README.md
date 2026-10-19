@@ -106,6 +106,35 @@ npm run dev
 cd e2e && npm ci && npx playwright test
 ```
 
+## Desk panels (firmware)
+
+The three ESP32-P4 panels run `panels/firmware` (ESP-IDF v5.5, LVGL 9, Waveshare's board
+package). It is built in Espressif's Docker image and flashed from the Mac with esptool, over the
+board's **UART** USB-C port with a data cable.
+
+```bash
+# once: esptool for flashing; the Wi-Fi details in an untracked file
+cd panels && python3 -m venv .venv && .venv/bin/pip install esptool==5.6.0
+cp firmware/sdkconfig.secrets.example firmware/sdkconfig.secrets   # then fill it in
+
+# build
+cd panels/firmware && docker run --rm --platform linux/amd64 -v "$PWD":/project -w /project \
+  espressif/idf:v5.5.6 idf.py build
+
+# before the first flash of a board: its chip revision, and a backup of the factory flash
+# (2 MB at a time: long reads over this link break off)
+.venv/bin/esptool --port /dev/cu.usbmodem… flash-id
+.venv/bin/esptool --port /dev/cu.usbmodem… --baud 921600 read-flash <offset> 0x200000 part.bin
+
+# flash
+cd panels/firmware/build && ../../.venv/bin/esptool --chip esp32p4 --port /dev/cu.usbmodem… \
+  --baud 460800 --before default-reset --after hard-reset write-flash @flash_args
+```
+
+The boards have an ESP32-P4 **v1.3**: the firmware is built for revisions below 3.0, and a build
+for v3.x chips does not boot on them (nor the other way round). Wi-Fi goes through the ESP32-C6,
+which keeps its factory ESP-Hosted image.
+
 ## Deploying
 
 A push to `main` runs lint, tests, the web build and e2e, then builds and pushes both images

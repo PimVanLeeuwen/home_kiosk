@@ -19,7 +19,7 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, HttpUrl
 
-from . import config, exposure_api, lights_api, music_api, scheduler, settings_api
+from . import config, desk_api, exposure_api, lights_api, music_api, scheduler, settings_api
 from .alerts import api as alerts_api
 from .alerts import bot as alert_bot
 from .alerts import core as alerts_core
@@ -128,6 +128,7 @@ app.include_router(settings_api.router)
 app.include_router(exposure_api.router)
 app.include_router(lights_api.router)
 app.include_router(music_api.router)
+app.include_router(desk_api.router)
 app.include_router(alerts_api.router)
 app.include_router(news_api.router)
 app.include_router(portfolio_api.router)

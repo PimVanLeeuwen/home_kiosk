@@ -300,6 +300,22 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Order of work: test one board on a phone stand and settle the angles, measure it, write the
   OpenSCAD model, choose print or laser-cut, then buy the power parts.
 - The 720×1280 `/kiosk/` carousel retires once the panels run.
+- Arrived 2026-10-19. Decided 2026-10-19: the firmware lives in `panels/` in this repo; built in
+  `espressif/idf:v5.5.6` (Docker, as CI will), flashed with esptool 5.6.0 over the UART USB-C
+  port; ESP-IDF v5.5; the Wi-Fi details are a build secret (`panels/firmware/sdkconfig.secrets`,
+  git-ignored; a GitHub Actions secret in CI). Pinned components: Waveshare's board package
+  `waveshare/esp32_p4_wifi6_touch_lcd_4b` 3.0.1, LVGL 9.3.0, `esp_lvgl_adapter` 0.6.3,
+  `esp_hosted` 2.12.11, `esp_wifi_remote` 1.6.3 (`dependencies.lock` committed).
+  Bring-up 2026-10-19 on the first board (MAC e8:f6:0a:e4:42:c8): an ESP32-P4 **v1.3** (Waveshare's
+  defaults assume v3.x; v1.x builds use 200 MHz PSRAM and do not run on v3.x chips, so all three
+  boards must be checked), 32 MB flash and PSRAM; display, GT911 touch and Wi-Fi through the
+  factory C6 image work (the C6 reports ESP-Hosted 0.0.0 against 2.12 on the P4: works, but
+  ESP-Hosted warns about possible RPC timeouts; update the C6 only if Wi-Fi proves unreliable).
+  The factory flash is backed up per board in `~/panel-backups/` (read in 2 MB pieces: one long
+  read breaks off with serial noise). `/api/desk/{now,home,house,test}` answers as a stub. On the
+  real screen the hub's dark `#101014` looks grey (IPS glow): panel screens use true black and a
+  lower default brightness. Next: check the other two boards' revision, the angles and the
+  board's depth and USB-C position, then the real `/api/desk` layouts and screens.
 
 **M17. Home control** (added 2026-10-09)
 - The hub talks to the Hue Bridge's local CLIP v2 API with an application key (created once with
