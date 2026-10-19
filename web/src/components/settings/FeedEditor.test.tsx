@@ -5,7 +5,7 @@ import { failWith, sentBody, stubApi } from '../../test/stubApi'
 
 function setup(over: Record<string, unknown> = {}) {
   const fetchMock = stubApi({ '/api/settings/feeds': FEEDS, ...over })
-  renderRoute('/settings')
+  renderRoute('/settings/feeds')
   return fetchMock
 }
 

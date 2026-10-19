@@ -232,3 +232,48 @@ describe('SettingsPage services', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('could not be loaded')
   })
 })
+
+describe('SettingsPage sections', () => {
+  it('opens Services for plain /settings, with every section in the nav', async () => {
+    setup()
+    expect(await screen.findByRole('heading', { level: 2, name: 'Services' })).toBeInTheDocument()
+    const nav = screen.getByRole('navigation', { name: 'Settings sections' })
+    expect(within(nav).getAllByRole('link').map((a) => a.textContent)).toEqual([
+      'Services',
+      'News feeds',
+      'Calendars',
+      'Music',
+      'Desk panels',
+      'Messages',
+    ])
+    expect(within(nav).getByRole('link', { name: 'Services' })).toHaveAttribute('aria-current', 'page')
+    expect(document.title).toBe('Services · Settings · Home hub')
+  })
+
+  it('switches section from the nav, showing only that section', async () => {
+    setup()
+    await screen.findByRole('heading', { level: 2, name: 'Services' })
+    fireEvent.click(screen.getByRole('link', { name: 'Messages' }))
+
+    expect(await screen.findByRole('heading', { level: 2, name: 'Messages' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { level: 2, name: 'Services' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Messages' })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('sends the old one-page anchors to their section and keeps the query', async () => {
+    stubApi({ '/api/settings/desk-boards': [] })
+    const { router } = renderRoute('/settings?x=1#desk-panels')
+
+    expect(await screen.findByRole('heading', { level: 2, name: 'Desk panels' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/settings/desk-panels')
+    expect(router.state.location.search).toBe('?x=1')
+  })
+
+  it('sends an unknown section to Services', async () => {
+    stubApi({ [ENDPOINT]: CATALOG, '/api/containers': CONTAINERS })
+    const { router } = renderRoute('/settings/nope')
+
+    expect(await screen.findByRole('heading', { level: 2, name: 'Services' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/settings/services')
+  })
+})

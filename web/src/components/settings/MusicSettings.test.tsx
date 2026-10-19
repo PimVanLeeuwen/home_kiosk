@@ -23,7 +23,7 @@ const PLAYLISTS = ['Discover Weekly', 'Focus Flow', 'Sunday Morning', 'Liked Son
 describe('MusicSettings', () => {
   it('offers to connect Spotify, from the ts.net address', async () => {
     stubApi({ '/api/music': state(false) })
-    renderRoute('/settings')
+    renderRoute('/settings/music')
 
     expect(await screen.findByRole('link', { name: 'Connect Spotify' })).toHaveAttribute('href', '/api/music/login')
     expect(screen.getByText(/Connect from the hub's ts.net address/)).toBeInTheDocument()
@@ -31,7 +31,7 @@ describe('MusicSettings', () => {
 
   it('says how connecting went when Spotify sends you back', async () => {
     stubApi({ '/api/music': state(true), '/api/music/playlists': [] })
-    renderRoute('/settings?music=connected')
+    renderRoute('/settings?music=connected#music')
 
     expect(await screen.findByText('Spotify is connected.')).toBeInTheDocument()
   })
@@ -42,7 +42,7 @@ describe('MusicSettings', () => {
       '/api/music/playlists': PLAYLISTS,
       'PUT /api/music/favourites': [],
     })
-    renderRoute('/settings')
+    renderRoute('/settings/music')
 
     expect(await screen.findByRole('checkbox', { name: /Discover Weekly/ })).toHaveAttribute('aria-checked', 'true')
     for (const name of ['Sunday Morning', 'Focus Flow', 'Liked Songs']) fireEvent.click(screen.getByRole('checkbox', { name: new RegExp(name) }))
@@ -57,7 +57,7 @@ describe('MusicSettings', () => {
 
   it('disconnects', async () => {
     const fetchMock = stubApi({ '/api/music': state(true), '/api/music/playlists': [], 'POST /api/music/disconnect': { connected: false } })
-    renderRoute('/settings')
+    renderRoute('/settings/music')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Disconnect' }))
 

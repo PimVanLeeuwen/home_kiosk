@@ -39,7 +39,7 @@ export function MusicPage() {
           <p className="font-medium">Spotify is not connected</p>
           <p className="mt-1 text-muted">
             Connect it once in{' '}
-            <Link to="/settings#music" className="text-accent-fg hover:underline">
+            <Link to="/settings/music" className="text-accent-fg hover:underline">
               Settings → Music
             </Link>
             .

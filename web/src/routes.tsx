@@ -55,6 +55,7 @@ export const routes: RouteObject[] = [
             path: item.to,
             element: PAGES[item.to] ?? <SectionPage item={item} />,
           })),
+          { path: '/settings/:section', element: <SettingsPage /> },
           { path: MORE_ROUTE, element: <MorePage /> },
           { path: '*', element: <NotFoundPage /> },
         ],

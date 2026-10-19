@@ -129,7 +129,7 @@ describe('MusicPage', () => {
   it('points to Settings while Spotify is not connected, and explains a failure', async () => {
     stubApi({ '/api/music': music({ connected: false, playing: null }) })
     const { unmount } = renderRoute('/music')
-    expect(await screen.findByRole('link', { name: 'Settings → Music' })).toHaveAttribute('href', '/settings#music')
+    expect(await screen.findByRole('link', { name: 'Settings → Music' })).toHaveAttribute('href', '/settings/music')
     unmount()
 
     stubApi({ '/api/music': failWith(503, { detail: 'Spotify is not set up (SPOTIFY_CLIENT_ID).' }) })

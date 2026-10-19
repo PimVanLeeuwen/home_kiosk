@@ -15,7 +15,7 @@ There is no login and nothing is exposed to the internet.
 | Tailscale | The tailnet as a map around the NAS and every device on it: MagicDNS name, addresses, direct, relay or idle, exit node, last seen, and tailscaled's own health warnings (read-only, from the NAS's tailscaled) |
 | Repos | GitHub repos: your own, Hubble and GEWIS, with the backup status of each mirrored repo and when each token expires |
 | Alerts | Every Telegram message the hub sends, routing, quiet hours and the hub's own alert rules |
-| Settings | Service catalog, news feeds, which calendars show, and the wording of every Telegram message (templates with a live preview and a test send) |
+| Settings | One page per section (`/settings/<section>`): service catalog, news feeds, which calendars show, Spotify and its favourites, which board is which desk panel, and the wording of every Telegram message (folded by group; templates with a live preview and a test send) |
 
 The hub is also the one Telegram sender: backup reports, Watchtower updates, Uptime Kuma, its own
 rules, and the weekday portfolio report (08:30 and 18:30). The bot answers `/status`, `/backup`
