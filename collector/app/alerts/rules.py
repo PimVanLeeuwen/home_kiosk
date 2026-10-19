@@ -46,6 +46,7 @@ DEFAULT_RULES: dict[str, dict[str, Any]] = {
     "portfolio_move": {"enabled": False, "threshold_pct": 3},
     "train": {"enabled": True, "late_minutes": 3},
     "apple_offline": {"enabled": True, "offline_minutes": 10},
+    "desk_panels": {"enabled": True, "offline_minutes": 10},
 }
 
 RULE_LABELS = {
@@ -61,6 +62,7 @@ RULE_LABELS = {
     "portfolio_move": "Portfolio move",
     "train": "Your train",
     "apple_offline": "Apple devices",
+    "desk_panels": "Desk panels",
 }
 
 # Rules whose problems end on their own and need no "resolved" message. A
@@ -287,6 +289,22 @@ def apple_offline(payload: dict[str, Any] | None, settings: dict[str, Any],
                 f"apple_offline:{device['id']}", "apple_offline", "warning", "apple_offline",
                 {"device": device["name"], "room": room["name"],
                  "minutes": int(gone.total_seconds() // 60)}))
+    return problems
+
+
+def desk_panels(boards: list[Any], settings: dict[str, Any], now: datetime) -> list[Problem]:
+    """A desk panel board that has not asked the hub for the set minutes (it asks
+    every 30 s). Only boards with a panel: one on the bench is nobody's concern."""
+    limit = timedelta(minutes=settings["offline_minutes"])
+    problems = []
+    for board in boards:
+        quiet = now - board.last_seen
+        if board.panel is None or quiet < limit:
+            continue
+        problems.append(Problem(
+            f"desk_panels:{board.mac}", "desk_panels", "warning", "desk_panel_quiet",
+            {"panel": board.panel.title(), "mac": board.mac,
+             "minutes": int(quiet.total_seconds() // 60)}))
     return problems
 
 
@@ -597,7 +615,8 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
                 telegram: Any = None, dies: dict[str, int] | None = None) -> list[str]:
     """Run every enabled rule once. `dies` is for tests; normally it is read
     from Docker's event log for the restart window."""
-    from ..sources import docker  # noqa: PLC0415 (keeps app.alerts light to import)
+    from .. import desk_boards  # noqa: PLC0415 (keeps app.alerts light to import)
+    from ..sources import docker  # noqa: PLC0415
 
     now = now or datetime.now(UTC)
     settings = rule_settings(store)
@@ -629,6 +648,7 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
         "train": train(_fresh(store.get_cache("train"), now), settings["train"]),
         "apple_offline": apple_offline(_fresh(store.get_cache("apple"), now),
                                        settings["apple_offline"], now),
+        "desk_panels": desk_panels(desk_boards.boards(store), settings["desk_panels"], now),
         "portfolio_move": portfolio_move(_fresh(store.get_cache("portfolio"), now),
                                          settings["portfolio_move"],
                                          core.local(now, cfg).date().isoformat()),

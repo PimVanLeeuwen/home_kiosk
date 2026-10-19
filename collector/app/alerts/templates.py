@@ -145,6 +145,15 @@ CATALOG: dict[str, Template] = {
         {"device": ("The Apple TV or HomePod", "Badkamer"),
          "room": ("Its room", "Bathroom"),
          "minutes": ("How long it has been quiet", "10")}),
+    "desk_panel_quiet": _msg(
+        RULES, "Desk panel quiet",
+        "A desk panel board has not asked the hub for the set minutes.",
+        "<b>{level}</b> · <b>The {panel} panel is quiet</b>\n"
+        "Board {mac} has not asked the hub for {minutes} min: off, out of Wi-Fi reach, or stuck.",
+        "rules", "warning",
+        {"panel": ("Which panel", "Now"),
+         "mac": ("The board's MAC address, as on its back", "e8:f6:0a:e4:42:b0"),
+         "minutes": ("How long it has been quiet", "10")}),
     "outside_incident": _msg(
         RULES, "Outside service", "An outside service reports a problem on a part the house uses.",
         "<b>{level}</b> · <b>{service}: {what}</b>\n"

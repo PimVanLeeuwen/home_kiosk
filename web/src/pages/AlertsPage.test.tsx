@@ -204,6 +204,19 @@ describe('AlertsPage', () => {
     )
   })
 
+  it('shows the desk panels rule with its minutes', async () => {
+    setup({
+      '/api/alerts/rules': {
+        rules: { desk_panels: { enabled: true, offline_minutes: 10 } },
+        labels: { desk_panels: 'Desk panels' },
+      },
+    })
+    renderRoute('/alerts')
+
+    const rules = await screen.findByRole('region', { name: 'Hub rules' })
+    expect(await within(rules).findByLabelText(/A desk panel that has not asked the hub for/)).toHaveValue(10)
+  })
+
   it('changes quiet hours and routing', async () => {
     const fetchMock = setup({ 'PUT /api/alerts/settings': SETTINGS })
     renderRoute('/alerts')

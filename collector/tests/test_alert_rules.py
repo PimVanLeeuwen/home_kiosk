@@ -8,7 +8,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from app import main
+from app import desk_boards, main
 from app.alerts import core, rules
 from app.alerts.telegram import Telegram
 from app.models import Service
@@ -61,6 +61,7 @@ def nas_payload(pools=(), disks=(), backup=None, at=NOW):
 def rule_store(store):
     core.ensure_tables(store)
     rules.ensure_tables(store)
+    desk_boards.ensure_tables(store)
     return store
 
 
@@ -502,3 +503,38 @@ def test_the_train_minutes_can_be_changed_in_settings(rule_store):
     assert rules.rule_settings(rule_store)["train"]["late_minutes"] == 5
     too_late = {"train": {"enabled": True, "late_minutes": 61}}
     assert client.put("/api/alerts/rules", json=too_late).status_code == 422
+
+
+# --- desk panels ----------------------------------------------------------------------
+
+BOARD = "e8:f6:0a:e4:42:b0"
+
+
+def board(panel="now", quiet_minutes=0, mac=BOARD):
+    seen = NOW - timedelta(minutes=quiet_minutes)
+    return desk_boards.Board(mac=mac, panel=panel, first_seen=seen, last_seen=seen,
+                             firmware="f4da96d")
+
+
+def test_a_desk_panel_quiet_for_ten_minutes_is_a_warning():
+    settings = rules.DEFAULT_RULES["desk_panels"]
+    (p,) = rules.desk_panels([board(quiet_minutes=12)], settings, NOW)
+    assert (p.key, p.severity) == (f"desk_panels:{BOARD}", "warning")
+    assert p.title == "The Now panel is quiet"
+    assert rules.desk_panels([board(quiet_minutes=9)], settings, NOW) == []
+    # A board on the bench, without a panel, is nobody's concern.
+    assert rules.desk_panels([board(panel=None, quiet_minutes=60)], settings, NOW) == []
+
+
+def test_a_quiet_desk_panel_warns_once_and_resolves_when_it_asks_again(rule_store):
+    desk_boards.check_in(rule_store, BOARD, "f4da96d", NOW - timedelta(minutes=10))
+    desk_boards.assign(rule_store, BOARD, "home")
+    assert run_check(rule_store) == [
+        "<b>WARNING</b> · <b>The Home panel is quiet</b>\nBoard e8:f6:0a:e4:42:b0 has not asked "
+        "the hub for 10 min: off, out of Wi-Fi reach, or stuck."]
+    assert run_check(rule_store, NOW + timedelta(minutes=5)) == []
+
+    back = NOW + timedelta(minutes=15)
+    desk_boards.check_in(rule_store, BOARD, "f4da96d", back)
+    assert run_check(rule_store, back) == [
+        "<b>OK</b> · <b>Resolved: The Home panel is quiet</b>\nafter 15 min"]

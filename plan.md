@@ -273,7 +273,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   cloud. The Wi-Fi password is a build secret, never in the repo.
 - Writes from a panel (mute, lights, music) use a per-panel device key created in the hub, since
   `same_origin_json` only protects browsers. Keys can be revoked in Settings.
-- Heartbeat: the hub alerts when a panel has not polled for 10 minutes.
+- Heartbeat: the hub alerts when a panel has not polled for 10 minutes. Built 2026-10-19: the
+  "Desk panels" alert rule (on by default, the minutes adjustable on the Alerts page) warns once
+  when a board with a panel has not asked the hub for that long, and says when it is back;
+  boards without a panel (on the bench) are left alone.
 - Stand. Nothing ordered yet; first test the angles with three cheap phone stands.
   - Requirements: about 15° tilted back, the outer panels turned 12 to 15° in, 8 to 10 mm
     gaps, one row of about 30 cm below the monitor. Heavy enough not to slide or tip when
