@@ -52,6 +52,9 @@ class FakeSpotify:
         self.refresh_refused = False
         self.expired_once = False
         self.tokens = 0
+        # What Spotify answers a write with: often a 200 with a body
+        # that is not JSON, for a change it did make.
+        self.write_answer = httpx.Response(204)
 
     def handler(self, request: httpx.Request) -> httpx.Response:
         path, host = request.url.path, request.url.host
@@ -78,7 +81,7 @@ class FakeSpotify:
             return httpx.Response(200, json={"items": self.recent})
         if path == "/v1/me/playlists":
             return httpx.Response(200, json={"items": self.playlists, "next": None})
-        return httpx.Response(204)
+        return self.write_answer
 
     def api_calls(self, path):
         return [c for c in self.calls if c[1] == path]
@@ -347,6 +350,30 @@ def test_the_routes(client, store, cloud):
     assert client.put("/api/music/volume", json={"percent": 101}).status_code == 422
     assert client.post("/api/music/transfer", json={"device_id": "macbook-pro"}).status_code == 200
     assert client.post("/api/music/disconnect", json={}).json() == {"connected": False}
+
+
+@pytest.mark.parametrize("answer", [
+    httpx.Response(200, text="7f3a9c2e"), httpx.Response(200), httpx.Response(202, text="ok"),
+    httpx.Response(204)], ids=["text", "empty", "accepted", "no-content"])
+def test_a_write_spotify_took_is_ok_whatever_its_body(client, store, cloud, answer):
+    connect(store)
+    cloud.player = {"is_playing": True, "item": track(), "device": device("iPhone", True)}
+    cloud.write_answer = answer
+    client.put("/api/music/favourites", json={"ids": ["p1"]})
+
+    assert client.post("/api/music/control/next", json={}).json() == {"ok": True}
+    assert client.put("/api/music/volume", json={"percent": 40}).json() == {"ok": True}
+    assert client.post("/api/music/transfer", json={"device_id": "iphone"}).json() == {"ok": True}
+    assert client.post("/api/music/favourites/0/play", json={}).json()["ok"] is True
+
+
+def test_a_write_spotify_refused_still_fails(client, store, cloud):
+    connect(store)
+    cloud.write_answer = httpx.Response(500, text="oops")
+
+    failed = client.post("/api/music/control/next", json={})
+
+    assert failed.status_code == 502 and failed.json()["detail"] == "Spotify answered 500"
 
 
 def test_writes_need_the_same_origin(client):

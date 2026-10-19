@@ -59,6 +59,23 @@ describe('MusicPage', () => {
     await vi.waitFor(() => expect(sentBody(fetchMock, 'POST', '/api/music/control/pause')).toEqual({}))
   })
 
+  it('shows no error for a skip Spotify took, and one only while a skip really fails', async () => {
+    const fetchMock = stubApi({ '/api/music': music(), 'POST /api/music/control/next': { ok: true } })
+    renderRoute('/music')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Next' }))
+    await vi.waitFor(() => expect(sentBody(fetchMock, 'POST', '/api/music/control/next')).toEqual({}))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+    stubApi({ '/api/music': music(), 'POST /api/music/control/next': failWith(502, { detail: 'Spotify answered 500' }) })
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Spotify answered 500')
+
+    stubApi({ '/api/music': music(), 'POST /api/music/control/next': { ok: true } })
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    await vi.waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+  })
+
   it('moves playback to another device', async () => {
     const fetchMock = stubApi({ '/api/music': music(), 'POST /api/music/transfer': { ok: true } })
     renderRoute('/music')

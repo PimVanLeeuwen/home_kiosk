@@ -222,8 +222,11 @@ class Client:
             raise SpotifyError("Playback control needs Spotify Premium.", 403)
         if resp.status_code >= 400:
             raise SpotifyError(f"Spotify answered {resp.status_code}")
-        if resp.status_code == 204 or not resp.content:
-            return None  # nothing playing, or a write that has no answer
+        if method != "GET" or resp.status_code == 204 or not resp.content:
+            # Nothing playing, or a write: Spotify answers those with 200, 202 or
+            # 204 and a body that may be empty or not JSON at all; the hub reads
+            # what changed from the player afterwards.
+            return None
         return resp.json()
 
     async def cached(self, cfg: dict[str, Any], store: Store, name: str, path: str,
