@@ -32,6 +32,11 @@ TEST_D = int(
     "d2563696449912efb6016debe56877660921284c6407bb4968c700588af2210638cd6e377cbf47c1", 16)
 
 
+@pytest.fixture(autouse=True)
+def tables(store):
+    laundry.ensure_tables(store)
+
+
 def unpad(cipher: bytes) -> bytes:
     block = pow(int.from_bytes(cipher, "big"), TEST_D, TEST_N).to_bytes(128, "big")
     assert block[:2] == b"\x00\x02" and 0 not in block[2:10]
@@ -234,6 +239,26 @@ def test_the_login_sends_no_shared_gmid(store):
     assert len(sent) == 2 and not any("gmid" in body for body in sent)
 
 
+def test_a_restart_reuses_the_stored_token(store):
+    cloud = ConnectLife([washer()])
+    collect(store, cloud)
+
+    restarted = laundry.Client(transport=cloud.transport())
+    collect(store, cloud, restarted, NOW + timedelta(hours=1))
+
+    assert sum(1 for s in cloud.seen if s.endswith("/accounts.login")) == 1
+    assert restarted.token_until == NOW + laundry.TOKEN_FOR
+
+
+def test_a_restart_logs_in_again_once_the_stored_token_has_expired(store):
+    cloud = ConnectLife([washer()])
+    collect(store, cloud)
+
+    collect(store, cloud, now=NOW + laundry.TOKEN_FOR + timedelta(minutes=1))
+
+    assert sum(1 for s in cloud.seen if s.endswith("/accounts.login")) == 2
+
+
 def test_a_refused_status_logs_in_again_once(store):
     cloud = ConnectLife([washer(machine_status=2, Selected_program_remaining_time_in_minutes=40)])
     client = laundry.Client(transport=cloud.transport())
@@ -299,6 +324,27 @@ def test_after_a_refused_login_it_waits_longer_each_time_before_trying_again(sto
     cloud.refusing = False
     assert attempt(45) == "ok"
     assert client.pause == laundry.LOGIN_PAUSE and client.paused_until is None
+
+
+def test_a_login_pause_survives_a_restart(store):
+    class Refusing(ConnectLife):
+        def transport(self):
+            def handler(request):
+                self.seen.append(request.url.path)
+                return httpx.Response(200, json={"errorCode": 403048})
+
+            return httpx.MockTransport(handler)
+
+    cloud = Refusing([])
+    with pytest.raises(laundry.ConnectLifeError, match="login refused"):
+        collect(store, cloud)
+
+    restarted = laundry.Client(transport=cloud.transport())
+    with pytest.raises(laundry.ConnectLifeError, match="paused until 08:15 UTC"):
+        collect(store, cloud, restarted, NOW + timedelta(minutes=1))
+
+    assert cloud.seen == ["/accounts.login"]
+    assert restarted.pause == laundry.LOGIN_PAUSE * 2
 
 
 def test_switched_off_without_an_account():

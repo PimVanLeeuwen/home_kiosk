@@ -84,6 +84,7 @@ async def lifespan(app: FastAPI):
     my_sites.ensure_tables(app.state.store)
     agenda.ensure_tables(app.state.store)
     apple.ensure_tables(app.state.store)
+    laundry.ensure_tables(app.state.store)
     spotify.ensure_tables(app.state.store)
     # A favourite can wake the living room Apple TV and open Spotify on it.
     music.wake = apple_tv.wake_spotify

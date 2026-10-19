@@ -43,6 +43,16 @@ TOKEN_FOR = timedelta(hours=12)
 LOGIN_PAUSE = timedelta(minutes=15)
 LOGIN_PAUSE_MAX = timedelta(hours=2)
 
+TABLES = """
+CREATE TABLE IF NOT EXISTS connectlife_auth (
+    id            INTEGER PRIMARY KEY CHECK (id = 1),
+    access_token  TEXT,
+    token_until   TEXT,
+    paused_until  TEXT,
+    pause_seconds INTEGER NOT NULL
+);
+"""
+
 # The ConnectLife app's own public identifiers, as in the MIT reference: the same
 # in every copy of the app, not secrets of ours (hence gitleaks:allow; see
 # .gitleaksignore for the commit that added them).
@@ -162,6 +172,14 @@ def signed(params: dict[str, Any], key: tuple[int, int] | None = None) -> dict[s
     return params | {"sign": base64.b64encode(cipher).decode()}
 
 
+def _iso(when: datetime | None) -> str | None:
+    return when.isoformat() if when else None
+
+
+def _when(text: str | None) -> datetime | None:
+    return datetime.fromisoformat(text) if text else None
+
+
 # --- the ConnectLife conversation ------------------------------------------------------
 
 
@@ -169,8 +187,15 @@ class ConnectLifeError(Exception):
     """A refusal with a reason fit for the log, without the account or tokens."""
 
 
+def ensure_tables(store: Store) -> None:
+    with store.connect() as conn:
+        conn.executescript(TABLES)
+
+
 class Client:
-    """Logs in once and reuses the token until it stops working."""
+    """Logs in once and reuses the token until it stops working. The token and
+    a login pause are kept in SQLite, so a restart neither logs in again nor
+    forgets a pause."""
 
     def __init__(self, transport: httpx.AsyncBaseTransport | None = None) -> None:
         self.transport = transport  # for tests
@@ -178,6 +203,32 @@ class Client:
         self.token_until: datetime | None = None
         self.pause = LOGIN_PAUSE
         self.paused_until: datetime | None = None
+        self.loaded = False
+
+    def _state(self) -> tuple[Any, ...]:
+        return (self.token, _iso(self.token_until), _iso(self.paused_until),
+                int(self.pause.total_seconds()))
+
+    def _load(self, store: Store) -> None:
+        if self.loaded:
+            return
+        with store.connect() as conn:
+            row = conn.execute("SELECT access_token, token_until, paused_until, pause_seconds "
+                               "FROM connectlife_auth WHERE id = 1").fetchone()
+        if row:
+            self.token, self.token_until = row["access_token"], _when(row["token_until"])
+            self.paused_until = _when(row["paused_until"])
+            self.pause = timedelta(seconds=row["pause_seconds"])
+        self.loaded = True
+
+    def _save(self, store: Store) -> None:
+        with store.connect() as conn:
+            conn.execute(
+                "INSERT INTO connectlife_auth (id, access_token, token_until, paused_until, "
+                "pause_seconds) VALUES (1, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET "
+                "access_token = excluded.access_token, token_until = excluded.token_until, "
+                "paused_until = excluded.paused_until, pause_seconds = excluded.pause_seconds",
+                self._state())
 
     async def _fresh_token(self, http: httpx.AsyncClient, user: str, password: str,
                            now: datetime) -> str:
@@ -228,10 +279,13 @@ class Client:
             raise ConnectLifeError(f"status refused (result {answer.get('resultCode')})")
         return answer["deviceList"]
 
-    async def devices(self, user: str, password: str, now: datetime) -> list[dict[str, Any]]:
+    async def devices(self, store: Store, user: str, password: str,
+                      now: datetime) -> list[dict[str, Any]]:
         """Every failure comes out as a ConnectLifeError naming the step only:
         httpx's own errors carry the request address, and for the status call
         that holds the access token, so they must not reach the log."""
+        self._load(store)
+        before = self._state()
         try:
             return await self._devices(user, password, now)
         except ConnectLifeError:
@@ -243,6 +297,9 @@ class Client:
             raise ConnectLifeError(f"{type(exc).__name__} talking to ConnectLife") from None
         except ValueError:
             raise ConnectLifeError("an answer that is not JSON") from None
+        finally:
+            if self._state() != before:
+                self._save(store)
 
     async def _devices(self, user: str, password: str, now: datetime) -> list[dict[str, Any]]:
         async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS, headers=UA,
@@ -352,7 +409,7 @@ async def collect(cfg: dict[str, Any], store: Store, now: datetime | None = None
     cached, flagged stale."""
     s = settings(cfg)
     now = now or datetime.now(UTC)
-    devices = await (client or CLIENT).devices(s["username"], s["password"], now)
+    devices = await (client or CLIENT).devices(store, s["username"], s["password"], now)
     before = {m["id"]: m for m in (store.get_cache(CACHE_KEY) or {}).get("machines") or []}
     machines = []
     for device in devices:
