@@ -28,7 +28,8 @@ void app_main(void)
     ESP_ERROR_CHECK(bsp_display_start() != NULL ? ESP_OK : ESP_FAIL);
     ESP_ERROR_CHECK(bsp_display_backlight_on());
     ESP_ERROR_CHECK(bsp_display_brightness_set(BRIGHTNESS));
-    ESP_ERROR_CHECK(bsp_display_lock(0) ? ESP_OK : ESP_ERR_TIMEOUT);
+    /* Wait for LVGL's first frame: with this board package 0 means "do not wait". */
+    ESP_ERROR_CHECK(bsp_display_lock(5000) ? ESP_OK : ESP_ERR_TIMEOUT);
     screen_clock_create(lv_screen_active());
     bsp_display_unlock();
 

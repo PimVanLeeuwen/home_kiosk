@@ -159,3 +159,8 @@ python3 dashboard/serve.py
 - UGREEN's desktop app runs "Sync Space", which is Syncthing (`syncspace_pro`): it opens TCP
   ports on the router through UPnP. UPnP is off on the router since 2026-10-09; the
   `exposure-scan` workflow catches it if something opens a port again.
+- ConnectLife's Gigya login answers 403048 when it rate-limits ("Api rate limit exceeded"),
+  and the Laundry card then hides on stale data. Never send a `gmid` copied from a reference
+  client (everyone shares it), and keep logins rare: the hub renews with the refresh token and
+  keeps tokens and the login pause in SQLite (`connectlife_auth`). The reason is in the
+  collector log (Dozzle, :8081), not in `/api/laundry`.
