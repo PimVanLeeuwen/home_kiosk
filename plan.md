@@ -468,8 +468,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   coordinates are sent), fetched every 30 minutes for today and tomorrow. `/api/desk/now` carries
   it ready to draw: today from 06:00 to midnight, tomorrow from 20:00, a two-part sentence (rain
   likely from 50 %, a chance of showers from 30 %, else the warmest hour), high and low, sunrise
-  and sunset. The panel turns between the clock and the day view every 10 seconds; a
-  touch holds the screen for a minute. The chart is drawn once per answer into a canvas: drawn
+  and sunset. The panel turns between the clock and the day view every 15 seconds (10 at first;
+  longer at the owner's request, to read it); a touch holds the screen for a minute. The chart is drawn once per answer into a canvas: drawn
   live, LVGL repeated hundreds of shapes for every strip of every frame and stalled.
   Changed 2026-10-19 at the owner's request: the panels show their picture a quarter turn to the
   right, so the USB ports sit at the top in the printed cases (touch turned with it); the turn

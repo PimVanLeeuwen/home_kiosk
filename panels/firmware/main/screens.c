@@ -1,4 +1,4 @@
-/* The rotation between a panel's screens (plan.md M16): every 10 s, held for a
+/* The rotation between a panel's screens (plan.md M16): every 15 s, held for a
  * minute after a touch. A screen the hub has nothing for yet is skipped. Only
  * the Now panel's two screens so far.
  *
@@ -16,7 +16,7 @@
 #include "screen_clock.h"
 #include "screen_day.h"
 
-#define TURN_MS 10000
+#define TURN_MS 15000
 #define HOLD_MS 60000
 #define DIM_MS 250
 

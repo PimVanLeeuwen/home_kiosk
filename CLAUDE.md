@@ -154,6 +154,9 @@ python3 dashboard/serve.py
 - Take panel screenshots with `panels/tools/shot.py`, not photos: opening the port restarts the
   panel on macOS, and the script waits for the hub's answer. Never switch logging off on the panel
   from a task (it locked up core 0).
+- LVGL on the panels: hundreds of shapes in one layer stall its task queue (watchdog), and a
+  crossfade runs at about 6 fps. Draw busy charts once into a canvas (or paint pixels directly)
+  and switch screens with the backlight dip in `screens.c`.
 - GitHub's "Re-run jobs" repeats a run on its original commit; after fixing a workflow, start a
   new run (Run workflow) instead.
 - UGREEN's desktop app runs "Sync Space", which is Syncthing (`syncspace_pro`): it opens TCP
