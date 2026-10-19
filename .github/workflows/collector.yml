@@ -78,10 +78,38 @@ jobs:
           path: e2e/test-results/
           retention-days: 7
 
+  panels:
+    # The desk panels' firmware (panels/firmware), for every board: no Wi-Fi
+    # details in it, as it ships in the public dashboard image (each board keeps
+    # its network from its first USB flash). Its version is git's hash of the
+    # firmware folder, so the boards only update when the firmware changed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build
+        run: |
+          version=$(git rev-parse --short HEAD:panels/firmware)
+          docker run --rm -e PANEL_VERSION="$version" -v "$PWD/panels/firmware":/project -w /project \
+            espressif/idf:v5.5.6 idf.py build
+          mkdir -p panels/dist
+          cp panels/firmware/build/desk_panel.bin panels/dist/firmware.bin
+          size=$(stat -c %s panels/dist/firmware.bin)
+          printf '{"version": "%s", "size": %s}\n' "$version" "$size" > panels/dist/firmware.json
+          cat panels/dist/firmware.json
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: panel-firmware
+          path: |
+            panels/dist/firmware.bin
+            panels/dist/firmware.json
+          retention-days: 7
+
   image:
     # Only publish from main; pull requests get the checks alone.
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: [lint, test, web, e2e]
+    needs: [lint, test, web, e2e, panels]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -104,6 +132,11 @@ jobs:
             pimvanleeuwen/home-kiosk-collector:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: panel-firmware
+          path: panels/dist
 
       # Context is the repo root: the image builds web/ and also needs
       # dashboard/ and the Caddyfile, which live in different directories.

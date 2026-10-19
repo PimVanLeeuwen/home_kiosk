@@ -109,17 +109,21 @@ cd e2e && npm ci && npx playwright test
 ## Desk panels (firmware)
 
 The three ESP32-P4 panels run `panels/firmware` (ESP-IDF v5.5, LVGL 9, Waveshare's board
-package). It is built in Espressif's Docker image and flashed from the Mac with esptool, over the
-board's **UART** USB-C port with a data cable.
+package). Each board is flashed **once** from the Mac over its **UART** USB-C port with a data
+cable, with a build that carries the Wi-Fi details: the board saves them in its own storage.
+After that it updates over Wi-Fi: CI builds the firmware (without Wi-Fi details) into the
+dashboard image, the hub serves it under `/panels/`, and a board with a different version
+installs it between 04:00 and 05:00 and restarts. A new firmware that cannot reach the hub
+within 5 minutes goes back to the previous one by itself.
 
 ```bash
 # once: esptool for flashing; the Wi-Fi details in an untracked file
 cd panels && python3 -m venv .venv && .venv/bin/pip install esptool==5.6.0
 cp firmware/sdkconfig.secrets.example firmware/sdkconfig.secrets   # then fill it in
 
-# build
-# (PANEL_VERSION: the firmware version the board reports to the hub, the commit)
-cd panels/firmware && docker run --rm --platform linux/amd64 -e PANEL_VERSION=$(git rev-parse --short HEAD) \
+# build (PANEL_VERSION: the version the board reports and compares with the hub's;
+# CI uses git's hash of panels/firmware, so a push that leaves it alone changes nothing)
+cd panels/firmware && docker run --rm --platform linux/amd64 -e PANEL_VERSION=dev \
   -v "$PWD":/project -w /project espressif/idf:v5.5.6 idf.py build
 
 # before the first flash of a board: its chip revision, and a backup of the factory flash
@@ -138,6 +142,9 @@ cd panels/firmware/build && ../../.venv/bin/esptool --chip esp32p4 --port /dev/c
 panels/.venv/bin/pip install pillow==12.3.0   # once
 panels/.venv/bin/python panels/tools/shot.py /dev/cu.usbmodem… screen.png [1]
 
+# install the hub's firmware now instead of at night ("update" on the console)
+panels/.venv/bin/python panels/tools/update.py /dev/cu.usbmodem…
+
 # the panel fonts: Instrument Sans as LVGL bitmap fonts (writes firmware/main/fonts/*.c)
 cd panels/firmware/fonts && ./make-fonts.sh
 ```
@@ -151,7 +158,8 @@ the hub under Settings, Desk panels.
 
 The boards have an ESP32-P4 **v1.3**: the firmware is built for revisions below 3.0, and a build
 for v3.x chips does not boot on them (nor the other way round). Wi-Fi goes through the ESP32-C6,
-which keeps its factory ESP-Hosted image.
+which keeps its factory ESP-Hosted image (0.0.0): the firmware keeps ESP-Hosted's packet buffers
+in internal RAM and uses its streaming receive, as that old image needs.
 
 ## Deploying
 

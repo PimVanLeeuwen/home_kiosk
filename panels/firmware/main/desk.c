@@ -19,6 +19,7 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "net.h"
+#include "update.h"
 #include "sdkconfig.h"
 
 static const char *TAG = "desk";
@@ -198,7 +199,7 @@ static void desk_task(void *arg)
              esp_app_get_description()->version);
     char *body = malloc(BODY_MAX);
     for (;;) {
-        if (net_state().connected) {
+        if (net_state().connected && !update_busy()) {
             esp_http_client_config_t config = {.url = url, .timeout_ms = 5000};
             esp_http_client_handle_t client = esp_http_client_init(&config);
             int status = 0, length = 0;
@@ -216,6 +217,7 @@ static void desk_task(void *arg)
             net_note_hub(status);
             if (status == 200) {
                 apply(body);
+                update_hub_answered();
             } else {
                 ESP_LOGW(TAG, "hub answered %d", status);
             }

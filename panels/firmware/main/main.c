@@ -12,6 +12,7 @@
 #include "net.h"
 #include "nvs_flash.h"
 #include "screens.h"
+#include "update.h"
 #include "sdkconfig.h"
 
 static const char *TAG = "panel";
@@ -45,5 +46,6 @@ void app_main(void)
     ESP_LOGI(TAG, "board %s starting, firmware %s", desk_mac(), esp_app_get_description()->version);
     net_start();
     desk_start();
+    update_start();
     devshot_start();
 }

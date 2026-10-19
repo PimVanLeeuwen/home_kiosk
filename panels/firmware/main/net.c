@@ -1,5 +1,10 @@
 /* Wi-Fi through the ESP32-C6 with ESP-Hosted (the esp_wifi API is the same).
- * The hub is asked in desk.c, which reports its answers here. */
+ * The hub is asked in desk.c, which reports its answers here.
+ *
+ * The network's name and password live in the board's own storage (NVS), which
+ * updates over Wi-Fi leave alone: a local build that carries them (from the
+ * untracked sdkconfig.secrets) saves them there at its first start, and the
+ * build CI makes for every board carries none, as it ships in a public image. */
 
 #include "net.h"
 
@@ -13,6 +18,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
+#include "nvs.h"
 #include "sdkconfig.h"
 
 static const char *TAG = "net";
@@ -64,6 +70,32 @@ void net_note_hub(int status)
     xSemaphoreGive(lock);
 }
 
+/* The network from this build if it has one (saved for later builds), else
+ * the one saved before. False when the board has never been given one. */
+static bool credentials(wifi_config_t *config)
+{
+    char *ssid = (char *)config->sta.ssid, *password = (char *)config->sta.password;
+    nvs_handle_t nvs;
+    if (nvs_open("wifi", NVS_READWRITE, &nvs) != ESP_OK) {
+        return false;
+    }
+    bool found;
+    if (CONFIG_PANEL_WIFI_SSID[0] != '\0') {
+        strlcpy(ssid, CONFIG_PANEL_WIFI_SSID, sizeof config->sta.ssid);
+        strlcpy(password, CONFIG_PANEL_WIFI_PASSWORD, sizeof config->sta.password);
+        nvs_set_str(nvs, "ssid", ssid);
+        nvs_set_str(nvs, "password", password);
+        nvs_commit(nvs);
+        found = true;
+    } else {
+        size_t ssid_size = sizeof config->sta.ssid, password_size = sizeof config->sta.password;
+        found = nvs_get_str(nvs, "ssid", ssid, &ssid_size) == ESP_OK &&
+                nvs_get_str(nvs, "password", password, &password_size) == ESP_OK;
+    }
+    nvs_close(nvs);
+    return found;
+}
+
 void net_start(void)
 {
     lock = xSemaphoreCreateMutex();
@@ -77,8 +109,11 @@ void net_start(void)
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, on_event, NULL));
 
     wifi_config_t config = {0};
-    strlcpy((char *)config.sta.ssid, CONFIG_PANEL_WIFI_SSID, sizeof config.sta.ssid);
-    strlcpy((char *)config.sta.password, CONFIG_PANEL_WIFI_PASSWORD, sizeof config.sta.password);
+    if (!credentials(&config)) {
+        /* Flash this board once over USB with a build that has sdkconfig.secrets. */
+        ESP_LOGE(TAG, "no Wi-Fi network saved on this board");
+        return;
+    }
     config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &config));

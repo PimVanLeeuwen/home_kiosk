@@ -17,6 +17,15 @@
 		file_server
 	}
 
+	# The desk panels' firmware (panels/firmware/main/update.c): the boards ask
+	# for firmware.json and, at night, firmware.bin. Never cached, and a missing
+	# file is a 404, not the hub's page.
+	handle_path /panels/* {
+		root * /srv/panels
+		header Cache-Control "no-cache"
+		file_server
+	}
+
 	# The phone reading view lived at the root before the hub took it over.
 	redir /read.html /kiosk/read.html permanent
 
