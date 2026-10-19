@@ -20,9 +20,10 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
   commits.
 - **Read-only towards other services**, except the deliberate writes: Readeck (save, archive,
   delete, read progress), Telegram messages, DEGIRO imports into Ghostfolio after you confirm
-  them, and the living room's Hue lights (switch, dim, white). Planned (M17, M18, M20): the Hue
-  plugs, Spotify playback control, and saving a headline to Readeck from a panel. The GitHub
-  mirror only reads from GitHub; it writes to `/volume3/backups/github`.
+  them, the living room's Hue lights (switch, dim, white), Spotify playback (play, pause, skip,
+  volume, move, start a favourite) and waking the living room Apple TV to open Spotify. Planned
+  (M17, M20): the Hue plugs, and saving a headline to Readeck from a panel. The GitHub mirror
+  only reads from GitHub; it writes to `/volume3/backups/github`.
 - Style: see plan.md §1. Dark first, violet accent, mono only for technical values.
 
 ## Architecture
