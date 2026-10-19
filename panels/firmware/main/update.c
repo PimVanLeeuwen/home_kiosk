@@ -6,8 +6,9 @@
  *
  * The bootloader keeps the old slot until the new firmware has reached the hub
  * once (update_hub_answered); one that does not within 5 minutes is rolled
- * back. Every board follows the hub's firmware, bench builds too: "update" on
- * the serial console installs it at once. CI versions the firmware with git's
+ * back. Every board follows the hub's firmware, bench builds too: "Update now"
+ * in the hub (an "update" in the board's answer) or "update" on the serial
+ * console installs it at once. CI versions the firmware with git's
  * hash of panels/firmware, so a push that leaves it alone changes nothing. The image is checked by ESP-IDF (its chip, revision
  * and the SHA-256 it carries); there is no signature: the hub is LAN only. */
 

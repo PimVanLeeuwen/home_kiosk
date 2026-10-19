@@ -338,6 +338,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   1.7 MB download work needed two ESP-Hosted settings for the C6's old factory image: packet
   buffers in internal RAM (DMA from PSRAM refused unaligned 66-byte TCP acknowledgements) and
   the default streaming receive (the C6 sends several packets in one 3 kB transfer).
+  Added 2026-10-19 at the owner's request: "Update to <version>" per board in Settings, Desk
+  panels, when its firmware is not the one the hub offers (the page reads `/panels/firmware.json`
+  itself); the request goes out once with the board's next answer, which installs at once (on
+  the bench: 54 s from the press to the new firmware kept). The night window stays for the rest.
 
 **M17. Home control** (added 2026-10-09)
 - The hub talks to the Hue Bridge's local CLIP v2 API with an application key (created once with

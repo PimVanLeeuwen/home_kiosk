@@ -211,9 +211,34 @@ def test_a_forgotten_board_comes_back_unassigned(store):
 def test_a_visit_updates_last_seen_and_firmware(store):
     desk_boards.ensure_tables(store)
     first = datetime(2026, 10, 19, 10, 0, tzinfo=UTC)
-    desk_boards.check_in(store, MAC, "v1", first)
+    assert desk_boards.check_in(store, MAC, "v1", first).panel is None
     desk_boards.check_in(store, MAC, "v2", first + timedelta(minutes=1))
 
     [board] = desk_boards.boards(store)
     assert board.first_seen == first and board.last_seen == first + timedelta(minutes=1)
     assert board.firmware == "v2"
+
+
+def test_update_now_goes_out_once_with_the_next_answer(store):
+    client = board_client(store)
+    client.get(f"/api/desk/board/{MAC}")
+    assert "update" not in client.get(f"/api/desk/board/{MAC}").json()
+
+    [board] = client.post(f"/api/settings/desk-boards/{MAC}/update", json={}).json()
+
+    assert board["update_requested"] is True
+    assert client.get(f"/api/desk/board/{MAC}").json()["update"] is True
+    assert "update" not in client.get(f"/api/desk/board/{MAC}").json()
+    assert client.get("/api/settings/desk-boards").json()[0]["update_requested"] is False
+    assert client.post("/api/settings/desk-boards/e8:f6:0a:e4:42:ff/update",
+                       json={}).status_code == 404
+
+
+def test_an_older_board_table_gets_the_update_column(store):
+    with store.connect() as conn:
+        conn.execute("CREATE TABLE desk_board (mac TEXT PRIMARY KEY, panel TEXT,"
+                     " first_seen TEXT NOT NULL, last_seen TEXT NOT NULL,"
+                     " firmware TEXT NOT NULL DEFAULT '')")
+    desk_boards.ensure_tables(store)
+    desk_boards.check_in(store, MAC, "v1")
+    assert desk_boards.boards(store)[0].update_requested is False

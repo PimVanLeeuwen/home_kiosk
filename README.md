@@ -142,7 +142,8 @@ cd panels/firmware/build && ../../.venv/bin/esptool --chip esp32p4 --port /dev/c
 panels/.venv/bin/pip install pillow==12.3.0   # once
 panels/.venv/bin/python panels/tools/shot.py /dev/cu.usbmodem… screen.png [1]
 
-# install the hub's firmware now instead of at night ("update" on the console)
+# install the hub's firmware now instead of at night: "Update now" in Settings, Desk panels
+# (within a minute, no cable), or over the cable ("update" on the console)
 panels/.venv/bin/python panels/tools/update.py /dev/cu.usbmodem…
 
 # the panel fonts: Instrument Sans as LVGL bitmap fonts (writes firmware/main/fonts/*.c)

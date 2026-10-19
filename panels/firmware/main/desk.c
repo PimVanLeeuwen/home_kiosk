@@ -116,6 +116,10 @@ static void apply(const char *body)
     }
     const cJSON *time = cJSON_GetObjectItem(root, "time");
     set_time(time);
+    if (cJSON_IsTrue(cJSON_GetObjectItem(root, "update"))) {
+        ESP_LOGI(TAG, "the hub asks to update now");
+        update_now(); /* Settings, Desk panels: Update now */
+    }
 
     desk_clock_t next = {.present = true};
     desk_day_t day = {0};

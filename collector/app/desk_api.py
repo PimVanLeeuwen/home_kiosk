@@ -28,8 +28,11 @@ def board(mac: str, request: Request,
     if not desk_boards.MAC.match(mac):
         raise HTTPException(422, "A board is asked for by its MAC address, like e8:f6:0a:e4:42:b0.")
     store = request.app.state.store
-    panel = desk_boards.check_in(store, mac, firmware)
-    return desk.answer(request.app.state.config, store, panel, board=mac)
+    visit = desk_boards.check_in(store, mac, firmware)
+    answer = desk.answer(request.app.state.config, store, visit.panel, board=mac)
+    if visit.update:
+        answer["update"] = True  # install the hub's firmware now (Settings, Update now)
+    return answer
 
 
 @router.get("/{name}")

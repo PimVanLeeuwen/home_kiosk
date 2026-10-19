@@ -13,5 +13,6 @@ void update_hub_answered(void);
 /* True while a new firmware is written to flash: other network use waits. */
 bool update_busy(void);
 
-/* Check and install now, whatever the hour (devshot's "update"). */
+/* Check and install now, whatever the hour: "update" on the console, or the
+ * hub's "Update now" (Settings, Desk panels). */
 void update_now(void);

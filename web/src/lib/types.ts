@@ -175,6 +175,13 @@ export interface DeskBoard {
   first_seen: string
   last_seen: string
   firmware: string
+  update_requested: boolean
+}
+
+/** The firmware the hub offers the boards (/panels/firmware.json, built by CI). */
+export interface PanelFirmware {
+  version: string
+  size: number
 }
 
 export interface Viewer {

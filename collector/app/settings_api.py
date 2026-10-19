@@ -257,6 +257,14 @@ def assign_desk_board(mac: str, body: BoardPanel, request: Request) -> list[desk
     return desk_boards.boards(store)
 
 
+@router.post("/desk-boards/{mac}/update", dependencies=write)
+def update_desk_board(mac: str, request: Request) -> list[desk_boards.Board]:
+    """Asks the board to install the hub's firmware with its next visit (within 30 s)."""
+    store = _store(request)
+    desk_boards.request_update(store, _known_board(store, mac))
+    return desk_boards.boards(store)
+
+
 @router.delete("/desk-boards/{mac}", dependencies=write)
 def forget_desk_board(mac: str, request: Request) -> list[desk_boards.Board]:
     """Takes a board off the list; it comes back, unassigned, when it asks again."""

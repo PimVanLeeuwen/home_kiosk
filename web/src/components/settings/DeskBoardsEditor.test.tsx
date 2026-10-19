@@ -7,8 +7,8 @@ const NOW = new Date(2026, 9, 19, 15, 0)
 const at = (minutesAgo: number) => new Date(NOW.getTime() - minutesAgo * 60_000).toISOString()
 
 const BOARDS: DeskBoard[] = [
-  { mac: 'e8:f6:0a:e4:42:b0', panel: 'now', first_seen: at(600), last_seen: at(0.5), firmware: 'a1b2c3d' },
-  { mac: 'e8:f6:0a:e4:42:c8', panel: null, first_seen: at(300), last_seen: at(45), firmware: '' },
+  { mac: 'e8:f6:0a:e4:42:b0', panel: 'now', first_seen: at(600), last_seen: at(0.5), firmware: 'a1b2c3d', update_requested: false },
+  { mac: 'e8:f6:0a:e4:42:c8', panel: null, first_seen: at(300), last_seen: at(45), firmware: '', update_requested: false },
 ]
 const URL_B0 = '/api/settings/desk-boards/e8%3Af6%3A0a%3Ae4%3A42%3Ab0'
 const URL_C8 = '/api/settings/desk-boards/e8%3Af6%3A0a%3Ae4%3A42%3Ac8'
@@ -56,6 +56,31 @@ describe('DeskBoardsEditor', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Forget e8:f6:0a:e4:42:c8' }))
     await vi.waitFor(() => expect(screen.queryByText('e8:f6:0a:e4:42:c8')).not.toBeInTheDocument())
+  })
+
+  it('offers an update to a board on other firmware, and says when it is asked', async () => {
+    const fetchMock = stubApi({
+      '/api/settings/desk-boards': BOARDS,
+      '/panels/firmware.json': { version: 'a1b2c3d', size: 1720928 },
+      [`POST ${URL_C8}/update`]: [BOARDS[0], { ...BOARDS[1], update_requested: true }],
+    })
+    render(<DeskBoardsEditor now={NOW} />)
+
+    // The first board runs the offered firmware: nothing to do there.
+    const update = await screen.findByRole('button', { name: 'Update to a1b2c3d' })
+    expect(screen.getAllByRole('button', { name: /Update to/ })).toHaveLength(1)
+    fireEvent.click(update)
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Updating to a1b2c3d at its next visit')
+    expect(screen.queryByRole('button', { name: /Update to/ })).not.toBeInTheDocument()
+    expect(sentBody(fetchMock, 'POST', `${URL_C8}/update`)).toEqual({})
+  })
+
+  it('offers no update while the hub has no firmware', async () => {
+    stubApi({ '/api/settings/desk-boards': BOARDS })
+    render(<DeskBoardsEditor now={NOW} />)
+    await screen.findByText('e8:f6:0a:e4:42:c8')
+    expect(screen.queryByRole('button', { name: /Update to/ })).not.toBeInTheDocument()
   })
 
   it('says why a change did not save', async () => {

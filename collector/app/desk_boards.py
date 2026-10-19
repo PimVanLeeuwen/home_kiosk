@@ -4,7 +4,9 @@ Every board runs the same firmware and only knows its own MAC address (the one
 written on its back). It asks `/api/desk/board/<mac>`; the hub notes when it
 was last seen and with which firmware, and answers with the screens of the
 panel it is assigned to in Settings → Desk panels. Each panel has at most one
-board: assigning a panel takes it from the board that had it.
+board: assigning a panel takes it from the board that had it. "Update now" in
+Settings asks a board to install the hub's firmware at once: the flag goes out
+with its next answer, once.
 """
 
 from __future__ import annotations
@@ -26,7 +28,8 @@ CREATE TABLE IF NOT EXISTS desk_board (
     panel      TEXT,              -- now, home, house, test; NULL until assigned
     first_seen TEXT NOT NULL,
     last_seen  TEXT NOT NULL,
-    firmware   TEXT NOT NULL DEFAULT ''
+    firmware   TEXT NOT NULL DEFAULT '',
+    update_requested INTEGER NOT NULL DEFAULT 0
 );
 """
 
@@ -37,15 +40,25 @@ class Board(BaseModel):
     first_seen: datetime
     last_seen: datetime
     firmware: str
+    update_requested: bool = False
 
 
 def ensure_tables(store: Store) -> None:
     with store.connect() as conn:
         conn.executescript(TABLES)
+        columns = {r["name"] for r in conn.execute("PRAGMA table_info(desk_board)")}
+        if "update_requested" not in columns:  # added after the table shipped
+            conn.execute("ALTER TABLE desk_board"
+                         " ADD COLUMN update_requested INTEGER NOT NULL DEFAULT 0")
 
 
-def check_in(store: Store, mac: str, firmware: str, now: datetime | None = None) -> Panel | None:
-    """Notes the board's visit and returns its panel, if it has one."""
+class Visit(BaseModel):
+    panel: Panel | None
+    update: bool  # install the hub's firmware now
+
+
+def check_in(store: Store, mac: str, firmware: str, now: datetime | None = None) -> Visit:
+    """Notes the board's visit: its panel, and whether to update now (asked once)."""
     at = (now or datetime.now(UTC)).isoformat()
     with store.connect() as conn:
         conn.execute(
@@ -53,8 +66,11 @@ def check_in(store: Store, mac: str, firmware: str, now: datetime | None = None)
             " ON CONFLICT (mac) DO UPDATE SET last_seen = excluded.last_seen,"
             " firmware = excluded.firmware",
             (mac, at, at, firmware[:40]))
-        row = conn.execute("SELECT panel FROM desk_board WHERE mac = ?", (mac,)).fetchone()
-    return row["panel"]
+        row = conn.execute("SELECT panel, update_requested FROM desk_board WHERE mac = ?",
+                           (mac,)).fetchone()
+        if row["update_requested"]:
+            conn.execute("UPDATE desk_board SET update_requested = 0 WHERE mac = ?", (mac,))
+    return Visit(panel=row["panel"], update=bool(row["update_requested"]))
 
 
 def boards(store: Store) -> list[Board]:
@@ -77,3 +93,8 @@ def assign(store: Store, mac: str, panel: Panel | None) -> bool:
 def forget(store: Store, mac: str) -> None:
     with store.connect() as conn:
         conn.execute("DELETE FROM desk_board WHERE mac = ?", (mac,))
+
+
+def request_update(store: Store, mac: str) -> None:
+    with store.connect() as conn:
+        conn.execute("UPDATE desk_board SET update_requested = 1 WHERE mac = ?", (mac,))
