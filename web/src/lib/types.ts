@@ -166,6 +166,17 @@ export interface CalendarInfo {
   shown: boolean
 }
 
+export type DeskPanel = 'now' | 'home' | 'house' | 'test'
+
+/** A desk panel board that has asked the hub (Settings → Desk panels). */
+export interface DeskBoard {
+  mac: string
+  panel: DeskPanel | null
+  first_seen: string
+  last_seen: string
+  firmware: string
+}
+
 export interface Viewer {
   /** Tracearr's username. */
   name: string

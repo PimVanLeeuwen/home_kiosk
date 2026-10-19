@@ -109,3 +109,22 @@ test('switches a calendar off in Settings', async ({ page }) => {
   await gewis.click()
   await expect(gewis).toHaveAttribute('aria-checked', 'false')
 })
+
+test('assigns a desk panel board in Settings', async ({ page }) => {
+  const seen = new Date(Date.now() - 20_000).toISOString()
+  const board = { mac: 'e8:f6:0a:e4:42:b0', panel: null, first_seen: seen, last_seen: seen, firmware: 'a1b2c3d' }
+  let assigned: unknown
+  await page.route('**/api/settings/desk-boards', (route) => route.fulfill({ json: [board] }))
+  await page.route('**/api/settings/desk-boards/*', (route) => {
+    assigned = route.request().postDataJSON()
+    return route.fulfill({ json: [{ ...board, panel: 'now' }] })
+  })
+
+  await page.goto('/settings#desk-panels')
+  const panel = page.getByRole('group', { name: 'Panel for e8:f6:0a:e4:42:b0' })
+  await expect(page.getByText('Online')).toBeVisible()
+  await panel.getByRole('button', { name: 'Now' }).click()
+
+  await expect(panel.getByRole('button', { name: 'Now' })).toHaveAttribute('aria-pressed', 'true')
+  expect(assigned).toEqual({ panel: 'now' })
+})

@@ -8,6 +8,7 @@
 /* The clock screen's values from /api/desk/<name>, ready to draw. */
 typedef struct {
     bool present;          /* the hub has answered at least once */
+    bool listed;           /* the clock is one of this panel's screens */
     bool stale;            /* the hub's weather is old */
     uint32_t version;      /* changes with every new answer */
     int utc_offset;        /* seconds east of UTC, now */
@@ -42,7 +43,21 @@ typedef struct {
     char credit[24];
 } desk_day_t;
 
+/* A board's own screen: its MAC and what to do (no panel yet, or a panel
+ * without screens yet). */
+typedef struct {
+    bool listed;
+    uint32_t version;
+    char mac[18];
+    char title[40];
+    char hint[80];
+} desk_board_t;
+
 /* Asks the hub every 30 s once Wi-Fi is up; sets the system clock from it. */
 void desk_start(void);
 desk_clock_t desk_clock(void);
 desk_day_t desk_day(void);
+desk_board_t desk_board(void);
+
+/* This board's MAC address, "e8:f6:0a:e4:42:b0", as written on its back. */
+const char *desk_mac(void);

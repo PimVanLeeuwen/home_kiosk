@@ -19,7 +19,16 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, HttpUrl
 
-from . import config, desk_api, exposure_api, lights_api, music_api, scheduler, settings_api
+from . import (
+    config,
+    desk_api,
+    desk_boards,
+    exposure_api,
+    lights_api,
+    music_api,
+    scheduler,
+    settings_api,
+)
 from .alerts import api as alerts_api
 from .alerts import bot as alert_bot
 from .alerts import core as alerts_core
@@ -83,6 +92,7 @@ async def lifespan(app: FastAPI):
     ups.ensure_tables(app.state.store)
     my_sites.ensure_tables(app.state.store)
     agenda.ensure_tables(app.state.store)
+    desk_boards.ensure_tables(app.state.store)
     apple.ensure_tables(app.state.store)
     laundry.ensure_tables(app.state.store)
     spotify.ensure_tables(app.state.store)

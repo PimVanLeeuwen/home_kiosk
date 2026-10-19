@@ -142,13 +142,31 @@ SCREENS = {"now": (clock_screen, day_screen), "home": (), "house": (),
            "test": (clock_screen, day_screen)}
 
 
-def answer(cfg: dict[str, Any], store: Store, name: str,
-           now: datetime | None = None) -> dict[str, Any]:
+def board_screen(mac: str, title: str, hint: str) -> dict[str, Any]:
+    """A board's own screen: its MAC address (as written on its back) and what
+    to do, for a board without a panel or a panel without screens yet."""
+    return {"kind": "board", "stale": False, "mac": mac, "title": title, "hint": hint}
+
+
+UNASSIGNED = ("Which panel is this?", "Choose it in the hub: Settings, Desk panels.")
+
+
+def answer(cfg: dict[str, Any], store: Store, name: str | None,
+           now: datetime | None = None, board: str | None = None) -> dict[str, Any]:
+    """The screens of panel `name`. A board (asking by its MAC) without a panel
+    gets the screen that asks to assign it; one whose panel has no screens yet,
+    a screen that says so."""
     zone = ZoneInfo(cfg.get("timezone", "UTC"))
     now = now or datetime.now(UTC)
-    screens = [make(store, zone, now) for make in SCREENS[name]]
+    screens = [make(store, zone, now) for make in SCREENS[name]] if name else []
+    if board and name is None:
+        screens = [board_screen(board, *UNASSIGNED)]
+    elif board and not screens:
+        later = "Its screens come in a later update."
+        screens = [board_screen(board, f"{name.title()} panel", later)]
     return {
         "name": name,
+        "board": board,
         "as_of": now.isoformat(),
         "stale": any(s["stale"] for s in screens),
         # The panel's clock: seconds since 1970 (UTC) and the local offset now.

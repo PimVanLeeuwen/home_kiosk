@@ -318,6 +318,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   real screen the hub's dark `#101014` looks grey (IPS glow): panel screens use true black and a
   lower default brightness (since 2026-10-19: full brightness, the owner's choice; one board's
   backlight stayed off at 40 %). Next: the angles and the board's depth and USB-C position, then the real `/api/desk` layouts and screens.
+  Built 2026-10-19 (telling the boards apart; decided 2026-10-19: chosen in the hub's Settings,
+  not config.yaml): every board runs the same build and asks `/api/desk/board/<MAC>?firmware=<commit>`
+  every 30 s with the chip's own MAC (as written on its back). The hub keeps each board's last
+  visit and firmware (`desk_board`) and answers with its panel's screens; Settings, Desk panels
+  lists the boards (online when seen in the last two minutes) and assigns Now, Home, House or
+  Test, one board per panel, or forgets a board. A board without a panel shows "Which panel is
+  this?" with its MAC, a panel without screens yet says so; a change reaches the board within
+  30 s, without a restart. `/api/desk/<name>` still answers by name.
 
 **M17. Home control** (added 2026-10-09)
 - The hub talks to the Hue Bridge's local CLIP v2 API with an application key (created once with

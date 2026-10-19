@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 from fastapi.testclient import TestClient
 
-from app import desk, main
+from app import desk, desk_boards, main
 
 ZONE = ZoneInfo("Europe/Amsterdam")
 NOW = datetime(2026, 10, 19, 5, 0, tzinfo=UTC)  # 07:00 in Amsterdam, summer time
@@ -121,3 +121,99 @@ def test_the_route_and_its_panel_names(store):
     assert client.get("/api/desk/test").json()["screens"][0]["kind"] == "clock"
     assert client.get("/api/desk/home").json()["screens"] == []
     assert client.get("/api/desk/kitchen").status_code == 422
+
+
+MAC = "e8:f6:0a:e4:42:b0"
+SAME_ORIGIN = {"origin": "http://testserver"}
+
+
+def board_client(store) -> TestClient:
+    main.app.state.store = store
+    main.app.state.config = CFG
+    desk_boards.ensure_tables(store)
+    return TestClient(main.app, headers=SAME_ORIGIN)
+
+
+def test_an_unknown_board_is_noted_and_asked_to_be_assigned(store):
+    client = board_client(store)
+
+    answer = client.get(f"/api/desk/board/{MAC.upper()}", params={"firmware": "v1"}).json()
+
+    assert answer["name"] is None and answer["board"] == MAC
+    assert answer["screens"] == [desk.board_screen(MAC, *desk.UNASSIGNED)]
+    assert "epoch" in answer["time"]
+    [seen] = client.get("/api/settings/desk-boards").json()
+    assert seen["mac"] == MAC and seen["panel"] is None and seen["firmware"] == "v1"
+
+
+def test_an_assigned_board_gets_its_panels_screens(store):
+    client = board_client(store)
+    client.get(f"/api/desk/board/{MAC}")
+
+    boards = client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "now"}).json()
+
+    assert boards[0]["panel"] == "now"
+    answer = client.get(f"/api/desk/board/{MAC}").json()
+    assert answer["name"] == "now"
+    assert [s["kind"] for s in answer["screens"]] == ["clock", "day"]
+
+
+def test_a_panel_without_screens_says_so_on_its_board(store):
+    client = board_client(store)
+    client.get(f"/api/desk/board/{MAC}")
+    client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "house"})
+
+    [screen] = client.get(f"/api/desk/board/{MAC}").json()["screens"]
+
+    assert screen["kind"] == "board" and screen["title"] == "House panel"
+    assert screen["mac"] == MAC
+
+
+def test_a_panel_has_one_board(store):
+    client = board_client(store)
+    other = "e8:f6:0a:e4:42:c8"
+    client.get(f"/api/desk/board/{MAC}")
+    client.get(f"/api/desk/board/{other}")
+    client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "home"})
+
+    boards = client.put(f"/api/settings/desk-boards/{other}", json={"panel": "home"}).json()
+
+    assert {b["mac"]: b["panel"] for b in boards} == {MAC: None, other: "home"}
+    boards = client.put(f"/api/settings/desk-boards/{other}", json={"panel": None}).json()
+    assert {b["mac"]: b["panel"] for b in boards} == {MAC: None, other: None}
+
+
+def test_boards_are_checked_at_the_boundary(store):
+    client = board_client(store)
+    assert client.get("/api/desk/board/not-a-mac").status_code == 422
+    assert client.get(f"/api/desk/board/{MAC}", params={"firmware": "x" * 41}).status_code == 422
+    assert client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "now"}).status_code == 404
+    client.get(f"/api/desk/board/{MAC}")
+    kitchen = client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "kitchen"})
+    assert kitchen.status_code == 422
+    # Another website cannot assign boards from the owner's browser.
+    elsewhere = TestClient(main.app, headers={"origin": "https://example.com"})
+    refused = elsewhere.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "now"})
+    assert refused.status_code == 403
+
+
+def test_a_forgotten_board_comes_back_unassigned(store):
+    client = board_client(store)
+    client.get(f"/api/desk/board/{MAC}")
+    client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "now"})
+
+    assert client.delete(f"/api/settings/desk-boards/{MAC}").json() == []
+
+    assert client.get(f"/api/desk/board/{MAC}").json()["name"] is None
+    assert client.get("/api/settings/desk-boards").json()[0]["panel"] is None
+
+
+def test_a_visit_updates_last_seen_and_firmware(store):
+    desk_boards.ensure_tables(store)
+    first = datetime(2026, 10, 19, 10, 0, tzinfo=UTC)
+    desk_boards.check_in(store, MAC, "v1", first)
+    desk_boards.check_in(store, MAC, "v2", first + timedelta(minutes=1))
+
+    [board] = desk_boards.boards(store)
+    assert board.first_seen == first and board.last_seen == first + timedelta(minutes=1)
+    assert board.firmware == "v2"

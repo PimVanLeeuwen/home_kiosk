@@ -1,4 +1,5 @@
-/* The hub's answer for this panel: GET /api/desk/<name> every 30 s. It also
+/* The hub's answer for this board: GET /api/desk/board/<MAC>?firmware=<version>
+ * every 30 s; the hub knows which panel the board is. It also
  * carries the hub's time, so the panel never contacts the internet: the clock
  * is set from it whenever it is off by more than a second. */
 
@@ -10,6 +11,8 @@
 #include <sys/time.h>
 
 #include "cJSON.h"
+#include "esp_app_desc.h"
+#include "esp_mac.h"
 #include "esp_http_client.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
@@ -21,6 +24,8 @@
 static const char *TAG = "desk";
 static desk_clock_t clock_state;
 static desk_day_t day_state;
+static desk_board_t board_state;
+static char mac_text[18];
 static SemaphoreHandle_t lock;
 
 #define BODY_MAX 4096
@@ -48,6 +53,30 @@ desk_day_t desk_day(void)
     copy = day_state;
     xSemaphoreGive(lock);
     return copy;
+}
+
+desk_board_t desk_board(void)
+{
+    desk_board_t copy = {0};
+    if (lock == NULL) {
+        return copy;
+    }
+    xSemaphoreTake(lock, portMAX_DELAY);
+    copy = board_state;
+    xSemaphoreGive(lock);
+    return copy;
+}
+
+const char *desk_mac(void)
+{
+    if (mac_text[0] == '\0') {
+        /* The chip's own address (esptool prints it too), not the Wi-Fi chip's. */
+        uint8_t mac[6] = {0};
+        esp_efuse_mac_get_default(mac);
+        snprintf(mac_text, sizeof mac_text, "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3],
+                 mac[4], mac[5]);
+    }
+    return mac_text;
 }
 
 static int number(const cJSON *from, int otherwise)
@@ -89,6 +118,7 @@ static void apply(const char *body)
 
     desk_clock_t next = {.present = true};
     desk_day_t day = {0};
+    desk_board_t board = {0};
     const cJSON *offset = cJSON_GetObjectItem(time, "utc_offset");
     next.utc_offset = cJSON_IsNumber(offset) ? offset->valueint : 0;
 
@@ -96,6 +126,13 @@ static void apply(const char *body)
     cJSON_ArrayForEach(screen, cJSON_GetObjectItem(root, "screens"))
     {
         const cJSON *kind = cJSON_GetObjectItem(screen, "kind");
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "board") == 0) {
+            board.listed = true;
+            copy_string(board.mac, sizeof board.mac, cJSON_GetObjectItem(screen, "mac"));
+            copy_string(board.title, sizeof board.title, cJSON_GetObjectItem(screen, "title"));
+            copy_string(board.hint, sizeof board.hint, cJSON_GetObjectItem(screen, "hint"));
+            continue;
+        }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "day") == 0) {
             day.present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
             day.stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
@@ -124,6 +161,7 @@ static void apply(const char *body)
         if (!cJSON_IsString(kind) || strcmp(kind->valuestring, "clock") != 0) {
             continue;
         }
+        next.listed = true;
         next.stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
         next.wet = cJSON_IsTrue(cJSON_GetObjectItem(screen, "wet"));
         copy_string(next.place, sizeof next.place, cJSON_GetObjectItem(screen, "place"));
@@ -148,13 +186,16 @@ static void apply(const char *body)
     clock_state = next;
     day.version = day_state.version + 1;
     day_state = day;
+    board.version = board_state.version + 1;
+    board_state = board;
     xSemaphoreGive(lock);
 }
 
 static void desk_task(void *arg)
 {
-    char url[160];
-    snprintf(url, sizeof url, "%s/api/desk/%s", CONFIG_PANEL_HUB_URL, CONFIG_PANEL_NAME);
+    char url[200];
+    snprintf(url, sizeof url, "%s/api/desk/board/%s?firmware=%s", CONFIG_PANEL_HUB_URL, desk_mac(),
+             esp_app_get_description()->version);
     char *body = malloc(BODY_MAX);
     for (;;) {
         if (net_state().connected) {

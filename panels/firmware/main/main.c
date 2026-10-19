@@ -1,10 +1,12 @@
-/* The desk panels' firmware (plan.md M16). For now the Now panel's two
- * screens: the clock with the next two hours of rain, and the day view
- * (plan.md M20). */
+/* The desk panels' firmware (plan.md M16): one build for every board; the hub
+ * says which panel a board is. Screens so far: the Now panel's clock with the
+ * next two hours of rain and its day view (plan.md M20), and the board's own
+ * screen. */
 
 #include "bsp/display.h"
 #include "bsp/esp-bsp.h"
 #include "desk.h"
+#include "esp_app_desc.h"
 #include "devshot.h"
 #include "esp_log.h"
 #include "net.h"
@@ -40,7 +42,7 @@ void app_main(void)
     screens_start();
     bsp_display_unlock();
 
-    ESP_LOGI(TAG, "panel %s starting", CONFIG_PANEL_NAME);
+    ESP_LOGI(TAG, "board %s starting, firmware %s", desk_mac(), esp_app_get_description()->version);
     net_start();
     desk_start();
     devshot_start();

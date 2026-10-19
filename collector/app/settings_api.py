@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from . import desk_boards
 from .models import Service
 from .security import same_origin_json
 from .sources import agenda, widgets
@@ -230,3 +231,35 @@ def show_calendar(calendar_id: str, body: CalendarShown,
         raise HTTPException(404, "No such calendar.")
     agenda.set_shown(store, calendar_id, body.shown)
     return agenda.calendar_list(store)
+
+
+class BoardPanel(BaseModel):
+    panel: desk_boards.Panel | None
+
+
+def _known_board(store: Store, mac: str) -> str:
+    mac = mac.lower()
+    if mac not in {b.mac for b in desk_boards.boards(store)}:
+        raise HTTPException(404, "No such board: it appears here after it has asked the hub once.")
+    return mac
+
+
+@router.get("/desk-boards")
+def desk_board_list(request: Request) -> list[desk_boards.Board]:
+    """Every board that has asked the hub, with its panel."""
+    return desk_boards.boards(_store(request))
+
+
+@router.put("/desk-boards/{mac}", dependencies=write)
+def assign_desk_board(mac: str, body: BoardPanel, request: Request) -> list[desk_boards.Board]:
+    store = _store(request)
+    desk_boards.assign(store, _known_board(store, mac), body.panel)
+    return desk_boards.boards(store)
+
+
+@router.delete("/desk-boards/{mac}", dependencies=write)
+def forget_desk_board(mac: str, request: Request) -> list[desk_boards.Board]:
+    """Takes a board off the list; it comes back, unassigned, when it asks again."""
+    store = _store(request)
+    desk_boards.forget(store, _known_board(store, mac))
+    return desk_boards.boards(store)

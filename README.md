@@ -118,8 +118,9 @@ cd panels && python3 -m venv .venv && .venv/bin/pip install esptool==5.6.0
 cp firmware/sdkconfig.secrets.example firmware/sdkconfig.secrets   # then fill it in
 
 # build
-cd panels/firmware && docker run --rm --platform linux/amd64 -v "$PWD":/project -w /project \
-  espressif/idf:v5.5.6 idf.py build
+# (PANEL_VERSION: the firmware version the board reports to the hub, the commit)
+cd panels/firmware && docker run --rm --platform linux/amd64 -e PANEL_VERSION=$(git rev-parse --short HEAD) \
+  -v "$PWD":/project -w /project espressif/idf:v5.5.6 idf.py build
 
 # before the first flash of a board: its chip revision, and a backup of the factory flash
 # (2 MB at a time: long reads over this link break off)
@@ -143,6 +144,10 @@ cd panels/firmware/fonts && ./make-fonts.sh
 
 The panel's console (logs, screenshots) runs at **921600 baud**; only the boot ROM's first lines
 are at 115200. The glows are alpha-only images from `firmware/images/make-glows.py`.
+
+Every board runs the same build and asks the hub by its MAC address (the one esptool prints,
+written on its back). A new board shows "Which panel is this?" with its MAC; choose its panel in
+the hub under Settings, Desk panels.
 
 The boards have an ESP32-P4 **v1.3**: the firmware is built for revisions below 3.0, and a build
 for v3.x chips does not boot on them (nor the other way round). Wi-Fi goes through the ESP32-C6,

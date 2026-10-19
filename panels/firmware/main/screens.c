@@ -1,6 +1,7 @@
 /* The rotation between a panel's screens (plan.md M16): every 15 s, held for a
- * minute after a touch. A screen the hub has nothing for yet is skipped. Only
- * the Now panel's two screens so far.
+ * minute after a touch. The panel shows the screens the hub lists for it (the
+ * board's own screen alone when it has no panel yet); a screen the hub has
+ * nothing for yet is skipped, and one the hub no longer lists is left at once.
  *
  * The turn dips through black with the backlight: down, the next screen swapped
  * in while it is dark, up again once that screen is drawn. A crossfade made
@@ -13,6 +14,7 @@
 #include "bsp/esp-bsp.h"
 #include "desk.h"
 #include "lvgl.h"
+#include "screen_board.h"
 #include "screen_clock.h"
 #include "screen_day.h"
 
@@ -20,7 +22,7 @@
 #define HOLD_MS 60000
 #define DIM_MS 250
 
-enum { CLOCK, DAY, COUNT };
+enum { CLOCK, DAY, BOARD, COUNT };
 
 static lv_obj_t *screens[COUNT];
 static int current = CLOCK, coming = -1; /* coming: the screen being turned to */
@@ -30,7 +32,14 @@ static bool waiting; /* for the new screen to be drawn */
 
 static bool ready(int which)
 {
-    return which != DAY || desk_day().present;
+    switch (which) {
+    case CLOCK: /* also before the hub has answered: the time is the panel's own */
+        return !desk_clock().present || desk_clock().listed;
+    case DAY:
+        return desk_day().present;
+    default:
+        return desk_board().listed;
+    }
 }
 
 static void set_light(void *unused, int32_t percent)
@@ -86,6 +95,14 @@ static void advance(void)
     }
 }
 
+/* The hub changed this board's screens: leave one it no longer lists. */
+static void check(lv_timer_t *timer)
+{
+    if (coming < 0 && !ready(current)) {
+        advance();
+    }
+}
+
 static void turn(lv_timer_t *timer)
 {
     if (touched && lv_tick_elaps(touched_at) < HOLD_MS) {
@@ -116,11 +133,14 @@ void screens_start(void)
 {
     screens[CLOCK] = lv_screen_active();
     screens[DAY] = lv_obj_create(NULL);
+    screens[BOARD] = lv_obj_create(NULL);
     screen_clock_create(screens[CLOCK]);
     screen_day_create(screens[DAY]);
+    screen_board_create(screens[BOARD]);
     for (int i = 0; i < COUNT; i++) {
         lv_obj_add_event_cb(screens[i], on_touch, LV_EVENT_PRESSED, NULL);
     }
     lv_display_add_event_cb(lv_display_get_default(), drawn, LV_EVENT_REFR_READY, NULL);
     lv_timer_create(turn, TURN_MS, NULL);
+    lv_timer_create(check, 1000, NULL);
 }
