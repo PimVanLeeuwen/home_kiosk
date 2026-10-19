@@ -102,9 +102,3 @@ def test_a_train_nss_planner_lost(store):
     assert (s["status"], s["tone"]) == ("Not in NS's planner", "down")
     assert s["gone"] is True and s["leaves_at"] is None
 
-
-def test_text_is_kept_to_what_the_panel_fonts_hold():
-    from app.desk_train import latin1
-    text = "Utrecht \u2013 Amsterdam \u2018werk\u2019\u2026 caf\u00e9"
-    assert latin1(text) == "Utrecht - Amsterdam 'werk'... caf\u00e9"
-    assert latin1("\u2192 Zwolle") == "? Zwolle"

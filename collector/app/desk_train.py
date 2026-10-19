@@ -15,18 +15,11 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from .models import Train, TrainRun
+from .panel_text import latin1
 from .sources import ns
 from .store import Store
 
 MAX_STOPS = 6
-# The panel fonts hold Latin-1 only (panels/firmware/fonts); NS writes dashes and quotes.
-PLAIN = str.maketrans({"\u2013": "-", "\u2014": "-", "\u2018": "'", "\u2019": "'",
-                       "\u201c": '"', "\u201d": '"', "\u2026": "...", "\u00a0": " "})
-
-
-def latin1(text: str) -> str:
-    return text.translate(PLAIN).encode("latin-1", "replace").decode("latin-1")
-
 
 def _hm(at: datetime | None, zone: ZoneInfo) -> str:
     return at.astimezone(zone).strftime("%H:%M") if at else ""

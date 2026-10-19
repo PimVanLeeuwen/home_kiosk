@@ -29,7 +29,7 @@ def open_link(port: str) -> serial.Serial:
     link.port, link.dtr, link.rts = port, False, False
     link.open()
     # On macOS opening the port resets the panel all the same: wait until it has
-    # the hub's answer (its "clock set" line), or for a quiet moment if it did not.
+    # the hub's answer (its "clock set" line), or for a long quiet moment if it did not.
     started, quiet_since = time.time(), time.time()
     while time.time() - started < 30:
         line = link.readline()
@@ -38,7 +38,7 @@ def open_link(port: str) -> serial.Serial:
             if b"clock set from the hub" in line:
                 time.sleep(2)  # let the screen draw the answer
                 break
-        elif time.time() - quiet_since > 3:
+        elif time.time() - quiet_since > 10:  # Wi-Fi retries can leave the log quiet for seconds
             break
     return link
 

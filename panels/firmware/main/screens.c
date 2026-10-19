@@ -15,6 +15,7 @@
 #include "bsp/esp-bsp.h"
 #include "desk.h"
 #include "lvgl.h"
+#include "screen_agenda.h"
 #include "screen_board.h"
 #include "screen_clock.h"
 #include "screen_day.h"
@@ -25,7 +26,7 @@
 #define HOLD_MS 60000
 #define DIM_MS 250
 
-enum { CLOCK, TRAIN, DAY, BOARD, START, COUNT };
+enum { CLOCK, TRAIN, AGENDA, DAY, BOARD, START, COUNT };
 
 static lv_obj_t *screens[COUNT];
 static int current = START, coming = -1; /* coming: the screen being turned to */
@@ -41,9 +42,11 @@ static bool ready(int which)
     case CLOCK:
         return desk_clock().listed;
     case TRAIN:
-        return desk_train().present;
+        return desk_has_train();
+    case AGENDA:
+        return desk_has_agenda();
     case DAY:
-        return desk_day().present;
+        return desk_has_day();
     default:
         return desk_board().listed;
     }
@@ -141,10 +144,12 @@ void screens_start(void)
     screens[START] = lv_screen_active();
     screens[CLOCK] = lv_obj_create(NULL);
     screens[TRAIN] = lv_obj_create(NULL);
+    screens[AGENDA] = lv_obj_create(NULL);
     screens[DAY] = lv_obj_create(NULL);
     screens[BOARD] = lv_obj_create(NULL);
     screen_clock_create(screens[CLOCK]);
     screen_train_create(screens[TRAIN]);
+    screen_agenda_create(screens[AGENDA]);
     screen_day_create(screens[DAY]);
     screen_board_create(screens[BOARD]);
     screen_start_create(screens[START]);

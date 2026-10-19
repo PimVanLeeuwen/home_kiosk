@@ -4,9 +4,11 @@
  * is set from it whenever it is off by more than a second. */
 
 #include "desk.h"
+#include "esp_attr.h"
 
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
 
@@ -23,10 +25,12 @@
 #include "sdkconfig.h"
 
 static const char *TAG = "desk";
-static desk_clock_t clock_state;
-static desk_day_t day_state;
-static desk_board_t board_state;
-static desk_train_t train_state;
+/* The hub's latest answer, in PSRAM: internal RAM is for the Wi-Fi buffers. */
+EXT_RAM_BSS_ATTR static desk_clock_t clock_state;
+EXT_RAM_BSS_ATTR static desk_day_t day_state;
+EXT_RAM_BSS_ATTR static desk_board_t board_state;
+EXT_RAM_BSS_ATTR static desk_train_t train_state;
+EXT_RAM_BSS_ATTR static desk_agenda_t agenda_state;
 static char mac_text[18];
 static SemaphoreHandle_t lock;
 
@@ -70,6 +74,7 @@ desk_board_t desk_board(void)
 }
 
 static void copy_string(char *to, size_t size, const cJSON *from);
+static int number(const cJSON *from, int otherwise);
 
 desk_train_t desk_train(void)
 {
@@ -81,6 +86,92 @@ desk_train_t desk_train(void)
     copy = train_state;
     xSemaphoreGive(lock);
     return copy;
+}
+
+desk_agenda_t desk_agenda(void)
+{
+    desk_agenda_t copy = {0};
+    if (lock == NULL) {
+        return copy;
+    }
+    xSemaphoreTake(lock, portMAX_DELAY);
+    copy = agenda_state;
+    xSemaphoreGive(lock);
+    return copy;
+}
+
+static bool has(const bool *present)
+{
+    if (lock == NULL) {
+        return false;
+    }
+    xSemaphoreTake(lock, portMAX_DELAY);
+    bool yes = *present;
+    xSemaphoreGive(lock);
+    return yes;
+}
+
+bool desk_has_day(void)
+{
+    return has(&day_state.present);
+}
+
+bool desk_has_train(void)
+{
+    return has(&train_state.present);
+}
+
+bool desk_has_agenda(void)
+{
+    return has(&agenda_state.present);
+}
+
+/* "#ff8d28" as 0xff8d28; the hub's violet when missing. */
+static uint32_t colour(const cJSON *from)
+{
+    if (!cJSON_IsString(from) || from->valuestring[0] != '#') {
+        return 0x8f80ff;
+    }
+    return (uint32_t)strtoul(from->valuestring + 1, NULL, 16);
+}
+
+static void parse_agenda(const cJSON *screen, desk_agenda_t *agenda)
+{
+    const cJSON *item;
+    agenda->present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
+    agenda->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
+    if (!agenda->present) {
+        return;
+    }
+    copy_string(agenda->title, sizeof agenda->title, cJSON_GetObjectItem(screen, "title"));
+    copy_string(agenda->count, sizeof agenda->count, cJSON_GetObjectItem(screen, "count"));
+    cJSON_ArrayForEach(item, cJSON_GetObjectItem(screen, "events"))
+    {
+        if (agenda->event_count == DESK_AGENDA_EVENTS) {
+            break;
+        }
+        typeof(agenda->events[0]) *e = &agenda->events[agenda->event_count++];
+        copy_string(e->title, sizeof e->title, cJSON_GetObjectItem(item, "title"));
+        copy_string(e->calendar, sizeof e->calendar, cJSON_GetObjectItem(item, "calendar"));
+        e->color = colour(cJSON_GetObjectItem(item, "color"));
+        const cJSON *at = cJSON_GetObjectItem(item, "start_at");
+        e->start_at = cJSON_IsNumber(at) ? (int64_t)at->valuedouble : 0;
+        at = cJSON_GetObjectItem(item, "end_at");
+        e->end_at = cJSON_IsNumber(at) ? (int64_t)at->valuedouble : e->start_at;
+        e->start_minute = number(cJSON_GetObjectItem(item, "start_minute"), 0);
+        e->end_minute = number(cJSON_GetObjectItem(item, "end_minute"), e->start_minute);
+        copy_string(e->start, sizeof e->start, cJSON_GetObjectItem(item, "start"));
+        copy_string(e->end, sizeof e->end, cJSON_GetObjectItem(item, "end"));
+    }
+    cJSON_ArrayForEach(item, cJSON_GetObjectItem(screen, "all_day"))
+    {
+        if (agenda->all_day_count == DESK_AGENDA_ALL_DAY) {
+            break;
+        }
+        int i = agenda->all_day_count++;
+        copy_string(agenda->all_day[i].title, sizeof agenda->all_day[i].title, cJSON_GetObjectItem(item, "title"));
+        agenda->all_day[i].color = colour(cJSON_GetObjectItem(item, "color"));
+    }
 }
 
 static void parse_train(const cJSON *screen, desk_train_t *train)
@@ -187,7 +278,12 @@ static void apply(const char *body)
     desk_clock_t next = {.present = true};
     desk_day_t day = {0};
     desk_board_t board = {0};
-    desk_train_t train = {0};
+    /* Built here, then copied in under the lock; static (only this task parses)
+     * and in PSRAM, as the calendar alone is about 2 kB. */
+    EXT_RAM_BSS_ATTR static desk_train_t train;
+    EXT_RAM_BSS_ATTR static desk_agenda_t agenda;
+    memset(&train, 0, sizeof train);
+    memset(&agenda, 0, sizeof agenda);
     const cJSON *offset = cJSON_GetObjectItem(time, "utc_offset");
     next.utc_offset = cJSON_IsNumber(offset) ? offset->valueint : 0;
 
@@ -195,6 +291,10 @@ static void apply(const char *body)
     cJSON_ArrayForEach(screen, cJSON_GetObjectItem(root, "screens"))
     {
         const cJSON *kind = cJSON_GetObjectItem(screen, "kind");
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "agenda") == 0) {
+            parse_agenda(screen, &agenda);
+            continue;
+        }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "train") == 0) {
             parse_train(screen, &train);
             continue;
@@ -259,6 +359,8 @@ static void apply(const char *body)
     clock_state = next;
     day.version = day_state.version + 1;
     day_state = day;
+    agenda.version = agenda_state.version + 1;
+    agenda_state = agenda;
     train.version = train_state.version + 1;
     train_state = train;
     board.version = board_state.version + 1;

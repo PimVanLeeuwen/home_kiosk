@@ -13,6 +13,7 @@
 #include <sys/time.h>
 
 #include "desk.h"
+#include "esp_attr.h"
 #include "lvgl.h"
 
 LV_FONT_DECLARE(instrument_time);
@@ -32,7 +33,7 @@ static const uint32_t TONES[] = {0x5fd39c, 0xf0bd5a, 0xff6b6b}; /* up, warn, dow
 
 static lv_obj_t *glow, *title, *column, *time_was, *time_now, *status, *sub_row, *sub, *platform_was, *platform;
 static lv_obj_t *ring, *ring_number, *ring_label, *box, *box_label, *box_main, *box_more, *route;
-static desk_train_t shown;
+EXT_RAM_BSS_ATTR static desk_train_t shown;
 static int shown_minutes = -2;
 
 static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
@@ -190,7 +191,8 @@ static void place(void)
 
 static void tick(lv_timer_t *timer)
 {
-    desk_train_t now = desk_train();
+    EXT_RAM_BSS_ATTR static desk_train_t now; /* off the LVGL task's small stack */
+    now = desk_train();
     bool changed = now.version != shown.version;
     if (changed) {
         shown = now;

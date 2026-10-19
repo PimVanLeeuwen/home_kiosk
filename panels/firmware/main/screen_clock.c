@@ -11,6 +11,7 @@
 #include <time.h>
 
 #include "desk.h"
+#include "esp_attr.h"
 #include "lvgl.h"
 
 LV_FONT_DECLARE(instrument_clock);
@@ -30,7 +31,7 @@ LV_IMAGE_DECLARE(glow_round);
 #define WET_MM 0.1f
 
 static lv_obj_t *ring, *clock_label, *temperature, *weather, *place, *date, *rain_line, *sky;
-static desk_clock_t shown;
+EXT_RAM_BSS_ATTR static desk_clock_t shown;
 static int shown_minute = -1;
 static int shown_hour = -1;
 

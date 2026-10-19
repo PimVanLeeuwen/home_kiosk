@@ -574,6 +574,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   2026-10-14). Subscription addresses stay in memory only, never logged or served; event titles
   never logged. A Today card first on Home and a Calendars section in Settings with a switch per
   calendar (mockup `docs/hub-calendar-mockup.html`).
+  Built 2026-10-19 (panel): the Now panel's calendar screen, after the train in the rotation and
+  shown on a day with events, as in the panel mockup: the event under way ("Now · Work", minutes
+  left) or the next one ("Next · Hubble", minutes to go) large, its ring and light in its
+  calendar's colour; the all-day events as chips; the day from 07:00 to 23:00 as a ribbon with
+  the now line (past events faded); then the later events, or "Nothing more today". The hub sends
+  the events ready to draw (`app/desk_agenda.py`; an event from an earlier day starts at
+  midnight; names kept to Latin-1, an emoji is left out), the panel picks now or next on its own
+  clock. Building it ran the board out of internal RAM at start-up (ESP-Hosted's packet pools
+  live there since the update fix): the screens' data now sits in PSRAM, and the panel logs the
+  internal RAM left at start-up (about 100 kB).
 - **Headlines** (Now): the top stories from the News reader (M6): the lead story full-bleed over
   its image (proxied by the hub) with the source as a badge, then two more with thumbnails; tap
   one to save it to Readeck, and its bookmark fills.

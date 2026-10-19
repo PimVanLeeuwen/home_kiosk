@@ -1,12 +1,14 @@
 /* The desk panels' firmware (plan.md M16): one build for every board; the hub
  * says which panel a board is. Screens so far: the Now panel's clock with the
- * next two hours of rain, the morning train and the day view (plan.md M20),
- * the board's own screen, and the start-up screen until the hub has answered. */
+ * next two hours of rain, the morning train, today's calendar and the day view
+ * (plan.md M20), the board's own screen, and the start-up screen until the hub
+ * has answered. */
 
 #include "bsp/display.h"
 #include "bsp/esp-bsp.h"
 #include "desk.h"
 #include "esp_app_desc.h"
+#include "esp_heap_caps.h"
 #include "devshot.h"
 #include "esp_log.h"
 #include "net.h"
@@ -16,6 +18,7 @@
 #include "sdkconfig.h"
 
 static const char *TAG = "panel";
+
 
 void app_main(void)
 {
@@ -44,6 +47,10 @@ void app_main(void)
     bsp_display_unlock();
 
     ESP_LOGI(TAG, "board %s starting, firmware %s", desk_mac(), esp_app_get_description()->version);
+    /* Internal RAM is the scarce kind here (Wi-Fi buffers, task stacks): keep an eye on it. */
+    ESP_LOGI(TAG, "internal RAM free %u kB, largest block %u kB",
+             (unsigned)(heap_caps_get_free_size(MALLOC_CAP_INTERNAL) / 1024),
+             (unsigned)(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024));
     net_start();
     desk_start();
     update_start();

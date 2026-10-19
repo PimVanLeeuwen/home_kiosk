@@ -60,6 +60,10 @@ CONFIG_ESP_HOSTED_P4_DEV_BOARD_FUNC_BOARD=y
 # from the PSRAM pool (ESP_ERR_INVALID_ARG), which broke the link on any larger
 # download (a firmware update) and restarted the board.
 CONFIG_ESP_HOSTED_MEMPOOL_PREFER_SPIRAM=n
+# That puts ESP-Hosted's packet pools in the scarce internal RAM, which ran out at
+# start-up once the screens grew: the screens' own data goes to PSRAM instead
+# (EXT_RAM_BSS_ATTR). Keep large statics there; main.c logs the internal RAM left.
+CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY=y
 # The C6's factory ESP-Hosted image is old (it reports 0.0.0). It sends several
 # packets in one transfer (3012 bytes during a download), so the host must use
 # the default streaming receive; plain receive refuses anything above 1536 bytes

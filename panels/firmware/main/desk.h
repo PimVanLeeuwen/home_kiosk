@@ -77,6 +77,32 @@ typedef struct {
     char notice_text[160];
 } desk_train_t;
 
+#define DESK_AGENDA_EVENTS 12
+#define DESK_AGENDA_ALL_DAY 3
+
+/* The Now panel's calendar screen: today's events (app/desk_agenda.py). */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[40];          /* "Today · Mon 19 Oct" */
+    char count[16];          /* "5 events" */
+    int event_count;
+    struct {
+        char title[64];
+        char calendar[40];
+        uint32_t color;      /* 0xrrggbb, the calendar's */
+        int64_t start_at, end_at;      /* seconds since 1970 */
+        int start_minute, end_minute;  /* local, for the ribbon */
+        char start[6], end[6];         /* "09:30"; start "" when it began on an earlier day */
+    } events[DESK_AGENDA_EVENTS];
+    int all_day_count;
+    struct {
+        char title[64];
+        uint32_t color;
+    } all_day[DESK_AGENDA_ALL_DAY];
+} desk_agenda_t;
+
 /* A board's own screen: its MAC and what to do (no panel yet, or a panel
  * without screens yet). */
 typedef struct {
@@ -93,6 +119,14 @@ desk_clock_t desk_clock(void);
 desk_day_t desk_day(void);
 desk_board_t desk_board(void);
 desk_train_t desk_train(void);
+desk_agenda_t desk_agenda(void);
+
+/* Whether the hub's answer has each screen, without copying its values: the
+ * rotation asks every second, and some states are kilobytes (too much to copy
+ * onto a task's stack). */
+bool desk_has_day(void);
+bool desk_has_train(void);
+bool desk_has_agenda(void);
 
 /* This board's MAC address, "e8:f6:0a:e4:42:b0", as written on its back. */
 const char *desk_mac(void);

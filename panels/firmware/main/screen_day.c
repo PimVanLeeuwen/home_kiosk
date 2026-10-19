@@ -18,6 +18,7 @@
 #include <time.h>
 
 #include "desk.h"
+#include "esp_attr.h"
 #include "lvgl.h"
 
 LV_FONT_DECLARE(instrument_40);
@@ -41,7 +42,7 @@ LV_IMAGE_DECLARE(glow_round);
 #define CANVAS_HEIGHT 420
 
 static lv_obj_t *canvas, *now_line, *title, *range, *lead, *rest, *sun_times, *credit, *sun, *sun_glow, *moon, *moon_shadow;
-static desk_day_t shown;
+EXT_RAM_BSS_ATTR static desk_day_t shown;
 static int shown_minute = -1;
 static int now_minute = -1; /* local, on this panel's clock; -1 before it is set */
 
@@ -152,7 +153,7 @@ static void curve(int *ys_out, float *labels_y)
 static void draw_chart(lv_draw_buf_t *buf)
 {
     float sunrise = shown.sunrise_minute / 60.0f, sunset = shown.sunset_minute / 60.0f;
-    static int ys[WIDTH];
+    EXT_RAM_BSS_ATTR static int ys[WIDTH];
     float points[DESK_DAY_POINTS];
     curve(ys, points);
 
