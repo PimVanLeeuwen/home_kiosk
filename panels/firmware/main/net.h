@@ -1,0 +1,17 @@
+#pragma once
+
+#include <stdbool.h>
+
+/* What the network side knows, for the screen. Written by the Wi-Fi and hub
+ * tasks, read by the screen once a second; small enough to copy whole. */
+typedef struct {
+    bool connected;
+    char ip[16];
+    int rssi;             /* dBm, 0 when not connected */
+    int hub_status;       /* HTTP status of the last /api/desk call, 0 before the first */
+    char hub_note[64];    /* a short line about that answer */
+    int disconnects;
+} net_state_t;
+
+void net_start(void);
+net_state_t net_state(void);

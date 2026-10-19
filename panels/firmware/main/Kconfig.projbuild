@@ -1,0 +1,16 @@
+menu "Desk panel"
+    config PANEL_NAME
+        string "Panel name (now, home or house)"
+        default "test"
+        help
+            Which panel this is; it asks the hub for /api/desk/<name>.
+    config PANEL_HUB_URL
+        string "Hub address"
+        default "http://192.168.1.10:8083"
+    config PANEL_WIFI_SSID
+        string "Wi-Fi network"
+        default ""
+    config PANEL_WIFI_PASSWORD
+        string "Wi-Fi password"
+        default ""
+endmenu
