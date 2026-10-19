@@ -157,6 +157,10 @@ python3 dashboard/serve.py
 - LVGL on the panels: hundreds of shapes in one layer stall its task queue (watchdog), and a
   crossfade runs at about 6 fps. Draw busy charts once into a canvas (or paint pixels directly)
   and switch screens with the backlight dip in `screens.c`.
+- The panels' ESP32-C6 runs its old factory ESP-Hosted image: keep
+  `CONFIG_ESP_HOSTED_MEMPOOL_PREFER_SPIRAM=n` and the streaming SDIO receive, or any larger
+  transfer (a firmware update) breaks the Wi-Fi link. A changed `sdkconfig.defaults` does not
+  reach an existing `sdkconfig`: move that aside so the build regenerates it.
 - GitHub's "Re-run jobs" repeats a run on its original commit; after fixing a workflow, start a
   new run (Run workflow) instead.
 - UGREEN's desktop app runs "Sync Space", which is Syncthing (`syncspace_pro`): it opens TCP
