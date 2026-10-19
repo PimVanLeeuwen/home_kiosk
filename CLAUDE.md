@@ -145,6 +145,12 @@ python3 dashboard/serve.py
   (`new Date(2026, 9, 6, 10, 2)`), never from `...Z` strings.
 - The collector image only builds for linux/amd64 (as CI does): pyatv's miniaudio has no Linux
   arm64 wheel for Python 3.14, so on an Apple silicon Mac use `docker build --platform linux/amd64`.
+- The panels' ESP32-P4 is revision v1.3, not the v3.x Waveshare's defaults assume: keep
+  `CONFIG_ESP32P4_SELECTS_REV_LESS_V3=y` and 200 MHz PSRAM; a v3.x build does not boot on them.
+  Check every new board with `esptool flash-id` first.
+- Flash the panels over the UART USB-C port at 460800 baud; read their flash in 2 MB pieces, as
+  one long read breaks off with serial noise.
+- On the panels' IPS screens the hub's `#101014` looks grey: panel screens use true black.
 - GitHub's "Re-run jobs" repeats a run on its original commit; after fixing a workflow, start a
   new run (Run workflow) instead.
 - UGREEN's desktop app runs "Sync Space", which is Syncthing (`syncspace_pro`): it opens TCP
