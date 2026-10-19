@@ -458,6 +458,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   2026-10-19: bitmap fonts converted once from Google's OFL TTF, `panels/firmware/fonts`). The
   C6's old ESP-Hosted image dropped the SDIO link on a few-kB answer: plain receive mode at
   20 MHz is stable. `panels/tools/shot.py` takes exact screenshots over the serial console.
+  Refined 2026-10-19 at the owner's request: the sky light from the top in the colour of the time
+  of day (night deep blue, dawn rose, day violet, dusk warm: the Home glow's colours, stronger), a
+  soft violet glow behind the time, the header in small spaced capitals, the temperature in white
+  beside the softer description. The display runs in 24-bit colour (RGB888): in 16-bit the soft
+  glows showed visible bands. The console runs at 921600 baud for the larger screenshots.
 - **Laundry** (Home, added 2026-10-12): the washer and dryer (ConnectLife app) as two portholes:
   water turning inside while a machine runs, a ring counting down, the program and when it will
   be ready; a finished machine glows green with "Take it out". No Telegram message (decided

@@ -140,6 +140,9 @@ panels/.venv/bin/python panels/tools/shot.py /dev/cu.usbmodem… screen.png
 cd panels/firmware/fonts && ./make-fonts.sh
 ```
 
+The panel's console (logs, screenshots) runs at **921600 baud**; only the boot ROM's first lines
+are at 115200. The glows are alpha-only images from `firmware/images/make-glows.py`.
+
 The boards have an ESP32-P4 **v1.3**: the firmware is built for revisions below 3.0, and a build
 for v3.x chips does not boot on them (nor the other way round). Wi-Fi goes through the ESP32-C6,
 which keeps its factory ESP-Hosted image.
