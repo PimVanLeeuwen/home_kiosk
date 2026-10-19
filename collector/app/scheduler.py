@@ -29,6 +29,7 @@ from .sources import (
     dumps,
     exposure,
     feeds,
+    forecast,
     ghostfolio,
     github,
     github_mirror,
@@ -61,6 +62,7 @@ TAILNET_INTERVAL_SECONDS = 60  # devices come and go; a local socket call
 NEWS_INTERVAL_SECONDS = 600       # §5: feeds every 10 minutes
 HEADLINES_INTERVAL_SECONDS = 300  # local reads; a new story's picture is fetched once
 PORTFOLIO_INTERVAL_SECONDS = 900  # §5: portfolio every 15 minutes
+FORECAST_INTERVAL_SECONDS = 1800  # Open-Meteo's models update hourly
 WEATHER_INTERVAL_SECONDS = 300  # Buienradar's rain forecast moves in 5-minute steps
 EXPOSURE_INTERVAL_SECONDS = 6 * 3600  # a handful of Cloudflare API calls
 OUTSIDE_INTERVAL_SECONDS = 300  # status pages; incidents move in minutes
@@ -373,6 +375,17 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         )
 
     if weather.settings(cfg)["enabled"]:
+        # The day view's hourly forecast (Open-Meteo), for the same place.
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=FORECAST_INTERVAL_SECONDS,
+            args=[store, forecast.CACHE_KEY, lambda: forecast.collect(cfg)],
+            id="forecast",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
         scheduler.add_job(
             _run,
             "interval",

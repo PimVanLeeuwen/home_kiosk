@@ -132,9 +132,10 @@ cd panels/firmware/build && ../../.venv/bin/esptool --chip esp32p4 --port /dev/c
 
 
 # a screenshot of what a panel shows, as a PNG (opening the port restarts the panel;
-# the script waits until it has the hub's answer)
+# the script waits until it has the hub's answer); a last argument of 1, 2, ... turns to a
+# later screen first ("next" on the console), and the screen is held while it is captured
 panels/.venv/bin/pip install pillow==12.3.0   # once
-panels/.venv/bin/python panels/tools/shot.py /dev/cu.usbmodem… screen.png
+panels/.venv/bin/python panels/tools/shot.py /dev/cu.usbmodem… screen.png [1]
 
 # the panel fonts: Instrument Sans as LVGL bitmap fonts (writes firmware/main/fonts/*.c)
 cd panels/firmware/fonts && ./make-fonts.sh

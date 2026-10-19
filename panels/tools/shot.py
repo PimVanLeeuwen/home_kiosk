@@ -1,6 +1,9 @@
 """Save a panel's screen as a PNG over the USB serial console (main/devshot.c).
 
-    panels/.venv/bin/python panels/tools/shot.py /dev/cu.usbmodem… out.png
+    panels/.venv/bin/python panels/tools/shot.py /dev/cu.usbmodem… out.png [screen]
+
+The panel starts on its first screen; `screen` (1, 2, ...) turns to a later one
+first. Either way the screen is held while it is captured.
 
 The panel sends numbered base64 lines, each with a CRC32. Other parts of the
 firmware can print in between and break a line, so the good lines are kept
@@ -60,8 +63,11 @@ def one_transfer(link: serial.Serial, chunks: dict[int, bytes]) -> tuple[int, in
     return header
 
 
-def main(port: str, out: str) -> None:
+def main(port: str, out: str, screen: int = 0) -> None:
     link = open_link(port)
+    # Hold the screen (as a touch does) or turn to the one asked for, then let it fade in.
+    link.write(b"hold\n" if screen == 0 else b"next\n" * screen)
+    time.sleep(1.5)
     # Lines per screen (its header): only transfers of the very same screen are merged.
     seen: dict[tuple[int, int, int, int], dict[int, bytes]] = {}
     header = None
@@ -90,4 +96,4 @@ def main(port: str, out: str) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 0)

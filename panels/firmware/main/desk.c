@@ -20,6 +20,7 @@
 
 static const char *TAG = "desk";
 static desk_clock_t clock_state;
+static desk_day_t day_state;
 static SemaphoreHandle_t lock;
 
 #define BODY_MAX 4096
@@ -35,6 +36,23 @@ desk_clock_t desk_clock(void)
     copy = clock_state;
     xSemaphoreGive(lock);
     return copy;
+}
+
+desk_day_t desk_day(void)
+{
+    desk_day_t copy = {0};
+    if (lock == NULL) {
+        return copy;
+    }
+    xSemaphoreTake(lock, portMAX_DELAY);
+    copy = day_state;
+    xSemaphoreGive(lock);
+    return copy;
+}
+
+static int number(const cJSON *from, int otherwise)
+{
+    return cJSON_IsNumber(from) ? from->valueint : otherwise;
 }
 
 static void copy_string(char *to, size_t size, const cJSON *from)
@@ -70,6 +88,7 @@ static void apply(const char *body)
     set_time(time);
 
     desk_clock_t next = {.present = true};
+    desk_day_t day = {0};
     const cJSON *offset = cJSON_GetObjectItem(time, "utc_offset");
     next.utc_offset = cJSON_IsNumber(offset) ? offset->valueint : 0;
 
@@ -77,6 +96,31 @@ static void apply(const char *body)
     cJSON_ArrayForEach(screen, cJSON_GetObjectItem(root, "screens"))
     {
         const cJSON *kind = cJSON_GetObjectItem(screen, "kind");
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "day") == 0) {
+            day.present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
+            day.stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
+            copy_string(day.title, sizeof day.title, cJSON_GetObjectItem(screen, "title"));
+            copy_string(day.lead, sizeof day.lead, cJSON_GetObjectItem(screen, "lead"));
+            copy_string(day.rest, sizeof day.rest, cJSON_GetObjectItem(screen, "rest"));
+            copy_string(day.sunrise, sizeof day.sunrise, cJSON_GetObjectItem(screen, "sunrise"));
+            copy_string(day.sunset, sizeof day.sunset, cJSON_GetObjectItem(screen, "sunset"));
+            copy_string(day.credit, sizeof day.credit, cJSON_GetObjectItem(screen, "credit"));
+            day.high = number(cJSON_GetObjectItem(screen, "high"), 0);
+            day.low = number(cJSON_GetObjectItem(screen, "low"), 0);
+            day.sunrise_minute = number(cJSON_GetObjectItem(screen, "sunrise_minute"), -1);
+            day.sunset_minute = number(cJSON_GetObjectItem(screen, "sunset_minute"), -1);
+            day.today = cJSON_IsNumber(cJSON_GetObjectItem(screen, "now_minute"));
+            const cJSON *t, *r = cJSON_GetObjectItem(screen, "rain");
+            cJSON_ArrayForEach(t, cJSON_GetObjectItem(screen, "temperatures"))
+            {
+                if (day.count < DESK_DAY_POINTS && cJSON_IsNumber(t)) {
+                    const cJSON *chance = cJSON_GetArrayItem(r, day.count);
+                    day.rain[day.count] = number(chance, 0);
+                    day.temperatures[day.count++] = (float)t->valuedouble;
+                }
+            }
+            continue;
+        }
         if (!cJSON_IsString(kind) || strcmp(kind->valuestring, "clock") != 0) {
             continue;
         }
@@ -102,6 +146,8 @@ static void apply(const char *body)
     xSemaphoreTake(lock, portMAX_DELAY);
     next.version = clock_state.version + 1;
     clock_state = next;
+    day.version = day_state.version + 1;
+    day_state = day;
     xSemaphoreGive(lock);
 }
 

@@ -463,6 +463,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   soft violet glow behind the time, the header in small spaced capitals, the temperature in white
   beside the softer description. The display runs in 24-bit colour (RGB888): in 16-bit the soft
   glows showed visible bands. The console runs at 921600 baud for the larger screenshots.
+  Built 2026-10-19 (panel, the second screen): the day view from Open-Meteo (decided 2026-10-19:
+  free, no key, open data under CC BY 4.0, credited on the screen; only the weather block's
+  coordinates are sent), fetched every 30 minutes for today and tomorrow. `/api/desk/now` carries
+  it ready to draw: today from 06:00 to midnight, tomorrow from 20:00, a two-part sentence (rain
+  likely from 50 %, a chance of showers from 30 %, else the warmest hour), high and low, sunrise
+  and sunset. The panel turns between the clock and the day view every 10 seconds with a fade; a
+  touch holds the screen for a minute. The chart is drawn once per answer into a canvas: drawn
+  live, LVGL repeated hundreds of shapes for every strip of every frame and stalled.
 - **Laundry** (Home, added 2026-10-12): the washer and dryer (ConnectLife app) as two portholes:
   water turning inside while a machine runs, a ring counting down, the program and when it will
   be ready; a finished machine glows green with "Take it out". No Telegram message (decided

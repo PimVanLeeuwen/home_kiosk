@@ -1,4 +1,4 @@
-idf_component_register(SRCS "main.c" "net.c" "desk.c" "screen_clock.c" "devshot.c"
+idf_component_register(SRCS "main.c" "net.c" "desk.c" "screens.c" "screen_clock.c" "screen_day.c" "devshot.c"
                             "fonts/instrument_clock.c" "fonts/instrument_40.c"
                             "fonts/instrument_28_bold.c" "fonts/instrument_24.c"
                             "images/glow_sky.c" "images/glow_round.c"

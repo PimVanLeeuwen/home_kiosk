@@ -3,7 +3,8 @@
  * lines with a checksum each ("L<n> <base64> <crc32>"), between
  * "SHOT <width> <height> <bytes> <lines>" and "END". Other parts of the firmware
  * can print in between, so panels/tools/shot.py keeps the good lines and asks
- * again for the rest. */
+ * again for the rest. "next" turns to the next screen and "hold" keeps the current one for a
+ * minute, to capture each screen. */
 
 #include "devshot.h"
 
@@ -18,6 +19,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "lvgl.h"
+#include "screens.h"
 
 static const char *TAG = "devshot";
 static const char B64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -125,6 +127,11 @@ static void devshot_task(void *arg)
             /* A reset can leave a stray byte in front of it. */
             if (len >= 4 && strcmp(line + len - 4, "shot") == 0) {
                 send_screen();
+            } else if (len >= 4 && strcmp(line + len - 4, "next") == 0 && bsp_display_lock(1000)) {
+                screens_next();
+                bsp_display_unlock();
+            } else if (len >= 4 && strcmp(line + len - 4, "hold") == 0) {
+                screens_hold();
             }
             len = 0;
         } else if (len < sizeof line - 1) {
@@ -137,5 +144,5 @@ void devshot_start(void)
 {
     /* No UART driver: installing one on the console port stalls its output. */
     xTaskCreate(devshot_task, "devshot", 4096, NULL, 2, NULL);
-    ESP_LOGI(TAG, "listening for \"shot\"");
+    ESP_LOGI(TAG, "listening for \"shot\", \"next\" and \"hold\"");
 }

@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from .sources import weather
+from .sources import forecast, weather
 from .store import Store
 
 # Below this Buienradar's forecast is drizzle at most: counted as dry (as on Home).
@@ -66,7 +66,80 @@ def clock_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     }
 
 
-SCREENS = {"now": (clock_screen,), "home": (), "house": (), "test": (clock_screen,)}
+# The day view looks at tomorrow from this hour on.
+TOMORROW_FROM = 20
+LIKELY, MAYBE = 50, 30  # chance of rain, %
+
+
+def day_sentence(hours: list[dict[str, Any]], start: int) -> tuple[str, str]:
+    """Two parts, the first brighter: what the rain does, then the rest."""
+    ahead = [h for h in hours if h["hour"] >= start] or hours
+    likely = [h for h in ahead if h["rain_chance"] >= LIKELY]
+    maybe = [h for h in ahead if h["rain_chance"] >= MAYBE]
+    if likely:
+        first = likely[0]["hour"]
+        end = first
+        while any(h["hour"] == end + 1 and h["rain_chance"] >= LIKELY for h in ahead):
+            end += 1
+        lead = "Rain likely now," if first == start else f"Rain likely from {first:02d}:00,"
+        rest = f"dry again from {end + 1:02d}:00." if end < 23 else "until the end of the day."
+        return lead, rest
+    if maybe:
+        peak = max(maybe, key=lambda h: h["rain_chance"])
+        return (f"A chance of showers around {peak['hour']:02d}:00,",
+                f"{peak['rain_chance']}% at most.")
+    lead = "Dry all day," if start <= 6 else "Dry for the rest of the day,"
+    warmest = max(ahead, key=lambda h: h["temperature"])
+    if warmest["hour"] > start:
+        warm = round(warmest["temperature"])
+        return lead, f"{warm}° at its warmest around {warmest['hour']:02d}:00."
+    coolest = min(ahead, key=lambda h: h["temperature"])
+    return lead, f"cooling to {round(coolest['temperature'])}° tonight."
+
+
+def _minutes(hhmm: str | None) -> int | None:
+    return int(hhmm[:2]) * 60 + int(hhmm[3:5]) if hhmm else None
+
+
+def day_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
+    """The Now panel's day view: the sun's arc over the sky, the temperature from
+    06:00 to midnight and the chance of rain, for today or, late, tomorrow."""
+    f = store.get_cache(forecast.CACHE_KEY) or {}
+    days = f.get("days") or []
+    local = now.astimezone(zone)
+    tomorrow = local.hour >= TOMORROW_FROM and len(days) > 1
+    day = days[1] if tomorrow else (days[0] if days else None)
+    if day is None:
+        return {"kind": "day", "stale": True, "title": "Your day", "present": False}
+    by_hour = {h["hour"]: h for h in day["hours"]}
+    # 06:00 to 24:00: nineteen points, midnight repeating the last hour.
+    points = [by_hour.get(min(h, 23)) or by_hour.get(23) for h in range(6, 25)]
+    points = [p for p in points if p]
+    start = 6 if tomorrow else max(6, local.hour)
+    lead, rest = day_sentence(day["hours"], start)
+    return {
+        "kind": "day",
+        "stale": bool(f.get("stale")),
+        "present": True,
+        "title": "Tomorrow" if tomorrow else "Your day",
+        "high": round(day["high"]),
+        "low": round(day["low"]),
+        "lead": lead,
+        "rest": rest,
+        "temperatures": [round(p["temperature"], 1) for p in points],
+        "rain": [p["rain_chance"] for p in points],
+        "sunrise": day["sunrise"],
+        "sunset": day["sunset"],
+        "sunrise_minute": _minutes(day["sunrise"]),
+        "sunset_minute": _minutes(day["sunset"]),
+        # Where the now line goes; none when the view shows tomorrow.
+        "now_minute": None if tomorrow else local.hour * 60 + local.minute,
+        "credit": "Open-Meteo",
+    }
+
+
+SCREENS = {"now": (clock_screen, day_screen), "home": (), "house": (),
+           "test": (clock_screen, day_screen)}
 
 
 def answer(cfg: dict[str, Any], store: Store, name: str,

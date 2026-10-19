@@ -22,6 +22,27 @@ typedef struct {
     bool wet;
 } desk_clock_t;
 
+#define DESK_DAY_POINTS 19 /* 06:00 to 24:00 */
+
+/* The day view's values: today until 20:00, then tomorrow. */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[16];          /* "Your day" or "Tomorrow" */
+    int high, low;
+    char lead[72];           /* "Rain likely from 14:00," */
+    char rest[72];           /* "dry again from 17:00." */
+    int count;
+    float temperatures[DESK_DAY_POINTS];
+    int rain[DESK_DAY_POINTS]; /* chance, % */
+    char sunrise[6], sunset[6];
+    int sunrise_minute, sunset_minute;
+    bool today;              /* false: tomorrow, so no now line */
+    char credit[24];
+} desk_day_t;
+
 /* Asks the hub every 30 s once Wi-Fi is up; sets the system clock from it. */
 void desk_start(void);
 desk_clock_t desk_clock(void);
+desk_day_t desk_day(void);

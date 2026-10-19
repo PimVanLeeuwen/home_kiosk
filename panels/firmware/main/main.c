@@ -1,5 +1,6 @@
-/* The desk panels' firmware (plan.md M16). For now one screen: the Now
- * panel's clock with the next two hours of rain (plan.md M20). */
+/* The desk panels' firmware (plan.md M16). For now the Now panel's two
+ * screens: the clock with the next two hours of rain, and the day view
+ * (plan.md M20). */
 
 #include "bsp/display.h"
 #include "bsp/esp-bsp.h"
@@ -8,7 +9,7 @@
 #include "esp_log.h"
 #include "net.h"
 #include "nvs_flash.h"
-#include "screen_clock.h"
+#include "screens.h"
 #include "sdkconfig.h"
 
 static const char *TAG = "panel";
@@ -30,7 +31,7 @@ void app_main(void)
     ESP_ERROR_CHECK(bsp_display_brightness_set(BRIGHTNESS));
     /* Wait for LVGL's first frame: with this board package 0 means "do not wait". */
     ESP_ERROR_CHECK(bsp_display_lock(5000) ? ESP_OK : ESP_ERR_TIMEOUT);
-    screen_clock_create(lv_screen_active());
+    screens_start();
     bsp_display_unlock();
 
     ESP_LOGI(TAG, "panel %s starting", CONFIG_PANEL_NAME);
