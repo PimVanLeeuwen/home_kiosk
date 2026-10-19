@@ -22,7 +22,7 @@ LINE = re.compile(r"L(\d+) ([A-Za-z0-9+/]+={0,2}) ([0-9a-f]{8})")
 
 def open_link(port: str) -> serial.Serial:
     # The board's reset and boot pins hang on RTS and DTR: keep both released.
-    link = serial.Serial(None, 115200, timeout=1)
+    link = serial.Serial(None, 921600, timeout=1)
     link.port, link.dtr, link.rts = port, False, False
     link.open()
     # On macOS opening the port resets the panel all the same: wait until it has
@@ -83,10 +83,7 @@ def main(port: str, out: str) -> None:
     if len(raw) != size:
         sys.exit(f"got {len(raw)} of {size} bytes")
     pixels = bytearray()
-    for count, colour in struct.iter_unpack("<HH", raw):
-        r = (colour >> 11) * 255 // 31
-        g = ((colour >> 5) & 63) * 255 // 63
-        b = (colour & 31) * 255 // 31
+    for count, b, g, r in struct.iter_unpack("<HBBB", raw):
         pixels += bytes((r, g, b)) * count
     Image.frombytes("RGB", (width, height), bytes(pixels)).save(out)
     print(f"saved {out} ({width} x {height}, {size} bytes over the wire)")

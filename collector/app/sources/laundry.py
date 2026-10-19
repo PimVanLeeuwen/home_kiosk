@@ -50,8 +50,6 @@ GIGYA = "https://accounts.eu1.gigya.com"
 OAUTH = "https://oauth.hijuconn.com/oauth"
 GATEWAY = "https://clife-eu-gateway.hijuconn.com"
 API_KEY = "4_yhTWQmHFpZkQZDSV1uV-_A"  # gitleaks:allow
-GMID = ("gmid.ver4.AtLt3mZAMA.C8m5VqSTEQDrTRrkYYDgOaJWcyQ-XHow5nzQSXJF3EO3TnqTJ8tKUmQaaQ6z8p0s."
-        "zcTbHe6Ax6lHfvTN7JUj7VgO4x8Vl-vk1u0kZcrkKmKWw8K9r0shyut_at5Q0ri6zTewnAv2g1Dc8dauuyd-Sw.sc3")
 CLIENT_ID = "5065059336212"
 CLIENT_SECRET = "07swfKgvJhC3ydOUS9YV_SwVz0i4LKqlOLGNUukYHVMsJRF1b-iWeUGcNlXyYCeK"  # gitleaks:allow
 REDIRECT = "https://api.connectlife.io/swagger/oauth2-redirect.html"
@@ -197,13 +195,15 @@ class Client:
         return token
 
     async def _login(self, http: httpx.AsyncClient, user: str, password: str) -> str:
+        # No gmid: the one copied from the reference is shared by every copy of it,
+        # the likely reason Gigya answered 403048 ("Api rate limit exceeded").
         login = (await http.post(f"{GIGYA}/accounts.login", data={
-            "loginID": user, "password": password, "APIKey": API_KEY, "gmid": GMID})).json()
+            "loginID": user, "password": password, "APIKey": API_KEY})).json()
         cookie = (login.get("sessionInfo") or {}).get("cookieValue")
         if not cookie:
             raise ConnectLifeError(f"login refused (Gigya {login.get('errorCode')})")
         jwt = (await http.post(f"{GIGYA}/accounts.getJWT", data={
-            "APIKey": API_KEY, "gmid": GMID, "login_token": cookie})).json().get("id_token")
+            "APIKey": API_KEY, "login_token": cookie})).json().get("id_token")
         code = (await http.post(f"{OAUTH}/authorize", json={
             "client_id": CLIENT_ID, "idToken": jwt, "response_type": "code",
             "redirect_uri": REDIRECT, "thirdType": "CDC",

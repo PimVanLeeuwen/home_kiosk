@@ -215,6 +215,25 @@ def test_logs_in_once_and_reuses_the_token(store):
     assert sum(1 for s in cloud.seen if s.endswith("get_device_status_list")) == 2
 
 
+def test_the_login_sends_no_shared_gmid(store):
+    sent = []
+
+    class Recording(ConnectLife):
+        def transport(self):
+            inner = super().transport()
+
+            def handler(request):
+                if request.url.host == "accounts.eu1.gigya.com":
+                    sent.append(request.content.decode())
+                return inner.handle_request(request)
+
+            return httpx.MockTransport(handler)
+
+    collect(store, Recording([washer()]))
+
+    assert len(sent) == 2 and not any("gmid" in body for body in sent)
+
+
 def test_a_refused_status_logs_in_again_once(store):
     cloud = ConnectLife([washer(machine_status=2, Selected_program_remaining_time_in_minutes=40)])
     client = laundry.Client(transport=cloud.transport())

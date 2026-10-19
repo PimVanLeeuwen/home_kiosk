@@ -1,5 +1,5 @@
 /* A developer's screenshot over the USB serial console: type "shot" and the
- * panel answers with its screen, run-length-encoded RGB565, as numbered base64
+ * panel answers with its screen, run-length-encoded RGB888, as numbered base64
  * lines with a checksum each ("L<n> <base64> <crc32>"), between
  * "SHOT <width> <height> <bytes> <lines>" and "END". Other parts of the firmware
  * can print in between, so panels/tools/shot.py keeps the good lines and asks
@@ -37,32 +37,34 @@ static size_t encode(const uint8_t *in, size_t len, char *out)
     return o;
 }
 
-/* Run-length pairs (count, pixel), little-endian, into a PSRAM buffer. */
+/* Run-length groups (count, B, G, R) with a 16-bit little-endian count, into PSRAM. */
 static uint8_t *compress(const lv_draw_buf_t *shot, size_t *size)
 {
     uint32_t w = shot->header.w, h = shot->header.h, stride = shot->header.stride;
-    uint8_t *out = heap_caps_malloc((size_t)w * h * 4, MALLOC_CAP_SPIRAM);
+    uint8_t *out = heap_caps_malloc((size_t)w * h * 5, MALLOC_CAP_SPIRAM);
     if (out == NULL) {
         return NULL;
     }
     size_t n = 0;
-    uint16_t last = 0;
-    uint32_t count = 0;
+    uint32_t last = 0, count = 0;
     for (uint32_t y = 0; y < h; y++) {
-        const uint16_t *row = (const uint16_t *)(shot->data + y * stride);
+        const uint8_t *row = shot->data + y * stride;
         for (uint32_t x = 0; x < w; x++) {
-            if (count && row[x] == last && count < 0xffff) {
+            uint32_t px = row[3 * x] | row[3 * x + 1] << 8 | (uint32_t)row[3 * x + 2] << 16;
+            if (count && px == last && count < 0xffff) {
                 count++;
                 continue;
             }
             if (count) {
-                out[n++] = count & 0xff, out[n++] = count >> 8, out[n++] = last & 0xff, out[n++] = last >> 8;
+                out[n++] = count & 0xff, out[n++] = count >> 8;
+                out[n++] = last & 0xff, out[n++] = (last >> 8) & 0xff, out[n++] = last >> 16;
             }
-            last = row[x];
+            last = px;
             count = 1;
         }
     }
-    out[n++] = count & 0xff, out[n++] = count >> 8, out[n++] = last & 0xff, out[n++] = last >> 8;
+    out[n++] = count & 0xff, out[n++] = count >> 8;
+    out[n++] = last & 0xff, out[n++] = (last >> 8) & 0xff, out[n++] = last >> 16;
     *size = n;
     return out;
 }
@@ -73,7 +75,7 @@ static void send_screen(void)
         ESP_LOGW(TAG, "the screen is busy");
         return;
     }
-    lv_draw_buf_t *shot = lv_snapshot_take(lv_screen_active(), LV_COLOR_FORMAT_RGB565);
+    lv_draw_buf_t *shot = lv_snapshot_take(lv_screen_active(), LV_COLOR_FORMAT_RGB888);
     bsp_display_unlock();
     if (shot == NULL) {
         ESP_LOGW(TAG, "no memory for a snapshot");

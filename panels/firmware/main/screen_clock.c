@@ -17,6 +17,8 @@ LV_FONT_DECLARE(instrument_clock);
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
+LV_IMAGE_DECLARE(glow_sky);
+LV_IMAGE_DECLARE(glow_round);
 
 #define CX 360
 #define CY 356
@@ -27,9 +29,39 @@ LV_FONT_DECLARE(instrument_24);
 #define TOP_MM 3.0f     /* rain this heavy fills a segment */
 #define WET_MM 0.1f
 
-static lv_obj_t *ring, *clock_label, *weather, *place, *date, *rain_line;
+static lv_obj_t *ring, *clock_label, *temperature, *weather, *place, *date, *rain_line, *sky;
 static desk_clock_t shown;
 static int shown_minute = -1;
+static int shown_hour = -1;
+
+/* The light from the top follows the sky, as the glow at the top of Home does
+ * (web/src/lib/sky.ts), stronger here: it should fall on the desk. */
+static void set_sky(int hour)
+{
+    uint32_t colour;
+    lv_opa_t opa;
+    if (hour >= 21 || hour < 6) {
+        colour = 0x463caa, opa = 120; /* night: deep blue */
+    } else if (hour < 9) {
+        colour = 0xb46eaa, opa = 100; /* dawn: rose */
+    } else if (hour < 17) {
+        colour = 0x7c6cf2, opa = 85; /* day: violet */
+    } else {
+        colour = 0xc86e78, opa = 95; /* dusk: warm */
+    }
+    lv_obj_set_style_image_recolor(sky, lv_color_hex(colour), 0);
+    lv_obj_set_style_image_opa(sky, opa, 0);
+}
+
+/* "De Bilt" as "DE BILT", for the quiet labels at the top. */
+static void upper(char *to, size_t size, const char *from)
+{
+    size_t i = 0;
+    for (; from[i] && i < size - 1; i++) {
+        to[i] = (from[i] >= 'a' && from[i] <= 'z') ? from[i] - 32 : from[i];
+    }
+    to[i] = '\0';
+}
 
 static lv_color_t mix(lv_color_t a, lv_color_t b, float t)
 {
@@ -93,14 +125,18 @@ static void tick(lv_timer_t *timer)
     desk_clock_t now = desk_clock();
     if (now.version != shown.version) {
         shown = now;
-        lv_label_set_text(place, now.present ? now.place : "Connecting to the hub");
-        lv_label_set_text(date, now.date);
+        char text_up[64];
+        upper(text_up, sizeof text_up, now.present ? now.place : "Connecting to the hub");
+        lv_label_set_text_fmt(place, "%s%s", text_up, now.present ? "  ·  BUIENRADAR" : "");
+        upper(text_up, sizeof text_up, now.date);
+        lv_label_set_text(date, text_up);
         if (now.has_temperature) {
-            lv_label_set_text_fmt(weather, "%d°%s%s", now.temperature, now.description[0] ? "  ·  " : "",
-                                  now.description);
+            lv_label_set_text_fmt(temperature, "%d°", now.temperature);
         } else {
-            lv_label_set_text(weather, now.description);
+            lv_label_set_text(temperature, "");
         }
+        lv_label_set_text_fmt(weather, "%s%s", now.has_temperature && now.description[0] ? "·  " : "",
+                              now.description);
         lv_label_set_text(rain_line, now.rain_line);
         lv_obj_set_style_text_color(rain_line, lv_color_hex(now.wet ? 0xb4a9ff : 0x8a8794), 0);
         lv_obj_invalidate(ring);
@@ -119,6 +155,10 @@ static void tick(lv_timer_t *timer)
         return;
     }
     shown_minute = t.tm_min;
+    if (t.tm_hour != shown_hour) {
+        shown_hour = t.tm_hour;
+        set_sky(t.tm_hour);
+    }
     lv_label_set_text_fmt(clock_label, "%02d:%02d", t.tm_hour, t.tm_min);
 }
 
@@ -126,14 +166,34 @@ void screen_clock_create(lv_obj_t *screen)
 {
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
+    /* Light from the top in the colour of the time of day, and a soft glow
+     * behind the time: alpha-only images, coloured here, shown at 2x. */
+    sky = lv_image_create(screen);
+    lv_image_set_src(sky, &glow_sky);
+    lv_image_set_pivot(sky, 0, 0);
+    lv_image_set_scale(sky, 512);
+    lv_obj_set_pos(sky, 0, 0);
+    lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
+    set_sky(12);
+
+    lv_obj_t *halo = lv_image_create(screen);
+    lv_image_set_src(halo, &glow_round);
+    lv_image_set_scale(halo, 256 * 520 / 160); /* 520 px across: it fades out inside the ring */
+    lv_obj_align(halo, LV_ALIGN_TOP_LEFT, CX - 80, CY - 80);
+    lv_obj_set_style_image_recolor(halo, lv_color_hex(0x7c6cf2), 0);
+    lv_obj_set_style_image_recolor_opa(halo, LV_OPA_COVER, 0);
+    lv_obj_set_style_image_opa(halo, 60, 0);
+
     ring = lv_obj_create(screen);
     lv_obj_remove_style_all(ring);
     lv_obj_set_size(ring, 720, 720);
     lv_obj_add_event_cb(ring, draw_ring, LV_EVENT_DRAW_MAIN, NULL);
 
     place = text(screen, &instrument_24, 0x8a8794);
+    lv_obj_set_style_text_letter_space(place, 2, 0);
     lv_obj_align(place, LV_ALIGN_TOP_LEFT, 36, 24);
     date = text(screen, &instrument_24, 0x8a8794);
+    lv_obj_set_style_text_letter_space(date, 2, 0);
     lv_obj_align(date, LV_ALIGN_TOP_RIGHT, -36, 24);
 
     /* The font's own spacing, as in the design: centred, it shifts a little with
@@ -142,10 +202,18 @@ void screen_clock_create(lv_obj_t *screen)
     lv_label_set_text(clock_label, "--:--");
     lv_obj_align(clock_label, LV_ALIGN_TOP_MID, 0, CY - 112);
 
-    weather = text(screen, &instrument_40, 0xc9c6d6);
-    lv_obj_set_style_text_align(weather, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(weather, LV_ALIGN_TOP_MID, 0, CY + 52);
+    /* The temperature in white, Buienradar's words softer beside it. */
+    lv_obj_t *weather_row = lv_obj_create(screen);
+    lv_obj_remove_style_all(weather_row);
+    lv_obj_set_size(weather_row, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(weather_row, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(weather_row, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
+    lv_obj_set_style_pad_column(weather_row, 14, 0);
+    temperature = text(weather_row, &instrument_40, 0xffffff);
+    weather = text(weather_row, &instrument_40, 0x9b98a8);
+    lv_label_set_text(temperature, "");
     lv_label_set_text(weather, "");
+    lv_obj_align(weather_row, LV_ALIGN_TOP_MID, 0, CY + 52);
 
     rain_line = text(screen, &instrument_28_bold, 0x8a8794);
     lv_obj_align(rain_line, LV_ALIGN_BOTTOM_MID, 0, -22);

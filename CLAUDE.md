@@ -151,6 +151,9 @@ python3 dashboard/serve.py
 - Flash the panels over the UART USB-C port at 460800 baud; read their flash in 2 MB pieces, as
   one long read breaks off with serial noise.
 - On the panels' IPS screens the hub's `#101014` looks grey: panel screens use true black.
+- Take panel screenshots with `panels/tools/shot.py`, not photos: opening the port restarts the
+  panel on macOS, and the script waits for the hub's answer. Never switch logging off on the panel
+  from a task (it locked up core 0).
 - GitHub's "Re-run jobs" repeats a run on its original commit; after fixing a workflow, start a
   new run (Run workflow) instead.
 - UGREEN's desktop app runs "Sync Space", which is Syncthing (`syncspace_pro`): it opens TCP
