@@ -37,7 +37,11 @@ CACHE_KEY = "laundry"
 TIMEOUT_SECONDS = 20
 # A finished machine shows until its door opens, or this long at most.
 DONE_FOR = timedelta(hours=2)
+# An access token lasts as long as ConnectLife says (expires_in), renewed this
+# early; this long when it does not say. A refresh token renews it without a
+# login, so Gigya is asked only when ConnectLife refuses the refresh token.
 TOKEN_FOR = timedelta(hours=12)
+RENEW_EARLY = timedelta(seconds=90)
 # After a refused login Gigya keeps refusing (403048) while it is asked again,
 # so the client waits before the next try: 15 minutes, doubling up to 2 hours.
 LOGIN_PAUSE = timedelta(minutes=15)
@@ -49,7 +53,9 @@ CREATE TABLE IF NOT EXISTS connectlife_auth (
     access_token  TEXT,
     token_until   TEXT,
     paused_until  TEXT,
-    pause_seconds INTEGER NOT NULL
+    pause_seconds INTEGER NOT NULL,
+    refresh_token TEXT,
+    refresh_until TEXT
 );
 """
 
@@ -180,6 +186,19 @@ def _when(text: str | None) -> datetime | None:
     return datetime.fromisoformat(text) if text else None
 
 
+def refresh_expiry(value: Any) -> datetime | None:
+    """ConnectLife's refreshTokenExpiredTime: epoch milliseconds or ISO 8601."""
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        if isinstance(value, (int, float)) or str(value).strip().isdigit():
+            return datetime.fromtimestamp(int(value) / 1000, UTC)
+        when = datetime.fromisoformat(str(value).strip())
+    except (ValueError, OverflowError, OSError):
+        return None
+    return when if when.tzinfo else when.replace(tzinfo=UTC)
+
+
 # --- the ConnectLife conversation ------------------------------------------------------
 
 
@@ -190,12 +209,17 @@ class ConnectLifeError(Exception):
 def ensure_tables(store: Store) -> None:
     with store.connect() as conn:
         conn.executescript(TABLES)
+        columns = {r["name"] for r in conn.execute("PRAGMA table_info(connectlife_auth)")}
+        # Added for the refresh token (2026-10-19).
+        for column in ("refresh_token", "refresh_until"):
+            if column not in columns:
+                conn.execute(f"ALTER TABLE connectlife_auth ADD COLUMN {column} TEXT")
 
 
 class Client:
-    """Logs in once and reuses the token until it stops working. The token and
-    a login pause are kept in SQLite, so a restart neither logs in again nor
-    forgets a pause."""
+    """Logs in once, then renews the token with the refresh token for as long
+    as ConnectLife takes it. The tokens and a login pause are kept in SQLite,
+    so a restart neither logs in again nor forgets a pause."""
 
     def __init__(self, transport: httpx.AsyncBaseTransport | None = None) -> None:
         self.transport = transport  # for tests
@@ -203,31 +227,38 @@ class Client:
         self.token_until: datetime | None = None
         self.pause = LOGIN_PAUSE
         self.paused_until: datetime | None = None
+        self.refresh_token: str | None = None
+        self.refresh_until: datetime | None = None
         self.loaded = False
 
     def _state(self) -> tuple[Any, ...]:
         return (self.token, _iso(self.token_until), _iso(self.paused_until),
-                int(self.pause.total_seconds()))
+                int(self.pause.total_seconds()), self.refresh_token, _iso(self.refresh_until))
 
     def _load(self, store: Store) -> None:
         if self.loaded:
             return
         with store.connect() as conn:
-            row = conn.execute("SELECT access_token, token_until, paused_until, pause_seconds "
-                               "FROM connectlife_auth WHERE id = 1").fetchone()
+            row = conn.execute("SELECT access_token, token_until, paused_until, pause_seconds, "
+                               "refresh_token, refresh_until FROM connectlife_auth "
+                               "WHERE id = 1").fetchone()
         if row:
             self.token, self.token_until = row["access_token"], _when(row["token_until"])
             self.paused_until = _when(row["paused_until"])
             self.pause = timedelta(seconds=row["pause_seconds"])
+            self.refresh_token = row["refresh_token"]
+            self.refresh_until = _when(row["refresh_until"])
         self.loaded = True
 
     def _save(self, store: Store) -> None:
         with store.connect() as conn:
             conn.execute(
                 "INSERT INTO connectlife_auth (id, access_token, token_until, paused_until, "
-                "pause_seconds) VALUES (1, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET "
-                "access_token = excluded.access_token, token_until = excluded.token_until, "
-                "paused_until = excluded.paused_until, pause_seconds = excluded.pause_seconds",
+                "pause_seconds, refresh_token, refresh_until) VALUES (1, ?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT(id) DO UPDATE SET access_token = excluded.access_token, "
+                "token_until = excluded.token_until, paused_until = excluded.paused_until, "
+                "pause_seconds = excluded.pause_seconds, refresh_token = excluded.refresh_token, "
+                "refresh_until = excluded.refresh_until",
                 self._state())
 
     async def _fresh_token(self, http: httpx.AsyncClient, user: str, password: str,
@@ -236,16 +267,42 @@ class Client:
             raise ConnectLifeError(
                 f"login paused until {self.paused_until:%H:%M} UTC after a refusal")
         try:
-            token = await self._login(http, user, password)
+            token = self._take(await self._login(http, user, password), now)
         except ConnectLifeError:
             self.paused_until = now + self.pause
             self.pause = min(self.pause * 2, LOGIN_PAUSE_MAX)
             raise
         self.pause, self.paused_until = LOGIN_PAUSE, None
-        self.token, self.token_until = token, now + TOKEN_FOR
         return token
 
-    async def _login(self, http: httpx.AsyncClient, user: str, password: str) -> str:
+    def _take(self, answer: dict[str, Any], now: datetime) -> str:
+        """Keep the tokens of an /oauth/token answer; ConnectLife may leave out
+        a new refresh token, and then the old one stays."""
+        token = answer.get("access_token")
+        if not token:
+            raise ConnectLifeError("no access token")
+        try:
+            lasts = timedelta(seconds=int(answer["expires_in"])) - RENEW_EARLY
+        except (KeyError, TypeError, ValueError):
+            lasts = TOKEN_FOR
+        self.token, self.token_until = token, now + max(lasts, timedelta(0))
+        if answer.get("refresh_token"):
+            self.refresh_token = answer["refresh_token"]
+            self.refresh_until = refresh_expiry(answer.get("refreshTokenExpiredTime"))
+        return token
+
+    async def _refresh(self, http: httpx.AsyncClient, now: datetime) -> str:
+        resp = await http.post(f"{OAUTH}/token", data={
+            "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET, "redirect_uri": REDIRECT,
+            "grant_type": "refresh_token", "refresh_token": self.refresh_token})
+        resp.raise_for_status()
+        answer = resp.json()
+        if not answer.get("access_token"):
+            raise ConnectLifeError("refresh token refused")
+        return self._take(answer, now)
+
+    async def _login(self, http: httpx.AsyncClient, user: str,
+                     password: str) -> dict[str, Any]:
         # No gmid: the one copied from the reference is shared by every copy of it,
         # the likely reason Gigya answered 403048 ("Api rate limit exceeded").
         login = (await http.post(f"{GIGYA}/accounts.login", data={
@@ -259,12 +316,9 @@ class Client:
             "client_id": CLIENT_ID, "idToken": jwt, "response_type": "code",
             "redirect_uri": REDIRECT, "thirdType": "CDC",
             "thirdClientId": login.get("UID")})).json().get("code")
-        token = (await http.post(f"{OAUTH}/token", data={
+        return (await http.post(f"{OAUTH}/token", data={
             "client_id": CLIENT_ID, "code": code, "grant_type": "authorization_code",
-            "client_secret": CLIENT_SECRET, "redirect_uri": REDIRECT})).json().get("access_token")
-        if not token:
-            raise ConnectLifeError("no access token")
-        return token
+            "client_secret": CLIENT_SECRET, "redirect_uri": REDIRECT})).json()
 
     async def _status(self, http: httpx.AsyncClient, token: str) -> list[dict[str, Any]]:
         stamp = str(int(datetime.now(UTC).timestamp() * 1000))
@@ -308,8 +362,16 @@ class Client:
                 try:
                     return await self._status(http, self.token)
                 except (ConnectLifeError, httpx.HTTPStatusError):
-                    # The token may have expired early: one fresh login, then give up.
+                    # The token may have expired early.
                     self.token = None
+            if self.refresh_token and not (self.refresh_until and now >= self.refresh_until):
+                try:
+                    return await self._status(http, await self._refresh(http, now))
+                except (ConnectLifeError, httpx.HTTPStatusError):
+                    # Refused: forget it and log in again below. A network failure
+                    # keeps it for the next minute.
+                    self.token = self.refresh_token = self.refresh_until = None
+            # One fresh login, then give up.
             return await self._status(http, await self._fresh_token(http, user, password, now))
 
 

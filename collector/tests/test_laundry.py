@@ -172,8 +172,10 @@ def test_paused_and_errors():
 class ConnectLife:
     """Fake Gigya, OAuth and gateway, answering like the real ones."""
 
-    def __init__(self, devices: list[dict], gateway_refuses_once: bool = False):
+    def __init__(self, devices: list[dict], gateway_refuses_once: bool = False,
+                 refresh: bool = False):
         self.devices, self.refuse, self.seen = devices, gateway_refuses_once, []
+        self.refresh, self.refuse_refresh = refresh, False
 
     def transport(self) -> httpx.MockTransport:
         def handler(request: httpx.Request) -> httpx.Response:
@@ -187,7 +189,18 @@ class ConnectLife:
                 assert json.loads(request.content)["idToken"] == "j"
                 return httpx.Response(200, json={"code": "k"})
             if path == "/oauth/token":
-                return httpx.Response(200, json={"access_token": f"token-{len(self.seen)}"})
+                form = dict(httpx.QueryParams(request.content.decode()))
+                answer = {"access_token": f"token-{len(self.seen)}"}
+                if form["grant_type"] == "refresh_token":
+                    self.seen.append(f"refresh {form['refresh_token']}")
+                    if self.refuse_refresh:
+                        return httpx.Response(400, json={"error": "invalid_grant"})
+                    return httpx.Response(200, json=answer | {"expires_in": 3600})
+                if self.refresh:
+                    # 2026-11-13 08:00 UTC, in epoch milliseconds as ConnectLife sends it
+                    answer |= {"expires_in": 3600, "refresh_token": "r1",
+                               "refreshTokenExpiredTime": 1794556800000}
+                return httpx.Response(200, json=answer)
             if path == "/clife-svc/pu/get_device_status_list":
                 params = request.url.params
                 assert "sign" in params and params["accessToken"].startswith("token")
@@ -257,6 +270,77 @@ def test_a_restart_logs_in_again_once_the_stored_token_has_expired(store):
     collect(store, cloud, now=NOW + laundry.TOKEN_FOR + timedelta(minutes=1))
 
     assert sum(1 for s in cloud.seen if s.endswith("/accounts.login")) == 2
+
+
+def logins(cloud: ConnectLife) -> int:
+    return sum(1 for s in cloud.seen if s.endswith("/accounts.login"))
+
+
+def test_an_expired_token_is_renewed_with_the_refresh_token_even_after_a_restart(store):
+    cloud = ConnectLife([washer()], refresh=True)
+    client = laundry.Client(transport=cloud.transport())
+    collect(store, cloud, client)
+
+    assert client.token_until == NOW + timedelta(seconds=3600) - laundry.RENEW_EARLY
+    assert client.refresh_until == datetime(2026, 11, 13, 8, 0, tzinfo=UTC)
+
+    restarted = laundry.Client(transport=cloud.transport())
+    result = collect(store, cloud, restarted, NOW + timedelta(hours=2))
+
+    assert result.machines[0].kind == "washer"
+    assert logins(cloud) == 1 and "refresh r1" in cloud.seen
+    # No new refresh token in the answer: the old one stays.
+    assert (restarted.refresh_token, restarted.refresh_until) == (
+        "r1", datetime(2026, 11, 13, 8, 0, tzinfo=UTC))
+
+
+def test_a_refused_refresh_token_falls_back_to_one_login(store):
+    cloud = ConnectLife([washer()], refresh=True)
+    client = laundry.Client(transport=cloud.transport())
+    collect(store, cloud, client)
+    cloud.refuse_refresh = True
+
+    collect(store, cloud, client, NOW + timedelta(hours=2))
+
+    assert logins(cloud) == 2 and "refresh r1" in cloud.seen
+    assert client.refresh_token == "r1"  # the new login's
+
+
+def test_an_expired_refresh_token_is_not_tried(store):
+    cloud = ConnectLife([washer()], refresh=True)
+    client = laundry.Client(transport=cloud.transport())
+    collect(store, cloud, client)
+
+    collect(store, cloud, client, datetime(2026, 11, 13, 8, 1, tzinfo=UTC))
+
+    assert logins(cloud) == 2 and "refresh r1" not in cloud.seen
+
+
+def test_reads_the_refresh_tokens_expiry_in_either_form():
+    when = datetime(2026, 11, 13, 8, 0, tzinfo=UTC)
+    assert laundry.refresh_expiry(1794556800000) == when
+    assert laundry.refresh_expiry("1794556800000") == when
+    assert laundry.refresh_expiry("2026-11-13T08:00:00Z") == when
+    assert laundry.refresh_expiry("2026-11-13T08:00:00") == when
+    assert laundry.refresh_expiry(None) is None
+    assert laundry.refresh_expiry("soon") is None
+
+
+def test_the_refresh_columns_are_added_to_an_older_table(tmp_path):
+    from app.store import Store
+
+    old = Store(tmp_path / "old.db")
+    with old.connect() as conn:
+        conn.execute("CREATE TABLE connectlife_auth (id INTEGER PRIMARY KEY CHECK (id = 1), "
+                     "access_token TEXT, token_until TEXT, paused_until TEXT, "
+                     "pause_seconds INTEGER NOT NULL)")
+        conn.execute("INSERT INTO connectlife_auth VALUES (1, 't', NULL, NULL, 900)")
+
+    laundry.ensure_tables(old)
+    client = laundry.Client()
+    client._load(old)
+
+    assert (client.token, client.refresh_token) == ("t", None)
 
 
 def test_a_refused_status_logs_in_again_once(store):

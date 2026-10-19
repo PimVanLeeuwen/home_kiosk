@@ -475,7 +475,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Built 2026-10-14 (collector and hub). The `connectlife` library is GPL-3.0 and the collector
   image on Docker Hub is public, so the hub has a small client of its own instead (decided
   2026-10-14), written from the MIT-licensed bilan/connectlife-api-connector with the standard
-  library: Gigya login, an OAuth token reused for hours, and the gateway's status call signed with
+  library: Gigya login, an OAuth token renewed with its refresh token, and the gateway's status call signed with
   ConnectLife's RSA public key (PKCS#1 v1.5, done by hand). The hub logs in with an account of its
   own (CONNECTLIFE_USERNAME/PASSWORD; the owner signs in with Apple) that the machines are shared
   with. Meanings per type from the community mappings: dryer 030 with program names, washer 025
@@ -486,6 +486,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   The washer was shared with the hub account on 2026-10-14. Its program numbers do not follow
   the dial, so their names are learnt one wash at a time (9 is Cotton); an unknown one shows as
   "Program 6".
+  From 2026-10-16 Gigya refused every login with 403048 ("Api rate limit exceeded") and the card
+  stayed hidden on stale data. Fixed 2026-10-19: the login no longer sends the gmid copied from
+  the reference (shared by every copy of it), the access token is renewed with the OAuth refresh
+  token, and the tokens and the login pause are kept in SQLite (`connectlife_auth`), so a restart
+  does not log in again.
 - **Calendar** (Now): today's events only. Design (2026-10-10): the next event large with a ring
   counting down to it in its calendar's colour, the day from 07:00 to 23:00 as a ribbon of
   coloured blocks with a glowing now line, then the later events. Read-only, no
