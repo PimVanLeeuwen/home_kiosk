@@ -6,6 +6,7 @@
 
 #include "bsp/display.h"
 #include "bsp/esp-bsp.h"
+#include "actions.h"
 #include "desk.h"
 #include "esp_app_desc.h"
 #include "esp_heap_caps.h"
@@ -53,6 +54,7 @@ void app_main(void)
              (unsigned)(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024));
     net_start();
     desk_start();
+    actions_start();
     update_start();
     devshot_start();
 }

@@ -17,6 +17,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from . import desk_keys
 from .store import Store
 
 Panel = Literal["now", "home", "house", "test"]
@@ -41,20 +42,29 @@ class Board(BaseModel):
     last_seen: datetime
     firmware: str
     update_requested: bool = False
+    key: desk_keys.KeyState = "none"  # its device key (app/desk_keys.py)
 
 
 def ensure_tables(store: Store) -> None:
+    desk_keys.ensure_tables(store)
     with store.connect() as conn:
         conn.executescript(TABLES)
         columns = {r["name"] for r in conn.execute("PRAGMA table_info(desk_board)")}
         if "update_requested" not in columns:  # added after the table shipped
             conn.execute("ALTER TABLE desk_board"
                          " ADD COLUMN update_requested INTEGER NOT NULL DEFAULT 0")
+        assigned = [r["mac"] for r in conn.execute(
+            "SELECT mac FROM desk_board WHERE panel IS NOT NULL")]
+    # Boards given a panel before there were keys get one now.
+    for mac in assigned:
+        if not desk_keys.has_key(store, mac):
+            desk_keys.issue(store, mac)
 
 
 class Visit(BaseModel):
     panel: Panel | None
     update: bool  # install the hub's firmware now
+    key: str | None = None  # its new device key, handed over once
 
 
 def check_in(store: Store, mac: str, firmware: str, now: datetime | None = None) -> Visit:
@@ -70,29 +80,42 @@ def check_in(store: Store, mac: str, firmware: str, now: datetime | None = None)
                            (mac,)).fetchone()
         if row["update_requested"]:
             conn.execute("UPDATE desk_board SET update_requested = 0 WHERE mac = ?", (mac,))
-    return Visit(panel=row["panel"], update=bool(row["update_requested"]))
+    return Visit(panel=row["panel"], update=bool(row["update_requested"]),
+                 key=desk_keys.hand_over(store, mac) if row["panel"] else None)
 
 
 def boards(store: Store) -> list[Board]:
     with store.connect() as conn:
         rows = conn.execute("SELECT * FROM desk_board ORDER BY first_seen, mac").fetchall()
-    return [Board(**dict(r)) for r in rows]
+    keys = desk_keys.states(store)
+    return [Board(**dict(r), key=keys.get(r["mac"], "none")) for r in rows]
 
 
 def assign(store: Store, mac: str, panel: Panel | None) -> bool:
-    """Gives the board a panel (or none); False when the hub has never seen it."""
+    """Gives the board a panel (or none); False when the hub has never seen it.
+    A board with a panel has a device key; one without has none."""
     with store.connect() as conn:
         if conn.execute("SELECT 1 FROM desk_board WHERE mac = ?", (mac,)).fetchone() is None:
             return False
+        losing = []
         if panel is not None:
+            losing = [r["mac"] for r in conn.execute(
+                "SELECT mac FROM desk_board WHERE panel = ? AND mac != ?", (panel, mac))]
             conn.execute("UPDATE desk_board SET panel = NULL WHERE panel = ?", (panel,))
         conn.execute("UPDATE desk_board SET panel = ? WHERE mac = ?", (panel, mac))
+    for other in losing:
+        desk_keys.revoke(store, other)
+    if panel is None:
+        desk_keys.revoke(store, mac)
+    elif not desk_keys.has_key(store, mac):
+        desk_keys.issue(store, mac)
     return True
 
 
 def forget(store: Store, mac: str) -> None:
     with store.connect() as conn:
         conn.execute("DELETE FROM desk_board WHERE mac = ?", (mac,))
+    desk_keys.revoke(store, mac)
 
 
 def request_update(store: Store, mac: str) -> None:

@@ -7,8 +7,8 @@ const NOW = new Date(2026, 9, 19, 15, 0)
 const at = (minutesAgo: number) => new Date(NOW.getTime() - minutesAgo * 60_000).toISOString()
 
 const BOARDS: DeskBoard[] = [
-  { mac: 'e8:f6:0a:e4:42:b0', panel: 'now', first_seen: at(600), last_seen: at(0.5), firmware: 'a1b2c3d', update_requested: false },
-  { mac: 'e8:f6:0a:e4:42:c8', panel: null, first_seen: at(300), last_seen: at(45), firmware: '', update_requested: false },
+  { mac: 'e8:f6:0a:e4:42:b0', panel: 'now', first_seen: at(600), last_seen: at(0.5), firmware: 'a1b2c3d', update_requested: false, key: 'active' },
+  { mac: 'e8:f6:0a:e4:42:c8', panel: null, first_seen: at(300), last_seen: at(45), firmware: '', update_requested: false, key: 'none' },
 ]
 const URL_B0 = '/api/settings/desk-boards/e8%3Af6%3A0a%3Ae4%3A42%3Ab0'
 const URL_C8 = '/api/settings/desk-boards/e8%3Af6%3A0a%3Ae4%3A42%3Ac8'
@@ -81,6 +81,28 @@ describe('DeskBoardsEditor', () => {
     render(<DeskBoardsEditor now={NOW} />)
     await screen.findByText('e8:f6:0a:e4:42:c8')
     expect(screen.queryByRole('button', { name: /Update to/ })).not.toBeInTheDocument()
+  })
+
+  it('shows the key of each board and revokes or renews it', async () => {
+    const fetchMock = stubApi({
+      '/api/settings/desk-boards': BOARDS,
+      [`DELETE ${URL_B0}/key`]: [{ ...BOARDS[0], key: 'none' }, BOARDS[1]],
+      [`POST ${URL_B0}/key`]: [{ ...BOARDS[0], key: 'pending' }, BOARDS[1]],
+    })
+    render(<DeskBoardsEditor now={NOW} />)
+
+    expect(await screen.findByText('Key in use')).toBeInTheDocument()
+    expect(screen.getByText('No key')).toBeInTheDocument()
+    // Only a board with a panel can get a key; only one with a key can lose it.
+    expect(screen.getAllByRole('button', { name: 'New key' })).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: 'Revoke key' })).toHaveLength(1)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Revoke key' }))
+    await vi.waitFor(() => expect(screen.getAllByText('No key')).toHaveLength(2))
+    expect(fetchMock.mock.calls.some(([u, i]) => String(u) === `${URL_B0}/key` && i?.method === 'DELETE')).toBe(true)
+
+    fireEvent.click(screen.getByRole('button', { name: 'New key' }))
+    expect(await screen.findByText('Key on its way')).toBeInTheDocument()
   })
 
   it('says why a change did not save', async () => {

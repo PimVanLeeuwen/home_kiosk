@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from . import desk_boards
+from . import desk_boards, desk_keys
 from .models import Service
 from .security import same_origin_json
 from .sources import agenda, widgets
@@ -262,6 +262,25 @@ def update_desk_board(mac: str, request: Request) -> list[desk_boards.Board]:
     """Asks the board to install the hub's firmware with its next visit (within 30 s)."""
     store = _store(request)
     desk_boards.request_update(store, _known_board(store, mac))
+    return desk_boards.boards(store)
+
+
+@router.post("/desk-boards/{mac}/key", dependencies=write)
+def new_desk_key(mac: str, request: Request) -> list[desk_boards.Board]:
+    """A fresh device key for a board with a panel, handed over at its next visit."""
+    store = _store(request)
+    mac = _known_board(store, mac)
+    if not next(b for b in desk_boards.boards(store) if b.mac == mac).panel:
+        raise HTTPException(409, "Give the board a panel first: only those have a key.")
+    desk_keys.issue(store, mac)
+    return desk_boards.boards(store)
+
+
+@router.delete("/desk-boards/{mac}/key", dependencies=write)
+def revoke_desk_key(mac: str, request: Request) -> list[desk_boards.Board]:
+    """The board can no longer change anything until it gets a new key."""
+    store = _store(request)
+    desk_keys.revoke(store, _known_board(store, mac))
     return desk_boards.boards(store)
 
 

@@ -21,6 +21,7 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "net.h"
+#include "nvs.h"
 #include "pictures.h"
 #include "update.h"
 #include "sdkconfig.h"
@@ -34,6 +35,7 @@ EXT_RAM_BSS_ATTR static desk_train_t train_state;
 EXT_RAM_BSS_ATTR static desk_agenda_t agenda_state;
 EXT_RAM_BSS_ATTR static desk_headlines_t headlines_state;
 static char mac_text[18];
+static char key[64]; /* the device key, from the board's storage (NVS "desk") */
 static SemaphoreHandle_t lock;
 
 #define BODY_MAX 8192
@@ -156,6 +158,45 @@ uint32_t desk_headlines_version(void)
     return version;
 }
 
+void desk_key(char *into, size_t size)
+{
+    if (lock == NULL) {
+        into[0] = '\0';
+        return;
+    }
+    xSemaphoreTake(lock, portMAX_DELAY);
+    snprintf(into, size, "%s", key);
+    xSemaphoreGive(lock);
+}
+
+/* The hub hands a board its key once: keep it, in memory and in the storage
+ * that survives restarts and updates. Never logged. */
+static void keep_key(const char *handed)
+{
+    xSemaphoreTake(lock, portMAX_DELAY);
+    snprintf(key, sizeof key, "%s", handed);
+    xSemaphoreGive(lock);
+    nvs_handle_t nvs;
+    if (nvs_open("desk", NVS_READWRITE, &nvs) == ESP_OK) {
+        nvs_set_str(nvs, "key", handed);
+        nvs_commit(nvs);
+        nvs_close(nvs);
+    }
+    ESP_LOGI(TAG, "device key received and kept");
+}
+
+static void load_key(void)
+{
+    nvs_handle_t nvs;
+    size_t size = sizeof key;
+    if (nvs_open("desk", NVS_READONLY, &nvs) == ESP_OK) {
+        if (nvs_get_str(nvs, "key", key, &size) != ESP_OK) {
+            key[0] = '\0';
+        }
+        nvs_close(nvs);
+    }
+}
+
 /* Also asks pictures.c for each story's picture: fetched only when it changed. */
 static void parse_headlines(const cJSON *screen, desk_headlines_t *news)
 {
@@ -168,6 +209,8 @@ static void parse_headlines(const cJSON *screen, desk_headlines_t *news)
             break;
         }
         int i = news->count++;
+        copy_string(news->stories[i].id, sizeof news->stories[i].id, cJSON_GetObjectItem(item, "id"));
+        news->stories[i].saved = cJSON_IsTrue(cJSON_GetObjectItem(item, "saved"));
         copy_string(news->stories[i].title, sizeof news->stories[i].title, cJSON_GetObjectItem(item, "title"));
         copy_string(news->stories[i].source, sizeof news->stories[i].source, cJSON_GetObjectItem(item, "source"));
         copy_string(news->stories[i].age, sizeof news->stories[i].age, cJSON_GetObjectItem(item, "age"));
@@ -324,6 +367,10 @@ static void apply(const char *body)
     }
     const cJSON *time = cJSON_GetObjectItem(root, "time");
     set_time(time);
+    const cJSON *handed = cJSON_GetObjectItem(root, "key");
+    if (cJSON_IsString(handed) && handed->valuestring[0]) {
+        keep_key(handed->valuestring);
+    }
     if (cJSON_IsTrue(cJSON_GetObjectItem(root, "update"))) {
         ESP_LOGI(TAG, "the hub asks to update now");
         update_now(); /* Settings, Desk panels: Update now */
@@ -468,5 +515,6 @@ static void desk_task(void *arg)
 void desk_start(void)
 {
     lock = xSemaphoreCreateMutex();
+    load_key();
     xTaskCreate(desk_task, "desk", 8192, NULL, 4, NULL);
 }

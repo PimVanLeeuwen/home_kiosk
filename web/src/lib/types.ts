@@ -176,6 +176,8 @@ export interface DeskBoard {
   last_seen: string
   firmware: string
   update_requested: boolean
+  /** Its device key: none, on its way (handed over at the next visit), or in use. */
+  key: 'none' | 'pending' | 'active'
 }
 
 /** The firmware the hub offers the boards (/panels/firmware.json, built by CI). */

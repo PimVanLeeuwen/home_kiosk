@@ -115,7 +115,7 @@ test('switches a calendar off in Settings', async ({ page }) => {
 
 test('assigns a desk panel board in Settings', async ({ page }) => {
   const seen = new Date(Date.now() - 20_000).toISOString()
-  const board = { mac: 'e8:f6:0a:e4:42:b0', panel: null, first_seen: seen, last_seen: seen, firmware: 'a1b2c3d', update_requested: false }
+  const board = { mac: 'e8:f6:0a:e4:42:b0', panel: null, first_seen: seen, last_seen: seen, firmware: 'a1b2c3d', update_requested: false, key: 'active' }
   let assigned: unknown
   await page.route('**/api/settings/desk-boards', (route) => route.fulfill({ json: [board] }))
   await page.route('**/api/settings/desk-boards/*', (route) => {
@@ -162,7 +162,7 @@ test('moves between Settings sections, and old anchors still land on theirs', as
 
 test('asks a desk panel board to update now', async ({ page }) => {
   const seen = new Date(Date.now() - 20_000).toISOString()
-  const board = { mac: 'e8:f6:0a:e4:42:c8', panel: 'home', first_seen: seen, last_seen: seen, firmware: 'a1b2c3d', update_requested: false }
+  const board = { mac: 'e8:f6:0a:e4:42:c8', panel: 'home', first_seen: seen, last_seen: seen, firmware: 'a1b2c3d', update_requested: false, key: 'active' }
   let asked = false
   await page.route('**/api/settings/desk-boards', (route) => route.fulfill({ json: [board] }))
   await page.route('**/panels/firmware.json', (route) => route.fulfill({ json: { version: '2ca91f6', size: 1720928 } }))

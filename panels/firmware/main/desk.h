@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #define DESK_RAIN_MAX 30
@@ -112,10 +113,12 @@ typedef struct {
     uint32_t version;
     int count;
     struct {
+        char id[20];          /* the hub's article id, for saving it */
         char title[160];
         char source[32];
         char age[12];         /* "12 min" */
         bool has_picture;
+        bool saved;           /* saved to Readeck from a panel */
     } stories[DESK_STORIES];
 } desk_headlines_t;
 
@@ -146,6 +149,10 @@ bool desk_has_agenda(void);
 bool desk_has_headlines(void);
 desk_headlines_t desk_headlines(void);
 uint32_t desk_headlines_version(void); /* changes with every answer: copy only then */
+
+/* This board's device key, "" until the hub has handed one over (it is kept
+ * in the board's storage): what lets it save a story. */
+void desk_key(char *into, size_t size);
 
 /* This board's MAC address, "e8:f6:0a:e4:42:b0", as written on its back. */
 const char *desk_mac(void);

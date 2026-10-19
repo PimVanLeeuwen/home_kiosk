@@ -23,6 +23,7 @@ from . import (
     config,
     desk_api,
     desk_boards,
+    desk_headlines,
     exposure_api,
     lights_api,
     music_api,
@@ -93,6 +94,7 @@ async def lifespan(app: FastAPI):
     my_sites.ensure_tables(app.state.store)
     agenda.ensure_tables(app.state.store)
     desk_boards.ensure_tables(app.state.store)
+    desk_headlines.ensure_tables(app.state.store)
     apple.ensure_tables(app.state.store)
     laundry.ensure_tables(app.state.store)
     spotify.ensure_tables(app.state.store)

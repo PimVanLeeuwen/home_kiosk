@@ -16,6 +16,12 @@ const CHOICES: [Choice, string][] = [
   ['test', 'Test'],
 ]
 
+const KEY_STATE: Record<DeskBoard['key'], string> = {
+  none: 'No key',
+  pending: 'Key on its way',
+  active: 'Key in use',
+}
+
 // The boards ask every 30 seconds: quiet for two minutes means off or out of reach.
 const ONLINE_SECONDS = 120
 
@@ -36,6 +42,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
   const boards = saved && saved.after === loaded.data ? saved.boards : loaded.data
 
   const send = async (method: 'PUT' | 'DELETE' | 'POST', board: DeskBoard, body?: object, action = '') => {
+    // DELETE with an action is the key; a bare DELETE forgets the board.
     setError(undefined)
     try {
       const path = `/api/settings/desk-boards/${encodeURIComponent(board.mac)}${action}`
@@ -54,7 +61,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
   return (
     <div className="rounded-[14px] border border-line-soft bg-card px-5 py-2 md:px-6">
       <p className="pt-3 pb-1 text-[12.5px] text-faint">
-        Every board runs the same firmware; choose which panel each one is. A panel has one board: choosing it here takes it from another.
+        Every board runs the same firmware; choose which panel each one is. A panel has one board: choosing it here takes it from another. A board with a panel gets a device key, which lets it save headlines (and later control lights and music).
       </p>
       <ul>
         {boards.map((b) => {
@@ -76,6 +83,19 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
                         {' · firmware '}
                         <span className="font-mono">{b.firmware}</span>
                       </>
+                    )}
+                  </span>
+                  <span className="mt-1 flex flex-wrap items-center gap-x-3 text-[12px]">
+                    <span className={b.key === 'active' ? 'text-faint' : b.panel ? 'text-warn' : 'text-faint'}>{KEY_STATE[b.key]}</span>
+                    {b.panel && (
+                      <button type="button" onClick={() => send('POST', b, {}, '/key')} className="text-muted underline-offset-2 hover:text-fg hover:underline">
+                        New key
+                      </button>
+                    )}
+                    {b.key !== 'none' && (
+                      <button type="button" onClick={() => send('DELETE', b, undefined, '/key')} className="text-muted underline-offset-2 hover:text-fg hover:underline">
+                        Revoke key
+                      </button>
                     )}
                   </span>
                   {behind &&

@@ -26,6 +26,7 @@ def webp(size, colour=(200, 120, 60)) -> bytes:
 
 def put(store):
     news_store.ensure_tables(store)
+    desk_headlines.ensure_tables(store)
     store.put_cache("headlines", {"as_of": NOW.isoformat(), "stale": False, "items": [
         item(LEAD_ID, "Botten van uitgestorven jak \u2013 gevonden", "NU.nl",
              "2026-10-19T20:10:00Z", "lead"),
@@ -52,6 +53,7 @@ def test_three_stories_worded_for_the_panel(store):
     assert lead["picture"] == f"/api/desk/picture/{LEAD_ID}/lead"
     assert other["picture"] == f"/api/desk/picture/{OTHER_ID}/thumb"
     assert bare["picture"] is None
+    assert not any(x["saved"] for x in s["stories"])
 
 
 def test_pictures_are_small_baseline_jpegs_of_the_stored_copies(store):

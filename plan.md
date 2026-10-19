@@ -272,7 +272,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   cards are dimmed with their age). Built in GitHub Actions, updated over Wi-Fi from the hub, no
   cloud. The Wi-Fi password is a build secret, never in the repo.
 - Writes from a panel (mute, lights, music) use a per-panel device key created in the hub, since
-  `same_origin_json` only protects browsers. Keys can be revoked in Settings.
+  `same_origin_json` only protects browsers. Keys can be revoked in Settings. Built 2026-10-19 (decided
+  2026-10-19: the hub hands the key over once, no pairing code): a board gets a key when it is
+  given a panel; the hub hands it over in the board's next answer and then keeps only its
+  SHA-256; the board keeps it in its own storage and sends it as a Bearer token. Taking the panel
+  away or forgetting the board revokes it; Settings, Desk panels shows each key (none, on its
+  way, in use) with New key and Revoke key. The first use: a tap on a headline saves it to Readeck
+  (`POST /api/desk/save` with the article id; the hub looks up the link and remembers what was
+  saved, so the bookmark stays filled; decided: a second tap does nothing).
 - Heartbeat: the hub alerts when a panel has not polled for 10 minutes. Built 2026-10-19: the
   "Desk panels" alert rule (on by default, the minutes adjustable on the Alerts page) warns once
   when a board with a panel has not asked the hub for that long, and says when it is back;
