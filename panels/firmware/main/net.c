@@ -1,6 +1,5 @@
-/* Wi-Fi (through the ESP32-C6 with ESP-Hosted; the esp_wifi API is the same)
- * and the hub: GET /api/desk/<name> every 30 s. Bring-up only: the answer is
- * shown, not used yet. */
+/* Wi-Fi through the ESP32-C6 with ESP-Hosted (the esp_wifi API is the same).
+ * The hub is asked in desk.c, which reports its answers here. */
 
 #include "net.h"
 
@@ -8,7 +7,6 @@
 #include <string.h>
 
 #include "esp_event.h"
-#include "esp_http_client.h"
 #include "esp_log.h"
 #include "esp_netif.h"
 #include "esp_wifi.h"
@@ -56,42 +54,19 @@ static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
     }
 }
 
-static void hub_task(void *arg)
+void net_note_hub(int status)
 {
-    char url[160];
-    snprintf(url, sizeof url, "%s/api/desk/%s", CONFIG_PANEL_HUB_URL, CONFIG_PANEL_NAME);
-    for (;;) {
-        net_state_t now = net_state();
-        if (now.connected) {
-            wifi_ap_record_t ap;
-            int rssi = esp_wifi_sta_get_ap_info(&ap) == ESP_OK ? ap.rssi : 0;
-
-            esp_http_client_config_t config = {.url = url, .timeout_ms = 5000};
-            esp_http_client_handle_t client = esp_http_client_init(&config);
-            char body[96] = {0};
-            int status = 0;
-            if (esp_http_client_open(client, 0) == ESP_OK) {
-                esp_http_client_fetch_headers(client);
-                status = esp_http_client_get_status_code(client);
-                esp_http_client_read(client, body, sizeof body - 1);
-            }
-            esp_http_client_cleanup(client);
-
-            xSemaphoreTake(lock, portMAX_DELAY);
-            state.rssi = rssi;
-            state.hub_status = status;
-            snprintf(state.hub_note, sizeof state.hub_note, "%.60s", status ? body : "no answer");
-            xSemaphoreGive(lock);
-            ESP_LOGI(TAG, "hub answered %d", status);
-        }
-        vTaskDelay(pdMS_TO_TICKS(30000));
-    }
+    wifi_ap_record_t ap;
+    int rssi = esp_wifi_sta_get_ap_info(&ap) == ESP_OK ? ap.rssi : 0;
+    xSemaphoreTake(lock, portMAX_DELAY);
+    state.rssi = rssi;
+    state.hub_status = status;
+    xSemaphoreGive(lock);
 }
 
 void net_start(void)
 {
     lock = xSemaphoreCreateMutex();
-    snprintf(state.hub_note, sizeof state.hub_note, "waiting for Wi-Fi");
 
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -108,6 +83,4 @@ void net_start(void)
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &config));
     ESP_ERROR_CHECK(esp_wifi_start());
-
-    xTaskCreate(hub_task, "hub", 6144, NULL, 4, NULL);
 }

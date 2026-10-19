@@ -300,6 +300,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Order of work: test one board on a phone stand and settle the angles, measure it, write the
   OpenSCAD model, choose print or laser-cut, then buy the power parts.
 - The 720×1280 `/kiosk/` carousel retires once the panels run.
+- Stand: none yet (2026-10-19); look into the 3D-print option once the screens are further.
 - Arrived 2026-10-19. Decided 2026-10-19: the firmware lives in `panels/` in this repo; built in
   `espressif/idf:v5.5.6` (Docker, as CI will), flashed with esptool 5.6.0 over the UART USB-C
   port; ESP-IDF v5.5; the Wi-Fi details are a build secret (`panels/firmware/sdkconfig.secrets`,
@@ -315,7 +316,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   The factory flash is backed up per board in `~/panel-backups/` (read in 2 MB pieces: one long
   read breaks off with serial noise). `/api/desk/{now,home,house,test}` answers as a stub. On the
   real screen the hub's dark `#101014` looks grey (IPS glow): panel screens use true black and a
-  lower default brightness. Next: the angles and the board's depth and USB-C position, then the real `/api/desk` layouts and screens.
+  lower default brightness (since 2026-10-19: full brightness, the owner's choice; one board's
+  backlight stayed off at 40 %). Next: the angles and the board's depth and USB-C position, then the real `/api/desk` layouts and screens.
 
 **M17. Home control** (added 2026-10-09)
 - The hub talks to the Hue Bridge's local CLIP v2 API with an application key (created once with
@@ -447,6 +449,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   above the temperature curve and the chance of rain.
   Built 2026-10-12 (hub): Home's weather card shows the rain ring around the temperature and the
   sun's arc (`RainRing`, `SunArc`); the hub has no clock of its own.
+  Built 2026-10-19 (panel, the first screen): `/api/desk/now` carries the hub's time (epoch and
+  the Amsterdam offset; decided 2026-10-19: the panels take their clock from the hub and never
+  contact the internet, as neither the router nor the NAS serves NTP) and the clock screen's
+  values (place, date, temperature and Buienradar's Dutch description as on Home, 24 rain values,
+  the rain sentence worded as on Home). The firmware draws the ring with LVGL arcs (colour by
+  intensity, as LVGL arcs take no gradient) around the time in Instrument Sans (decided
+  2026-10-19: bitmap fonts converted once from Google's OFL TTF, `panels/firmware/fonts`). The
+  C6's old ESP-Hosted image dropped the SDIO link on a few-kB answer: plain receive mode at
+  20 MHz is stable. `panels/tools/shot.py` takes exact screenshots over the serial console.
 - **Laundry** (Home, added 2026-10-12): the washer and dryer (ConnectLife app) as two portholes:
   water turning inside while a machine runs, a ring counting down, the program and when it will
   be ready; a finished machine glows green with "Take it out". No Telegram message (decided

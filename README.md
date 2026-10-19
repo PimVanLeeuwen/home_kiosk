@@ -129,6 +129,15 @@ cd panels/firmware && docker run --rm --platform linux/amd64 -v "$PWD":/project 
 # flash
 cd panels/firmware/build && ../../.venv/bin/esptool --chip esp32p4 --port /dev/cu.usbmodem… \
   --baud 460800 --before default-reset --after hard-reset write-flash @flash_args
+
+
+# a screenshot of what a panel shows, as a PNG (opening the port restarts the panel;
+# the script waits until it has the hub's answer)
+panels/.venv/bin/pip install pillow==12.3.0   # once
+panels/.venv/bin/python panels/tools/shot.py /dev/cu.usbmodem… screen.png
+
+# the panel fonts: Instrument Sans as LVGL bitmap fonts (writes firmware/main/fonts/*.c)
+cd panels/firmware/fonts && ./make-fonts.sh
 ```
 
 The boards have an ESP32-P4 **v1.3**: the firmware is built for revisions below 3.0, and a build
