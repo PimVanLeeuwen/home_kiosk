@@ -21,6 +21,7 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "net.h"
+#include "pictures.h"
 #include "update.h"
 #include "sdkconfig.h"
 
@@ -31,6 +32,7 @@ EXT_RAM_BSS_ATTR static desk_day_t day_state;
 EXT_RAM_BSS_ATTR static desk_board_t board_state;
 EXT_RAM_BSS_ATTR static desk_train_t train_state;
 EXT_RAM_BSS_ATTR static desk_agenda_t agenda_state;
+EXT_RAM_BSS_ATTR static desk_headlines_t headlines_state;
 static char mac_text[18];
 static SemaphoreHandle_t lock;
 
@@ -124,6 +126,58 @@ bool desk_has_train(void)
 bool desk_has_agenda(void)
 {
     return has(&agenda_state.present);
+}
+
+bool desk_has_headlines(void)
+{
+    return has(&headlines_state.present);
+}
+
+desk_headlines_t desk_headlines(void)
+{
+    desk_headlines_t copy = {0};
+    if (lock == NULL) {
+        return copy;
+    }
+    xSemaphoreTake(lock, portMAX_DELAY);
+    copy = headlines_state;
+    xSemaphoreGive(lock);
+    return copy;
+}
+
+uint32_t desk_headlines_version(void)
+{
+    if (lock == NULL) {
+        return 0;
+    }
+    xSemaphoreTake(lock, portMAX_DELAY);
+    uint32_t version = headlines_state.version;
+    xSemaphoreGive(lock);
+    return version;
+}
+
+/* Also asks pictures.c for each story's picture: fetched only when it changed. */
+static void parse_headlines(const cJSON *screen, desk_headlines_t *news)
+{
+    news->present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
+    news->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
+    const cJSON *item;
+    cJSON_ArrayForEach(item, cJSON_GetObjectItem(screen, "stories"))
+    {
+        if (news->count == DESK_STORIES) {
+            break;
+        }
+        int i = news->count++;
+        copy_string(news->stories[i].title, sizeof news->stories[i].title, cJSON_GetObjectItem(item, "title"));
+        copy_string(news->stories[i].source, sizeof news->stories[i].source, cJSON_GetObjectItem(item, "source"));
+        copy_string(news->stories[i].age, sizeof news->stories[i].age, cJSON_GetObjectItem(item, "age"));
+        const cJSON *picture = cJSON_GetObjectItem(item, "picture");
+        news->stories[i].has_picture = cJSON_IsString(picture);
+        pictures_want(i, cJSON_IsString(picture) ? picture->valuestring : "");
+    }
+    for (int i = news->count; i < DESK_STORIES; i++) {
+        pictures_want(i, "");
+    }
 }
 
 /* "#ff8d28" as 0xff8d28; the hub's violet when missing. */
@@ -282,8 +336,10 @@ static void apply(const char *body)
      * and in PSRAM, as the calendar alone is about 2 kB. */
     EXT_RAM_BSS_ATTR static desk_train_t train;
     EXT_RAM_BSS_ATTR static desk_agenda_t agenda;
+    EXT_RAM_BSS_ATTR static desk_headlines_t news;
     memset(&train, 0, sizeof train);
     memset(&agenda, 0, sizeof agenda);
+    memset(&news, 0, sizeof news);
     const cJSON *offset = cJSON_GetObjectItem(time, "utc_offset");
     next.utc_offset = cJSON_IsNumber(offset) ? offset->valueint : 0;
 
@@ -291,6 +347,10 @@ static void apply(const char *body)
     cJSON_ArrayForEach(screen, cJSON_GetObjectItem(root, "screens"))
     {
         const cJSON *kind = cJSON_GetObjectItem(screen, "kind");
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "headlines") == 0) {
+            parse_headlines(screen, &news);
+            continue;
+        }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "agenda") == 0) {
             parse_agenda(screen, &agenda);
             continue;
@@ -359,6 +419,8 @@ static void apply(const char *body)
     clock_state = next;
     day.version = day_state.version + 1;
     day_state = day;
+    news.version = headlines_state.version + 1;
+    headlines_state = news;
     agenda.version = agenda_state.version + 1;
     agenda_state = agenda;
     train.version = train_state.version + 1;

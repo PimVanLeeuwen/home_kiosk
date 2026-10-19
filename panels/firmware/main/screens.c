@@ -19,6 +19,7 @@
 #include "screen_board.h"
 #include "screen_clock.h"
 #include "screen_day.h"
+#include "screen_headlines.h"
 #include "screen_start.h"
 #include "screen_train.h"
 
@@ -26,7 +27,7 @@
 #define HOLD_MS 60000
 #define DIM_MS 250
 
-enum { CLOCK, TRAIN, AGENDA, DAY, BOARD, START, COUNT };
+enum { CLOCK, TRAIN, AGENDA, DAY, HEADLINES, BOARD, START, COUNT };
 
 static lv_obj_t *screens[COUNT];
 static int current = START, coming = -1; /* coming: the screen being turned to */
@@ -47,6 +48,8 @@ static bool ready(int which)
         return desk_has_agenda();
     case DAY:
         return desk_has_day();
+    case HEADLINES:
+        return desk_has_headlines();
     default:
         return desk_board().listed;
     }
@@ -146,11 +149,13 @@ void screens_start(void)
     screens[TRAIN] = lv_obj_create(NULL);
     screens[AGENDA] = lv_obj_create(NULL);
     screens[DAY] = lv_obj_create(NULL);
+    screens[HEADLINES] = lv_obj_create(NULL);
     screens[BOARD] = lv_obj_create(NULL);
     screen_clock_create(screens[CLOCK]);
     screen_train_create(screens[TRAIN]);
     screen_agenda_create(screens[AGENDA]);
     screen_day_create(screens[DAY]);
+    screen_headlines_create(screens[HEADLINES]);
     screen_board_create(screens[BOARD]);
     screen_start_create(screens[START]);
     for (int i = 0; i < COUNT; i++) {

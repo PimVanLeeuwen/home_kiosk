@@ -13,6 +13,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from .desk_agenda import agenda_screen
+from .desk_headlines import headlines_screen
 from .desk_train import train_screen
 from .sources import forecast, weather
 from .store import Store
@@ -140,8 +141,12 @@ def day_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     }
 
 
-SCREENS = {"now": (clock_screen, train_screen, agenda_screen, day_screen), "home": (),
-           "house": (), "test": (clock_screen, train_screen, agenda_screen, day_screen)}
+def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
+    return headlines_screen(store, now)
+
+
+NOW = (clock_screen, train_screen, agenda_screen, day_screen, _headlines)
+SCREENS = {"now": NOW, "home": (), "house": (), "test": NOW}
 
 
 def board_screen(mac: str, title: str, hint: str) -> dict[str, Any]:

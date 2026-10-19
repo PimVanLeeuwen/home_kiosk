@@ -9,11 +9,12 @@ add a made-up board to the list in Settings, where it can be forgotten.
 
 from __future__ import annotations
 
+import re
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 
-from . import desk, desk_boards
+from . import desk, desk_boards, desk_headlines
 
 router = APIRouter(prefix="/api/desk")
 
@@ -33,6 +34,21 @@ def board(mac: str, request: Request,
     if visit.update:
         answer["update"] = True  # install the hub's firmware now (Settings, Update now)
     return answer
+
+
+ARTICLE = re.compile(r"^[0-9a-f]{16}$")
+
+
+@router.get("/picture/{article_id}/{size}")
+def picture(article_id: str, size: Literal["lead", "thumb"], request: Request) -> Response:
+    """A headline's stored picture as a small JPEG for the panels; nothing else."""
+    if not ARTICLE.match(article_id):
+        raise HTTPException(404, "No such picture.")
+    data = desk_headlines.picture(request.app.state.store, article_id, size)
+    if data is None:
+        raise HTTPException(404, "No such picture.")
+    return Response(data, media_type="image/jpeg",
+                    headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/{name}")

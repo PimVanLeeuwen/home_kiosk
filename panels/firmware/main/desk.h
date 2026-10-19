@@ -103,6 +103,22 @@ typedef struct {
     } all_day[DESK_AGENDA_ALL_DAY];
 } desk_agenda_t;
 
+#define DESK_STORIES 3
+
+/* The Now panel's headlines: the lead story and two more (app/desk_headlines.py). */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    int count;
+    struct {
+        char title[160];
+        char source[32];
+        char age[12];         /* "12 min" */
+        bool has_picture;
+    } stories[DESK_STORIES];
+} desk_headlines_t;
+
 /* A board's own screen: its MAC and what to do (no panel yet, or a panel
  * without screens yet). */
 typedef struct {
@@ -127,6 +143,9 @@ desk_agenda_t desk_agenda(void);
 bool desk_has_day(void);
 bool desk_has_train(void);
 bool desk_has_agenda(void);
+bool desk_has_headlines(void);
+desk_headlines_t desk_headlines(void);
+uint32_t desk_headlines_version(void); /* changes with every answer: copy only then */
 
 /* This board's MAC address, "e8:f6:0a:e4:42:b0", as written on its back. */
 const char *desk_mac(void);

@@ -161,6 +161,10 @@ python3 dashboard/serve.py
   `CONFIG_ESP_HOSTED_MEMPOOL_PREFER_SPIRAM=n` and the streaming SDIO receive, or any larger
   transfer (a firmware update) breaks the Wi-Fi link. A changed `sdkconfig.defaults` does not
   reach an existing `sdkconfig`: move that aside so the build regenerates it.
+- Panel firmware: internal RAM is scarce (ESP-Hosted's packet pools live there); keep large
+  statics in PSRAM with `EXT_RAM_BSS_ATTR` and never copy a screen's whole state onto a task's
+  stack (use the `desk_has_*` checks). Watch "internal RAM free" in the start-up log; a board that
+  boot-loops on `vApplicationGetIdleTaskMemory` has run out.
 - GitHub's "Re-run jobs" repeats a run on its original commit; after fixing a workflow, start a
   new run (Run workflow) instead.
 - UGREEN's desktop app runs "Sync Space", which is Syncthing (`syncspace_pro`): it opens TCP

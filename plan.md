@@ -595,6 +595,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   client, stored with Pillow as WebP (a 900 px lead and a 240 px square). `/api/news/headlines`
   and `/api/news/headlines/{id}/image/lead|thumb`, which serve only those stored copies (mockup
   `docs/hub-headlines-mockup.html`).
+  Built 2026-10-19 (panel; decided 2026-10-19: JPEGs from the hub, saving from the panel comes
+  with the device keys): the Now panel's headlines screen, last in the rotation, as in the panel
+  mockup: the lead story over its picture with a soft fade, its source as a badge and its age,
+  then two more with square thumbnails (a violet tile when a story has none); the bookmarks are
+  outlines until the panels can save. `/api/desk/picture/<id>/lead|thumb` serves panel-sized
+  baseline JPEGs (640 x 320 and 112 x 112, multiples of 16) made with Pillow from the stored
+  WebP copies only; the panel fetches a picture only when a story changes and decodes it with
+  the ESP32-P4's JPEG engine into PSRAM.
 - **Code** (House): 16 weeks of commit activity as a grid, then the CI state of the default
   branches and running pull requests from the Repos data (M9); a failing build stands out.
   Built 2026-10-14 (collector and hub): the Repos query also reads each default branch's latest
