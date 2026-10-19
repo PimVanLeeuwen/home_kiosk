@@ -55,9 +55,18 @@ CONFIG_ESP_WIFI_REMOTE_ENABLED=y
 CONFIG_SLAVE_IDF_TARGET_ESP32C6=y
 CONFIG_ESP_HOSTED_CP_TARGET_ESP32C6=y
 CONFIG_ESP_HOSTED_P4_DEV_BOARD_FUNC_BOARD=y
-CONFIG_ESP_HOSTED_MEMPOOL_PREFER_SPIRAM=y
-# The C6's factory ESP-Hosted image is old (it reports 0.0.0): the SDIO link failed
-# on a few-kB answer at the defaults (streaming receive, 40 MHz). The conservative
-# settings, as speed hardly matters for a panel.
-CONFIG_ESP_HOSTED_SDIO_OPTIMIZATION_RX_NONE=y
+# Wi-Fi packet buffers in internal RAM: DMA from PSRAM needs cache-line aligned
+# address and length, and the SD/MMC driver refused a 66-byte TCP acknowledgement
+# from the PSRAM pool (ESP_ERR_INVALID_ARG), which broke the link on any larger
+# download (a firmware update) and restarted the board.
+CONFIG_ESP_HOSTED_MEMPOOL_PREFER_SPIRAM=n
+# The C6's factory ESP-Hosted image is old (it reports 0.0.0). It sends several
+# packets in one transfer (3012 bytes during a download), so the host must use
+# the default streaming receive; plain receive refuses anything above 1536 bytes
+# and the link hangs. 20 MHz rather than 40: speed hardly matters for a panel.
+CONFIG_ESP_HOSTED_SDIO_OPTIMIZATION_RX_STREAMING_MODE=y
 CONFIG_ESP_HOSTED_SDIO_CLOCK_FREQ_KHZ=20000
+
+# Updates over Wi-Fi from the hub (main/update.c): the bootloader keeps the old
+# app until a new one has reached the hub.
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y

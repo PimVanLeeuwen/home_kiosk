@@ -49,3 +49,10 @@ test('the favicon is served and linked from the hub and the kiosk', async ({ pag
   await page.goto('/kiosk/')
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg')
 })
+
+test('the panel firmware address never falls back to the hub page', async ({ request }) => {
+  // A local image has no firmware: the boards must get a 404, not index.html.
+  const response = await request.get('/panels/firmware.json')
+  expect(response.status()).toBe(404)
+  expect(response.headers()['cache-control']).toBe('no-cache')
+})

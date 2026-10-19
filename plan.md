@@ -326,6 +326,18 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Test, one board per panel, or forgets a board. A board without a panel shows "Which panel is
   this?" with its MAC, a panel without screens yet says so; a change reaches the board within
   30 s, without a restart. `/api/desk/<name>` still answers by name.
+  Built 2026-10-19 (updates over Wi-Fi; decided 2026-10-19: CI builds the firmware into the
+  dashboard image, installs only between 04:00 and 05:00, no signed images, the hub being LAN
+  only): CI builds `panels/firmware` without Wi-Fi details (the Docker Hub images are public)
+  and versions it with git's hash of that folder, so only firmware changes reach the boards. The
+  hub serves `/panels/firmware.json` and `/panels/firmware.bin`. A board saves the network from
+  its one USB flash in its own storage, checks every 10 minutes, downloads a different version
+  into PSRAM and then writes its other app slot, and restarts; the bootloader keeps the old slot
+  until the new firmware has reached the hub, and rolls back after 5 minutes without it (tested
+  on the bench). `panels/tools/update.py` installs at once over the serial console. Making the
+  1.7 MB download work needed two ESP-Hosted settings for the C6's old factory image: packet
+  buffers in internal RAM (DMA from PSRAM refused unaligned 66-byte TCP acknowledgements) and
+  the default streaming receive (the C6 sends several packets in one 3 kB transfer).
 
 **M17. Home control** (added 2026-10-09)
 - The hub talks to the Hue Bridge's local CLIP v2 API with an application key (created once with

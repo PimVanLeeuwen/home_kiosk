@@ -1,0 +1,5 @@
+# CI puts the firmware here before it builds the dashboard image (firmware.bin
+# and firmware.json); the hub serves it under /panels/ for updates over Wi-Fi.
+*
+!.gitignore
+!.gitkeep

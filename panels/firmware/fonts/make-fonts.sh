@@ -21,7 +21,7 @@ font() {  # name weight size range
   npx -y lv_font_conv@1.5.3 --font "$TMP/is-$2.ttf" -r "$4" --size "$3" --bpp 4 --format lvgl \
     --no-compress --lv-include lvgl.h --lv-font-name "$1" -o "../main/fonts/$1.c"
 }
-font instrument_clock 500 150 "0x30-0x3A"   # the time: digits and the colon only
+font instrument_clock 500 150 "0x2D,0x30-0x3A"   # the time: digits, the colon, and "-" for "--:--"
 font instrument_40 500 40 "$TEXT"           # temperature and weather
 font instrument_28_bold 600 28 "$TEXT"      # the rain line
 font instrument_24 500 24 "$TEXT"           # the header row

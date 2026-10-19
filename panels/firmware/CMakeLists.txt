@@ -8,8 +8,8 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/sdkconfig.secrets")
     list(APPEND SDKCONFIG_DEFAULTS "${CMAKE_CURRENT_LIST_DIR}/sdkconfig.secrets")
 endif()
 
-# The firmware version the boards report to the hub: the commit it was built
-# from (PANEL_VERSION, set by CI and the build command), else "dev".
+# The firmware version the boards report to the hub and compare with the hub's
+# (PANEL_VERSION: CI sets git's hash of this folder), else "dev".
 if(DEFINED ENV{PANEL_VERSION})
     set(PROJECT_VER "$ENV{PANEL_VERSION}")
 else()
