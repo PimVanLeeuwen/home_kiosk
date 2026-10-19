@@ -1,4 +1,4 @@
-import { Pencil, RotateCcw, Send } from 'lucide-react'
+import { ChevronDown, Pencil, RotateCcw, Send } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { ApiError, sendJson } from '../../lib/api'
@@ -192,6 +192,7 @@ export function MessageTemplates() {
   const api = useApi<MessageTemplate[]>(ENDPOINT)
   const [local, setLocal] = useState<MessageTemplate[]>()
   const [editing, setEditing] = useState<string | null>(null)
+  const [open, setOpen] = useState<ReadonlySet<string>>(new Set())
   const items = local ?? api.data
 
   if (!items)
@@ -218,48 +219,72 @@ export function MessageTemplates() {
         </Link>
         .
       </p>
-      {groups.map((group) => (
-        <section key={group} aria-label={group} className="rounded-[14px] border border-line-soft bg-card p-3 md:p-4">
-          <h3 className="mb-1 px-1 text-[13px] font-semibold text-muted">{group}</h3>
-          <ul className="divide-y divide-line-soft">
-            {items
-              .filter((t) => t.group === group)
-              .map((t) => (
-                <li key={t.id} className={cn('px-1 py-2.5', t.parent && 'pl-5')}>
-                  <div className="flex items-start gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium">
-                        {t.label}
-                        {t.customised && (
-                          <span className="ml-2 rounded-md border border-accent-line px-1.5 py-0.5 align-middle text-[11px] font-normal text-accent-fg">
-                            Customised
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-[12.5px] text-muted">
-                        {t.description}
-                        {t.category && <span className="text-faint"> · routed as {t.category}</span>}
-                      </p>
+      {groups.map((group, gi) => {
+        const inGroup = items.filter((t) => t.group === group)
+        const customised = inGroup.filter((t) => t.customised).length
+        const isOpen = open.has(group)
+        const listId = `message-group-${gi}`
+        const toggle = () =>
+          setOpen((now) => (now.has(group) ? new Set([...now].filter((g) => g !== group)) : new Set([...now, group])))
+        return (
+          <section key={group} aria-label={group} className="rounded-[14px] border border-line-soft bg-card p-3 md:p-4">
+            {/* Folded by default: the groups together hold dozens of messages. */}
+            <h3 className="text-[13px] font-semibold text-muted">
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={listId}
+                onClick={toggle}
+                className="flex w-full items-center gap-3 rounded-lg px-1 py-0.5 text-left hover:text-fg"
+              >
+                <span className="flex-1">{group}</span>
+                <span className="font-normal text-faint">
+                  {inGroup.length} {inGroup.length === 1 ? 'message' : 'messages'}
+                  {customised > 0 && `, ${customised} customised`}
+                </span>
+                <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-faint transition-transform', isOpen && 'rotate-180')} />
+              </button>
+            </h3>
+            {isOpen && (
+              <ul id={listId} className="mt-1 divide-y divide-line-soft">
+                {inGroup.map((t) => (
+                  <li key={t.id} className={cn('px-1 py-2.5', t.parent && 'pl-5')}>
+                    <div className="flex items-start gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium">
+                          {t.label}
+                          {t.customised && (
+                            <span className="ml-2 rounded-md border border-accent-line px-1.5 py-0.5 align-middle text-[11px] font-normal text-accent-fg">
+                              Customised
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-[12.5px] text-muted">
+                          {t.description}
+                          {t.category && <span className="text-faint"> · routed as {t.category}</span>}
+                        </p>
+                      </div>
+                      {editing !== t.id && (
+                        <button type="button" aria-label={`Edit ${t.label}`} onClick={() => setEditing(t.id)} className={iconButtonClass}>
+                          <Pencil aria-hidden="true" className="size-4" />
+                        </button>
+                      )}
                     </div>
-                    {editing !== t.id && (
-                      <button type="button" aria-label={`Edit ${t.label}`} onClick={() => setEditing(t.id)} className={iconButtonClass}>
-                        <Pencil aria-hidden="true" className="size-4" />
-                      </button>
+                    {editing === t.id && (
+                      <Editor
+                        template={t}
+                        parentLabel={t.parent ? labelOf(t.parent) : undefined}
+                        onSaved={replace}
+                        onClose={() => setEditing(null)}
+                      />
                     )}
-                  </div>
-                  {editing === t.id && (
-                    <Editor
-                      template={t}
-                      parentLabel={t.parent ? labelOf(t.parent) : undefined}
-                      onSaved={replace}
-                      onClose={() => setEditing(null)}
-                    />
-                  )}
-                </li>
-              ))}
-          </ul>
-        </section>
-      ))}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )
+      })}
     </div>
   )
 }

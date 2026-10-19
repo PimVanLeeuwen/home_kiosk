@@ -96,7 +96,7 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
       ) : (
         <p className="text-[13px] text-muted">
           No favourites yet: choose four in{' '}
-          <Link to="/settings#music" className="text-accent-fg hover:underline">
+          <Link to="/settings/music" className="text-accent-fg hover:underline">
             Settings → Music
           </Link>
           .

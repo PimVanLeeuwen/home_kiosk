@@ -30,7 +30,8 @@ const LIST = [
 ]
 const DISK = '/api/alerts/templates/Disk space'
 
-function setup(extra: Record<string, unknown> = {}) {
+/** Renders the list and opens every group, as they start folded. */
+async function setup(extra: Record<string, unknown> = {}) {
   const fetchMock = stubApi({
     '/api/alerts/templates': LIST,
     [`POST ${DISK}/preview`]: (body: { text: string }) => ({
@@ -44,6 +45,7 @@ function setup(extra: Record<string, unknown> = {}) {
       <MessageTemplates />
     </MemoryRouter>,
   )
+  for (const fold of await screen.findAllByRole('button', { expanded: false })) fireEvent.click(fold)
   return fetchMock
 }
 
@@ -51,8 +53,30 @@ const editor = () => screen.getByRole('form', { name: 'Edit Disk space' })
 const textarea = () => within(editor()).getByRole('textbox', { name: 'Message text' })
 
 describe('MessageTemplates', () => {
+  it('folds each group, showing how many messages it holds and how many are changed', async () => {
+    stubApi({ '/api/alerts/templates': LIST })
+    render(
+      <MemoryRouter>
+        <MessageTemplates />
+      </MemoryRouter>,
+    )
+    const fold = await screen.findByRole('button', { name: /Reports/ })
+    expect(fold).toHaveAttribute('aria-expanded', 'false')
+    expect(fold).toHaveTextContent('2 messages, 1 customised')
+    expect(screen.getByRole('button', { name: /Alert rules/ })).toHaveTextContent('1 message')
+    expect(screen.queryByRole('button', { name: 'Edit Portfolio report' })).not.toBeInTheDocument()
+
+    fireEvent.click(fold)
+    expect(fold).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: 'Edit Portfolio report' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Edit Disk space' })).not.toBeInTheDocument()
+
+    fireEvent.click(fold)
+    expect(screen.queryByRole('button', { name: 'Edit Portfolio report' })).not.toBeInTheDocument()
+  })
+
   it('lists the messages by group, marks changed ones and links to Alerts', async () => {
-    setup()
+    await setup()
     const reports = await screen.findByRole('region', { name: 'Reports' })
     expect(within(reports).getByText('Customised')).toBeInTheDocument()
     expect(within(reports).getByText(/routed as Portfolio/)).toBeInTheDocument()
@@ -61,7 +85,7 @@ describe('MessageTemplates', () => {
   })
 
   it('edits with clickable placeholders and a live preview, then saves', async () => {
-    const fetchMock = setup({ [`PUT ${DISK}`]: (body: { text: string }) => tpl('Disk space', { text: body.text, customised: true }) })
+    const fetchMock = await setup({ [`PUT ${DISK}`]: (body: { text: string }) => tpl('Disk space', { text: body.text, customised: true }) })
     fireEvent.click(await screen.findByRole('button', { name: 'Edit Disk space' }))
 
     fireEvent.change(textarea(), { target: { value: 'Pool ' } })
@@ -78,7 +102,7 @@ describe('MessageTemplates', () => {
   })
 
   it('shows template errors and blocks saving', async () => {
-    setup()
+    await setup()
     fireEvent.click(await screen.findByRole('button', { name: 'Edit Disk space' }))
     fireEvent.change(textarea(), { target: { value: '{nope}' } })
 
@@ -89,7 +113,7 @@ describe('MessageTemplates', () => {
 
   it('sends a test and says when Telegram refused it', async () => {
     let status = 'sent'
-    setup({ [`POST ${DISK}/test`]: () => ({ status, error: status === 'failed' ? 'No chat id set for nas' : null }) })
+    await setup({ [`POST ${DISK}/test`]: () => ({ status, error: status === 'failed' ? 'No chat id set for nas' : null }) })
     fireEvent.click(await screen.findByRole('button', { name: 'Edit Disk space' }))
 
     fireEvent.click(within(editor()).getByRole('button', { name: 'Send test' }))
@@ -102,7 +126,7 @@ describe('MessageTemplates', () => {
 
   it('resets a changed message to the built-in text', async () => {
     const HOLDING = '/api/alerts/templates/Holding line'
-    setup({
+    await setup({
       [`POST ${HOLDING}/preview`]: { html: 'x', error: null },
       [`DELETE ${HOLDING}`]: tpl('Holding line', { group: 'Reports', parent: 'portfolio_report', category: null }),
     })
@@ -117,7 +141,7 @@ describe('MessageTemplates', () => {
   })
 
   it('shows save errors from the hub', async () => {
-    setup({ [`PUT ${DISK}`]: failWith(422, { detail: '<b> is never closed.' }) })
+    await setup({ [`PUT ${DISK}`]: failWith(422, { detail: '<b> is never closed.' }) })
     fireEvent.click(await screen.findByRole('button', { name: 'Edit Disk space' }))
     fireEvent.click(within(editor()).getByRole('button', { name: 'Save' }))
     expect(await within(editor()).findByText('<b> is never closed.')).toBeInTheDocument()

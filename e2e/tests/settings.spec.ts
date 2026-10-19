@@ -79,7 +79,10 @@ test('rewords a Telegram message in Settings', async ({ page }) => {
     return route.fulfill({ json: { ...TEMPLATE, text: (saved as { text: string }).text, customised: true } })
   })
 
-  await page.goto('/settings')
+  await page.goto('/settings/messages')
+  const fold = page.getByRole('button', { name: /Alert rules/ })
+  await expect(fold).toHaveText(/1 message/)
+  await fold.click()
   await page.getByRole('button', { name: 'Edit Disk space' }).click()
   const form = page.getByRole('form', { name: 'Edit Disk space' })
   await form.getByLabel('Message text').fill('{level} <b>Almost full: </b>')
@@ -101,7 +104,7 @@ test('switches a calendar off in Settings', async ({ page }) => {
   await page.route('**/api/settings/calendars', (route) => route.fulfill({ json: calendars }))
   await page.route('**/api/settings/calendars/gewis-id', (route) =>
     route.fulfill({ json: [calendars[0], { ...calendars[1], shown: false }] }))
-  await page.goto('/settings')
+  await page.goto('/settings/calendars')
 
   const section = page.getByRole('region', { name: 'Calendars' })
   const gewis = section.getByRole('switch', { name: 'Show GEWIS Activiteiten' })
@@ -120,11 +123,39 @@ test('assigns a desk panel board in Settings', async ({ page }) => {
     return route.fulfill({ json: [{ ...board, panel: 'now' }] })
   })
 
-  await page.goto('/settings#desk-panels')
+  await page.goto('/settings/desk-panels')
   const panel = page.getByRole('group', { name: 'Panel for e8:f6:0a:e4:42:b0' })
   await expect(page.getByText('Online')).toBeVisible()
   await panel.getByRole('button', { name: 'Now' }).click()
 
   await expect(panel.getByRole('button', { name: 'Now' })).toHaveAttribute('aria-pressed', 'true')
   expect(assigned).toEqual({ panel: 'now' })
+})
+
+test('moves between Settings sections, and old anchors still land on theirs', async ({ page }) => {
+  await page.route('**/api/containers', (route) => route.fulfill({ status: 503, json: {} }))
+  await page.route('**/api/settings/services', (route) => route.fulfill({ json: CATALOG }))
+  await page.route('**/api/settings/calendars', (route) => route.fulfill({ json: [] }))
+  await page.route('**/api/settings/desk-boards', (route) => route.fulfill({ json: [] }))
+
+  await page.goto('/settings')
+  await expect(page).toHaveURL('/settings/services')
+  const nav = page.getByRole('navigation', { name: 'Settings sections' })
+  await nav.getByRole('link', { name: 'Calendars' }).click()
+
+  await expect(page).toHaveURL('/settings/calendars')
+  await expect(page).toHaveTitle('Calendars · Settings · Home hub')
+  await expect(nav.getByRole('link', { name: 'Calendars' })).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByRole('region', { name: 'Services' })).toBeHidden()
+  await page.reload()
+  await expect(page.getByRole('heading', { level: 2, name: 'Calendars' })).toBeVisible()
+
+  await page.goto('/settings#desk-panels')
+  await expect(page).toHaveURL('/settings/desk-panels')
+  await expect(page.getByRole('heading', { level: 2, name: 'Desk panels' })).toBeVisible()
+
+  // On a phone the chips scroll sideways: the last section's chip is brought into view.
+  await page.route('**/api/alerts/templates', (route) => route.fulfill({ json: [] }))
+  await page.goto('/settings/messages')
+  await expect(nav.getByRole('link', { name: 'Messages' })).toBeInViewport()
 })
