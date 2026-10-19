@@ -14,10 +14,6 @@
 
 static const char *TAG = "panel";
 
-/* The panels run bright (the owner's choice); true black backgrounds keep the IPS
- * glow down. At 40 % the backlight of one board stayed off altogether. */
-#define BRIGHTNESS 100
-
 void app_main(void)
 {
     esp_err_t err = nvs_flash_init();
@@ -26,9 +22,19 @@ void app_main(void)
         ESP_ERROR_CHECK(nvs_flash_init());
     }
 
-    ESP_ERROR_CHECK(bsp_display_start() != NULL ? ESP_OK : ESP_FAIL);
+    /* Turned a quarter to the right, so the USB ports sit at the top in the
+     * printed cases; touch follows: mirrored across, then x and y swapped. */
+    bsp_display_cfg_t display = {
+        .lv_adapter_cfg = ESP_LV_ADAPTER_DEFAULT_CONFIG(),
+        .rotation = ESP_LV_ADAPTER_ROTATE_90,
+        .tear_avoid_mode = ESP_LV_ADAPTER_TEAR_AVOID_MODE_TRIPLE_PARTIAL,
+        .touch_flags = {.swap_xy = 1, .mirror_x = 1},
+    };
+    ESP_ERROR_CHECK(bsp_display_start_with_config(&display) != NULL ? ESP_OK : ESP_FAIL);
     ESP_ERROR_CHECK(bsp_display_backlight_on());
-    ESP_ERROR_CHECK(bsp_display_brightness_set(BRIGHTNESS));
+    ESP_ERROR_CHECK(bsp_display_brightness_set(PANEL_BRIGHTNESS));
+    /* The board package logs every brightness change: quiet it for the dips between screens. */
+    esp_log_level_set("ESP32_P4_4B", ESP_LOG_WARN);
     /* Wait for LVGL's first frame: with this board package 0 means "do not wait". */
     ESP_ERROR_CHECK(bsp_display_lock(5000) ? ESP_OK : ESP_ERR_TIMEOUT);
     screens_start();

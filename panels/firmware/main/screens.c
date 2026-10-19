@@ -1,9 +1,16 @@
-/* The rotation between a panel's screens (plan.md M16): a slow fade every
- * 10 s, held for a minute after a touch. A screen the hub has nothing for yet
- * is skipped. Only the Now panel's two screens so far. */
+/* The rotation between a panel's screens (plan.md M16): every 10 s, held for a
+ * minute after a touch. A screen the hub has nothing for yet is skipped. Only
+ * the Now panel's two screens so far.
+ *
+ * The turn dips through black with the backlight: down, the next screen swapped
+ * in while it is dark, up again once that screen is drawn. A crossfade made
+ * LVGL redraw and blend both whole screens per frame, about 6 frames a second
+ * here; the backlight dims in hardware, so the dip is smooth and costs nothing. */
 
 #include "screens.h"
 
+#include "bsp/display.h"
+#include "bsp/esp-bsp.h"
 #include "desk.h"
 #include "lvgl.h"
 #include "screen_clock.h"
@@ -11,29 +18,71 @@
 
 #define TURN_MS 10000
 #define HOLD_MS 60000
-#define FADE_MS 600
+#define DIM_MS 250
 
 enum { CLOCK, DAY, COUNT };
 
 static lv_obj_t *screens[COUNT];
-static int current = CLOCK;
+static int current = CLOCK, coming = -1; /* coming: the screen being turned to */
 static uint32_t touched_at;
 static bool touched;
+static bool waiting; /* for the new screen to be drawn */
 
 static bool ready(int which)
 {
     return which != DAY || desk_day().present;
 }
 
+static void set_light(void *unused, int32_t percent)
+{
+    bsp_display_brightness_set(percent);
+}
+
+static void dim(int32_t from, int32_t to, lv_anim_completed_cb_t done)
+{
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+    lv_anim_set_exec_cb(&anim, set_light);
+    lv_anim_set_values(&anim, from, to);
+    lv_anim_set_duration(&anim, DIM_MS);
+    lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
+    lv_anim_set_completed_cb(&anim, done);
+    lv_anim_start(&anim);
+}
+
+static void lit(lv_anim_t *anim)
+{
+    coming = -1;
+}
+
+/* The new screen is on the display: bring the light back. */
+static void drawn(lv_event_t *event)
+{
+    if (waiting) {
+        waiting = false;
+        dim(0, PANEL_BRIGHTNESS, lit);
+    }
+}
+
+static void dark(lv_anim_t *anim)
+{
+    current = coming;
+    waiting = true;
+    lv_screen_load(screens[current]);
+}
+
 static void advance(void)
 {
+    if (coming >= 0) {
+        return; /* already turning */
+    }
     int next = current;
     do {
         next = (next + 1) % COUNT;
     } while (next != current && !ready(next));
     if (next != current) {
-        current = next;
-        lv_screen_load_anim(screens[current], LV_SCR_LOAD_ANIM_FADE_IN, FADE_MS, 0, false);
+        coming = next;
+        dim(PANEL_BRIGHTNESS, 0, dark);
     }
 }
 
@@ -72,5 +121,6 @@ void screens_start(void)
     for (int i = 0; i < COUNT; i++) {
         lv_obj_add_event_cb(screens[i], on_touch, LV_EVENT_PRESSED, NULL);
     }
+    lv_display_add_event_cb(lv_display_get_default(), drawn, LV_EVENT_REFR_READY, NULL);
     lv_timer_create(turn, TURN_MS, NULL);
 }
