@@ -342,6 +342,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   panels, when its firmware is not the one the hub offers (the page reads `/panels/firmware.json`
   itself); the request goes out once with the board's next answer, which installs at once (on
   the bench: 54 s from the press to the new firmware kept). The night window stays for the rest.
+- **Start-up screen** (planned 2026-10-19, at the owner's request): after a restart (power, an
+  update) a board now shows the empty clock ("--:--", blank header) for the 10 to 20 seconds
+  until Wi-Fi is up and the hub has answered. Instead: a calm start-up screen in the panels'
+  style, true black with the quiet violet light, a small animation that moves while it waits
+  (pulsing dots or a slow arc, kept small: full-screen animations run at about 6 fps here), and
+  one line on what it is doing ("Connecting to Wi-Fi", "Asking the hub"), then the dip through
+  black into the first screen. When it takes long, it says so plainly ("Can't reach the hub at
+  192.168.1.10", "No Wi-Fi network saved on this board") with the board's MAC, so a problem is
+  readable from the desk. Mockup first, checked on a real panel.
 
 **M17. Home control** (added 2026-10-09)
 - The hub talks to the Hue Bridge's local CLIP v2 API with an application key (created once with
