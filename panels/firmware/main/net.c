@@ -112,6 +112,9 @@ void net_start(void)
     if (!credentials(&config)) {
         /* Flash this board once over USB with a build that has sdkconfig.secrets. */
         ESP_LOGE(TAG, "no Wi-Fi network saved on this board");
+        xSemaphoreTake(lock, portMAX_DELAY);
+        state.no_network = true;
+        xSemaphoreGive(lock);
         return;
     }
     config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;

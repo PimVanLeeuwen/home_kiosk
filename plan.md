@@ -351,6 +351,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   black into the first screen. When it takes long, it says so plainly ("Can't reach the hub at
   192.168.1.10", "No Wi-Fi network saved on this board") with the board's MAC, so a problem is
   readable from the desk. Mockup first, checked on a real panel.
+  Built 2026-10-19 (decided: pulsing dots, a problem shown after 30 s): three violet dots
+  brighten one after another under "Connecting to Wi-Fi", then "Asking the hub"; after 30 s an
+  amber dot and "Can't join the Wi-Fi", "Can't reach the hub" (with its address) or "The hub is
+  not ready" (with its answer), and "No Wi-Fi network saved" at once. The MAC sits at the bottom.
+  It is shown only until the hub's first answer: later outages keep the screens, marked stale.
 
 **M17. Home control** (added 2026-10-09)
 - The hub talks to the Hue Bridge's local CLIP v2 API with an application key (created once with

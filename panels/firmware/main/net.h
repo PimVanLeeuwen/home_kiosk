@@ -6,6 +6,7 @@
  * tasks, read by the screen once a second; small enough to copy whole. */
 typedef struct {
     bool connected;
+    bool no_network;      /* no Wi-Fi network saved on this board */
     char ip[16];
     int rssi;             /* dBm, 0 when not connected */
     int hub_status;       /* HTTP status of the last /api/desk call, 0 before the first */

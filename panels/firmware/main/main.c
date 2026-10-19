@@ -1,7 +1,7 @@
 /* The desk panels' firmware (plan.md M16): one build for every board; the hub
  * says which panel a board is. Screens so far: the Now panel's clock with the
- * next two hours of rain and its day view (plan.md M20), and the board's own
- * screen. */
+ * next two hours of rain and its day view (plan.md M20), the board's own
+ * screen, and the start-up screen until the hub has answered. */
 
 #include "bsp/display.h"
 #include "bsp/esp-bsp.h"

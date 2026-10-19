@@ -2,6 +2,7 @@
  * minute after a touch. The panel shows the screens the hub lists for it (the
  * board's own screen alone when it has no panel yet); a screen the hub has
  * nothing for yet is skipped, and one the hub no longer lists is left at once.
+ * A board starts on the start-up screen and leaves it once the hub has answered.
  *
  * The turn dips through black with the backlight: down, the next screen swapped
  * in while it is dark, up again once that screen is drawn. A crossfade made
@@ -17,15 +18,16 @@
 #include "screen_board.h"
 #include "screen_clock.h"
 #include "screen_day.h"
+#include "screen_start.h"
 
 #define TURN_MS 15000
 #define HOLD_MS 60000
 #define DIM_MS 250
 
-enum { CLOCK, DAY, BOARD, COUNT };
+enum { CLOCK, DAY, BOARD, START, COUNT };
 
 static lv_obj_t *screens[COUNT];
-static int current = CLOCK, coming = -1; /* coming: the screen being turned to */
+static int current = START, coming = -1; /* coming: the screen being turned to */
 static uint32_t touched_at;
 static bool touched;
 static bool waiting; /* for the new screen to be drawn */
@@ -33,8 +35,10 @@ static bool waiting; /* for the new screen to be drawn */
 static bool ready(int which)
 {
     switch (which) {
-    case CLOCK: /* also before the hub has answered: the time is the panel's own */
-        return !desk_clock().present || desk_clock().listed;
+    case START: /* until the hub has answered once */
+        return !desk_clock().present;
+    case CLOCK:
+        return desk_clock().listed;
     case DAY:
         return desk_day().present;
     default:
@@ -131,12 +135,14 @@ void screens_next(void)
 
 void screens_start(void)
 {
-    screens[CLOCK] = lv_screen_active();
+    screens[START] = lv_screen_active();
+    screens[CLOCK] = lv_obj_create(NULL);
     screens[DAY] = lv_obj_create(NULL);
     screens[BOARD] = lv_obj_create(NULL);
     screen_clock_create(screens[CLOCK]);
     screen_day_create(screens[DAY]);
     screen_board_create(screens[BOARD]);
+    screen_start_create(screens[START]);
     for (int i = 0; i < COUNT; i++) {
         lv_obj_add_event_cb(screens[i], on_touch, LV_EVENT_PRESSED, NULL);
     }
