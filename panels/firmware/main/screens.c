@@ -19,12 +19,13 @@
 #include "screen_clock.h"
 #include "screen_day.h"
 #include "screen_start.h"
+#include "screen_train.h"
 
 #define TURN_MS 15000
 #define HOLD_MS 60000
 #define DIM_MS 250
 
-enum { CLOCK, DAY, BOARD, START, COUNT };
+enum { CLOCK, TRAIN, DAY, BOARD, START, COUNT };
 
 static lv_obj_t *screens[COUNT];
 static int current = START, coming = -1; /* coming: the screen being turned to */
@@ -39,6 +40,8 @@ static bool ready(int which)
         return !desk_clock().present;
     case CLOCK:
         return desk_clock().listed;
+    case TRAIN:
+        return desk_train().present;
     case DAY:
         return desk_day().present;
     default:
@@ -137,9 +140,11 @@ void screens_start(void)
 {
     screens[START] = lv_screen_active();
     screens[CLOCK] = lv_obj_create(NULL);
+    screens[TRAIN] = lv_obj_create(NULL);
     screens[DAY] = lv_obj_create(NULL);
     screens[BOARD] = lv_obj_create(NULL);
     screen_clock_create(screens[CLOCK]);
+    screen_train_create(screens[TRAIN]);
     screen_day_create(screens[DAY]);
     screen_board_create(screens[BOARD]);
     screen_start_create(screens[START]);

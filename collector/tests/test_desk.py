@@ -37,7 +37,8 @@ def test_the_now_panel_gets_its_clock_and_the_hubs_time(store):
     answer = desk.answer(CFG, store, "now", NOW)
 
     assert answer["time"] == {"epoch": NOW.timestamp(), "utc_offset": 7200}
-    clock, day = answer["screens"]
+    clock, train, day = answer["screens"]
+    assert train == {"kind": "train", "stale": False, "present": False}
     assert day["kind"] == "day"
     assert clock == {
         "kind": "clock", "stale": False, "place": "De Bilt", "date": "Mon 19 Oct",
@@ -155,7 +156,7 @@ def test_an_assigned_board_gets_its_panels_screens(store):
     assert boards[0]["panel"] == "now"
     answer = client.get(f"/api/desk/board/{MAC}").json()
     assert answer["name"] == "now"
-    assert [s["kind"] for s in answer["screens"]] == ["clock", "day"]
+    assert [s["kind"] for s in answer["screens"]] == ["clock", "train", "day"]
 
 
 def test_a_panel_without_screens_says_so_on_its_board(store):

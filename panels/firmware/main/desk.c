@@ -26,10 +26,11 @@ static const char *TAG = "desk";
 static desk_clock_t clock_state;
 static desk_day_t day_state;
 static desk_board_t board_state;
+static desk_train_t train_state;
 static char mac_text[18];
 static SemaphoreHandle_t lock;
 
-#define BODY_MAX 4096
+#define BODY_MAX 8192
 #define EVERY_MS 30000
 
 desk_clock_t desk_clock(void)
@@ -66,6 +67,68 @@ desk_board_t desk_board(void)
     copy = board_state;
     xSemaphoreGive(lock);
     return copy;
+}
+
+static void copy_string(char *to, size_t size, const cJSON *from);
+
+desk_train_t desk_train(void)
+{
+    desk_train_t copy = {0};
+    if (lock == NULL) {
+        return copy;
+    }
+    xSemaphoreTake(lock, portMAX_DELAY);
+    copy = train_state;
+    xSemaphoreGive(lock);
+    return copy;
+}
+
+static void parse_train(const cJSON *screen, desk_train_t *train)
+{
+    const cJSON *item;
+    train->present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
+    train->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
+    if (!train->present) {
+        return;
+    }
+    copy_string(train->title, sizeof train->title, cJSON_GetObjectItem(screen, "title"));
+    copy_string(train->departure, sizeof train->departure, cJSON_GetObjectItem(screen, "departure"));
+    copy_string(train->departure_now, sizeof train->departure_now, cJSON_GetObjectItem(screen, "departure_now"));
+    train->gone = cJSON_IsTrue(cJSON_GetObjectItem(screen, "gone"));
+    copy_string(train->status, sizeof train->status, cJSON_GetObjectItem(screen, "status"));
+    item = cJSON_GetObjectItem(screen, "tone");
+    train->tone = !cJSON_IsString(item)                  ? DESK_TONE_WARN
+                  : strcmp(item->valuestring, "up") == 0   ? DESK_TONE_UP
+                  : strcmp(item->valuestring, "down") == 0 ? DESK_TONE_DOWN
+                                                           : DESK_TONE_WARN;
+    copy_string(train->sub, sizeof train->sub, cJSON_GetObjectItem(screen, "sub"));
+    copy_string(train->platform, sizeof train->platform, cJSON_GetObjectItem(screen, "platform"));
+    copy_string(train->platform_was, sizeof train->platform_was, cJSON_GetObjectItem(screen, "platform_was"));
+    item = cJSON_GetObjectItem(screen, "leaves_at");
+    train->leaves_at = cJSON_IsNumber(item) ? (int64_t)item->valuedouble : 0;
+    copy_string(train->ring_label, sizeof train->ring_label, cJSON_GetObjectItem(screen, "ring_label"));
+    cJSON_ArrayForEach(item, cJSON_GetObjectItem(screen, "stops"))
+    {
+        if (train->stop_count == DESK_TRAIN_STOPS) {
+            break;
+        }
+        int i = train->stop_count++;
+        copy_string(train->stops[i].time, sizeof train->stops[i].time, cJSON_GetObjectItem(item, "time"));
+        copy_string(train->stops[i].name, sizeof train->stops[i].name, cJSON_GetObjectItem(item, "name"));
+        train->stops[i].shifted = cJSON_IsTrue(cJSON_GetObjectItem(item, "shifted"));
+        train->stops[i].cancelled = cJSON_IsTrue(cJSON_GetObjectItem(item, "cancelled"));
+    }
+    item = cJSON_GetObjectItem(screen, "next");
+    if ((train->has_next = cJSON_IsObject(item))) {
+        copy_string(train->next_departure, sizeof train->next_departure, cJSON_GetObjectItem(item, "departure"));
+        copy_string(train->next_platform, sizeof train->next_platform, cJSON_GetObjectItem(item, "platform"));
+        copy_string(train->next_arrives, sizeof train->next_arrives, cJSON_GetObjectItem(item, "arrives"));
+    }
+    item = cJSON_GetObjectItem(screen, "notice");
+    if ((train->has_notice = cJSON_IsObject(item))) {
+        copy_string(train->notice_title, sizeof train->notice_title, cJSON_GetObjectItem(item, "title"));
+        copy_string(train->notice_text, sizeof train->notice_text, cJSON_GetObjectItem(item, "text"));
+    }
 }
 
 const char *desk_mac(void)
@@ -124,6 +187,7 @@ static void apply(const char *body)
     desk_clock_t next = {.present = true};
     desk_day_t day = {0};
     desk_board_t board = {0};
+    desk_train_t train = {0};
     const cJSON *offset = cJSON_GetObjectItem(time, "utc_offset");
     next.utc_offset = cJSON_IsNumber(offset) ? offset->valueint : 0;
 
@@ -131,6 +195,10 @@ static void apply(const char *body)
     cJSON_ArrayForEach(screen, cJSON_GetObjectItem(root, "screens"))
     {
         const cJSON *kind = cJSON_GetObjectItem(screen, "kind");
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "train") == 0) {
+            parse_train(screen, &train);
+            continue;
+        }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "board") == 0) {
             board.listed = true;
             copy_string(board.mac, sizeof board.mac, cJSON_GetObjectItem(screen, "mac"));
@@ -191,6 +259,8 @@ static void apply(const char *body)
     clock_state = next;
     day.version = day_state.version + 1;
     day_state = day;
+    train.version = train_state.version + 1;
+    train_state = train;
     board.version = board_state.version + 1;
     board_state = board;
     xSemaphoreGive(lock);

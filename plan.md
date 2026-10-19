@@ -483,6 +483,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   its stretch covers two or more of them) and disruptions; a `train` alert rule (late from 3 min
   and again at 10, 15, 20, 30, 45, 60; cancelled with the next direct train; skipped stops; a
   track change; works or a disruption on the route), routed as its own category "Your train".
+  Built 2026-10-19 (panel): the Now panel's train screen, between the clock and the day view,
+  shown exactly when Home shows the card. As in the panel mockup: the departure in a labelled box
+  (struck through when it does not run, the new time beside the old one when late), the status
+  large in green, amber or red, "Leaves in 34 min from platform 3" with the platform as a pill
+  (amber, the old one struck through, when it changed), a ring emptying over the last hour in the
+  status colour with its light behind it, and the route with its times; when cancelled, the next
+  direct train; the evening before, tomorrow's problem and the works on the route. The hub words
+  everything (`app/desk_train.py`, kept to the Latin-1 the panel fonts hold); the panel counts
+  the minutes down on its own clock.
 - **Clock and Your day** (Now, redesigned 2026-10-12): the clock sits inside a ring of the next
   two hours of Buienradar rain in 5-minute segments, starting at the top at now and going round
   clockwise, segment length by intensity, with "Rain 07:11 to 07:56, peak 2,8 mm/u" below. The

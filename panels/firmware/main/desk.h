@@ -43,6 +43,40 @@ typedef struct {
     char credit[24];
 } desk_day_t;
 
+#define DESK_TRAIN_STOPS 6
+
+typedef enum { DESK_TONE_UP, DESK_TONE_WARN, DESK_TONE_DOWN } desk_tone_t;
+
+/* The Now panel's train screen: this weekday morning's train until it leaves,
+ * or tomorrow's the evening before when it has a problem (app/desk_train.py). */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[48];          /* "Your train · direct" */
+    char departure[6];       /* "07:16" */
+    char departure_now[6];   /* the new time when late, else "" */
+    bool gone;               /* it does not run: departure struck through */
+    char status[64];         /* "On time", "6 min late", "Cancelled" */
+    desk_tone_t tone;
+    char sub[96];            /* "" when the panel words it from leaves_at */
+    char platform[8];        /* "" when there is none to show */
+    char platform_was[8];    /* the planned one when it changed, else "" */
+    int64_t leaves_at;       /* seconds since 1970 of the followed train, 0 for none */
+    char ring_label[16];
+    int stop_count;
+    struct {
+        char time[6];
+        char name[40];
+        bool shifted, cancelled;
+    } stops[DESK_TRAIN_STOPS];
+    bool has_next;
+    char next_departure[6], next_platform[8], next_arrives[6];
+    bool has_notice;
+    char notice_title[64];
+    char notice_text[160];
+} desk_train_t;
+
 /* A board's own screen: its MAC and what to do (no panel yet, or a panel
  * without screens yet). */
 typedef struct {
@@ -58,6 +92,7 @@ void desk_start(void);
 desk_clock_t desk_clock(void);
 desk_day_t desk_day(void);
 desk_board_t desk_board(void);
+desk_train_t desk_train(void);
 
 /* This board's MAC address, "e8:f6:0a:e4:42:b0", as written on its back. */
 const char *desk_mac(void);

@@ -25,4 +25,6 @@ font instrument_clock 500 150 "0x2D,0x30-0x3A"   # the time: digits, the colon, 
 font instrument_40 500 40 "$TEXT"           # temperature and weather
 font instrument_28_bold 600 28 "$TEXT"      # the rain line
 font instrument_24 500 24 "$TEXT"           # the header row
+font instrument_time 500 84 "0x2D,0x30-0x3A"   # the train's departure and minutes to go
+font instrument_52_bold 600 52 "$TEXT"      # the train's status
 echo "fonts written to ../main/fonts/"
