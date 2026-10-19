@@ -394,6 +394,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   pairing). When a favourite should start there and Spotify does not list it, the hub switches it
   on and opens the Spotify app (`com.spotify.client`), then waits up to 15 s for Spotify to list
   it. Nothing else is sent to the TV.
+  Built 2026-10-19 (hub): a Music page right under Lights (Now Playing with the record and the
+  cover's colour, play, pause, previous, next and volume, the Spotify devices to move playback to,
+  the four favourites), a Now Playing card on Home after Today while something plays (asks every
+  5 s, gone two minutes after a pause), and Settings → Music (connect or disconnect, tick four
+  favourites in order). Spotify names every Apple TV "Apple TV": the hub learns the living
+  room's id while it is the only one listed, and shows it as "Apple TV Living Room".
 
 **M19. Desk PC power** (parked 2026-10-10)
 - Left out for now (decided 2026-10-10): there is no ready-made option that works locally out of

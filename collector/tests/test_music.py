@@ -397,3 +397,15 @@ def test_a_machine_that_just_booted_still_asks_spotify(store, cloud, monkeypatch
     monkeypatch.setattr(spotify.time, "monotonic", lambda: 5.0)  # 5 s after boot
 
     assert run(music.state(CFG, store))["last"]["title"] == "Wait"
+
+
+def test_the_living_room_apple_tv_goes_by_its_own_name(store, cloud):
+    connect(store)
+    tv = device("Apple TV", active=True, did="living")
+    cloud.devices = [tv, device("iPhone")]
+    cloud.player = {"is_playing": True, "item": track(), "device": tv}
+
+    answer = run(music.state(CFG, store))
+
+    assert [d["name"] for d in answer["devices"]] == ["Apple TV Living Room", "iPhone"]
+    assert answer["playing"]["device"]["name"] == "Apple TV Living Room"

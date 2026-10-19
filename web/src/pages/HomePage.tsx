@@ -3,6 +3,7 @@ import { AppleCard } from '../components/home/AppleCard'
 import { BackupCard } from '../components/home/BackupCard'
 import { NasCard } from '../components/home/NasCard'
 import { NewsCard } from '../components/home/NewsCard'
+import { NowPlayingCard } from '../components/home/NowPlayingCard'
 import { PortfolioCard } from '../components/home/PortfolioCard'
 import { ServicesCard } from '../components/home/ServicesCard'
 import { LaundryCard } from '../components/home/LaundryCard'
@@ -50,6 +51,7 @@ export function HomePage() {
         <TrainCard />
         <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
           <TodayCard />
+          <NowPlayingCard />
           <LaundryCard />
           <AppleCard />
           <PortfolioCard />

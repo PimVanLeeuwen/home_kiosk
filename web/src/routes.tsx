@@ -9,6 +9,7 @@ import { HomePage } from './pages/HomePage'
 import { LightsPage } from './pages/LightsPage'
 import { MorePage } from './pages/MorePage'
 import { MediaPage } from './pages/MediaPage'
+import { MusicPage } from './pages/MusicPage'
 import { NasPage } from './pages/NasPage'
 import { NewsPage } from './pages/NewsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
@@ -25,6 +26,7 @@ import { TailscalePage } from './pages/TailscalePage'
 const PAGES: Record<string, ReactElement> = {
   '/': <HomePage />,
   '/lights': <LightsPage />,
+  '/music': <MusicPage />,
   '/services': <ServicesPage />,
   '/settings': <SettingsPage />,
   '/repos': <ReposPage />,

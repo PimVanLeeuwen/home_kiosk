@@ -69,13 +69,21 @@ async def state(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
                                  {"additional_types": "episode"})
     devices = await CLIENT.cached(cfg, store, "devices", "/me/player/devices")
     base["devices"] = [_device(d) for d in (devices or {}).get("devices") or []]
-    pick(store, base["devices"], spotify.settings(cfg)["default_device"])  # learns its id
+    s = spotify.settings(cfg)
+    # Learns its id; that device then goes by its own name ("Apple TV Living Room").
+    known = pick(store, base["devices"], s["default_device"])
+    for d in base["devices"]:
+        if known and d["id"] == known:
+            d["name"] = s["default_label"]
     if player and player.get("item"):
         base["playing"] = await _item(store, player["item"]) | {
             "state": "playing" if player.get("is_playing") else "paused",
             "progress_ms": player.get("progress_ms") or 0,
             "device": _device(player["device"]) if player.get("device") else None,
         }
+        device = base["playing"]["device"]
+        if known and device and device["id"] == known:
+            device["name"] = s["default_label"]
     else:
         recent = await CLIENT.cached(cfg, store, "recent", "/me/player/recently-played",
                                      {"limit": 1})

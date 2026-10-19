@@ -29,6 +29,7 @@ describe('routes', () => {
     expect(main.getByRole('heading', { level: 1, name: 'More' })).toBeInTheDocument()
     expect(main.getAllByRole('link').map((link) => link.querySelector('span span')?.textContent)).toEqual([
       'Lights',
+      'Music',
       'Saved',
       'Docker',
       'Backups',
