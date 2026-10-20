@@ -99,7 +99,7 @@ jobs:
           elif [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "::warning::No PANEL_HUB_URL secret: built with the example hub address"
           else
-            echo "::error::Set the PANEL_HUB_URL secret (README, Desk panels)"; exit 1
+            echo "::error::Set the PANEL_HUB_URL secret (docs/operations.md, Desk panels)"; exit 1
           fi
           version=$(git rev-parse --short HEAD:panels/firmware)
           docker run --rm -e PANEL_VERSION="$version" -v "$PWD/panels/firmware":/project -w /project \

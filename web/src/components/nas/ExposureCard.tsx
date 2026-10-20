@@ -41,7 +41,7 @@ function ScanLine({ scan }: { scan: PortScan | undefined }) {
     return (
       <p className="flex items-center gap-2.5">
         <GlowDot tone="muted" />
-        <span className="text-muted">No scan received yet. It runs nightly from a GitHub workflow (README, Port scan from outside).</span>
+        <span className="text-muted">No scan received yet. It runs nightly from a GitHub workflow (docs/operations.md, Port scan from outside).</span>
       </p>
     )
   }

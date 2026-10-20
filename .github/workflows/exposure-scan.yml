@@ -5,7 +5,7 @@ name: exposure-scan
 # the tailnet policy only lets reach the hub's API. It asks the hub for the
 # current home IP (it changes now and then), scans every TCP port over the
 # normal internet, and posts the result back to the hub, which alerts on any
-# open port and on a missing scan. Setup: README, "Port scan from outside".
+# open port and on a missing scan. Setup: docs/operations.md, "Port scan from outside".
 
 on:
   schedule:
