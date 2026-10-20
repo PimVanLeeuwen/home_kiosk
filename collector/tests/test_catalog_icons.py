@@ -106,7 +106,7 @@ def test_settings_rejects_icon_names_that_are_not_slugs(client, icon):
 
 def test_every_icon_in_the_shipped_config_exists_in_the_web_app():
     files = {p.stem for p in ICON_DIR.iterdir() if p.suffix in (".svg", ".png")}
-    named = {s.icon for s in services.seed(config.load()) if s.icon}
+    named = {s.icon for s in services.seed(config.load(config.DEFAULT_PATH)) if s.icon}
 
     assert named, "the config names no icons"
     assert named <= files, f"missing icon files: {named - files}"

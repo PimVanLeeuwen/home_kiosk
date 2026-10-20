@@ -31,3 +31,35 @@ def test_unset_variable_without_default_expands_to_empty(tmp_path, monkeypatch):
     path.write_text("token: ${MISSING_VAR}\n")
 
     assert config.load(path) == {"token": ""}
+
+
+def test_the_local_config_wins_over_the_shipped_example(tmp_path, monkeypatch):
+    monkeypatch.delenv("COLLECTOR_CONFIG", raising=False)
+    monkeypatch.setattr(config, "DEFAULT_PATH", tmp_path / "config.yaml")
+    monkeypatch.setattr(config, "LOCAL_PATH", tmp_path / "config.local.yaml")
+    config.DEFAULT_PATH.write_text("source: example\n")
+
+    assert config.load() == {"source": "example"}
+
+    config.LOCAL_PATH.write_text("source: local\n")
+    assert config.load() == {"source": "local"}
+
+
+def test_a_folder_in_place_of_the_local_config_is_ignored(tmp_path, monkeypatch):
+    # Docker creates a folder when the file to mount is missing on the host.
+    monkeypatch.delenv("COLLECTOR_CONFIG", raising=False)
+    monkeypatch.setattr(config, "DEFAULT_PATH", tmp_path / "config.yaml")
+    monkeypatch.setattr(config, "LOCAL_PATH", tmp_path / "config.local.yaml")
+    config.LOCAL_PATH.mkdir()
+
+    assert config.resolve() == config.DEFAULT_PATH
+
+
+def test_collector_config_names_another_file(tmp_path, monkeypatch):
+    named = tmp_path / "elsewhere.yaml"
+    named.write_text("source: named\n")
+    monkeypatch.setattr(config, "LOCAL_PATH", tmp_path / "config.local.yaml")
+    config.LOCAL_PATH.write_text("source: local\n")
+    monkeypatch.setenv("COLLECTOR_CONFIG", str(named))
+
+    assert config.load() == {"source": "named"}

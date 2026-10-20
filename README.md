@@ -52,8 +52,12 @@ same-origin JSON requests.
 
 - **Secrets** go in `.env` next to the compose file on the NAS; `.env.example` lists every key
   and where to find it. Nothing secret goes in `config.yaml` or the repo.
-- **`collector/config.yaml`** holds the rest (hosts, feeds and services to seed, alert chats,
-  portfolio indices and report schedule). Feeds, services and alert settings are edited in the
+- **`collector/config.yaml`** is an example of the rest (hosts, places, devices, feeds and
+  services to seed, alert chats, portfolio indices and report schedule). Your own copy goes in
+  `collector/config.local.yaml`, which git ignores and the collector reads instead when it
+  exists. On the NAS it is `/volume1/docker/home_kiosk/config.yaml`, mounted into the
+  container by `docker-compose.yml`: put it there before deploying, or the collector runs on the
+  example (it logs which file it read). Feeds, services and alert settings are edited in the
   app afterwards; the file only seeds an empty database.
 - Senders on the NAS post to `http://<nas>:8000/api/notify` with the `X-Notify-Key` header
   (`NOTIFY_KEY`); see the nas-docker README, *Alerts*.
@@ -63,7 +67,7 @@ same-origin JSON requests.
 The hub is an installable app (a web app manifest and a service worker): it opens full screen
 from the home screen, and without the hub it still shows the last data it saw, marked as stale.
 Browsers only allow this over HTTPS, so install it from the Tailscale address
-(`https://<nas>.<tailnet>.ts.net`), not from `http://192.168.1.10:8083`; the LAN address keeps
+(`https://<nas>.<tailnet>.ts.net`), not from `http://<nas LAN IP>:8083`; the LAN address keeps
 working as a normal website. On an iPhone: open the Tailscale address in Safari, Share, Add to
 Home Screen. A home screen icon made before (a plain bookmark) has to be removed and added again
 to become the app. The Pi kiosk at `/kiosk/` is not part of the app.

@@ -83,7 +83,9 @@ CACHE_KEYS = {
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.config = config.load()
+    config_path = config.resolve()
+    app.state.config = config.load(config_path)
+    log.info("config from %s", config_path.name)
     app.state.store = Store(app.state.config.get("database", "./data/collector.db"))
     log.info(service_catalog.prepare(app.state.store, app.state.config))
     alerts_core.ensure_tables(app.state.store)

@@ -13,6 +13,8 @@ venv/
 *.db
 *.db-journal
 .env
+# The household's own collector config (see collector/app/config.py)
+config.local.yaml
 
 # macOS
 .DS_Store

@@ -48,6 +48,9 @@ services:
       # SQLite: daily storage samples and the payload cache must outlive the
       # container, or the storage projection restarts from zero on every update.
       - /volume1/docker/home_kiosk/data:/app/data
+      # The household's own config; the image only carries the example
+      # config.yaml. Copy it here before deploying (see README, Configuration).
+      - /volume1/docker/home_kiosk/config.yaml:/app/config.local.yaml:ro
       # Container counts.
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # The backup marker written by rclone's backup.sh. Without this mount the

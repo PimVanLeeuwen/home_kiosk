@@ -85,7 +85,7 @@ def test_seed_reads_groups_and_defaults():
 def test_the_shipped_config_seeds_a_valid_catalog():
     from app import config
 
-    seeded = services.seed(config.load())
+    seeded = services.seed(config.load(config.DEFAULT_PATH))
 
     ids = [s.id for s in seeded]
     assert len(ids) == len(set(ids))
