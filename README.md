@@ -174,6 +174,13 @@ A push to `main` runs lint, tests, the web build and e2e, then builds and pushes
 `:<sha>`). Watchtower on the NAS pulls `:latest` nightly, so anything merged to `main` goes live.
 The compose file is copied into `nas-docker/home_kiosk/`; change it here first.
 
-Service icons in `web/src/assets/icons/` come from
-[homarr-labs/dashboard-icons](https://github.com/homarr-labs/dashboard-icons) (Apache-2.0, license
-in that folder).
+## License
+
+MIT, see [LICENSE](LICENSE), except for these third-party files:
+
+- Service icons in `web/src/assets/icons/` come from
+  [homarr-labs/dashboard-icons](https://github.com/homarr-labs/dashboard-icons) (Apache-2.0, license
+  in that folder).
+- The fonts (Instrument Sans, JetBrains Mono) in `web/src/assets/fonts/`,
+  `dashboard/assets/fonts/` and `panels/firmware/fonts/` are under the SIL Open Font License 1.1
+  (`OFL.txt` beside them).

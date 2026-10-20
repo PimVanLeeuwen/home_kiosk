@@ -2,6 +2,9 @@
 .idea/
 .vscode/
 
+# Node (installs and caches anywhere in the repo)
+node_modules/
+
 # Python
 __pycache__/
 *.py[cod]
