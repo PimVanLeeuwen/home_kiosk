@@ -34,6 +34,7 @@ static int current = START, coming = -1; /* coming: the screen being turned to *
 static uint32_t touched_at;
 static bool touched;
 static bool waiting; /* for the new screen to be drawn */
+static volatile uint32_t turns, beats, frames, touches; /* for the health line */
 
 static bool ready(int which)
 {
@@ -80,6 +81,7 @@ static void lit(lv_anim_t *anim)
 /* The new screen is on the display: bring the light back. */
 static void drawn(lv_event_t *event)
 {
+    frames++;
     if (waiting) {
         waiting = false;
         dim(0, PANEL_BRIGHTNESS, lit);
@@ -88,6 +90,7 @@ static void drawn(lv_event_t *event)
 
 static void dark(lv_anim_t *anim)
 {
+    turns++;
     current = coming;
     waiting = true;
     lv_screen_load(screens[current]);
@@ -127,8 +130,23 @@ static void turn(lv_timer_t *timer)
 
 static void on_touch(lv_event_t *event)
 {
+    if (event) {
+        touches++;
+    }
     touched = true;
     touched_at = lv_tick_get();
+}
+
+static void beat(lv_timer_t *timer)
+{
+    beats++;
+}
+
+screens_state_t screens_state(void)
+{
+    return (screens_state_t){.current = current, .coming = coming, .waiting = waiting,
+                             .turns = turns, .beats = beats, .frames = frames, .touches = touches,
+                             .held = touched && lv_tick_elaps(touched_at) < HOLD_MS};
 }
 
 void screens_hold(void)
@@ -159,9 +177,16 @@ void screens_start(void)
     screen_board_create(screens[BOARD]);
     screen_start_create(screens[START]);
     for (int i = 0; i < COUNT; i++) {
-        lv_obj_add_event_cb(screens[i], on_touch, LV_EVENT_PRESSED, NULL);
+        /* A panel screen never scrolls: anything past an edge is cut off, not
+         * turned into a scrollbar. */
+        lv_obj_remove_flag(screens[i], LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_set_scrollbar_mode(screens[i], LV_SCROLLBAR_MODE_OFF);
+        /* A tap (press and release) holds the rotation; a press that never ends
+         * (a case pressing on the edge) must not hold it for good. */
+        lv_obj_add_event_cb(screens[i], on_touch, LV_EVENT_CLICKED, NULL);
     }
     lv_display_add_event_cb(lv_display_get_default(), drawn, LV_EVENT_REFR_READY, NULL);
     lv_timer_create(turn, TURN_MS, NULL);
     lv_timer_create(check, 1000, NULL);
+    lv_timer_create(beat, 1000, NULL);
 }

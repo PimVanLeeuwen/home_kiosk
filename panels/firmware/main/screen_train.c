@@ -344,6 +344,9 @@ void screen_train_create(lv_obj_t *screen)
     box_label = text(box, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(box_label, 2, 0);
     box_main = text(box, &instrument_40, 0xffffff);
+    /* NS's titles can list several stretches: wrap them inside the box. */
+    lv_label_set_long_mode(box_main, LV_LABEL_LONG_WRAP);
+    lv_obj_set_width(box_main, WIDTH - 40);
     box_more = text(box, &instrument_24, 0xb4b1c2);
     lv_label_set_long_mode(box_more, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(box_more, WIDTH - 40);

@@ -12,6 +12,7 @@
 #include "esp_heap_caps.h"
 #include "devshot.h"
 #include "esp_log.h"
+#include "health.h"
 #include "net.h"
 #include "nvs_flash.h"
 #include "screens.h"
@@ -57,4 +58,5 @@ void app_main(void)
     actions_start();
     update_start();
     devshot_start();
+    health_start();
 }

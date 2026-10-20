@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdbool.h>
+#include <stdint.h>
+
 /* The panels run bright (the owner's choice); true black backgrounds keep the IPS
  * glow down. At 40 % the backlight of one board stayed off altogether. */
 #define PANEL_BRIGHTNESS 100
@@ -14,3 +17,13 @@ void screens_hold(void);
 /* Turns to the next screen now and holds it (devshot's "next"). Call with the
  * display lock held. */
 void screens_next(void);
+
+/* For the health line (health.c): where the rotation is, and whether LVGL's
+ * timers and drawing still run. */
+typedef struct {
+    int current, coming;
+    bool waiting;
+    uint32_t turns, beats, frames, touches;
+    bool held; /* a touch holds the rotation */
+} screens_state_t;
+screens_state_t screens_state(void);

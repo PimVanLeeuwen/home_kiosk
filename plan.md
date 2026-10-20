@@ -746,6 +746,21 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked).
 
 ## 4. Open items
 
+- Now panel fixes (found 2026-10-20 on the real panel, photo IMG_4833). **Fixed 2026-10-20.**
+  - The thin vertical bar at the top right of the calendar screen was LVGL's scrollbar: the
+    container for the later events reached past the bottom edge, so the screen could scroll. It
+    now takes only the room left, and no panel screen scrolls any more.
+  - The freeze after some rotations: the LVGL adapter rotates every frame with the P4's PPA (since
+    the picture was turned a quarter for the cases), and ESP-IDF v5.5.6's PPA driver now and then
+    never finished such a frame, so the display task waited forever with the display lock held
+    (found with a core dump after 104 turns; it also happened once 22 s after a start). Fixed with
+    Espressif's own temporary fix in a patched copy of the driver
+    (`panels/firmware/components/esp_driver_ppa`); a three-hour run on the bench without a
+    freeze. Also: a tap now holds the rotation only when it ends (a press that never ends, such as
+    a case pressing on the edge, no longer holds it for good), and every panel logs a `health`
+    line every 30 seconds (memory, whether LVGL runs, where the rotation is).
+  - Found on the way: the train screen's "On the route" title ran past its box when NS lists
+    several stretches; it now wraps.
 - The Pi kiosk is replaced by the desk panels (M16, decided 2026-10-09). Until they run, the
   carousel stays at `/kiosk/` (`?data=api` for live data; `/kiosk` and `/read.html` redirect).
 - Password manager (discussed 2026-10-09, not decided): no self-hosting (Vaultwarden was

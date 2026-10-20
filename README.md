@@ -83,3 +83,5 @@ MIT, see [LICENSE](LICENSE), except for these third-party files:
 - The fonts (Instrument Sans, JetBrains Mono) in `web/src/assets/fonts/`,
   `dashboard/assets/fonts/` and `panels/firmware/fonts/` are under the SIL Open Font License 1.1
   (`OFL.txt` beside them).
+- `panels/firmware/components/esp_driver_ppa/` is ESP-IDF's PPA driver (Apache-2.0, Espressif;
+  SPDX headers in its files) with one marked change, explained in its README.

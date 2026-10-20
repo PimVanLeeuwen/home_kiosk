@@ -195,6 +195,9 @@ static void show_later(int y, int focus, int64_t now)
 {
     lv_obj_clean(later);
     lv_obj_set_pos(later, LEFT, y);
+    /* Only the room left: reaching past the bottom edge made the screen
+     * scrollable, and LVGL drew a scrollbar at the right. */
+    lv_obj_set_height(later, y < BOTTOM ? BOTTOM - y : 0);
     if (focus < 0) {
         return; /* the day is done */
     }
@@ -342,7 +345,7 @@ void screen_agenda_create(lv_obj_t *screen)
     ribbon = plain(screen);
     lv_obj_set_size(ribbon, WIDTH, 90);
     later = plain(screen);
-    lv_obj_set_size(later, WIDTH, BOTTOM);
+    lv_obj_set_size(later, WIDTH, 0);
 
     lv_timer_create(tick, 1000, NULL);
 }

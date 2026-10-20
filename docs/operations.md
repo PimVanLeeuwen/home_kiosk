@@ -125,3 +125,13 @@ The boards have an ESP32-P4 **v1.3**: the firmware is built for revisions below 
 for v3.x chips does not boot on them (nor the other way round). Wi-Fi goes through the ESP32-C6,
 which keeps its factory ESP-Hosted image (0.0.0): the firmware keeps ESP-Hosted's packet buffers
 in internal RAM and uses its streaming receive, as that old image needs.
+
+The panels turn their picture a quarter, which the LVGL adapter does with the P4's PPA. ESP-IDF
+v5.5.6's PPA driver can hang on such a rotated frame and freeze the display for good, so the
+project carries a patched copy in `firmware/components/esp_driver_ppa` (Espressif's own temporary
+fix; ESP-IDF builds a project's component instead of its own of the same name). Its README says
+when it can go. After adding or removing a project component, run `idf.py reconfigure` once, or
+an existing build keeps using the old one.
+
+Every 30 seconds a panel logs a `health` line on its console: internal RAM, whether LVGL still
+runs and draws, and where the rotation is.
