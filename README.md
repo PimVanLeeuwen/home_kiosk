@@ -115,15 +115,16 @@ cd e2e && npm ci && npx playwright test
 The three ESP32-P4 panels run `panels/firmware` (ESP-IDF v5.5, LVGL 9, Waveshare's board
 package). Each board is flashed **once** from the Mac over its **UART** USB-C port with a data
 cable, with a build that carries the Wi-Fi details: the board saves them in its own storage.
-After that it updates over Wi-Fi: CI builds the firmware (without Wi-Fi details) into the
-dashboard image, the hub serves it under `/panels/`, and a board with a different version
+After that it updates over Wi-Fi: CI builds the firmware (without Wi-Fi details, with the hub
+address from the `PANEL_HUB_URL` GitHub secret, for example `http://<the hub's LAN IP>:8083`;
+the build fails without it) into the dashboard image, the hub serves it under `/panels/`, and a board with a different version
 installs it between 04:00 and 05:00 and restarts. A new firmware that cannot reach the hub
 within 5 minutes goes back to the previous one by itself.
 
 ```bash
 # once: esptool for flashing; the Wi-Fi details in an untracked file
 cd panels && python3 -m venv .venv && .venv/bin/pip install esptool==5.6.0
-cp firmware/sdkconfig.secrets.example firmware/sdkconfig.secrets   # then fill it in
+cp firmware/sdkconfig.secrets.example firmware/sdkconfig.secrets   # then fill it in, hub address too
 
 # build (PANEL_VERSION: the version the board reports and compares with the hub's;
 # CI uses git's hash of panels/firmware, so a push that leaves it alone changes nothing)

@@ -176,7 +176,7 @@ function seal(ok, size = 64) {
 
 const G = { nl: ['Nederland', '#b4aaff', '#2a1f4d'], tech: ['Tech', '#8cc4ff', '#1b2f45'], local: ['Utrecht', '#f5b86a', '#352617'], sci: ['Science', '#6ee0b0', '#16322a'] };
 const news = [['Today', [['Kabinet presenteert plannen voor betaalbare huurwoningen', 'NOS', 'nl', '12 min', 0, 1], ['Raspberry Pi kondigt nieuwe Compute Module aan', 'Tweakers', 'tech', '40 min', 0], ['The quiet return of the desk gadget', 'The Verge', 'tech', '1 hour', 1], ['Nieuwe fietsbrug over het Utrechts Kanaal open', 'Studio 040', 'local', '2 hours', 0]]],
-  ['Yesterday', [['Webb ziet water in de atmosfeer van een rotsachtige exoplaneet', 'NOS', 'sci', '1 day', 1], ['Jellyfin 10.11 lands with a faster library scan', 'Jellyfin', 'tech', '1 day', 1], ['Glow De Bilt maakt programma bekend', 'ED', 'local', '1 day', 0]]]];
+  ['Yesterday', [['Webb ziet water in de atmosfeer van een rotsachtige exoplaneet', 'NOS', 'sci', '1 day', 1], ['Jellyfin 10.11 lands with a faster library scan', 'Jellyfin', 'tech', '1 day', 1], ['Glow Utrecht maakt programma bekend', 'ED', 'local', '1 day', 0]]]];
 function ring(p) { const r = 9, c = 2 * Math.PI * r; return `<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="${r}" fill="#101114" stroke="rgba(255,255,255,.15)" stroke-width="3"/><circle cx="12" cy="12" r="${r}" fill="none" stroke="#8f80ff" stroke-width="3" stroke-linecap="round" stroke-dasharray="${(c * p / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 12 12)" style="filter:drop-shadow(0 0 3px #8f80ff)"/></svg>`; }
 function list() {
   if (st.page === 'saved') return `<div class="ph" style="margin-bottom:14px"><div><h2>Saved</h2><p>Your Readeck bookmarks</p></div><span class="pill acc">6 to read</span></div>

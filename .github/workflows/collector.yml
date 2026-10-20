@@ -88,7 +88,19 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Build
+        env:
+          # The hub address the boards ask, kept out of the repo. Pull requests from
+          # forks get no secrets and build with the example address (they never
+          # ship); anything that can ship fails without it.
+          PANEL_HUB_URL: ${{ secrets.PANEL_HUB_URL }}
         run: |
+          if [ -n "$PANEL_HUB_URL" ]; then
+            printf 'CONFIG_PANEL_HUB_URL="%s"\n' "$PANEL_HUB_URL" > panels/firmware/sdkconfig.secrets
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "::warning::No PANEL_HUB_URL secret: built with the example hub address"
+          else
+            echo "::error::Set the PANEL_HUB_URL secret (README, Desk panels)"; exit 1
+          fi
           version=$(git rev-parse --short HEAD:panels/firmware)
           docker run --rm -e PANEL_VERSION="$version" -v "$PWD/panels/firmware":/project -w /project \
             espressif/idf:v5.5.6 idf.py build

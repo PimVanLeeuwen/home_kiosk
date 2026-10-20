@@ -1,8 +1,8 @@
 # The desk panels' firmware (plan.md M16): one build for all three panels.
 cmake_minimum_required(VERSION 3.16)
 
-# Shared settings, then the Wi-Fi secrets from an untracked file when it exists
-# (CI writes the same file from a GitHub Actions secret).
+# Shared settings, then the hub address and Wi-Fi details from an untracked file
+# when it exists (CI writes the same file with the hub address from a secret).
 set(SDKCONFIG_DEFAULTS "${CMAKE_CURRENT_LIST_DIR}/sdkconfig.defaults")
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/sdkconfig.secrets")
     list(APPEND SDKCONFIG_DEFAULTS "${CMAKE_CURRENT_LIST_DIR}/sdkconfig.secrets")
