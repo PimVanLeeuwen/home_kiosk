@@ -191,8 +191,8 @@ function seal(ok, size = 64) {
 
 const eur = n => '€ ' + Math.round(n).toLocaleString('nl-NL');
 const pct = n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(2).replace('.', ',') + '%';
-const H = [['VWRL', 'Vanguard FTSE All-World', 61240, .41, 18.2], ['NVDA', 'Nvidia', 23870, 2.84, 141.0], ['ASML', 'ASML Holding', 18110, -1.12, 22.4], ['MSFT', 'Microsoft', 7290, .62, 31.8],
-  ['ADYEN', 'Adyen', 6870, -1.37, -4.1], ['SHELL', 'Shell', 6120, -.62, 9.8], ['AAPL', 'Apple', 5960, .18, 12.0], ['IWDA', 'iShares Core MSCI World', 5210, .38, 16.6], ['BESI', 'BE Semiconductor', 3120, 3.9, 44.2], ['ASRNL', 'ASR Nederland', 2410, -.21, 7.1]];
+const H = [['VWRL', 'Vanguard FTSE All-World', 10210, .41, 18.2], ['NVDA', 'Nvidia', 3980, 2.84, 141.0], ['ASML', 'ASML Holding', 3020, -1.12, 22.4], ['MSFT', 'Microsoft', 1215, .62, 31.8],
+  ['ADYEN', 'Adyen', 1145, -1.37, -4.1], ['SHELL', 'Shell', 1020, -.62, 9.8], ['AAPL', 'Apple', 995, .18, 12.0], ['IWDA', 'iShares Core MSCI World', 870, .38, 16.6], ['BESI', 'BE Semiconductor', 520, 3.9, 44.2], ['ASRNL', 'ASR Nederland', 400, -.21, 7.1]];
 function holdings(down) { return H.map(h => ({ s: h[0], n: h[1], v: h[2], d: down ? -Math.abs(h[3]) * (h[0] === 'SHELL' ? -.4 : 1) - .3 : h[3], g: h[4] })); }
 
 // Squarified treemap (Bruls, Huizing, van Wijk) in real pixel proportions, so tiles stay close to square.
@@ -219,8 +219,8 @@ function heat(list) {
       <span class="mono">${t.s}</span><span><b>${pct(t.d)}</b><small style="display:block">${t.n}</small></span></div>`; }).join('')}</div>`;
 }
 function valueChart(down) {
-  const r = seeded(down ? 5 : 9), n = 52; let v = 128000; const vals = [], inv = [];
-  for (let i = 0; i < n; i++) { v += (r() - (down ? .55 : .42)) * 2400 + (i === 30 ? 6000 : 0); vals.push(v); inv.push(112000 + Math.floor(i / 13) * 2000 + (i >= 30 ? 6000 : 0)); }
+  const r = seeded(down ? 5 : 9), n = 52; let v = 21330; const vals = [], inv = [];
+  for (let i = 0; i < n; i++) { v += (r() - (down ? .55 : .42)) * 400 + (i === 30 ? 1000 : 0); vals.push(v); inv.push(18670 + Math.floor(i / 13) * 333 + (i >= 30 ? 1000 : 0)); }
   const W = 800, Hh = 220, all = [...vals, ...inv], min = Math.min(...all) * .985, max = Math.max(...all) * 1.01;
   const X = i => i / (n - 1) * W, Y = v => Hh - (v - min) / (max - min) * Hh;
   const pts = vals.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' '), ipts = inv.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
@@ -241,8 +241,8 @@ function ringSvg(slices) {
 }
 
 function overview(down, mob) {
-  const list = holdings(down), today = down ? -1840 : 1288, todayP = down ? -1.27 : .91;
-  const ch = valueChart(down), gain = ch.last - ch.first - 6000 - 6000;
+  const list = holdings(down), today = down ? -307 : 221, todayP = down ? -1.27 : .91;
+  const ch = valueChart(down), gain = ch.last - ch.first - 1000 - 1000;
   const alloc = [['Equity', 78.4, '#8f80ff'], ['ETF', 16.1, '#7fe0b0'], ['Cash', 5.5, '#e0a23b']];
   return `<div class="ph"><div><h2>Portfolio</h2><p>From Ghostfolio, today 17:31</p></div><span class="btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5M12 18v-6m-3 3 3-3 3 3"/><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/></svg>${mob ? 'DEGIRO' : 'Update from DEGIRO'}</span></div>
     <section class="card hero"><div class="head"><h3>Value</h3><span class="seg"><span>1M</span><span>YTD</span><span class="on">1Y</span><span>Max</span></span></div>
@@ -254,12 +254,12 @@ function overview(down, mob) {
       <div class="fact"><span class="k">Today</span><b class="${down ? 'down' : 'up'}">${down ? '−' : '+'}${eur(Math.abs(today)).slice(2)}</b><small>${pct(todayP)}</small></div>
       <div class="fact"><span class="k">Total gain</span><b class="up">+€ 3.176</b><small>+15,04%</small></div>
       <div class="fact"><span class="k">Invested</span><b>€ 21.110</b></div>
-      <div class="fact"><span class="k">Cash</span><b>€ 7.860</b><small>€ 412 dividends</small></div></div>
+      <div class="fact"><span class="k">Cash</span><b>€ 1.310</b><small>€ 69 dividends</small></div></div>
     <div class="cols"><div class="stackc">
       <section class="card"><div class="head"><h3>Today's movers</h3><span class="lab">${list.filter(h => h.d >= 0).length} up · ${list.filter(h => h.d < 0).length} down</span></div>${heat(list)}</section>
       <section class="card"><div class="head"><h3>Holdings (10)</h3><span class="seg"><span class="on">Value</span><span>Today</span><span>Gain</span></span></div>
         ${mob ? `<div class="hlist">${list.map(h => `<div><span class="tick">${h.s}</span><span class="muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px">${h.n}</span><span style="text-align:right">${eur(h.v)}<span class="sub3 ${h.d >= 0 ? 'up' : 'down'}">${pct(h.d)} today</span></span></div>`).join('')}</div>`
-        : `<table class="htable"><thead><tr><th>Holding</th><th>Value</th><th>Weight</th><th>Today</th><th>Gain</th></tr></thead><tbody>${list.map(h => `<tr><td><span class="tick">${h.s}</span><span class="nm">${h.n}</span></td><td>${eur(h.v)}</td><td class="muted">${(h.v / 1428.6).toFixed(1).replace('.', ',')}%<span class="wbar"><i style="width:${h.v / 61240 * 100}%"></i></span></td>
+        : `<table class="htable"><thead><tr><th>Holding</th><th>Value</th><th>Weight</th><th>Today</th><th>Gain</th></tr></thead><tbody>${list.map(h => `<tr><td><span class="tick">${h.s}</span><span class="nm">${h.n}</span></td><td>${eur(h.v)}</td><td class="muted">${(h.v / 242.86).toFixed(1).replace('.', ',')}%<span class="wbar"><i style="width:${h.v / 10210 * 100}%"></i></span></td>
           <td><span class="chg ${h.d >= 0 ? 'up' : 'down'}">${pct(h.d)}</span><span class="sub3 muted">${h.d >= 0 ? '+' : '−'}€ ${Math.abs(Math.round(h.v * h.d / 100))}</span></td><td class="${h.g >= 0 ? 'up' : 'down'}">${pct(h.g)}<span class="sub3">${h.g >= 0 ? '+' : '−'}€ ${Math.abs(Math.round(h.v * h.g / (100 + h.g))).toLocaleString('nl-NL')}</span></td></tr>`).join('')}</tbody></table>`}
       </section></div>
       <div class="stackc">
@@ -273,15 +273,15 @@ function holding(down, mob) {
   for (let i = 0; i < n; i++) { p += (r() - .4) * 4; vals.push(p); avg.push(96.4); }
   const W = 800, Hh = 220, min = 80, max = Math.max(...vals) * 1.05, X = i => i / (n - 1) * W, Y = v => Hh - (v - min) / (max - min) * Hh;
   const pts = vals.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
-  const tx = [['Thu 2 Oct 2026', 'Buy', '#8f80ff', '20 at € 168,40', '€ 3.368'], ['Fri 12 Sept 2026', 'Dividend', '#3fb97f', '€ 0,01 per share', '€ 1'], ['Mon 3 Mar 2026', 'Buy', '#8f80ff', '50 at € 108,20', '€ 5.410'], ['Tue 4 Jun 2024', 'Buy', '#8f80ff', '60 at € 82,10', '€ 4.926'], ['Tue 4 Jun 2024', 'Fee', '#e0a23b', 'DEGIRO transaction fee', '€ 2']];
+  const tx = [['Thu 2 Oct 2026', 'Buy', '#8f80ff', '4 at € 168,40', '€ 674'], ['Fri 12 Sept 2026', 'Dividend', '#3fb97f', '€ 0,01 per share', '€ 1'], ['Mon 3 Mar 2026', 'Buy', '#8f80ff', '10 at € 108,20', '€ 1.082'], ['Tue 4 Jun 2024', 'Buy', '#8f80ff', '8 at € 82,10', '€ 657'], ['Tue 4 Jun 2024', 'Fee', '#e0a23b', 'DEGIRO transaction fee', '€ 2']];
   return `<a class="back">‹ Portfolio</a><div class="ph"><div><h2 style="display:flex;gap:10px;align-items:center"><span class="tick" style="font-size:15px">NVDA</span>Nvidia</h2><p>NASDAQ · USD · ISIN US67066G1040</p></div><span class="pill up">+2,84% today</span></div>
     <section class="card hero"><div class="head"><h3>Price</h3><span class="seg"><span>1M</span><span>YTD</span><span class="on">1Y</span><span>Max</span></span></div>
-      <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><span class="big">€ 23.870</span><span class="up" style="font-weight:600">+€ 9.990 · +71,97% gain</span></div>
+      <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><span class="big">€ 3.980</span><span class="up" style="font-weight:600">+€ 1.665 · +71,97% gain</span></div>
       <div class="readout"><span class="faint">today</span><span><i style="background:#3fb97f;box-shadow:0 0 6px #3fb97f"></i>Price <b>$ 184,12</b></span><span class="muted"><i class="dash"></i>Your average <b style="color:var(--fg);font-weight:500">$ 106,94</b></span></div>
       <div class="chartwrap"><svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none" width="100%" height="${mob ? 160 : 210}" style="display:block"><defs><linearGradient id="pg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3fb97f" stop-opacity=".3"/><stop offset="1" stop-color="#3fb97f" stop-opacity="0"/></linearGradient></defs>
         <polygon points="0,${Hh} ${pts} ${W},${Hh}" fill="url(#pg2)"/><line x1="0" x2="${W}" y1="${Y(96.4)}" y2="${Y(96.4)}" stroke="#9a9ea7" stroke-width="1.4" stroke-dasharray="5 5" vector-effect="non-scaling-stroke"/>
         <polyline points="${pts}" fill="none" stroke="#3fb97f" stroke-width="2.2" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 4px #3fb97f)"/></svg></div><div class="chartfoot"><span>Oct 2025</span><span>Oct 2026</span></div></section>
-    <section class="card" style="margin-top:20px"><div class="head"><h3>Position</h3></div><div class="figs">${[['Quantity', '130'], ['Price', '$ 184,12'], ['Average price', '$ 106,94'], ['Invested', '€ 13.880'], ['Weight', '16,7%'], ['Dividends', '€ 4'], ['Fees', '€ 6,00'], ['Gain', '+€ 9.990']].map(f => `<div><span class="lab">${f[0]}</span><b class="${f[0] === 'Gain' ? 'up' : ''}">${f[1]}</b></div>`).join('')}</div></section>
+    <section class="card" style="margin-top:20px"><div class="head"><h3>Position</h3></div><div class="figs">${[['Quantity', '22'], ['Price', '$ 184,12'], ['Average price', '$ 106,94'], ['Invested', '€ 2.313'], ['Weight', '16,7%'], ['Dividends', '€ 1'], ['Fees', '€ 6,00'], ['Gain', '+€ 1.665']].map(f => `<div><span class="lab">${f[0]}</span><b class="${f[0] === 'Gain' ? 'up' : ''}">${f[1]}</b></div>`).join('')}</div></section>
     <section class="card" style="margin-top:20px"><div class="head"><h3>Transactions</h3><span class="lab">From Ghostfolio</span></div>
       <div class="tx">${tx.map(t => `<div style="--c:${t[2]}"><span class="faint">${t[0]}</span><span class="ttype" style="color:${t[2]};background:color-mix(in srgb, ${t[2]} 16%, transparent)">${t[1]}</span><span class="muted hide-m">${t[3]}</span><span style="text-align:right">${t[4]}</span></div>`).join('')}</div></section>`;
 }

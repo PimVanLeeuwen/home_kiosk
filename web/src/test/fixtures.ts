@@ -38,10 +38,10 @@ export const PORTFOLIO: Portfolio = {
     { d: '2026-09-30', v: 24490 },
   ],
   holdings: [
-    { symbol: 'VWRL', name: 'Vanguard FTSE All-World', value: 41220, day_pct: 0.6, weight_pct: 29 },
-    { symbol: 'ASML', name: 'ASML Holding', value: 8905, day_pct: 4.2, weight_pct: 6 },
-    { symbol: 'NVDA', name: 'NVIDIA', value: 6410, day_pct: -1.1, weight_pct: 4 },
-    { symbol: 'AAPL', name: 'Apple', value: 5000, day_pct: 0.1, weight_pct: 3 },
+    { symbol: 'VWRL', name: 'Vanguard FTSE All-World', value: 7070, day_pct: 0.6, weight_pct: 29 },
+    { symbol: 'ASML', name: 'ASML Holding', value: 1527, day_pct: 4.2, weight_pct: 6 },
+    { symbol: 'NVDA', name: 'NVIDIA', value: 1100, day_pct: -1.1, weight_pct: 4 },
+    { symbol: 'AAPL', name: 'Apple', value: 857, day_pct: 0.1, weight_pct: 3 },
   ],
 }
 

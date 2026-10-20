@@ -227,10 +227,10 @@ function portfolio() {
   const s = [138.2, 138.9, 138.4, 139.6, 140.1, 139.2, 139.9, 140.8, 141.2, 140.4, 139.8, 140.6, 141.5, 142.1, 141.6, 140.9, 141.8, 142.6, 143.1, 142.2, 141.4, 141.9, 142.4, 141.7, 142.3, 142.9, 142.1, 141.6, 142.2, 142.86].map(v => v * 170);
   const W = 600, H = 120, min = Math.min(...s), max = Math.max(...s), x = i => i / (s.length - 1) * W, y = v => 12 + (1 - (v - min) / (max - min)) * (H - 26);
   const pts = s.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' '), hi = s.indexOf(max);
-  const rows = [['VWRL', 'Vanguard FTSE All-World', 61240, .41], ['NVDA', 'Nvidia', 23870, 2.84], ['ASML', 'ASML Holding', 18110, -1.12]];
+  const rows = [['VWRL', 'Vanguard FTSE All-World', 10210, .41], ['NVDA', 'Nvidia', 3980, 2.84], ['ASML', 'ASML Holding', 3020, -1.12]];
   return `<section class="card"><div class="head"><h3>Portfolio</h3><span style="display:flex;gap:12px;align-items:center"><span class="pill up">${pct(.91)} today</span><a href="#">Open →</a></span></div>
     <div class="big">${eur(24286)}</div>
-    <div class="up" style="font-weight:600;font-size:13.5px;margin-top:2px">+€ 1.288 today · ${pct(3.37)} in 30 days</div>
+    <div class="up" style="font-weight:600;font-size:13.5px;margin-top:2px">+€ 221 today · ${pct(3.37)} in 30 days</div>
     <svg class="bleed" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" width="calc(100% + 48px)" height="${st.view === 'mobile' ? 92 : 118}">
       <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3fb97f" stop-opacity=".3"/><stop offset="1" stop-color="#3fb97f" stop-opacity="0"/></linearGradient></defs>
       ${[.33, .66].map(f => `<line x1="0" x2="${W}" y1="${H * f}" y2="${H * f}" stroke="rgba(255,255,255,.04)"/>`).join('')}
