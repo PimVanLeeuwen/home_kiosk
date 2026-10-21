@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -94,3 +95,17 @@ def test_the_clock_screen_from_the_hubs_weather(store):
         "sky": {"colour": "8d97ab", "opacity": 80}, "rain": [0, 0, 0.3, 0],
         "rain_axis": ["Now", "11:01", "12:01"], "rain_line": "Rain from 10:11, about 5 min",
         "wet": True}
+
+
+def test_sun_times_without_an_offset_are_local_whatever_the_machines_zone(monkeypatch):
+    # CI runs in UTC: "08:04" from Buienradar is still 08:04 in Amsterdam.
+    monkeypatch.setenv("TZ", "UTC")
+    time.tzset()
+    try:
+        assert desk_clock._local("2026-10-21T08:04:00", ZONE) == SUNRISE
+        assert desk_clock._local("2026-10-21T06:04:00+00:00", ZONE) == SUNRISE
+        assert desk_clock._local("", ZONE) is None
+    finally:
+        monkeypatch.undo()
+        time.tzset()
+

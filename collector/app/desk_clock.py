@@ -70,12 +70,15 @@ def condition(description: str | None) -> tuple[str, Sky | None]:
 
 
 def _local(value: str | None, zone: ZoneInfo) -> datetime | None:
+    """A cached time in `zone`; one without an offset is already local there
+    (as Buienradar writes them), never the machine's own time zone."""
     if not value:
         return None
     try:
-        return datetime.fromisoformat(value).astimezone(zone)
+        parsed = datetime.fromisoformat(value)
     except ValueError:
         return None
+    return parsed.astimezone(zone) if parsed.tzinfo else parsed.replace(tzinfo=zone)
 
 
 def _phase(now: datetime, sunrise: datetime | None, sunset: datetime | None) -> str:
