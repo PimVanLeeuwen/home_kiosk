@@ -158,3 +158,23 @@ test('Home shows the Apple devices with what plays per room', async ({ page }) =
   await expect(card.getByRole('list', { name: 'Playing' })).toContainText('Nightcall')
   await expect(card).toContainText('Thread · 2 of 3 border routers')
 })
+
+const AIR_AT = (h: number, m: number) => new Date(2026, 9, 21, h, m).toISOString()
+const AIR = {
+  as_of: AIR_AT(21, 4), stale: false, room: 'Living room', available: true,
+  temperature: 23.6, humidity: 52, co2: 980, pm25: 6, quality: 'Good', level: 'stuffy', outside: 9,
+  history: Array.from({ length: 97 }, (_, i) => ({ at: AIR_AT(13, 0), co2: Math.round(470 + 510 * (i / 96) ** 2) })),
+}
+
+test('Home shows the living room air with its CO2 word', async ({ page }) => {
+  await page.clock.install({ time: new Date(2026, 9, 21, 21, 5) })
+  await page.route('**/api/air', (route) => route.fulfill({ json: AIR }))
+  await page.goto('/')
+
+  const card = page.getByRole('region', { name: 'Air' })
+  await expect(card).toContainText('23,6°')
+  await expect(card).toContainText('Getting stuffy')
+  await expect(card.getByRole('img', { name: 'CO₂ 980 ppm, getting stuffy' })).toBeVisible()
+  await expect(card.getByRole('img', { name: 'CO₂ over the last 8 hours' })).toBeVisible()
+})
+

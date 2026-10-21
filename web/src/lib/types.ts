@@ -122,6 +122,31 @@ export interface AppleDevices {
   rooms: { id: string; name: string; devices: AppleDevice[]; playing: ApplePlaying | null }[]
 }
 
+/** The living room's air from the ALPSTUGA through the Matter server (`/api/air`). */
+export interface Air {
+  as_of: string
+  stale: boolean
+  room: string
+  /** The Matter server can reach the sensor. */
+  available: boolean
+  /** °C, one decimal. */
+  temperature: number | null
+  /** %. */
+  humidity: number | null
+  /** ppm. */
+  co2: number | null
+  /** µg/m³. */
+  pm25: number | null
+  /** The sensor's own verdict: "Good" to "Extremely poor". */
+  quality: string | null
+  /** By CO2: below 800, to 1200, above. */
+  level: 'fresh' | 'stuffy' | 'open_window' | null
+  /** °C, from Buienradar. */
+  outside: number | null
+  /** CO2 every 5 minutes, the last 8 hours. */
+  history: { at: string; co2: number }[]
+}
+
 /** The washer and dryer (`/api/laundry`). */
 export interface Laundry {
   as_of: string

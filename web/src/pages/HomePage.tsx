@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { AirCard } from '../components/home/AirCard'
 import { AppleCard } from '../components/home/AppleCard'
 import { BackupCard } from '../components/home/BackupCard'
 import { NasCard } from '../components/home/NasCard'
@@ -59,6 +60,7 @@ export function HomePage() {
           <NewsCard />
           <BackupCard nas={nas.data} error={nas.error} />
           <ServicesCard services={all} error={services.error} />
+          <AirCard />
           <WeatherCard />
           <OutsideServicesCard />
         </div>

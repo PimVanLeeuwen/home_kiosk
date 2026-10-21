@@ -400,7 +400,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the kitchen spots. (A scenes card was dropped on 2026-10-10: it would not be used.)
 - Second card: **Air** in the living room: the temperature large, humidity, PM2.5, CO₂ as a ring
   (Fresh below 800 ppm, Getting stuffy to 1200, Open a window above) with the outside
-  temperature from Buienradar beside it, and CO₂ over the last 8 hours. Needs a sensor; the ALPSTUGA (option 1) is
+  temperature from Buienradar beside it, and CO₂ over the last 8 hours. Designed 2026-10-21 (mockup
+  in the session, approved): on the Home panel, the second card after the lights, the
+  temperature large on the left with humidity and PM2.5 (µg/m³) below it and the sensor's own
+  verdict small under PM2.5; on the right the CO₂ ring (400 to 2000 ppm, ticks at 800 and 1200,
+  coloured green, amber or red by the words, the word under it); below, the CO₂ curve of the
+  last 8 hours with dashed lines at 800 and 1200; the header "LIVING ROOM · AIR" and the
+  outside temperature. Decided 2026-10-21: nothing extra above 1200 ppm (no jump to the card, no
+  Telegram), the card just turns red in the rotation; in the hub, a card on Home beside Weather
+  and Laundry. Needs a sensor; the ALPSTUGA (option 1) is
   ordered:
   1. **IKEA ALPSTUGA**, EUR 29.99 at IKEA NL: CO₂, PM2.5, temperature, humidity (no VOC).
      Matter over Thread, so it needs a Thread border router (an Apple TV 4K or HomePod mini in
