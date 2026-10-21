@@ -681,6 +681,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   a Code card at the top of the Repos page (mockup `docs/hub-code-mockup.html`).
   Changed 2026-10-21: on the House panel the Code screen keeps only the commit grid; the builds
   move to the Pipelines card (M21).
+  Built 2026-10-21 (hub and panel), as chosen from two mockups: the grid of 16 weeks, Monday at the
+  top, today outlined, and each week's total as a bar under its column; then "this week 125",
+  the streak and the busiest weekday (`app/desk_code.py`, `screen_code.c`; the grid painted into
+  a canvas). On House it follows the pipelines card; a running pipeline hides it.
 - **Media** (House; refocused 2026-10-12): not what is being watched (the owner knows), but what
   needs attention: what is downloading (poster, episode or movie, size, an animated progress bar,
   percentage and time left, from the Sonarr and Radarr queues and the download clients) and
@@ -849,6 +853,13 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21.
 
 ## 4. Open items
 
+- Home panel loses its connection (found 2026-10-21): now and then the Home board stops asking the
+  hub (the hub's board list showed it 8 minutes behind the other two; the kiosk page shows it
+  disconnected), yet it keeps rotating on its own, and lights and other taps do nothing until it
+  is back. To find out: does Wi-Fi drop (ESP-Hosted, see CLAUDE.md gotchas) or only the hub
+  requests, and does it recover by itself; the board's console log over a few hours tells. To
+  fix: reconnect reliably, and while the hub is out of reach say so on the panel (and stop
+  pretending taps work) rather than turning as if nothing is wrong.
 - Now panel fixes (found 2026-10-20 on the real panel, photo IMG_4833). **Fixed 2026-10-20.**
   - The thin vertical bar at the top right of the calendar screen was LVGL's scrollbar: the
     container for the later events reached past the bottom edge, so the screen could scroll. It
