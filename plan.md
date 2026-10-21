@@ -544,6 +544,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   soft violet glow behind the time, the header in small spaced capitals, the temperature in white
   beside the softer description. The display runs in 24-bit colour (RGB888): in 16-bit the soft
   glows showed visible bands. The console runs at 921600 baud for the larger screenshots.
+  Redesigned 2026-10-21 at the owner's request (the dry ring read as a spinner, the bottom was
+  empty, the light ignored the weather, the words were half Dutch): no ring; on a dry day the time,
+  the weather in English and "Dry until at least 12:01" sit together in the middle; when rain is
+  due, the time moves up and the next two hours stand as bars along the bottom (now, +1 h, +2 h),
+  with "Rain from 10:31, about 35 min" above them. The header shows the date and the next sunset
+  or sunrise; the light from the top takes the hub's colour for the sky outside, from the sun
+  times and the weather (`app/desk_clock.py`). Buienradar is credited on Home, not on the panel.
   Built 2026-10-19 (panel, the second screen): the day view from Open-Meteo (decided 2026-10-19:
   free, no key, open data under CC BY 4.0, credited on the screen; only the weather block's
   coordinates are sent), fetched every 30 minutes for today and tomorrow. `/api/desk/now` carries

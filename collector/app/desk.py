@@ -13,6 +13,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from .desk_agenda import agenda_screen
+from .desk_clock import clock_screen
 from .desk_headlines import headlines_screen
 from .desk_home import (
     apple_screen,
@@ -22,59 +23,8 @@ from .desk_home import (
     playing_screen,
 )
 from .desk_train import train_screen
-from .sources import forecast, hue, weather
+from .sources import forecast, hue
 from .store import Store
-
-# Below this Buienradar's forecast is drizzle at most: counted as dry (as on Home).
-WET_MM = 0.1
-
-
-def _mm(n: float) -> str:
-    return f"{n:.1f}".replace(".", ",")
-
-
-def rain_line(points: list[dict[str, Any]], zone: ZoneInfo) -> str:
-    """One line on the next two hours, worded as on Home (web/src/lib/rain.ts)."""
-    if not points:
-        return "No rain forecast available"
-
-    def wet(p: dict[str, Any]) -> bool:
-        return p["mm_per_hour"] >= WET_MM
-
-    def hhmm(p: dict[str, Any]) -> str:
-        return datetime.fromisoformat(p["at"]).astimezone(zone).strftime("%H:%M")
-
-    peak = max(p["mm_per_hour"] for p in points)
-    if not any(wet(p) for p in points):
-        return "Dry for the next 2 hours"
-    if wet(points[0]):
-        dry = next((p for p in points if not wet(p)), None)
-        if dry:
-            return f"Rain now, up to {_mm(peak)} mm/h; dry from {hhmm(dry)}"
-        return f"Rain for the next 2 hours, up to {_mm(peak)} mm/h"
-    first = next(p for p in points if wet(p))
-    return f"Rain from {hhmm(first)}, up to {_mm(peak)} mm/h"
-
-
-def clock_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
-    """The Now panel's clock: the next two hours of rain as a ring around the time."""
-    w = store.get_cache(weather.CACHE_KEY) or {}
-    points = w.get("rain") or []
-    temperature = w.get("temperature")
-    station = (w.get("station") or "").removeprefix("Meetstation ").strip()
-    return {
-        "kind": "clock",
-        "stale": bool(w.get("stale")) or not w,
-        "place": station or "Buienradar",
-        "date": now.astimezone(zone).strftime("%a %-d %b"),
-        "temperature": round(temperature) if temperature is not None else None,
-        "description": w.get("description"),
-        # One value per five minutes from now, as the ring's segments.
-        "rain": [round(p["mm_per_hour"], 2) for p in points],
-        "rain_line": rain_line(points, zone),
-        "wet": any(p["mm_per_hour"] >= WET_MM for p in points),
-    }
-
 
 # The day view looks at tomorrow from this hour on.
 TOMORROW_FROM = 20

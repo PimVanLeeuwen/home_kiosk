@@ -738,6 +738,16 @@ static void apply(const char *body)
         copy_string(next.date, sizeof next.date, cJSON_GetObjectItem(screen, "date"));
         copy_string(next.description, sizeof next.description, cJSON_GetObjectItem(screen, "description"));
         copy_string(next.rain_line, sizeof next.rain_line, cJSON_GetObjectItem(screen, "rain_line"));
+        copy_string(next.sun, sizeof next.sun, cJSON_GetObjectItem(screen, "sun"));
+        const cJSON *sky = cJSON_GetObjectItem(screen, "sky");
+        const cJSON *sky_colour = cJSON_GetObjectItem(sky, "colour");
+        next.has_sky = cJSON_IsString(sky_colour);
+        next.sky_colour = next.has_sky ? (uint32_t)strtoul(sky_colour->valuestring, NULL, 16) : 0;
+        next.sky_opacity = (uint8_t)number(cJSON_GetObjectItem(sky, "opacity"), 90);
+        for (int i = 0; i < 3; i++) {
+            copy_string(next.rain_axis[i], sizeof next.rain_axis[i],
+                        cJSON_GetArrayItem(cJSON_GetObjectItem(screen, "rain_axis"), i));
+        }
         const cJSON *temperature = cJSON_GetObjectItem(screen, "temperature");
         next.has_temperature = cJSON_IsNumber(temperature);
         next.temperature = next.has_temperature ? temperature->valueint : 0;

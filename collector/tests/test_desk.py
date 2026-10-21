@@ -22,14 +22,6 @@ def weather(points, stale=False) -> dict:
             "temperature": 13.6, "description": "Zwaar bewolkt", "rain": points}
 
 
-def test_the_rain_line_is_worded_as_on_home():
-    assert desk.rain_line([], ZONE) == "No rain forecast available"
-    assert desk.rain_line(rain(0, 0.05, 0), ZONE) == "Dry for the next 2 hours"
-    assert desk.rain_line(rain(0, 0, 1.24, 2.8, 0), ZONE) == "Rain from 07:10, up to 2,8 mm/h"
-    assert desk.rain_line(rain(0.6, 0.4, 0), ZONE) == "Rain now, up to 0,6 mm/h; dry from 07:10"
-    assert desk.rain_line(rain(0.6, 0.4), ZONE) == "Rain for the next 2 hours, up to 0,6 mm/h"
-
-
 def test_the_now_panel_gets_its_clock_and_the_hubs_time(store):
     store.put_cache("weather", weather(rain(0, 0, 1.24, 2.8, 0)))
     store.put_cache("forecast", forecast(dry_day()))
@@ -44,8 +36,10 @@ def test_the_now_panel_gets_its_clock_and_the_hubs_time(store):
     assert day["kind"] == "day"
     assert clock == {
         "kind": "clock", "stale": False, "place": "De Bilt", "date": "Mon 19 Oct",
-        "temperature": 14, "description": "Zwaar bewolkt", "rain": [0, 0, 1.24, 2.8, 0],
-        "rain_line": "Rain from 07:10, up to 2,8 mm/h", "wet": True}
+        "temperature": 14, "description": "Overcast", "sun": "",
+        "sky": {"colour": "8a7f9e", "opacity": 90}, "rain": [0, 0, 1.24, 2.8, 0],
+        "rain_axis": ["Now", "08:00", "09:00"], "rain_line": "Rain from 07:10, about 10 min",
+        "wet": True}
     assert answer["stale"] is False
 
 

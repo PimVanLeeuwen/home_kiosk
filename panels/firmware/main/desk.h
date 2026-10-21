@@ -18,8 +18,13 @@ typedef struct {
     bool has_temperature;
     int temperature;
     char description[48];
+    char sun[24];          /* "Sunset 18:41", or "" */
+    bool has_sky;          /* the hub's colour for the sky outside */
+    uint32_t sky_colour;
+    uint8_t sky_opacity;
     int rain_count;
     float rain[DESK_RAIN_MAX];
+    char rain_axis[3][8];  /* under the bars: "Now", +1 h, +2 h */
     char rain_line[96];
     bool wet;
 } desk_clock_t;
