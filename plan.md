@@ -835,7 +835,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   idle bars leave out runs over twice the median (a re-run hours later). Built 2026-10-21 (hub):
   House's answer (`app/desk_pipelines.py`): a `pipeline` screen per running or just-finished run
   (cards by stage and row, edges by index, the panel counting the time on from `since`) and the
-  `pipelines` idle card; `rotate` follows the rules above.
+  `pipelines` idle card; `rotate` follows the rules above. Built 2026-10-21 (panel):
+  `screen_pipeline.c` (cards from the hub's columns and rows, the lines painted into a canvas,
+  the time counted on from `since`, two pipelines taking turns) and `screen_pipelines.c`, parsed in
+  `desk_pipelines.c`. Checked on a real panel: card names lose a trailing part in brackets
+  ("E2E (Playwright · full stack)" is "E2E"), and narrow cards (four stages) put the icon on top
+  with two lines of name below.
 - Decided 2026-10-21: this idle card replaces the build list on the Code screen (M20), which
   keeps its 16-week commit grid; the hub's Code card and Repos page stay as they are.
 

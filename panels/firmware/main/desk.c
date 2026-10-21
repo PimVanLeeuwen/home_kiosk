@@ -4,6 +4,7 @@
  * is set from it whenever it is off by more than a second. */
 
 #include "desk.h"
+#include "desk_pipelines.h"
 #include "esp_attr.h"
 
 #include <math.h>
@@ -39,6 +40,8 @@ EXT_RAM_BSS_ATTR static desk_playing_t playing_state;
 EXT_RAM_BSS_ATTR static desk_music_t music_state;
 EXT_RAM_BSS_ATTR static desk_laundry_t laundry_state;
 EXT_RAM_BSS_ATTR static desk_air_t air_state;
+EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline_state;
+EXT_RAM_BSS_ATTR static desk_pipelines_t pipelines_state;
 EXT_RAM_BSS_ATTR static desk_apple_t apple_state;
 static TaskHandle_t desk_task_handle;
 static volatile bool rotates = true;
@@ -216,6 +219,36 @@ GETTERS(playing, desk_playing_t, playing_state)
 GETTERS(music, desk_music_t, music_state)
 GETTERS(laundry, desk_laundry_t, laundry_state)
 GETTERS(air, desk_air_t, air_state)
+
+/* As GETTERS, but copying into the caller's buffer: for states too big for a stack. */
+#define COPIERS(kind, type, state)                         \
+    bool desk_has_##kind(void)                             \
+    {                                                      \
+        return has(&state.present);                        \
+    }                                                      \
+    uint32_t desk_##kind##_version(void)                   \
+    {                                                      \
+        if (lock == NULL) {                                \
+            return 0;                                      \
+        }                                                  \
+        xSemaphoreTake(lock, portMAX_DELAY);               \
+        uint32_t version = state.version;                  \
+        xSemaphoreGive(lock);                              \
+        return version;                                    \
+    }                                                      \
+    void desk_##kind##_copy(type *into)                    \
+    {                                                      \
+        if (lock == NULL) {                                \
+            memset(into, 0, sizeof *into);                 \
+            return;                                        \
+        }                                                  \
+        xSemaphoreTake(lock, portMAX_DELAY);               \
+        *into = state;                                     \
+        xSemaphoreGive(lock);                              \
+    }
+
+COPIERS(pipeline, desk_pipeline_t, pipeline_state)
+COPIERS(pipelines, desk_pipelines_t, pipelines_state)
 GETTERS(apple, desk_apple_t, apple_state)
 
 static void parse_apple(const cJSON *screen, desk_apple_t *apple)
@@ -679,6 +712,8 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_music_t music;
     EXT_RAM_BSS_ATTR static desk_laundry_t laundry;
     EXT_RAM_BSS_ATTR static desk_air_t air;
+    EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline;
+    EXT_RAM_BSS_ATTR static desk_pipelines_t pipes;
     EXT_RAM_BSS_ATTR static desk_apple_t apple;
     memset(&train, 0, sizeof train);
     memset(&agenda, 0, sizeof agenda);
@@ -688,6 +723,8 @@ static void apply(const char *body)
     memset(&music, 0, sizeof music);
     memset(&laundry, 0, sizeof laundry);
     memset(&air, 0, sizeof air);
+    memset(&pipeline, 0, sizeof pipeline);
+    memset(&pipes, 0, sizeof pipes);
     memset(&apple, 0, sizeof apple);
     const cJSON *offset = cJSON_GetObjectItem(time, "utc_offset");
     next.utc_offset = cJSON_IsNumber(offset) ? offset->valueint : 0;
@@ -706,6 +743,14 @@ static void apply(const char *body)
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "air") == 0) {
             parse_air(screen, &air);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "pipeline") == 0) {
+            desk_parse_run(screen, &pipeline);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "pipelines") == 0) {
+            desk_parse_pipelines(screen, &pipes);
             continue;
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "apple") == 0) {
@@ -808,6 +853,10 @@ static void apply(const char *body)
     laundry_state = laundry;
     air.version = air_state.version + 1;
     air_state = air;
+    pipeline.version = pipeline_state.version + 1;
+    pipeline_state = pipeline;
+    pipes.version = pipelines_state.version + 1;
+    pipelines_state = pipes;
     apple.version = apple_state.version + 1;
     apple_state = apple;
     music.version = music_state.version + 1;

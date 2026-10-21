@@ -193,6 +193,61 @@ typedef struct {
     char last[128];          /* "Last played: ..." */
 } desk_music_t;
 
+/* The House panel's pipelines (plan.md M21): the running ones as job graphs, at most
+ * two (they take turns), and the idle card. Ready to draw (app/desk_pipelines.py). */
+#define DESK_PIPELINE_RUNS 2
+#define DESK_PIPELINE_JOBS 16
+#define DESK_PIPELINE_EDGES 28
+typedef struct {
+    char title[40];          /* "HOME_KIOSK · MAIN" */
+    char number[16];         /* "RUN #312" */
+    char position[8];        /* "1 of 2", or "" */
+    char state[10];          /* running, approval, success, failure, cancelled */
+    uint32_t colour;
+    char big[12];            /* "4:12" */
+    int64_t since;           /* while it runs: count the big time on from here (epoch s) */
+    char first[32];          /* "about 3 min left", "Shipped" */
+    char second[40];         /* "usually 6 to 7 min", the failed job */
+    char commit[96];
+    char meta[48];           /* "Pim · 2a5b2c1" */
+    int columns;
+    int job_count;
+    struct {
+        char name[40];
+        uint8_t column, row, count;
+        char state[10];      /* done, running, queued, approval, failed, cancelled */
+        char time[10];       /* "2:05" */
+        int16_t progress;    /* 0 to 1000 while running */
+    } jobs[DESK_PIPELINE_JOBS];
+    int edge_count;
+    uint8_t edges[DESK_PIPELINE_EDGES][2]; /* job index from, to */
+} desk_run_t;
+
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    int count;
+    desk_run_t runs[DESK_PIPELINE_RUNS];
+} desk_pipeline_t;
+
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    int count;
+    struct {
+        char name[32];
+        char line[48];       /* "main · passed 12 min ago" */
+        uint32_t colour;
+        int bar_count;
+        struct {
+            int16_t height;  /* 0 to 1000 */
+            bool ok;
+        } bars[10];
+    } repos[3];
+} desk_pipelines_t;
+
 /* The Home panel's air: the living room's ALPSTUGA (plan.md M17), ready to draw. */
 #define DESK_AIR_HISTORY 97 /* CO2 every 5 minutes over 8 hours */
 typedef struct {
@@ -292,6 +347,14 @@ bool desk_has_playing(void);
 uint32_t desk_playing_version(void);
 desk_playing_t desk_playing(void);
 bool desk_has_music(void);
+/* The pipelines are copied into the caller's buffer (in PSRAM), not returned: at
+ * about 3 kB they must not land on a task's stack. */
+bool desk_has_pipeline(void);
+uint32_t desk_pipeline_version(void);
+void desk_pipeline_copy(desk_pipeline_t *into);
+bool desk_has_pipelines(void);
+uint32_t desk_pipelines_version(void);
+void desk_pipelines_copy(desk_pipelines_t *into);
 bool desk_has_air(void);
 uint32_t desk_air_version(void);
 desk_air_t desk_air(void);

@@ -92,9 +92,11 @@ def columns(graph: dict[str, dict[str, Any]]) -> dict[str, int]:
 
 
 def display(template: str) -> str:
-    """"Build & push (${{ matrix.service }})" as "Build & push"."""
-    name = re.sub(r"\s*\(\s*\$\{\{.*?\}\}\s*\)", "", template)
-    return _TEMPLATE.sub("", name).strip() or template
+    """A short name for a card: "Build & push (${{ matrix.service }})" as "Build & push",
+    and "E2E (Playwright · full stack)" as "E2E" (a trailing part in brackets goes)."""
+    name = _TEMPLATE.sub("", template)
+    name = re.sub(r"\s*\([^()]*\)\s*$", "", name).strip()
+    return name or template
 
 
 def _matcher(template: str) -> re.Pattern[str]:

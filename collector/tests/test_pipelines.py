@@ -134,6 +134,9 @@ def test_the_workflow_file_gives_stages_and_names():
         "release": 3,
     }
     assert pipelines.display(graph["images"]["name"]) == "Build & push"
+    assert pipelines.display("E2E (Playwright · full stack)") == "E2E"
+    assert pipelines.display("Backend (Maven)") == "Backend"
+    assert pipelines.display("Await publish approval") == "Await publish approval"
     assert graph["images"]["needs"] == ["approve"]
 
 
@@ -217,7 +220,7 @@ def test_a_failed_run_names_its_job_and_stays_for_ten_minutes(store):
     r = collect(store, gh).repos[0].run
     assert (r.state, r.failed, r.ended_at) == (
         "failure",
-        "Backend (Maven)",
+        "Backend",
         NOW - timedelta(minutes=4),
     )
     assert [j.key for j in r.jobs] == ["backend", "frontend"]  # the rest never ran: left out
