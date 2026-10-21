@@ -305,6 +305,14 @@ github:
     # Local time; keep it before BACKUP_AT in the rclone stack (03:00).
     at: "02:00"
 
+# The House panel's pipelines (plan.md M21): each repo's main CI workflow, only runs a
+# push to the branch started. Read with the github tokens above (Actions: read).
+pipelines:
+  repos:
+    - { repo: PimVanLeeuwen/home_kiosk, workflow: collector.yml }
+    - { repo: Hubble-Community-Cafe/community-cafe-web, workflow: ci.yml }
+    - { repo: Hubble-Community-Cafe/the-harry-list, workflow: ci.yml }
+
 # Telegram: the hub is the one sender (alerts, reports, the bot). All values
 # NAS-only, see .env.example. Senders on the NAS post to /api/notify with the
 # X-Notify-Key header.

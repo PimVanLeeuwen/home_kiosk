@@ -796,6 +796,57 @@ class AirState(Envelope):
     history: list[AirPoint] = []  # CO2 every 5 minutes, the last 8 hours
 
 
+# --- Home hub: pipelines (/api/pipelines) ----------------------------------------
+
+JobState = Literal["done", "running", "queued", "approval", "failed", "cancelled"]
+
+
+class PipelineJob(BaseModel):
+    """One job of the workflow (a matrix job counts once, `count` times)."""
+    key: str  # the workflow file's job id
+    name: str  # without its matrix part: "Build & push"
+    column: int  # its stage: 0 for jobs that need nothing
+    needs: list[str] = []
+    state: JobState
+    count: int = 1
+    seconds: int | None = None  # how long it took, or has been running
+    progress: float | None = None  # 0 to 1 while running, from its last good run
+
+
+class PipelineRun(BaseModel):
+    number: int
+    url: str
+    state: Literal["running", "approval", "success", "failure", "cancelled"]
+    started_at: datetime
+    ended_at: datetime | None = None
+    approval_since: datetime | None = None  # waiting at an approval gate since
+    seconds: int  # so far, or in all
+    usual: list[int] = []  # the shortest and longest of the last good runs, seconds
+    commit: str = ""  # its message's first line
+    author: str | None = None
+    sha: str = ""  # short
+    failed: str | None = None  # the first failed job's name
+    jobs: list[PipelineJob] = []
+
+
+class PipelineRecent(BaseModel):
+    ok: bool
+    seconds: int
+    at: datetime
+
+
+class PipelineRepo(BaseModel):
+    repo: str  # "owner/name"
+    name: str  # "home_kiosk"
+    branch: str
+    recent: list[PipelineRecent] = []  # the last finished runs, oldest first
+    run: PipelineRun | None = None  # the latest, while it runs or for a while after
+
+
+class Pipelines(Envelope):
+    repos: list[PipelineRepo] = []
+
+
 # --- Home hub: outside services ---------------------------------------------------
 
 # Worst first is "outage"; "unknown" means the status page has never answered.

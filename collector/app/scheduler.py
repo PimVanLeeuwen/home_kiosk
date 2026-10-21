@@ -42,6 +42,7 @@ from .sources import (
     nas,
     ns,
     outside_services,
+    pipelines,
     spotlight,
     tailscale,
     ups,
@@ -71,6 +72,7 @@ SITES_INTERVAL_SECONDS = 60  # Kuma beats once a minute; 100 kept, so no gaps
 LIGHTS_INTERVAL_SECONDS = 60  # two local calls; the event stream does the rest
 APPLE_INTERVAL_SECONDS = 60  # local unicast queries, a fraction of a second per device
 LAUNDRY_INTERVAL_SECONDS = 60  # one signed status call; the token is reused
+PIPELINES_INTERVAL_SECONDS = 15  # a running pipeline moves fast; idle repos are asked once a minute
 AIR_INTERVAL_SECONDS = 60  # one local WebSocket call; the Matter server keeps the sensor subscribed
 CALENDAR_INTERVAL_SECONDS = 300  # feeds at most every 15 min (agenda.FEED_EVERY)
 MEDIA_INTERVAL_SECONDS = 60  # local calls to Sonarr and Radarr
@@ -219,6 +221,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             seconds=APPLE_INTERVAL_SECONDS,
             args=[store, apple.CACHE_KEY, lambda: apple.collect(cfg, store)],
             id="apple",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
+
+    if pipelines.settings(cfg)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=PIPELINES_INTERVAL_SECONDS,
+            args=[store, pipelines.CACHE_KEY, lambda: pipelines.collect(cfg, store)],
+            id="pipelines",
             next_run_time=None,
             max_instances=1,
             coalesce=True,
