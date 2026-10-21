@@ -34,7 +34,15 @@ EXT_RAM_BSS_ATTR static desk_board_t board_state;
 EXT_RAM_BSS_ATTR static desk_train_t train_state;
 EXT_RAM_BSS_ATTR static desk_agenda_t agenda_state;
 EXT_RAM_BSS_ATTR static desk_headlines_t headlines_state;
+EXT_RAM_BSS_ATTR static desk_lights_t lights_state;
+EXT_RAM_BSS_ATTR static desk_playing_t playing_state;
+EXT_RAM_BSS_ATTR static desk_music_t music_state;
+EXT_RAM_BSS_ATTR static desk_laundry_t laundry_state;
+EXT_RAM_BSS_ATTR static desk_apple_t apple_state;
+static TaskHandle_t desk_task_handle;
+static volatile bool rotates = true;
 static char mac_text[18];
+static volatile bool dimmed; /* the hub's "dim": the living room lights are all off */
 static char key[64]; /* the device key, from the board's storage (NVS "desk") */
 static SemaphoreHandle_t lock;
 
@@ -79,6 +87,7 @@ desk_board_t desk_board(void)
 
 static void copy_string(char *to, size_t size, const cJSON *from);
 static int number(const cJSON *from, int otherwise);
+static uint32_t colour(const cJSON *from);
 
 desk_train_t desk_train(void)
 {
@@ -128,6 +137,255 @@ bool desk_has_train(void)
 bool desk_has_agenda(void)
 {
     return has(&agenda_state.present);
+}
+
+bool desk_dim(void)
+{
+    return dimmed;
+}
+
+bool desk_rotates(void)
+{
+    return rotates;
+}
+
+void desk_poll_now(void)
+{
+    if (desk_task_handle) {
+        xTaskNotifyGive(desk_task_handle);
+    }
+}
+
+bool desk_has_lights(void)
+{
+    return has(&lights_state.present);
+}
+
+uint32_t desk_lights_version(void)
+{
+    if (lock == NULL) {
+        return 0;
+    }
+    xSemaphoreTake(lock, portMAX_DELAY);
+    uint32_t version = lights_state.version;
+    xSemaphoreGive(lock);
+    return version;
+}
+
+desk_lights_t desk_lights(void)
+{
+    desk_lights_t copy = {0};
+    if (lock == NULL) {
+        return copy;
+    }
+    xSemaphoreTake(lock, portMAX_DELAY);
+    copy = lights_state;
+    xSemaphoreGive(lock);
+    return copy;
+}
+
+#define GETTERS(kind, type, state)                         \
+    bool desk_has_##kind(void)                             \
+    {                                                      \
+        return has(&state.present);                        \
+    }                                                      \
+    uint32_t desk_##kind##_version(void)                   \
+    {                                                      \
+        if (lock == NULL) {                                \
+            return 0;                                      \
+        }                                                  \
+        xSemaphoreTake(lock, portMAX_DELAY);               \
+        uint32_t version = state.version;                  \
+        xSemaphoreGive(lock);                              \
+        return version;                                    \
+    }                                                      \
+    type desk_##kind(void)                                 \
+    {                                                      \
+        type copy = {0};                                   \
+        if (lock == NULL) {                                \
+            return copy;                                   \
+        }                                                  \
+        xSemaphoreTake(lock, portMAX_DELAY);               \
+        copy = state;                                      \
+        xSemaphoreGive(lock);                              \
+        return copy;                                       \
+    }
+
+GETTERS(playing, desk_playing_t, playing_state)
+GETTERS(music, desk_music_t, music_state)
+GETTERS(laundry, desk_laundry_t, laundry_state)
+GETTERS(apple, desk_apple_t, apple_state)
+
+static void parse_apple(const cJSON *screen, desk_apple_t *apple)
+{
+    apple->present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
+    apple->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
+    if (!apple->present) {
+        return;
+    }
+    copy_string(apple->headline, sizeof apple->headline, cJSON_GetObjectItem(screen, "headline"));
+    apple->headline_colour = colour(cJSON_GetObjectItem(screen, "headline_colour"));
+    const cJSON *item;
+    cJSON_ArrayForEach(item, cJSON_GetObjectItem(screen, "rooms"))
+    {
+        if (apple->count == 3) {
+            break;
+        }
+        typeof(apple->rooms[0]) *room = &apple->rooms[apple->count++];
+        copy_string(room->name, sizeof room->name, cJSON_GetObjectItem(item, "name"));
+        const cJSON *glow = cJSON_GetObjectItem(item, "glow");
+        room->glow = cJSON_IsString(glow) ? colour(glow) : 0;
+        const cJSON *device;
+        cJSON_ArrayForEach(device, cJSON_GetObjectItem(item, "devices"))
+        {
+            if (room->devices == 4) {
+                break;
+            }
+            copy_string(room->device[room->devices].kind, sizeof room->device[0].kind,
+                        cJSON_GetObjectItem(device, "kind"));
+            room->device[room->devices++].online = cJSON_IsTrue(cJSON_GetObjectItem(device, "online"));
+        }
+    }
+    const cJSON *playing = cJSON_GetObjectItem(screen, "playing");
+    apple->has_playing = cJSON_IsObject(playing);
+    if (apple->has_playing) {
+        copy_string(apple->title, sizeof apple->title, cJSON_GetObjectItem(playing, "title"));
+        copy_string(apple->where, sizeof apple->where, cJSON_GetObjectItem(playing, "where"));
+        apple->playing_colour = colour(cJSON_GetObjectItem(playing, "colour"));
+    }
+}
+
+static void parse_laundry(const cJSON *screen, desk_laundry_t *laundry)
+{
+    laundry->present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
+    laundry->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
+    if (!laundry->present) {
+        return;
+    }
+    copy_string(laundry->headline, sizeof laundry->headline, cJSON_GetObjectItem(screen, "headline"));
+    laundry->headline_colour = colour(cJSON_GetObjectItem(screen, "headline_colour"));
+    const cJSON *item;
+    cJSON_ArrayForEach(item, cJSON_GetObjectItem(screen, "machines"))
+    {
+        if (laundry->count == 2) {
+            break;
+        }
+        typeof(laundry->machines[0]) *m = &laundry->machines[laundry->count++];
+        copy_string(m->name, sizeof m->name, cJSON_GetObjectItem(item, "name"));
+        copy_string(m->state, sizeof m->state, cJSON_GetObjectItem(item, "state"));
+        copy_string(m->line, sizeof m->line, cJSON_GetObjectItem(item, "line"));
+        copy_string(m->status, sizeof m->status, cJSON_GetObjectItem(item, "status"));
+        m->colour = colour(cJSON_GetObjectItem(item, "colour"));
+        m->water = colour(cJSON_GetObjectItem(item, "water"));
+        m->status_colour = colour(cJSON_GetObjectItem(item, "status_colour"));
+        m->progress = number(cJSON_GetObjectItem(item, "progress"), 0);
+        m->minutes = number(cJSON_GetObjectItem(item, "minutes"), -1);
+    }
+}
+
+/* Also asks pictures.c for the cover: fetched only when it changed. */
+static void parse_playing(const cJSON *screen, desk_playing_t *now)
+{
+    now->present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
+    now->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
+    const cJSON *cover = cJSON_GetObjectItem(screen, "cover");
+    now->has_cover = now->present && cJSON_IsString(cover);
+    pictures_want(PICTURE_PLAYING, now->has_cover ? cover->valuestring : "");
+    if (!now->present) {
+        return;
+    }
+    copy_string(now->title, sizeof now->title, cJSON_GetObjectItem(screen, "title"));
+    copy_string(now->subtitle, sizeof now->subtitle, cJSON_GetObjectItem(screen, "subtitle"));
+    copy_string(now->device, sizeof now->device, cJSON_GetObjectItem(screen, "device"));
+    now->colour = colour(cJSON_GetObjectItem(screen, "colour"));
+    now->playing = cJSON_IsTrue(cJSON_GetObjectItem(screen, "playing"));
+    const cJSON *value = cJSON_GetObjectItem(screen, "progress_ms");
+    now->progress_ms = cJSON_IsNumber(value) ? (int64_t)value->valuedouble : 0;
+    value = cJSON_GetObjectItem(screen, "duration_ms");
+    now->duration_ms = cJSON_IsNumber(value) ? (int64_t)value->valuedouble : 0;
+    value = cJSON_GetObjectItem(screen, "at");
+    now->at = cJSON_IsNumber(value) ? value->valuedouble : 0;
+}
+
+static void parse_music(const cJSON *screen, desk_music_t *music)
+{
+    music->present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
+    music->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
+    const cJSON *item;
+    cJSON_ArrayForEach(item, cJSON_GetObjectItem(screen, "favourites"))
+    {
+        if (music->count == DESK_FAVOURITES) {
+            break;
+        }
+        int i = music->count++;
+        music->favourites[i].position = number(cJSON_GetObjectItem(item, "position"), i);
+        copy_string(music->favourites[i].name, sizeof music->favourites[i].name, cJSON_GetObjectItem(item, "name"));
+        music->favourites[i].colour = colour(cJSON_GetObjectItem(item, "colour"));
+        const cJSON *cover = cJSON_GetObjectItem(item, "cover");
+        music->favourites[i].has_cover = cJSON_IsString(cover);
+        pictures_want(PICTURE_FAVOURITE + i, cJSON_IsString(cover) ? cover->valuestring : "");
+    }
+    for (int i = music->count; i < DESK_FAVOURITES; i++) {
+        pictures_want(PICTURE_FAVOURITE + i, "");
+    }
+    copy_string(music->device, sizeof music->device, cJSON_GetObjectItem(screen, "device"));
+    copy_string(music->last, sizeof music->last, cJSON_GetObjectItem(screen, "last"));
+}
+
+static void parse_lights(const cJSON *screen, desk_lights_t *lights)
+{
+    lights->present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
+    lights->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
+    if (!lights->present) {
+        return;
+    }
+    copy_string(lights->title, sizeof lights->title, cJSON_GetObjectItem(screen, "title"));
+    copy_string(lights->count, sizeof lights->count, cJSON_GetObjectItem(screen, "count"));
+    lights->any_on = cJSON_IsTrue(cJSON_GetObjectItem(screen, "any_on"));
+    const cJSON *item;
+    cJSON_ArrayForEach(item, cJSON_GetObjectItem(screen, "groups"))
+    {
+        if (lights->group_count == DESK_LIGHT_GROUPS) {
+            break;
+        }
+        typeof(lights->groups[0]) *g = &lights->groups[lights->group_count++];
+        copy_string(g->id, sizeof g->id, cJSON_GetObjectItem(item, "id"));
+        copy_string(g->name, sizeof g->name, cJSON_GetObjectItem(item, "name"));
+        copy_string(g->line, sizeof g->line, cJSON_GetObjectItem(item, "line"));
+        g->on = cJSON_IsTrue(cJSON_GetObjectItem(item, "on"));
+        g->brightness = number(cJSON_GetObjectItem(item, "brightness"), 0);
+        g->tone = colour(cJSON_GetObjectItem(item, "tone"));
+    }
+    const cJSON *whites = cJSON_GetObjectItem(screen, "whites");
+    if ((lights->has_whites = cJSON_IsObject(whites))) {
+        copy_string(lights->whites_group, sizeof lights->whites_group, cJSON_GetObjectItem(whites, "group"));
+        copy_string(lights->whites_name, sizeof lights->whites_name, cJSON_GetObjectItem(whites, "name"));
+        lights->whites_kelvin = number(cJSON_GetObjectItem(whites, "kelvin"), 0);
+        cJSON_ArrayForEach(item, cJSON_GetObjectItem(whites, "choices"))
+        {
+            if (lights->choice_count == DESK_WHITES) {
+                break;
+            }
+            lights->choices[lights->choice_count].kelvin = number(cJSON_GetObjectItem(item, "kelvin"), 0);
+            lights->choices[lights->choice_count++].tone = colour(cJSON_GetObjectItem(item, "tone"));
+        }
+    }
+}
+
+void desk_take_lights(const char *json)
+{
+    cJSON *root = cJSON_Parse(json);
+    if (root == NULL) {
+        return;
+    }
+    EXT_RAM_BSS_ATTR static desk_lights_t fresh;
+    memset(&fresh, 0, sizeof fresh);
+    parse_lights(root, &fresh);
+    cJSON_Delete(root);
+    xSemaphoreTake(lock, portMAX_DELAY);
+    fresh.version = lights_state.version + 1;
+    lights_state = fresh;
+    xSemaphoreGive(lock);
 }
 
 bool desk_has_headlines(void)
@@ -367,6 +625,8 @@ static void apply(const char *body)
     }
     const cJSON *time = cJSON_GetObjectItem(root, "time");
     set_time(time);
+    dimmed = cJSON_IsTrue(cJSON_GetObjectItem(root, "dim"));
+    rotates = !cJSON_IsFalse(cJSON_GetObjectItem(root, "rotate"));
     const cJSON *handed = cJSON_GetObjectItem(root, "key");
     if (cJSON_IsString(handed) && handed->valuestring[0]) {
         keep_key(handed->valuestring);
@@ -384,9 +644,19 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_train_t train;
     EXT_RAM_BSS_ATTR static desk_agenda_t agenda;
     EXT_RAM_BSS_ATTR static desk_headlines_t news;
+    EXT_RAM_BSS_ATTR static desk_lights_t lights;
+    EXT_RAM_BSS_ATTR static desk_playing_t playing;
+    EXT_RAM_BSS_ATTR static desk_music_t music;
+    EXT_RAM_BSS_ATTR static desk_laundry_t laundry;
+    EXT_RAM_BSS_ATTR static desk_apple_t apple;
     memset(&train, 0, sizeof train);
     memset(&agenda, 0, sizeof agenda);
     memset(&news, 0, sizeof news);
+    memset(&lights, 0, sizeof lights);
+    memset(&playing, 0, sizeof playing);
+    memset(&music, 0, sizeof music);
+    memset(&laundry, 0, sizeof laundry);
+    memset(&apple, 0, sizeof apple);
     const cJSON *offset = cJSON_GetObjectItem(time, "utc_offset");
     next.utc_offset = cJSON_IsNumber(offset) ? offset->valueint : 0;
 
@@ -394,6 +664,26 @@ static void apply(const char *body)
     cJSON_ArrayForEach(screen, cJSON_GetObjectItem(root, "screens"))
     {
         const cJSON *kind = cJSON_GetObjectItem(screen, "kind");
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "playing") == 0) {
+            parse_playing(screen, &playing);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "laundry") == 0) {
+            parse_laundry(screen, &laundry);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "apple") == 0) {
+            parse_apple(screen, &apple);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "music") == 0) {
+            parse_music(screen, &music);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "lights") == 0) {
+            parse_lights(screen, &lights);
+            continue;
+        }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "headlines") == 0) {
             parse_headlines(screen, &news);
             continue;
@@ -466,6 +756,16 @@ static void apply(const char *body)
     clock_state = next;
     day.version = day_state.version + 1;
     day_state = day;
+    playing.version = playing_state.version + 1;
+    playing_state = playing;
+    laundry.version = laundry_state.version + 1;
+    laundry_state = laundry;
+    apple.version = apple_state.version + 1;
+    apple_state = apple;
+    music.version = music_state.version + 1;
+    music_state = music;
+    lights.version = lights_state.version + 1;
+    lights_state = lights;
     news.version = headlines_state.version + 1;
     headlines_state = news;
     agenda.version = agenda_state.version + 1;
@@ -507,8 +807,9 @@ static void desk_task(void *arg)
                 ESP_LOGW(TAG, "hub answered %d", status);
             }
         }
-        /* Soon after Wi-Fi comes up, then every 30 s. */
-        vTaskDelay(pdMS_TO_TICKS(desk_clock().present ? EVERY_MS : 3000));
+        /* Soon after Wi-Fi comes up, then every 30 s, or at once when asked
+         * (desk_poll_now, after a change from the panel). */
+        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(desk_clock().present ? EVERY_MS : 3000));
     }
 }
 
@@ -516,5 +817,5 @@ void desk_start(void)
 {
     lock = xSemaphoreCreateMutex();
     load_key();
-    xTaskCreate(desk_task, "desk", 8192, NULL, 4, NULL);
+    xTaskCreate(desk_task, "desk", 8192, NULL, 4, &desk_task_handle);
 }

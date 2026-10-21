@@ -135,3 +135,10 @@ an existing build keeps using the old one.
 
 Every 30 seconds a panel logs a `health` line on its console: internal RAM, whether LVGL still
 runs and draws, and where the rotation is.
+
+On the bench the console also takes `hold`, `next`, `swipe left` / `swipe right` (Home),
+`tap X Y` and `press X Y` (a touch or a long press at a point of the picture as it is shown),
+and `save N` (save headline N to Readeck). The panels darken when every living room light is
+off (the hub's `dim`), with a black layer over the screen; the backlight stays at full. LVGL
+allocates in PSRAM (`firmware/main/lvgl_memory.c`), which keeps internal RAM for Wi-Fi: if the
+`health` line shows internal RAM below about 30 kB, Wi-Fi buffers start to fail.

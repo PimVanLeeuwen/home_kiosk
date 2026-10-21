@@ -5,7 +5,8 @@
  * can print in between, so panels/tools/shot.py keeps the good lines and asks
  * again for the rest. "next" turns to the next screen and "hold" keeps the
  * current one for a minute, to capture each screen; "update" installs the hub's
- * firmware now; "save 0" to "save 2" taps a headline. */
+ * firmware now; "save 0" to "save 2" taps a headline; "tap X Y", "press X Y"
+ * and "swipe left|right" act as a finger does. */
 
 #include "devshot.h"
 
@@ -81,6 +82,22 @@ static void send_screen(void)
         return;
     }
     lv_draw_buf_t *shot = lv_snapshot_take(lv_screen_active(), LV_COLOR_FORMAT_RGB888);
+    /* LVGL's top layer (the dots of a swiped panel, the dark layer) is not part
+     * of the screen: blend it in, so the picture shows what the panel shows. */
+    lv_draw_buf_t *top = shot ? lv_snapshot_take(lv_layer_top(), LV_COLOR_FORMAT_ARGB8888) : NULL;
+    if (top != NULL) {
+        for (uint32_t y = 0; y < shot->header.h && y < top->header.h; y++) {
+            uint8_t *row = shot->data + y * shot->header.stride;
+            const uint8_t *over = top->data + y * top->header.stride;
+            for (uint32_t x = 0; x < shot->header.w && x < top->header.w; x++) {
+                uint32_t a = over[4 * x + 3];
+                for (int c = 0; c < 3; c++) {
+                    row[3 * x + c] = (row[3 * x + c] * (255 - a) + over[4 * x + c] * a) / 255;
+                }
+            }
+        }
+        lv_draw_buf_destroy(top);
+    }
     bsp_display_unlock();
     if (shot == NULL) {
         ESP_LOGW(TAG, "no memory for a snapshot");
@@ -113,9 +130,29 @@ static void send_screen(void)
     heap_caps_free(data);
 }
 
+/* A tap or a long press at a point of the screen, for testing without a finger:
+ * the event goes to the object there, as from the touch panel. */
+static void touch_at(const char *line)
+{
+    bool press = strstr(line, "press ") != NULL;
+    const char *numbers = strstr(line, press ? "press " : "tap ") + (press ? 6 : 4);
+    lv_point_t point = {0};
+    if (sscanf(numbers, "%d %d", (int *)&point.x, (int *)&point.y) != 2) {
+        return;
+    }
+    lv_obj_t *obj = lv_indev_search_obj(lv_screen_active(), &point);
+    if (obj == NULL) {
+        return;
+    }
+    lv_obj_send_event(obj, press ? LV_EVENT_LONG_PRESSED : LV_EVENT_CLICKED, NULL);
+    if (press) {
+        lv_obj_send_event(obj, LV_EVENT_CLICKED, NULL); /* the release after a long press */
+    }
+}
+
 static void devshot_task(void *arg)
 {
-    char line[16];
+    char line[32];
     size_t len = 0;
     for (;;) {
         /* The console as ESP-IDF sets it up: reading never blocks, so poll. */
@@ -137,6 +174,12 @@ static void devshot_task(void *arg)
                 screens_hold();
             } else if (len >= 6 && strncmp(line + len - 6, "save ", 5) == 0 && bsp_display_lock(1000)) {
                 screen_headlines_tap(line[len - 1] - '0'); /* "save 0" to "save 2" */
+                bsp_display_unlock();
+            } else if (strstr(line, "swipe ") && bsp_display_lock(1000)) {
+                screens_swipe(strstr(line, "left") ? 1 : -1); /* "swipe left" or "swipe right" */
+                bsp_display_unlock();
+            } else if ((strstr(line, "tap ") || strstr(line, "press ")) && bsp_display_lock(1000)) {
+                touch_at(line); /* "tap 200 300" or "press 200 300" */
                 bsp_display_unlock();
             } else if (len >= 6 && strcmp(line + len - 6, "update") == 0) {
                 update_now();

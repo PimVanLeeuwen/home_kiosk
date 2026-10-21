@@ -27,3 +27,7 @@ typedef struct {
     bool held; /* a touch holds the rotation */
 } screens_state_t;
 screens_state_t screens_state(void);
+
+/* Swipe as a finger does: 1 for the next screen, -1 for the one before
+ * (devshot's "swipe"). Call with the display lock held. */
+void screens_swipe(int by);

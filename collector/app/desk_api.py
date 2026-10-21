@@ -11,14 +11,17 @@ panels' own writes (/api/desk/save) need the board's device key instead.
 from __future__ import annotations
 
 import re
+from datetime import UTC, datetime
 from typing import Annotated, Any, Literal
+from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from . import desk, desk_boards, desk_headlines, desk_keys
-from .sources import readeck
+from . import desk, desk_boards, desk_headlines, desk_home, desk_keys
+from .lights_api import Change, RoomSwitch
+from .sources import hue, music, readeck, spotify
 
 router = APIRouter(prefix="/api/desk")
 ARTICLE = re.compile(r"^[0-9a-f]{16}$")
@@ -27,15 +30,28 @@ ARTICLE = re.compile(r"^[0-9a-f]{16}$")
 PanelName = Literal["now", "home", "house", "test"]
 
 
+async def _music(request: Request) -> dict[str, Any] | None:
+    """The hub's Spotify state for the Home panel; None when it cannot be read
+    (the panel then shows its other screens)."""
+    cfg = request.app.state.config
+    if not spotify.settings(cfg)["enabled"]:
+        return None
+    try:
+        return await music.state(cfg, request.app.state.store)
+    except Exception:
+        return None
+
+
 @router.get("/board/{mac}")
-def board(mac: str, request: Request,
-          firmware: Annotated[str, Query(max_length=40)] = "") -> dict[str, Any]:
+async def board(mac: str, request: Request,
+                firmware: Annotated[str, Query(max_length=40)] = "") -> dict[str, Any]:
     mac = mac.lower()
     if not desk_boards.MAC.match(mac):
         raise HTTPException(422, "A board is asked for by its MAC address, like e8:f6:0a:e4:42:b0.")
     store = request.app.state.store
     visit = desk_boards.check_in(store, mac, firmware)
-    answer = desk.answer(request.app.state.config, store, visit.panel, board=mac)
+    playing = await _music(request) if visit.panel == "home" else None
+    answer = desk.answer(request.app.state.config, store, visit.panel, board=mac, music=playing)
     if visit.update:
         answer["update"] = True  # install the hub's firmware now (Settings, Update now)
     if visit.key:
@@ -75,6 +91,87 @@ def picture(article_id: str, size: Literal["lead", "thumb"], request: Request) -
                     headers={"Cache-Control": "public, max-age=86400"})
 
 
+async def _lights(request: Request, change) -> Any:
+    """Runs a change on the living room's lights; answers with the panel's lights screen."""
+    cfg = request.app.state.config
+    if not hue.settings(cfg)["enabled"]:
+        raise HTTPException(503, "The Hue Bridge is not set up.")
+    try:
+        await change(cfg, getattr(request.app.state, "hue_bridge", None))
+    except KeyError:
+        raise HTTPException(404, "No such group of lights.") from None
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from None
+    except Exception as exc:
+        raise HTTPException(502, hue.reason(exc)) from None
+    zone = ZoneInfo(cfg.get("timezone", "UTC"))
+    return desk_home.lights_screen(request.app.state.store, zone, datetime.now(UTC))
+
+
+@router.post("/lights/room")
+async def lights_room(body: RoomSwitch, request: Request,
+                      board: Annotated[str, Depends(desk_keys.board_key)]) -> Any:
+    """All the living room's lights on or off, from a panel."""
+    store = request.app.state.store
+    return await _lights(request, lambda cfg, bridge: hue.switch_room(cfg, store, body.on,
+                                                                       bridge=bridge))
+
+
+@router.post("/lights/{group_id}")
+async def lights_group(group_id: str, body: Change, request: Request,
+                       board: Annotated[str, Depends(desk_keys.board_key)]) -> Any:
+    """Switch, dim or set the white of one group, from a panel."""
+    store = request.app.state.store
+    return await _lights(request, lambda cfg, bridge: hue.change(
+        cfg, store, group_id, on=body.on, brightness=body.brightness, kelvin=body.kelvin,
+        bridge=bridge))
+
+
+@router.get("/cover/{key}/{size}")
+async def cover(key: str, size: Literal["big", "tile"], request: Request) -> Response:
+    """A Spotify cover the hub stored, as a small JPEG for the Home panel."""
+    if not desk_home.COVER_KEY.match(key):
+        raise HTTPException(404, "No such cover.")
+    try:
+        data = await desk_home.cover(request.app.state.store, key, size)
+    except Exception:
+        raise HTTPException(502, "The cover could not be loaded.") from None
+    if data is None:
+        raise HTTPException(404, "No such cover.")
+    return Response(data, media_type="image/jpeg",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
+async def _spotify(request: Request, act) -> dict[str, bool]:
+    cfg = request.app.state.config
+    if not spotify.settings(cfg)["enabled"]:
+        raise HTTPException(503, "Spotify is not set up.")
+    try:
+        await act(cfg, request.app.state.store)
+    except spotify.SpotifyError as exc:
+        raise HTTPException(exc.status, str(exc)) from None
+    except Exception:
+        raise HTTPException(502, "Spotify could not be reached.") from None
+    return {"ok": True}
+
+
+@router.post("/music/favourite/{position}")
+async def music_favourite(position: Annotated[int, Path(ge=0, le=spotify.FAVOURITES)],
+                          request: Request,
+                          board: Annotated[str, Depends(desk_keys.board_key)]) -> Any:
+    """Starts a favourite from the Home panel (on the device that plays, else the
+    living room's Apple TV, woken when needed)."""
+    return await _spotify(request, lambda cfg, store: music.play_favourite(cfg, store, position))
+
+
+@router.post("/music/{action}")
+async def music_control(action: Literal["play", "pause", "next", "previous"], request: Request,
+                        board: Annotated[str, Depends(desk_keys.board_key)]) -> Any:
+    """Play, pause or skip from the Home panel."""
+    return await _spotify(request, lambda cfg, store: music.control(cfg, store, action))
+
+
 @router.get("/{name}")
-def panel(name: PanelName, request: Request) -> dict[str, Any]:
-    return desk.answer(request.app.state.config, request.app.state.store, name)
+async def panel(name: PanelName, request: Request) -> dict[str, Any]:
+    playing = await _music(request) if name == "home" else None
+    return desk.answer(request.app.state.config, request.app.state.store, name, music=playing)

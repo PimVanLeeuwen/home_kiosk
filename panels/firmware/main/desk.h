@@ -122,6 +122,116 @@ typedef struct {
     } stories[DESK_STORIES];
 } desk_headlines_t;
 
+#define DESK_LIGHT_GROUPS 4
+#define DESK_WHITES 6
+
+/* The Home panel's lights: the living room's groups as tiles (app/desk_home.py). */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[32];          /* "Living room" */
+    char count[32];          /* "5 of 5 lights on" */
+    bool any_on;
+    int group_count;
+    struct {
+        char id[16];
+        char name[32];
+        char line[48];       /* "3 lights · 3500 K · 80%" */
+        bool on;
+        int brightness;
+        uint32_t tone;       /* the colour of its white, 0xrrggbb */
+    } groups[DESK_LIGHT_GROUPS];
+    bool has_whites;         /* the row of whites, for the group that has them */
+    char whites_group[16];
+    char whites_name[32];
+    int whites_kelvin;       /* 0 when that group is off */
+    int choice_count;
+    struct {
+        int kelvin;
+        uint32_t tone;
+    } choices[DESK_WHITES];
+} desk_lights_t;
+
+/* The Home panel's Now Playing (app/desk_home.py); its cover is picture slot 3. */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[96];
+    char subtitle[96];
+    bool has_cover;
+    uint32_t colour;         /* the cover's main colour, for the light behind it */
+    bool playing;            /* false: paused */
+    int64_t progress_ms, duration_ms;
+    double at;               /* when the progress was read, seconds since 1970 */
+    char device[48];
+} desk_playing_t;
+
+#define DESK_FAVOURITES 4
+#define PICTURE_PLAYING 3   /* picture slots: 0 to 2 the headlines, 3 the cover playing, */
+#define PICTURE_FAVOURITE 4 /* 4 to 7 the favourites */
+
+/* The Home panel's music: the favourites to start. */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char device[48];
+    int count;
+    struct {
+        int position;
+        char name[48];
+        bool has_cover;
+        uint32_t colour;
+    } favourites[DESK_FAVOURITES];
+    char last[128];          /* "Last played: ..." */
+} desk_music_t;
+
+/* The Home panel's laundry: the washer and dryer while one runs or is done. */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char headline[24];       /* "Washer running", "Done" */
+    uint32_t headline_colour;
+    int count;
+    struct {
+        char name[12];       /* "Washer" */
+        char state[10];      /* running, paused, done, error, idle */
+        uint32_t colour;     /* the ring's */
+        uint32_t water;      /* the water's, in the door */
+        int progress;        /* 0 to 1000 */
+        int minutes;         /* left, or -1 */
+        char line[48];       /* the program, or "Done at 09:41" */
+        char status[48];     /* "Ready at 10:52", "Take it out" */
+        uint32_t status_colour;
+    } machines[2];
+} desk_laundry_t;
+
+/* The Home panel's Apple devices: the TVs and HomePods room by room, and what plays. */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char headline[16];       /* "All online", "1 offline" */
+    uint32_t headline_colour;
+    int count;
+    struct {
+        char name[24];
+        uint32_t glow;       /* what plays there; 0 when nothing plays */
+        int devices;
+        struct {
+            char kind[14];   /* tv, homepod, homepod_mini */
+            bool online;
+        } device[4];
+    } rooms[3];
+    bool has_playing;
+    char title[96];          /* "Love Island · S12E16" */
+    char where[64];          /* "Bedroom · paused · SenPlayer" */
+    uint32_t playing_colour;
+} desk_apple_t;
+
 /* A board's own screen: its MAC and what to do (no panel yet, or a panel
  * without screens yet). */
 typedef struct {
@@ -147,6 +257,29 @@ bool desk_has_day(void);
 bool desk_has_train(void);
 bool desk_has_agenda(void);
 bool desk_has_headlines(void);
+bool desk_dim(void); /* every living room light is off: the panel dims */
+bool desk_rotates(void); /* the panel turns through its screens; Home is swiped */
+bool desk_has_lights(void);
+uint32_t desk_lights_version(void);
+desk_lights_t desk_lights(void);
+bool desk_has_playing(void);
+uint32_t desk_playing_version(void);
+desk_playing_t desk_playing(void);
+bool desk_has_music(void);
+bool desk_has_laundry(void);
+uint32_t desk_laundry_version(void);
+desk_laundry_t desk_laundry(void);
+bool desk_has_apple(void);
+uint32_t desk_apple_version(void);
+desk_apple_t desk_apple(void);
+uint32_t desk_music_version(void);
+desk_music_t desk_music(void);
+
+/* Ask the hub now instead of at the next half minute (after a change). */
+void desk_poll_now(void);
+
+/* A lights screen the hub answered a change with (actions.c): shown at once. */
+void desk_take_lights(const char *json);
 desk_headlines_t desk_headlines(void);
 uint32_t desk_headlines_version(void); /* changes with every answer: copy only then */
 

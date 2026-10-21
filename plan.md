@@ -366,6 +366,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   amber dot and "Can't join the Wi-Fi", "Can't reach the hub" (with its address) or "The hub is
   not ready" (with its answer), and "No Wi-Fi network saved" at once. The MAC sits at the bottom.
   It is shown only until the hub's first answer: later outages keep the screens, marked stale.
+- **Home panel frame and dimming** (built 2026-10-21): Home does not rotate. It is swiped left
+  and right, shows dots for its screens, goes back to its first screen after a minute without a
+  touch, and jumps to Now Playing when music starts. Its screens in order: Now Playing (while
+  something plays), Lights, Laundry (while a machine runs or is done), Apple devices, Music. The
+  hub's answer says `rotate` per panel and `dim` when every living room light is off (owner's
+  request 2026-10-20); then all panels darken through a black layer over the screen, turned with
+  the same dip through black as a screen change. The backlight stays at full: one board's
+  backlight went dark at 40 %, so lowering it is left to test together. LVGL allocates in PSRAM
+  (`main/lvgl_memory.c`): with the C library's malloc its small objects took internal RAM, and
+  with Home's five screens only 17 kB was left and the Wi-Fi buffers failed at start-up (now
+  about 90 kB free).
 
 **M17. Home control** (added 2026-10-09)
 - The hub talks to the Hue Bridge's local CLIP v2 API with an application key (created once with
@@ -421,6 +432,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   slider sent once it rests (300 ms), five whites for the spots, a chip per light (unreachable in
   amber), "All off" or "All on" for the room; it asks the hub every 2 s and shows the bridge's
   answer to each change; while the bridge is away the last known state with the controls off.
+  Built 2026-10-21 (Home panel): the Lights screen, a tile per group glowing in its white (tap
+  switches it, hold opens a brightness slider sent when released), the five whites for the
+  kitchen spots and "Switch all off/on"; the panel writes with its device key
+  (`POST /api/desk/lights/{group}` and `/api/desk/lights/room`) and draws the hub's answer at once.
 - A new deliberate write (decided 2026-10-09): lights, plugs and scenes on the Hue Bridge.
 
 **M18. Music** (added 2026-10-09)
@@ -466,6 +481,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   5 s, gone two minutes after a pause), and Settings → Music (connect or disconnect, tick four
   favourites in order). Spotify names every Apple TV "Apple TV": the hub learns the living
   room's id while it is the only one listed, and shows it as "Apple TV Living Room".
+  Built 2026-10-21 (Home panel): Now Playing (the cover on its record in the cover's colour, the
+  device, a progress bar moved on between answers, previous, play-pause and next) first while
+  something plays, and Music last (the four favourites as cover tiles, a tap starts one, and what
+  played last). Covers come from the hub as small baseline JPEGs (`/api/desk/cover/{key}/{size}`)
+  made from the WebPs it stored; the panel writes through `POST /api/desk/music/{action}` and
+  `/api/desk/music/favourite/{n}` with its device key.
 
 **M19. Desk PC power** (parked 2026-10-10)
 - Left out for now (decided 2026-10-10): there is no ready-made option that works locally out of
@@ -566,6 +587,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the reference (shared by every copy of it), the access token is renewed with the OAuth refresh
   token, and the tokens and the login pause are kept in SQLite (`connectlife_auth`), so a restart
   does not log in again.
+  Built 2026-10-21 (Home panel): a Laundry screen while a machine runs or is done: two portholes
+  with a ring for the program's progress, water in the door, the minutes left (a check once
+  done), the program and "Ready at" or "Take it out", and a headline pill.
 - **Calendar** (Now): today's events only. Design (2026-10-10): the next event large with a ring
   counting down to it in its calendar's colour, the day from 07:00 to 23:00 as a ribbon of
   coloured blocks with a glowing now line, then the later events. Read-only, no
@@ -717,6 +741,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Built 2026-10-14 (alerts): an `apple_offline` rule warns in the NAS chat when an Apple TV or
   HomePod has not answered for 10 minutes (editable in Alerts → Hub rules, the wording in
   Settings → Messages), and says when it is back; a stale answer never resolves it.
+  Built 2026-10-21 (Home panel): an Apple devices screen, the rooms as a plan (the first room
+  the left half), each device an orb with its kind (TV, HomePod, mini), amber when offline, the
+  room glowing while something plays, "All online" or "N offline", and what plays in a bar below.
+  Not yet: the Thread lines and the ripples.
 - **NAS, Backups, Alerts and the train**, redesigned again 2026-10-10 to be desk pieces:
   - NAS: an instrument-style arc gauge for the fullest volume (ticks, a glow, a red mark where
     it would alert), its size and runway below, then tiles for CPU and memory with live

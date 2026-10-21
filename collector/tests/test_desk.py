@@ -122,7 +122,10 @@ def test_the_route_and_its_panel_names(store):
     client = TestClient(main.app)
 
     assert client.get("/api/desk/test").json()["screens"][0]["kind"] == "clock"
-    assert client.get("/api/desk/home").json()["screens"] == []
+    home = [s["kind"] for s in client.get("/api/desk/home").json()["screens"]]
+    assert home == ["playing", "lights", "laundry", "apple", "music"]
+    assert client.get("/api/desk/house").json()["screens"] == []
+    assert client.get("/api/desk/home").json()["rotate"] is False
     assert client.get("/api/desk/kitchen").status_code == 422
 
 
@@ -246,3 +249,28 @@ def test_an_older_board_table_gets_the_update_column(store):
     desk_boards.ensure_tables(store)
     desk_boards.check_in(store, MAC, "v1")
     assert desk_boards.boards(store)[0].update_requested is False
+
+
+def lights(*on: bool, stale: bool = False) -> dict:
+    return {"as_of": NOW.isoformat(), "stale": stale, "room": "Living room", "groups": [
+        {"id": "kitchen", "name": "Kitchen spots", "kind": "ambiance", "on": any(on),
+         "brightness": 80, "kelvin": 3000,
+         "lights": [{"id": f"l{i}", "name": f"L{i}", "on": x, "brightness": 80, "kelvin": 3000,
+                     "reachable": True} for i, x in enumerate(on)]}]}
+
+
+def test_the_panels_dim_while_every_living_room_light_is_off(store):
+    assert desk.answer(CFG, store, "now", NOW)["dim"] is False  # no lights known: stay bright
+    store.put_cache("lights", lights(True, False))
+    assert desk.answer(CFG, store, "now", NOW)["dim"] is False
+    store.put_cache("lights", lights(False, False))
+    assert desk.answer(CFG, store, "home", NOW)["dim"] is True
+    store.put_cache("lights", lights(False, False, stale=True))
+    assert desk.answer(CFG, store, "now", NOW)["dim"] is False  # cannot tell: stay bright
+
+
+def test_a_panel_with_nothing_to_show_yet_shows_its_board_screen(store):
+    answer = desk.answer(CFG, store, "home", NOW, board=MAC)  # no lights read yet
+    kinds = [s["kind"] for s in answer["screens"]]
+    assert kinds == ["playing", "lights", "laundry", "apple", "music", "board"]
+    assert answer["screens"][-1]["title"] == "Home panel"

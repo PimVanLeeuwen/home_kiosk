@@ -14,8 +14,15 @@ from zoneinfo import ZoneInfo
 
 from .desk_agenda import agenda_screen
 from .desk_headlines import headlines_screen
+from .desk_home import (
+    apple_screen,
+    laundry_screen,
+    lights_screen,
+    music_screen,
+    playing_screen,
+)
 from .desk_train import train_screen
-from .sources import forecast, weather
+from .sources import forecast, hue, weather
 from .store import Store
 
 # Below this Buienradar's forecast is drizzle at most: counted as dry (as on Home).
@@ -146,7 +153,10 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 
 
 NOW = (clock_screen, train_screen, agenda_screen, day_screen, _headlines)
-SCREENS = {"now": NOW, "home": (), "house": (), "test": NOW}
+HOME = (lights_screen, laundry_screen, apple_screen)
+SCREENS = {"now": NOW, "home": HOME, "house": (), "test": NOW}
+# Panels that turn through their screens on their own; Home is swiped instead.
+ROTATES = {"now": True, "home": False, "house": True, "test": True}
 
 
 def board_screen(mac: str, title: str, hint: str) -> dict[str, Any]:
@@ -158,19 +168,34 @@ def board_screen(mac: str, title: str, hint: str) -> dict[str, Any]:
 UNASSIGNED = ("Which panel is this?", "Choose it in the hub: Settings, Desk panels.")
 
 
+def dim(store: Store) -> bool:
+    """The panels dim while every living room light is off (the owner's wish,
+    2026-10-20), and stay bright when the hub cannot tell (no or stale lights)."""
+    lights = store.get_cache(hue.CACHE_KEY)
+    if not lights or lights.get("stale") or not lights.get("groups"):
+        return False
+    return not any(light.get("on") for group in lights["groups"]
+                   for light in group.get("lights") or [])
+
+
 def answer(cfg: dict[str, Any], store: Store, name: str | None,
-           now: datetime | None = None, board: str | None = None) -> dict[str, Any]:
+           now: datetime | None = None, board: str | None = None,
+           music: dict[str, Any] | None = None) -> dict[str, Any]:
     """The screens of panel `name`. A board (asking by its MAC) without a panel
     gets the screen that asks to assign it; one whose panel has no screens yet,
-    a screen that says so."""
+    a screen that says so. The Home panel's music screens need `music`."""
     zone = ZoneInfo(cfg.get("timezone", "UTC"))
     now = now or datetime.now(UTC)
     screens = [make(store, zone, now) for make in SCREENS[name]] if name else []
+    if name == "home":
+        # What plays comes first; the favourites last (`music`: the hub's Spotify state).
+        screens = [playing_screen(music, now), *screens, music_screen(music)]
     if board and name is None:
         screens = [board_screen(board, *UNASSIGNED)]
-    elif board and not screens:
-        later = "Its screens come in a later update."
-        screens = [board_screen(board, f"{name.title()} panel", later)]
+    elif board and not any(s.get("present", True) for s in screens):
+        # No screens yet at all, or none with anything to show yet.
+        hint = "Nothing to show yet." if screens else "Its screens come in a later update."
+        screens = [*screens, board_screen(board, f"{name.title()} panel", hint)]
     return {
         "name": name,
         "board": board,
@@ -180,4 +205,6 @@ def answer(cfg: dict[str, Any], store: Store, name: str | None,
         "time": {"epoch": round(now.timestamp(), 3),
                  "utc_offset": int(now.astimezone(zone).utcoffset().total_seconds())},
         "screens": screens,
+        "dim": dim(store),
+        "rotate": ROTATES.get(name or "", True),
     }

@@ -165,6 +165,11 @@ python3 dashboard/serve.py
   statics in PSRAM with `EXT_RAM_BSS_ATTR` and never copy a screen's whole state onto a task's
   stack (use the `desk_has_*` checks). Watch "internal RAM free" in the start-up log; a board that
   boot-loops on `vApplicationGetIdleTaskMemory` has run out.
+- The panels' picture is rotated with the P4's PPA, and ESP-IDF v5.5.6's PPA driver can hang on
+  it (display frozen, LVGL waiting in `ppa_do_scale_rotate_mirror`): keep the patched copy in
+  `panels/firmware/components/esp_driver_ppa` until the IDF in use has Espressif's fix. After
+  adding or removing a project component, run `idf.py reconfigure`, or an existing build keeps
+  the old one.
 - GitHub's "Re-run jobs" repeats a run on its original commit; after fixing a workflow, start a
   new run (Run workflow) instead.
 - UGREEN's desktop app runs "Sync Space", which is Syncthing (`syncspace_pro`): it opens TCP
