@@ -722,6 +722,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   outage, less a blip; `/api/sites`. In the hub a My sites section on Services above Outside
   services (mockup `docs/hub-sites-mockup.html`), and the Home status strip counts a site that is
   down. Kuma's status pages are public through status.example.com.
+  Panel design changed 2026-10-21 (the owner's choice from three mocks): tiles instead of the
+  rings, two columns, one per site with Kuma's name (renamed there to the short names), its
+  response time, the 30-day uptime only below 100%, and its 30 days as a small strip, days
+  without a record faint; a site that is down turns its tile red with how long, and the header
+  says how many are down. It only turns with House, no takeover: Kuma's Telegram message
+  already warns. Built 2026-10-21 (hub `desk_sites.py`, panel
+  `screen_sites.c`), after Code in House's turn; at most eight tiles.
 - **Services** (House, added 2026-10-10): only outside services something here depends on
   (kept short on purpose, 2026-10-10): GitHub (code, CI, image builds, the mirror), Cloudflare
   (DNS and the tunnel for the public sites), Docker Hub (the hub's images and Watchtower's pulls),

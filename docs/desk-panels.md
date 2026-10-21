@@ -125,7 +125,7 @@ cancelled), today's calendar from the chosen calendars, the day view, headlines 
 stays, as Home does not rotate while music plays), the living room's kitchen spots and lamps in their white (tap, or hold and drag
 for brightness), warm to cool white for the spots, the Christmas plugs, an air card (temperature, humidity,
 CO₂ ring, PM2.5, 8 hours of CO₂), the washer and dryer as portholes, the Apple devices as a map of the house,
-and a music card with favourite playlists. House: NAS as rings, my sites as 30-day uptime rings, services as
+and a music card with favourite playlists. House: NAS as rings, my sites as tiles with 30-day strips (the rings in the mockup were replaced, 2026-10-21), services as
 a constellation or an incident card, portfolio with a period switch, top movers, code with an activity grid, Jellyfin, backups as
 the last 14 nights, alerts (or All quiet). Buttons on the page
 start music, switch rotation and night mode, and simulate an error takeover. Album art

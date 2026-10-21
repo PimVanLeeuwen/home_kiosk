@@ -25,6 +25,7 @@ from .desk_home import (
     playing_screen,
 )
 from .desk_pipelines import house_pipelines
+from .desk_sites import sites_screen
 from .desk_train import train_screen
 from .sources import forecast, hue
 from .store import Store
@@ -107,7 +108,7 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 
 NOW = (clock_screen, train_screen, agenda_screen, day_screen, _headlines)
 HOME = (lights_screen, air_screen, laundry_screen, apple_screen)
-HOUSE = (code_screen,)
+HOUSE = (code_screen, sites_screen)
 SCREENS = {"now": NOW, "home": HOME, "house": HOUSE, "test": NOW}
 # Panels that turn through their screens on their own; Home decides per answer (home_rules).
 ROTATES = {"now": True, "house": True, "test": True}

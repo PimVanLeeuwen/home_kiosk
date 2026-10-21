@@ -215,6 +215,27 @@ typedef struct {
     char busiest[32];        /* "busiest on Tuesdays" */
 } desk_code_t;
 
+/* The House panel's My sites screen: a tile per site, ready to draw (app/desk_sites.py). */
+#define DESK_SITES 8
+#define DESK_SITE_DAYS 30
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[24];          /* "MY SITES · 30 DAYS" */
+    char status[16];         /* "ALL UP", "1 DOWN" */
+    int down;
+    int count;
+    struct {
+        char name[24];       /* as Kuma has it */
+        char state;          /* 'u' up, 'd' down, '?' no heartbeat yet */
+        char worst;          /* this month's worst day: 'u', 'b' blip, 'd' outage */
+        char left[20];       /* "62 ms", "down 4 min" */
+        char right[12];      /* "99.81%", or "" at 100% */
+        char days[DESK_SITE_DAYS + 1]; /* oldest first: 'u', 'b', 'd', 'n' no record */
+    } sites[DESK_SITES];
+} desk_sites_t;
+
 /* The House panel's pipelines (plan.md M21): the running ones as job graphs, at most
  * two (they take turns), and the idle card. Ready to draw (app/desk_pipelines.py). */
 #define DESK_PIPELINE_RUNS 2
@@ -374,6 +395,9 @@ bool desk_has_music(void);
 bool desk_has_code(void);
 uint32_t desk_code_version(void);
 desk_code_t desk_code(void);
+bool desk_has_sites(void);
+uint32_t desk_sites_version(void);
+void desk_sites_copy(desk_sites_t *into);
 bool desk_has_pipeline(void);
 uint32_t desk_pipeline_version(void);
 void desk_pipeline_copy(desk_pipeline_t *into);

@@ -5,6 +5,7 @@
 
 #include "desk.h"
 #include "desk_code.h"
+#include "desk_sites.h"
 #include "desk_pipelines.h"
 #include "esp_attr.h"
 
@@ -42,6 +43,7 @@ EXT_RAM_BSS_ATTR static desk_music_t music_state;
 EXT_RAM_BSS_ATTR static desk_laundry_t laundry_state;
 EXT_RAM_BSS_ATTR static desk_air_t air_state;
 EXT_RAM_BSS_ATTR static desk_code_t code_state;
+EXT_RAM_BSS_ATTR static desk_sites_t sites_state;
 EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline_state;
 EXT_RAM_BSS_ATTR static desk_pipelines_t pipelines_state;
 EXT_RAM_BSS_ATTR static desk_apple_t apple_state;
@@ -252,6 +254,7 @@ GETTERS(code, desk_code_t, code_state)
 
 COPIERS(pipeline, desk_pipeline_t, pipeline_state)
 COPIERS(pipelines, desk_pipelines_t, pipelines_state)
+COPIERS(sites, desk_sites_t, sites_state)
 GETTERS(apple, desk_apple_t, apple_state)
 
 static void parse_apple(const cJSON *screen, desk_apple_t *apple)
@@ -716,6 +719,7 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_laundry_t laundry;
     EXT_RAM_BSS_ATTR static desk_air_t air;
     EXT_RAM_BSS_ATTR static desk_code_t code;
+    EXT_RAM_BSS_ATTR static desk_sites_t sites;
     EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline;
     EXT_RAM_BSS_ATTR static desk_pipelines_t pipes;
     EXT_RAM_BSS_ATTR static desk_apple_t apple;
@@ -728,6 +732,7 @@ static void apply(const char *body)
     memset(&laundry, 0, sizeof laundry);
     memset(&air, 0, sizeof air);
     memset(&code, 0, sizeof code);
+    memset(&sites, 0, sizeof sites);
     memset(&pipeline, 0, sizeof pipeline);
     memset(&pipes, 0, sizeof pipes);
     memset(&apple, 0, sizeof apple);
@@ -752,6 +757,10 @@ static void apply(const char *body)
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "code") == 0) {
             desk_parse_code(screen, &code);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "sites") == 0) {
+            desk_parse_sites(screen, &sites);
             continue;
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "pipeline") == 0) {
@@ -864,6 +873,8 @@ static void apply(const char *body)
     air_state = air;
     code.version = code_state.version + 1;
     code_state = code;
+    sites.version = sites_state.version + 1;
+    sites_state = sites;
     pipeline.version = pipeline_state.version + 1;
     pipeline_state = pipeline;
     pipes.version = pipelines_state.version + 1;
