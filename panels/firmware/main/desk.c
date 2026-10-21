@@ -4,6 +4,7 @@
  * is set from it whenever it is off by more than a second. */
 
 #include "desk.h"
+#include "desk_code.h"
 #include "desk_pipelines.h"
 #include "esp_attr.h"
 
@@ -40,6 +41,7 @@ EXT_RAM_BSS_ATTR static desk_playing_t playing_state;
 EXT_RAM_BSS_ATTR static desk_music_t music_state;
 EXT_RAM_BSS_ATTR static desk_laundry_t laundry_state;
 EXT_RAM_BSS_ATTR static desk_air_t air_state;
+EXT_RAM_BSS_ATTR static desk_code_t code_state;
 EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline_state;
 EXT_RAM_BSS_ATTR static desk_pipelines_t pipelines_state;
 EXT_RAM_BSS_ATTR static desk_apple_t apple_state;
@@ -219,6 +221,7 @@ GETTERS(playing, desk_playing_t, playing_state)
 GETTERS(music, desk_music_t, music_state)
 GETTERS(laundry, desk_laundry_t, laundry_state)
 GETTERS(air, desk_air_t, air_state)
+GETTERS(code, desk_code_t, code_state)
 
 /* As GETTERS, but copying into the caller's buffer: for states too big for a stack. */
 #define COPIERS(kind, type, state)                         \
@@ -712,6 +715,7 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_music_t music;
     EXT_RAM_BSS_ATTR static desk_laundry_t laundry;
     EXT_RAM_BSS_ATTR static desk_air_t air;
+    EXT_RAM_BSS_ATTR static desk_code_t code;
     EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline;
     EXT_RAM_BSS_ATTR static desk_pipelines_t pipes;
     EXT_RAM_BSS_ATTR static desk_apple_t apple;
@@ -723,6 +727,7 @@ static void apply(const char *body)
     memset(&music, 0, sizeof music);
     memset(&laundry, 0, sizeof laundry);
     memset(&air, 0, sizeof air);
+    memset(&code, 0, sizeof code);
     memset(&pipeline, 0, sizeof pipeline);
     memset(&pipes, 0, sizeof pipes);
     memset(&apple, 0, sizeof apple);
@@ -743,6 +748,10 @@ static void apply(const char *body)
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "air") == 0) {
             parse_air(screen, &air);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "code") == 0) {
+            desk_parse_code(screen, &code);
             continue;
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "pipeline") == 0) {
@@ -853,6 +862,8 @@ static void apply(const char *body)
     laundry_state = laundry;
     air.version = air_state.version + 1;
     air_state = air;
+    code.version = code_state.version + 1;
+    code_state = code;
     pipeline.version = pipeline_state.version + 1;
     pipeline_state = pipeline;
     pipes.version = pipelines_state.version + 1;

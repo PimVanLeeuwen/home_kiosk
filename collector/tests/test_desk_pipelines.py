@@ -153,7 +153,7 @@ def test_a_finished_run_stays_five_minutes_then_house_turns_again(store):
         False,
     )
 
-    [screen], rotate = house(store, done, now=NOW + timedelta(minutes=2))
+    [screen, _code], rotate = house(store, done, now=NOW + timedelta(minutes=2))
     assert (screen["kind"], rotate) == ("pipelines", True)
 
 
@@ -173,7 +173,7 @@ def test_an_approval_gate_holds_five_minutes_then_waits_on_the_idle_card(store):
         False,
     )
 
-    [card], rotate = house(store, gate, now=NOW + timedelta(minutes=3))
+    [card, _code], rotate = house(store, gate, now=NOW + timedelta(minutes=3))
     assert rotate is True
     assert card["repos"][0]["line"] == "main · waiting for approval"
 
@@ -189,7 +189,7 @@ def test_two_pipelines_take_turns(store):
 
 def test_the_idle_card_has_each_repos_last_result_and_bars(store):
     history = recent((6.9, True), (4.2, False), (7.0, True), (443.6, True))
-    [card], rotate = house(store, repo(history=history), repo("cafe", history=[]))
+    [card, _code], rotate = house(store, repo(history=history), repo("cafe", history=[]))
 
     assert rotate is True
     assert (card["kind"], card["title"], card["right"]) == (
@@ -210,7 +210,8 @@ def test_the_idle_card_has_each_repos_last_result_and_bars(store):
 
 def test_before_any_pipeline_data_the_card_waits(store):
     out = desk.answer(CFG, store, "house", NOW)
-    assert out["screens"] == [{"kind": "pipelines", "stale": False, "present": False}]
+    assert out["screens"] == [{"kind": "pipelines", "stale": False, "present": False},
+        {"kind": "code", "stale": False, "present": False},]
 
 
 def test_times_and_ages_read_well():

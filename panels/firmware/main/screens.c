@@ -32,6 +32,7 @@
 #include "screen_headlines.h"
 #include "screen_apple.h"
 #include "screen_air.h"
+#include "screen_code.h"
 #include "screen_pipeline.h"
 #include "screen_pipelines.h"
 #include "screen_laundry.h"
@@ -47,7 +48,7 @@
 #define DARKEN 165 /* how much the dark layer takes away, of 255 */
 
 enum { CLOCK, TRAIN, AGENDA, DAY, HEADLINES, PLAYING, LIGHTS, AIR, LAUNDRY, APPLE, MUSIC, PIPELINE, PIPELINES,
-       BOARD, START, COUNT };
+       CODE, BOARD, START, COUNT };
 
 static lv_obj_t *screens[COUNT];
 static int current = START, coming = -1; /* coming: the screen being turned to */
@@ -92,6 +93,8 @@ static bool ready(int which)
         return desk_has_pipeline();
     case PIPELINES:
         return desk_has_pipelines();
+    case CODE:
+        return desk_has_code();
     default:
         return desk_board().listed;
     }
@@ -303,6 +306,7 @@ void screens_start(void)
     screens[MUSIC] = lv_obj_create(NULL);
     screens[PIPELINE] = lv_obj_create(NULL);
     screens[PIPELINES] = lv_obj_create(NULL);
+    screens[CODE] = lv_obj_create(NULL);
     screens[BOARD] = lv_obj_create(NULL);
     screen_clock_create(screens[CLOCK]);
     screen_train_create(screens[TRAIN]);
@@ -317,6 +321,7 @@ void screens_start(void)
     screen_music_create(screens[MUSIC]);
     screen_pipeline_create(screens[PIPELINE]);
     screen_pipelines_create(screens[PIPELINES]);
+    screen_code_create(screens[CODE]);
     screen_board_create(screens[BOARD]);
     screen_start_create(screens[START]);
     for (int i = 0; i < COUNT; i++) {

@@ -193,6 +193,28 @@ typedef struct {
     char last[128];          /* "Last played: ..." */
 } desk_music_t;
 
+/* The House panel's Code screen: 16 weeks of contributions, Monday first, and per week. */
+#define DESK_CODE_DAYS 112
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[24];          /* "CODE · 16 WEEKS" */
+    char right[32];          /* "963 CONTRIBUTIONS" */
+    int day_count;           /* today is the last */
+    uint8_t levels[DESK_CODE_DAYS]; /* 0 to 4, as GitHub's quartiles */
+    int month_count;
+    struct {
+        uint8_t week;
+        char name[4];        /* "Jul" */
+    } months[6];
+    int week_count;
+    int16_t weeks[16];       /* each week's total, 0 to 1000 of the busiest */
+    char this_week[24];      /* "this week 133" */
+    char streak[24];         /* "9-day streak", or "" */
+    char busiest[32];        /* "busiest on Tuesdays" */
+} desk_code_t;
+
 /* The House panel's pipelines (plan.md M21): the running ones as job graphs, at most
  * two (they take turns), and the idle card. Ready to draw (app/desk_pipelines.py). */
 #define DESK_PIPELINE_RUNS 2
@@ -349,6 +371,9 @@ desk_playing_t desk_playing(void);
 bool desk_has_music(void);
 /* The pipelines are copied into the caller's buffer (in PSRAM), not returned: at
  * about 3 kB they must not land on a task's stack. */
+bool desk_has_code(void);
+uint32_t desk_code_version(void);
+desk_code_t desk_code(void);
 bool desk_has_pipeline(void);
 uint32_t desk_pipeline_version(void);
 void desk_pipeline_copy(desk_pipeline_t *into);

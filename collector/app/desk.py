@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 
 from .desk_agenda import agenda_screen
 from .desk_clock import clock_screen
+from .desk_code import code_screen
 from .desk_headlines import headlines_screen
 from .desk_home import (
     air_screen,
@@ -106,7 +107,8 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 
 NOW = (clock_screen, train_screen, agenda_screen, day_screen, _headlines)
 HOME = (lights_screen, air_screen, laundry_screen, apple_screen)
-SCREENS = {"now": NOW, "home": HOME, "house": (), "test": NOW}
+HOUSE = (code_screen,)
+SCREENS = {"now": NOW, "home": HOME, "house": HOUSE, "test": NOW}
 # Panels that turn through their screens on their own; Home decides per answer (home_rules).
 ROTATES = {"now": True, "house": True, "test": True}
 
@@ -162,9 +164,11 @@ def answer(cfg: dict[str, Any], store: Store, name: str | None,
         screens = [playing_screen(music, now), *screens, music_screen(music)]
         screens, rotate = home_rules(screens, lights_off)
     if name == "house":
-        # A running pipeline takes House over (plan.md M21); otherwise its idle card turns along.
+        # A running pipeline takes House over, alone (plan.md M21); otherwise its idle
+        # card turns along with House's other screens.
         shown, rotate = house_pipelines(store, zone, now)
-        screens = [*shown, *screens]
+        taking_over = any(s["kind"] == "pipeline" for s in shown)
+        screens = shown if taking_over else [*shown, *screens]
     if board and name is None:
         screens = [board_screen(board, *UNASSIGNED)]
     elif board and not any(s.get("present", True) for s in screens):
