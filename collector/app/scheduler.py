@@ -21,6 +21,7 @@ from .portfolio import indices
 from .portfolio import report as portfolio_report
 from .sources import (
     agenda,
+    air,
     apple,
     backups,
     container_stats,
@@ -70,6 +71,7 @@ SITES_INTERVAL_SECONDS = 60  # Kuma beats once a minute; 100 kept, so no gaps
 LIGHTS_INTERVAL_SECONDS = 60  # two local calls; the event stream does the rest
 APPLE_INTERVAL_SECONDS = 60  # local unicast queries, a fraction of a second per device
 LAUNDRY_INTERVAL_SECONDS = 60  # one signed status call; the token is reused
+AIR_INTERVAL_SECONDS = 60  # one local WebSocket call; the Matter server keeps the sensor subscribed
 CALENDAR_INTERVAL_SECONDS = 300  # feeds at most every 15 min (agenda.FEED_EVERY)
 MEDIA_INTERVAL_SECONDS = 60  # local calls to Sonarr and Radarr
 OVERVIEW_INTERVAL_SECONDS = 300  # watch stats and library counts move slowly
@@ -217,6 +219,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             seconds=APPLE_INTERVAL_SECONDS,
             args=[store, apple.CACHE_KEY, lambda: apple.collect(cfg, store)],
             id="apple",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
+
+    if air.settings(cfg)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=AIR_INTERVAL_SECONDS,
+            args=[store, air.CACHE_KEY, lambda: air.collect(cfg, store)],
+            id="air",
             next_run_time=None,
             max_instances=1,
             coalesce=True,

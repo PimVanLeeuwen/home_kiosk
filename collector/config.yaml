@@ -130,6 +130,14 @@ calendar:
   username: ${ICLOUD_USERNAME}
   app_password: ${ICLOUD_APP_PASSWORD}
 
+# The living room's air (Home card, Home panel): the IKEA ALPSTUGA (Matter over
+# Thread) read through the Matter server on the NAS (nas-docker `matter` stack),
+# where it is node `node`. Leave `matter` empty to switch it off.
+air:
+  matter: ws://${NAS_HOST:-100.70.0.10}:5580/ws
+  node: 1
+  room: Living room
+
 # Laundry (Home card, Home panel): the Hisense washer and dryer through the
 # ConnectLife cloud (no local API), read every minute with a ConnectLife account
 # of its own that the machines are shared with. NAS-only in .env. Unofficial:

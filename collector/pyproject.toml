@@ -21,6 +21,8 @@ dependencies = [
     # Apple TVs and HomePods: what plays, and unicast DNS-SD (pyatv.core.mdns, internal,
     # so pinned to the minor version).
     "pyatv>=0.18,<0.19",
+    # The living room's air sensor, read from the Matter server's WebSocket API.
+    "websockets>=17.3",
 ]
 
 [project.optional-dependencies]

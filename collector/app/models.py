@@ -775,6 +775,27 @@ class Weather(Envelope):
     rain: list[RainPoint] = []  # the next 2 hours in 5-minute steps
 
 
+# --- Home hub: the living room's air (/api/air) ------------------------------------
+
+
+class AirPoint(BaseModel):
+    at: datetime
+    co2: int  # ppm
+
+
+class AirState(Envelope):
+    room: str
+    available: bool = True  # the Matter server can reach the sensor
+    temperature: float | None = None  # °C, one decimal
+    humidity: int | None = None  # %
+    co2: int | None = None  # ppm
+    pm25: int | None = None  # µg/m³
+    quality: str | None = None  # the sensor's own verdict: "Good" to "Extremely poor"
+    level: Literal["fresh", "stuffy", "open_window"] | None = None  # by CO2
+    outside: int | None = None  # °C, from Buienradar
+    history: list[AirPoint] = []  # CO2 every 5 minutes, the last 8 hours
+
+
 # --- Home hub: outside services ---------------------------------------------------
 
 # Worst first is "outage"; "unknown" means the status page has never answered.

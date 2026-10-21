@@ -43,6 +43,7 @@ from .portfolio import degiro_import
 from .security import same_origin_json
 from .sources import (
     agenda,
+    air,
     apple,
     apple_tv,
     container_stats,
@@ -99,6 +100,7 @@ async def lifespan(app: FastAPI):
     desk_headlines.ensure_tables(app.state.store)
     apple.ensure_tables(app.state.store)
     laundry.ensure_tables(app.state.store)
+    air.ensure_tables(app.state.store)
     spotify.ensure_tables(app.state.store)
     # A favourite can wake the living room Apple TV and open Spotify on it.
     music.wake = apple_tv.wake_spotify
@@ -213,6 +215,12 @@ def nas() -> Any:
 @app.get("/api/hosts")
 def hosts() -> Any:
     return _serve("hosts")
+
+
+@app.get("/api/air")
+def air_status() -> Any:
+    """The living room's air from the Matter sensor (sources/air.py)."""
+    return _serve(air.CACHE_KEY)
 
 
 @app.get("/api/laundry")

@@ -411,10 +411,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   The Hue motion sensor only gives temperature. Recommended (2026-10-10): option 1, the
   ALPSTUGA. The house has two Apple TVs and several HomePods, which are Thread border routers
   already, so it joins Apple Home directly; the hub reads it through matter-server on the NAS
-  (host network, IPv6 on the LAN). Ordered 2026-10-12; arrived 2026-10-21. The full setup is
-  still to do: add it to Apple Home (Thread through the Apple TVs and HomePods), run
-  matter-server on the NAS (nas-docker, host network, IPv6 on the LAN), share the sensor to it
-  from Apple Home as a second Matter controller, and then the collector reads it for the card.
+  (host network, IPv6 on the LAN). Ordered 2026-10-12; arrived 2026-10-21.
+  Set up 2026-10-21: in Apple Home over Thread, then shared as a second Matter controller to the
+  `matter` stack in nas-docker. Decided 2026-10-21: the Open Home Foundation's matter.js server
+  (`ghcr.io/matter-js/matterjs-server:stable`), as python-matter-server is archived; same
+  WebSocket API. The NAS needed `accept_ra_rt_info_max_plen = 64` on eth0 to take the Thread
+  route from the Apple border routers, and a longer conntrack UDP timeout for the sleepy sensor
+  (nas-docker README, Matter). Built 2026-10-21 (collector): `/api/air` from the Matter server
+  every minute (`get_node`, read-only; `air` in config.yaml): temperature, humidity, CO₂,
+  PM2.5, the sensor's own verdict, the CO₂ words, the outside temperature, and CO₂ every 5
+  minutes for the last 8 hours. Decided 2026-10-21: no HomePod temperatures (Apple exposes
+  them only inside the Home app).
 - The Hue plugs are used for Christmas decorations: their switches only show in the season
   (dates set in Settings).
 - No light strips for now (2026-10-10). If ever: Hue's own strip is the only one that also shows
