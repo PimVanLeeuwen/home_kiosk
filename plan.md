@@ -822,6 +822,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - When nothing runs, a quiet card in the House rotation: each repo with its last result and its
   last ten runs on the default branch as bars (height the run time, red for a failure).
 - The graph follows each workflow's own jobs, so the other repos' pipelines draw as they are.
+  Decided 2026-10-21: the repos are `PimVanLeeuwen/home_kiosk` (collector.yml),
+  `Hubble-Community-Cafe/community-cafe-web` (ci.yml) and `Hubble-Community-Cafe/the-harry-list`
+  (ci.yml); only that main CI workflow, only when a push to the default branch started it (no
+  nightly scans, Security or Dependabot runs). Columns follow `needs` from the workflow file at
+  the run's commit (the jobs API has no edges); a matrix job is one card with ×N and a combined
+  state, skipped jobs are left out, and names drop their matrix part and wrap to two lines. A run
+  waiting at an approval gate (community-cafe-web's "Await publish approval") shows the gate in
+  amber for 5 minutes, then House rotates again with the card saying "waiting for approval", and
+  the run takes over again once approved.
 - Decided 2026-10-21: this idle card replaces the build list on the Code screen (M20), which
   keeps its 16-week commit grid; the hub's Code card and Repos page stay as they are.
 

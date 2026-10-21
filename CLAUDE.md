@@ -126,6 +126,9 @@ python3 dashboard/serve.py
   the private `home_kiosk-archive`), real settings in `collector/config.local.yaml` and the
   `PANEL_HUB_URL` secret; the exposure scan stays in this repo, as its public log only shows a
   count of open ports.
+- 2026-10-21: the Home panel rotates while nothing plays; while music plays it stays on Now
+  Playing (even with the lights off), and with nothing playing and every light off it shows only
+  the light controls (replaces "never rotates", 2026-10-10). plan.md M16.
 
 ## Gotchas
 
@@ -149,6 +152,8 @@ python3 dashboard/serve.py
   browser offline, so unroute before testing offline behaviour.
 - Web tests run in UTC on CI: build expected clock times from local dates
   (`new Date(2026, 9, 6, 10, 2)`), never from `...Z` strings.
+- Collector tests run in UTC on CI too: run `TZ=UTC pytest` before pushing anything with clock
+  times, and read a time without an offset as the configured zone, never the machine's.
 - The collector image only builds for linux/amd64 (as CI does): pyatv's miniaudio has no Linux
   arm64 wheel for Python 3.14, so on an Apple silicon Mac use `docker build --platform linux/amd64`.
 - The panels' ESP32-P4 is revision v1.3, not the v3.x Waveshare's defaults assume: keep
