@@ -23,6 +23,7 @@ from .desk_home import (
     music_screen,
     playing_screen,
 )
+from .desk_pipelines import house_pipelines
 from .desk_train import train_screen
 from .sources import forecast, hue
 from .store import Store
@@ -160,6 +161,10 @@ def answer(cfg: dict[str, Any], store: Store, name: str | None,
         # What plays comes first; the favourites last (`music`: the hub's Spotify state).
         screens = [playing_screen(music, now), *screens, music_screen(music)]
         screens, rotate = home_rules(screens, lights_off)
+    if name == "house":
+        # A running pipeline takes House over (plan.md M21); otherwise its idle card turns along.
+        shown, rotate = house_pipelines(store, zone, now)
+        screens = [*shown, *screens]
     if board and name is None:
         screens = [board_screen(board, *UNASSIGNED)]
     elif board and not any(s.get("present", True) for s in screens):

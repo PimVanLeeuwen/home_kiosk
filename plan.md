@@ -830,7 +830,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   state, skipped jobs are left out, and names drop their matrix part and wrap to two lines. A run
   waiting at an approval gate (community-cafe-web's "Await publish approval") shows the gate in
   amber for 5 minutes, then House rotates again with the card saying "waiting for approval", and
-  the run takes over again once approved.
+  the run takes over again once approved. Built 2026-10-21 (collector): `/api/pipelines`
+  (`app/sources/pipelines.py`) every 15 s, idle repos once a minute; the "usually" range and the
+  idle bars leave out runs over twice the median (a re-run hours later). Built 2026-10-21 (hub):
+  House's answer (`app/desk_pipelines.py`): a `pipeline` screen per running or just-finished run
+  (cards by stage and row, edges by index, the panel counting the time on from `since`) and the
+  `pipelines` idle card; `rotate` follows the rules above.
 - Decided 2026-10-21: this idle card replaces the build list on the Code screen (M20), which
   keeps its 16-week commit grid; the hub's Code card and Repos page stay as they are.
 

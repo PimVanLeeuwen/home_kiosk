@@ -118,7 +118,8 @@ def test_the_route_and_its_panel_names(store):
     assert client.get("/api/desk/test").json()["screens"][0]["kind"] == "clock"
     home = [s["kind"] for s in client.get("/api/desk/home").json()["screens"]]
     assert home == ["playing", "lights", "air", "laundry", "apple", "music"]
-    assert client.get("/api/desk/house").json()["screens"] == []
+    assert client.get("/api/desk/house").json()["screens"] == [
+        {"kind": "pipelines", "stale": False, "present": False}]  # no pipeline data yet
     assert client.get("/api/desk/home").json()["rotate"] is True  # nothing plays, lights unknown
     assert client.get("/api/desk/kitchen").status_code == 422
 
@@ -164,9 +165,11 @@ def test_a_panel_without_screens_says_so_on_its_board(store):
     client.get(f"/api/desk/board/{MAC}")
     client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "house"})
 
-    [screen] = client.get(f"/api/desk/board/{MAC}").json()["screens"]
+    screens = client.get(f"/api/desk/board/{MAC}").json()["screens"]
 
-    assert screen["kind"] == "board" and screen["title"] == "House panel"
+    assert [s["kind"] for s in screens] == ["pipelines", "board"]
+    screen = screens[-1]
+    assert screen["title"] == "House panel" and screen["hint"] == "Nothing to show yet."
     assert screen["mac"] == MAC
 
 
