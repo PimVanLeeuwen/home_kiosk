@@ -122,6 +122,10 @@ python3 dashboard/serve.py
 - 2026-10-14: lights through the Hue Bridge's local API, living room only, on a Lights page (no
   Home card); the hub trusts only Signify's roots and the bridge's own id; live from the bridge's
   event stream. plan.md M17.
+- 2026-10-21: the repo is public: history rewritten without household values (old history in
+  the private `home_kiosk-archive`), real settings in `collector/config.local.yaml` and the
+  `PANEL_HUB_URL` secret; the exposure scan stays in this repo, as its public log only shows a
+  count of open ports.
 
 ## Gotchas
 

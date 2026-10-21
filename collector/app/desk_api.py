@@ -49,13 +49,13 @@ async def board(mac: str, request: Request,
     if not desk_boards.MAC.match(mac):
         raise HTTPException(422, "A board is asked for by its MAC address, like e8:f6:0a:e4:42:b0.")
     store = request.app.state.store
-    visit = desk_boards.check_in(store, mac, firmware)
+    visit = desk_boards.check_in(store, mac, firmware, key=desk_keys.presented(request))
     playing = await _music(request) if visit.panel == "home" else None
     answer = desk.answer(request.app.state.config, store, visit.panel, board=mac, music=playing)
     if visit.update:
         answer["update"] = True  # install the hub's firmware now (Settings, Update now)
     if visit.key:
-        answer["key"] = visit.key  # its device key, handed over this once
+        answer["key"] = visit.key  # its device key, until the board sends it back
     return answer
 
 

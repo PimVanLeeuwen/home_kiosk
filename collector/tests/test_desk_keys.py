@@ -31,16 +31,68 @@ def board_with_key(client, mac=MAC, panel="now") -> str:
     return client.get(f"/api/desk/board/{mac}").json()["key"]
 
 
-def test_a_board_gets_its_key_once_when_it_gets_a_panel(client):
+def poll(client, mac=MAC, key=""):
+    headers = {"authorization": f"Bearer {key}"} if key else {}
+    return client.get(f"/api/desk/board/{mac}", headers=headers).json()
+
+
+def test_a_board_gets_its_key_until_it_sends_it_back(client):
     client.get(f"/api/desk/board/{MAC}")
     assert key_state(client) == "none"
     client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "now"})
     assert key_state(client) == "pending"
 
-    key = client.get(f"/api/desk/board/{MAC}").json()["key"]
+    key = poll(client)["key"]
+    assert len(key) >= 40 and key_state(client) == "pending"
+    assert poll(client)["key"] == key  # a missed answer is simply repeated
 
-    assert len(key) >= 40 and key_state(client) == "active"
-    assert "key" not in client.get(f"/api/desk/board/{MAC}").json()
+    assert "key" not in poll(client, key=key)  # the board shows it has it
+    assert key_state(client) == "active"
+    assert "key" not in poll(client)
+    assert desk_keys.board_for(client.app.state.store, key) == MAC
+
+
+def test_a_first_write_with_the_key_confirms_it_too(client, monkeypatch):
+    async def fake_save(cfg, url, title=None):
+        return "bm1"
+
+    monkeypatch.setattr(readeck, "save", fake_save)
+    key = board_with_key(client)  # a board whose polls do not send the key yet
+    panel = TestClient(main.app, headers={"authorization": f"Bearer {key}"})
+    assert panel.post("/api/desk/save", json={"article_id": LEAD_ID}).status_code == 200
+    assert key_state(client) == "active" and "key" not in poll(client)
+
+
+def test_a_board_with_an_old_key_gets_the_new_one(client):
+    old = board_with_key(client)
+    poll(client, key=old)
+    client.post(f"/api/settings/desk-boards/{MAC}/key", json={})
+
+    new = poll(client, key=old)["key"]
+
+    assert new != old and key_state(client) == "pending"
+    assert desk_keys.board_for(client.app.state.store, old) is None
+
+
+def test_keys_handed_over_once_but_never_confirmed_are_issued_again(store):
+    # As the hub left them before it waited for the board: no used_at, pending gone.
+    with store.connect() as conn:
+        conn.executescript("""CREATE TABLE desk_key (mac TEXT PRIMARY KEY, key_hash TEXT NOT NULL,
+                              pending TEXT, issued_at TEXT NOT NULL);""")
+        conn.execute("INSERT INTO desk_key VALUES (?, ?, NULL, '2026-10-19T04:00:00+00:00')",
+                     (MAC, desk_keys._hash("lost-key")))
+
+    desk_boards.ensure_tables(store)
+
+    assert desk_keys.states(store) == {MAC: "pending"}
+    assert desk_keys.board_for(store, "lost-key") is None
+
+
+def test_confirmed_keys_survive_a_restart(client):
+    key = board_with_key(client)
+    poll(client, key=key)
+    desk_boards.ensure_tables(client.app.state.store)
+    assert key_state(client) == "active"
     assert desk_keys.board_for(client.app.state.store, key) == MAC
 
 
@@ -60,7 +112,9 @@ def test_settings_revokes_and_issues_a_new_key(client):
 
     assert client.post(f"/api/settings/desk-boards/{MAC}/key", json={}).status_code == 200
     new = client.get(f"/api/desk/board/{MAC}").json()["key"]
-    assert new != key and key_state(client) == "active"
+    assert new != key and key_state(client) == "pending"
+    poll(client, key=new)
+    assert key_state(client) == "active"
 
     client.get(f"/api/desk/board/{OTHER}")
     assert client.post(f"/api/settings/desk-boards/{OTHER}/key", json={}).status_code == 409

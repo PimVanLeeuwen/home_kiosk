@@ -64,11 +64,13 @@ def ensure_tables(store: Store) -> None:
 class Visit(BaseModel):
     panel: Panel | None
     update: bool  # install the hub's firmware now
-    key: str | None = None  # its new device key, handed over once
+    key: str | None = None  # its new device key, until it shows it has it
 
 
-def check_in(store: Store, mac: str, firmware: str, now: datetime | None = None) -> Visit:
-    """Notes the board's visit: its panel, and whether to update now (asked once)."""
+def check_in(store: Store, mac: str, firmware: str, now: datetime | None = None,
+             key: str = "") -> Visit:
+    """Notes the board's visit: its panel, whether to update now (asked once), and
+    its new key while it has not shown it (`key`: what the board sent)."""
     at = (now or datetime.now(UTC)).isoformat()
     with store.connect() as conn:
         conn.execute(
@@ -81,7 +83,7 @@ def check_in(store: Store, mac: str, firmware: str, now: datetime | None = None)
         if row["update_requested"]:
             conn.execute("UPDATE desk_board SET update_requested = 0 WHERE mac = ?", (mac,))
     return Visit(panel=row["panel"], update=bool(row["update_requested"]),
-                 key=desk_keys.hand_over(store, mac) if row["panel"] else None)
+                 key=desk_keys.hand_over(store, mac, key) if row["panel"] else None)
 
 
 def boards(store: Store) -> list[Board]:

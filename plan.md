@@ -275,7 +275,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   `same_origin_json` only protects browsers. Keys can be revoked in Settings. Built 2026-10-19 (decided
   2026-10-19: the hub hands the key over once, no pairing code): a board gets a key when it is
   given a panel; the hub hands it over in the board's next answer and then keeps only its
-  SHA-256; the board keeps it in its own storage and sends it as a Bearer token. Taking the panel
+  SHA-256; the board keeps it in its own storage and sends it as a Bearer token. Changed
+  2026-10-21 (a missed handover left boards with the wrong key, every tap a 401): the hub repeats
+  the key in its answers until the board sends it back, with its polls or its first write, and
+  keys that were handed over once but never confirmed are issued again. Taking the panel
   away or forgetting the board revokes it; Settings, Desk panels shows each key (none, on its
   way, in use) with New key and Revoke key. The first use: a tap on a headline saves it to Readeck
   (`POST /api/desk/save` with the article id; the hub looks up the link and remembers what was

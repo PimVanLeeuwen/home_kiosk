@@ -176,7 +176,7 @@ export interface DeskBoard {
   last_seen: string
   firmware: string
   update_requested: boolean
-  /** Its device key: none, on its way (handed over at the next visit), or in use. */
+  /** Its device key: none, on its way (handed over until the board sends it back), or in use. */
   key: 'none' | 'pending' | 'active'
 }
 

@@ -787,6 +787,14 @@ static void desk_task(void *arg)
         if (net_state().connected && !update_busy()) {
             esp_http_client_config_t config = {.url = url, .timeout_ms = 5000};
             esp_http_client_handle_t client = esp_http_client_init(&config);
+            /* The key it holds, so the hub knows the handover arrived (app/desk_keys.py);
+             * until then the hub keeps sending it. */
+            char held[64], auth[80];
+            desk_key(held, sizeof held);
+            if (held[0] != '\0') {
+                snprintf(auth, sizeof auth, "Bearer %s", held);
+                esp_http_client_set_header(client, "Authorization", auth);
+            }
             int status = 0, length = 0;
             if (esp_http_client_open(client, 0) == ESP_OK) {
                 esp_http_client_fetch_headers(client);
