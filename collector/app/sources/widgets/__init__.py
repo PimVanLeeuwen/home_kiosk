@@ -77,9 +77,11 @@ async def _one(
         extra = options.get(service.widget or "") or {}
         return WidgetResult(stats=await adapter(client, base_url, key, **extra))
     except Exception as exc:
-        # Log the class only: some exceptions carry the request, and the
-        # request carries the key.
-        log.warning("widget %s for %s failed: %s", service.widget, service.id, type(exc).__name__)
+        # Log the class (and an HTTP status) only: some exceptions carry the
+        # request, and the request carries the key.
+        status = f" {exc.response.status_code}" if isinstance(exc, httpx.HTTPStatusError) else ""
+        log.warning("widget %s for %s failed: %s%s", service.widget, service.id,
+                    type(exc).__name__, status)
         return WidgetResult(error=describe(exc))
 
 

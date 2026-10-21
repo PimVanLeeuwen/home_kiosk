@@ -5,10 +5,21 @@ import json
 import logging
 
 import httpx
+import pytest
 
 import app.main  # noqa: F401  (applies the httpx log level under test)
 from app.models import Service
 from app.sources import widgets
+from app.sources.widgets import downloads
+
+
+@pytest.fixture(autouse=True)
+def no_dns(monkeypatch):
+    """No real lookups in tests: a name stays a name unless a test resolves it."""
+    async def unknown(host, port):
+        raise OSError("no such host")
+
+    monkeypatch.setattr(downloads, "_lookup", unknown)
 
 KEY = "sab-key-123"
 CFG = {"widgets": {"host": "nas", "keys": {"sabnzbd": KEY}}}
@@ -94,3 +105,48 @@ def test_transmission_refusing_the_handshake_is_an_error(store):
                      {"widgets": {"host": "nas"}})
 
     assert result.error == "HTTP 409"
+
+
+def rpc_handler(seen):
+    def handler(request):
+        seen.append(request)
+        if "x-transmission-session-id" not in request.headers:
+            return httpx.Response(409, headers={"X-Transmission-Session-Id": "abc"})
+        return httpx.Response(200, json={"jsonrpc": "2.0", "id": 1, "result": {
+            "active_torrent_count": 1, "download_speed": 0, "upload_speed": 5}})
+    return handler
+
+
+def test_transmission_is_called_by_address_not_by_name(store, monkeypatch):
+    # Transmission answers a name outside its rpc-host-whitelist with 421, and
+    # host.docker.internal is one: the collector calls the address instead.
+    async def resolve(host, port):
+        assert (host, port) == ("host.docker.internal", 9091)
+        return "172.17.0.1"
+
+    monkeypatch.setattr(downloads, "_lookup", resolve)
+    seen = []
+    result = collect(store, "transmission", 9091, rpc_handler(seen),
+                     {"widgets": {"host": "host.docker.internal"}})
+
+    assert result.error is None and result.stats[0].value == 1
+    assert {(r.url.host, r.url.port) for r in seen} == {("172.17.0.1", 9091)}
+
+
+def test_an_address_is_used_as_it_is(store, monkeypatch):
+    async def must_not(host, port):
+        pytest.fail("an address needs no lookup")
+
+    monkeypatch.setattr(downloads, "_lookup", must_not)
+    seen = []
+    collect(store, "transmission", 9091, rpc_handler(seen), {"widgets": {"host": "100.64.0.1"}})
+    assert {r.url.host for r in seen} == {"100.64.0.1"}
+
+
+def test_a_refused_request_logs_its_status(store, caplog):
+    with caplog.at_level(logging.WARNING):
+        result = collect(store, "transmission", 9091, lambda request: httpx.Response(421),
+                         {"widgets": {"host": "nas"}})
+    assert result.error == "HTTP 421"
+    assert "HTTPStatusError 421" in caplog.text
+

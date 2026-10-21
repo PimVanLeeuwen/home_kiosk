@@ -6,11 +6,16 @@ Checked against each project's source (2026-09):
 - Transmission: /transmission/rpc behind the X-Transmission-Session-Id
   handshake (a 409 hands out the id). 4.1 speaks JSON-RPC 2.0 with snake_case
   names; the old protocol is deprecated but still what 4.0 speaks, so it is
-  the fallback.
+  the fallback. It only answers a request addressed to an IP address or a name
+  in its rpc-host-whitelist (against DNS rebinding); host.docker.internal is
+  neither (421 Misdirected Request), so it is called by address.
 """
 
 from __future__ import annotations
 
+import asyncio
+import ipaddress
+import socket
 from typing import Any
 
 import httpx
@@ -35,6 +40,30 @@ async def sabnzbd(client: httpx.AsyncClient, base_url: str, key: str) -> list[St
     ]
 
 
+async def _lookup(host: str, port: int | None) -> str:
+    """The host's IPv4 address; OSError when it has none."""
+    infos = await asyncio.get_running_loop().getaddrinfo(
+        host, port, family=socket.AF_INET, type=socket.SOCK_STREAM)
+    return infos[0][4][0]
+
+
+async def _by_address(base_url: str) -> str:
+    """`base_url` with its host name replaced by the address, for Transmission's
+    host check; unchanged for an address, localhost, or a name that does not resolve."""
+    url = httpx.URL(base_url)
+    try:
+        ipaddress.ip_address(url.host)
+        return base_url
+    except ValueError:
+        pass
+    if url.host == "localhost":
+        return base_url
+    try:
+        return str(url.copy_with(host=await _lookup(url.host, url.port))).rstrip("/")
+    except OSError:
+        return base_url
+
+
 async def _rpc(client: httpx.AsyncClient, url: str, payload: dict[str, Any]) -> dict[str, Any]:
     """POST with the session-id handshake: the first 409 carries the id to retry with."""
     resp = await client.post(url, json=payload)
@@ -46,7 +75,7 @@ async def _rpc(client: httpx.AsyncClient, url: str, payload: dict[str, Any]) -> 
 
 
 async def transmission(client: httpx.AsyncClient, base_url: str, key: str) -> list[Stat]:
-    url = f"{base_url}/transmission/rpc"
+    url = f"{await _by_address(base_url)}/transmission/rpc"
     reply = await _rpc(client, url, {"jsonrpc": "2.0", "method": "session_stats", "id": 1})
     stats = reply.get("result")
     if isinstance(stats, dict):
