@@ -17,3 +17,6 @@ void net_start(void);
 net_state_t net_state(void);
 /* The status of the last /api/desk call, with the signal at that moment. */
 void net_note_hub(int status);
+/* The hub has answered before but not for a minute: the panel says so and stops
+ * turning (plan.md open items, 2026-10-21). */
+bool net_hub_away(void);

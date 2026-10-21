@@ -859,7 +859,14 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21.
   is back. To find out: does Wi-Fi drop (ESP-Hosted, see CLAUDE.md gotchas) or only the hub
   requests, and does it recover by itself; the board's console log over a few hours tells. To
   fix: reconnect reliably, and while the hub is out of reach say so on the panel (and stop
-  pretending taps work) rather than turning as if nothing is wrong.
+  pretending taps work) rather than turning as if nothing is wrong. **Fixed 2026-10-21.** The
+  hub's alert history showed the board quiet for hours at a time, back only at the nightly update
+  restart: it never recovered by itself. Now a watchdog in `net.c` reconnects Wi-Fi once after
+  2 minutes without an answer and restarts the board after 5 (after a restart that did not help,
+  only every 10 minutes, so it cannot loop); a minute without an answer stops the turning and
+  shows an amber "hub out of reach" line over the header. Tested on the Now board with a stand-in
+  hub cut off for 16 minutes: new address at 2 minutes, restart at 5, back to turning once the
+  hub answered.
 - Now panel fixes (found 2026-10-20 on the real panel, photo IMG_4833). **Fixed 2026-10-20.**
   - The thin vertical bar at the top right of the calendar screen was LVGL's scrollbar: the
     container for the later events reached past the bottom edge, so the screen could scroll. It

@@ -9,6 +9,10 @@
  * instead, shows dots for its screens, and goes back to its first screen a
  * minute after the last touch. Every panel can be swiped.
  *
+ * While the hub is out of reach (net.c: no answer for a minute) an amber line at the
+ * top says so and the rotation stands still, so a stale screen does not look live;
+ * net.c's watchdog meanwhile reconnects Wi-Fi and, if need be, restarts the board.
+ *
  * While every living room light is off (the hub's "dim") a dark layer lies over
  * every screen; it is laid on or lifted during the same dip through black, so
  * the change is as smooth as a turn. The backlight itself stays at its level:
@@ -25,6 +29,7 @@
 #include "bsp/esp-bsp.h"
 #include "desk.h"
 #include "lvgl.h"
+#include "net.h"
 #include "screen_agenda.h"
 #include "screen_board.h"
 #include "screen_clock.h"
@@ -42,6 +47,8 @@
 #include "screen_start.h"
 #include "screen_train.h"
 
+LV_FONT_DECLARE(instrument_24);
+
 #define TURN_MS 15000
 #define HOLD_MS 60000
 #define DIM_MS 250
@@ -57,6 +64,7 @@ static bool touched;
 static bool waiting; /* for the new screen to be drawn */
 static lv_obj_t *shade; /* the dark layer, on LVGL's top layer */
 static lv_obj_t *dots;  /* where a swiped panel is, on LVGL's top layer */
+static lv_obj_t *away;  /* "the hub is out of reach", on LVGL's top layer */
 static bool shaded;
 static volatile uint32_t turns, beats, frames, touches; /* for the health line */
 
@@ -204,6 +212,7 @@ static int first_screen(void)
  * living room lights went off or on: dip to lay the dark layer on or lift it. */
 static void check(lv_timer_t *timer)
 {
+    lv_obj_set_flag(away, LV_OBJ_FLAG_HIDDEN, !net_hub_away());
     /* Music starts on a swiped panel (Home), from a favourite on the panel or
      * anywhere else: go to Now Playing, as in the mockup. */
     static bool was_playing;
@@ -225,6 +234,9 @@ static void check(lv_timer_t *timer)
 
 static void turn(lv_timer_t *timer)
 {
+    if (net_hub_away()) {
+        return; /* stand still on what it shows, under the line that says why */
+    }
     if (touched && lv_tick_elaps(touched_at) < HOLD_MS) {
         return;
     }
@@ -350,6 +362,25 @@ void screens_start(void)
     lv_obj_set_style_bg_opa(shade, DARKEN, 0);
     lv_obj_remove_flag(shade, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE); /* taps go through */
     lv_obj_add_flag(shade, LV_OBJ_FLAG_HIDDEN);
+    /* Above the dark layer: it must be read even with the lights off. */
+    away = lv_obj_create(lv_layer_top());
+    lv_obj_remove_style_all(away);
+    lv_obj_set_size(away, 688, LV_SIZE_CONTENT); /* the whole header row, so none of it peeks out */
+    lv_obj_set_style_pad_ver(away, 10, 0);
+    lv_obj_set_style_radius(away, 24, 0);
+    lv_obj_set_style_bg_color(away, lv_color_hex(0x1c1408), 0);
+    lv_obj_set_style_bg_opa(away, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(away, lv_color_hex(0xe0a23b), 0);
+    lv_obj_set_style_border_width(away, 2, 0);
+    lv_obj_align(away, LV_ALIGN_TOP_MID, 0, 16);
+    lv_obj_remove_flag(away, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_t *away_text = lv_label_create(away);
+    lv_obj_set_style_text_font(away_text, &instrument_24, 0);
+    lv_obj_set_style_text_color(away_text, lv_color_hex(0xe0a23b), 0);
+    lv_obj_set_style_text_letter_space(away_text, 2, 0);
+    lv_label_set_text(away_text, "HUB OUT OF REACH  ·  RECONNECTING");
+    lv_obj_center(away_text);
+    lv_obj_add_flag(away, LV_OBJ_FLAG_HIDDEN);
     lv_display_add_event_cb(lv_display_get_default(), drawn, LV_EVENT_REFR_READY, NULL);
     lv_timer_create(turn, TURN_MS, NULL);
     lv_timer_create(check, 1000, NULL);
