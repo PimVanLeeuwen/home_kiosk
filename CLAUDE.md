@@ -37,6 +37,7 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
 | `e2e/` | Playwright, desktop and mobile |
 | `docs/kiosk-build-spec.md` | The original kiosk spec: Pi hardware and setup, Ghostfolio pitfalls |
 | `docs/desk-panels.md` | Research for the desk panels, Hue and Spotify (M16 to M18); mockup in `docs/desk-panels-mockup.html` |
+| `docs/operations.md` | Operating notes: config, deploy, restores, port scan, panel flashing |
 
 ## Commands
 
@@ -72,7 +73,7 @@ python3 dashboard/serve.py
    changes (desktop and mobile).
 3. Visual change: desktop and mobile screenshots saved to
    `~/Pictures/pr-screenshots/home_kiosk/<branch>/` and shown in chat.
-4. README / plan.md updated when behaviour or a decision changes.
+4. README, docs/operations.md or plan.md updated when behaviour or a decision changes.
 5. One-line Conventional Commit message proposed; stop for the owner.
 
 ## Decisions log
@@ -132,7 +133,8 @@ python3 dashboard/serve.py
   `collector/app/security.py`). Never re-add CORS, and keep `changeOrigin: false` in the Vite
   proxy, or dev writes get a 403.
 - On the Mac, the Vite dev proxy can't reach the NAS on its LAN IP (`EHOSTUNREACH`, probably
-  macOS Local Network privacy). Point `HUB_API` at the Tailscale IP `http://100.70.0.10:8000`.
+  macOS Local Network privacy). Point `HUB_API` at the NAS's Tailscale IP on port 8000 (the one
+  in `collector/config.local.yaml`).
 - APScheduler 3 numbers crontab weekdays from Monday = 0: use day names (`mon-fri`) in cron
   strings, never `1-5`.
 - Ghostfolio's per-day `averagePrice` and its first price point are not split-adjusted (NVDA,
@@ -180,3 +182,6 @@ python3 dashboard/serve.py
   client (everyone shares it), and keep logins rare: the hub renews with the refresh token and
   keeps tokens and the login pause in SQLite (`connectlife_auth`). The reason is in the
   collector log (Dozzle, :8081), not in `/api/laundry`.
+- The collector's real config is `collector/config.local.yaml` (gitignored; on the NAS
+  `/volume1/docker/home_kiosk/config.yaml`). `config.yaml` is a public example: never put
+  household values (addresses, places, the train, hostnames) in it.
