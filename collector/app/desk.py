@@ -105,8 +105,8 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 NOW = (clock_screen, train_screen, agenda_screen, day_screen, _headlines)
 HOME = (lights_screen, laundry_screen, apple_screen)
 SCREENS = {"now": NOW, "home": HOME, "house": (), "test": NOW}
-# Panels that turn through their screens on their own; Home is swiped instead.
-ROTATES = {"now": True, "home": False, "house": True, "test": True}
+# Panels that turn through their screens on their own; Home decides per answer (home_rules).
+ROTATES = {"now": True, "house": True, "test": True}
 
 
 def board_screen(mac: str, title: str, hint: str) -> dict[str, Any]:
@@ -128,6 +128,22 @@ def dim(store: Store) -> bool:
                    for light in group.get("lights") or [])
 
 
+Screens = list[dict[str, Any]]
+
+
+def home_rules(screens: Screens, lights_off: bool) -> tuple[Screens, bool]:
+    """Home's screens and whether it rotates (the owner's wish, 2026-10-21): while music
+    plays it stays on Now Playing (swiped, back there after a quiet minute), even with
+    the lights off; with nothing playing and every light off it shows only the light
+    controls; otherwise it turns through its screens like the other panels."""
+    playing = next((s for s in screens if s["kind"] == "playing"), {})
+    if playing.get("present") and playing.get("playing"):
+        return screens, False
+    if lights_off:
+        return [s for s in screens if s["kind"] == "lights"], False
+    return screens, True
+
+
 def answer(cfg: dict[str, Any], store: Store, name: str | None,
            now: datetime | None = None, board: str | None = None,
            music: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -137,9 +153,12 @@ def answer(cfg: dict[str, Any], store: Store, name: str | None,
     zone = ZoneInfo(cfg.get("timezone", "UTC"))
     now = now or datetime.now(UTC)
     screens = [make(store, zone, now) for make in SCREENS[name]] if name else []
+    rotate = ROTATES.get(name or "", True)
+    lights_off = dim(store)
     if name == "home":
         # What plays comes first; the favourites last (`music`: the hub's Spotify state).
         screens = [playing_screen(music, now), *screens, music_screen(music)]
+        screens, rotate = home_rules(screens, lights_off)
     if board and name is None:
         screens = [board_screen(board, *UNASSIGNED)]
     elif board and not any(s.get("present", True) for s in screens):
@@ -155,6 +174,6 @@ def answer(cfg: dict[str, Any], store: Store, name: str | None,
         "time": {"epoch": round(now.timestamp(), 3),
                  "utc_offset": int(now.astimezone(zone).utcoffset().total_seconds())},
         "screens": screens,
-        "dim": dim(store),
-        "rotate": ROTATES.get(name or "", True),
+        "dim": lights_off,
+        "rotate": rotate,
     }

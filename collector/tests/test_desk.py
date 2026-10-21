@@ -119,7 +119,7 @@ def test_the_route_and_its_panel_names(store):
     home = [s["kind"] for s in client.get("/api/desk/home").json()["screens"]]
     assert home == ["playing", "lights", "laundry", "apple", "music"]
     assert client.get("/api/desk/house").json()["screens"] == []
-    assert client.get("/api/desk/home").json()["rotate"] is False
+    assert client.get("/api/desk/home").json()["rotate"] is True  # nothing plays, lights unknown
     assert client.get("/api/desk/kitchen").status_code == 422
 
 
@@ -268,3 +268,37 @@ def test_a_panel_with_nothing_to_show_yet_shows_its_board_screen(store):
     kinds = [s["kind"] for s in answer["screens"]]
     assert kinds == ["playing", "lights", "laundry", "apple", "music", "board"]
     assert answer["screens"][-1]["title"] == "Home panel"
+
+
+PLAYING = {"as_of": NOW.timestamp(), "playing": {"title": "Song", "state": "playing"}}
+PAUSED = {"as_of": NOW.timestamp(), "playing": {"title": "Song", "state": "paused"}}
+
+
+def home(store, music=None):
+    out = desk.answer(CFG, store, "home", NOW, music=music)
+    return [s["kind"] for s in out["screens"]], out["rotate"]
+
+
+def test_home_rotates_while_nothing_plays_and_a_light_is_on(store):
+    store.put_cache("lights", lights(True, False))
+    assert home(store) == (["playing", "lights", "laundry", "apple", "music"], True)
+    assert home(store, PAUSED)[1] is True  # a paused song turns along with the rest
+
+
+def test_home_stays_on_now_playing_while_music_plays(store):
+    store.put_cache("lights", lights(True, False))
+    assert home(store, PLAYING) == (["playing", "lights", "laundry", "apple", "music"], False)
+    store.put_cache("lights", lights(False, False))  # music wins over the lights being off
+    assert home(store, PLAYING) == (["playing", "lights", "laundry", "apple", "music"], False)
+
+
+def test_home_shows_only_the_lights_while_they_are_all_off(store):
+    store.put_cache("lights", lights(False, False))
+    assert home(store) == (["lights"], False)
+    assert home(store, PAUSED) == (["lights"], False)
+
+
+def test_the_other_panels_keep_turning(store):
+    store.put_cache("lights", lights(False, False))
+    assert desk.answer(CFG, store, "now", NOW)["rotate"] is True
+

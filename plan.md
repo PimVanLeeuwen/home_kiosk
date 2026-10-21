@@ -263,7 +263,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Roles, editable in the hub (Settings → Desk panels): left **Now** (clock, weather, Buienradar
   rain, the morning train, calendar, the day view, headlines), middle **Home** (the living room's
   lights, its air and the Christmas plugs, M17; the Apple devices, M20; Now Playing while music plays, otherwise a music
-  card with favourite playlists, M18; never rotates), right **House** (NAS, Money, Code, Jellyfin, backups, alerts). The screens
+  card with favourite playlists, M18; since 2026-10-21 it rotates unless music plays or every light
+  is off), right **House** (NAS, Money, Code, Jellyfin, backups, alerts). The screens
   beyond the basics are M20. Each panel rotates through its cards; a touch
   pauses its rotation for 60 seconds. An ERROR alert takes over all three until dismissed. Night
   hours: Now shows a dim clock, Home and House dim, Money is off.
@@ -375,7 +376,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   something plays), Lights, Laundry (while a machine runs or is done), Apple devices, Music. The
   hub's answer says `rotate` per panel and `dim` when every living room light is off (owner's
   request 2026-10-20); then all panels darken through a black layer over the screen, turned with
-  the same dip through black as a screen change. The backlight stays at full: one board's
+  the same dip through black as a screen change. Changed 2026-10-21 (owner's request): Home
+  rotates like the other panels while nothing plays; while music plays it stays on Now Playing
+  (even with the lights off); with nothing playing and every light off it lists only the light
+  controls (`home_rules` in `app/desk.py`). A paused song counts as nothing playing. The
+  backlight stays at full: one board's
   backlight went dark at 40 %, so lowering it is left to test together. LVGL allocates in PSRAM
   (`main/lvgl_memory.c`): with the C library's malloc its small objects took internal RAM, and
   with Home's five screens only 17 kB was left and the Wi-Fi buffers failed at start-up (now
@@ -466,8 +471,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   an equaliser that moves with playback, a progress line with a glowing thumb and a play button
   lit in the album's colour, on a blurred art background;
   title, artist, progress, previous / play-pause / next, volume, and the device name (tap to
-  move playback). When music starts it becomes Home's first card and the panel shows it; Home
-  never rotates, so it stays there until you swipe to the lights. Two minutes after a pause the
+  move playback). When music starts it becomes Home's first card and the panel shows it; while
+  it plays Home does not rotate, so it stays there until you swipe to the lights. Two minutes after a pause the
   card goes and the lights are back.
 - A new deliberate write (decided 2026-10-09): Spotify playback control.
   Decided 2026-10-18: a Music page under Home and Lights, and a Now Playing card on Home while

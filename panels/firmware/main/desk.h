@@ -263,7 +263,7 @@ bool desk_has_train(void);
 bool desk_has_agenda(void);
 bool desk_has_headlines(void);
 bool desk_dim(void); /* every living room light is off: the panel dims */
-bool desk_rotates(void); /* the panel turns through its screens; Home is swiped */
+bool desk_rotates(void); /* the panel turns through its screens (the hub's "rotate") */
 bool desk_has_lights(void);
 uint32_t desk_lights_version(void);
 desk_lights_t desk_lights(void);

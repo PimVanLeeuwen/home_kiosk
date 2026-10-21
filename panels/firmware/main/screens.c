@@ -4,7 +4,8 @@
  * nothing for yet is skipped, and one the hub no longer lists is left at once.
  * A board starts on the start-up screen and leaves it once the hub has answered.
  *
- * A panel that does not rotate (Home, the hub's "rotate": false) is swiped
+ * A panel that does not rotate right now (the hub's "rotate": false: Home while
+ * music plays or every light is off) is swiped
  * instead, shows dots for its screens, and goes back to its first screen a
  * minute after the last touch. Every panel can be swiped.
  *
