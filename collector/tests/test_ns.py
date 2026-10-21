@@ -138,6 +138,15 @@ def test_only_disruptions_covering_two_route_stations_count():
          "Dit duurt tot ongeveer 10:00 uur.")]
 
 
+def test_a_stretch_named_twice_in_the_title_shows_once():
+    item = works([LEIDEN, SCHIEDAM], "2026-10-14T05:00:00+0200", "2026-10-14T10:00:00+0200")
+    item["title"] = "Utrecht - Arnhem; Utrecht - Rhenen.; Utrecht - Arnhem."
+
+    [found] = ns.route_disruptions([item], ROUTE)
+
+    assert found.title == "Utrecht - Arnhem; Utrecht - Rhenen."
+
+
 def test_the_evening_check_keeps_planned_works_that_cover_the_departure():
     planned = works([LEIDEN, SCHIEDAM], "2026-10-14T05:00:00+0200", "2026-10-14T10:00:00+0200",
                     active=False)

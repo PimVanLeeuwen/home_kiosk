@@ -149,6 +149,14 @@ def _covers(item: dict[str, Any], at: datetime) -> bool:
     return False
 
 
+def _title(title: str) -> str:
+    """NS's title without repeats: works on several stretches can name one twice
+    ("Utrecht - Arnhem; Utrecht - Rhenen.; Utrecht - Arnhem.")."""
+    parts = list(dict.fromkeys(p.strip().rstrip(".").strip() for p in title.split(";")))
+    parts = [p for p in parts if p]
+    return "; ".join(parts) + ("." if parts and title.rstrip().endswith(".") else "")
+
+
 def route_disruptions(items: list[dict[str, Any]], route: list[str],
                       at: datetime | None = None) -> list[TrainDisruption]:
     """Disruptions whose stretch covers at least two stations of the route: one
@@ -174,7 +182,7 @@ def route_disruptions(items: list[dict[str, Any]], route: list[str],
         found.append(TrainDisruption(
             id=str(item.get("id", "")),
             kind=item["type"],
-            title=item.get("title") or "",
+            title=_title(item.get("title") or ""),
             text=text,
             until=(item.get("expectedDuration") or {}).get("description"),
         ))
