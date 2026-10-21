@@ -652,6 +652,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   in config.yaml, the same numbers as the profile, private contributions counted). Decided
   2026-10-14: the builds and pull requests of your and Hubble's repos only, not GEWIS. In the hub
   a Code card at the top of the Repos page (mockup `docs/hub-code-mockup.html`).
+  Changed 2026-10-21: on the House panel the Code screen keeps only the commit grid; the builds
+  move to the Pipelines card (M21).
 - **Media** (House; refocused 2026-10-12): not what is being watched (the owner knows), but what
   needs attention: what is downloading (poster, episode or movie, size, an animated progress bar,
   percentage and time left, from the Sonarr and Radarr queues and the download clients) and
@@ -779,8 +781,25 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   would defeat their purpose.
 - Each screen follows the design bar in M16 and is checked on a real panel.
 
+**M21. Pipelines** (added 2026-10-21)
+- A House screen for the GitHub Actions runs of home_kiosk, community-cafe and harry-list (set in
+  config.yaml), read with the hub's existing read-only tokens (Actions: read).
+- Decided 2026-10-21: a run on the default branch takes over House, its rotation paused, as a job
+  graph like GitHub's run view: one card per job (status icon, name, time, a thin progress line
+  from the job's usual length), lines joining the jobs as their `needs` do (home_kiosk: lint,
+  test, web, e2e and panels into image), and below it the time so far, "about 3 min left" from
+  recent runs, and the commit. Runs on other branches and pull requests do not take over.
+- When a run ends, its result stays for 5 minutes, success and failure alike (green "Shipped",
+  red "Failed, nothing shipped" with the failing job), then House rotates again. Two runs at once
+  take turns every 15 seconds, marked "1 of 2".
+- When nothing runs, a quiet card in the House rotation: each repo with its last result and its
+  last ten runs on the default branch as bars (height the run time, red for a failure).
+- The graph follows each workflow's own jobs, so the other repos' pipelines draw as they are.
+- Decided 2026-10-21: this idle card replaces the build list on the Code screen (M20), which
+  keeps its 16-week commit grid; the hub's Code card and Repos page stay as they are.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked).
+M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21.
 
 ## 4. Open items
 
