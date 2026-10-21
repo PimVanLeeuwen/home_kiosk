@@ -117,7 +117,7 @@ def test_the_route_and_its_panel_names(store):
 
     assert client.get("/api/desk/test").json()["screens"][0]["kind"] == "clock"
     home = [s["kind"] for s in client.get("/api/desk/home").json()["screens"]]
-    assert home == ["playing", "lights", "laundry", "apple", "music"]
+    assert home == ["playing", "lights", "air", "laundry", "apple", "music"]
     assert client.get("/api/desk/house").json()["screens"] == []
     assert client.get("/api/desk/home").json()["rotate"] is True  # nothing plays, lights unknown
     assert client.get("/api/desk/kitchen").status_code == 422
@@ -266,12 +266,15 @@ def test_the_panels_dim_while_every_living_room_light_is_off(store):
 def test_a_panel_with_nothing_to_show_yet_shows_its_board_screen(store):
     answer = desk.answer(CFG, store, "home", NOW, board=MAC)  # no lights read yet
     kinds = [s["kind"] for s in answer["screens"]]
-    assert kinds == ["playing", "lights", "laundry", "apple", "music", "board"]
+    assert kinds == ["playing", "lights", "air", "laundry", "apple", "music", "board"]
     assert answer["screens"][-1]["title"] == "Home panel"
 
 
 PLAYING = {"as_of": NOW.timestamp(), "playing": {"title": "Song", "state": "playing"}}
 PAUSED = {"as_of": NOW.timestamp(), "playing": {"title": "Song", "state": "paused"}}
+
+
+ALL = ["playing", "lights", "air", "laundry", "apple", "music"]
 
 
 def home(store, music=None):
@@ -281,15 +284,15 @@ def home(store, music=None):
 
 def test_home_rotates_while_nothing_plays_and_a_light_is_on(store):
     store.put_cache("lights", lights(True, False))
-    assert home(store) == (["playing", "lights", "laundry", "apple", "music"], True)
+    assert home(store) == (ALL, True)
     assert home(store, PAUSED)[1] is True  # a paused song turns along with the rest
 
 
 def test_home_stays_on_now_playing_while_music_plays(store):
     store.put_cache("lights", lights(True, False))
-    assert home(store, PLAYING) == (["playing", "lights", "laundry", "apple", "music"], False)
+    assert home(store, PLAYING) == (ALL, False)
     store.put_cache("lights", lights(False, False))  # music wins over the lights being off
-    assert home(store, PLAYING) == (["playing", "lights", "laundry", "apple", "music"], False)
+    assert home(store, PLAYING) == (ALL, False)
 
 
 def test_home_shows_only_the_lights_while_they_are_all_off(store):

@@ -31,6 +31,7 @@
 #include "screen_day.h"
 #include "screen_headlines.h"
 #include "screen_apple.h"
+#include "screen_air.h"
 #include "screen_laundry.h"
 #include "screen_lights.h"
 #include "screen_music.h"
@@ -43,7 +44,7 @@
 #define DIM_MS 250
 #define DARKEN 165 /* how much the dark layer takes away, of 255 */
 
-enum { CLOCK, TRAIN, AGENDA, DAY, HEADLINES, PLAYING, LIGHTS, LAUNDRY, APPLE, MUSIC, BOARD, START, COUNT };
+enum { CLOCK, TRAIN, AGENDA, DAY, HEADLINES, PLAYING, LIGHTS, AIR, LAUNDRY, APPLE, MUSIC, BOARD, START, COUNT };
 
 static lv_obj_t *screens[COUNT];
 static int current = START, coming = -1; /* coming: the screen being turned to */
@@ -76,6 +77,8 @@ static bool ready(int which)
         return desk_has_playing();
     case LIGHTS:
         return desk_has_lights();
+    case AIR:
+        return desk_has_air();
     case LAUNDRY:
         return desk_has_laundry();
     case APPLE:
@@ -287,6 +290,7 @@ void screens_start(void)
     screens[HEADLINES] = lv_obj_create(NULL);
     screens[PLAYING] = lv_obj_create(NULL);
     screens[LIGHTS] = lv_obj_create(NULL);
+    screens[AIR] = lv_obj_create(NULL);
     screens[LAUNDRY] = lv_obj_create(NULL);
     screens[APPLE] = lv_obj_create(NULL);
     screens[MUSIC] = lv_obj_create(NULL);
@@ -298,6 +302,7 @@ void screens_start(void)
     screen_headlines_create(screens[HEADLINES]);
     screen_playing_create(screens[PLAYING]);
     screen_lights_create(screens[LIGHTS]);
+    screen_air_create(screens[AIR]);
     screen_laundry_create(screens[LAUNDRY]);
     screen_apple_create(screens[APPLE]);
     screen_music_create(screens[MUSIC]);

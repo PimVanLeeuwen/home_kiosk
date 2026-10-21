@@ -22,7 +22,7 @@ from zoneinfo import ZoneInfo
 from PIL import Image, ImageOps
 
 from .panel_text import latin1
-from .sources import apple, hue, laundry, spotify
+from .sources import air, apple, hue, laundry, spotify
 from .store import Store
 
 # How each white looks on a tile and in the row of whites: warm to cool.
@@ -213,6 +213,39 @@ def laundry_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any
     return {"kind": "laundry", "stale": bool(cached.get("stale")), "present": True,
             "headline": word, "headline_colour": colour,
             "machines": [_machine(m, zone) for m in machines[:2]]}
+
+
+# --- Air ---------------------------------------------------------------------------------
+
+AIR_WORDS = {"fresh": ("Fresh", "#3fb97f"), "stuffy": ("Getting stuffy", "#e0a23b"),
+             "open_window": ("Open a window", "#e5646a")}
+RING_LOW, RING_HIGH = 400, 2000  # ppm over the ring's three quarters, as in the hub
+
+
+def air_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
+    """The living room's air: the temperature large, humidity, fine dust and the sensor's
+    verdict, CO2 as a ring with its word, and CO2 over the last 8 hours (plan.md M17)."""
+    cached = store.get_cache(air.CACHE_KEY)
+    if not cached or (cached.get("temperature") is None and cached.get("co2") is None):
+        return {"kind": "air", "stale": False, "present": False}
+    temperature, co2, outside = cached.get("temperature"), cached.get("co2"), cached.get("outside")
+    word, colour = AIR_WORDS.get(cached.get("level") or "", ("", "#8a8794"))
+    share = 0.0
+    if co2 is not None:
+        share = (min(max(co2, RING_LOW), RING_HIGH) - RING_LOW) / (RING_HIGH - RING_LOW)
+    return {
+        "kind": "air", "stale": bool(cached.get("stale")) or not cached.get("available", True),
+        "present": True,
+        "room": latin1(cached.get("room") or "Living room"),
+        "outside": f"Outside {outside}°" if outside is not None else "",
+        "temperature": f"{temperature:.1f}°".replace(".", ",") if temperature is not None else "",
+        "humidity": f"{cached['humidity']}%" if cached.get("humidity") is not None else "",
+        "pm25": str(cached["pm25"]) if cached.get("pm25") is not None else "",
+        "quality": latin1(cached.get("quality") or ""),
+        "co2": co2, "ring": round(share * 1000), "word": word, "colour": colour,
+        # CO2 every 5 minutes over the last 8 hours, for the curve.
+        "history": [p["co2"] for p in cached.get("history") or []][-97:],
+    }
 
 
 # --- Apple devices ---------------------------------------------------------------------

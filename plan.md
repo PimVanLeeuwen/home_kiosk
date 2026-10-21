@@ -408,7 +408,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   last 8 hours with dashed lines at 800 and 1200; the header "LIVING ROOM · AIR" and the
   outside temperature. Decided 2026-10-21: nothing extra above 1200 ppm (no jump to the card, no
   Telegram), the card just turns red in the rotation; in the hub, a card on Home beside Weather
-  and Laundry. Needs a sensor; the ALPSTUGA (option 1) is
+  and Laundry. Built 2026-10-21 (hub, then panel): the hub's Air card (`AirCard`), and the
+  Home panel's Air screen after the lights (`air_screen` in `app/desk_home.py`,
+  `screen_air.c`; the CO₂ curve painted into a canvas). The panel font has no µ or ³, so the
+  panel says "PM2.5 fine dust" where the hub says "µg/m³"; the clock font gained "," and "°"
+  for the temperature. Needs a sensor; the ALPSTUGA (option 1) is
   ordered:
   1. **IKEA ALPSTUGA**, EUR 29.99 at IKEA NL: CO₂, PM2.5, temperature, humidity (no VOC).
      Matter over Thread, so it needs a Thread border router (an Apple TV 4K or HomePod mini in

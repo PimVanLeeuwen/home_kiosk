@@ -38,6 +38,7 @@ EXT_RAM_BSS_ATTR static desk_lights_t lights_state;
 EXT_RAM_BSS_ATTR static desk_playing_t playing_state;
 EXT_RAM_BSS_ATTR static desk_music_t music_state;
 EXT_RAM_BSS_ATTR static desk_laundry_t laundry_state;
+EXT_RAM_BSS_ATTR static desk_air_t air_state;
 EXT_RAM_BSS_ATTR static desk_apple_t apple_state;
 static TaskHandle_t desk_task_handle;
 static volatile bool rotates = true;
@@ -214,6 +215,7 @@ desk_lights_t desk_lights(void)
 GETTERS(playing, desk_playing_t, playing_state)
 GETTERS(music, desk_music_t, music_state)
 GETTERS(laundry, desk_laundry_t, laundry_state)
+GETTERS(air, desk_air_t, air_state)
 GETTERS(apple, desk_apple_t, apple_state)
 
 static void parse_apple(const cJSON *screen, desk_apple_t *apple)
@@ -252,6 +254,34 @@ static void parse_apple(const cJSON *screen, desk_apple_t *apple)
         copy_string(apple->title, sizeof apple->title, cJSON_GetObjectItem(playing, "title"));
         copy_string(apple->where, sizeof apple->where, cJSON_GetObjectItem(playing, "where"));
         apple->playing_colour = colour(cJSON_GetObjectItem(playing, "colour"));
+    }
+}
+
+static void parse_air(const cJSON *screen, desk_air_t *air)
+{
+    air->present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
+    air->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
+    if (!air->present) {
+        return;
+    }
+    copy_string(air->room, sizeof air->room, cJSON_GetObjectItem(screen, "room"));
+    copy_string(air->outside, sizeof air->outside, cJSON_GetObjectItem(screen, "outside"));
+    copy_string(air->temperature, sizeof air->temperature, cJSON_GetObjectItem(screen, "temperature"));
+    copy_string(air->humidity, sizeof air->humidity, cJSON_GetObjectItem(screen, "humidity"));
+    copy_string(air->pm25, sizeof air->pm25, cJSON_GetObjectItem(screen, "pm25"));
+    copy_string(air->quality, sizeof air->quality, cJSON_GetObjectItem(screen, "quality"));
+    copy_string(air->word, sizeof air->word, cJSON_GetObjectItem(screen, "word"));
+    air->colour = colour(cJSON_GetObjectItem(screen, "colour"));
+    const cJSON *co2 = cJSON_GetObjectItem(screen, "co2");
+    air->has_co2 = cJSON_IsNumber(co2);
+    air->co2 = air->has_co2 ? co2->valueint : 0;
+    air->ring = number(cJSON_GetObjectItem(screen, "ring"), 0);
+    const cJSON *value;
+    cJSON_ArrayForEach(value, cJSON_GetObjectItem(screen, "history"))
+    {
+        if (air->history_count < DESK_AIR_HISTORY && cJSON_IsNumber(value)) {
+            air->history[air->history_count++] = (int16_t)value->valueint;
+        }
     }
 }
 
@@ -648,6 +678,7 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_playing_t playing;
     EXT_RAM_BSS_ATTR static desk_music_t music;
     EXT_RAM_BSS_ATTR static desk_laundry_t laundry;
+    EXT_RAM_BSS_ATTR static desk_air_t air;
     EXT_RAM_BSS_ATTR static desk_apple_t apple;
     memset(&train, 0, sizeof train);
     memset(&agenda, 0, sizeof agenda);
@@ -656,6 +687,7 @@ static void apply(const char *body)
     memset(&playing, 0, sizeof playing);
     memset(&music, 0, sizeof music);
     memset(&laundry, 0, sizeof laundry);
+    memset(&air, 0, sizeof air);
     memset(&apple, 0, sizeof apple);
     const cJSON *offset = cJSON_GetObjectItem(time, "utc_offset");
     next.utc_offset = cJSON_IsNumber(offset) ? offset->valueint : 0;
@@ -670,6 +702,10 @@ static void apply(const char *body)
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "laundry") == 0) {
             parse_laundry(screen, &laundry);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "air") == 0) {
+            parse_air(screen, &air);
             continue;
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "apple") == 0) {
@@ -770,6 +806,8 @@ static void apply(const char *body)
     playing_state = playing;
     laundry.version = laundry_state.version + 1;
     laundry_state = laundry;
+    air.version = air_state.version + 1;
+    air_state = air;
     apple.version = apple_state.version + 1;
     apple_state = apple;
     music.version = music_state.version + 1;

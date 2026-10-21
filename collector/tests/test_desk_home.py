@@ -128,7 +128,7 @@ def test_nothing_playing_leaves_the_favourites_and_what_played_last():
 def test_music_comes_first_and_last_on_home(store):
     kinds = [s["kind"] for s in desk.answer({"timezone": "Europe/Amsterdam"}, store, "home", NOW,
                                             music=MUSIC)["screens"]]
-    assert kinds == ["playing", "lights", "laundry", "apple", "music"]
+    assert kinds == ["playing", "lights", "air", "laundry", "apple", "music"]
 
 
 @pytest.fixture
@@ -162,7 +162,7 @@ def music_panel(panel, store, monkeypatch):
 def test_the_home_board_gets_its_music_and_can_play_with_its_key(music_panel):
     client, calls = music_panel
     kinds = [s["kind"] for s in client.get(f"/api/desk/board/{MAC}").json()["screens"]]
-    assert kinds == ["playing", "lights", "laundry", "apple", "music"]
+    assert kinds == ["playing", "lights", "air", "laundry", "apple", "music"]
     assert client.post("/api/desk/music/pause").json() == {"ok": True}
     assert client.post("/api/desk/music/favourite/2").json() == {"ok": True}
     assert calls == ["pause", "favourite 2"]
@@ -253,3 +253,36 @@ def test_the_apple_devices_as_rooms(store):
     assert bathroom["devices"] == [{"kind": "homepod_mini", "online": False}]
     assert s["playing"] == {"title": "Glass Harbour · Ines Vale",
                             "where": "Living room · playing · Music", "colour": "#9c8ffb"}
+
+
+AIR = {"as_of": NOW.isoformat(), "stale": False, "room": "Living room", "available": True,
+       "temperature": 22.9, "humidity": 47, "co2": 1000, "pm25": 2, "quality": "Good",
+       "level": "stuffy", "outside": 10,
+       "history": [{"at": NOW.isoformat(), "co2": 400 + i} for i in range(120)]}
+
+
+def test_the_air_screen_is_ready_to_draw(store):
+    store.put_cache("air", AIR)
+
+    screen = desk_home.air_screen(store, ZoneInfo("Europe/Amsterdam"), NOW)
+
+    assert {k: v for k, v in screen.items() if k != "history"} == {
+        "kind": "air", "stale": False, "present": True, "room": "Living room",
+        "outside": "Outside 10°", "temperature": "22,9°", "humidity": "47%", "pm25": "2",
+        "quality": "Good", "co2": 1000, "ring": 375, "word": "Getting stuffy", "colour": "#e0a23b"}
+    assert screen["history"] == [400 + i for i in range(23, 120)]  # the last 97, 8 hours
+
+
+def test_the_air_screen_without_a_reading_yet(store):
+    zone = ZoneInfo("Europe/Amsterdam")
+    empty = {"kind": "air", "stale": False, "present": False}
+    assert desk_home.air_screen(store, zone, NOW) == empty
+    store.put_cache("air", {**AIR, "temperature": None, "co2": None, "level": None})
+    assert desk_home.air_screen(store, zone, NOW)["present"] is False
+
+
+def test_an_unanswering_sensor_marks_the_air_screen_stale(store):
+    store.put_cache("air", {**AIR, "available": False, "outside": None, "co2": 2600})
+    screen = desk_home.air_screen(store, ZoneInfo("Europe/Amsterdam"), NOW)
+    assert (screen["stale"], screen["outside"], screen["ring"]) == (True, "", 1000)
+

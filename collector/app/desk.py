@@ -16,6 +16,7 @@ from .desk_agenda import agenda_screen
 from .desk_clock import clock_screen
 from .desk_headlines import headlines_screen
 from .desk_home import (
+    air_screen,
     apple_screen,
     laundry_screen,
     lights_screen,
@@ -103,7 +104,7 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 
 
 NOW = (clock_screen, train_screen, agenda_screen, day_screen, _headlines)
-HOME = (lights_screen, laundry_screen, apple_screen)
+HOME = (lights_screen, air_screen, laundry_screen, apple_screen)
 SCREENS = {"now": NOW, "home": HOME, "house": (), "test": NOW}
 # Panels that turn through their screens on their own; Home decides per answer (home_rules).
 ROTATES = {"now": True, "house": True, "test": True}

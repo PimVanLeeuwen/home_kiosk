@@ -193,6 +193,27 @@ typedef struct {
     char last[128];          /* "Last played: ..." */
 } desk_music_t;
 
+/* The Home panel's air: the living room's ALPSTUGA (plan.md M17), ready to draw. */
+#define DESK_AIR_HISTORY 97 /* CO2 every 5 minutes over 8 hours */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char room[24];           /* "Living room" */
+    char outside[24];        /* "Outside 10°", or "" */
+    char temperature[12];    /* "22,9°" */
+    char humidity[8];        /* "47%" */
+    char pm25[8];            /* "2" */
+    char quality[24];        /* the sensor's own verdict: "Good" */
+    bool has_co2;
+    int co2;                 /* ppm */
+    int ring;                /* how far the ring is filled, 0 to 1000 */
+    char word[20];           /* "Fresh", "Getting stuffy", "Open a window" */
+    uint32_t colour;         /* the word's and the ring's */
+    int history_count;
+    int16_t history[DESK_AIR_HISTORY];
+} desk_air_t;
+
 /* The Home panel's laundry: the washer and dryer while one runs or is done. */
 typedef struct {
     bool present;
@@ -271,6 +292,9 @@ bool desk_has_playing(void);
 uint32_t desk_playing_version(void);
 desk_playing_t desk_playing(void);
 bool desk_has_music(void);
+bool desk_has_air(void);
+uint32_t desk_air_version(void);
+desk_air_t desk_air(void);
 bool desk_has_laundry(void);
 uint32_t desk_laundry_version(void);
 desk_laundry_t desk_laundry(void);
