@@ -817,6 +817,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
     been open and when Telegram was told, and a bar with the warning and error thresholds; All
     quiet gets slow ripples round a check, how long it has been quiet and a dot per day of the
     week (amber on days that had an alert).
+    Decided 2026-10-22: only warnings and errors count (info messages need nobody); no Mute 1h
+    button for now; an ERROR takes over all three panels until dismissed on one of them, for all
+    three, until that incident resolves (a new error takes over again), in quiet hours too. Built
+    2026-10-22 (hub, `desk_alerts.py`): the Alerts screen last in House's turn (the worst open
+    alert with its severity, title, first lines and how long it has been open, up to three more
+    below; or All quiet, how long nothing has needed you and this week's days), a `takeover` in
+    every panel's answer (the newest open error not dismissed), and
+    `POST /api/desk/alerts/dismiss` with the board's key (`dismissed_at` on the incident).
   - Train: the departure box and the status word, a ring counting down to departure (or the
     next train when cancelled), and the route with its stops and times (Leiden Centraal,
     Den Haag HS, Delft, Rotterdam Centraal); a delay moves the times.
@@ -871,6 +879,11 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21.
 
 ## 4. Open items
 
+- Check on the Home panel (found 2026-10-22): the Music screen as rows with small covers (built
+  2026-10-22) and Now Playing's one-line artist line, with `shot.py` screenshots, while something
+  plays for Now Playing. Not checked yet: Spotify rate-limited the hub for about 4 hours that
+  evening (the hub now leaves it alone for Spotify's Retry-After). Look for one line per name with
+  an ellipsis, and the last-played row's cover, heading, title and artist each on one line.
 - Home panel loses its connection (found 2026-10-21): now and then the Home board stops asking the
   hub (the hub's board list showed it 8 minutes behind the other two; the kiosk page shows it
   disconnected), yet it keeps rotating on its own, and lights and other taps do nothing until it

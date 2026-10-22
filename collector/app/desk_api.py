@@ -17,9 +17,9 @@ from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from . import desk, desk_boards, desk_headlines, desk_home, desk_keys
+from . import desk, desk_alerts, desk_boards, desk_headlines, desk_home, desk_keys
 from .lights_api import Change, RoomSwitch
 from .sources import hue, music, readeck, spotify
 
@@ -57,6 +57,19 @@ async def board(mac: str, request: Request,
     if visit.key:
         answer["key"] = visit.key  # its device key, until the board sends it back
     return answer
+
+
+class Dismiss(BaseModel):
+    key: Annotated[str, Field(min_length=1, max_length=200)]
+
+
+@router.post("/alerts/dismiss")
+def alerts_dismiss(body: Dismiss, request: Request,
+                   board: Annotated[str, Depends(desk_keys.board_key)]) -> dict[str, bool]:
+    """Dismisses an error's takeover on all three panels until it resolves."""
+    if not desk_alerts.dismiss(request.app.state.store, body.key, datetime.now(UTC)):
+        raise HTTPException(404, "That alert is no longer open.")
+    return {"ok": True}
 
 
 class Save(BaseModel):

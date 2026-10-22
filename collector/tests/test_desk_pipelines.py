@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from unittest.mock import ANY
 
 from app import desk, desk_pipelines
 
@@ -215,7 +216,10 @@ def test_before_any_pipeline_data_the_card_waits(store):
         {"kind": "sites", "stale": False, "present": False},
         {"kind": "services", "stale": False, "present": False},
         {"kind": "tailnet", "stale": False, "present": False},
-        {"kind": "movers", "stale": False, "present": False}]
+        {"kind": "movers", "stale": False, "present": False},
+        {"kind": "alerts", "stale": False, "present": True, "title": "ALERTS",
+         "status": "NONE OPEN", "tone": "ok",
+         "quiet": ANY}]
 
 
 def test_times_and_ages_read_well():

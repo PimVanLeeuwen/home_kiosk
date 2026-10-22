@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS alert_incident (
     body         TEXT NOT NULL DEFAULT '',
     opened_at    TEXT NOT NULL,
     last_seen_at TEXT NOT NULL,
-    resolved_at  TEXT
+    resolved_at  TEXT,
+    dismissed_at TEXT  -- an error's takeover dismissed on a desk panel
 );
 """
 
@@ -110,6 +111,9 @@ class Problem:
 def ensure_tables(store: Store) -> None:
     with store.connect() as conn:
         conn.executescript(TABLES)
+        columns = {r["name"] for r in conn.execute("PRAGMA table_info(alert_incident)")}
+        if "dismissed_at" not in columns:  # added after the table shipped
+            conn.execute("ALTER TABLE alert_incident ADD COLUMN dismissed_at TEXT")
 
 
 def rule_settings(store: Store) -> dict[str, dict[str, Any]]:
@@ -584,7 +588,7 @@ async def apply(
                     "last_seen_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(key) DO UPDATE SET "
                     "severity = excluded.severity, title = excluded.title, body = excluded.body, "
                     "opened_at = excluded.opened_at, last_seen_at = excluded.last_seen_at, "
-                    "resolved_at = NULL",
+                    "resolved_at = NULL, dismissed_at = NULL",
                     (key, rule, problem.severity, sent.title, sent.body,
                      now.isoformat(), now.isoformat()))
             await core.notify(store, cfg, source=f"rule.{rule}",
