@@ -172,6 +172,9 @@ python3 dashboard/serve.py
 - LVGL on the panels: hundreds of shapes in one layer stall its task queue (watchdog), and a
   crossfade runs at about 6 fps. Draw busy charts once into a canvas (or paint pixels directly)
   and switch screens with the backlight dip in `screens.c`.
+- LVGL's `LV_LABEL_LONG_DOT` only cuts with "…" when the label has a fixed height; with only a
+  width it wraps and runs into what is below. For one line use `ui_one_line()`
+  (`panels/firmware/main/ui.c`); for more lines set a height or `max_height`.
 - The panels' ESP32-C6 runs its old factory ESP-Hosted image: keep
   `CONFIG_ESP_HOSTED_MEMPOOL_PREFER_SPIRAM=n` and the streaming SDIO receive, or any larger
   transfer (a firmware update) breaks the Wi-Fi link. A changed `sdkconfig.defaults` does not
