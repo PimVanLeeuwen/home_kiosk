@@ -229,7 +229,7 @@ void screen_playing_create(lv_obj_t *screen)
     label_device = text(pill, &instrument_24, 0xe6e3ef);
     lv_obj_set_style_text_letter_space(label_device, 1, 0);
 
-    /* Title (two lines at most) and artist, stacked, so a short title keeps
+    /* Title (two lines at most) and artist (one), stacked, so a short title keeps
      * its artist close. */
     lv_obj_t *words = plain(screen);
     lv_obj_set_pos(words, LEFT, 344);
@@ -243,6 +243,9 @@ void screen_playing_create(lv_obj_t *screen)
     subtitle = text(words, &instrument_24, 0xc9c6d4);
     lv_label_set_long_mode(subtitle, LV_LABEL_LONG_DOT);
     lv_obj_set_width(subtitle, WIDTH);
+    /* One line, cut with an ellipsis: without a fixed height it wraps into
+     * the progress bar. */
+    lv_obj_set_height(subtitle, lv_font_get_line_height(&instrument_24));
 
     progress = lv_bar_create(screen);
     lv_obj_set_size(progress, WIDTH, 8);
