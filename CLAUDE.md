@@ -165,6 +165,10 @@ python3 dashboard/serve.py
 - Take panel screenshots with `panels/tools/shot.py`, not photos: opening the port restarts the
   panel on macOS, and the script waits for the hub's answer. Never switch logging off on the panel
   from a task (it locked up core 0).
+- `shot.py`'s snapshot renders the screen on the small `devshot` task (8 kB since 2026-10-22,
+  when the Services incident card overflowed 4 kB). A panel that restarts on a shot with
+  "Stack protection fault" in `devshot`, or ignores every command after one, needs more there;
+  the screen itself is fine. After a restart Wi-Fi can take over 20 s, longer than `shot.py` waits.
 - LVGL on the panels: hundreds of shapes in one layer stall its task queue (watchdog), and a
   crossfade runs at about 6 fps. Draw busy charts once into a canvas (or paint pixels directly)
   and switch screens with the backlight dip in `screens.c`.

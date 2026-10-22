@@ -749,6 +749,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   softly pulsing halo; the other services as a row of small icons below.
   Built 2026-10-12 (collector and hub): `/api/outside-services`, an `outside_services` alert rule, the
   Home tile and the Outside services section on Services (mockup `docs/hub-services-mockup.html`).
+  Built 2026-10-22 (panel, the ring kept after comparing it with tiles and a list): hub
+  `desk_services.py`, panel `screen_services.c`, after My sites in House's turn and no takeover
+  (Telegram already warns). During an incident the card shows the worst service's worst
+  incident with its last three steps; the logos are converted for the panel from the hub's
+  bundled Simple Icons by `panels/firmware/images/make-logos.py`.
 - **Apple devices** (Home, moved from House 2026-10-10): the two Apple TVs and the HomePods,
   each with whether it is online, and what it plays. Design (2026-10-12): a lit floor plan;
   rooms are outlined zones, and a room where something plays glows in that colour; each device

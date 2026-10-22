@@ -236,6 +236,39 @@ typedef struct {
     } sites[DESK_SITES];
 } desk_sites_t;
 
+/* The House panel's Services screen: the outside services in a ring, or the worst
+ * incident as a card. Ready to draw (app/desk_services.py). */
+#define DESK_SERVICES 8
+#define DESK_SERVICE_STEPS 3
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[16];          /* "SERVICES" */
+    char status[24];         /* "ALL OPERATIONAL", "1 INCIDENT", "MAINTENANCE" */
+    char tone;               /* 'k' ok, 'd' degraded, 'o' outage, 'm' maintenance */
+    int count;
+    struct {
+        char key[16];        /* "github": its logo */
+        char name[24];
+        char state;          /* 'k', 'd', 'o', 'm', 'u' unknown */
+    } services[DESK_SERVICES];
+    bool has_incident;
+    struct {
+        char key[16];
+        char name[24];
+        char state;
+        char line[40];       /* "Degraded · for 24 min" */
+        char title[128];     /* the status page's own words */
+        int step_count;
+        struct {
+            char status[24]; /* "Identified" */
+            char time[8];    /* "14:15" */
+        } steps[DESK_SERVICE_STEPS];
+    } incident;
+    char others[48];         /* "the other 6 are operational" */
+} desk_services_t;
+
 /* The House panel's pipelines (plan.md M21): the running ones as job graphs, at most
  * two (they take turns), and the idle card. Ready to draw (app/desk_pipelines.py). */
 #define DESK_PIPELINE_RUNS 2
@@ -398,6 +431,9 @@ desk_code_t desk_code(void);
 bool desk_has_sites(void);
 uint32_t desk_sites_version(void);
 void desk_sites_copy(desk_sites_t *into);
+bool desk_has_services(void);
+uint32_t desk_services_version(void);
+void desk_services_copy(desk_services_t *into);
 bool desk_has_pipeline(void);
 uint32_t desk_pipeline_version(void);
 void desk_pipeline_copy(desk_pipeline_t *into);

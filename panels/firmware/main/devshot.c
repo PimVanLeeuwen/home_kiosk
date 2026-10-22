@@ -194,6 +194,8 @@ static void devshot_task(void *arg)
 void devshot_start(void)
 {
     /* No UART driver: installing one on the console port stalls its output. */
-    xTaskCreate(devshot_task, "devshot", 4096, NULL, 2, NULL);
+    /* 8 kB: the snapshot renders the screen on this task, and a busy one (the Services
+     * incident card) overflowed 4 kB. */
+    xTaskCreate(devshot_task, "devshot", 8192, NULL, 2, NULL);
     ESP_LOGI(TAG, "listening for \"shot\", \"next\", \"hold\", \"update\" and \"save\"");
 }
