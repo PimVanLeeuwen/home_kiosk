@@ -66,8 +66,10 @@ def one_transfer(link: serial.Serial, chunks: dict[int, bytes]) -> tuple[int, in
 def main(port: str, out: str, screen: int = 0) -> None:
     link = open_link(port)
     # Hold the screen (as a touch does) or turn to the one asked for, then let it fade in.
-    link.write(b"hold\n" if screen == 0 else b"next\n" * screen)
-    time.sleep(1.5)
+    # One turn at a time: the panel ignores a "next" while it is still turning.
+    for _ in range(max(screen, 1)):
+        link.write(b"hold\n" if screen == 0 else b"next\n")
+        time.sleep(1.5)
     # Lines per screen (its header): only transfers of the very same screen are merged.
     seen: dict[tuple[int, int, int, int], dict[int, bytes]] = {}
     header = None
