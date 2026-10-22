@@ -269,6 +269,30 @@ typedef struct {
     } rows[DESK_TAILNET_ROWS];
 } desk_tailnet_t;
 
+/* The House panel's NAS screen: the fullest pool as a gauge, CPU and memory with the
+ * day as sparklines, the disks and the UPS. Ready to draw (app/desk_nas.py). */
+#define DESK_NAS_POINTS 24
+#define DESK_NAS_DISKS 8
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[24];          /* "NAS · STORAGE" */
+    char status[16];         /* "HEALTHY", "1 ISSUE" */
+    bool warn;
+    int used_pct, limit_pct; /* the fullest pool, and where it would alert */
+    char size[64];           /* "volume2 · 4.9 TB of 6.0 TB" */
+    char runway[40];         /* "full in about 5 months", or "" */
+    int cpu, ram;            /* % now */
+    int cpu_count, ram_count;
+    uint8_t cpu_points[DESK_NAS_POINTS], ram_points[DESK_NAS_POINTS]; /* % over the day */
+    int disk_count;
+    bool disks[DESK_NAS_DISKS]; /* SMART ok */
+    char disks_line[16];     /* "5 of 5" */
+    char ups[24];            /* "UPS ok", "UPS on battery", or "" */
+    bool ups_ok;
+} desk_nas_t;
+
 /* An open error that takes over every panel until it is dismissed on one of them
  * (the answer's "takeover", app/desk_alerts.py). */
 typedef struct {
@@ -545,6 +569,9 @@ void desk_alerts_copy(desk_alerts_t *into);
 bool desk_has_takeover(void);
 uint32_t desk_takeover_version(void);
 void desk_takeover_copy(desk_takeover_t *into);
+bool desk_has_nas(void);
+uint32_t desk_nas_version(void);
+void desk_nas_copy(desk_nas_t *into);
 bool desk_has_movers(void);
 uint32_t desk_movers_version(void);
 void desk_movers_copy(desk_movers_t *into);

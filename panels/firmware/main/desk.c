@@ -10,6 +10,7 @@
 #include "desk_sites.h"
 #include "desk_tailnet.h"
 #include "desk_alerts.h"
+#include "desk_nas.h"
 #include "desk_pipelines.h"
 #include "esp_attr.h"
 
@@ -51,6 +52,7 @@ EXT_RAM_BSS_ATTR static desk_sites_t sites_state;
 EXT_RAM_BSS_ATTR static desk_services_t services_state;
 EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet_state;
 EXT_RAM_BSS_ATTR static desk_alerts_t alerts_state;
+EXT_RAM_BSS_ATTR static desk_nas_t nas_state;
 EXT_RAM_BSS_ATTR static desk_takeover_t takeover_state;
 EXT_RAM_BSS_ATTR static desk_movers_t movers_state;
 EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline_state;
@@ -267,6 +269,7 @@ COPIERS(sites, desk_sites_t, sites_state)
 COPIERS(services, desk_services_t, services_state)
 COPIERS(tailnet, desk_tailnet_t, tailnet_state)
 COPIERS(alerts, desk_alerts_t, alerts_state)
+COPIERS(nas, desk_nas_t, nas_state)
 COPIERS(takeover, desk_takeover_t, takeover_state)
 COPIERS(movers, desk_movers_t, movers_state)
 GETTERS(apple, desk_apple_t, apple_state)
@@ -742,6 +745,7 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_services_t services;
     EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet;
     EXT_RAM_BSS_ATTR static desk_alerts_t alerts;
+    EXT_RAM_BSS_ATTR static desk_nas_t nas;
     EXT_RAM_BSS_ATTR static desk_takeover_t takeover;
     EXT_RAM_BSS_ATTR static desk_movers_t movers;
     EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline;
@@ -760,6 +764,7 @@ static void apply(const char *body)
     memset(&services, 0, sizeof services);
     memset(&tailnet, 0, sizeof tailnet);
     memset(&alerts, 0, sizeof alerts);
+    memset(&nas, 0, sizeof nas);
     memset(&takeover, 0, sizeof takeover);
     const cJSON *error = cJSON_GetObjectItem(root, "takeover");
     takeover.present = cJSON_IsObject(error);
@@ -804,6 +809,10 @@ static void apply(const char *body)
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "tailnet") == 0) {
             desk_parse_tailnet(screen, &tailnet);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "nas") == 0) {
+            desk_parse_nas(screen, &nas);
             continue;
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "alerts") == 0) {
@@ -932,6 +941,8 @@ static void apply(const char *body)
     tailnet_state = tailnet;
     alerts.version = alerts_state.version + 1;
     alerts_state = alerts;
+    nas.version = nas_state.version + 1;
+    nas_state = nas;
     takeover.version = takeover_state.version + 1;
     takeover_state = takeover;
     movers.version = movers_state.version + 1;
