@@ -214,6 +214,7 @@ def test_before_any_pipeline_data_the_card_waits(store):
         {"kind": "code", "stale": False, "present": False},
         {"kind": "sites", "stale": False, "present": False},
         {"kind": "services", "stale": False, "present": False},
+        {"kind": "tailnet", "stale": False, "present": False},
         {"kind": "movers", "stale": False, "present": False}]
 
 

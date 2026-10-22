@@ -936,7 +936,11 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21.
   through a relay, the online devices listed below; `docs/desk-panels-mockup.html`) and a
   Tailscale page under House (the same map, the NAS's names and addresses, every device as a tile
   that opens for its details; `docs/hub-tailscale-mockup.html`). The warning state is
-  tailscaled's own health warnings, not key expiry: keys do not expire on this tailnet (M13).
+  tailscaled's own health warnings, not key expiry: keys do not expire on this tailnet (M13). The
+  Tailscale page is built (`TailscalePage.tsx`). Built 2026-10-22 (hub): the House panel's
+  Tailnet screen after Services (`desk_tailnet.py`), up to 8 devices round the NAS, placed as the
+  page places them, and the NAS plus up to 4 online devices in the list; on the panel each live
+  line gets one sliding light (chosen 2026-10-22, not a light along the whole line).
 - Backlog (2026-10-09): a richer Jellyfin overview in the hub, in the spirit of Tracearr's history:
   library counts (movies, series, episodes), what is pending or downloading (Jellyseerr, Sonarr,
   Radarr, the download clients), watch stats and a per-user leaderboard. **Built 2026-10-14** on
