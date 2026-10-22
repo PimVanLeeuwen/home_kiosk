@@ -939,8 +939,9 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21.
   tailscaled's own health warnings, not key expiry: keys do not expire on this tailnet (M13). The
   Tailscale page is built (`TailscalePage.tsx`). Built 2026-10-22 (hub): the House panel's
   Tailnet screen after Services (`desk_tailnet.py`), up to 8 devices round the NAS, placed as the
-  page places them, and the NAS plus up to 4 online devices in the list; on the panel each live
-  line gets one sliding light (chosen 2026-10-22, not a light along the whole line).
+  page places them, and the NAS plus up to 4 online devices in the list. Built 2026-10-22
+  (panel, `screen_tailnet.c`): the lines drawn once into a canvas, and each live line gets one
+  sliding light (chosen 2026-10-22, not a light along the whole line).
 - Backlog (2026-10-09): a richer Jellyfin overview in the hub, in the spirit of Tracearr's history:
   library counts (movies, series, episodes), what is pending or downloading (Jellyseerr, Sonarr,
   Radarr, the download clients), watch stats and a per-user leaderboard. **Built 2026-10-14** on

@@ -43,6 +43,7 @@
 #include "screen_movers.h"
 #include "screen_services.h"
 #include "screen_sites.h"
+#include "screen_tailnet.h"
 #include "screen_laundry.h"
 #include "screen_lights.h"
 #include "screen_music.h"
@@ -58,7 +59,7 @@ LV_FONT_DECLARE(instrument_24);
 #define DARKEN 165 /* how much the dark layer takes away, of 255 */
 
 enum { CLOCK, TRAIN, AGENDA, DAY, HEADLINES, PLAYING, LIGHTS, AIR, LAUNDRY, APPLE, MUSIC, PIPELINE, PIPELINES,
-       CODE, SITES, SERVICES, MOVERS, BOARD, START, COUNT };
+       CODE, SITES, SERVICES, TAILNET, MOVERS, BOARD, START, COUNT };
 
 static lv_obj_t *screens[COUNT];
 static int current = START, coming = -1; /* coming: the screen being turned to */
@@ -110,6 +111,8 @@ static bool ready(int which)
         return desk_has_sites();
     case SERVICES:
         return desk_has_services();
+    case TAILNET:
+        return desk_has_tailnet();
     case MOVERS:
         return desk_has_movers();
     default:
@@ -330,6 +333,7 @@ void screens_start(void)
     screens[CODE] = lv_obj_create(NULL);
     screens[SITES] = lv_obj_create(NULL);
     screens[SERVICES] = lv_obj_create(NULL);
+    screens[TAILNET] = lv_obj_create(NULL);
     screens[MOVERS] = lv_obj_create(NULL);
     screens[BOARD] = lv_obj_create(NULL);
     screen_clock_create(screens[CLOCK]);
@@ -348,6 +352,7 @@ void screens_start(void)
     screen_code_create(screens[CODE]);
     screen_sites_create(screens[SITES]);
     screen_services_create(screens[SERVICES]);
+    screen_tailnet_create(screens[TAILNET]);
     screen_movers_create(screens[MOVERS]);
     screen_board_create(screens[BOARD]);
     screen_start_create(screens[START]);

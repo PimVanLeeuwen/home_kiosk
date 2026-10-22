@@ -240,6 +240,35 @@ typedef struct {
     } sites[DESK_SITES];
 } desk_sites_t;
 
+/* The House panel's Tailnet screen: the NAS in the middle, every device round it by
+ * how it connects, and the online ones listed. Ready to draw (app/desk_tailnet.py). */
+#define DESK_TAILNET_NODES 8
+#define DESK_TAILNET_ROWS 5
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[40];          /* "TAILNET · TAIL1234" */
+    char status[24];         /* "4 OF 6 ONLINE", "1 HEALTH ISSUE" */
+    bool warn;               /* tailscaled has a health warning */
+    int node_count;
+    struct {
+        char label[8];       /* on the tile: "Mac", "iP", "TV" */
+        char name[32];
+        char kind;           /* 'd' direct, 'r' relay, 'i' idle, 'o' offline */
+        bool exit;           /* offers itself as exit node */
+        char seen[20];       /* offline: "5 h ago" */
+        int x, y;            /* in percent of the map */
+    } nodes[DESK_TAILNET_NODES];
+    int row_count;
+    struct {
+        char name[32];
+        char ip[20];
+        char via[48];        /* "direct", "relay ams", "this NAS", or the health warning */
+        char kind;           /* 's' the NAS, else as the nodes */
+    } rows[DESK_TAILNET_ROWS];
+} desk_tailnet_t;
+
 /* The House panel's Services screen: the outside services in a ring, or the worst
  * incident as a card. Ready to draw (app/desk_services.py). */
 #define DESK_SERVICES 8
@@ -466,6 +495,9 @@ void desk_sites_copy(desk_sites_t *into);
 bool desk_has_services(void);
 uint32_t desk_services_version(void);
 void desk_services_copy(desk_services_t *into);
+bool desk_has_tailnet(void);
+uint32_t desk_tailnet_version(void);
+void desk_tailnet_copy(desk_tailnet_t *into);
 bool desk_has_movers(void);
 uint32_t desk_movers_version(void);
 void desk_movers_copy(desk_movers_t *into);
