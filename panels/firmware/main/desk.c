@@ -396,7 +396,7 @@ static void parse_music(const cJSON *screen, desk_music_t *music)
         music->favourites[i].position = number(cJSON_GetObjectItem(item, "position"), i);
         copy_string(music->favourites[i].name, sizeof music->favourites[i].name, cJSON_GetObjectItem(item, "name"));
         music->favourites[i].colour = colour(cJSON_GetObjectItem(item, "colour"));
-        const cJSON *cover = cJSON_GetObjectItem(item, "cover");
+        const cJSON *cover = cJSON_GetObjectItem(item, "thumb");
         music->favourites[i].has_cover = cJSON_IsString(cover);
         pictures_want(PICTURE_FAVOURITE + i, cJSON_IsString(cover) ? cover->valuestring : "");
     }
@@ -404,7 +404,12 @@ static void parse_music(const cJSON *screen, desk_music_t *music)
         pictures_want(PICTURE_FAVOURITE + i, "");
     }
     copy_string(music->device, sizeof music->device, cJSON_GetObjectItem(screen, "device"));
-    copy_string(music->last, sizeof music->last, cJSON_GetObjectItem(screen, "last"));
+    copy_string(music->last_heading, sizeof music->last_heading, cJSON_GetObjectItem(screen, "last_heading"));
+    copy_string(music->last_title, sizeof music->last_title, cJSON_GetObjectItem(screen, "last_title"));
+    copy_string(music->last_subtitle, sizeof music->last_subtitle, cJSON_GetObjectItem(screen, "last_subtitle"));
+    const cJSON *cover = cJSON_GetObjectItem(screen, "last_cover");
+    music->has_last_cover = cJSON_IsString(cover);
+    pictures_want(PICTURE_LAST, cJSON_IsString(cover) ? cover->valuestring : "");
 }
 
 static void parse_lights(const cJSON *screen, desk_lights_t *lights)

@@ -175,7 +175,8 @@ typedef struct {
 
 #define DESK_FAVOURITES 4
 #define PICTURE_PLAYING 3   /* picture slots: 0 to 2 the headlines, 3 the cover playing, */
-#define PICTURE_FAVOURITE 4 /* 4 to 7 the favourites */
+#define PICTURE_FAVOURITE 4 /* 4 to 7 the favourites, */
+#define PICTURE_LAST 8      /* 8 the cover of what played last */
 
 /* The Home panel's music: the favourites to start. */
 typedef struct {
@@ -190,7 +191,10 @@ typedef struct {
         bool has_cover;
         uint32_t colour;
     } favourites[DESK_FAVOURITES];
-    char last[128];          /* "Last played: ..." */
+    char last_heading[16];   /* "Last played", "Now playing", or "" */
+    char last_title[96];
+    char last_subtitle[96];  /* artist and album */
+    bool has_last_cover;
 } desk_music_t;
 
 /* The House panel's Code screen: 16 weeks of contributions, Monday first, and per week. */

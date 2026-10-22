@@ -475,9 +475,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Shows what plays on any device on the account (phone, Mac, speakers, AirPlay from the phone),
   podcasts included. Polled every 3 seconds while playing, slower when idle; the panel moves the
   progress bar between polls. Album art is fetched by the hub, so panels never contact Spotify.
-- When nothing plays, Home's last card is Music: four favourite playlists as large covers with a
-  play button, to start from the desk on the last used device (tap the device to change it),
-  and what played last.
+- When nothing plays, Home's last card is Music: four favourite playlists as a list of rows with
+  small covers and a play button, to start from the desk on the last used device (tap the device
+  to change it), and what played last with its cover (the large cover tiles were too busy with
+  real covers, 2026-10-22).
 - Now Playing on the Home panel (moved from Now, 2026-10-10; redesigned 2026-10-12): the cover
   with a record sliding out behind it that spins while music plays (the album art as its label),
   an equaliser that moves with playback, a progress line with a glowing thumb and a play button
@@ -513,8 +514,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   room's id while it is the only one listed, and shows it as "Apple TV Living Room".
   Built 2026-10-21 (Home panel): Now Playing (the cover on its record in the cover's colour, the
   device, a progress bar moved on between answers, previous, play-pause and next) first while
-  something plays, and Music last (the four favourites as cover tiles, a tap starts one, and what
-  played last). Covers come from the hub as small baseline JPEGs (`/api/desk/cover/{key}/{size}`)
+  something plays, and Music last (the four favourites as rows with small covers, a tap starts
+  one, and what played last; rows since 2026-10-22). Covers come from the hub as small baseline JPEGs (`/api/desk/cover/{key}/{size}`)
   made from the WebPs it stored; the panel writes through `POST /api/desk/music/{action}` and
   `/api/desk/music/favourite/{n}` with its device key.
 
