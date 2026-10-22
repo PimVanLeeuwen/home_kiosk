@@ -29,7 +29,7 @@ LV_IMAGE_DECLARE(glow_sky);
 #define MAP_H 380
 #define SELF 96
 #define PEER 68
-#define NAME_W 240
+#define NAME_W 320
 #define LIST_TOP 486
 #define ROW_H 40
 #define LIGHT 12
@@ -82,22 +82,30 @@ static void move_light(void *var, int32_t at)
     lv_obj_set_style_shadow_opa(path->light, opa, 0);
 }
 
+/* LVGL's software renderer dashes only straight across or down: a slanted dashed
+ * line comes out solid, so dashes are drawn as short segments here. */
 static void draw_line(lv_layer_t *layer, char kind, int32_t x0, int32_t y0, int32_t x1, int32_t y1)
 {
     lv_draw_line_dsc_t line;
     lv_draw_line_dsc_init(&line);
     line.color = lv_color_hex(kind == 'o' ? 0xffffff : kind_colour(kind));
     line.width = kind == 'd' || kind == 'r' ? 3 : 2;
-    line.opa = kind == 'o' ? 45 : kind == 'i' ? 150 : 120;
+    line.opa = kind == 'o' ? 60 : kind == 'i' ? 150 : 120;
     line.round_start = line.round_end = 1;
-    if (kind == 'r') {
-        line.dash_width = 10, line.dash_gap = 8;
-    } else if (kind == 'o') {
-        line.dash_width = 4, line.dash_gap = 10;
+    int dash = kind == 'r' ? 10 : kind == 'o' ? 3 : 0, gap = kind == 'r' ? 8 : 10;
+    float dx = x1 - x0, dy = y1 - y0, length = sqrtf(dx * dx + dy * dy);
+    if (dash == 0 || length < 1) {
+        line.p1.x = x0, line.p1.y = y0;
+        line.p2.x = x1, line.p2.y = y1;
+        lv_draw_line(layer, &line);
+        return;
     }
-    line.p1.x = x0, line.p1.y = y0;
-    line.p2.x = x1, line.p2.y = y1;
-    lv_draw_line(layer, &line);
+    for (float at = 0; at < length; at += dash + gap) {
+        float to = at + dash < length ? at + dash : length;
+        line.p1.x = x0 + (int32_t)(dx * at / length), line.p1.y = y0 + (int32_t)(dy * at / length);
+        line.p2.x = x0 + (int32_t)(dx * to / length), line.p2.y = y0 + (int32_t)(dy * to / length);
+        lv_draw_line(layer, &line);
+    }
 }
 
 static void show_map(void)
@@ -150,8 +158,12 @@ static void show_map(void)
         }
         lv_label_set_text(nodes[i].name, name);
         lv_obj_set_style_text_color(nodes[i].name, lv_color_hex(off ? IDLE : 0xc9c6d6), 0);
-        int32_t nx = px - NAME_W / 2;
-        nx = nx < -LEFT + 8 ? -LEFT + 8 : nx > MAP_W + LEFT - 8 - NAME_W ? MAP_W + LEFT - 8 - NAME_W : nx;
+        /* As wide as the name (up to NAME_W), under its tile, kept on the screen. */
+        int32_t width = lv_text_get_width(name, strlen(name), &instrument_24, 0) + 4;
+        width = width < NAME_W ? width : NAME_W;
+        lv_obj_set_width(nodes[i].name, width);
+        int32_t nx = px - width / 2;
+        nx = nx < -LEFT + 8 ? -LEFT + 8 : nx > MAP_W + LEFT - 8 - width ? MAP_W + LEFT - 8 - width : nx;
         int32_t line_h = lv_font_get_line_height(&instrument_24);
         int32_t ny = node->y < 48 ? py - PEER / 2 - 6 - line_h : py + PEER / 2 + 6;
         lv_obj_set_pos(nodes[i].name, LEFT + nx, MAP_TOP + ny);
