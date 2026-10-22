@@ -76,7 +76,8 @@ def lights_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]
 # --- music -----------------------------------------------------------------------------
 
 COVER_KEY = re.compile(r"^[0-9a-f]{8,64}$")
-COVER_SIZES = {"big": (288, 288), "tile": (320, 256)}  # multiples of 16, for the decoder
+# Multiples of 16, for the decoder.
+COVER_SIZES = {"big": (288, 288), "tile": (320, 256), "thumb": (96, 96)}
 _covers: OrderedDict[tuple[str, str], bytes] = OrderedDict()
 KEEP_COVERS = 16
 
@@ -116,18 +117,25 @@ def music_screen(music: dict[str, Any] | None) -> dict[str, Any]:
     playing = music.get("playing") or {}
     last = playing or music.get("last") or {}
     line = " · ".join(p for p in (last.get("title"), last.get("subtitle")) if p)
+    heading = "Now playing" if playing else "Last played"
     return {
         "kind": "music", "stale": bool(music.get("stale")), "present": True,
         "device": _device_name(playing.get("device"), music.get("default_device") or ""),
         "favourites": [{"position": f["position"], "name": latin1(f["name"]),
                         "cover": _cover_path(f.get("cover"), "tile"),
+                        "thumb": _cover_path(f.get("cover"), "thumb"),
                         "colour": f.get("colour") or "#7c6cf2"}
                        for f in music["favourites"][:4]],
-        "last": latin1(("Now playing: " if playing else "Last played: ") + line) if line else "",
+        # One line for the panels that still draw it; the list layout draws the parts.
+        "last": latin1(f"{heading}: {line}") if line else "",
+        "last_heading": heading if line else "",
+        "last_title": latin1(last.get("title") or ""),
+        "last_subtitle": latin1(last.get("subtitle") or ""),
+        "last_cover": _cover_path(last.get("cover"), "thumb") if line else None,
     }
 
 
-async def cover(store: Store, key: str, size: Literal["big", "tile"]) -> bytes | None:
+async def cover(store: Store, key: str, size: Literal["big", "tile", "thumb"]) -> bytes | None:
     """A stored Spotify cover as a baseline JPEG at the panel's size, or None."""
     if (key, size) in _covers:
         _covers.move_to_end((key, size))

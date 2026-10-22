@@ -128,7 +128,7 @@ async def lights_group(group_id: str, body: Change, request: Request,
 
 
 @router.get("/cover/{key}/{size}")
-async def cover(key: str, size: Literal["big", "tile"], request: Request) -> Response:
+async def cover(key: str, size: Literal["big", "tile", "thumb"], request: Request) -> Response:
     """A Spotify cover the hub stored, as a small JPEG for the Home panel."""
     if not desk_home.COVER_KEY.match(key):
         raise HTTPException(404, "No such cover.")

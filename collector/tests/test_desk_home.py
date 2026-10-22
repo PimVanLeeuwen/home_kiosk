@@ -114,6 +114,10 @@ def test_now_playing_and_the_favourites_as_screens():
     assert [f["name"] for f in favourites["favourites"]][-1] == "Liked Songs - mine"
     assert favourites["favourites"][0]["cover"] == f"/api/desk/cover/{COVER}/tile"
     assert favourites["last"] == "Now playing: Low Tide Static · Marlow Hayes · Tides"
+    assert favourites["favourites"][0]["thumb"] == f"/api/desk/cover/{COVER}/thumb"
+    assert (favourites["last_heading"], favourites["last_title"], favourites["last_subtitle"]) == (
+        "Now playing", "Low Tide Static", "Marlow Hayes · Tides")
+    assert favourites["last_cover"] == f"/api/desk/cover/{COVER}/thumb"
 
 
 def test_nothing_playing_leaves_the_favourites_and_what_played_last():
@@ -121,6 +125,12 @@ def test_nothing_playing_leaves_the_favourites_and_what_played_last():
     assert desk_home.playing_screen(quiet, NOW)["present"] is False
     assert desk_home.music_screen(quiet)["last"] == "Last played: Old Song · Someone"
     assert desk_home.music_screen(quiet)["device"] == "Apple TV Living Room"
+    last = desk_home.music_screen(quiet)
+    assert (last["last_heading"], last["last_title"], last["last_subtitle"]) == (
+        "Last played", "Old Song", "Someone")
+    assert last["last_cover"] is None
+    never = desk_home.music_screen(MUSIC | {"playing": None})
+    assert (never["last"], never["last_heading"], never["last_title"]) == ("", "", "")
     assert desk_home.music_screen(None)["present"] is False
     assert desk_home.music_screen(quiet | {"connected": False})["present"] is False
 
@@ -178,6 +188,8 @@ def test_covers_are_small_jpegs_of_the_stored_ones(music_panel):
         assert image.size == (288, 288) and not image.info.get("progressive")
     with Image.open(io.BytesIO(client.get(f"/api/desk/cover/{COVER}/tile").content)) as image:
         assert image.size == (320, 256)
+    with Image.open(io.BytesIO(client.get(f"/api/desk/cover/{COVER}/thumb").content)) as image:
+        assert image.size == (96, 96)
     assert client.get("/api/desk/cover/ffffffffffffffff/big").status_code == 404
     assert client.get("/api/desk/cover/not-a-key/big").status_code == 404
 
