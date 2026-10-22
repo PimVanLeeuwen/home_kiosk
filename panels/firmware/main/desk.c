@@ -51,6 +51,7 @@ EXT_RAM_BSS_ATTR static desk_sites_t sites_state;
 EXT_RAM_BSS_ATTR static desk_services_t services_state;
 EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet_state;
 EXT_RAM_BSS_ATTR static desk_alerts_t alerts_state;
+EXT_RAM_BSS_ATTR static desk_takeover_t takeover_state;
 EXT_RAM_BSS_ATTR static desk_movers_t movers_state;
 EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline_state;
 EXT_RAM_BSS_ATTR static desk_pipelines_t pipelines_state;
@@ -266,6 +267,7 @@ COPIERS(sites, desk_sites_t, sites_state)
 COPIERS(services, desk_services_t, services_state)
 COPIERS(tailnet, desk_tailnet_t, tailnet_state)
 COPIERS(alerts, desk_alerts_t, alerts_state)
+COPIERS(takeover, desk_takeover_t, takeover_state)
 COPIERS(movers, desk_movers_t, movers_state)
 GETTERS(apple, desk_apple_t, apple_state)
 
@@ -740,6 +742,7 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_services_t services;
     EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet;
     EXT_RAM_BSS_ATTR static desk_alerts_t alerts;
+    EXT_RAM_BSS_ATTR static desk_takeover_t takeover;
     EXT_RAM_BSS_ATTR static desk_movers_t movers;
     EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline;
     EXT_RAM_BSS_ATTR static desk_pipelines_t pipes;
@@ -757,6 +760,13 @@ static void apply(const char *body)
     memset(&services, 0, sizeof services);
     memset(&tailnet, 0, sizeof tailnet);
     memset(&alerts, 0, sizeof alerts);
+    memset(&takeover, 0, sizeof takeover);
+    const cJSON *error = cJSON_GetObjectItem(root, "takeover");
+    takeover.present = cJSON_IsObject(error);
+    copy_string(takeover.key, sizeof takeover.key, cJSON_GetObjectItem(error, "key"));
+    copy_string(takeover.title, sizeof takeover.title, cJSON_GetObjectItem(error, "title"));
+    copy_string(takeover.body, sizeof takeover.body, cJSON_GetObjectItem(error, "body"));
+    copy_string(takeover.since, sizeof takeover.since, cJSON_GetObjectItem(error, "since"));
     memset(&movers, 0, sizeof movers);
     memset(&pipeline, 0, sizeof pipeline);
     memset(&pipes, 0, sizeof pipes);
@@ -922,6 +932,8 @@ static void apply(const char *body)
     tailnet_state = tailnet;
     alerts.version = alerts_state.version + 1;
     alerts_state = alerts;
+    takeover.version = takeover_state.version + 1;
+    takeover_state = takeover;
     movers.version = movers_state.version + 1;
     movers_state = movers;
     pipeline.version = pipeline_state.version + 1;

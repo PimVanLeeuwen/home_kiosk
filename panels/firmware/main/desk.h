@@ -269,6 +269,17 @@ typedef struct {
     } rows[DESK_TAILNET_ROWS];
 } desk_tailnet_t;
 
+/* An open error that takes over every panel until it is dismissed on one of them
+ * (the answer's "takeover", app/desk_alerts.py). */
+typedef struct {
+    bool present;
+    uint32_t version;
+    char key[96];            /* the incident, for dismissing it */
+    char title[128];
+    char body[208];
+    char since[24];          /* "03:41", "Wed 03:41", "9 Oct" */
+} desk_takeover_t;
+
 /* The House panel's Alerts screen: the worst open alert large and the others below, or
  * All quiet with this week's days. Ready to draw (app/desk_alerts.py). */
 #define DESK_ALERT_OTHERS 3
@@ -531,6 +542,9 @@ void desk_tailnet_copy(desk_tailnet_t *into);
 bool desk_has_alerts(void);
 uint32_t desk_alerts_version(void);
 void desk_alerts_copy(desk_alerts_t *into);
+bool desk_has_takeover(void);
+uint32_t desk_takeover_version(void);
+void desk_takeover_copy(desk_takeover_t *into);
 bool desk_has_movers(void);
 uint32_t desk_movers_version(void);
 void desk_movers_copy(desk_movers_t *into);

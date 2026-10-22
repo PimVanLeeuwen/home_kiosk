@@ -825,6 +825,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
     below; or All quiet, how long nothing has needed you and this week's days), a `takeover` in
     every panel's answer (the newest open error not dismissed), and
     `POST /api/desk/alerts/dismiss` with the board's key (`dismissed_at` on the incident).
+    Built 2026-10-22 (panel): the Alerts screen (`screen_alerts.c`: the icon pulsing in the
+    alert's colour, or ripples round a green check and the week's dots) and the takeover
+    (`takeover.c`, on LVGL's top layer above the dark layer; the rotation and the dips stand still
+    under it; Dismiss hides it at once and the hub clears it for the other panels).
   - Train: the departure box and the status word, a ring counting down to departure (or the
     next train when cancelled), and the route with its stops and times (Leiden Centraal,
     Den Haag HS, Delft, Rotterdam Centraal); a delay moves the times.

@@ -24,3 +24,7 @@ bool actions_lights(const char *group, const char *body);
 /* Spotify from the Home panel: "play", "pause", "next", "previous", or
  * "favourite/2" to start a favourite. The panel asks the hub again soon after. */
 bool actions_music(const char *what);
+
+/* Dismiss an error's takeover on every panel (the incident's key); the panel asks
+ * the hub again at once. */
+bool actions_dismiss(const char *key);

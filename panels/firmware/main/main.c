@@ -16,6 +16,7 @@
 #include "net.h"
 #include "nvs_flash.h"
 #include "screens.h"
+#include "takeover.h"
 #include "update.h"
 #include "sdkconfig.h"
 
@@ -46,6 +47,7 @@ void app_main(void)
     /* Wait for LVGL's first frame: with this board package 0 means "do not wait". */
     ESP_ERROR_CHECK(bsp_display_lock(5000) ? ESP_OK : ESP_ERR_TIMEOUT);
     screens_start();
+    takeover_start(); /* after the screens: above their dark layer */
     bsp_display_unlock();
 
     ESP_LOGI(TAG, "board %s starting, firmware %s", desk_mac(), esp_app_get_description()->version);

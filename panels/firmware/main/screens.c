@@ -13,6 +13,8 @@
  * top says so and the rotation stands still, so a stale screen does not look live;
  * net.c's watchdog meanwhile reconnects Wi-Fi and, if need be, restarts the board.
  *
+ * While an error takes the panel over (takeover.c) the rotation and the dips stand still.
+ *
  * While every living room light is off (the hub's "dim") a dark layer lies over
  * every screen; it is laid on or lifted during the same dip through black, so
  * the change is as smooth as a turn. The backlight itself stays at its level:
@@ -28,6 +30,7 @@
 #include "bsp/display.h"
 #include "bsp/esp-bsp.h"
 #include "desk.h"
+#include "takeover.h"
 #include "lvgl.h"
 #include "net.h"
 #include "screen_agenda.h"
@@ -228,6 +231,9 @@ static int first_screen(void)
 static void check(lv_timer_t *timer)
 {
     lv_obj_set_flag(away, LV_OBJ_FLAG_HIDDEN, !net_hub_away());
+    if (takeover_showing()) {
+        return; /* no dips under an error: the backlight would flicker through it */
+    }
     /* Music starts on a swiped panel (Home), from a favourite on the panel or
      * anywhere else: go to Now Playing, as in the mockup. */
     static bool was_playing;
@@ -249,8 +255,8 @@ static void check(lv_timer_t *timer)
 
 static void turn(lv_timer_t *timer)
 {
-    if (net_hub_away()) {
-        return; /* stand still on what it shows, under the line that says why */
+    if (net_hub_away() || takeover_showing()) {
+        return; /* stand still on what it shows, under the line or the error that says why */
     }
     if (touched && lv_tick_elaps(touched_at) < HOLD_MS) {
         return;

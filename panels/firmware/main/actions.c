@@ -28,7 +28,7 @@ static const char *TAG = "actions";
 typedef struct {
     char id[20];    /* a story's article id, for saving it; "" for lights */
     char path[48];  /* "/api/desk/lights/kitchen" */
-    char body[64];
+    char body[128];
 } action_t;
 
 static QueueHandle_t queue;
@@ -131,6 +131,14 @@ bool actions_music(const char *what)
     return queue != NULL && xQueueSend(queue, &action, 0) == pdTRUE;
 }
 
+bool actions_dismiss(const char *key)
+{
+    action_t action = {0};
+    snprintf(action.path, sizeof action.path, "/api/desk/alerts/dismiss");
+    snprintf(action.body, sizeof action.body, "{\"key\":\"%s\"}", key);
+    return queue != NULL && xQueueSend(queue, &action, 0) == pdTRUE;
+}
+
 static void actions_task(void *arg)
 {
     action_t action;
@@ -142,6 +150,8 @@ static void actions_task(void *arg)
             note(action.id, status == 200 ? ACTION_DONE : ACTION_FAILED);
         } else if (status == 200 && strstr(action.path, "/lights/")) {
             desk_take_lights(reply); /* the new state, at once */
+        } else if (status == 200 && strstr(action.path, "/alerts/")) {
+            desk_poll_now(); /* the other panels learn it at their next ask */
         } else if (status == 200) {
             vTaskDelay(pdMS_TO_TICKS(1200)); /* Spotify takes a moment to tell */
             desk_poll_now();
