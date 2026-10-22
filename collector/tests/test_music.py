@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from app import main, music_api
+from app import main
 from app.sources import music, spotify
 
 CFG = {"music": {"client_id": "client-123", "default_device": "Apple TV",
@@ -97,7 +97,7 @@ def cloud(store):
     spotify.CLIENT.transport = None
     spotify.CLIENT.forget()
     music.wake = None
-    music_api._last.clear()
+    music.LAST.clear()
 
 
 def connect(store):
@@ -390,6 +390,57 @@ def test_a_failing_spotify_serves_the_last_answer_stale(client, store, cloud):
     spotify.CLIENT.cache.clear()
     spotify.CLIENT.transport = httpx.MockTransport(lambda r: httpx.Response(503))
     later = client.get("/api/music").json()
+
+    assert later["stale"] is True and later["playing"]["title"] == "Midnight City"
+
+
+def test_a_rate_limit_leaves_spotify_alone_for_its_retry_after(store, cloud, monkeypatch):
+    connect(store)
+    clock = [1000.0]
+    monkeypatch.setattr(spotify.time, "monotonic", lambda: clock[0])
+    handler = cloud.handler
+    limited = [True]
+
+    def slow(request):
+        if limited[0] and request.url.host == "api.spotify.com":
+            cloud.calls.append((request.method, request.url.path, {}, None))
+            return httpx.Response(429, headers={"retry-after": "120"})
+        return handler(request)
+
+    spotify.CLIENT.transport = httpx.MockTransport(slow)
+    with pytest.raises(spotify.SpotifyError) as first:
+        run(music.state(CFG, store))
+    asked = len(cloud.api_calls("/v1/me/player"))
+    clock[0] += 119
+    with pytest.raises(spotify.SpotifyError) as second:
+        run(music.state(CFG, store))
+    assert first.value.status == second.value.status == 429
+    assert len(cloud.api_calls("/v1/me/player")) == asked  # not asked again in the window
+
+    limited[0] = False
+    clock[0] += 2
+    assert run(music.state(CFG, store))["connected"] is True
+    assert len(cloud.api_calls("/v1/me/player")) == asked + 1
+
+
+def test_retry_after_within_reason():
+    def wait(headers):
+        return spotify._retry_after(httpx.Response(429, headers=headers))
+
+    assert (wait({"retry-after": "7"}), wait({}), wait({"retry-after": "soon"})) == (
+        7, spotify.PAUSE_SECONDS, spotify.PAUSE_SECONDS)
+    assert wait({"retry-after": "9999999"}) == spotify.MAX_PAUSE_SECONDS
+
+
+def test_the_panels_get_the_last_state_stale_while_spotify_is_limited(store, cloud):
+    connect(store)
+    cloud.player = {"is_playing": True, "item": track(), "device": device("iPhone", True)}
+    assert run(music.latest(CFG, store))["stale"] is False
+
+    spotify.CLIENT.cache.clear()
+    spotify.CLIENT.transport = httpx.MockTransport(
+        lambda r: httpx.Response(429, headers={"retry-after": "60"}))
+    later = run(music.latest(CFG, store))
 
     assert later["stale"] is True and later["playing"]["title"] == "Midnight City"
 

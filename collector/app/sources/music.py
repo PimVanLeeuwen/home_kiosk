@@ -95,6 +95,28 @@ async def state(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
     return base
 
 
+# The last state Spotify gave, for when it fails or asks the hub to slow down.
+LAST: dict[str, Any] = {}
+
+
+async def latest(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
+    """state(), or the last good one marked stale while Spotify fails or rate-limits
+    the hub; raises when there is none yet, or when the hub was disconnected (401)."""
+    try:
+        answer = await state(cfg, store)
+    except SpotifyError as exc:
+        if exc.status == 401 or not LAST:
+            raise
+        return LAST | {"stale": True}
+    except Exception:
+        if not LAST:
+            raise
+        return LAST | {"stale": True}
+    LAST.clear()
+    LAST.update(answer)
+    return answer
+
+
 # --- favourites ----------------------------------------------------------------------
 
 

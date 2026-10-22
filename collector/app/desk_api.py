@@ -31,13 +31,13 @@ PanelName = Literal["now", "home", "house", "test"]
 
 
 async def _music(request: Request) -> dict[str, Any] | None:
-    """The hub's Spotify state for the Home panel; None when it cannot be read
-    (the panel then shows its other screens)."""
+    """The hub's Spotify state for the Home panel, the last good one (stale) while
+    Spotify fails; None when there is none (the panel then shows its other screens)."""
     cfg = request.app.state.config
     if not spotify.settings(cfg)["enabled"]:
         return None
     try:
-        return await music.state(cfg, request.app.state.store)
+        return await music.latest(cfg, request.app.state.store)
     except Exception:
         return None
 

@@ -19,10 +19,6 @@ log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/music")
 write = [Depends(same_origin_json)]
 
-# The last good answer, served stale when Spotify fails: never a 500.
-_last: dict[str, Any] = {}
-
-
 def _cfg(request: Request) -> dict[str, Any]:
     cfg = request.app.state.config
     if not spotify.settings(cfg)["enabled"]:
@@ -41,18 +37,9 @@ def _failed(exc: Exception) -> HTTPException:
 async def now(request: Request) -> Any:
     cfg = _cfg(request)
     try:
-        answer = await music.state(cfg, request.app.state.store)
-    except spotify.SpotifyError as exc:
-        if exc.status == 401 or not _last:
-            raise _failed(exc) from None
-        return _last | {"stale": True}
+        return await music.latest(cfg, request.app.state.store)
     except Exception as exc:
-        if not _last:
-            raise _failed(exc) from None
-        return _last | {"stale": True}
-    _last.clear()
-    _last.update(answer)
-    return answer
+        raise _failed(exc) from None
 
 
 @router.get("/login")
@@ -79,7 +66,7 @@ async def callback(request: Request, code: str = "", state: str = "",
 @router.post("/disconnect", dependencies=write)
 def disconnect(request: Request) -> dict[str, bool]:
     spotify.disconnect(request.app.state.store)
-    _last.clear()
+    music.LAST.clear()
     return {"connected": False}
 
 

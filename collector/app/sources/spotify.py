@@ -37,6 +37,11 @@ API = "https://api.spotify.com/v1"
 SCOPES = ("user-read-playback-state user-modify-playback-state user-read-currently-playing "
           "user-read-recently-played playlist-read-private playlist-read-collaborative")
 TIMEOUT_SECONDS = 10
+# How long to leave Spotify alone after a 429 without a Retry-After, and the most
+# a Retry-After is believed (a garbled header must not silence the hub for days).
+PAUSE_SECONDS = 30
+MAX_PAUSE_SECONDS = 24 * 3600
+SLOW_DOWN = "Spotify asks the hub to slow down; try again in a moment."
 LOGIN_FOR = 600  # seconds a started login may take
 COVER_SIZE = 300
 FAVOURITES = 4
@@ -145,9 +150,13 @@ class Client:
         self.token_until = 0.0
         self.cache: dict[str, tuple[float, Any]] = {}
         self.lock = asyncio.Lock()
+        # After a 429, no calls until then (monotonic): every call in the window
+        # would only make Spotify's limit last longer.
+        self.paused_until = 0.0
 
     def forget(self) -> None:
         self.token, self.token_until, self.cache = None, 0.0, {}
+        self.paused_until = 0.0
 
     def http(self) -> httpx.AsyncClient:
         return httpx.AsyncClient(timeout=TIMEOUT_SECONDS, transport=self.transport)
@@ -205,6 +214,8 @@ class Client:
 
     async def call(self, cfg: dict[str, Any], store: Store, method: str, path: str,
                    params: dict[str, Any] | None = None, body: Any = None) -> Any:
+        if time.monotonic() < self.paused_until:
+            raise SpotifyError(SLOW_DOWN, 429)
         for attempt in (1, 2):
             token = await self._access(cfg, store)
             async with self.http() as http:
@@ -215,7 +226,10 @@ class Client:
                 continue
             break
         if resp.status_code == 429:
-            raise SpotifyError("Spotify asks the hub to slow down; try again in a moment.", 429)
+            wait = _retry_after(resp)
+            self.paused_until = time.monotonic() + wait
+            log.warning("spotify rate limit: leaving it alone for %d s", wait)
+            raise SpotifyError(SLOW_DOWN, 429)
         if resp.status_code == 404 and "device" in resp.text.lower():
             raise SpotifyError("No active Spotify device; start one or pick a device.", 409)
         if resp.status_code == 403 and "premium" in resp.text.lower():
@@ -245,6 +259,15 @@ class Client:
         """After a write, the next read asks Spotify again."""
         self.cache.pop("player", None)
         self.cache.pop("devices", None)
+
+
+def _retry_after(resp: httpx.Response) -> int:
+    """Spotify's Retry-After in seconds, within reason; PAUSE_SECONDS without one."""
+    try:
+        wait = int(resp.headers.get("retry-after", ""))
+    except ValueError:
+        return PAUSE_SECONDS
+    return max(1, min(wait, MAX_PAUSE_SECONDS))
 
 
 CLIENT = Client()
