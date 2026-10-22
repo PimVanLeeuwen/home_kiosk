@@ -269,6 +269,36 @@ typedef struct {
     } rows[DESK_TAILNET_ROWS];
 } desk_tailnet_t;
 
+/* The House panel's Alerts screen: the worst open alert large and the others below, or
+ * All quiet with this week's days. Ready to draw (app/desk_alerts.py). */
+#define DESK_ALERT_OTHERS 3
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[16];          /* "ALERTS" */
+    char status[16];         /* "NONE OPEN", "2 OPEN" */
+    char tone;               /* 'k' none open, 'w' worst is a warning, 'e' an error */
+    bool has_hero;
+    struct {
+        char severity[12];   /* "ERROR", "WARNING" */
+        char title[128];
+        char body[208];      /* the first lines as one */
+        char line[48];       /* "Open 16 hours · since 03:41" */
+    } hero;
+    int other_count;
+    struct {
+        char severity;       /* 'w' or 'e' */
+        char title[128];
+    } others[DESK_ALERT_OTHERS];
+    char quiet_line[64];     /* "Nothing has needed you for 2 days" */
+    struct {
+        char letter;         /* 'M' ... 'S' */
+        char alert;          /* 0 none, 'w', 'e': the worst opened that day */
+        bool today, future;
+    } days[7];
+} desk_alerts_t;
+
 /* The House panel's Services screen: the outside services in a ring, or the worst
  * incident as a card. Ready to draw (app/desk_services.py). */
 #define DESK_SERVICES 8
@@ -498,6 +528,9 @@ void desk_services_copy(desk_services_t *into);
 bool desk_has_tailnet(void);
 uint32_t desk_tailnet_version(void);
 void desk_tailnet_copy(desk_tailnet_t *into);
+bool desk_has_alerts(void);
+uint32_t desk_alerts_version(void);
+void desk_alerts_copy(desk_alerts_t *into);
 bool desk_has_movers(void);
 uint32_t desk_movers_version(void);
 void desk_movers_copy(desk_movers_t *into);

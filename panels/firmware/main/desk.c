@@ -9,6 +9,7 @@
 #include "desk_services.h"
 #include "desk_sites.h"
 #include "desk_tailnet.h"
+#include "desk_alerts.h"
 #include "desk_pipelines.h"
 #include "esp_attr.h"
 
@@ -49,6 +50,7 @@ EXT_RAM_BSS_ATTR static desk_code_t code_state;
 EXT_RAM_BSS_ATTR static desk_sites_t sites_state;
 EXT_RAM_BSS_ATTR static desk_services_t services_state;
 EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet_state;
+EXT_RAM_BSS_ATTR static desk_alerts_t alerts_state;
 EXT_RAM_BSS_ATTR static desk_movers_t movers_state;
 EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline_state;
 EXT_RAM_BSS_ATTR static desk_pipelines_t pipelines_state;
@@ -263,6 +265,7 @@ COPIERS(pipelines, desk_pipelines_t, pipelines_state)
 COPIERS(sites, desk_sites_t, sites_state)
 COPIERS(services, desk_services_t, services_state)
 COPIERS(tailnet, desk_tailnet_t, tailnet_state)
+COPIERS(alerts, desk_alerts_t, alerts_state)
 COPIERS(movers, desk_movers_t, movers_state)
 GETTERS(apple, desk_apple_t, apple_state)
 
@@ -736,6 +739,7 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_sites_t sites;
     EXT_RAM_BSS_ATTR static desk_services_t services;
     EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet;
+    EXT_RAM_BSS_ATTR static desk_alerts_t alerts;
     EXT_RAM_BSS_ATTR static desk_movers_t movers;
     EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline;
     EXT_RAM_BSS_ATTR static desk_pipelines_t pipes;
@@ -752,6 +756,7 @@ static void apply(const char *body)
     memset(&sites, 0, sizeof sites);
     memset(&services, 0, sizeof services);
     memset(&tailnet, 0, sizeof tailnet);
+    memset(&alerts, 0, sizeof alerts);
     memset(&movers, 0, sizeof movers);
     memset(&pipeline, 0, sizeof pipeline);
     memset(&pipes, 0, sizeof pipes);
@@ -789,6 +794,10 @@ static void apply(const char *body)
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "tailnet") == 0) {
             desk_parse_tailnet(screen, &tailnet);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "alerts") == 0) {
+            desk_parse_alerts(screen, &alerts);
             continue;
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "movers") == 0) {
@@ -911,6 +920,8 @@ static void apply(const char *body)
     services_state = services;
     tailnet.version = tailnet_state.version + 1;
     tailnet_state = tailnet;
+    alerts.version = alerts_state.version + 1;
+    alerts_state = alerts;
     movers.version = movers_state.version + 1;
     movers_state = movers;
     pipeline.version = pipeline_state.version + 1;

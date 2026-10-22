@@ -129,6 +129,9 @@ python3 dashboard/serve.py
 - 2026-10-21: the Home panel rotates while nothing plays; while music plays it stays on Now
   Playing (even with the lights off), and with nothing playing and every light off it shows only
   the light controls (replaces "never rotates", 2026-10-10). plan.md M16.
+- 2026-10-22: an ERROR alert takes over all three panels until dismissed on one of them, for all
+  three, until it resolves; also in quiet hours; the Alerts screen counts only warnings and
+  errors; no Mute 1h for now. plan.md M20.
 
 ## Gotchas
 
