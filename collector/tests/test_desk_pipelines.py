@@ -153,7 +153,7 @@ def test_a_finished_run_stays_five_minutes_then_house_turns_again(store):
         False,
     )
 
-    [screen, _code, _sites, _services], rotate = house(store, done, now=NOW + timedelta(minutes=2))
+    [screen, *_rest], rotate = house(store, done, now=NOW + timedelta(minutes=2))
     assert (screen["kind"], rotate) == ("pipelines", True)
 
 
@@ -173,7 +173,7 @@ def test_an_approval_gate_holds_five_minutes_then_waits_on_the_idle_card(store):
         False,
     )
 
-    [card, _code, _sites, _services], rotate = house(store, gate, now=NOW + timedelta(minutes=3))
+    [card, *_rest], rotate = house(store, gate, now=NOW + timedelta(minutes=3))
     assert rotate is True
     assert card["repos"][0]["line"] == "main · waiting for approval"
 
@@ -213,7 +213,8 @@ def test_before_any_pipeline_data_the_card_waits(store):
     assert out["screens"] == [{"kind": "pipelines", "stale": False, "present": False},
         {"kind": "code", "stale": False, "present": False},
         {"kind": "sites", "stale": False, "present": False},
-        {"kind": "services", "stale": False, "present": False}]
+        {"kind": "services", "stale": False, "present": False},
+        {"kind": "movers", "stale": False, "present": False}]
 
 
 def test_times_and_ages_read_well():

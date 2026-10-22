@@ -703,6 +703,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Built 2026-10-12 (hub): "Today's movers" on the Portfolio page, from the holdings' weights and
   day moves the collector already serves; on a phone the holdings under 3% share one "N others"
   tile. The indices are the Markets card beside it (mockup `docs/hub-portfolio-mockup.html`).
+  Built 2026-10-22 (panel, the heat map kept after comparing it with ranked bars): hub
+  `desk_movers.py` lays the tiles out (the hub's squarify) and the panel draws them
+  (`screen_movers.c`), after Services in House's turn; holdings under 2% share one tile ("+3"
+  where "3 others" does not fit), and the changes use a plain hyphen, as the panel fonts stop
+  at Latin-1.
 - **My sites** (House, added 2026-10-10): the owner's own sites: example.com,
   aoc.example.com, hubble.cafe, meteor.cafe, admin.hubble.cafe, harry.hubble.cafe and
   harry-admin.hubble.cafe. The list is grouped Personal and Hubble with short names (aoc, admin,

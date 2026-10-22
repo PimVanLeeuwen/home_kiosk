@@ -269,6 +269,34 @@ typedef struct {
     char others[48];         /* "the other 6 are operational" */
 } desk_services_t;
 
+/* The House panel's Top movers screen: the heat map's tiles laid out by the hub
+ * (app/desk_movers.py), and the indices below. */
+#define DESK_MOVER_TILES 12
+#define DESK_INDICES 3
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[24];          /* "TOP MOVERS · TODAY" */
+    char total[32];          /* "portfolio −0.14%" */
+    bool total_up;
+    int count;
+    struct {
+        int16_t x, y, w, h;  /* on the screen */
+        char size;           /* 'l' ticker, change and name; 'm' ticker and change; 's' ticker */
+        char ticker[16];     /* "NVDA", "3 others" */
+        char name[48];
+        char change[12];     /* "+2.54%" */
+        int16_t move;        /* in hundredths of a percent, for the tint */
+    } tiles[DESK_MOVER_TILES];
+    int index_count;
+    struct {
+        char label[16];      /* "S&P 500" */
+        char change[12];
+        bool up;
+    } indices[DESK_INDICES];
+} desk_movers_t;
+
 /* The House panel's pipelines (plan.md M21): the running ones as job graphs, at most
  * two (they take turns), and the idle card. Ready to draw (app/desk_pipelines.py). */
 #define DESK_PIPELINE_RUNS 2
@@ -434,6 +462,9 @@ void desk_sites_copy(desk_sites_t *into);
 bool desk_has_services(void);
 uint32_t desk_services_version(void);
 void desk_services_copy(desk_services_t *into);
+bool desk_has_movers(void);
+uint32_t desk_movers_version(void);
+void desk_movers_copy(desk_movers_t *into);
 bool desk_has_pipeline(void);
 uint32_t desk_pipeline_version(void);
 void desk_pipeline_copy(desk_pipeline_t *into);
