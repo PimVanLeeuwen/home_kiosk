@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import pytest
 
-from app.alerts import rules
+from app.alerts import core, rules
 from app.store import Store
 
 
 @pytest.fixture
 def store(tmp_path) -> Store:
     store = Store(tmp_path / "test.db")
-    rules.ensure_tables(store)  # as the app does at start-up: every panel answer reads alerts
+    # As the app does at start-up: every panel answer reads alerts and their settings.
+    core.ensure_tables(store)
+    rules.ensure_tables(store)
     return store

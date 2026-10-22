@@ -121,11 +121,13 @@ def test_the_route_and_its_panel_names(store):
     assert home == ["playing", "lights", "air", "laundry", "apple", "music"]
     assert client.get("/api/desk/house").json()["screens"] == [
         {"kind": "pipelines", "stale": False, "present": False},
+        {"kind": "nas", "stale": False, "present": False},
         {"kind": "code", "stale": False, "present": False},
         {"kind": "sites", "stale": False, "present": False},
         {"kind": "services", "stale": False, "present": False},
         {"kind": "tailnet", "stale": False, "present": False},
         {"kind": "movers", "stale": False, "present": False},
+        {"kind": "backups", "stale": False, "present": False},
         {"kind": "alerts", "stale": False, "present": True, "title": "ALERTS",
          "status": "NONE OPEN", "tone": "ok",
          "quiet": ANY}]  # no data yet

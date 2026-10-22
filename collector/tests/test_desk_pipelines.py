@@ -212,11 +212,13 @@ def test_the_idle_card_has_each_repos_last_result_and_bars(store):
 def test_before_any_pipeline_data_the_card_waits(store):
     out = desk.answer(CFG, store, "house", NOW)
     assert out["screens"] == [{"kind": "pipelines", "stale": False, "present": False},
+        {"kind": "nas", "stale": False, "present": False},
         {"kind": "code", "stale": False, "present": False},
         {"kind": "sites", "stale": False, "present": False},
         {"kind": "services", "stale": False, "present": False},
         {"kind": "tailnet", "stale": False, "present": False},
         {"kind": "movers", "stale": False, "present": False},
+        {"kind": "backups", "stale": False, "present": False},
         {"kind": "alerts", "stale": False, "present": True, "title": "ALERTS",
          "status": "NONE OPEN", "tone": "ok",
          "quiet": ANY}]
