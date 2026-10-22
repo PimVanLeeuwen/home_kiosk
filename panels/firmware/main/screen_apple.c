@@ -10,6 +10,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -27,33 +28,6 @@ static struct {
     lv_obj_t *box, *name, *orbs[4], *glyphs[4];
 } rooms[3];
 EXT_RAM_BSS_ATTR static desk_apple_t shown; /* off the LVGL task's small stack */
-
-static lv_obj_t *plain(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
-    lv_label_set_text(label, "");
-    return label;
-}
-
-static void upper(char *to, size_t size, const char *from)
-{
-    size_t i = 0;
-    for (; from[i] && i < size - 1; i++) {
-        to[i] = (from[i] >= 'a' && from[i] <= 'z') ? from[i] - 32 : from[i];
-    }
-    to[i] = '\0';
-}
 
 /* The room boxes: the first (the living room) takes the left half of the plan,
  * the others share the right half. */
@@ -133,7 +107,7 @@ static void tick(lv_timer_t *timer)
         return;
     }
     char caps[24];
-    upper(caps, sizeof caps, shown.headline);
+    ui_upper(caps, sizeof caps, shown.headline);
     lv_label_set_text(pill_label, caps);
     lv_obj_set_style_text_color(pill_label, lv_color_hex(shown.headline_colour), 0);
     lv_obj_set_style_bg_color(pill, lv_color_hex(shown.headline_colour), 0);
@@ -161,65 +135,61 @@ void screen_apple_create(lv_obj_t *screen)
 {
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
-    lv_obj_t *header = text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *header = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(header, 2, 0);
     lv_label_set_text(header, "APPLE DEVICES");
     lv_obj_set_pos(header, LEFT, 30);
-    pill = plain(screen);
+    pill = ui_plain(screen);
     lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_style_pad_hor(pill, 16, 0);
     lv_obj_set_style_pad_ver(pill, 6, 0);
     lv_obj_set_style_radius(pill, 20, 0);
     lv_obj_set_style_bg_opa(pill, 50, 0);
     lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 22);
-    pill_label = text(pill, &instrument_24, 0xffffff);
-    lv_label_set_long_mode(pill_label, LV_LABEL_LONG_WRAP);
+    pill_label = ui_text(pill, &instrument_24, 0xffffff);
     lv_obj_set_style_text_letter_space(pill_label, 1, 0);
 
     for (int i = 0; i < 3; i++) {
-        lv_obj_t *box = rooms[i].box = plain(screen);
+        lv_obj_t *box = rooms[i].box = ui_plain(screen);
         lv_obj_set_style_radius(box, 22, 0);
         lv_obj_set_style_border_width(box, 2, 0);
         lv_obj_set_style_shadow_width(box, 40, 0);
-        rooms[i].name = text(box, &instrument_28_bold, 0xb4b1c2);
-        lv_obj_set_width(rooms[i].name, (WIDTH - GAP) / 2 - 48);
+        rooms[i].name = ui_one_line(box, &instrument_28_bold, 0xb4b1c2, (WIDTH - GAP) / 2 - 48);
         lv_obj_set_pos(rooms[i].name, 22, 18);
 
         /* The devices, in a row in the middle of the room, under its name. */
-        lv_obj_t *row = plain(box);
+        lv_obj_t *row = ui_plain(box);
         lv_obj_set_size(row, LV_PCT(100), ORB);
         lv_obj_align(row, LV_ALIGN_CENTER, 0, 26);
         lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);
         lv_obj_set_flex_align(row, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
         lv_obj_set_style_pad_column(row, 14, 0);
         for (int d = 0; d < 4; d++) {
-            lv_obj_t *orb = rooms[i].orbs[d] = plain(row);
+            lv_obj_t *orb = rooms[i].orbs[d] = ui_plain(row);
             lv_obj_set_size(orb, ORB, ORB);
             lv_obj_set_style_radius(orb, LV_RADIUS_CIRCLE, 0);
             lv_obj_set_style_bg_opa(orb, LV_OPA_COVER, 0);
             lv_obj_set_style_border_width(orb, 3, 0);
-            rooms[i].glyphs[d] = plain(orb);
+            rooms[i].glyphs[d] = ui_plain(orb);
             lv_obj_set_style_bg_opa(rooms[i].glyphs[d], LV_OPA_COVER, 0);
         }
         lv_obj_add_flag(box, LV_OBJ_FLAG_HIDDEN);
     }
 
     /* What plays, in a bar under the plan. */
-    bar = plain(screen);
+    bar = ui_plain(screen);
     lv_obj_set_size(bar, WIDTH, 132);
     lv_obj_set_pos(bar, LEFT, TOP + PLAN_H + 24);
     lv_obj_set_style_radius(bar, 22, 0);
     lv_obj_set_style_clip_corner(bar, true, 0);
     lv_obj_set_style_bg_opa(bar, LV_OPA_COVER, 0);
     lv_obj_set_style_bg_color(bar, lv_color_hex(0x101015), 0);
-    bar_stripe = plain(bar);
+    bar_stripe = ui_plain(bar);
     lv_obj_set_size(bar_stripe, 10, LV_PCT(100));
     lv_obj_set_style_bg_opa(bar_stripe, LV_OPA_COVER, 0);
-    bar_title = text(bar, &instrument_28_bold, 0xffffff);
-    lv_obj_set_width(bar_title, WIDTH - 72);
+    bar_title = ui_one_line(bar, &instrument_28_bold, 0xffffff, WIDTH - 72);
     lv_obj_set_pos(bar_title, 36, 28);
-    bar_where = text(bar, &instrument_24, 0xb4b1c2);
-    lv_obj_set_width(bar_where, WIDTH - 72);
+    bar_where = ui_one_line(bar, &instrument_24, 0xb4b1c2, WIDTH - 72);
     lv_obj_set_pos(bar_where, 36, 74);
 
     lv_timer_create(tick, 1000, NULL);

@@ -16,6 +16,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_40);
@@ -39,32 +40,6 @@ static lv_obj_t *sheet, *sheet_name, *sheet_value, *slider;
 static int sheet_group = -1;
 static bool held; /* a long press opened the sheet: the release is no tap */
 EXT_RAM_BSS_ATTR static desk_lights_t shown; /* off the LVGL task's small stack */
-
-static lv_obj_t *plain(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
-
-static void upper(char *to, size_t size, const char *from)
-{
-    size_t i = 0;
-    for (; from[i] && i < size - 1; i++) {
-        to[i] = (from[i] >= 'a' && from[i] <= 'z') ? from[i] - 32 : from[i];
-    }
-    to[i] = '\0';
-}
 
 /* How a tile looks: lit in its white with a glow, or dark and quiet. */
 static void paint_tile(int i)
@@ -106,9 +81,9 @@ static void paint_whites(void)
 static void paint(void)
 {
     char caps[48];
-    upper(caps, sizeof caps, shown.title);
+    ui_upper(caps, sizeof caps, shown.title);
     lv_label_set_text(title, caps);
-    upper(caps, sizeof caps, shown.count);
+    ui_upper(caps, sizeof caps, shown.count);
     lv_label_set_text(count, caps);
     for (int i = 0; i < DESK_LIGHT_GROUPS; i++) {
         lv_obj_set_flag(tiles[i].tile, LV_OBJ_FLAG_HIDDEN, i >= shown.group_count);
@@ -120,7 +95,7 @@ static void paint(void)
     if (shown.has_whites) {
         char line[48];
         snprintf(line, sizeof line, "%s white", shown.whites_name);
-        upper(caps, sizeof caps, line);
+        ui_upper(caps, sizeof caps, line);
         lv_label_set_text(whites_label, caps);
     }
     paint_whites();
@@ -234,17 +209,17 @@ void screen_lights_create(lv_obj_t *screen)
 {
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
-    title = text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 24);
-    count = text(screen, &instrument_24, 0x8a8794);
+    count = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(count, 2, 0);
     lv_obj_align(count, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
 
     /* Up to four tiles, two side by side. */
     int tile_width = (WIDTH - TILE_GAP) / 2;
     for (int i = 0; i < DESK_LIGHT_GROUPS; i++) {
-        lv_obj_t *tile = tiles[i].tile = plain(screen);
+        lv_obj_t *tile = tiles[i].tile = ui_plain(screen);
         lv_obj_set_size(tile, tile_width, i < 2 ? TILE_HEIGHT : TILE_HEIGHT / 2);
         lv_obj_set_pos(tile, LEFT + (i % 2) * (tile_width + TILE_GAP),
                        TILE_TOP + (i / 2) * (TILE_HEIGHT + TILE_GAP));
@@ -263,13 +238,13 @@ void screen_lights_create(lv_obj_t *screen)
         lv_obj_set_style_image_recolor_opa(tiles[i].glow, LV_OPA_COVER, 0);
         lv_obj_set_style_image_opa(tiles[i].glow, 110, 0);
 
-        tiles[i].name = text(tile, &instrument_40, 0xffffff);
+        tiles[i].name = ui_text(tile, &instrument_40, 0xffffff);
         lv_label_set_long_mode(tiles[i].name, LV_LABEL_LONG_WRAP);
         lv_obj_set_width(tiles[i].name, tile_width - 72);
         lv_obj_set_pos(tiles[i].name, 26, 22);
-        tiles[i].line = text(tile, &instrument_24, 0xd6d3df);
+        tiles[i].line = ui_text(tile, &instrument_24, 0xd6d3df);
         lv_obj_align(tiles[i].line, LV_ALIGN_BOTTOM_LEFT, 26, -24);
-        tiles[i].dot = plain(tile);
+        tiles[i].dot = ui_plain(tile);
         lv_obj_set_size(tiles[i].dot, 18, 18);
         lv_obj_set_style_radius(tiles[i].dot, LV_RADIUS_CIRCLE, 0);
         lv_obj_set_style_bg_opa(tiles[i].dot, LV_OPA_COVER, 0);
@@ -279,17 +254,17 @@ void screen_lights_create(lv_obj_t *screen)
 
     /* The row of whites, warm to cool. */
     int row_top = TILE_TOP + TILE_HEIGHT + 28;
-    whites_label = text(screen, &instrument_24, 0x8a8794);
+    whites_label = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(whites_label, 2, 0);
     lv_obj_set_pos(whites_label, LEFT, row_top);
-    whites_row = plain(screen);
+    whites_row = ui_plain(screen);
     lv_obj_set_size(whites_row, 0, WHITE + 16);
     lv_obj_set_flex_flow(whites_row, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(whites_row, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_column(whites_row, 14, 0);
     lv_obj_set_style_pad_all(whites_row, 8, 0);
     for (int i = 0; i < DESK_WHITES; i++) {
-        lv_obj_t *white = whites[i] = plain(whites_row);
+        lv_obj_t *white = whites[i] = ui_plain(whites_row);
         lv_obj_set_size(white, WHITE, WHITE);
         lv_obj_set_style_radius(white, LV_RADIUS_CIRCLE, 0);
         lv_obj_set_style_bg_opa(white, LV_OPA_COVER, 0);
@@ -302,7 +277,7 @@ void screen_lights_create(lv_obj_t *screen)
     }
 
     /* The whole room at once. */
-    room_button = plain(screen);
+    room_button = ui_plain(screen);
     lv_obj_set_size(room_button, WIDTH, 96);
     lv_obj_align(room_button, LV_ALIGN_BOTTOM_MID, 0, -48);
     lv_obj_set_style_radius(room_button, 48, 0);
@@ -313,7 +288,7 @@ void screen_lights_create(lv_obj_t *screen)
     lv_obj_set_style_border_opa(room_button, 30, 0);
     lv_obj_add_flag(room_button, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_add_event_cb(room_button, on_room, LV_EVENT_CLICKED, NULL);
-    room_label = text(room_button, &instrument_28_bold, 0xf1eff7);
+    room_label = ui_text(room_button, &instrument_28_bold, 0xf1eff7);
     lv_obj_center(room_label);
 
     /* The brightness sheet: a card over a dark veil, opened by holding a tile. */
@@ -325,16 +300,16 @@ void screen_lights_create(lv_obj_t *screen)
     lv_obj_add_flag(sheet, LV_OBJ_FLAG_HIDDEN);
     lv_obj_remove_flag(sheet, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_event_cb(sheet, on_backdrop, LV_EVENT_CLICKED, NULL);
-    lv_obj_t *card = plain(sheet);
+    lv_obj_t *card = ui_plain(sheet);
     lv_obj_set_size(card, WIDTH, 300);
     lv_obj_align(card, LV_ALIGN_BOTTOM_MID, 0, -36);
     lv_obj_set_style_radius(card, 32, 0);
     lv_obj_set_style_bg_opa(card, LV_OPA_COVER, 0);
     lv_obj_set_style_bg_color(card, lv_color_hex(0x1b1a21), 0);
     lv_obj_add_flag(card, LV_OBJ_FLAG_CLICKABLE); /* taps on the card stay on the card */
-    sheet_name = text(card, &instrument_40, 0xffffff);
+    sheet_name = ui_text(card, &instrument_40, 0xffffff);
     lv_obj_set_pos(sheet_name, 36, 30);
-    sheet_value = text(card, &instrument_52_bold, 0xffffff);
+    sheet_value = ui_text(card, &instrument_52_bold, 0xffffff);
     lv_obj_align(sheet_value, LV_ALIGN_TOP_RIGHT, -36, 22);
     slider = lv_slider_create(card);
     lv_obj_set_size(slider, WIDTH - 96, 44);
@@ -348,7 +323,7 @@ void screen_lights_create(lv_obj_t *screen)
     lv_obj_remove_flag(slider, LV_OBJ_FLAG_GESTURE_BUBBLE); /* sliding is not swiping */
     lv_obj_add_event_cb(slider, on_slide, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(slider, on_slide_done, LV_EVENT_RELEASED, NULL);
-    lv_obj_t *close = text(card, &instrument_24, 0x8a8794);
+    lv_obj_t *close = ui_text(card, &instrument_24, 0x8a8794);
     lv_label_set_text(close, "Tap beside the card to close");
     lv_obj_align(close, LV_ALIGN_BOTTOM_MID, 0, -16);
 

@@ -13,6 +13,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -42,23 +43,6 @@ typedef struct {
 static lv_obj_t *sky, *title, *pill, *pill_text;
 static tile_t tiles[DESK_SITES];
 EXT_RAM_BSS_ATTR static desk_sites_t shown; /* off the LVGL task's small stack */
-
-static lv_obj_t *plain(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
 
 /* A day's colour as painted over the tile: a healthy day a quiet green, a blip amber,
  * an outage red, and a day without a record barely there. */
@@ -155,23 +139,23 @@ void screen_sites_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    title = text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
 
-    pill = plain(screen);
+    pill = ui_plain(screen);
     lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_style_pad_hor(pill, 16, 0);
     lv_obj_set_style_pad_ver(pill, 4, 0);
     lv_obj_set_style_radius(pill, 20, 0);
     lv_obj_set_style_border_width(pill, 2, 0);
     lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
-    pill_text = text(pill, &instrument_24, GREEN);
+    pill_text = ui_text(pill, &instrument_24, GREEN);
     lv_obj_set_style_text_letter_space(pill_text, 2, 0);
 
     for (int i = 0; i < DESK_SITES; i++) {
         tile_t *t = &tiles[i];
-        t->box = plain(screen);
+        t->box = ui_plain(screen);
         lv_obj_set_size(t->box, TILE_W, TILE_H);
         lv_obj_set_pos(t->box, LEFT + (i % 2) * (TILE_W + GAP), TOP + (i / 2) * (TILE_H + GAP));
         lv_obj_set_style_radius(t->box, 18, 0);
@@ -179,18 +163,16 @@ void screen_sites_create(lv_obj_t *screen)
         lv_obj_set_style_border_width(t->box, 1, 0);
         lv_obj_add_flag(t->box, LV_OBJ_FLAG_HIDDEN);
 
-        t->dot = plain(t->box);
+        t->dot = ui_plain(t->box);
         lv_obj_set_size(t->dot, 12, 12);
         lv_obj_set_style_radius(t->dot, 6, 0);
         lv_obj_set_style_bg_opa(t->dot, LV_OPA_COVER, 0);
         lv_obj_set_pos(t->dot, PAD, PAD + 11);
-        t->name = text(t->box, &instrument_28_bold, 0xf1eff7);
-        lv_label_set_long_mode(t->name, LV_LABEL_LONG_DOT);
-        lv_obj_set_width(t->name, TILE_W - PAD * 2 - 22);
+        t->name = ui_one_line(t->box, &instrument_28_bold, 0xf1eff7, TILE_W - PAD * 2 - 22);
         lv_obj_set_pos(t->name, PAD + 22, PAD);
-        t->left = text(t->box, &instrument_24, 0x8a8794);
+        t->left = ui_text(t->box, &instrument_24, 0x8a8794);
         lv_obj_set_pos(t->left, PAD, 62);
-        t->right = text(t->box, &instrument_24, 0x8a8794);
+        t->right = ui_text(t->box, &instrument_24, 0x8a8794);
         lv_obj_align(t->right, LV_ALIGN_TOP_RIGHT, -PAD, 62);
 
         t->strip = lv_canvas_create(t->box);

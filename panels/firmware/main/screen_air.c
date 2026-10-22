@@ -17,6 +17,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_clock);
 LV_FONT_DECLARE(instrument_52_bold);
@@ -39,24 +40,6 @@ LV_IMAGE_DECLARE(glow_sky);
 static lv_obj_t *ring, *canvas, *header, *outside, *temperature, *humidity, *dust, *quality, *co2, *unit,
     *word, *axis_start, *axis_end;
 EXT_RAM_BSS_ATTR static desk_air_t shown; /* off the LVGL task's small stack */
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
-
-static void upper(char *to, size_t size, const char *from)
-{
-    size_t i = 0;
-    for (; from[i] && i < size - 1; i++) {
-        to[i] = (from[i] >= 'a' && from[i] <= 'z') ? from[i] - 32 : from[i];
-    }
-    to[i] = '\0';
-}
 
 static int angle(int share) /* share 0 to 1000 along the ring */
 {
@@ -177,9 +160,9 @@ static void tick(lv_timer_t *timer)
     }
     char caps[48];
     snprintf(caps, sizeof caps, "%s  ·  AIR", shown.room);
-    upper(caps, sizeof caps, caps);
+    ui_upper(caps, sizeof caps, caps);
     lv_label_set_text(header, caps);
-    upper(caps, sizeof caps, shown.outside);
+    ui_upper(caps, sizeof caps, shown.outside);
     lv_label_set_text(outside, caps);
     lv_label_set_text(temperature, shown.temperature);
     lv_label_set_text_fmt(humidity, "%s%s", shown.humidity, shown.humidity[0] ? "  humidity" : "");
@@ -211,20 +194,20 @@ void screen_air_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 70, 0);
 
-    header = text(screen, &instrument_24, 0x8a8794);
+    header = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(header, 2, 0);
     lv_obj_set_pos(header, LEFT, 30);
-    outside = text(screen, &instrument_24, 0x8a8794);
+    outside = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(outside, 2, 0);
     lv_obj_align(outside, LV_ALIGN_TOP_RIGHT, -LEFT, 30);
 
-    temperature = text(screen, &instrument_clock, 0xffffff);
+    temperature = ui_text(screen, &instrument_clock, 0xffffff);
     lv_obj_set_pos(temperature, LEFT - 6, 104);
-    humidity = text(screen, &instrument_28_bold, 0xd8d6e0);
+    humidity = ui_text(screen, &instrument_28_bold, 0xd8d6e0);
     lv_obj_set_pos(humidity, LEFT, 296);
-    dust = text(screen, &instrument_28_bold, 0xd8d6e0);
+    dust = ui_text(screen, &instrument_28_bold, 0xd8d6e0);
     lv_obj_set_pos(dust, LEFT, 340);
-    quality = text(screen, &instrument_24, 0x8a8794);
+    quality = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_pos(quality, LEFT, 384);
 
     ring = lv_obj_create(screen);
@@ -232,22 +215,22 @@ void screen_air_create(lv_obj_t *screen)
     lv_obj_set_size(ring, 720, 720);
     lv_obj_remove_flag(ring, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(ring, draw_ring, LV_EVENT_DRAW_MAIN, NULL);
-    co2 = text(screen, &instrument_52_bold, 0xffffff);
+    co2 = ui_text(screen, &instrument_52_bold, 0xffffff);
     lv_obj_align(co2, LV_ALIGN_TOP_MID, CX - 360, CY - 40);
-    unit = text(screen, &instrument_24, 0x8a8794);
+    unit = ui_text(screen, &instrument_24, 0x8a8794);
     lv_label_set_text(unit, "ppm CO2");
     lv_obj_align(unit, LV_ALIGN_TOP_MID, CX - 360, CY + 22);
-    word = text(screen, &instrument_28_bold, 0x8a8794);
+    word = ui_text(screen, &instrument_28_bold, 0x8a8794);
     lv_obj_align(word, LV_ALIGN_TOP_MID, CX - 360, CY + R + 22);
 
     canvas = lv_canvas_create(screen);
     lv_canvas_set_draw_buf(canvas, lv_draw_buf_create(CHART_WIDTH, CHART_HEIGHT, LV_COLOR_FORMAT_RGB888, 0));
     lv_obj_set_pos(canvas, LEFT, CHART_TOP);
     lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_COVER);
-    axis_start = text(screen, &instrument_24, 0x8a8794);
+    axis_start = ui_text(screen, &instrument_24, 0x8a8794);
     lv_label_set_text(axis_start, "8 h ago");
     lv_obj_set_pos(axis_start, LEFT, CHART_TOP + CHART_HEIGHT + 12);
-    axis_end = text(screen, &instrument_24, 0x8a8794);
+    axis_end = ui_text(screen, &instrument_24, 0x8a8794);
     lv_label_set_text(axis_end, "now");
     lv_obj_align(axis_end, LV_ALIGN_TOP_RIGHT, -LEFT, CHART_TOP + CHART_HEIGHT + 12);
 

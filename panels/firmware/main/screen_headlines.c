@@ -13,9 +13,9 @@
 #include "actions.h"
 #include "desk.h"
 #include "esp_attr.h"
-#include "esp_heap_caps.h"
 #include "lvgl.h"
 #include "pictures.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -35,26 +35,8 @@ static struct {
 } rows[2];
 static lv_obj_t *marks[DESK_STORIES];  /* the bookmarks; their user data: filled or not */
 static bool tapped[DESK_STORIES];      /* filled by a tap, until the hub says saved */
-static picture_t showing[PICTURE_SLOTS];
-static lv_image_dsc_t images[PICTURE_SLOTS];
+static ui_picture_t pictures[3]; /* the lead, the two rows */
 EXT_RAM_BSS_ATTR static desk_headlines_t shown; /* off the LVGL task's small stack */
-
-static lv_obj_t *plain(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
 
 /* The bookmark, as in the mockup: an outline, filled in violet once saved. */
 static void draw_bookmark(lv_event_t *event)
@@ -99,7 +81,7 @@ static void draw_bookmark(lv_event_t *event)
 
 static lv_obj_t *bookmark(lv_obj_t *parent, lv_align_t align, int x, int y)
 {
-    lv_obj_t *mark = plain(parent);
+    lv_obj_t *mark = ui_plain(parent);
     lv_obj_set_size(mark, 26, 34);
     lv_obj_align(mark, align, x, y);
     lv_obj_add_event_cb(mark, draw_bookmark, LV_EVENT_DRAW_MAIN, NULL);
@@ -131,47 +113,14 @@ static void on_tap(lv_event_t *event)
     screen_headlines_tap((int)(intptr_t)lv_event_get_user_data(event));
 }
 
-static void upper(char *to, size_t size, const char *from)
-{
-    size_t i = 0;
-    for (; from[i] && i < size - 1; i++) {
-        to[i] = (from[i] >= 'a' && from[i] <= 'z') ? from[i] - 32 : from[i];
-    }
-    to[i] = '\0';
-}
-
 /* Swap in a newer picture for a slot, then free the one it replaces. */
-static void take_picture(int slot, lv_obj_t *image)
-{
-    picture_t fresh;
-    if (!pictures_take(slot, &fresh)) {
-        return;
-    }
-    picture_t old = showing[slot];
-    showing[slot] = fresh;
-    if (fresh.pixels) {
-        images[slot] = (lv_image_dsc_t){
-            .header = {.magic = LV_IMAGE_HEADER_MAGIC, .cf = LV_COLOR_FORMAT_RGB888, .w = fresh.width,
-                       .h = fresh.height, .stride = fresh.width * 3},
-            .data_size = fresh.width * fresh.height * 3,
-            .data = fresh.pixels,
-        };
-        lv_image_set_src(image, &images[slot]);
-        lv_image_cache_drop(&images[slot]);
-    } else {
-        lv_image_set_src(image, NULL);
-    }
-    lv_obj_set_flag(image, LV_OBJ_FLAG_HIDDEN, fresh.pixels == NULL);
-    heap_caps_free(old.pixels);
-}
-
 static void tick(lv_timer_t *timer)
 {
-    take_picture(0, lead_image);
-    take_picture(1, rows[0].image);
-    take_picture(2, rows[1].image);
+    for (int i = 0; i < 3; i++) {
+        ui_take_picture(i, &pictures[i]);
+    }
     for (int i = 0; i < 2; i++) {
-        lv_obj_set_flag(rows[i].placeholder, LV_OBJ_FLAG_HIDDEN, showing[i + 1].pixels != NULL);
+        lv_obj_set_flag(rows[i].placeholder, LV_OBJ_FLAG_HIDDEN, pictures[i + 1].showing.pixels != NULL);
     }
 
     /* A tap that failed empties its bookmark again. */
@@ -214,7 +163,7 @@ static void tick(lv_timer_t *timer)
         if (there) {
             char line[64];
             snprintf(line, sizeof line, "%s · %s", shown.stories[i + 1].source, shown.stories[i + 1].age);
-            upper(caps, sizeof caps, line);
+            ui_upper(caps, sizeof caps, line);
             lv_label_set_text(rows[i].kicker, caps);
             lv_label_set_text(rows[i].title, shown.stories[i + 1].title);
         }
@@ -227,7 +176,7 @@ void screen_headlines_create(lv_obj_t *screen)
 
     /* The lead: its picture with a dark fade under the title; a calm violet
      * gradient when it has none. */
-    lead = plain(screen);
+    lead = ui_plain(screen);
     lv_obj_set_pos(lead, LEFT, LEAD_TOP);
     lv_obj_set_size(lead, WIDTH, LEAD_HEIGHT);
     lv_obj_set_style_radius(lead, 24, 0);
@@ -236,12 +185,12 @@ void screen_headlines_create(lv_obj_t *screen)
     lv_obj_set_style_bg_color(lead, lv_color_hex(0x2a2550), 0);
     lv_obj_set_style_bg_grad_color(lead, lv_color_hex(0x121118), 0);
     lv_obj_set_style_bg_grad_dir(lead, LV_GRAD_DIR_VER, 0);
-    lead_image = lv_image_create(lead);
+    lead_image = pictures[0].image = lv_image_create(lead);
     lv_obj_set_pos(lead_image, 0, 0);
     lv_obj_add_flag(lead_image, LV_OBJ_FLAG_HIDDEN);
 
     /* A softer fade at the top, so the badge, age and bookmark read on a bright picture. */
-    lv_obj_t *shade = plain(lead);
+    lv_obj_t *shade = ui_plain(lead);
     lv_obj_set_size(shade, WIDTH, 110);
     lv_obj_align(shade, LV_ALIGN_TOP_MID, 0, 0);
     lv_obj_set_style_bg_opa(shade, LV_OPA_COVER, 0);
@@ -251,7 +200,7 @@ void screen_headlines_create(lv_obj_t *screen)
     lv_obj_set_style_bg_main_opa(shade, 150, 0);
     lv_obj_set_style_bg_grad_opa(shade, 0, 0);
 
-    lv_obj_t *fade = plain(lead);
+    lv_obj_t *fade = ui_plain(lead);
     lv_obj_set_size(fade, WIDTH, 220);
     lv_obj_align(fade, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_set_style_bg_opa(fade, LV_OPA_COVER, 0);
@@ -262,24 +211,24 @@ void screen_headlines_create(lv_obj_t *screen)
     lv_obj_set_style_bg_grad_opa(fade, 220, 0);
 
     /* The source as a badge, its age beside it, the bookmark on the right. */
-    lv_obj_t *top = plain(lead);
+    lv_obj_t *top = ui_plain(lead);
     lv_obj_set_pos(top, 24, 22);
     lv_obj_set_size(top, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(top, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(top, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_column(top, 14, 0);
-    badge = text(top, &instrument_28_bold, 0xf1eff7);
+    badge = ui_text(top, &instrument_28_bold, 0xf1eff7);
     lv_obj_set_style_bg_opa(badge, 150, 0);
     lv_obj_set_style_bg_color(badge, lv_color_hex(0x121118), 0);
     lv_obj_set_style_radius(badge, 18, 0);
     lv_obj_set_style_pad_hor(badge, 14, 0);
     lv_obj_set_style_pad_ver(badge, 4, 0);
-    lead_age = text(top, &instrument_24, 0xe6e3ef);
+    lead_age = ui_text(top, &instrument_24, 0xe6e3ef);
     marks[0] = bookmark(lead, LV_ALIGN_TOP_RIGHT, -22, 20);
     lv_obj_add_flag(lead, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_add_event_cb(lead, on_tap, LV_EVENT_CLICKED, (void *)0);
 
-    lead_title = text(lead, &instrument_40, 0xffffff);
+    lead_title = ui_text(lead, &instrument_40, 0xffffff);
     lv_label_set_long_mode(lead_title, LV_LABEL_LONG_DOT);
     lv_obj_set_size(lead_title, WIDTH - 48, 3 * 48);
     lv_obj_set_style_text_line_space(lead_title, -2, 0);
@@ -287,26 +236,26 @@ void screen_headlines_create(lv_obj_t *screen)
 
     /* Two more, each with its thumbnail. */
     for (int i = 0; i < 2; i++) {
-        lv_obj_t *row = rows[i].row = plain(screen);
+        lv_obj_t *row = rows[i].row = ui_plain(screen);
         lv_obj_set_pos(row, LEFT, ROW_TOP + i * ROW_HEIGHT);
         lv_obj_set_size(row, WIDTH, THUMB);
-        lv_obj_t *frame = plain(row);
+        lv_obj_t *frame = ui_plain(row);
         lv_obj_set_size(frame, THUMB, THUMB);
         lv_obj_set_style_radius(frame, 18, 0);
         lv_obj_set_style_clip_corner(frame, true, 0);
-        rows[i].placeholder = plain(frame);
+        rows[i].placeholder = ui_plain(frame);
         lv_obj_set_size(rows[i].placeholder, THUMB, THUMB);
         lv_obj_set_style_bg_opa(rows[i].placeholder, LV_OPA_COVER, 0);
         lv_obj_set_style_bg_color(rows[i].placeholder, lv_color_hex(0x2a2550), 0);
         lv_obj_set_style_bg_grad_color(rows[i].placeholder, lv_color_hex(0x16151c), 0);
         lv_obj_set_style_bg_grad_dir(rows[i].placeholder, LV_GRAD_DIR_VER, 0);
-        rows[i].image = lv_image_create(frame);
+        rows[i].image = pictures[i + 1].image = lv_image_create(frame);
         lv_obj_add_flag(rows[i].image, LV_OBJ_FLAG_HIDDEN);
 
-        rows[i].kicker = text(row, &instrument_24, 0x8a8794);
+        rows[i].kicker = ui_text(row, &instrument_24, 0x8a8794);
         lv_obj_set_style_text_letter_space(rows[i].kicker, 2, 0);
         lv_obj_set_pos(rows[i].kicker, THUMB + 24, 0);
-        rows[i].title = text(row, &instrument_28_bold, 0xf1eff7);
+        rows[i].title = ui_text(row, &instrument_28_bold, 0xf1eff7);
         lv_label_set_long_mode(rows[i].title, LV_LABEL_LONG_DOT);
         lv_obj_set_size(rows[i].title, WIDTH - THUMB - 24 - 56, 2 * 36);
         lv_obj_set_pos(rows[i].title, THUMB + 24, 34);

@@ -11,6 +11,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -29,23 +30,6 @@ typedef struct {
 static lv_obj_t *title, *total, *indices, *index_labels[DESK_INDICES], *index_changes[DESK_INDICES];
 static tile_t tiles[DESK_MOVER_TILES];
 EXT_RAM_BSS_ATTR static desk_movers_t shown; /* off the LVGL task's small stack */
-
-static lv_obj_t *plain(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
 
 /* `colour` at `opa` (0 to 255) over the black screen. */
 static lv_color_t over_black(uint32_t colour, int opa)
@@ -138,42 +122,42 @@ void screen_movers_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    title = text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
-    total = text(screen, &instrument_24, 0x8a8794);
+    total = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_align(total, LV_ALIGN_TOP_RIGHT, -LEFT, 30);
 
     for (int i = 0; i < DESK_MOVER_TILES; i++) {
         tile_t *t = &tiles[i];
-        t->box = plain(screen);
+        t->box = ui_plain(screen);
         lv_obj_set_style_radius(t->box, 14, 0);
         lv_obj_set_style_bg_opa(t->box, LV_OPA_COVER, 0);
         lv_obj_set_style_bg_grad_dir(t->box, LV_GRAD_DIR_VER, 0);
         lv_obj_set_style_border_width(t->box, 1, 0);
         lv_obj_add_flag(t->box, LV_OBJ_FLAG_HIDDEN);
-        t->ticker = text(t->box, &instrument_24, 0xf1eff7);
+        t->ticker = ui_text(t->box, &instrument_24, 0xf1eff7);
         lv_label_set_long_mode(t->ticker, LV_LABEL_LONG_CLIP);
-        t->change = text(t->box, &instrument_24, 0xf1eff7);
-        t->name = text(t->box, &instrument_24, 0xc9c6d6);
+        t->change = ui_text(t->box, &instrument_24, 0xf1eff7);
+        t->name = ui_text(t->box, &instrument_24, 0xc9c6d6);
         lv_label_set_long_mode(t->name, LV_LABEL_LONG_DOT);
     }
 
     /* The indices, spread over the bottom line. */
-    indices = plain(screen);
+    indices = ui_plain(screen);
     lv_obj_set_size(indices, 648, LV_SIZE_CONTENT);
     lv_obj_set_pos(indices, LEFT, 660);
     lv_obj_set_layout(indices, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(indices, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(indices, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     for (int i = 0; i < DESK_INDICES; i++) {
-        lv_obj_t *pair = plain(indices);
+        lv_obj_t *pair = ui_plain(indices);
         lv_obj_set_size(pair, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
         lv_obj_set_layout(pair, LV_LAYOUT_FLEX);
         lv_obj_set_flex_flow(pair, LV_FLEX_FLOW_ROW);
         lv_obj_set_style_pad_column(pair, 10, 0);
-        index_labels[i] = text(pair, &instrument_24, 0xa7a7b4);
-        index_changes[i] = text(pair, &instrument_24, 0x5fd39c);
+        index_labels[i] = ui_text(pair, &instrument_24, 0xa7a7b4);
+        index_changes[i] = ui_text(pair, &instrument_24, 0x5fd39c);
     }
 
     lv_timer_create(tick, 1000, NULL);

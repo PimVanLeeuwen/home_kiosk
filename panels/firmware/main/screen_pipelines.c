@@ -8,6 +8,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -27,23 +28,6 @@ static struct {
     lv_obj_t *row, *dot, *name, *line, *bars[10];
 } rows[3];
 EXT_RAM_BSS_ATTR static desk_pipelines_t shown; /* off the LVGL task's small stack */
-
-static lv_obj_t *plain(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
 
 static void tick(lv_timer_t *timer)
 {
@@ -91,35 +75,35 @@ void screen_pipelines_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    lv_obj_t *title = text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *title = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_label_set_text(title, "PIPELINES");
     lv_obj_set_pos(title, LEFT, 30);
-    lv_obj_t *right = text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *right = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(right, 2, 0);
     lv_label_set_text(right, "LAST 10 RUNS ON MAIN");
     lv_obj_align(right, LV_ALIGN_TOP_RIGHT, -LEFT, 30);
 
     for (int i = 0; i < 3; i++) {
-        lv_obj_t *row = rows[i].row = plain(screen);
+        lv_obj_t *row = rows[i].row = ui_plain(screen);
         lv_obj_set_size(row, 720, 120);
         lv_obj_set_pos(row, 0, ROW_TOP + i * ROW_STEP);
-        rows[i].dot = plain(row);
+        rows[i].dot = ui_plain(row);
         lv_obj_set_size(rows[i].dot, 20, 20);
         lv_obj_set_pos(rows[i].dot, LEFT + 4, 10);
         lv_obj_set_style_radius(rows[i].dot, LV_RADIUS_CIRCLE, 0);
         lv_obj_set_style_bg_opa(rows[i].dot, LV_OPA_COVER, 0);
-        rows[i].name = text(row, &instrument_28_bold, 0xffffff);
+        rows[i].name = ui_text(row, &instrument_28_bold, 0xffffff);
         lv_obj_set_pos(rows[i].name, LEFT + 40, 0);
-        rows[i].line = text(row, &instrument_24, 0x8a8794);
+        rows[i].line = ui_text(row, &instrument_24, 0x8a8794);
         lv_obj_set_pos(rows[i].line, LEFT + 40, 44);
         for (int b = 0; b < 10; b++) {
-            lv_obj_t *bar = rows[i].bars[b] = plain(row);
+            lv_obj_t *bar = rows[i].bars[b] = ui_plain(row);
             lv_obj_set_style_radius(bar, 4, 0);
         }
     }
 
-    lv_obj_t *note = text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *note = ui_text(screen, &instrument_24, 0x8a8794);
     lv_label_set_text(note, "Bar height is run time; red is a failed run");
     lv_obj_set_pos(note, LEFT, 664);
 

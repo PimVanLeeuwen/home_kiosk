@@ -14,6 +14,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -35,23 +36,6 @@ static const uint32_t LEVELS[5] = {0x17161d, 0x2b2655, 0x4a4191, 0x8074d5, 0xc3b
 
 static lv_obj_t *canvas, *title, *right, *months[6], *bars[16], *this_week, *streak, *busiest;
 EXT_RAM_BSS_ATTR static desk_code_t shown; /* off the LVGL task's small stack */
-
-static lv_obj_t *plain(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
 
 /* One pixel of the grid canvas (ARGB8888, stored blue first). */
 static void paint(lv_draw_buf_t *buf, int x, int y, uint32_t colour)
@@ -141,15 +125,15 @@ void screen_code_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    title = text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
-    right = text(screen, &instrument_24, 0x8a8794);
+    right = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(right, 2, 0);
     lv_obj_align(right, LV_ALIGN_TOP_RIGHT, -LEFT, 30);
 
     for (int m = 0; m < 6; m++) {
-        months[m] = text(screen, &instrument_24, 0x6c6a78);
+        months[m] = ui_text(screen, &instrument_24, 0x6c6a78);
     }
     canvas = lv_canvas_create(screen);
     lv_canvas_set_draw_buf(canvas, lv_draw_buf_create(GRID_WIDTH, GRID_HEIGHT, LV_COLOR_FORMAT_ARGB8888, 0));
@@ -157,24 +141,24 @@ void screen_code_create(lv_obj_t *screen)
     memset(lv_canvas_get_draw_buf(canvas)->data, 0, lv_canvas_get_draw_buf(canvas)->header.stride * GRID_HEIGHT);
 
     for (int w = 0; w < 16; w++) {
-        bars[w] = plain(screen);
+        bars[w] = ui_plain(screen);
         lv_obj_set_style_radius(bars[w], 6, 0);
         lv_obj_add_flag(bars[w], LV_OBJ_FLAG_HIDDEN);
     }
-    lv_obj_t *base = plain(screen);
+    lv_obj_t *base = ui_plain(screen);
     lv_obj_set_size(base, 648, 2);
     lv_obj_set_pos(base, LEFT, BASE + 3);
     lv_obj_set_style_bg_color(base, lv_color_white(), 0);
     lv_obj_set_style_bg_opa(base, 25, 0);
 
-    lv_obj_t *per_week = text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *per_week = ui_text(screen, &instrument_24, 0x8a8794);
     lv_label_set_text(per_week, "per week");
     lv_obj_set_pos(per_week, LEFT, BASE + 16);
-    this_week = text(screen, &instrument_24, 0x8a8794);
+    this_week = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_align(this_week, LV_ALIGN_TOP_RIGHT, -LEFT, BASE + 16);
-    streak = text(screen, &instrument_28_bold, 0xffffff);
+    streak = ui_text(screen, &instrument_28_bold, 0xffffff);
     lv_obj_set_pos(streak, LEFT, 640);
-    busiest = text(screen, &instrument_24, 0xa7a7b4);
+    busiest = ui_text(screen, &instrument_24, 0xa7a7b4);
     lv_obj_align(busiest, LV_ALIGN_TOP_RIGHT, -LEFT, 644);
 
     lv_timer_create(tick, 1000, NULL);

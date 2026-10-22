@@ -13,10 +13,10 @@
 #include "actions.h"
 #include "desk.h"
 #include "esp_attr.h"
-#include "esp_heap_caps.h"
 #include "icons.h"
 #include "lvgl.h"
 #include "pictures.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -29,37 +29,10 @@ LV_IMAGE_DECLARE(glow_round);
 #define COVER 288
 #define RECORD 270
 
-static lv_obj_t *sky, *halo, *cover, *cover_image, *label_device, *title, *subtitle, *progress, *elapsed, *length;
+static lv_obj_t *sky, *halo, *cover, *label_device, *title, *subtitle, *progress, *elapsed, *length;
 static lv_obj_t *play_button, *play_icon, *record_label;
-static picture_t showing;
-static lv_image_dsc_t image;
+static ui_picture_t cover_picture;
 EXT_RAM_BSS_ATTR static desk_playing_t shown; /* off the LVGL task's small stack */
-
-static lv_obj_t *plain(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
-
-static void upper(char *to, size_t size, const char *from)
-{
-    size_t i = 0;
-    for (; from[i] && i < size - 1; i++) {
-        to[i] = (from[i] >= 'a' && from[i] <= 'z') ? from[i] - 32 : from[i];
-    }
-    to[i] = '\0';
-}
 
 static void minutes(char *into, size_t size, int64_t ms)
 {
@@ -104,31 +77,9 @@ static void on_skip(lv_event_t *event)
     actions_music((const char *)lv_event_get_user_data(event));
 }
 
-static void take_cover(void)
-{
-    picture_t fresh;
-    if (!pictures_take(PICTURE_PLAYING, &fresh)) {
-        return;
-    }
-    picture_t old = showing;
-    showing = fresh;
-    if (fresh.pixels) {
-        image = (lv_image_dsc_t){
-            .header = {.magic = LV_IMAGE_HEADER_MAGIC, .cf = LV_COLOR_FORMAT_RGB888, .w = fresh.width,
-                       .h = fresh.height, .stride = fresh.width * 3},
-            .data_size = fresh.width * fresh.height * 3,
-            .data = fresh.pixels,
-        };
-        lv_image_set_src(cover_image, &image);
-        lv_image_cache_drop(&image);
-    }
-    lv_obj_set_flag(cover_image, LV_OBJ_FLAG_HIDDEN, fresh.pixels == NULL);
-    heap_caps_free(old.pixels);
-}
-
 static void tick(lv_timer_t *timer)
 {
-    take_cover();
+    ui_take_picture(PICTURE_PLAYING, &cover_picture);
     static uint32_t version;
     if (desk_playing_version() != version) {
         shown = desk_playing();
@@ -137,7 +88,7 @@ static void tick(lv_timer_t *timer)
             lv_label_set_text(title, shown.title);
             lv_label_set_text(subtitle, shown.subtitle);
             char caps[64];
-            upper(caps, sizeof caps, shown.device);
+            ui_upper(caps, sizeof caps, shown.device);
             lv_label_set_text(label_device, caps);
             lv_obj_set_flag(lv_obj_get_parent(label_device), LV_OBJ_FLAG_HIDDEN, shown.device[0] == '\0');
             lv_obj_set_style_image_recolor(sky, lv_color_hex(shown.colour), 0);
@@ -154,7 +105,7 @@ static void tick(lv_timer_t *timer)
 
 static lv_obj_t *round_button(lv_obj_t *parent, int size, uint32_t fill, lv_opa_t opa)
 {
-    lv_obj_t *button = plain(parent);
+    lv_obj_t *button = ui_plain(parent);
     lv_obj_set_size(button, size, size);
     lv_obj_set_style_radius(button, LV_RADIUS_CIRCLE, 0);
     lv_obj_set_style_bg_color(button, lv_color_hex(fill), 0);
@@ -183,7 +134,7 @@ void screen_playing_create(lv_obj_t *screen)
     lv_obj_set_style_image_opa(halo, 80, 0);
 
     /* The record peeking out behind the cover. */
-    lv_obj_t *record = plain(screen);
+    lv_obj_t *record = ui_plain(screen);
     lv_obj_set_size(record, RECORD, RECORD);
     lv_obj_set_pos(record, LEFT + COVER - RECORD / 2, 36 + (COVER - RECORD) / 2);
     lv_obj_set_style_radius(record, LV_RADIUS_CIRCLE, 0);
@@ -192,30 +143,30 @@ void screen_playing_create(lv_obj_t *screen)
     lv_obj_set_style_border_width(record, 2, 0);
     lv_obj_set_style_border_color(record, lv_color_hex(0x2c2a33), 0);
     for (int r = 210; r >= 120; r -= 30) {
-        lv_obj_t *groove = plain(record);
+        lv_obj_t *groove = ui_plain(record);
         lv_obj_set_size(groove, r, r);
         lv_obj_center(groove);
         lv_obj_set_style_radius(groove, LV_RADIUS_CIRCLE, 0);
         lv_obj_set_style_border_width(groove, 1, 0);
         lv_obj_set_style_border_color(groove, lv_color_hex(0x24222b), 0);
     }
-    record_label = plain(record);
+    record_label = ui_plain(record);
     lv_obj_set_size(record_label, 74, 74);
     lv_obj_center(record_label);
     lv_obj_set_style_radius(record_label, LV_RADIUS_CIRCLE, 0);
     lv_obj_set_style_bg_opa(record_label, LV_OPA_COVER, 0);
 
-    cover = plain(screen);
+    cover = ui_plain(screen);
     lv_obj_set_size(cover, COVER, COVER);
     lv_obj_set_pos(cover, LEFT, 36);
     lv_obj_set_style_radius(cover, 22, 0);
     lv_obj_set_style_clip_corner(cover, true, 0);
     lv_obj_set_style_bg_opa(cover, LV_OPA_COVER, 0);
-    cover_image = lv_image_create(cover);
-    lv_obj_add_flag(cover_image, LV_OBJ_FLAG_HIDDEN);
+    cover_picture.image = lv_image_create(cover);
+    lv_obj_add_flag(cover_picture.image, LV_OBJ_FLAG_HIDDEN);
 
     /* Where it plays, as a pill at the top right. */
-    lv_obj_t *pill = plain(screen);
+    lv_obj_t *pill = ui_plain(screen);
     lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_style_pad_hor(pill, 16, 0);
     lv_obj_set_style_pad_ver(pill, 6, 0);
@@ -226,26 +177,21 @@ void screen_playing_create(lv_obj_t *screen)
     lv_obj_set_style_border_color(pill, lv_color_white(), 0);
     lv_obj_set_style_border_opa(pill, 50, 0);
     lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 36);
-    label_device = text(pill, &instrument_24, 0xe6e3ef);
+    label_device = ui_text(pill, &instrument_24, 0xe6e3ef);
     lv_obj_set_style_text_letter_space(label_device, 1, 0);
 
     /* Title (two lines at most) and artist (one), stacked, so a short title keeps
      * its artist close. */
-    lv_obj_t *words = plain(screen);
+    lv_obj_t *words = ui_plain(screen);
     lv_obj_set_pos(words, LEFT, 344);
     lv_obj_set_size(words, WIDTH, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(words, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_row(words, 8, 0);
-    title = text(words, &instrument_52_bold, 0xffffff);
+    title = ui_text(words, &instrument_52_bold, 0xffffff);
     lv_label_set_long_mode(title, LV_LABEL_LONG_DOT);
     lv_obj_set_width(title, WIDTH);
     lv_obj_set_style_max_height(title, 124, 0);
-    subtitle = text(words, &instrument_24, 0xc9c6d4);
-    lv_label_set_long_mode(subtitle, LV_LABEL_LONG_DOT);
-    lv_obj_set_width(subtitle, WIDTH);
-    /* One line, cut with an ellipsis: without a fixed height it wraps into
-     * the progress bar. */
-    lv_obj_set_height(subtitle, lv_font_get_line_height(&instrument_24));
+    subtitle = ui_one_line(words, &instrument_24, 0xc9c6d4, WIDTH); /* not into the progress bar */
 
     progress = lv_bar_create(screen);
     lv_obj_set_size(progress, WIDTH, 8);
@@ -256,9 +202,9 @@ void screen_playing_create(lv_obj_t *screen)
     lv_obj_set_style_bg_color(progress, lv_color_white(), LV_PART_INDICATOR);
     lv_obj_set_style_radius(progress, 4, LV_PART_MAIN);
     lv_obj_set_style_radius(progress, 4, LV_PART_INDICATOR);
-    elapsed = text(screen, &instrument_24, 0xb4b1c2);
+    elapsed = ui_text(screen, &instrument_24, 0xb4b1c2);
     lv_obj_set_pos(elapsed, LEFT, 538);
-    length = text(screen, &instrument_24, 0xb4b1c2);
+    length = ui_text(screen, &instrument_24, 0xb4b1c2);
     lv_obj_align(length, LV_ALIGN_TOP_RIGHT, -LEFT, 538);
 
     /* Previous, play or pause, next. */

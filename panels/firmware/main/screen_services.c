@@ -14,6 +14,7 @@
 #include "esp_attr.h"
 #include "images/logos.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -47,23 +48,6 @@ static lv_obj_t *incident_view, *card, *card_name, *card_line, *card_title, *ste
 static tile_t card_tile, small[DESK_SERVICES];
 EXT_RAM_BSS_ATTR static desk_services_t shown; /* off the LVGL task's small stack */
 
-static lv_obj_t *plain(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
-
 static uint32_t tone_colour(char tone)
 {
     return tone == 'o' ? RED : tone == 'd' ? AMBER : tone == 'm' ? VIOLET : GREEN;
@@ -73,7 +57,7 @@ static uint32_t tone_colour(char tone)
 static tile_t tile_create(lv_obj_t *parent, int size)
 {
     tile_t t;
-    t.box = plain(parent);
+    t.box = ui_plain(parent);
     lv_obj_set_size(t.box, size, size);
     lv_obj_set_style_radius(t.box, size * 28 / 100, 0);
     lv_obj_set_style_bg_color(t.box, lv_color_hex(0x101014), 0);
@@ -86,7 +70,7 @@ static tile_t tile_create(lv_obj_t *parent, int size)
     lv_image_set_scale(t.logo, 256 * size / 2 / 48);
     lv_obj_set_style_image_recolor_opa(t.logo, LV_OPA_COVER, 0);
     lv_obj_center(t.logo);
-    t.letter = text(t.box, &instrument_28_bold, 0xf1eff7);
+    t.letter = ui_text(t.box, &instrument_28_bold, 0xf1eff7);
     lv_obj_center(t.letter);
     return t;
 }
@@ -205,7 +189,7 @@ static void tick(lv_timer_t *timer)
 
 static void create_ring(lv_obj_t *screen)
 {
-    ring_view = plain(screen);
+    ring_view = ui_plain(screen);
     lv_obj_set_size(ring_view, 720, 720);
 
     /* The glowing check in the middle. */
@@ -216,7 +200,7 @@ static void create_ring(lv_obj_t *screen)
     lv_obj_set_style_image_recolor(glow, lv_color_hex(GREEN), 0);
     lv_obj_set_style_image_recolor_opa(glow, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(glow, 60, 0);
-    lv_obj_t *disc = plain(ring_view);
+    lv_obj_t *disc = ui_plain(ring_view);
     lv_obj_set_size(disc, 96, 96);
     lv_obj_set_pos(disc, CX - 48, CY - 48);
     lv_obj_set_style_radius(disc, 48, 0);
@@ -235,7 +219,7 @@ static void create_ring(lv_obj_t *screen)
 
     for (int i = 0; i < DESK_SERVICES; i++) {
         ring[i] = tile_create(ring_view, BIG);
-        names[i] = text(ring_view, &instrument_24, GREY);
+        names[i] = ui_text(ring_view, &instrument_24, GREY);
         lv_obj_set_width(names[i], 200);
         lv_obj_set_style_text_align(names[i], LV_TEXT_ALIGN_CENTER, 0);
     }
@@ -243,11 +227,11 @@ static void create_ring(lv_obj_t *screen)
 
 static void create_incident(lv_obj_t *screen)
 {
-    incident_view = plain(screen);
+    incident_view = ui_plain(screen);
     lv_obj_set_size(incident_view, 720, 720);
     lv_obj_add_flag(incident_view, LV_OBJ_FLAG_HIDDEN);
 
-    card = plain(incident_view);
+    card = ui_plain(incident_view);
     lv_obj_set_pos(card, LEFT, 96);
     lv_obj_set_size(card, 648, LV_SIZE_CONTENT);
     lv_obj_set_style_pad_all(card, 28, 0);
@@ -259,31 +243,31 @@ static void create_incident(lv_obj_t *screen)
     lv_obj_set_flex_flow(card, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_row(card, 14, 0);
 
-    lv_obj_t *top = plain(card);
+    lv_obj_t *top = ui_plain(card);
     lv_obj_set_size(top, LV_PCT(100), CARD_TILE);
     card_tile = tile_create(top, CARD_TILE);
-    card_name = text(top, &instrument_28_bold, 0xf1eff7);
+    card_name = ui_text(top, &instrument_28_bold, 0xf1eff7);
     lv_obj_set_pos(card_name, CARD_TILE + 20, 2);
-    card_line = text(top, &instrument_24, AMBER);
+    card_line = ui_text(top, &instrument_24, AMBER);
     lv_obj_set_pos(card_line, CARD_TILE + 20, 40);
 
-    card_title = text(card, &instrument_24, 0xf1eff7);
+    card_title = ui_text(card, &instrument_24, 0xf1eff7);
     lv_obj_set_width(card_title, LV_PCT(100));
     lv_label_set_long_mode(card_title, LV_LABEL_LONG_DOT);
     lv_obj_set_style_max_height(card_title, 3 * 32, 0);
     lv_obj_set_style_text_line_space(card_title, 4, 0);
 
     for (int i = 0; i < DESK_SERVICE_STEPS; i++) {
-        lv_obj_t *row = step_rows[i] = plain(card);
+        lv_obj_t *row = step_rows[i] = ui_plain(card);
         lv_obj_set_size(row, LV_PCT(100), 32);
-        step_dots[i] = plain(row);
+        step_dots[i] = ui_plain(row);
         lv_obj_set_size(step_dots[i], 12, 12);
         lv_obj_set_style_radius(step_dots[i], 6, 0);
         lv_obj_set_style_bg_opa(step_dots[i], LV_OPA_COVER, 0);
         lv_obj_align(step_dots[i], LV_ALIGN_LEFT_MID, 0, 0);
-        steps[i] = text(row, &instrument_24, GREY);
+        steps[i] = ui_text(row, &instrument_24, GREY);
         lv_obj_align(steps[i], LV_ALIGN_LEFT_MID, 26, 0);
-        step_times[i] = text(row, &instrument_24, GREY);
+        step_times[i] = ui_text(row, &instrument_24, GREY);
         lv_obj_align(step_times[i], LV_ALIGN_RIGHT_MID, 0, 0);
     }
 
@@ -291,7 +275,7 @@ static void create_incident(lv_obj_t *screen)
         small[i] = tile_create(incident_view, SMALL);
         lv_obj_add_flag(small[i].box, LV_OBJ_FLAG_HIDDEN);
     }
-    others = text(incident_view, &instrument_24, 0x6c6a78);
+    others = ui_text(incident_view, &instrument_24, 0x6c6a78);
     lv_obj_set_width(others, 648);
     lv_obj_set_style_text_align(others, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_pos(others, LEFT, SMALL_Y + SMALL + 24);
@@ -311,17 +295,17 @@ void screen_services_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    title = text(screen, &instrument_24, GREY);
+    title = ui_text(screen, &instrument_24, GREY);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
-    pill = plain(screen);
+    pill = ui_plain(screen);
     lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_style_pad_hor(pill, 16, 0);
     lv_obj_set_style_pad_ver(pill, 4, 0);
     lv_obj_set_style_radius(pill, 20, 0);
     lv_obj_set_style_border_width(pill, 2, 0);
     lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
-    pill_text = text(pill, &instrument_24, GREEN);
+    pill_text = ui_text(pill, &instrument_24, GREEN);
     lv_obj_set_style_text_letter_space(pill_text, 2, 0);
 
     create_ring(screen);

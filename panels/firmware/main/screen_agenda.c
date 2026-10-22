@@ -14,6 +14,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_40);
@@ -34,40 +35,14 @@ static lv_obj_t *focus_text, *done, *chips, *ribbon, *later;
 EXT_RAM_BSS_ATTR static desk_agenda_t shown; /* about 2 kB: in PSRAM, off the LVGL task's stack */
 static int shown_minute = -1;
 
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
-
-static lv_obj_t *plain(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
 static lv_obj_t *dot(lv_obj_t *parent, int size, uint32_t colour)
 {
-    lv_obj_t *obj = plain(parent);
+    lv_obj_t *obj = ui_plain(parent);
     lv_obj_set_size(obj, size, size);
     lv_obj_set_style_radius(obj, LV_RADIUS_CIRCLE, 0);
     lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, 0);
     lv_obj_set_style_bg_color(obj, lv_color_hex(colour), 0);
     return obj;
-}
-
-static void upper(char *to, size_t size, const char *from)
-{
-    size_t i = 0;
-    for (; from[i] && i < size - 1; i++) {
-        to[i] = (from[i] >= 'a' && from[i] <= 'z') ? from[i] - 32 : from[i];
-    }
-    to[i] = '\0';
 }
 
 static int ribbon_x(int minute)
@@ -116,7 +91,7 @@ static int show_focus(int64_t now)
 
     char line[64], caps[64];
     snprintf(line, sizeof line, "%s · %s", under_way ? "Now" : "Next", e->calendar);
-    upper(caps, sizeof caps, line);
+    ui_upper(caps, sizeof caps, line);
     lv_label_set_text(kicker, caps);
     lv_obj_set_style_text_color(kicker, lv_color_hex(e->color), 0);
     lv_label_set_text(event_title, e->title);
@@ -133,7 +108,7 @@ static void show_chips(void)
     lv_obj_clean(chips);
     lv_obj_set_flag(chips, LV_OBJ_FLAG_HIDDEN, shown.all_day_count == 0);
     for (int i = 0; i < shown.all_day_count; i++) {
-        lv_obj_t *chip = plain(chips);
+        lv_obj_t *chip = ui_plain(chips);
         lv_obj_set_size(chip, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
         lv_obj_set_flex_flow(chip, LV_FLEX_FLOW_ROW);
         lv_obj_set_flex_align(chip, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -144,7 +119,7 @@ static void show_chips(void)
         lv_obj_set_style_bg_opa(chip, 40, 0);
         lv_obj_set_style_bg_color(chip, lv_color_hex(shown.all_day[i].color), 0);
         dot(chip, 12, shown.all_day[i].color);
-        lv_obj_t *label = text(chip, &instrument_24, 0xf1eff7);
+        lv_obj_t *label = ui_text(chip, &instrument_24, 0xf1eff7);
         lv_label_set_text(label, shown.all_day[i].title);
     }
 }
@@ -153,7 +128,7 @@ static void show_ribbon(int y, int now_minute)
 {
     lv_obj_clean(ribbon);
     lv_obj_set_pos(ribbon, LEFT, y);
-    lv_obj_t *track = plain(ribbon);
+    lv_obj_t *track = ui_plain(ribbon);
     lv_obj_set_pos(track, 0, 10);
     lv_obj_set_size(track, WIDTH, 28);
     lv_obj_set_style_radius(track, 14, 0);
@@ -164,7 +139,7 @@ static void show_ribbon(int y, int now_minute)
         if (x2 - x1 < 12) {
             x2 = x1 + 12;
         }
-        lv_obj_t *block = plain(ribbon);
+        lv_obj_t *block = ui_plain(ribbon);
         lv_obj_set_pos(block, x1, 14);
         lv_obj_set_size(block, x2 - x1, 20);
         lv_obj_set_style_radius(block, 10, 0);
@@ -172,7 +147,7 @@ static void show_ribbon(int y, int now_minute)
         lv_obj_set_style_bg_color(block, lv_color_hex(shown.events[i].color), 0);
     }
     if (now_minute >= DAY_FROM && now_minute <= DAY_TO) {
-        lv_obj_t *line = plain(ribbon);
+        lv_obj_t *line = ui_plain(ribbon);
         lv_obj_set_pos(line, ribbon_x(now_minute) - 1, 0);
         lv_obj_set_size(line, 3, 48);
         lv_obj_set_style_radius(line, 2, 0);
@@ -182,7 +157,7 @@ static void show_ribbon(int y, int now_minute)
     const char *hours[] = {"07:00", "12:00", "17:00", "23:00"};
     const int at[] = {7, 12, 17, 23};
     for (int i = 0; i < 4; i++) {
-        lv_obj_t *label = text(ribbon, &instrument_24, 0x7d7a8c);
+        lv_obj_t *label = ui_text(ribbon, &instrument_24, 0x7d7a8c);
         lv_label_set_text(label, hours[i]);
         lv_obj_update_layout(label);
         int x = ribbon_x(at[i] * 60) - (i == 0 ? 0 : i == 3 ? lv_obj_get_width(label) : lv_obj_get_width(label) / 2);
@@ -207,12 +182,12 @@ static void show_later(int y, int focus, int64_t now)
             continue;
         }
         int top = rows++ * ROW;
-        lv_obj_t *at = text(later, &instrument_24, 0xb4b1c2);
+        lv_obj_t *at = ui_text(later, &instrument_24, 0xb4b1c2);
         lv_label_set_text(at, shown.events[i].start[0] ? shown.events[i].start : "     ");
         lv_obj_set_pos(at, 0, top);
         lv_obj_t *mark = dot(later, 12, shown.events[i].color);
         lv_obj_set_pos(mark, 88, top + 10);
-        lv_obj_t *name = text(later, &instrument_24, 0xf1eff7);
+        lv_obj_t *name = ui_text(later, &instrument_24, 0xf1eff7);
         lv_label_set_long_mode(name, LV_LABEL_LONG_DOT);
         lv_obj_set_width(name, WIDTH - 116);
         lv_label_set_text(name, shown.events[i].title);
@@ -246,9 +221,9 @@ static void tick(lv_timer_t *timer)
     }
 
     char caps[48];
-    upper(caps, sizeof caps, shown.title);
+    ui_upper(caps, sizeof caps, shown.title);
     lv_label_set_text(title, caps);
-    upper(caps, sizeof caps, shown.count);
+    ui_upper(caps, sizeof caps, shown.count);
     lv_label_set_text(count, caps);
 
     int focus = show_focus(tv.tv_sec);
@@ -286,10 +261,10 @@ void screen_agenda_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(glow, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(glow, 46, 0);
 
-    title = text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 24);
-    count = text(screen, &instrument_24, 0x8a8794);
+    count = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(count, 2, 0);
     lv_obj_align(count, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
 
@@ -305,46 +280,46 @@ void screen_agenda_create(lv_obj_t *screen)
     lv_obj_set_style_arc_width(ring, 12, LV_PART_INDICATOR);
     lv_obj_set_style_arc_color(ring, lv_color_hex(0x232129), LV_PART_MAIN);
     lv_obj_set_style_arc_rounded(ring, true, LV_PART_INDICATOR);
-    ring_number = text(ring, &instrument_52_bold, 0xf1eff7);
+    ring_number = ui_text(ring, &instrument_52_bold, 0xf1eff7);
     lv_obj_align(ring_number, LV_ALIGN_CENTER, 0, -10);
-    ring_label = text(ring, &instrument_24, 0xb4b1c2);
+    ring_label = ui_text(ring, &instrument_24, 0xb4b1c2);
     lv_obj_align(ring_label, LV_ALIGN_CENTER, 0, 30);
 
     /* "NEXT · WORK", the title (two lines at most) and its times, stacked. */
-    focus_text = plain(screen);
+    focus_text = ui_plain(screen);
     lv_obj_set_pos(focus_text, TEXT_X, 108);
     lv_obj_set_size(focus_text, 720 - LEFT - TEXT_X, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(focus_text, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_row(focus_text, 6, 0);
-    kicker = text(focus_text, &instrument_24, 0x8f80ff);
+    kicker = ui_text(focus_text, &instrument_24, 0x8f80ff);
     lv_obj_set_style_text_letter_space(kicker, 2, 0);
-    event_title = text(focus_text, &instrument_52_bold, 0xf1eff7);
+    event_title = ui_text(focus_text, &instrument_52_bold, 0xf1eff7);
     lv_label_set_long_mode(event_title, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(event_title, lv_pct(100));
     lv_obj_set_style_max_height(event_title, 2 * 62, 0);
-    event_time = text(focus_text, &instrument_24, 0xb4b1c2);
+    event_time = ui_text(focus_text, &instrument_24, 0xb4b1c2);
 
     /* The day is done: a calm line instead of the countdown. */
-    done = plain(screen);
+    done = ui_plain(screen);
     lv_obj_set_size(done, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(done, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(done, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_column(done, 16, 0);
     lv_obj_set_pos(done, LEFT, 110);
     dot(done, 16, 0x5fd39c);
-    lv_obj_t *nothing = text(done, &instrument_40, 0xf1eff7);
+    lv_obj_t *nothing = ui_text(done, &instrument_40, 0xf1eff7);
     lv_label_set_text(nothing, "Nothing more today");
     lv_obj_add_flag(done, LV_OBJ_FLAG_HIDDEN);
 
-    chips = plain(screen);
+    chips = ui_plain(screen);
     lv_obj_set_size(chips, WIDTH, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(chips, LV_FLEX_FLOW_ROW_WRAP);
     lv_obj_set_style_pad_column(chips, 10, 0);
     lv_obj_set_style_pad_row(chips, 10, 0);
 
-    ribbon = plain(screen);
+    ribbon = ui_plain(screen);
     lv_obj_set_size(ribbon, WIDTH, 90);
-    later = plain(screen);
+    later = ui_plain(screen);
     lv_obj_set_size(later, WIDTH, 0);
 
     lv_timer_create(tick, 1000, NULL);

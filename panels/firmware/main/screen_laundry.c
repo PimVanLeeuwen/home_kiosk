@@ -13,6 +13,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_40);
@@ -29,31 +30,11 @@ static struct {
 } ports[2];
 EXT_RAM_BSS_ATTR static desk_laundry_t shown; /* off the LVGL task's small stack */
 
-static lv_obj_t *plain(lv_obj_t *parent)
+static lv_obj_t *centred(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
 {
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
+    lv_obj_t *label = ui_text(parent, font, colour);
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_label_set_text(label, "");
     return label;
-}
-
-static void upper(char *to, size_t size, const char *from)
-{
-    size_t i = 0;
-    for (; from[i] && i < size - 1; i++) {
-        to[i] = (from[i] >= 'a' && from[i] <= 'z') ? from[i] - 32 : from[i];
-    }
-    to[i] = '\0';
 }
 
 static void paint(int i)
@@ -102,7 +83,7 @@ static void tick(lv_timer_t *timer)
         return;
     }
     char caps[32];
-    upper(caps, sizeof caps, shown.headline);
+    ui_upper(caps, sizeof caps, shown.headline);
     lv_label_set_text(pill_label, caps);
     lv_obj_set_style_text_color(pill_label, lv_color_hex(shown.headline_colour), 0);
     lv_obj_set_style_bg_color(pill, lv_color_hex(shown.headline_colour), 0);
@@ -118,22 +99,22 @@ void screen_laundry_create(lv_obj_t *screen)
 {
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
-    lv_obj_t *header = text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *header = centred(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(header, 2, 0);
     lv_label_set_text(header, "LAUNDRY");
     lv_obj_set_pos(header, LEFT, 30);
-    pill = plain(screen);
+    pill = ui_plain(screen);
     lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_style_pad_hor(pill, 16, 0);
     lv_obj_set_style_pad_ver(pill, 6, 0);
     lv_obj_set_style_radius(pill, 20, 0);
     lv_obj_set_style_bg_opa(pill, 50, 0);
     lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 22);
-    pill_label = text(pill, &instrument_24, 0xffffff);
+    pill_label = centred(pill, &instrument_24, 0xffffff);
     lv_obj_set_style_text_letter_space(pill_label, 1, 0);
 
     for (int i = 0; i < 2; i++) {
-        lv_obj_t *box = ports[i].box = plain(screen);
+        lv_obj_t *box = ports[i].box = ui_plain(screen);
         lv_obj_set_size(box, 324, 560);
         lv_obj_set_pos(box, 36 + i * 324, TOP);
 
@@ -151,7 +132,7 @@ void screen_laundry_create(lv_obj_t *screen)
         lv_obj_set_style_arc_rounded(ring, true, LV_PART_INDICATOR);
 
         /* The glass door, with the water inside it. */
-        lv_obj_t *door = ports[i].door = plain(box);
+        lv_obj_t *door = ports[i].door = ui_plain(box);
         lv_obj_set_size(door, DOOR, DOOR);
         lv_obj_align(door, LV_ALIGN_TOP_MID, 0, (RING - DOOR) / 2);
         lv_obj_set_style_radius(door, LV_RADIUS_CIRCLE, 0);
@@ -162,13 +143,13 @@ void screen_laundry_create(lv_obj_t *screen)
         lv_obj_set_style_bg_grad_dir(door, LV_GRAD_DIR_VER, 0);
         lv_obj_set_style_border_width(door, 6, 0);
         lv_obj_set_style_border_post(door, true, 0);
-        ports[i].water = plain(door);
+        ports[i].water = ui_plain(door);
         lv_obj_set_size(ports[i].water, DOOR, DOOR);
         lv_obj_set_style_bg_opa(ports[i].water, 120, 0);
 
-        ports[i].minutes = text(door, &instrument_52_bold, 0xffffff);
+        ports[i].minutes = centred(door, &instrument_52_bold, 0xffffff);
         lv_obj_align(ports[i].minutes, LV_ALIGN_CENTER, 0, -12);
-        ports[i].unit = text(door, &instrument_24, 0xd6d3df);
+        ports[i].unit = centred(door, &instrument_24, 0xd6d3df);
         lv_label_set_text(ports[i].unit, "min");
         lv_obj_align(ports[i].unit, LV_ALIGN_CENTER, 0, 30);
 
@@ -180,19 +161,17 @@ void screen_laundry_create(lv_obj_t *screen)
         lv_obj_set_style_line_rounded(ports[i].check, true, 0);
         lv_obj_set_style_line_color(ports[i].check, lv_color_hex(0x3fb97f), 0);
         lv_obj_center(ports[i].check);
-        ports[i].mark = text(door, &instrument_52_bold, 0xe5646a);
+        ports[i].mark = centred(door, &instrument_52_bold, 0xe5646a);
         lv_label_set_text(ports[i].mark, "!");
         lv_obj_center(ports[i].mark);
 
-        ports[i].name = text(box, &instrument_40, 0xffffff);
+        ports[i].name = centred(box, &instrument_40, 0xffffff);
         lv_obj_align(ports[i].name, LV_ALIGN_TOP_MID, 0, RING + 24);
-        ports[i].line = text(box, &instrument_24, 0xb4b1c2);
-        lv_label_set_long_mode(ports[i].line, LV_LABEL_LONG_DOT);
-        lv_obj_set_width(ports[i].line, 300);
+        ports[i].line = ui_one_line(box, &instrument_24, 0xb4b1c2, 300);
+        lv_obj_set_style_text_align(ports[i].line, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_align(ports[i].line, LV_ALIGN_TOP_MID, 0, RING + 80);
-        ports[i].status = text(box, &instrument_24, 0xffffff);
-        lv_label_set_long_mode(ports[i].status, LV_LABEL_LONG_DOT);
-        lv_obj_set_width(ports[i].status, 300);
+        ports[i].status = ui_one_line(box, &instrument_24, 0xffffff, 300);
+        lv_obj_set_style_text_align(ports[i].status, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_align(ports[i].status, LV_ALIGN_TOP_MID, 0, RING + 116);
         lv_obj_add_flag(box, LV_OBJ_FLAG_HIDDEN);
     }

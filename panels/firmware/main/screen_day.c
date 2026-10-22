@@ -20,6 +20,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -271,15 +272,6 @@ static void place_now(void)
     lv_obj_set_flag(moon_shadow, LV_OBJ_FLAG_HIDDEN, !night);
 }
 
-static void upper(char *to, size_t size, const char *from)
-{
-    size_t i = 0;
-    for (; from[i] && i < size - 1; i++) {
-        to[i] = (from[i] >= 'a' && from[i] <= 'z') ? from[i] - 32 : from[i];
-    }
-    to[i] = '\0';
-}
-
 static void tick(lv_timer_t *timer)
 {
     desk_day_t now = desk_day();
@@ -288,7 +280,7 @@ static void tick(lv_timer_t *timer)
         shown = now;
         redraw_chart();
         char text[40];
-        upper(text, sizeof text, now.present ? now.title : "Your day");
+        ui_upper(text, sizeof text, now.present ? now.title : "Your day");
         lv_label_set_text(title, text);
         if (now.present) {
             lv_label_set_text_fmt(range, "HIGH %d°  ·  LOW %d°", now.high, now.low);
@@ -317,15 +309,6 @@ static void tick(lv_timer_t *timer)
     }
 }
 
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
-
 static lv_obj_t *dot(lv_obj_t *parent, int size, uint32_t colour)
 {
     lv_obj_t *obj = lv_obj_create(parent);
@@ -342,16 +325,16 @@ void screen_day_create(lv_obj_t *screen)
 {
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
-    title = text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_align(title, LV_ALIGN_TOP_LEFT, 36, 24);
-    range = text(screen, &instrument_24, 0x8a8794);
+    range = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(range, 2, 0);
     lv_obj_align(range, LV_ALIGN_TOP_RIGHT, -36, 24);
 
-    lead = text(screen, &instrument_40, 0xffffff);
+    lead = ui_text(screen, &instrument_40, 0xffffff);
     lv_obj_align(lead, LV_ALIGN_TOP_LEFT, 36, 84);
-    rest = text(screen, &instrument_40, 0x9b98a8);
+    rest = ui_text(screen, &instrument_40, 0x9b98a8);
     lv_obj_align(rest, LV_ALIGN_TOP_LEFT, 36, 136);
 
     canvas = lv_canvas_create(screen);
@@ -380,9 +363,9 @@ void screen_day_create(lv_obj_t *screen)
     moon = dot(screen, 20, 0xc9c4ee);
     moon_shadow = dot(screen, 18, 0x0f0f1a);
 
-    sun_times = text(screen, &instrument_24, 0x8a8794);
+    sun_times = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_align(sun_times, LV_ALIGN_BOTTOM_LEFT, 36, -22);
-    credit = text(screen, &instrument_24, 0x7d7a8c);
+    credit = ui_text(screen, &instrument_24, 0x7d7a8c);
     lv_obj_align(credit, LV_ALIGN_BOTTOM_RIGHT, -36, -22);
 
     lv_timer_create(tick, 1000, NULL);

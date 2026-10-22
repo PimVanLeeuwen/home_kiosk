@@ -17,6 +17,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_time);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -51,23 +52,6 @@ static struct {
 EXT_RAM_BSS_ATTR static desk_pipeline_t shown; /* off the LVGL task's small stack */
 static int which;                                /* the run shown, when two take turns */
 static uint32_t turned_at;
-
-static lv_obj_t *plain(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-    return obj;
-}
-
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    lv_label_set_text(label, "");
-    return label;
-}
 
 static bool is(const char *state, const char *word)
 {
@@ -351,10 +335,10 @@ void screen_pipeline_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 80, 0);
 
-    title = text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
-    number = text(screen, &instrument_24, 0x8a8794);
+    number = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(number, 2, 0);
     lv_obj_align(number, LV_ALIGN_TOP_RIGHT, -LEFT, 30);
 
@@ -364,12 +348,12 @@ void screen_pipeline_create(lv_obj_t *screen)
     memset(lv_canvas_get_draw_buf(canvas)->data, 0, lv_canvas_get_draw_buf(canvas)->header.stride * HEIGHT);
 
     for (int i = 0; i < DESK_PIPELINE_JOBS; i++) {
-        lv_obj_t *card = cards[i].card = plain(screen);
+        lv_obj_t *card = cards[i].card = ui_plain(screen);
         lv_obj_set_style_radius(card, 12, 0);
         lv_obj_set_style_bg_color(card, lv_color_hex(0x121119), 0);
         lv_obj_set_style_bg_opa(card, LV_OPA_COVER, 0);
         lv_obj_set_style_border_opa(card, LV_OPA_COVER, 0);
-        cards[i].icon = plain(card);
+        cards[i].icon = ui_plain(card);
         lv_obj_set_size(cards[i].icon, 30, 30);
         lv_obj_add_event_cb(cards[i].icon, draw_icon, LV_EVENT_DRAW_MAIN, (void *)(intptr_t)i);
         cards[i].spinner = lv_spinner_create(cards[i].icon);
@@ -381,39 +365,39 @@ void screen_pipeline_create(lv_obj_t *screen)
         lv_obj_set_style_arc_color(cards[i].spinner, lv_color_hex(DIM), LV_PART_MAIN);
         lv_obj_set_style_arc_color(cards[i].spinner, lv_color_hex(SOFT), LV_PART_INDICATOR);
         lv_obj_remove_flag(cards[i].spinner, LV_OBJ_FLAG_CLICKABLE);
-        cards[i].count = text(card, &instrument_24, 0xa7a7b4);
-        cards[i].name = text(card, &instrument_24, 0xffffff);
+        cards[i].count = ui_text(card, &instrument_24, 0xa7a7b4);
+        cards[i].name = ui_text(card, &instrument_24, 0xffffff);
         lv_label_set_long_mode(cards[i].name, LV_LABEL_LONG_DOT);
-        cards[i].time = text(card, &instrument_24, 0x8a8794);
+        cards[i].time = ui_text(card, &instrument_24, 0x8a8794);
         lv_obj_align(cards[i].time, LV_ALIGN_RIGHT_MID, -16, 0);
-        cards[i].track = plain(card);
+        cards[i].track = ui_plain(card);
         lv_obj_set_style_bg_color(cards[i].track, lv_color_hex(DIM), 0);
         lv_obj_set_style_bg_opa(cards[i].track, LV_OPA_COVER, 0);
         lv_obj_set_style_radius(cards[i].track, 2, 0);
         lv_obj_align(cards[i].track, LV_ALIGN_BOTTOM_LEFT, 14, -6);
-        cards[i].bar = plain(cards[i].track);
+        cards[i].bar = ui_plain(cards[i].track);
         lv_obj_set_style_bg_color(cards[i].bar, lv_color_hex(SOFT), 0);
         lv_obj_set_style_bg_opa(cards[i].bar, LV_OPA_COVER, 0);
         lv_obj_set_style_radius(cards[i].bar, 2, 0);
         lv_obj_add_flag(card, LV_OBJ_FLAG_HIDDEN);
     }
 
-    big = text(screen, &instrument_time, 0xffffff);
+    big = ui_text(screen, &instrument_time, 0xffffff);
     lv_obj_set_pos(big, LEFT - 4, 528);
-    first = text(screen, &instrument_28_bold, 0xa7a7b4);
+    first = ui_text(screen, &instrument_28_bold, 0xa7a7b4);
     lv_obj_align(first, LV_ALIGN_TOP_RIGHT, -LEFT, 546);
-    second = text(screen, &instrument_24, 0x8a8794);
+    second = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_align(second, LV_ALIGN_TOP_RIGHT, -LEFT, 588);
-    lv_obj_t *rule = plain(screen);
+    lv_obj_t *rule = ui_plain(screen);
     lv_obj_set_size(rule, WIDTH, 2);
     lv_obj_set_pos(rule, LEFT, 634);
     lv_obj_set_style_bg_color(rule, lv_color_white(), 0);
     lv_obj_set_style_bg_opa(rule, 20, 0);
-    commit = text(screen, &instrument_24, 0xffffff);
+    commit = ui_text(screen, &instrument_24, 0xffffff);
     lv_label_set_long_mode(commit, LV_LABEL_LONG_DOT);
     lv_obj_set_size(commit, 430, lv_font_get_line_height(&instrument_24)); /* one line */
     lv_obj_set_pos(commit, LEFT, 652);
-    meta = text(screen, &instrument_24, 0x8a8794);
+    meta = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_align(meta, LV_ALIGN_TOP_RIGHT, -LEFT, 652);
 
     turned_at = lv_tick_get();

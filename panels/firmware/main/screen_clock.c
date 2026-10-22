@@ -14,6 +14,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "ui.h"
 
 LV_FONT_DECLARE(instrument_clock);
 LV_FONT_DECLARE(instrument_40);
@@ -70,14 +71,6 @@ static void set_sky(int hour)
 }
 
 /* "Sunset 18:41" as "SUNSET 18:41", for the quiet labels at the top. */
-static void upper(char *to, size_t size, const char *from)
-{
-    size_t i = 0;
-    for (; from[i] && i < size - 1; i++) {
-        to[i] = (from[i] >= 'a' && from[i] <= 'z') ? from[i] - 32 : from[i];
-    }
-    to[i] = '\0';
-}
 
 static lv_color_t mix(lv_color_t a, lv_color_t b, float t)
 {
@@ -127,14 +120,6 @@ static void draw_bars(lv_event_t *event)
     }
 }
 
-static lv_obj_t *text(lv_obj_t *parent, const lv_font_t *font, uint32_t colour)
-{
-    lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_style_text_font(label, font, 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(colour), 0);
-    return label;
-}
-
 /* The time and weather in the middle on a dry day; higher, with the bars below, when rain is due. */
 static void lay_out(bool wet)
 {
@@ -164,9 +149,9 @@ static void tick(lv_timer_t *timer)
     if (now.version != shown.version) {
         shown = now;
         char text_up[64];
-        upper(text_up, sizeof text_up, now.present ? now.date : "Connecting to the hub");
+        ui_upper(text_up, sizeof text_up, now.present ? now.date : "Connecting to the hub");
         lv_label_set_text(date, text_up);
-        upper(text_up, sizeof text_up, now.sun);
+        ui_upper(text_up, sizeof text_up, now.sun);
         lv_label_set_text(sun, text_up);
         if (now.has_temperature) {
             lv_label_set_text_fmt(temperature, "%d°", now.temperature);
@@ -231,17 +216,17 @@ void screen_clock_create(lv_obj_t *screen)
     lv_obj_set_size(bars, 720, 720);
     lv_obj_add_event_cb(bars, draw_bars, LV_EVENT_DRAW_MAIN, NULL);
 
-    date = text(screen, &instrument_24, 0x8a8794);
+    date = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(date, 2, 0);
     lv_obj_align(date, LV_ALIGN_TOP_LEFT, MARGIN, 24);
-    sun = text(screen, &instrument_24, 0x8a8794);
+    sun = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_set_style_text_letter_space(sun, 2, 0);
     lv_obj_align(sun, LV_ALIGN_TOP_RIGHT, -MARGIN, 24);
     lv_label_set_text(sun, "");
 
     /* The font's own spacing, as in the design: centred, it shifts a little with
      * the minutes, which reads better than fixed-width digits ("1 1"). */
-    clock_label = text(screen, &instrument_clock, 0xffffff);
+    clock_label = ui_text(screen, &instrument_clock, 0xffffff);
     lv_label_set_text(clock_label, "--:--");
 
     /* The temperature in white, the weather in words softer beside it. */
@@ -251,19 +236,19 @@ void screen_clock_create(lv_obj_t *screen)
     lv_obj_set_flex_flow(weather_row, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(weather_row, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
     lv_obj_set_style_pad_column(weather_row, 14, 0);
-    temperature = text(weather_row, &instrument_40, 0xffffff);
-    weather = text(weather_row, &instrument_40, 0x9b98a8);
+    temperature = ui_text(weather_row, &instrument_40, 0xffffff);
+    weather = ui_text(weather_row, &instrument_40, 0x9b98a8);
     lv_label_set_text(temperature, "");
     lv_label_set_text(weather, "");
 
-    rain_line = text(screen, &instrument_28_bold, 0x8a8794);
+    rain_line = ui_text(screen, &instrument_28_bold, 0x8a8794);
     lv_label_set_text(rain_line, "");
 
     /* Under the bars: now on the left, an hour on in the middle, two hours on the right. */
     const lv_align_t where[3] = {LV_ALIGN_TOP_LEFT, LV_ALIGN_TOP_MID, LV_ALIGN_TOP_RIGHT};
     const int32_t x[3] = {MARGIN, 0, -MARGIN};
     for (int i = 0; i < 3; i++) {
-        axis[i] = text(screen, &instrument_24, 0x8a8794);
+        axis[i] = ui_text(screen, &instrument_24, 0x8a8794);
         lv_label_set_text(axis[i], "");
         lv_obj_align(axis[i], where[i], x[i], AXIS_Y);
     }
