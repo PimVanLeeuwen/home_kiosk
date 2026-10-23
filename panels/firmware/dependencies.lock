@@ -10,7 +10,7 @@ dependencies:
       require: private
       version: '>=4.0'
     source:
-      registry_url: https://components.espressif.com
+      registry_url: https://components.espressif.com/
       type: service
     version: 4.2.2
   espressif/cmake_utilities:
@@ -64,7 +64,7 @@ dependencies:
       require: private
       version: '>=4.4.2'
     source:
-      registry_url: https://components.espressif.com
+      registry_url: https://components.espressif.com/
       type: service
     version: 1.2.1
   espressif/esp_lcd_touch_gt911:
@@ -100,7 +100,7 @@ dependencies:
       require: private
       version: '>=8,<10'
     source:
-      registry_url: https://components.espressif.com
+      registry_url: https://components.espressif.com/
       type: service
     targets:
     - esp32
@@ -134,46 +134,36 @@ dependencies:
       require: private
       version: '>=8,<10'
     source:
-      registry_url: https://components.espressif.com
+      registry_url: https://components.espressif.com/
       type: service
     version: 1.0.1
   espressif/esp_lvgl_adapter:
-    component_hash: 74ad06b34ee7aec3f2a4f4fd8ed20852527a780d35d0154488624383d9e72972
     dependencies:
     - name: espressif/button
-      registry_url: https://components.espressif.com
-      require: public
+      public: true
       version: 4.*
     - name: espressif/esp_lcd_touch
-      registry_url: https://components.espressif.com
-      require: public
+      public: true
       version: 1.*
     - name: espressif/esp_lv_decoder
-      registry_url: https://components.espressif.com
-      require: public
+      public: true
       version: 0.*
     - name: espressif/esp_lv_fs
-      registry_url: https://components.espressif.com
-      require: public
+      public: true
       version: 1.*
     - name: espressif/freetype
-      registry_url: https://components.espressif.com
-      require: public
+      public: true
       version: 2.*
     - name: espressif/knob
-      registry_url: https://components.espressif.com
-      require: public
+      public: true
       version: 1.*
     - name: idf
-      require: private
       version: '>=5.5'
     - name: lvgl/lvgl
-      registry_url: https://components.espressif.com
-      require: private
       version: '>=8,<10'
     source:
-      registry_url: https://components.espressif.com/
-      type: service
+      path: /project/components/esp_lvgl_adapter
+      type: local
     version: 0.6.3
   espressif/esp_mmap_assets:
     component_hash: 42310c362596de2a37248c2937b1754bc29cd0356b9839e2a77cf791e6bcdde1
@@ -245,7 +235,7 @@ dependencies:
       require: private
       version: '>=5.1'
     source:
-      registry_url: https://components.espressif.com
+      registry_url: https://components.espressif.com/
       type: service
     version: 2.14.3~1
   espressif/knob:
@@ -259,11 +249,11 @@ dependencies:
       require: private
       version: '>=4.4.1'
     source:
-      registry_url: https://components.espressif.com
+      registry_url: https://components.espressif.com/
       type: service
     version: 1.1.0
   espressif/libpng:
-    component_hash: d094357a329f78668629d7c9656064b2b0123196eb6d25ca77db3782e0752480
+    component_hash: 9a576d8fbd0ddb29330e1f4c4fe82470b3e0e7eca71ea3bc4dce168d0b1088e3
     dependencies:
     - name: idf
       require: private
@@ -275,7 +265,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com
       type: service
-    version: 1.6.58~2
+    version: 1.6.59
   espressif/wifi_remote_over_eppp:
     component_hash: 1fd6968af20f0b19e421f6b519b0a8caf81d689afc3783b564c28559e45f66ef
     dependencies:
@@ -366,12 +356,18 @@ dependencies:
     - esp32p4
     version: 2.0.0
 direct_dependencies:
+- espressif/button
 - espressif/esp_hosted
+- espressif/esp_lcd_touch
+- espressif/esp_lv_decoder
+- espressif/esp_lv_fs
 - espressif/esp_lvgl_adapter
 - espressif/esp_wifi_remote
+- espressif/freetype
+- espressif/knob
 - idf
 - lvgl/lvgl
 - waveshare/esp32_p4_wifi6_touch_lcd_4b
-manifest_hash: ac1228fb28ec47eb68a243788c09a09752909344b3da0ef8b7c3b92065aac3a5
+manifest_hash: 965ec836cbe9c8cd45c7f8e3602d8e9964cfab4ff7141e147a2ee15ad9d5ef96
 target: esp32p4
 version: 2.0.0

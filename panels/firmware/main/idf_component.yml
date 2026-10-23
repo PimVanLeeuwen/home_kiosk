@@ -5,6 +5,8 @@ dependencies:
     version: "3.0.1"
   espressif/esp_lvgl_adapter:
     version: "0.6.3"
+    # A patched copy (components/esp_lvgl_adapter/README.md): a stack overflow on many dirty areas.
+    override_path: "../components/esp_lvgl_adapter"
   lvgl/lvgl:
     version: "9.3.0"
     public: true

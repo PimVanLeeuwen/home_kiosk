@@ -908,6 +908,14 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21.
   now read 32 kB (in PSRAM) and tell the hub (`room=`); the hub leaves screens out until an answer
   fits a board's room (`desk.fit`: Media and Backups first, the alerts last), 8 kB for boards
   that do not say.
+- House board restarting every minute (found 2026-10-23): an `Instruction access fault` on core 0
+  at each turn from NAS to Code. Espressif's LVGL adapter splits the screen into pieces to copy
+  between its buffers in an array with no bound; many small staggered dirty areas (the Code
+  screen's week bars) overran it and wrote over the LVGL task's stack. **Fixed 2026-10-23** in a
+  patched copy, `panels/firmware/components/esp_lvgl_adapter` (`override_path` in
+  `main/idf_component.yml`): it stops at the array's end and redraws the whole screen on the next
+  frame. Espressif's 0.7.3 and master still have the bug. Checked on the board: 14 turns, no
+  restart, the guard taken twice at the Code turn.
 - Check on the Home panel (found 2026-10-22): the Music screen as rows with small covers (built
   2026-10-22) and Now Playing's one-line artist line, with `shot.py` screenshots, while something
   plays for Now Playing. Not checked yet: Spotify rate-limited the hub for about 4 hours that

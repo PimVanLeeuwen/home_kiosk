@@ -178,6 +178,10 @@ python3 dashboard/serve.py
 - LVGL's `LV_LABEL_LONG_DOT` only cuts with "…" when the label has a fixed height; with only a
   width it wraps and runs into what is below. For one line use `ui_one_line()`
   (`panels/firmware/main/ui.c`); for more lines set a height or `max_height`.
+- A panel reads the hub's answer into one buffer (32 kB since 2026-10-23, 8 kB before) and a cut
+  answer cannot be parsed: the board then stays on its start-up screen. Boards send `room=`; the
+  hub's `desk.fit` leaves screens out to fit. Keep each screen's payload small (strings and short
+  lists, no raw data).
 - The panels' ESP32-C6 runs its old factory ESP-Hosted image: keep
   `CONFIG_ESP_HOSTED_MEMPOOL_PREFER_SPIRAM=n` and the streaming SDIO receive, or any larger
   transfer (a firmware update) breaks the Wi-Fi link. A changed `sdkconfig.defaults` does not
