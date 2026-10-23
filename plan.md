@@ -816,7 +816,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Built 2026-10-21 (Home panel): an Apple devices screen, the rooms as a plan (the first room
   the left half), each device an orb with its kind (TV, HomePod, mini), amber when offline, the
   room glowing while something plays, "All online" or "N offline", and what plays in a bar below.
-  Not yet: the Thread lines and the ripples.
+  Not yet: the Thread lines and the ripples. Built 2026-10-23 (hub `router`, `thread_ok`, `plays`
+  per device; panel): the mesh as on the hub's card (a chain per room, rooms joined where their
+  routers are nearest, the last back to the first), gentle curves drawn once into a canvas with
+  a pulse running along each link, dashed amber to a device offline or without Thread; two rings
+  rippling from each orb that plays; orbs 88 px (were 76).
 - **NAS, Backups, Alerts and the train**, redesigned again 2026-10-10 to be desk pieces:
   - NAS: an instrument-style arc gauge for the fullest volume (ticks, a glow, a red mark where
     it would alert), its size and runway below, then tiles for CPU and memory with live

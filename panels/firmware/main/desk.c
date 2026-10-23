@@ -313,7 +313,11 @@ static void parse_apple(const cJSON *screen, desk_apple_t *apple)
             }
             copy_string(room->device[room->devices].kind, sizeof room->device[0].kind,
                         cJSON_GetObjectItem(device, "kind"));
-            room->device[room->devices++].online = cJSON_IsTrue(cJSON_GetObjectItem(device, "online"));
+            room->device[room->devices].online = cJSON_IsTrue(cJSON_GetObjectItem(device, "online"));
+            room->device[room->devices].router = cJSON_IsTrue(cJSON_GetObjectItem(device, "router"));
+            room->device[room->devices].thread_ok = cJSON_IsTrue(cJSON_GetObjectItem(device, "thread_ok"));
+            room->device[room->devices].plays = cJSON_IsTrue(cJSON_GetObjectItem(device, "plays"));
+            room->devices++;
         }
     }
     const cJSON *playing = cJSON_GetObjectItem(screen, "playing");

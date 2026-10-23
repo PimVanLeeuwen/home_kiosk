@@ -590,6 +590,9 @@ typedef struct {
         struct {
             char kind[14];   /* tv, homepod, homepod_mini */
             bool online;
+            bool router;     /* a Thread border router */
+            bool thread_ok;  /* Thread is up on it */
+            bool plays;      /* sends out ripples */
         } device[4];
     } rooms[3];
     bool has_playing;

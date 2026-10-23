@@ -262,6 +262,16 @@ def air_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 PLAYS_COLOUR = {"video": "#5aa9ff", "music": "#9c8ffb"}  # a room's glow while something plays
 
 
+def _plays(room: dict[str, Any], device: dict[str, Any]) -> bool:
+    """Whether a device sends out ripples, as on the hub's card: the room's HomePods (a
+    stereo pair plays as one) and, for video or when it is the one playing, its Apple TV."""
+    playing = room.get("playing") or {}
+    if playing.get("state") != "playing" or not device.get("online"):
+        return False
+    return (device.get("kind") != "tv" or playing.get("media") == "video"
+            or device.get("id") == playing.get("device"))
+
+
 def apple_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     """The Apple TVs and HomePods as a map of the house: rooms that glow with
     what plays in them, each device online or not, and what plays."""
@@ -278,7 +288,12 @@ def apple_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
         "rooms": [{"name": latin1(r["name"]),
                    "glow": PLAYS_COLOUR.get((r.get("playing") or {}).get("media") or "")
                    if r.get("playing") and r["playing"].get("state") == "playing" else None,
-                   "devices": [{"kind": d.get("kind") or "homepod", "online": bool(d.get("online"))}
+                   "devices": [{"kind": d.get("kind") or "homepod", "online": bool(d.get("online")),
+                                # The Thread mesh (2026-10-23): border routers, and whether
+                                # Thread is up on them; the panel draws the links.
+                                "router": d.get("thread") is not None,
+                                "thread_ok": bool(d.get("online")) and d.get("thread") is True,
+                                "plays": _plays(r, d)}
                                for d in (r.get("devices") or [])[:4]]} for r in rooms],
         "playing": None if playing is None else {
             "title": latin1(" · ".join(p for p in (playing[1].get("title"),

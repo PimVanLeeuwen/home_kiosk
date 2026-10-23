@@ -243,9 +243,9 @@ def test_an_error_needs_a_look(store):
 # --- Apple devices ---------------------------------------------------------------------
 
 
-def device(kind, online=True):
+def device(kind, online=True, thread=True):
     return {"id": kind, "name": kind, "kind": kind, "online": online, "offline_since": None,
-            "thread": True}
+            "thread": thread}
 
 
 def test_the_apple_devices_as_rooms(store):
@@ -253,8 +253,9 @@ def test_the_apple_devices_as_rooms(store):
     store.put_cache("apple", {"as_of": NOW.isoformat(), "stale": False, "rooms": [
         {"id": "lr", "name": "Living room", "devices": [device("homepod"), device("tv")],
          "playing": {"state": "playing", "media": "music", "title": "Glass Harbour",
-                     "subtitle": "Ines Vale", "app": "Music", "device": "tv", "artwork": False}},
-        {"id": "bd", "name": "Bedroom", "devices": [device("tv"), device("homepod_mini")],
+                     "subtitle": "Ines Vale", "app": "Music", "device": "pair", "artwork": False}},
+        {"id": "bd", "name": "Bedroom", "devices": [device("tv", thread=None),
+                                                    device("homepod_mini")],
          "playing": None},
         {"id": "bt", "name": "Bathroom", "devices": [device("homepod_mini", online=False)],
          "playing": None}]})
@@ -262,7 +263,11 @@ def test_the_apple_devices_as_rooms(store):
     assert (s["headline"], s["headline_colour"]) == ("1 offline", "#e0a23b")
     living, bedroom, bathroom = s["rooms"]
     assert living["glow"] == "#9c8ffb" and bedroom["glow"] is None
-    assert bathroom["devices"] == [{"kind": "homepod_mini", "online": False}]
+    assert bathroom["devices"] == [{"kind": "homepod_mini", "online": False, "router": True,
+                                    "thread_ok": False, "plays": False}]
+    # Music in the living room: its HomePod sends out ripples, the Apple TV only for video.
+    assert [d["plays"] for d in living["devices"]] == [True, False]
+    assert [d["router"] for d in bedroom["devices"]] == [False, True]
     assert s["playing"] == {"title": "Glass Harbour · Ines Vale",
                             "where": "Living room · playing · Music", "colour": "#9c8ffb"}
 
