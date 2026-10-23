@@ -60,10 +60,7 @@ button { font: inherit; color: inherit; }
 .ph h2 { font-size: 34px; font-weight: 600; margin: 0; letter-spacing: -.025em; line-height: 1.05; }
 .mobile .ph h2 { font-size: 28px; }
 .ph p { margin: 6px 0 0; color: var(--muted); }
-.ph .clock { font-size: 13px; color: var(--faint); text-align: right; }
-.ph .clock b { display: block; font-size: 28px; font-weight: 500; color: var(--fg); letter-spacing: -.02em; }
-.mobile .ph .clock { display: none; }
-
+.mobile 
 /* Entrance: one staggered reveal, nothing looping */
 .in { animation: rise .7s var(--ease) both; animation-delay: calc(var(--i, 0) * 55ms); }
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
@@ -205,6 +202,7 @@ button { font: inherit; color: inherit; }
   </table>
   <h4>Look and motion</h4>
   <ul>
+    <li>No clock of its own in the header (the hub has none, as before).</li>
     <li>The sky: two soft lights at the top for the part of the day (amber and rose at dawn, violet in the day, indigo at dusk, almost none at night) and a fine grain, so the dark has depth without colour washing over the cards.</li>
     <li>Two stacks instead of rows: each card has its column and the order runs within it, so a short card never leaves a gap. On the phone one column, by rank.</li>
     <li>One staggered reveal when the page opens. When the order changes the cards slide to their place in about 300 ms, never while the pointer is over a card or a chip is open. Nothing loops; no motion with reduced motion.</li>
@@ -336,13 +334,13 @@ const chipsFor = (s) => {
 };
 
 const L = {
-  morning: { sky1: 'rgba(240,150,100,.20)', sky2: 'rgba(200,110,170,.12)', hello: 'Good morning', clock: '07:05', date: 'Friday 23 October · everything is running', hero: HERO.train(),
+  morning: { sky1: 'rgba(240,150,100,.20)', sky2: 'rgba(200,110,170,.12)', hello: 'Good morning', date: 'Friday 23 October · everything is running', hero: HERO.train(),
     wide: [C.today('live: next event within the hour', 'soon'), C.news('morning: 2'), C.air('morning: 3')],
     narrow: [C.weather('morning: 1'), C.portfolio('morning: 2')] },
-  day: { sky1: 'rgba(124,108,242,.16)', sky2: 'rgba(106,168,240,.12)', hello: 'Good afternoon', clock: '14:30', date: 'Friday 23 October · everything is running', hero: HERO.focus(),
+  day: { sky1: 'rgba(124,108,242,.16)', sky2: 'rgba(106,168,240,.12)', hello: 'Good afternoon', date: 'Friday 23 October · everything is running', hero: HERO.focus(),
     wide: [C.news('day: 2'), C.air('day: 3')],
     narrow: [C.laundry('live: washer running'), C.portfolio('day: 1'), C.weather('day: 2')] },
-  evening: { sky1: 'rgba(90,80,210,.20)', sky2: 'rgba(214,51,108,.12)', hello: 'Good evening', clock: '20:40', date: 'Friday 23 October · everything is running', hero: HERO.music(),
+  evening: { sky1: 'rgba(90,80,210,.20)', sky2: 'rgba(214,51,108,.12)', hello: 'Good evening', date: 'Friday 23 October · everything is running', hero: HERO.music(),
     wide: [C.apple('live: playing', true), C.news('evening: 3')],
     narrow: [C.laundry('live: done', true), C.weather('evening: 1, tomorrow', true), C.air('evening: 2'), C.portfolio('evening: 3')] },
 };
@@ -361,7 +359,7 @@ function render() {
   d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">nas</small>
     ${nav.map(x => `${x[0] ? `<span class="grp">${x[0]}</span>` : ''}<a href="#" class="${x[2] ? 'on' : ''}"><i></i>${x[1]}</a>`).join('')}</nav>
     <main class="main"><div class="sky" style="--sky1:${S.sky1};--sky2:${S.sky2}"></div><div class="grain"></div><div class="page">
-      <div class="ph in"><div><h2>${S.hello}</h2><p>${S.date}</p></div><div class="clock"><b>${S.clock}</b>12° · dry</div></div>
+      <div class="ph in"><div><h2>${S.hello}</h2><p>${S.date}</p></div></div>
       ${chipsFor(st.state)}
       ${S.opened ? `<div class="opened in" style="--i:5;--x:${mob ? '22%' : '8%'}">${S.opened}</div>` : ''}
       ${S.hero ? `<div class="in" style="--i:5">${S.hero}</div>` : ''}

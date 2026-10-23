@@ -923,6 +923,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   services) fold into a compact strip that opens on a tap. The order also follows the time of day
   (the day and the weather in the morning, the house in the evening). Mockup first
   (`docs/hub-home-mockup.html` has the current Home), then one step per change.
+  Decided 2026-10-23 (mockup `docs/hub-home-ordering-mockup.html`): the most important thing
+  gets a full-width hero with its own light (a problem, else the train before it leaves, else
+  music playing, else an event now); then the other live cards (laundry running or done, an event
+  within the hour, an Apple device playing); then the rest in an order per part of the day
+  (morning 06 to 10, day, evening 18 to 23, night). NAS, Services, Backups and Outside services
+  fold into the status strip as chips with a small meter; a chip opens its card below the strip,
+  one at a time, and a card with a problem unfolds on its own. Cards sit in two stacks (wide and
+  narrow column) instead of rows; one column on the phone, by rank. The order is made on load and
+  again when something starts or stops, sliding into place, never while the pointer is over a
+  card or a chip is open. A sky of two soft lights for the part of the day, and a fine grain. No
+  clock in the header (as before).
 - **Consistency pass.** The pages were built over three weeks from separate mockups. Audit them
   together: spacing, card headers, the loading, empty, error and stale states, number styles and
   units, button and pill styles, and colours outside the tokens in `index.css`. Fix the drift
