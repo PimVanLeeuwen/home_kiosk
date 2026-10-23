@@ -148,12 +148,14 @@ static void draw_scene(int hour)
     on_arc(at, &bx, &by);
     bool moon = shown.has_horizon ? shown.moon : (hour < 6 || hour >= 18);
     lv_opa_t veil = shown.veiled ? 150 : LV_OPA_COVER;
+    /* The glow: many faint discs, so it fades out instead of showing rings. */
+    int reach = moon ? 56 : 78, core = moon ? 21 : 26;
+    for (int r = reach; r > core; r -= 4) {
+        disc(&layer, bx, by, r, rgb(moon ? 0xc8d0ff : 0xffd9a0), shown.veiled ? 5 : 9);
+    }
     if (!moon) {
-        disc(&layer, bx, by, 70, rgb(0xffd9a0), shown.veiled ? 16 : 30);
-        disc(&layer, bx, by, 44, rgb(0xffd9a0), shown.veiled ? 24 : 44);
         disc(&layer, bx, by, 26, rgb(0xffe7c2), veil);
     } else {
-        disc(&layer, bx, by, 52, rgb(0xc8d0ff), shown.veiled ? 12 : 26);
         disc(&layer, bx, by, 21, rgb(0xe3e7ff), veil);
         /* Its shadow: a disc in the sky's colour, shifted by how much is lit (left while
          * waxing, right while waning), gone at full moon. */
