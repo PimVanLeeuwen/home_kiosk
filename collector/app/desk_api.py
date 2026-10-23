@@ -44,7 +44,10 @@ async def _music(request: Request) -> dict[str, Any] | None:
 
 @router.get("/board/{mac}")
 async def board(mac: str, request: Request,
-                firmware: Annotated[str, Query(max_length=40)] = "") -> dict[str, Any]:
+                firmware: Annotated[str, Query(max_length=40)] = "",
+                room: Annotated[int, Query(ge=1024, le=1 << 20)] = desk.ROOM) -> dict[str, Any]:
+    """A board's screens; `room`: how much of an answer it can read (the hub leaves
+    screens out to fit, desk.fit)."""
     mac = mac.lower()
     if not desk_boards.MAC.match(mac):
         raise HTTPException(422, "A board is asked for by its MAC address, like e8:f6:0a:e4:42:b0.")
@@ -56,7 +59,7 @@ async def board(mac: str, request: Request,
         answer["update"] = True  # install the hub's firmware now (Settings, Update now)
     if visit.key:
         answer["key"] = visit.key  # its device key, until the board sends it back
-    return answer
+    return desk.fit(answer, room)
 
 
 class Dismiss(BaseModel):

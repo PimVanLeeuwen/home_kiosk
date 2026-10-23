@@ -15,6 +15,7 @@
 #include "desk_media.h"
 #include "desk_pipelines.h"
 #include "esp_attr.h"
+#include "esp_heap_caps.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -69,7 +70,9 @@ static volatile bool dimmed; /* the hub's "dim": the living room lights are all 
 static char key[64]; /* the device key, from the board's storage (NVS "desk") */
 static SemaphoreHandle_t lock;
 
-#define BODY_MAX 8192
+/* What an answer may be; sent to the hub as `room`, which leaves screens out to fit
+ * (app/desk.py fit). 8 kB was too little for House on 2026-10-23: a cut answer cannot be read. */
+#define BODY_MAX 32768
 #define EVERY_MS 30000
 
 desk_clock_t desk_clock(void)
@@ -993,9 +996,9 @@ static void apply(const char *body)
 static void desk_task(void *arg)
 {
     char url[200];
-    snprintf(url, sizeof url, "%s/api/desk/board/%s?firmware=%s", CONFIG_PANEL_HUB_URL, desk_mac(),
-             esp_app_get_description()->version);
-    char *body = malloc(BODY_MAX);
+    snprintf(url, sizeof url, "%s/api/desk/board/%s?firmware=%s&room=%d", CONFIG_PANEL_HUB_URL, desk_mac(),
+             esp_app_get_description()->version, BODY_MAX);
+    char *body = heap_caps_malloc(BODY_MAX, MALLOC_CAP_SPIRAM); /* internal RAM is scarce */
     for (;;) {
         if (net_state().connected && !update_busy()) {
             esp_http_client_config_t config = {.url = url, .timeout_ms = 5000};
@@ -1020,6 +1023,9 @@ static void desk_task(void *arg)
             }
             esp_http_client_cleanup(client);
             body[length] = '\0';
+            if (length >= BODY_MAX - 1) {
+                ESP_LOGW(TAG, "the hub's answer did not fit in %d bytes", BODY_MAX);
+            }
             net_note_hub(status);
             if (status == 200) {
                 apply(body);

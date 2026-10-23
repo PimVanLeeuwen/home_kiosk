@@ -106,5 +106,6 @@ def backups_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any
         "restore_tone": restore_tone,
         "box": f"Storage Box · {round(box['used_pct'])}% used" if box.get("used_pct") is not None
         else "",
-        "nights": [{"minutes": round(n["seconds"] / 60), "state": n["state"]} for n in nights],
+        # Seconds, not minutes: nightly runs take a minute or two, which would round flat.
+        "nights": [{"seconds": n["seconds"], "state": n["state"]} for n in nights],
     }

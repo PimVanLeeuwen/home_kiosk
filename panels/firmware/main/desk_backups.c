@@ -43,9 +43,11 @@ void desk_parse_backups(const cJSON *screen, desk_backups_t *backups)
         if (backups->night_count >= DESK_NIGHTS) {
             break;
         }
+        /* Seconds since 2026-10-23; a hub from before sends whole minutes. */
+        const cJSON *seconds = cJSON_GetObjectItem(item, "seconds");
         const cJSON *minutes = cJSON_GetObjectItem(item, "minutes");
-        int m = cJSON_IsNumber(minutes) ? minutes->valueint : 0;
-        backups->nights[backups->night_count].minutes = (uint16_t)(m < 0 ? 0 : m > 6000 ? 6000 : m);
+        int took = cJSON_IsNumber(seconds) ? seconds->valueint : cJSON_IsNumber(minutes) ? minutes->valueint * 60 : 0;
+        backups->nights[backups->night_count].seconds = (uint16_t)(took < 0 ? 0 : took > 65535 ? 65535 : took);
         /* "ok", "slow", "failed" */
         backups->nights[backups->night_count].state = letter(cJSON_GetObjectItem(item, "state"), "osf", 'o');
         backups->night_count++;

@@ -97,7 +97,7 @@ static int draw_bars(void)
     memset(buf->data, 0, buf->header.stride * BARS_H);
     int count = shown.night_count, slowest = 1, last_slow = -1;
     for (int i = 0; i < count; i++) {
-        slowest = shown.nights[i].minutes > slowest ? shown.nights[i].minutes : slowest;
+        slowest = shown.nights[i].seconds > slowest ? shown.nights[i].seconds : slowest;
         last_slow = shown.nights[i].state == 's' ? i : last_slow;
     }
     if (count > 0) {
@@ -113,7 +113,7 @@ static int draw_bars(void)
             dsc.radius = 4;
             dsc.bg_color = lv_color_hex(state == 'f' ? RED : state == 's' ? AMBER : GREEN);
             dsc.bg_opa = state != 'o' || last ? LV_OPA_COVER : 110;
-            int h = 6 + shown.nights[i].minutes * (BARS_H - 10) / slowest;
+            int h = 6 + shown.nights[i].seconds * (BARS_H - 10) / slowest;
             lv_area_t area = {.x1 = x0 + i * step + 3, .y1 = BARS_H - h, .x2 = x0 + i * step + 3 + bar - 1,
                               .y2 = BARS_H - 1};
             lv_draw_rect(&layer, &dsc, &area);

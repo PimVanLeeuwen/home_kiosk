@@ -105,7 +105,7 @@ def test_last_night_the_restore_check_and_the_nights(store):
     assert (s["time"], s["line"]) == ("18:29", "Today · 3 min · 200 MB")
     assert s["restore"] == "Restore verified 12 days ago" and s["restore_tone"] == "ok"
     nights = s["nights"]
-    assert len(nights) == 22 and nights[-1] == {"minutes": 3, "state": "ok"}
+    assert len(nights) == 22 and nights[-1] == {"seconds": 180, "state": "ok"}
     assert nights[15]["state"] == "slow" and nights[18]["state"] == "failed"
 
 

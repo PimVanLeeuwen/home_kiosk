@@ -321,3 +321,21 @@ def test_the_other_panels_keep_turning(store):
     store.put_cache("lights", lights(False, False))
     assert desk.answer(CFG, store, "now", NOW)["rotate"] is True
 
+
+
+def test_an_answer_too_big_for_a_board_leaves_screens_out(store):
+    big = {"name": "house", "screens": [
+        {"kind": kind, "stale": False, "present": True, "words": "x" * 1700}
+        for kind in ("pipelines", "nas", "code", "media", "backups", "alerts")]}
+    fitted = desk.fit(dict(big), 8192)
+    assert [s["kind"] for s in fitted["screens"]] == ["pipelines", "nas", "code", "alerts"]
+    assert desk.size(fitted) <= 8192 - 64
+    assert len(desk.fit(dict(big), 32768)["screens"]) == 6  # room enough: all of them
+
+
+def test_a_board_says_how_much_it_can_read(store):
+    client = board_client(store)
+    client.get(f"/api/desk/board/{MAC}")
+    client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "house"})
+    assert client.get(f"/api/desk/board/{MAC}", params={"room": 32768}).status_code == 200
+    assert client.get(f"/api/desk/board/{MAC}", params={"room": 10}).status_code == 422

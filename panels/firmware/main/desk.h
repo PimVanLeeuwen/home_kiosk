@@ -312,7 +312,7 @@ typedef struct {
     char box[40];            /* "Storage Box · 22% used" */
     int night_count;
     struct {
-        uint16_t minutes;
+        uint16_t seconds;    /* how long it took */
         char state;          /* 'o' ok, 's' slow, 'f' failed */
     } nights[DESK_NIGHTS];   /* oldest first */
 } desk_backups_t;

@@ -902,6 +902,12 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21.
 
 ## 4. Open items
 
+- House answer too big (found 2026-10-23): with Media and Backups, House's answer grew to
+  8.2 kB, past the 8 kB the panels read; a cut answer cannot be parsed, so the House board stayed
+  on its start-up screen ("The hub is not ready · answered 200"). **Fixed 2026-10-23.** Boards
+  now read 32 kB (in PSRAM) and tell the hub (`room=`); the hub leaves screens out until an answer
+  fits a board's room (`desk.fit`: Media and Backups first, the alerts last), 8 kB for boards
+  that do not say.
 - Check on the Home panel (found 2026-10-22): the Music screen as rows with small covers (built
   2026-10-22) and Now Playing's one-line artist line, with `shot.py` screenshots, while something
   plays for Now Playing. Not checked yet: Spotify rate-limited the hub for about 4 hours that

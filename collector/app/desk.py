@@ -8,6 +8,7 @@ local times are done here, so the firmware stays simple.
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -121,6 +122,31 @@ HOUSE = (nas_screen, code_screen, sites_screen, services_screen, tailnet_screen,
 SCREENS = {"now": NOW, "home": HOME, "house": HOUSE, "test": NOW}
 # Panels that turn through their screens on their own; Home decides per answer (home_rules).
 ROTATES = {"now": True, "house": True, "test": True}
+
+
+# What a board reads of an answer when it does not say (the firmware before 2026-10-23
+# read 8 kB), and the screens left out first when an answer is too big for a board:
+# the newest first, the alerts last.
+ROOM = 8192
+DROP_FIRST = ("media", "backups", "movers", "tailnet", "services", "sites", "code", "nas",
+              "pipelines", "headlines", "agenda", "day", "apple", "laundry", "air")
+
+
+def size(answer: dict[str, Any]) -> int:
+    """The answer's size as sent: FastAPI's compact JSON in UTF-8."""
+    return len(json.dumps(answer, ensure_ascii=False, separators=(",", ":")).encode())
+
+
+def fit(answer: dict[str, Any], room: int) -> dict[str, Any]:
+    """Leaves screens out (DROP_FIRST, then from the end) until the answer fits in a
+    board's `room`, with a little to spare. A cut answer cannot be read at all, so a
+    board then shows its start-up screen for good (2026-10-23, House at 8.2 kB)."""
+    limit = room - 64
+    while size(answer) > limit and answer["screens"]:
+        kinds = [s["kind"] for s in answer["screens"]]
+        drop = next((k for k in DROP_FIRST if k in kinds), kinds[-1])
+        answer["screens"] = [s for s in answer["screens"] if s["kind"] != drop]
+    return answer
 
 
 def board_screen(mac: str, title: str, hint: str) -> dict[str, Any]:
