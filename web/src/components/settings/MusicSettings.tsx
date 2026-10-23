@@ -6,6 +6,7 @@ import type { Favourite, Music, Playlist } from '../../lib/musicTypes'
 import { useApi } from '../../lib/useApi'
 import { Cover } from '../music/NowPlaying'
 import { Loading, Unavailable } from '../ui/states'
+import { Surface } from '../ui/Card'
 
 const MAX = 4
 const RETURNED: Record<string, { ok: boolean; text: string }> = {
@@ -118,7 +119,7 @@ export function MusicSettings() {
     return state.error ? <p className="text-muted">{state.error.message}</p> : <Loading />
   }
   return (
-    <div className="rounded-[14px] border border-line-soft bg-card px-5 py-2 md:px-6">
+    <Surface padding="list">
       {returned && (
         <p role={returned.ok ? 'status' : 'alert'} className={cn('pt-3 text-[13px]', returned.ok ? 'text-up' : 'text-down')}>
           {returned.text}
@@ -152,6 +153,6 @@ export function MusicSettings() {
           {error}
         </p>
       )}
-    </div>
+    </Surface>
   )
 }

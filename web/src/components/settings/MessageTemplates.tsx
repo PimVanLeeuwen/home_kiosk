@@ -8,6 +8,7 @@ import { useApi } from '../../lib/useApi'
 import { buttonClass, iconButtonClass, inputClass, primaryButtonClass } from './fields'
 import { TelegramText } from './TelegramText'
 import { Loading, Unavailable } from '../ui/states'
+import { Surface } from '../ui/Card'
 
 const ENDPOINT = '/api/alerts/templates'
 const PREVIEW_DELAY_MS = 300
@@ -224,7 +225,7 @@ export function MessageTemplates() {
         const toggle = () =>
           setOpen((now) => (now.has(group) ? new Set([...now].filter((g) => g !== group)) : new Set([...now, group])))
         return (
-          <section key={group} aria-label={group} className="rounded-[14px] border border-line-soft bg-card p-3 md:p-4">
+          <Surface as="section" padding="compact" key={group} aria-label={group}>
             {/* Folded by default: the groups together hold dozens of messages. */}
             <h3 className="text-[13px] font-semibold text-muted">
               <button
@@ -279,7 +280,7 @@ export function MessageTemplates() {
                 ))}
               </ul>
             )}
-          </section>
+          </Surface>
         )
       })}
     </div>

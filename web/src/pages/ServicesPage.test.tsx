@@ -186,7 +186,7 @@ describe('ServicesPage', () => {
     renderRoute('/services')
 
     const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent('The hub API is not answering')
+    expect(alert).toHaveTextContent('The hub API is not available right now')
 
     stubApi({ '/api/services': SERVICES })
     fireEvent.click(within(alert).getByRole('button', { name: 'Try again' }))

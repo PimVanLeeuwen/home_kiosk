@@ -5,6 +5,7 @@ import { readingMinutes } from '../../lib/format'
 import { progressOf } from '../../lib/readProgress'
 import type { ArticleContent, Block } from '../../lib/newsTypes'
 import type { ApiState } from '../../lib/useApi'
+import { Surface } from '../ui/Card'
 
 interface Props {
   content: ApiState<ArticleContent>
@@ -139,7 +140,7 @@ export function ArticleView({ content, title, url, meta, actions, back, bodyRef 
       )}
       {!data && content.error && <p className="text-muted">The hub could not load this article right now.</p>}
       {data && !data.ok && (
-        <div className="rounded-[12px] border border-line-soft bg-card px-5 py-4">
+        <Surface>
           <p className="font-medium">This one does not read well in the hub.</p>
           <p className="mt-1 text-[13px] text-muted">{data.reason}</p>
           <a
@@ -152,7 +153,7 @@ export function ArticleView({ content, title, url, meta, actions, back, bodyRef 
             <ExternalLink aria-hidden="true" className="size-3.5" />
             <span className="sr-only">(opens in a new tab)</span>
           </a>
-        </div>
+        </Surface>
       )}
       {hero && (
         <figure className="relative mb-7 overflow-hidden rounded-[14px] border border-glass-line">

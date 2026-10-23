@@ -52,7 +52,7 @@ test('shows a retry when the collector is down', async ({ page }) => {
   // No stub: the e2e stack has no collector, so Caddy answers 502.
   await page.goto('/services')
 
-  await expect(page.getByRole('alert')).toContainText('The hub API is not answering')
+  await expect(page.getByRole('alert')).toContainText('The hub API is not available right now')
   await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
 })
 

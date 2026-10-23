@@ -5,6 +5,7 @@ import { BrandLogo } from './BrandLogo'
 import { IncidentCard } from './IncidentCard'
 import { ReadNotes } from './ReadNotes'
 import { Loading, StaleNote, Unavailable } from '../ui/states'
+import { Surface } from '../ui/Card'
 
 const REFRESH_MS = 60_000
 
@@ -17,10 +18,7 @@ export function OutsideServicesSection() {
   const maintenance = services.filter((s) => s.state === 'maintenance')
 
   return (
-    <section
-      aria-labelledby="group-outside"
-      className="mt-5 rounded-[14px] border border-line-soft bg-card p-4 md:px-6 md:py-5"
-    >
+    <Surface as="section" aria-labelledby="group-outside" className="mt-5">
       <h2 id="group-outside" className="mb-1 text-[13px] font-semibold text-muted">
         Outside services
       </h2>
@@ -62,6 +60,6 @@ export function OutsideServicesSection() {
           {data.stale && <StaleNote>Showing the last known status.</StaleNote>}
         </>
       )}
-    </section>
+    </Surface>
   )
 }

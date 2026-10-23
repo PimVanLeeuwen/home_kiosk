@@ -8,6 +8,7 @@ import { useApi } from '../../lib/useApi'
 import { ServiceIcon } from '../ServiceIcon'
 import { ServiceForm } from './ServiceForm'
 import { buttonClass, iconButtonClass, inputClass, primaryButtonClass } from './fields'
+import { Surface } from '../ui/Card'
 
 const ENDPOINT = '/api/settings/services'
 
@@ -104,11 +105,7 @@ export function ServiceCatalogEditor() {
       )}
 
       {groups.map((group, gi) => (
-        <section
-          key={group.name}
-          aria-label={group.name}
-          className="rounded-[14px] border border-line-soft bg-card p-3 md:p-4"
-        >
+        <Surface as="section" padding="compact" key={group.name} aria-label={group.name}>
           <div className="mb-2 flex items-center gap-1 px-1">
             {renaming === group.name ? (
               <GroupRenameForm
@@ -195,7 +192,7 @@ export function ServiceCatalogEditor() {
               )
             })}
           </ul>
-        </section>
+        </Surface>
       ))}
     </div>
   )

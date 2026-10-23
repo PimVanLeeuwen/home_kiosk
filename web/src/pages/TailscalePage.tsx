@@ -8,6 +8,7 @@ import { Pill } from '../components/ui/Pill'
 import { relayName } from '../lib/tailnet'
 import type { Hosts, Tailnet, TailnetDevice } from '../lib/types'
 import { useApi } from '../lib/useApi'
+import { Surface } from '../components/ui/Card'
 
 const REFRESH_MS = 60_000
 
@@ -116,9 +117,11 @@ export function TailscalePage() {
             </section>
           ))}
 
-          <section
+          <Surface
+            as="section"
+            padding="none"
             aria-label="Tailnet"
-            className="grid items-center gap-6 rounded-[14px] border border-line-soft bg-card bg-linear-to-b from-white/[0.022] to-transparent to-40% px-5 py-8 md:px-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]"
+            className="grid items-center gap-6 px-5 py-8 md:px-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]"
           >
             <TailnetMap peers={data.peers} warn={issues > 0} />
             <div>
@@ -129,7 +132,7 @@ export function TailscalePage() {
               </p>
               <Facts rows={selfRows(data.self, served, issues)} />
             </div>
-          </section>
+          </Surface>
 
           {data.peers.length === 0 && <p className="mt-5 text-muted">No other devices on the tailnet yet.</p>}
           <Group title="Online" devices={data.peers.filter((p) => p.online)} open={open} setOpen={setOpen} now={now} />

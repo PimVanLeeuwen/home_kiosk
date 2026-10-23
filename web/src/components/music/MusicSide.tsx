@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { cn } from '../../lib/cn'
 import type { Favourite, MusicDevice } from '../../lib/musicTypes'
 import { Cover } from './NowPlaying'
+import { Surface } from '../ui/Card'
 
 const ICON = { computer: Laptop, smartphone: Smartphone, tv: Tv } as const
 const TYPE: Record<string, string> = { computer: 'Computer', smartphone: 'Phone', tv: 'TV', speaker: 'Speaker', avr: 'Receiver', castvideo: 'Chromecast' }
@@ -29,7 +30,7 @@ interface Props {
 export function MusicSide({ devices, favourites, starting, onTransfer, onFavourite }: Props) {
   const active = devices.find((d) => d.active)
   return (
-    <section aria-label="Devices and favourites" className="rounded-[14px] border border-line-soft bg-card px-5 py-5 md:px-6">
+    <Surface as="section" aria-label="Devices and favourites">
       <Label aside={active ? `Playing on ${active.name}` : 'None active'}>Devices</Label>
       {devices.length ? (
         <ul className="mb-[18px] grid gap-1.5">
@@ -102,6 +103,6 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
           .
         </p>
       )}
-    </section>
+    </Surface>
   )
 }

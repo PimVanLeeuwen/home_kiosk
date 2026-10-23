@@ -8,6 +8,7 @@ import { useApi } from '../../lib/useApi'
 import { FeedForm, type FeedInput } from './FeedForm'
 import { buttonClass, iconButtonClass, inputClass, primaryButtonClass } from './fields'
 import { Loading, Unavailable } from '../ui/states'
+import { Surface } from '../ui/Card'
 
 type Editing = { feed: number } | { addTo: string } | { group: string } | null
 type Deleting = { feed: Feed } | { group: FeedGroup } | null
@@ -87,7 +88,7 @@ export function FeedEditor() {
       )}
 
       {groups.map((group) => (
-        <section key={group.id} aria-label={group.title} className="rounded-[14px] border border-line-soft bg-card p-3 md:p-4">
+        <Surface as="section" padding="compact" key={group.id} aria-label={group.title}>
           <div className="mb-2 flex items-center gap-1 px-1">
             {editing && 'group' in editing && editing.group === group.id ? (
               <form
@@ -181,7 +182,7 @@ export function FeedEditor() {
               Add a feed to {group.title}
             </button>
           )}
-        </section>
+        </Surface>
       ))}
 
       <form onSubmit={addGroup} aria-label="Add a group" className="flex flex-wrap gap-2">

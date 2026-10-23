@@ -1,4 +1,3 @@
-import { RefreshCw } from 'lucide-react'
 import { OutsideServicesSection } from '../components/outside/OutsideServicesSection'
 import { PageHeader } from '../components/PageHeader'
 import { MySitesSection } from '../components/sites/MySitesSection'
@@ -9,7 +8,8 @@ import { uniqueMonograms } from '../lib/monogram'
 import type { Service, ServiceStatus, ServicesResponse } from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { useServiceLinks } from '../lib/useServiceLinks'
-import { StaleNote } from '../components/ui/states'
+import { PageUnavailable, StaleNote } from '../components/ui/states'
+import { Surface } from '../components/ui/Card'
 
 const REFRESH_MS = 30_000
 
@@ -78,21 +78,7 @@ export function ServicesPage() {
       )}
 
       {services.error && !services.data && (
-        <div
-          role="alert"
-          className="flex flex-col items-start gap-3 rounded-[14px] border border-line bg-card p-5"
-        >
-          <p className="font-medium">The hub API is not answering</p>
-          <p className="text-muted">Service links and status need the collector on the NAS.</p>
-          <button
-            type="button"
-            onClick={services.reload}
-            className="inline-flex items-center gap-2 rounded-[9px] border border-line bg-raised px-3 py-2 font-medium hover:border-faint"
-          >
-            <RefreshCw aria-hidden="true" className="size-4" />
-            Try again
-          </button>
-        </div>
+        <PageUnavailable what="The hub API" detail="Service links and status need the collector on the NAS." onRetry={services.reload} />
       )}
 
       {services.data && !statusKnown && (
@@ -117,11 +103,7 @@ export function ServicesPage() {
       {services.data && (
         <div className="space-y-5">
           {services.data.groups.map((group) => (
-            <section
-              key={group.name}
-              aria-labelledby={`group-${group.name}`}
-              className="rounded-[14px] border border-line-soft bg-card p-4 md:px-6 md:py-5"
-            >
+            <Surface as="section" key={group.name} aria-labelledby={`group-${group.name}`}>
               <div className="mb-3.5 flex items-center gap-2">
                 <h2 id={`group-${group.name}`} className="text-[13px] font-semibold text-muted">
                   {group.name}
@@ -140,7 +122,7 @@ export function ServicesPage() {
                   </li>
                 ))}
               </ul>
-            </section>
+            </Surface>
           ))}
         </div>
       )}

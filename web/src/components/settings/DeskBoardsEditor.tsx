@@ -6,6 +6,7 @@ import type { DeskBoard, DeskPanel, PanelFirmware } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { Segmented } from '../ui/Segmented'
 import { Loading, Unavailable } from '../ui/states'
+import { Surface } from '../ui/Card'
 
 type Choice = DeskPanel | 'none'
 
@@ -60,7 +61,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
     return <p className="text-muted">No desk panels yet: a board appears here once it has asked the hub, showing its MAC address on its screen.</p>
   }
   return (
-    <div className="rounded-[14px] border border-line-soft bg-card px-5 py-2 md:px-6">
+    <Surface padding="list">
       <p className="pt-3 pb-1 text-[12.5px] text-faint">
         Every board runs the same firmware; choose which panel each one is. A panel has one board: choosing it here takes it from another. A board with a panel gets a device key, which lets it save headlines (and later control lights and music).
       </p>
@@ -139,6 +140,6 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
           {error}
         </p>
       )}
-    </div>
+    </Surface>
   )
 }

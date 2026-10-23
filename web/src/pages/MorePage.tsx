@@ -2,13 +2,14 @@ import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { MORE_ITEMS } from '../lib/navigation'
 import { PageHeader } from '../components/PageHeader'
+import { Surface } from '../components/ui/Card'
 
 /** Mobile: the sections without their own tab. */
 export function MorePage() {
   return (
     <>
       <PageHeader title="More" />
-      <ul className="overflow-hidden rounded-[14px] border border-line-soft bg-card">
+      <Surface as="ul" padding="none">
         {MORE_ITEMS.map((item) => (
           <li key={item.to} className="border-t border-line-soft first:border-t-0">
             <Link to={item.to} className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-raised">
@@ -21,7 +22,7 @@ export function MorePage() {
             </Link>
           </li>
         ))}
-      </ul>
+      </Surface>
     </>
   )
 }

@@ -6,6 +6,7 @@ import { NothingPlaying, NowPlaying } from '../components/music/NowPlaying'
 import { PageHeader } from '../components/PageHeader'
 import type { Favourite, MusicDevice } from '../lib/musicTypes'
 import { useMusic } from '../lib/useMusic'
+import { Surface } from '../components/ui/Card'
 
 /** Spotify: what plays, the controls, your devices and four favourites (plan.md M18). */
 export function MusicPage() {
@@ -30,7 +31,7 @@ export function MusicPage() {
         <PageUnavailable what="Music" detail={error.message} />
       )}
       {music && !music.connected && (
-        <div className="rounded-[14px] border border-line-soft bg-card p-5">
+        <Surface>
           <p className="font-medium">Spotify is not connected</p>
           <p className="mt-1 text-muted">
             Connect it once in{' '}
@@ -39,7 +40,7 @@ export function MusicPage() {
             </Link>
             .
           </p>
-        </div>
+        </Surface>
       )}
 
       {music?.connected && (
