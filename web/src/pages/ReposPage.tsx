@@ -2,6 +2,7 @@ import { Search } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
+import { Pill } from '../components/ui/Pill'
 import { CodeCard } from '../components/repos/CodeCard'
 import { RepoCard } from '../components/repos/RepoCard'
 import { ReposTiles } from '../components/repos/ReposTiles'
@@ -46,6 +47,8 @@ export function ReposPage() {
   const ids = useId()
 
   const groups = data?.groups ?? []
+  // Default branches whose last build failed, each repo once even when it is in more than one tab.
+  const failing = new Set(groups.flatMap((g) => g.repos.filter((r) => !r.fork && r.ci === 'failing').map((r) => r.full_name))).size
   const active = groups.find((g) => g.label === params.get('tab')) ?? groups[0]
   const forks = active?.repos.filter((r) => r.fork).length ?? 0
   const shown = (active?.repos ?? []).filter((r) => (showForks || !r.fork) && matches(r, query))
@@ -66,6 +69,7 @@ export function ReposPage() {
       <PageHeader
         title="Repos"
         subtitle={data ? `From GitHub, updated ${formatAgo(data.as_of)}` : 'GitHub repos: yours, Hubble and GEWIS'}
+        status={data && (failing ? <Pill tone="down">{failing} failing</Pill> : <Pill tone="up">All passing</Pill>)}
       />
 
       {loading && !data && (

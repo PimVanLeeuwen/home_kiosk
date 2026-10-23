@@ -4,6 +4,7 @@ import { Loading, PageUnavailable, StaleNote } from '../components/ui/states'
 import { MusicSide } from '../components/music/MusicSide'
 import { NothingPlaying, NowPlaying } from '../components/music/NowPlaying'
 import { PageHeader } from '../components/PageHeader'
+import { Pill } from '../components/ui/Pill'
 import type { Favourite, MusicDevice } from '../lib/musicTypes'
 import { useMusic } from '../lib/useMusic'
 import { Surface } from '../components/ui/Card'
@@ -22,7 +23,22 @@ export function MusicPage() {
 
   return (
     <>
-      <PageHeader title="Music" subtitle="Spotify · your devices and favourites" />
+      <PageHeader
+        title="Music"
+        subtitle="Spotify · your devices and favourites"
+        status={
+          music &&
+          (!music.connected ? (
+            <Pill tone="warn">Not connected</Pill>
+          ) : music.playing?.state === 'playing' ? (
+            <Pill tone="accent">Playing</Pill>
+          ) : music.playing ? (
+            <Pill tone="muted">Paused</Pill>
+          ) : (
+            <Pill tone="muted">Nothing playing</Pill>
+          ))
+        }
+      />
 
       {loading && !music && (
         <Loading />

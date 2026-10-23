@@ -51,7 +51,7 @@ export function MediaPage() {
       <PageHeader
         title="Media"
         subtitle="What is downloading, missing and airing next"
-        actions={
+        status={
           data &&
           (needLook ? (
             <Pill tone="warn">

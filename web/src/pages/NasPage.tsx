@@ -45,7 +45,7 @@ export function NasPage() {
       <PageHeader
         title="NAS"
         subtitle={n ? `${n.host}${days != null ? ` · up ${days} day${days === 1 ? '' : 's'}` : ''}` : 'CPU, memory, storage and disk health'}
-        actions={n && (nasNeedsLook(n) ? <Pill tone="warn">Needs a look</Pill> : <Pill tone="up">Healthy</Pill>)}
+        status={n && (nasNeedsLook(n) ? <Pill tone="warn">Needs a look</Pill> : <Pill tone="up">Healthy</Pill>)}
       />
 
       {!n && (nas.error ? <Unavailable what="NAS data" /> : <Loading />)}

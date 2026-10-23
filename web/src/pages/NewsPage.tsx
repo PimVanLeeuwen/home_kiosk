@@ -84,7 +84,7 @@ export function NewsPage() {
         <PageHeader
           title="News"
           subtitle="The last week from your feeds"
-          actions={groups.data && <Pill tone={unread ? 'accent' : 'muted'}>{unread ? `${unread} unread` : 'All read'}</Pill>}
+          status={groups.data && <Pill tone={unread ? 'accent' : 'muted'}>{unread ? `${unread} unread` : 'All read'}</Pill>}
         />
         <Headlines colourOf={colourOf} />
       </div>

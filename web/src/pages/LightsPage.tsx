@@ -59,7 +59,7 @@ export function LightsPage() {
       <PageHeader
         title="Lights"
         subtitle={lights ? `${lights.room} · through the Hue Bridge` : 'The living room through the Hue Bridge'}
-        actions={lights && <Pill tone={on ? 'accent' : 'muted'}>{on ? `${on} of ${total} on` : 'All off'}</Pill>}
+        status={lights && <Pill tone={on ? 'accent' : 'muted'}>{on ? `${on} of ${total} on` : 'All off'}</Pill>}
       />
 
       {loading && !lights && (

@@ -28,7 +28,7 @@ export function BackupsPage() {
       <PageHeader
         title="Backups"
         subtitle="Nightly rclone runs to the Hetzner storage box, encrypted"
-        actions={verdict && <Pill tone={verdict.tone}>{verdict.label}</Pill>}
+        status={verdict && <Pill tone={verdict.tone}>{verdict.label}</Pill>}
       />
 
       {!data && (error ? <Unavailable what="Backup history" /> : <Loading />)}

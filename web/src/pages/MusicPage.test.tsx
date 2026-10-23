@@ -39,6 +39,8 @@ describe('MusicPage', () => {
     const now = await screen.findByRole('region', { name: 'Now playing' })
     expect(within(now).getByRole('heading', { name: 'Midnight City' })).toBeInTheDocument()
     expect(now).toHaveAttribute('data-state', 'playing')
+    // The page's state on the right of the header, as on every page.
+    expect(screen.getByText('Playing', { selector: '.uppercase' })).toBeInTheDocument()
     expect(within(now).getByText('Apple TV Living Room')).toBeInTheDocument()
     expect(within(now).getByRole('progressbar')).toHaveAttribute('aria-valuetext', '1:37 of 4:03')
     expect(within(now).getByRole('slider', { name: 'Volume' })).toHaveValue('60')

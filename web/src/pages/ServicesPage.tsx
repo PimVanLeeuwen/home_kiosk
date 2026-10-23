@@ -65,7 +65,7 @@ export function ServicesPage() {
             ? `${running} of ${onNas.length} running`
             : 'Every app on the NAS, with status and links'
         }
-        actions={
+        status={
           services.data &&
           (needLook ? <Pill tone="warn">{needLook} need{needLook === 1 ? 's' : ''} a look</Pill> : <Pill tone="up">All running</Pill>)
         }

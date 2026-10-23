@@ -62,101 +62,106 @@ export function SavedPage() {
   const onDeleted = useCallback((id: string) => remove((b) => b.id === id), [remove])
 
   return (
-    <div className="lg:grid lg:grid-cols-[minmax(300px,400px)_minmax(0,1fr)] lg:gap-10">
-      <section aria-label="Bookmarks" className={cn(selected && 'hidden lg:block')}>
+    <>
+      {/* Across the whole page, as on News; while reading on the phone, the article has the screen. */}
+      <div className={cn(selected && 'hidden lg:block')}>
         <PageHeader
           title="Saved"
           subtitle={list.loading || list.error ? undefined : `${list.total} in Readeck`}
-          actions={!archived && !list.loading && !list.error && <Pill tone={list.total ? 'accent' : 'muted'}>{list.total} to read</Pill>}
+          status={!archived && !list.loading && !list.error && <Pill tone={list.total ? 'accent' : 'muted'}>{list.total} to read</Pill>}
         />
-        <div role="group" aria-label="Show" className="mb-4 flex gap-1.5">
-          <FilterPill on={!archived} onClick={() => setArchived(false)}>
-            Reading list
-          </FilterPill>
-          <FilterPill on={archived} onClick={() => setArchived(true)}>
-            Archived
-          </FilterPill>
-        </div>
+      </div>
+      <div className="lg:grid lg:grid-cols-[minmax(300px,400px)_minmax(0,1fr)] lg:gap-10">
+        <section aria-label="Bookmarks" className={cn(selected && 'hidden lg:block')}>
+          <div role="group" aria-label="Show" className="mb-4 flex gap-1.5">
+            <FilterPill on={!archived} onClick={() => setArchived(false)}>
+              Reading list
+            </FilterPill>
+            <FilterPill on={archived} onClick={() => setArchived(true)}>
+              Archived
+            </FilterPill>
+          </div>
 
-        {list.loading && (
-          <Loading />
-        )}
-        {list.error && !list.items.length && (
-          <p role="alert" className="text-muted">
-            {list.error.message}
-          </p>
-        )}
-        {!list.loading && !list.error && list.items.length === 0 && (
-          <p className="py-4 text-muted">
-            {archived ? 'Nothing archived yet.' : 'Nothing saved. Use Save to Readeck in the news reader.'}
-          </p>
-        )}
-        <ul>
-          {list.items.map((b) => (
-            <li key={b.id}>
-              <Link
-                to={`/saved?b=${b.id}`}
-                aria-current={b.id === selected ? 'true' : undefined}
-                className={cn(
-                  '-mx-3 flex items-center gap-3 rounded-[11px] border border-transparent px-3 py-2.5 hover:bg-white/[0.03]',
-                  b.id === selected &&
-                    'border-accent-line/30 bg-accent/12 shadow-[inset_2px_0_0_var(--color-accent-line)] hover:bg-accent/12',
-                )}
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="block font-medium">{b.title}</span>
-                  <span className="mt-0.5 block text-[12px] text-faint">{details(b)}</span>
-                </span>
-                {(b.thumbnail || inProgress(b)) && (
-                  <span className="relative shrink-0">
-                    {b.thumbnail ? (
-                      <img
-                        src={`/api/saved/${b.id}/thumbnail`}
-                        alt=""
-                        loading="lazy"
-                        className="size-14 rounded-[10px] border border-glass-line bg-raised object-cover"
-                        onError={(e) => (e.currentTarget.style.visibility = 'hidden')}
-                      />
-                    ) : (
-                      <span className="block size-14 rounded-[10px] border border-glass-line bg-glass" />
-                    )}
-                    {inProgress(b) && <ProgressRing pct={b.progress} />}
+          {list.loading && (
+            <Loading />
+          )}
+          {list.error && !list.items.length && (
+            <p role="alert" className="text-muted">
+              {list.error.message}
+            </p>
+          )}
+          {!list.loading && !list.error && list.items.length === 0 && (
+            <p className="py-4 text-muted">
+              {archived ? 'Nothing archived yet.' : 'Nothing saved. Use Save to Readeck in the news reader.'}
+            </p>
+          )}
+          <ul>
+            {list.items.map((b) => (
+              <li key={b.id}>
+                <Link
+                  to={`/saved?b=${b.id}`}
+                  aria-current={b.id === selected ? 'true' : undefined}
+                  className={cn(
+                    '-mx-3 flex items-center gap-3 rounded-[11px] border border-transparent px-3 py-2.5 hover:bg-white/[0.03]',
+                    b.id === selected &&
+                      'border-accent-line/30 bg-accent/12 shadow-[inset_2px_0_0_var(--color-accent-line)] hover:bg-accent/12',
+                  )}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-medium">{b.title}</span>
+                    <span className="mt-0.5 block text-[12px] text-faint">{details(b)}</span>
                   </span>
-                )}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        {list.more && (
-          <button
-            type="button"
-            onClick={list.loadMore}
-            className="mt-3 w-full rounded-[11px] border border-glass-line bg-glass py-2.5 text-[13px] text-muted hover:text-fg"
-          >
-            Show more ({list.total - list.items.length} left)
-          </button>
-        )}
-      </section>
+                  {(b.thumbnail || inProgress(b)) && (
+                    <span className="relative shrink-0">
+                      {b.thumbnail ? (
+                        <img
+                          src={`/api/saved/${b.id}/thumbnail`}
+                          alt=""
+                          loading="lazy"
+                          className="size-14 rounded-[10px] border border-glass-line bg-raised object-cover"
+                          onError={(e) => (e.currentTarget.style.visibility = 'hidden')}
+                        />
+                      ) : (
+                        <span className="block size-14 rounded-[10px] border border-glass-line bg-glass" />
+                      )}
+                      {inProgress(b) && <ProgressRing pct={b.progress} />}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {list.more && (
+            <button
+              type="button"
+              onClick={list.loadMore}
+              className="mt-3 w-full rounded-[11px] border border-glass-line bg-glass py-2.5 text-[13px] text-muted hover:text-fg"
+            >
+              Show more ({list.total - list.items.length} left)
+            </button>
+          )}
+        </section>
 
-      <section
-        aria-label="Reader"
-        className={cn(
-          'lg:sticky lg:top-0 lg:max-h-[calc(100dvh-5.5rem)] lg:self-start lg:overflow-y-auto',
-          !selected && 'hidden lg:block',
-        )}
-      >
-        {selected ? (
-          <SavedReader
-            key={selected}
-            id={selected}
-            known={list.items.find((b) => b.id === selected)}
-            onChange={onChange}
-            onDeleted={onDeleted}
-          />
-        ) : (
-          <p className="pt-24 text-center text-muted">Pick a bookmark to read it here.</p>
-        )}
-      </section>
-    </div>
+        <section
+          aria-label="Reader"
+          className={cn(
+            'lg:sticky lg:top-0 lg:max-h-[calc(100dvh-5.5rem)] lg:self-start lg:overflow-y-auto',
+            !selected && 'hidden lg:block',
+          )}
+        >
+          {selected ? (
+            <SavedReader
+              key={selected}
+              id={selected}
+              known={list.items.find((b) => b.id === selected)}
+              onChange={onChange}
+              onDeleted={onDeleted}
+            />
+          ) : (
+            <p className="pt-24 text-center text-muted">Pick a bookmark to read it here.</p>
+          )}
+        </section>
+      </div>
+    </>
   )
 }

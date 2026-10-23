@@ -83,7 +83,7 @@ export function DockerPage() {
       <PageHeader
         title="Docker"
         subtitle={overview.data ? `${running} of ${all.length} running` : 'Containers, their load and update history'}
-        actions={
+        status={
           overview.data &&
           (needLook ? <Pill tone="warn">{needLook} need{needLook === 1 ? 's' : ''} a look</Pill> : <Pill tone="up">All running</Pill>)
         }

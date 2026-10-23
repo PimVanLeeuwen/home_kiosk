@@ -76,7 +76,7 @@ export function TailscalePage() {
       <PageHeader
         title="Tailscale"
         subtitle={data ? `${data.name} · ${online} of ${total} online` : 'The tailnet and every device on it'}
-        actions={
+        status={
           data &&
           (stale ? (
             <Pill tone="muted">Stale</Pill>

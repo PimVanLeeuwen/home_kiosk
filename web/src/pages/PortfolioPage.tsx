@@ -15,6 +15,7 @@ import { dayMove, parseHolding } from '../lib/portfolio'
 import type { PortfolioFull } from '../lib/portfolioTypes'
 import { useApi } from '../lib/useApi'
 import { buttonClass } from '../components/ui/buttonStyles'
+import { Pill } from '../components/ui/Pill'
 
 const tone = (n: number | null | undefined) => (!n ? 'text-fg' : n > 0 ? 'text-up' : 'text-down')
 
@@ -62,6 +63,7 @@ export function PortfolioPage() {
       <PageHeader
         title="Portfolio"
         subtitle={`From Ghostfolio, ${formatWhen(data.as_of)}`}
+        status={<Pill tone={dayPct > 0 ? 'up' : dayPct < 0 ? 'down' : 'muted'}>{formatSignedPct(dayPct)} today</Pill>}
         actions={
           <Link
             to="/portfolio?import"

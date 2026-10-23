@@ -35,7 +35,7 @@ export function AlertsPage() {
       <PageHeader
         title="Alerts"
         subtitle="Everything the hub sends to Telegram, and what it listens to"
-        actions={incidents.data && (open ? <Pill tone="down">{open} open</Pill> : <Pill tone="up">All quiet</Pill>)}
+        status={incidents.data && (open ? <Pill tone="down">{open} open</Pill> : <Pill tone="up">All quiet</Pill>)}
       />
 
       {!settings && (loaded.error ? <Unavailable what="Alert settings" /> : <Loading />)}
