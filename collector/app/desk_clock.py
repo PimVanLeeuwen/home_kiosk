@@ -117,6 +117,59 @@ def sun(now: datetime, sunrise: datetime | None, sunset: datetime | None) -> str
     return f"Sunrise {rise:%H:%M}"  # after sunset: tomorrow's, within a minute or two
 
 
+# The Horizon clock (chosen 2026-10-23): the sky from the zenith down to the horizon, by the
+# light outside and the weather (clear, some clouds, or overcast, which takes in fog, rain,
+# thunder and snow). Hex without #.
+HORIZON_SKIES: dict[str, dict[str, tuple[str, str, str]]] = {
+    "day": {"clear": ("0d1d40", "2a5aa8", "6f9fe0"), "partly": ("0f1b36", "2f4f8a", "7b97c8"),
+            "overcast": ("10141d", "2c3446", "5f6a80")},
+    "dawn": {"clear": ("1a1030", "5a3a6e", "d08a8a"), "partly": ("181028", "4e3a62", "b88a8e"),
+             "overcast": ("14121a", "3c3444", "7a6670")},
+    "dusk": {"clear": ("1a1030", "5a2d52", "d07a4a"), "partly": ("181028", "4e2d4c", "b47458"),
+             "overcast": ("16121c", "443848", "8a6a6a")},
+    "night": {"clear": ("05060f", "0d1230", "1b2350"), "partly": ("05060f", "0d1230", "1b2350"),
+              "overcast": ("06070c", "10131f", "1e2433")},
+}
+# A new moon, and the length of a lunar month: the moon's phase from the date alone.
+NEW_MOON = datetime(2000, 1, 6, 18, 14, tzinfo=ZoneInfo("UTC"))
+LUNAR_DAYS = 29.530588853
+
+
+def moon_phase(now: datetime) -> float:
+    """0 at new moon, 0.5 at full moon, towards 1 at the next new moon."""
+    return ((now - NEW_MOON).total_seconds() / 86400 / LUNAR_DAYS) % 1
+
+
+def horizon(now: datetime, sunrise: datetime | None, sunset: datetime | None,
+            kind: Sky | None) -> dict[str, Any]:
+    """The Horizon clock's sky: three colours, the sun or the moon and how far along its
+    arc (0 to 1000), the moon's phase (0 new, 500 full), and whether stars show."""
+    phase = _phase(now, sunrise, sunset)
+    group = kind if kind in ("clear", "partly") else "partly" if kind is None else "overcast"
+    top, mid, low = HORIZON_SKIES[phase][group]
+    body, at = ("sun" if 6 <= now.hour < 18 else "moon"), 500
+    rise = down = None
+    if sunrise is not None and sunset is not None:
+        rise = sunrise.replace(year=now.year, month=now.month, day=now.day)
+        down = sunset.replace(year=now.year, month=now.month, day=now.day)
+        if rise <= now <= down:
+            body, start, end = "sun", rise, down
+        elif now > down:  # the evening: the night runs to tomorrow's sunrise
+            body, start, end = "moon", down, rise + timedelta(days=1)
+        else:  # before sunrise: the night began at yesterday's sunset
+            body, start, end = "moon", down - timedelta(days=1), rise
+        at = round(1000 * (now - start) / (end - start))
+    return {
+        "top": top, "mid": mid, "low": low,
+        "body": body, "at": max(0, min(1000, at)),
+        "moon": round(moon_phase(now) * 1000),
+        "veiled": group == "overcast",  # the sun or moon behind clouds: dimmer
+        "stars": phase == "night" and group != "overcast",
+        "rise": f"{rise:%H:%M}" if rise else "",
+        "set": f"{down:%H:%M}" if down else "",
+    }
+
+
 def rain_line(points: list[dict[str, Any]], zone: ZoneInfo) -> str:
     """One line on the next two hours: when it starts or stops, and for how long."""
     if not points:
@@ -167,6 +220,7 @@ def clock_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
         "description": words,
         "sun": sun(local, sunrise, sunset),
         "sky": sky(local, sunrise, sunset, kind),
+        "horizon": horizon(local, sunrise, sunset, kind),
         # One value per five minutes from now, as the bars along the bottom.
         "rain": [round(p["mm_per_hour"], 2) for p in points],
         "rain_axis": rain_axis(points, zone),

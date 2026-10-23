@@ -27,6 +27,16 @@ typedef struct {
     char rain_axis[3][8];  /* under the bars: "Now", +1 h, +2 h */
     char rain_line[96];
     bool wet;
+    /* The Horizon clock (2026-10-23): the sky's three colours, zenith to horizon, the sun
+     * or the moon and how far along its arc (0..1000), the moon's phase (0 new, 500 full). */
+    bool has_horizon;
+    uint32_t sky_top, sky_mid, sky_low;
+    bool moon;               /* the moon, not the sun */
+    int at;
+    int moon_phase;
+    bool veiled;             /* behind clouds: dimmer */
+    bool stars;
+    char rise[8], set[8];    /* "08:06", "18:37" */
 } desk_clock_t;
 
 #define DESK_DAY_POINTS 19 /* 06:00 to 24:00 */

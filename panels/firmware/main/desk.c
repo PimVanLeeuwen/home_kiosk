@@ -937,6 +937,23 @@ static void apply(const char *body)
         next.has_sky = cJSON_IsString(sky_colour);
         next.sky_colour = next.has_sky ? (uint32_t)strtoul(sky_colour->valuestring, NULL, 16) : 0;
         next.sky_opacity = (uint8_t)number(cJSON_GetObjectItem(sky, "opacity"), 90);
+        const cJSON *horizon = cJSON_GetObjectItem(screen, "horizon");
+        const cJSON *top = cJSON_GetObjectItem(horizon, "top");
+        next.has_horizon = cJSON_IsString(top);
+        if (next.has_horizon) {
+            const cJSON *mid = cJSON_GetObjectItem(horizon, "mid"), *low = cJSON_GetObjectItem(horizon, "low");
+            next.sky_top = (uint32_t)strtoul(top->valuestring, NULL, 16);
+            next.sky_mid = cJSON_IsString(mid) ? (uint32_t)strtoul(mid->valuestring, NULL, 16) : next.sky_top;
+            next.sky_low = cJSON_IsString(low) ? (uint32_t)strtoul(low->valuestring, NULL, 16) : next.sky_mid;
+            const cJSON *body = cJSON_GetObjectItem(horizon, "body");
+            next.moon = cJSON_IsString(body) && strcmp(body->valuestring, "moon") == 0;
+            next.at = number(cJSON_GetObjectItem(horizon, "at"), 500);
+            next.moon_phase = number(cJSON_GetObjectItem(horizon, "moon"), 500);
+            next.veiled = cJSON_IsTrue(cJSON_GetObjectItem(horizon, "veiled"));
+            next.stars = cJSON_IsTrue(cJSON_GetObjectItem(horizon, "stars"));
+            copy_string(next.rise, sizeof next.rise, cJSON_GetObjectItem(horizon, "rise"));
+            copy_string(next.set, sizeof next.set, cJSON_GetObjectItem(horizon, "set"));
+        }
         for (int i = 0; i < 3; i++) {
             copy_string(next.rain_axis[i], sizeof next.rain_axis[i],
                         cJSON_GetArrayItem(cJSON_GetObjectItem(screen, "rain_axis"), i));
