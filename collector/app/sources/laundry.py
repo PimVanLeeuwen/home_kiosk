@@ -96,7 +96,7 @@ DRYER_PROGRAMS = {1: "Auto", 2: "Allergy care", 3: "Refresh", 4: "Sportswear", 5
                   12: "Delicates", 13: "Quick 30", 17: "Shirts", 18: "Bedding", 19: "Down"}
 # Learnt one wash at a time (the numbers do not follow the dial); unknown ones
 # show as "Program 6".
-WASHER_PROGRAMS = {9: "Cotton"}
+WASHER_PROGRAMS = {7: "Cotton 40° quick", 9: "Cotton"}
 WASHER_ERRORS = {100: "Unbalanced load"}
 
 

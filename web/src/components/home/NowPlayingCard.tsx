@@ -4,10 +4,18 @@ import type { Playing } from '../../lib/musicTypes'
 import type { HomeSend } from '../../lib/useHomeNowPlaying'
 import { Cover, Progress } from '../music/NowPlaying'
 import { Pill } from '../ui/Pill'
+import { cn } from '../../lib/cn'
 import { Card } from './Card'
 
+interface Props {
+  playing: Playing | null
+  send: HomeSend
+  /** Larger, as Home's hero. */
+  hero?: boolean
+}
+
 /** Now Playing on Home, with what `useHomeNowPlaying` gives. */
-export function NowPlayingCard({ playing, send }: { playing: Playing | null; send: HomeSend }) {
+export function NowPlayingCard({ playing, send, hero }: Props) {
   if (!playing) return null
   const on = playing.state === 'playing'
   const colour = playing.colour ?? '#9c8ffb'
@@ -18,11 +26,23 @@ export function NowPlayingCard({ playing, send }: { playing: Playing | null; sen
       link={{ to: '/music', label: 'Music' }}
       actions={playing.device && <Pill tone="accent">On {playing.device.name}</Pill>}
     >
-      <div style={{ '--np': colour } as CSSProperties} className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
-        <Cover item={playing} className="size-24 rounded-[12px] shadow-[0_10px_26px_color-mix(in_srgb,var(--np)_35%,transparent)]" />
+      <div
+        style={{ '--np': colour } as CSSProperties}
+        className={cn(
+          'grid items-center gap-4',
+          hero ? 'grid-cols-[96px_minmax(0,1fr)] md:grid-cols-[136px_minmax(0,1fr)] md:gap-7' : 'grid-cols-[96px_minmax(0,1fr)]',
+        )}
+      >
+        <Cover
+          item={playing}
+          className={cn(
+            'size-24 rounded-[12px] shadow-[0_10px_26px_color-mix(in_srgb,var(--np)_35%,transparent)]',
+            hero && 'md:size-34 md:rounded-[14px] md:shadow-[0_18px_40px_-10px_color-mix(in_srgb,var(--np)_55%,transparent)]',
+          )}
+        />
         <div className="min-w-0">
-          <h3 className="truncate text-[16px] font-semibold">{playing.title}</h3>
-          <p className="truncate text-[13px] text-muted">
+          <h3 className={cn('truncate font-semibold', hero ? 'text-[20px] tracking-tight md:text-[34px]' : 'text-[16px]')}>{playing.title}</h3>
+          <p className={cn('truncate text-muted', hero ? 'text-[14px] md:text-[15px]' : 'text-[13px]')}>
             {on ? '' : 'Paused · '}
             {playing.subtitle}
           </p>

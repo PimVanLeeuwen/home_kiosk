@@ -94,7 +94,7 @@ export function homeChips({ nas, services, backups, outside, attention, now }: S
     {
       id: 'backups',
       label: 'Last backup',
-      value: !backupAt ? 'Unknown' : nas?.backup.status === 'fail' ? `Failed ${backupAt}` : backupAt,
+      value: !backupAt ? 'Unknown' : nas?.backup.status === 'fail' ? 'Failed' : backupAt,
       tone: backupTone,
       meter: backups ? [...Array<Segment>(Math.max(0, NIGHTS - nights.length)).fill('off'), ...nights] : [],
     },

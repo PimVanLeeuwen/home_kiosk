@@ -103,6 +103,8 @@ def test_the_real_washer_after_a_cotton_wash_is_off_with_its_door_open():
     assert (running.state, running.program, running.total_minutes) == ("running", "Cotton", 239)
     assert laundry.read_machine(washer(machine_status=2, Selected_program_ID=6), None,
                                 NOW).program == "Program 6"
+    assert laundry.read_machine(washer(machine_status=2, Selected_program_ID=7), None,
+                                NOW).program == "Cotton 40° quick"
 
 
 def test_a_running_dryer_with_its_program_and_ready_time():

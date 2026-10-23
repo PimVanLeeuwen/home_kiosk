@@ -320,6 +320,9 @@ describe('HomePage', () => {
     await screen.findByRole('region', { name: 'Laundry' })
     const regions = screen.getAllByRole('region').map((r) => r.getAttribute('aria-labelledby'))
     expect(regions[0]).toBe('card-backups')
+    // The failed backup is the hero, in its own frame and light.
+    expect(screen.getByRole('region', { name: 'Backups' }).closest('[data-hero]')).not.toBeNull()
+    expect(screen.getByRole('region', { name: 'Laundry' }).parentElement!.querySelector('[data-live="accent"]')).not.toBeNull()
     expect(regions.indexOf('card-laundry')).toBeLessThan(regions.indexOf('card-latest-news'))
   })
 })
