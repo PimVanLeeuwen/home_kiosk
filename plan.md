@@ -992,12 +992,34 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   (`{created_year}/{correspondent}/{title}`), so the files on disk stay readable without
   Paperless.
 - In the hub: Paperless in the service catalog with its health check, the new dump on the
-  Backups page, and its documents searchable from the command palette (M24).
+  Backups page, and its documents searchable from the command palette (M25).
 - Steps: the nas-docker stack and backup first; then the Bridge and the sender inventory; then
   one mail rule for one sender; then the other senders and the old mail; then the monthly
   new-sender check and the hub's parts.
 
-**M24. Command palette** (added 2026-10-23)
+**M24. AdGuard Home** (added 2026-10-23; research under Open items, "Ad and tracker blocking")
+- AdGuard Home on the NAS blocks ads and trackers for every device in the house, apps and TVs
+  included, as the DNS server the router hands out. A stack in nas-docker `adguard/`; first check
+  that nothing on the NAS listens on port 53 (UGOS, Docker's own resolver). Upstream Quad9 over
+  DNS-over-HTTPS; standard block lists to start, the owner's own allow list for anything that
+  breaks.
+- The internet keeps working without the NAS: the router hands out the NAS as DNS server 1 and
+  Quad9 (`9.9.9.9`) as server 2 (router, LAN settings, DNS values: "Statisch"); some devices ask
+  server 2 now and then, so a little gets through, accepted. The NAS itself uses Quad9 directly.
+  Only switch the router once AdGuard answers; "DNS-proxy" undoes it. A used thin client can
+  later replace server 2 (kept equal with AdGuard Home Sync) if the leaks bother.
+- Devices away from home: optionally AdGuard's Tailscale address as the tailnet's DNS server, so
+  phones and laptops are filtered anywhere; decided when building, as a NAS outage would then
+  also take DNS away from those devices.
+- In the hub: AdGuard in the service catalog with its health check, and a "Blocked today" tile:
+  the day's queries and the share blocked (`/control/stats`, read-only, credentials in `.env`),
+  an hourly sparkline and the most-blocked domain. Which device asks for what is browsing
+  history: counts only, never per-device lists, on Home and on the panels. An alert when AdGuard
+  stops answering (every device then falls back to Quad9 unfiltered).
+- Steps: the nas-docker stack, tested from one device with its DNS set by hand; then the router
+  switch; then the hub's tile and health check.
+
+**M25. Command palette** (added 2026-10-23)
 - ⌘K (Ctrl-K) opens a search box over any page; on the phone a search button in the page header.
   Type a few letters, arrows to choose, Enter to go. Fuzzy matching, recent choices first.
 - Finds: the pages and the Settings sections, the services (opened on the LAN or Tailscale
@@ -1008,7 +1030,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Built in the hub without a new dependency unless the owner chooses one (cmdk was the obvious
   candidate). Keyboard and screen reader friendly; the hub's style.
 
-**M25. AI** (added 2026-10-23; mockup `docs/hub-ai-mockup.html`)
+**M26. AI** (added 2026-10-23; mockup `docs/hub-ai-mockup.html`)
 - The owner's Anthropic API key (NAS-only `.env`) for a few written extras. Every result is made
   on a schedule and cached by a hash of its input; a page or panel never waits on the API, and
   without it (down, or the cap reached) the hub shows what it had, or nothing extra.
@@ -1035,14 +1057,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the first event's time and name, no portfolio amounts.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25.
+M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26.
 
 ## 4. Open items
 
 - Panel design review (2026-10-23, every screen looked at on the panels). Fixed the same day: the
   running pipeline's commit ran into its author and hash; Backups' "slow" could touch "Latest";
-  Air showed "22,7°" (now a point, as every panel number) and "2 PM2.5 fine dust" (now
-  "2 µg/m³  fine dust"). Agreed to do, one step each:
+  Air's "2 PM2.5 fine dust" reads "2  fine dust (PM2.5)". (Changing Air's "22,7°" to a point,
+  and writing "µg/m³", drew boxes on the panel: the large-number font has no point, Instrument
+  Sans has no µ or ³. The comma stays.) Agreed to do, one step each:
   - Apple devices: the Thread mesh between the five border routers (lines with travelling pulses,
     a broken amber line to an offline device, ripples from what plays) and larger orbs.
   - Clock: a prettier screen in general (on a dry day the lower half is empty).
@@ -1111,7 +1134,7 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25.
   with NordVPN. Either way: a paper emergency sheet away from the NAS (master password, 2FA
   recovery codes for Tailscale, Hetzner and GitHub, the rclone crypt passwords, the LiveSync
   passphrase) and 2FA for Tailscale and Hetzner on a passkey, not only a TOTP in the vault.
-- Ad and tracker blocking (DNS), not decided. Software: AdGuard Home (UI, encrypted upstream,
+- Ad and tracker blocking (DNS): became M24 on 2026-10-23; the research below. Software: AdGuard Home (UI, encrypted upstream,
   per-device rules), Pi-hole, Blocky (one config file, easy to run twice, Prometheus metrics),
   Technitium, or hosted NextDNS (nothing to run, but it sees every lookup). Upstream: Quad9 or
   Mullvad over DoH/DoT, or Unbound resolving itself. Handed out by the router (whole house) or
@@ -1178,7 +1201,7 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25.
 - Backlog, ideas not yet chosen (2026-10-08): dynamic energy prices for today and tomorrow
   (EnergyZero, no key) and an Immich "on this day" photo. Desk panels: house and productivity
   widgets and actions, later. (The calendar and the morning train moved to M20, the command
-  palette to M24 and the morning digest to M25; there are no bin days to show.)
+  palette to M25 and the morning digest to M26; there are no bin days to show.)
 - Desk panel screen ideas (2026-10-10). Chosen into M20 on 2026-10-10: calendar, the morning
   train (instead of general departures), Jellyfin, code and headlines (ambient was chosen,
   then dropped). Not chosen yet:

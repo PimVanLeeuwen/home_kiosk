@@ -167,7 +167,8 @@ static void tick(lv_timer_t *timer)
     lv_label_set_text(temperature, shown.temperature);
     lv_label_set_text_fmt(humidity, "%s%s", shown.humidity, shown.humidity[0] ? "  humidity" : "");
     /* Instrument Sans has no µ or ³, so the measure is named instead of its unit. */
-    lv_label_set_text_fmt(dust, "%s%s", shown.pm25, shown.pm25[0] ? " µg/m³  fine dust" : "");
+    /* No µ or ³: Instrument Sans has neither (the panel drew boxes, 2026-10-23). */
+    lv_label_set_text_fmt(dust, "%s%s", shown.pm25, shown.pm25[0] ? "  fine dust (PM2.5)" : "");
     lv_label_set_text_fmt(quality, "%s%s", shown.quality[0] ? "Sensor says: " : "", shown.quality);
     lv_obj_set_flag(co2, LV_OBJ_FLAG_HIDDEN, !shown.has_co2);
     lv_obj_set_flag(unit, LV_OBJ_FLAG_HIDDEN, !shown.has_co2);
