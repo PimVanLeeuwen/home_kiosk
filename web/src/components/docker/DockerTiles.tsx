@@ -1,25 +1,14 @@
-import type { ReactNode } from 'react'
 import { cn } from '../../lib/cn'
 import { containerStatus } from '../../lib/containers'
 import { formatBytes } from '../../lib/format'
 import type { ContainerLoad, ContainerUpdate, DockerOverview } from '../../lib/types'
-import { Card } from '../ui/Card'
+import { OutOf, StatTile, StatTiles } from '../ui/StatTile'
 
 const pct = (n: number) => `${n.toFixed(1).replace('.', ',')}%`
 /** Colours for the biggest memory users; the rest is grey. */
 const MEMORY_COLOURS = ['#8f80ff', '#7cc4ff', '#7fe0b0']
 const DAY = 86_400_000
 const weekday = new Intl.DateTimeFormat('en-GB', { weekday: 'narrow' })
-
-function Tile({ title, figure, sub, children }: { title: string; figure: ReactNode; sub?: string; children?: ReactNode }) {
-  return (
-    <Card title={title} className="px-3.5 py-3.5 md:px-4.5 md:py-4">
-      <p className="-mt-2 text-[21px] leading-tight font-semibold tracking-tight md:text-[26px]">{figure}</p>
-      {sub && <p className="mt-0.5 text-[12px] text-muted">{sub}</p>}
-      {children}
-    </Card>
-  )
-}
 
 interface Props {
   overview: DockerOverview
@@ -51,14 +40,10 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
   const recent = days.reduce((sum, d) => sum + d.count, 0)
 
   return (
-    <div className="mb-5 grid grid-cols-2 gap-2.5 md:gap-4 xl:grid-cols-4">
-      <Tile
+    <StatTiles label="Summary" count={4}>
+      <StatTile
         title="Running"
-        figure={
-          <>
-            {running} <span className="text-[0.55em] font-medium text-muted">/ {all.length}</span>
-          </>
-        }
+        figure={<OutOf n={running} of={all.length} />}
       >
         <p className="mt-2.5 flex flex-wrap gap-1" aria-hidden="true">
           {all.map((c: ContainerLoad) => {
@@ -77,9 +62,9 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
             )
           })}
         </p>
-      </Tile>
+      </StatTile>
 
-      <Tile title="CPU, all containers" figure={pct(overview.cpu_pct)} sub="of the NAS">
+      <StatTile title="CPU, all containers" figure={pct(overview.cpu_pct)} sub="of the NAS">
         <ul className="mt-2 grid gap-1 text-[11.5px]">
           {busiest.map((c) => (
             // On a phone the bar takes its own line under the name and the figure.
@@ -98,9 +83,9 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
             </li>
           ))}
         </ul>
-      </Tile>
+      </StatTile>
 
-      <Tile title="Memory, all containers" figure={formatBytes(overview.mem_bytes)} sub={memTotal ? `of ${formatBytes(memTotal)}` : undefined}>
+      <StatTile title="Memory, all containers" figure={formatBytes(overview.mem_bytes)} sub={memTotal ? `of ${formatBytes(memTotal)}` : undefined}>
         <p className="mt-2.5 flex h-2 gap-0.5 overflow-hidden rounded-full bg-raised" aria-hidden="true">
           {biggest.map((c, i) => (
             <i key={c.name} className="block h-full" style={{ width: `${(c.mem_bytes! / memTop) * 100}%`, backgroundColor: MEMORY_COLOURS[i] }} />
@@ -115,9 +100,9 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
             </li>
           ))}
         </ul>
-      </Tile>
+      </StatTile>
 
-      <Tile title="Updates, last 7 days" figure={recent} sub={recent === 1 ? 'image replaced' : 'images replaced'}>
+      <StatTile title="Updates, last 7 days" figure={recent} sub={recent === 1 ? 'image replaced' : 'images replaced'}>
         <p className="mt-2.5 flex items-end gap-1.5" aria-hidden="true">
           {days.map((d, i) => (
             <span key={i} className="grid justify-items-center gap-0.5 text-[10px] text-faint">
@@ -129,7 +114,7 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
             </span>
           ))}
         </p>
-      </Tile>
-    </div>
+      </StatTile>
+    </StatTiles>
   )
 }

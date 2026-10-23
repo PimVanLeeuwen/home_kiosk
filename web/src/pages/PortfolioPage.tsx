@@ -9,15 +9,16 @@ import { HoldingsCard } from '../components/portfolio/HoldingsCard'
 import { MoversCard } from '../components/portfolio/MoversCard'
 import { MarketsCard } from '../components/portfolio/MarketsCard'
 import { ValueCard } from '../components/portfolio/ValueCard'
-import { cn } from '../lib/cn'
 import { formatMoney, formatSignedMoney, formatSignedPct, formatWhen } from '../lib/format'
 import { dayMove, parseHolding } from '../lib/portfolio'
 import type { PortfolioFull } from '../lib/portfolioTypes'
 import { useApi } from '../lib/useApi'
 import { buttonClass } from '../components/ui/buttonStyles'
 import { Pill } from '../components/ui/Pill'
+import { StatTile, StatTiles } from '../components/ui/StatTile'
+import type { Tone } from '../components/ui/tones'
 
-const tone = (n: number | null | undefined) => (!n ? 'text-fg' : n > 0 ? 'text-up' : 'text-down')
+const tone = (n: number | null | undefined): Tone | undefined => (!n ? undefined : n > 0 ? 'up' : 'down')
 
 /** The Ghostfolio portfolio; a holding's detail is `?h=<dataSource>/<symbol>`. */
 export function PortfolioPage() {
@@ -46,7 +47,7 @@ export function PortfolioPage() {
   const money = (n: number) => formatMoney(n, data.currency)
   // The sum of the holdings' moves, like the daily report, so it matches the table.
   const { abs: dayAbs, pct: dayPct } = dayMove(data)
-  const summary: [string, string, string, string?][] = [
+  const summary: [string, string, string, Tone?][] = [
     ['Today', formatSignedMoney(dayAbs, data.currency), formatSignedPct(dayPct), tone(dayAbs)],
     [
       'Total gain',
@@ -77,25 +78,16 @@ export function PortfolioPage() {
         }
       />
 
-      <ValueCard currency={data.currency} total={data.total_value} todayPct={dayPct} />
+      <ValueCard currency={data.currency} total={data.total_value} />
       {data.stale && <StaleNote />}
 
-      <section aria-label="Summary" className="my-5">
-        <dl className="grid grid-cols-2 gap-2.5 md:gap-4 xl:grid-cols-4">
+      <div className="mt-5">
+        <StatTiles label="Summary" count={4}>
           {summary.map(([label, value, detail, colour]) => (
-            <div
-              key={label}
-              className="rounded-[14px] border border-line-soft bg-card bg-linear-to-b from-white/[0.03] to-white/[0.01] px-4 py-3.5"
-            >
-              <dt className="text-[12.5px] text-muted">{label}</dt>
-              <dd className={cn('mt-0.5 text-[16px] font-semibold md:text-[19px]', colour)}>
-                {value}
-                {detail && <span className="block text-[12px] font-normal text-muted">{detail}</span>}
-              </dd>
-            </div>
+            <StatTile key={label} title={label} figure={value} sub={detail || undefined} tone={colour} />
           ))}
-        </dl>
-      </section>
+        </StatTiles>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="min-w-0 space-y-4">

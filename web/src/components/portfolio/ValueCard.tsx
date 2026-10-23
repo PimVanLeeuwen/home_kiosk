@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { cn } from '../../lib/cn'
-import { formatMoney, formatSignedMoney, formatSignedPct } from '../../lib/format'
+import { formatMoney, formatSignedMoney } from '../../lib/format'
 import type { ChartRange, PortfolioHistory } from '../../lib/portfolioTypes'
 import { useApi } from '../../lib/useApi'
 import { Card } from '../ui/Card'
 import { Loading, Unavailable } from '../ui/states'
-import { Pill } from '../ui/Pill'
 import { Segmented } from '../ui/Segmented'
 import { LineChart } from './LineChart'
 
@@ -18,13 +17,12 @@ const RANGES: [ChartRange, string, string][] = [
 
 interface Props {
   currency: string
-  /** The value now, large, with today's move as a pill beside it. */
+  /** The value now, large; today's move is in the page header and the Today tile. */
   total: number
-  todayPct: number
 }
 
 /** The portfolio's value now and over time with what was put in; the gain leaves deposits out. */
-export function ValueCard({ currency, total, todayPct }: Props) {
+export function ValueCard({ currency, total }: Props) {
   const [range, setRange] = useState<ChartRange>('year')
   const { data, error } = useApi<PortfolioHistory>(`/api/portfolio/history?range=${range}`)
   const points = data?.range === range ? data.points : undefined
@@ -45,10 +43,7 @@ export function ValueCard({ currency, total, todayPct }: Props) {
       className="pb-0 md:pb-0"
       actions={<Segmented label="Period" options={RANGES.map(([r, label]) => [r, label])} value={range} onChange={setRange} />}
     >
-      <p className="-mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-[31px] leading-tight font-semibold tracking-tight md:text-[38px]">{money(total)}</span>
-        <Pill tone={todayPct > 0 ? 'up' : todayPct < 0 ? 'down' : 'muted'}>{formatSignedPct(todayPct)} today</Pill>
-      </p>
+      <p className="-mt-1 text-[31px] leading-tight font-semibold tracking-tight md:text-[38px]">{money(total)}</p>
       {!points && <div className="pb-5">{error ? <Unavailable what="The value history" /> : <Loading />}</div>}
       {points && (
         <>

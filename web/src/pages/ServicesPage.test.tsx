@@ -94,7 +94,8 @@ describe('ServicesPage', () => {
     const media = await screen.findByRole('region', { name: 'Media' })
     expect(screen.getByText('2 need a look', { selector: '.uppercase' })).toBeInTheDocument()
     const summary = screen.getByRole('region', { name: 'Running' })
-    expect(summary).toHaveTextContent('1 / 3 running')
+    expect(summary).toHaveTextContent('1 / 3')
+    expect(screen.getByRole('region', { name: 'Needs a look' })).toHaveTextContent('2Immich, CouchDB')
     expect([...summary.querySelectorAll('[data-status]')].map((d) => d.getAttribute('data-status'))).toEqual(['up', 'unhealthy', 'down'])
     // Media holds one unhealthy service: an amber count; Apps a stopped one: red.
     expect(media.querySelector('[data-tone]')).toHaveAttribute('data-tone', 'warn')

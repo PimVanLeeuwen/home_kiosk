@@ -16,21 +16,23 @@ function setup(path = '/portfolio', over: Record<string, unknown> = {}) {
 
 const summary = () => within(screen.getByRole('region', { name: 'Summary' }))
 const figure = (scope: ReturnType<typeof within>, label: string) => scope.getByText(label).nextElementSibling
+const tile = (scope: ReturnType<typeof within>, label: string) => scope.getByRole('region', { name: label })
 
 describe('PortfolioPage', () => {
   it('sums up value, today, total gain, invested and cash', async () => {
     setup()
 
     await screen.findByRole('region', { name: 'Summary' })
-    // The value itself leads the Value card, with today's move as a pill.
+    // The value itself leads the Value card; today's move is the header's pill (once, not in the card too).
     const value = screen.getByRole('region', { name: 'Value' })
     expect(within(value).getByText('€ 9.143')).toBeInTheDocument()
-    expect(within(value).getByText(/today$/)).toHaveTextContent(/^−0,0\d% today$/)
+    expect(within(value).queryByText(/today$/)).not.toBeInTheDocument()
+    expect(screen.getByText(/today$/, { selector: '.uppercase' })).toHaveTextContent(/^−0,0\d% today$/)
     // Today is the sum of the holdings' moves, like the daily report: 22,11 + 7,88 - 32.
-    expect(figure(summary(), 'Today')).toHaveTextContent('−€ 2')
-    expect(figure(summary(), 'Total gain')).toHaveTextContent('+€ 4.452+103,87%')
-    expect(figure(summary(), 'Invested')).toHaveTextContent('€ 6.069')
-    expect(figure(summary(), 'Cash')).toHaveTextContent('€ 12€ 85 dividends')
+    expect(tile(summary(), 'Today')).toHaveTextContent('−€ 2')
+    expect(tile(summary(), 'Total gain')).toHaveTextContent('+€ 4.452+103,87%')
+    expect(tile(summary(), 'Invested')).toHaveTextContent('€ 6.069')
+    expect(tile(summary(), 'Cash')).toHaveTextContent('€ 12€ 85 dividends')
   })
 
   it('charts the value with the gain apart from deposits, per period', async () => {

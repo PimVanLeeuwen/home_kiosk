@@ -1,5 +1,6 @@
 import { OutsideServicesSection } from '../components/outside/OutsideServicesSection'
 import { PageHeader } from '../components/PageHeader'
+import { OutOf, StatTile, StatTiles } from '../components/ui/StatTile'
 import { MySitesSection } from '../components/sites/MySitesSection'
 import { Pill } from '../components/ui/Pill'
 import { cn } from '../lib/cn'
@@ -54,7 +55,8 @@ export function ServicesPage() {
   const labels = uniqueMonograms(all.map((s) => s.name))
   const position = new Map(all.map((s, i) => [s.id, i]))
   const statusKnown = !!services.data && !services.data.stale && !services.error
-  const needLook = onNas.filter((s) => ['down', 'missing', 'unhealthy'].includes(s.status)).length
+  const troubled = onNas.filter((s) => ['down', 'missing', 'unhealthy'].includes(s.status))
+  const needLook = troubled.length
 
   return (
     <>
@@ -86,18 +88,22 @@ export function ServicesPage() {
       )}
 
       {services.data && onNas.length > 0 && (
-        <section aria-label="Running" className="mb-5 rounded-[14px] border border-line-soft bg-card bg-linear-to-b from-white/[0.022] to-transparent px-5 py-4 md:px-6">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <p className="text-[30px] font-semibold tracking-tight">
-              {running} <span className="text-[0.5em] font-medium text-muted">/ {onNas.length} running</span>
-            </p>
-            <p className="flex flex-wrap gap-1.5" aria-hidden="true">
+        <StatTiles label="Summary" count={3}>
+          <StatTile title="Running" figure={<OutOf n={running} of={onNas.length} />}>
+            <p className="mt-2.5 flex flex-wrap gap-1.5" aria-hidden="true">
               {all.map((s) => (
                 <i key={s.id} title={s.name} data-status={s.url ? 'link' : s.status} className={cn('block size-[9px] rounded-full', DOT[s.url ? 'link' : s.status])} />
               ))}
             </p>
-          </div>
-        </section>
+          </StatTile>
+          <StatTile
+            title="Needs a look"
+            figure={needLook}
+            tone={needLook ? 'warn' : undefined}
+            sub={needLook ? troubled.map((s) => s.name).join(', ') : 'Nothing stopped or unhealthy'}
+          />
+          <StatTile title="Links" figure={all.length - onNas.length} sub="outside the NAS" />
+        </StatTiles>
       )}
 
       {services.data && (

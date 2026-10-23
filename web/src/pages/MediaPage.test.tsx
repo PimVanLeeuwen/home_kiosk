@@ -51,9 +51,10 @@ describe('MediaPage', () => {
 
     expect(await screen.findByText('1 needs a look')).toBeInTheDocument()
     expect(document.title).toBe('Media · Home hub')
-    expect(screen.getByText('downloading').nextElementSibling).toHaveTextContent('3')
-    expect(screen.getByText('missing').nextElementSibling).toHaveTextContent('14')
-    expect(screen.getByText('missing').nextElementSibling).toHaveClass('text-warn')
+    expect(screen.getByRole('region', { name: 'Downloads' })).toHaveTextContent('3')
+    const missing = screen.getByRole('region', { name: 'Episodes missing' })
+    expect(missing).toHaveTextContent('14')
+    expect(within(missing).getByText('14')).toHaveStyle({ color: 'var(--color-warn)' })
   })
 
   it('lists downloads with progress, time left and the reason a failed one stopped', async () => {

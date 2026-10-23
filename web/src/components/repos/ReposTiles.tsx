@@ -1,18 +1,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../lib/cn'
 import type { Repo } from '../../lib/types'
-import { Card } from '../ui/Card'
+import { StatTile, StatTiles } from '../ui/StatTile'
 import { GlowDot } from '../ui/GlowDot'
-
-function Tile({ title, figure, sub, children }: { title: string; figure: ReactNode; sub?: ReactNode; children?: ReactNode }) {
-  return (
-    <Card title={title} className="px-3.5 py-3.5 md:px-4.5 md:py-4">
-      <div className="-mt-2 text-[21px] leading-tight font-semibold tracking-tight md:text-[26px]">{figure}</div>
-      {sub && <p className="mt-0.5 text-[12px] text-muted">{sub}</p>}
-      {children}
-    </Card>
-  )
-}
 
 const CI_DOT: Record<Repo['ci'], string> = {
   passing: 'bg-up shadow-[0_0_5px_rgb(63_185_127/0.7)]',
@@ -48,8 +38,8 @@ export function ReposTiles({ repos, forksHidden, backup, mirrored }: Props) {
   const priv = repos.filter((r) => r.private).length
 
   return (
-    <div className="mb-5 grid grid-cols-2 gap-2.5 md:gap-4 xl:grid-cols-4">
-      <Tile title="Repos" figure={repos.length} sub={`${priv} private${forksHidden ? ` · ${forksHidden} forks hidden` : ''}`}>
+    <StatTiles label="Summary" count={4}>
+      <StatTile title="Repos" figure={repos.length} sub={`${priv} private${forksHidden ? ` · ${forksHidden} forks hidden` : ''}`}>
         {languages.length > 0 && (
           <>
             <p className="mt-2.5 flex h-[7px] gap-0.5 overflow-hidden rounded-full" aria-hidden="true">
@@ -67,9 +57,9 @@ export function ReposTiles({ repos, forksHidden, backup, mirrored }: Props) {
             </ul>
           </>
         )}
-      </Tile>
+      </StatTile>
 
-      <Tile
+      <StatTile
         title="CI"
         figure={<span className={failing ? 'text-down' : undefined}>{failing ? `${failing} failing` : withCi ? 'All green' : 'No CI'}</span>}
         sub={`${withCi} ${withCi === 1 ? 'repo' : 'repos'} with CI`}
@@ -79,9 +69,9 @@ export function ReposTiles({ repos, forksHidden, backup, mirrored }: Props) {
             <i key={r.full_name} title={r.name} data-ci={r.ci} className={cn('block size-2 rounded-full', CI_DOT[r.ci])} />
           ))}
         </p>
-      </Tile>
+      </StatTile>
 
-      <Tile
+      <StatTile
         title="Open work"
         figure={
           <>
@@ -91,7 +81,7 @@ export function ReposTiles({ repos, forksHidden, backup, mirrored }: Props) {
         sub={`${issues} ${issues === 1 ? 'issue' : 'issues'} · across ${busy} ${busy === 1 ? 'repo' : 'repos'}`}
       />
 
-      <Tile
+      <StatTile
         title="Backup"
         figure={
           <span className="flex items-center gap-2 text-[16px] md:text-[19px]">
@@ -107,7 +97,7 @@ export function ReposTiles({ repos, forksHidden, backup, mirrored }: Props) {
         }
       >
         <div className="mt-1 text-[12px] [&_p]:mb-0 [&_p]:text-[12px]">{backup}</div>
-      </Tile>
-    </div>
+      </StatTile>
+    </StatTiles>
   )
 }

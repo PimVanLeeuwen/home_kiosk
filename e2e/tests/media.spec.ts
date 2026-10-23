@@ -19,10 +19,10 @@ test('Media shows downloads, what needs a look, and missing episodes', async ({ 
 
   await expect(shell.heading()).toHaveText('Media')
   await expect(page.getByText('1 needs a look')).toBeVisible()
-  const downloads = page.getByRole('region', { name: 'Downloading' })
+  const downloads = page.getByRole('region', { name: 'Downloading', exact: true })
   await expect(downloads.getByRole('progressbar', { name: /Harbour Lights/ })).toHaveAttribute('aria-valuenow', '72')
   await expect(downloads).toContainText('The download is stalled with no connections')
-  await expect(page.getByRole('region', { name: 'Missing' })).toContainText('aired 2 days ago')
+  await expect(page.getByRole('region', { name: 'Missing', exact: true })).toContainText('aired 2 days ago')
   await expect(page.getByRole('region', { name: 'Next to air' })).toContainText('Nothing airs in the coming week.')
 })
 

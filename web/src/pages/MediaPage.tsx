@@ -6,6 +6,7 @@ import { RequestsCard } from '../components/media/RequestsCard'
 import { LibraryCard, WatchingCard } from '../components/media/WatchingCard'
 import { Poster } from '../components/media/Poster'
 import { PageHeader } from '../components/PageHeader'
+import { StatTile, StatTiles } from '../components/ui/StatTile'
 import { GlowDot } from '../components/ui/GlowDot'
 import { Pill } from '../components/ui/Pill'
 import { formatAgo, formatTime } from '../lib/format'
@@ -75,20 +76,17 @@ export function MediaPage() {
             </p>
           ))}
 
-          <dl className="mb-5 flex flex-wrap gap-x-5 gap-y-2 md:gap-x-6">
-            {(
-              [
-                ['downloading', data.downloads.length, false],
-                ['missing', data.missing_total, data.missing_total > 0],
-                ['airing this week', data.upcoming.length, false],
-              ] as const
-            ).map(([label, n, warn]) => (
-              <div key={label} className="flex items-baseline gap-2">
-                <dt className="order-2 text-[13px] text-muted md:text-[14px]">{label}</dt>
-                <dd className={`m-0 text-[22px] font-semibold tracking-tight md:text-[28px] ${warn ? 'text-warn' : ''}`}>{n}</dd>
-              </div>
-            ))}
-          </dl>
+          <StatTiles label="Summary" count={3}>
+            <StatTile title="Downloads" figure={data.downloads.length} sub="in progress" />
+            <StatTile
+              title="Episodes missing"
+              figure={data.missing_total}
+              sub="across the series"
+
+              tone={data.missing_total > 0 ? 'warn' : undefined}
+            />
+            <StatTile title="Airing this week" figure={data.upcoming.length} sub="new episodes" />
+          </StatTiles>
 
           <div className="grid items-start gap-3.5 md:gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <div className="grid gap-3.5 md:gap-5">
