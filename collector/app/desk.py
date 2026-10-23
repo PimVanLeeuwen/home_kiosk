@@ -28,6 +28,7 @@ from .desk_home import (
     playing_screen,
 )
 from .desk_media import media_screen
+from .desk_money import money_screen
 from .desk_movers import movers_screen
 from .desk_nas import nas_screen
 from .desk_pipelines import house_pipelines
@@ -117,8 +118,8 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 NOW = (clock_screen, train_screen, agenda_screen, day_screen, _headlines)
 HOME = (lights_screen, air_screen, laundry_screen, apple_screen)
 # Decided 2026-10-22: NAS first and Backups before Alerts, as in the mockup.
-HOUSE = (nas_screen, code_screen, sites_screen, services_screen, tailnet_screen, movers_screen,
-         media_screen, backups_screen, alerts_screen)
+HOUSE = (nas_screen, code_screen, sites_screen, services_screen, tailnet_screen, money_screen,
+         movers_screen, media_screen, backups_screen, alerts_screen)
 SCREENS = {"now": NOW, "home": HOME, "house": HOUSE, "test": NOW}
 # Panels that turn through their screens on their own; Home decides per answer (home_rules).
 ROTATES = {"now": True, "house": True, "test": True}
@@ -128,7 +129,7 @@ ROTATES = {"now": True, "house": True, "test": True}
 # read 8 kB), and the screens left out first when an answer is too big for a board:
 # the newest first, the alerts last.
 ROOM = 8192
-DROP_FIRST = ("media", "backups", "movers", "tailnet", "services", "sites", "code", "nas",
+DROP_FIRST = ("money", "media", "backups", "movers", "tailnet", "services", "sites", "code", "nas",
               "pipelines", "headlines", "agenda", "day", "apple", "laundry", "air")
 
 

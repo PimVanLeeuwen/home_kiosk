@@ -349,6 +349,33 @@ typedef struct {
     char next[96];           /* "Next to air: ...", or "" */
 } desk_media_t;
 
+/* The House panel's Money screen: the portfolio's gain over a week, a month, a year or all
+ * of it, in percentages only (no amounts reach the panel); the points are 0..1000. Ready to
+ * draw (app/desk_money.py). */
+#define DESK_MONEY_PERIODS 4
+#define DESK_MONEY_POINTS 60
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[16];          /* "PORTFOLIO" */
+    char today[24];          /* "TODAY +0.1%", or "" */
+    bool today_up;
+    int period_count;
+    struct {
+        char key[4];         /* "1W", "1M", "1Y", "All" */
+        char label[16];      /* "this week" */
+        char change[12];     /* "+4.2%" */
+        bool up;
+        char high[12];       /* the best point's gain: "+5.3%" */
+        int high_at;         /* its index in points */
+        char from[16];       /* "16 Oct" */
+        char to[12];         /* "Today" */
+        int count;
+        uint16_t points[DESK_MONEY_POINTS]; /* the gain line, 0..1000 */
+    } periods[DESK_MONEY_PERIODS];
+} desk_money_t;
+
 /* An open error that takes over every panel until it is dismissed on one of them
  * (the answer's "takeover", app/desk_alerts.py). */
 typedef struct {
@@ -634,6 +661,9 @@ void desk_backups_copy(desk_backups_t *into);
 bool desk_has_media(void);
 uint32_t desk_media_version(void);
 void desk_media_copy(desk_media_t *into);
+bool desk_has_money(void);
+uint32_t desk_money_version(void);
+void desk_money_copy(desk_money_t *into);
 bool desk_has_movers(void);
 uint32_t desk_movers_version(void);
 void desk_movers_copy(desk_movers_t *into);

@@ -126,6 +126,7 @@ def test_the_route_and_its_panel_names(store):
         {"kind": "sites", "stale": False, "present": False},
         {"kind": "services", "stale": False, "present": False},
         {"kind": "tailnet", "stale": False, "present": False},
+        {"kind": "money", "stale": False, "present": False},
         {"kind": "movers", "stale": False, "present": False},
         {"kind": "media", "stale": False, "present": False},
         {"kind": "backups", "stale": False, "present": False},

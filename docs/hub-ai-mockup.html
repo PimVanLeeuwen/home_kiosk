@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of AI features in the hub with the Anthropic API: what each would write, where
+     it shows, and what it costs. Example data only. Not served by the hub. Discussed 2026-10-23,
+     not decided (plan.md, Open items). -->
+<title>Home hub: AI examples and cost</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .07);
+  --tg: #182533; --tg-me: #2b5278;
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--canvas); color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1280px; margin: 0 auto; padding: 36px 28px 64px; }
+header h1 { margin: 0; font-size: 26px; font-weight: 600; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 80ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+h2 { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; margin: 44px 0 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 20px 22px; min-width: 0; }
+.head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.head h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.meta { color: var(--faint); font-size: 12.5px; margin: -6px 0 14px; }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; white-space: nowrap; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.14); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.mono { font-family: var(--f-mono); font-size: 12.5px; }
+.muted { color: var(--muted); } .faint { color: var(--faint); } .up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); }
+.ai { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--accent-fg); }
+.ai::before { content: ''; width: 7px; height: 7px; border-radius: 2px; background: var(--accent-line); transform: rotate(45deg); }
+
+/* Telegram */
+.tg { background: #0e1621; border-radius: 12px; padding: 14px; display: grid; gap: 8px; }
+.msg { background: var(--tg); border-radius: 12px 12px 12px 4px; padding: 9px 12px 7px; max-width: 92%; font-size: 13.5px; line-height: 1.45; }
+.msg.me { background: var(--tg-me); justify-self: end; border-radius: 12px 12px 4px 12px; }
+.msg b { font-weight: 700; } .msg .t { display: block; text-align: right; font-size: 11px; color: #6d8299; margin-top: 2px; }
+.msg pre { margin: 6px 0 2px; font: 12px/1.45 var(--f-mono); white-space: pre-wrap; color: #c9d6e3; }
+.tool { justify-self: center; font: 11px var(--f-mono); color: #6d8299; }
+
+/* hub bits */
+.row { display: flex; gap: 12px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--line-soft); }
+.row:first-of-type { border-top: 0; }
+.story h4 { margin: 0; font-size: 14.5px; font-weight: 600; line-height: 1.35; }
+.story p { margin: 4px 0 6px; color: var(--muted); font-size: 13px; }
+.srcs { display: flex; gap: 6px; flex-wrap: wrap; }
+.srcs span { font-size: 11.5px; color: var(--faint); border: 1px solid var(--glass-line); background: var(--glass); border-radius: 99px; padding: 1px 8px; }
+.alert { border-left: 3px solid var(--down); padding-left: 14px; }
+.why { margin-top: 12px; border: 1px solid rgba(124,108,242,.3); background: rgba(124,108,242,.07); border-radius: 10px; padding: 12px 14px; font-size: 13px; }
+.why ol { margin: 6px 0 0; padding-left: 18px; } .why li { margin: 2px 0; }
+
+/* panel */
+.panel { width: 360px; height: 360px; background: #000; border-radius: 18px; padding: 22px; margin: 0 auto; border: 8px solid #1a1a1d; display: flex; flex-direction: column; }
+.panel .k { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+.panel .big { font-size: 21px; font-weight: 600; line-height: 1.3; margin: 10px 0 14px; }
+.panel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font-size: 14px; color: #cfd1d6; }
+.panel li { display: flex; gap: 10px; align-items: center; }
+.panel li i { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--up)); flex: none; }
+.panel .foot { margin-top: auto; font-size: 11.5px; color: var(--faint); }
+
+/* cost */
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); font-weight: 600; padding: 0 10px 8px 0; }
+td { padding: 9px 10px 9px 0; border-top: 1px solid var(--line-soft); vertical-align: top; }
+td.n, th.n { text-align: right; white-space: nowrap; }
+tfoot td { font-weight: 600; border-top: 1px solid var(--line); }
+.bar { height: 8px; border-radius: 99px; background: var(--raised); overflow: hidden; margin: 8px 0 4px; }
+.bar i { display: block; height: 100%; width: var(--w); background: linear-gradient(90deg, var(--accent), var(--accent-line)); border-radius: 99px; }
+.set { display: grid; gap: 2px; }
+.set .row { justify-content: space-between; align-items: center; }
+.sw { width: 34px; height: 20px; border-radius: 99px; background: var(--raised); position: relative; flex: none; border: 1px solid var(--line); }
+.sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--faint); }
+.sw.on { background: rgba(124,108,242,.35); border-color: var(--accent); } .sw.on::after { left: 16px; background: var(--fg); }
+.note { color: var(--muted); font-size: 13px; max-width: 90ch; }
+</style>
+
+<div class="wrap">
+<header>
+  <h1>AI in the hub: examples and cost</h1>
+  <p>What each feature would write, where it would show, and what it costs per month with the owner's Anthropic API key. Every result is made on a schedule and cached, so a page or panel never waits on the API; with the API down or the cap reached, the hub shows what it had, marked stale, or nothing extra.</p>
+  <div class="legend">
+    <span class="pill up">public data</span>
+    <span class="pill warn">house data, redacted</span>
+    <span class="pill down">personal data, opt-in</span>
+  </div>
+</header>
+
+<h2>1. Morning digest</h2>
+<div class="grid">
+  <div class="card">
+    <div class="head"><h3>Telegram, 06:30 on weekdays</h3><span class="pill warn">house data</span></div>
+    <p class="meta">Input: the hub's own overnight state (backup, updates, disks, alerts, weather, train, first event). Haiku, about 3k tokens in, 250 out.</p>
+    <div class="tg">
+      <div class="msg"><b>Good morning.</b> A quiet night: the backup to Hetzner finished at 03:41 (2.1 GB changed) and Watchtower updated Sonarr and Bazarr. Disks are healthy, storage at 71%.<br><br>
+      Your train is on time from platform 4. Dry until about 16:00, then showers; 12 °C. First up: stand-up at 09:30.<br><br>
+      One thing to look at: <b>Immich 2.4 is out</b> with a database migration (pinned, so nothing changed yet).<span class="t">06:30</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="head"><h3>Now panel, Briefing screen</h3><span class="ai">written by Claude</span></div>
+    <p class="meta">The same digest, cut to one line and four facts, in the panel's rotation until 09:00.</p>
+    <div class="panel">
+      <span class="k">Briefing · Thursday</span>
+      <div class="big">A quiet night. Dry until 16:00, train on time.</div>
+      <ul>
+        <li><i></i>Backup done 03:41</li>
+        <li><i></i>Sonarr and Bazarr updated</li>
+        <li><i style="--c: var(--warn)"></i>Immich 2.4 needs a migration</li>
+        <li><i style="--c: var(--accent-line)"></i>Stand-up 09:30</li>
+      </ul>
+      <span class="foot">as of 06:30</span>
+    </div>
+  </div>
+</div>
+
+<h2>2. Update notes</h2>
+<div class="grid">
+  <div class="card">
+    <div class="head"><h3>Watchtower's report, with what changed</h3><span class="pill up">public data</span></div>
+    <p class="meta">Input: the release notes between the old and new version of each updated image (the fork's report carries a changelog link). Haiku, about 4k tokens in per image.</p>
+    <div class="tg">
+      <div class="msg"><b>Updates</b> · 2 of 31 containers updated
+<pre>sonarr   4.0.15 → 4.0.16
+bazarr   1.5.3  → 1.5.4</pre>
+      <b>Sonarr:</b> fixes for anime season packs; nothing to do.<br>
+      <b>Bazarr:</b> new subtitle provider; one setting renamed, kept automatically.<span class="t">04:02</span></div>
+      <div class="msg"><b>Warning</b> · Immich 2.4.0 is out (pinned at 2.3.2)<br>
+      Breaking: the database container needs a new image tag, and the machine-learning cache is rebuilt on first start. Back up the database first; plan 15 minutes.<span class="t">04:02</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="head"><h3>Why this one first</h3></div>
+    <p class="note">It sends only public text (release notes), it runs a few times a week, and it answers the one question the nightly report cannot: <i>do I need to do anything?</i> For Immich, which is pinned and updated by hand, it turns "check the release notes before updating" into a message that arrives on its own.</p>
+    <p class="note">A model that is unsure says so: "could not read the release notes" instead of guessing. The plain report is always sent; the notes are an extra.</p>
+  </div>
+</div>
+
+<h2>3. Headlines, one story per event</h2>
+<div class="grid">
+  <div class="card">
+    <div class="head"><h3>News, top stories</h3><span class="ai">grouped by Claude</span></div>
+    <p class="meta">Input: new headlines and their first lines since the last run, hourly from 06:00 to 23:00. Haiku, about 3k tokens in, 500 out.</p>
+    <div class="story row">
+      <div>
+        <h4>Cabinet presents its housing plan: 100,000 homes a year</h4>
+        <p>Building rules get simpler and municipalities get money to speed up permits; the opposition doubts the number is reachable.</p>
+        <div class="srcs"><span>NOS</span><span>NU.nl</span><span>Tweakers</span><span>+2</span></div>
+      </div>
+    </div>
+    <div class="story row">
+      <div>
+        <h4>Rail strike on Monday called off after a new offer</h4>
+        <p>Trains run as normal; the unions put the offer to their members next week.</p>
+        <div class="srcs"><span>NOS</span><span>NU.nl</span></div>
+      </div>
+    </div>
+    <div class="story row">
+      <div>
+        <h4>Apple ships iOS 27.1 with a fix for Wi-Fi drops</h4>
+        <p>The update also brings back the battery percentage option in Control Centre.</p>
+        <div class="srcs"><span>Tweakers</span><span>The Verge</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="head"><h3>How it stays honest</h3></div>
+    <p class="note">Each story links to every source it was made from, and a tap opens the hub's reader for the original. The summary is one sentence, written only from the headlines and first lines it was given, in English or kept in Dutch as the source wrote it. Stories are grouped once per hour and cached, so the panel's Headlines screen reads the same list.</p>
+    <p class="note">The cost is in the volume: hourly with Haiku stays under 30 cents a month, while the same job every half hour with Sonnet would be about EUR 10. That is the one feature where the model choice matters.</p>
+  </div>
+</div>
+
+<h2>4. Alert explainer</h2>
+<div class="grid">
+  <div class="card">
+    <div class="head"><h3>Alerts, an error with a likely cause</h3><span class="pill warn">house data, redacted</span></div>
+    <p class="meta">Input: the alert, the last 200 log lines of the container (emails, IPs and tokens replaced before sending), its restarts and memory. Sonnet, about 6k tokens in, only for ERROR alerts.</p>
+    <div class="alert">
+      <span class="pill down">error</span>
+      <div style="font-weight: 600; margin-top: 6px;">tracearr restarted 4 times in 10 minutes</div>
+      <div class="faint" style="font-size: 12.5px;">since 14:12 · House</div>
+    </div>
+    <div class="why">
+      <span class="ai">likely cause, by Claude</span>
+      <div style="margin-top: 4px;">The database container ran out of disk space for its write-ahead log: every start ends with <span class="mono">could not extend file: No space left on device</span>. Volume 2 is at 99%.</div>
+      <ol>
+        <li>Free space on Volume 2 (the downloads folder is the largest, 1.8 TB).</li>
+        <li>Then restart <span class="mono">tracearr-db</span>; tracearr follows by itself.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="card">
+    <div class="head"><h3>Boundaries</h3></div>
+    <p class="note">The explainer suggests; it never acts (the hub has no container control, and that stays). It is added to the alert in the hub and in Telegram a minute after the alert itself, so the alert is never held up. Redaction runs in the collector before anything leaves the NAS; it uses the same rules as the log viewer's privacy filter.</p>
+  </div>
+</div>
+
+<h2>5. Ask the hub in Telegram</h2>
+<div class="grid">
+  <div class="card">
+    <div class="head"><h3>/ask, read-only tools</h3><span class="pill down">personal data, opt-in</span></div>
+    <p class="meta">Claude gets tools that call the hub's own GET endpoints (/api/nas, /api/backups, /api/media/overview, /api/agenda, ...). Sonnet, about 4 turns and 20k tokens per question, most of it cached.</p>
+    <div class="tg">
+      <div class="msg me">/ask did anything new come in on Jellyfin this week and is there room for more?<span class="t">20:14</span></div>
+      <div class="tool">→ media_overview · nas</div>
+      <div class="msg">This week: <b>3 films</b> and <b>11 episodes</b> (two seasons finished). Seerr has 2 requests waiting, both still searching.<br><br>
+      Room: the media volume has 1.9 TB free (81% used). At this month's pace, about 45 GB a week, that lasts well past a year.<span class="t">20:14</span></div>
+      <div class="msg me">/ask turn off the living room lights<span class="t">20:16</span></div>
+      <div class="msg">I can only read from the hub, not switch things. Use the Lights page or the Home panel.<span class="t">20:16</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="head"><h3>Which tools it gets</h3></div>
+    <div class="row"><span class="up">yes</span><span>NAS, Docker, backups, services, media, repos, pipelines, weather, train</span></div>
+    <div class="row"><span class="warn-t">opt-in</span><span>calendar, portfolio (percentages only, no amounts), laundry</span></div>
+    <div class="row"><span class="down">no</span><span>any write: lights, music, Readeck, imports. Settings and secrets.</span></div>
+    <p class="note" style="margin-top: 12px;">Only the two Telegram chats the bot already accepts can ask. Each answer ends when the question's token budget is used up, and the monthly cap stops /ask first.</p>
+  </div>
+</div>
+
+<h2>6. Cost per month</h2>
+<div class="grid">
+  <div class="card" style="grid-column: 1 / -1;">
+    <div class="head"><h3>Estimate at today's list prices</h3><span class="faint" style="font-size: 12.5px;">Haiku 5.5 $0.10 in / $0.50 out, Sonnet 5.5 $2 / $10 per million tokens</span></div>
+    <table>
+      <thead><tr><th>Feature</th><th>How often</th><th>Model</th><th class="n">All Haiku</th><th class="n">Proposed mix</th><th class="n">All Sonnet</th></tr></thead>
+      <tbody>
+        <tr><td>Morning digest</td><td>weekdays, 06:30</td><td>Haiku</td><td class="n">$0.01</td><td class="n">$0.01</td><td class="n">$0.20</td></tr>
+        <tr><td>Update notes</td><td>about 3 images a night</td><td>Haiku</td><td class="n">$0.05</td><td class="n">$0.05</td><td class="n">$0.90</td></tr>
+        <tr><td>Headlines grouped</td><td>hourly, 06:00 to 23:00</td><td>Haiku</td><td class="n">$0.25</td><td class="n">$0.25</td><td class="n">$5.00</td></tr>
+        <tr><td>Alert explainer</td><td>about 10 errors a month</td><td>Sonnet</td><td class="n">$0.01</td><td class="n">$0.15</td><td class="n">$0.15</td></tr>
+        <tr><td>/ask</td><td>about 3 questions a day</td><td>Sonnet</td><td class="n">$0.30</td><td class="n">$3.00</td><td class="n">$3.00</td></tr>
+        <tr><td>Readeck and Paperless summaries</td><td>about 70 items a month</td><td>Haiku</td><td class="n">$0.05</td><td class="n">$0.05</td><td class="n">$1.00</td></tr>
+      </tbody>
+      <tfoot><tr><td colspan="3">Total</td><td class="n">about $0.70</td><td class="n">about $3.50</td><td class="n">about $10</td></tr></tfoot>
+    </table>
+    <p class="note" style="margin-top: 14px;">/ask is most of the bill and the only feature that grows with use; everything else is a fixed handful of cents. The Batch API halves the price of scheduled jobs, but at these amounts it is not worth the extra waiting.</p>
+  </div>
+  <div class="card">
+    <div class="head"><h3>Settings → AI</h3><span class="pill acc">cap</span></div>
+    <div><span class="faint" style="font-size: 12.5px;">This month</span>
+      <div style="font-size: 22px; font-weight: 600;">$1.18 <span class="muted" style="font-size: 14px; font-weight: 400;">of $5.00</span></div>
+      <div class="bar"><i style="--w: 24%"></i></div>
+      <div class="faint" style="font-size: 12px;">412 calls · counted from each answer's token usage</div>
+    </div>
+    <div class="set" style="margin-top: 14px;">
+      <div class="row"><span>Morning digest</span><span class="sw on"></span></div>
+      <div class="row"><span>Update notes</span><span class="sw on"></span></div>
+      <div class="row"><span>Headlines grouped</span><span class="sw on"></span></div>
+      <div class="row"><span>Alert explainer</span><span class="sw on"></span></div>
+      <div class="row"><span>/ask in Telegram</span><span class="sw"></span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="head"><h3>Two caps, so it cannot run away</h3></div>
+    <p class="note"><b>In the hub:</b> every answer's token usage is added up in SQLite. At 80% of the monthly cap a Telegram note; at 100% the hub stops calling until the 1st and pages fall back to what they had. /ask stops first, at 60%, so the scheduled features keep running.</p>
+    <p class="note"><b>At Anthropic:</b> a monthly spend limit on the key's workspace in the Console, a little above the hub's cap, as a backstop if the hub's count is ever wrong.</p>
+    <p class="note">Results are cached by a hash of their input, so a restart or a page reload never pays twice.</p>
+  </div>
+</div>
+</div>

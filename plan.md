@@ -862,6 +862,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   month and year switch, its line green or red with the change for that period, and since
   2026-10-12 the chart runs edge to edge with a glowing line and the period's high; Alerts shows a
   calm "All quiet" with a check when nothing is open, instead of an empty list.
+  Money on the House panel, decided 2026-10-23: percentages only (the desk is visible to
+  visitors; no euro amounts reach the panel and the chart's points are scaled to 0..1000); periods
+  1W, 1M, 1Y and All, switched on the panel itself (no write); no day chart (Ghostfolio gives the
+  hub no intraday history), today's change in the pill instead. As on the Portfolio page a
+  period's gain leaves deposits out: the line is value minus invested, its percentage that gain
+  over the start value plus what was added. Built 2026-10-23 (hub `desk_money.py`, panel
+  `screen_money.c`), after Tailnet in House's turn.
 - No ambient mode (dropped 2026-10-10): the panels always show these screens; an idle art mode
   would defeat their purpose.
 - Each screen follows the design bar in M16 and is checked on a real panel.
@@ -902,8 +909,27 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Decided 2026-10-21: this idle card replaces the build list on the Code screen (M20), which
   keeps its 16-week commit grid; the hub's Code card and Repos page stay as they are.
 
+**M22. Hub polish** (added 2026-10-23)
+- **Home ordering and design.** Home shows its cards in a fixed two-column order. Instead, order
+  by what matters now: cards with a problem or something live (alerts, the train, laundry, Now
+  Playing) come first, and quiet cards that only say "all good" (Backups, NAS, Services, Outside
+  services) fold into a compact strip that opens on a tap. The order also follows the time of day
+  (the day and the weather in the morning, the house in the evening). Mockup first
+  (`docs/hub-home-mockup.html` has the current Home), then one step per change.
+- **Consistency pass.** The pages were built over three weeks from separate mockups. Audit them
+  together: spacing, card headers, the loading, empty, error and stale states, number styles and
+  units, button and pill styles, and colours outside the tokens in `index.css`. Fix the drift
+  into shared components in `components/ui`, one page or pattern per step.
+- **Motion.** Small and calm, always off with `prefers-reduced-motion`: numbers that move to a new
+  value instead of jumping, cards that ease in and out when they appear (train, laundry), a
+  press response on the light and music controls, and a soft change between pages. No looping
+  ambient animation.
+- **Mobile tab bar check.** The bar is Home, News, Portfolio, NAS and More. Check which pages are
+  actually used on the phone (Lights and Music may be used more than NAS) and decide the four
+  tabs with the owner.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21.
+M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22.
 
 ## 4. Open items
 
@@ -1036,8 +1062,17 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21.
   with Renovate PRs (updates stay automatic, no PRs); a rollback command from the previous image
   digest; a Tailscale key expiry rule (keys do not expire on this tailnet); a privacy blur for
   amounts on the kiosk; Tailscale identity headers to gate writes; self-hosting a password
-  manager. Watchtower: containrrr/watchtower was archived on 2025-12-17 (forks such as
-  `nickfedor/watchtower`, or What's Up Docker); the owner parked this on 2026-10-09.
+  manager.
+- Watchtower: containrrr/watchtower was archived on 2025-12-17; parked on 2026-10-09. **Done
+  2026-10-23:** nas-docker runs the maintained fork `nickfedor/watchtower` (same `WATCHTOWER_*`
+  settings and report template; its report also carries `.Restarted` and a `.Changelog` per
+  update).
+- Discussed 2026-10-23, not decided: AI with the owner's Anthropic API key (morning digest,
+  update notes, grouped headlines, alert explainer, `/ask` in Telegram), with a monthly cost cap;
+  Paperless-ngx for the attachments of bills and statements from mail; a new home for the
+  recipes, as Tandoor's interface does not suit the owner (Mealie, KitchenOwl, or a Recipes page
+  in the hub on Tandoor's API). cloudflared stays: the household's second Obsidian user syncs
+  LiveSync through it.
 
 ## 5. Non-goals
 

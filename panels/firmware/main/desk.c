@@ -13,6 +13,7 @@
 #include "desk_nas.h"
 #include "desk_backups.h"
 #include "desk_media.h"
+#include "desk_money.h"
 #include "desk_pipelines.h"
 #include "esp_attr.h"
 #include "esp_heap_caps.h"
@@ -58,6 +59,7 @@ EXT_RAM_BSS_ATTR static desk_alerts_t alerts_state;
 EXT_RAM_BSS_ATTR static desk_nas_t nas_state;
 EXT_RAM_BSS_ATTR static desk_backups_t backups_state;
 EXT_RAM_BSS_ATTR static desk_media_t media_state;
+EXT_RAM_BSS_ATTR static desk_money_t money_state;
 EXT_RAM_BSS_ATTR static desk_takeover_t takeover_state;
 EXT_RAM_BSS_ATTR static desk_movers_t movers_state;
 EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline_state;
@@ -279,6 +281,7 @@ COPIERS(alerts, desk_alerts_t, alerts_state)
 COPIERS(nas, desk_nas_t, nas_state)
 COPIERS(backups, desk_backups_t, backups_state)
 COPIERS(media, desk_media_t, media_state)
+COPIERS(money, desk_money_t, money_state)
 COPIERS(takeover, desk_takeover_t, takeover_state)
 COPIERS(movers, desk_movers_t, movers_state)
 GETTERS(apple, desk_apple_t, apple_state)
@@ -757,6 +760,7 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_nas_t nas;
     EXT_RAM_BSS_ATTR static desk_backups_t backups;
     EXT_RAM_BSS_ATTR static desk_media_t media;
+    EXT_RAM_BSS_ATTR static desk_money_t money;
     EXT_RAM_BSS_ATTR static desk_takeover_t takeover;
     EXT_RAM_BSS_ATTR static desk_movers_t movers;
     EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline;
@@ -778,6 +782,7 @@ static void apply(const char *body)
     memset(&nas, 0, sizeof nas);
     memset(&backups, 0, sizeof backups);
     memset(&media, 0, sizeof media);
+    memset(&money, 0, sizeof money);
     memset(&takeover, 0, sizeof takeover);
     const cJSON *error = cJSON_GetObjectItem(root, "takeover");
     takeover.present = cJSON_IsObject(error);
@@ -822,6 +827,10 @@ static void apply(const char *body)
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "tailnet") == 0) {
             desk_parse_tailnet(screen, &tailnet);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "money") == 0) {
+            desk_parse_money(screen, &money);
             continue;
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "media") == 0) {
@@ -968,6 +977,8 @@ static void apply(const char *body)
     backups_state = backups;
     media.version = media_state.version + 1;
     media_state = media;
+    money.version = money_state.version + 1;
+    money_state = money;
     takeover.version = takeover_state.version + 1;
     takeover_state = takeover;
     movers.version = movers_state.version + 1;
