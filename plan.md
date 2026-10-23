@@ -928,8 +928,88 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   actually used on the phone (Lights and Music may be used more than NAS) and decide the four
   tabs with the owner.
 
+**M23. Paperless** (added 2026-10-23)
+- Paperless-ngx on the NAS to find important documents back: invoices, monthly statements,
+  bills, contracts, policies, payslips and tax letters, mostly mail attachments. Full-text search
+  after OCR, correspondents, document types and tags, learned from the owner's corrections. No
+  AI on the mail or the documents (decided 2026-10-23; Paperless's own matching is local).
+- Stack in nas-docker `paperless/`: the webserver, its own Postgres (`db_paperless`, in
+  `host-jobs/dump-databases.sh` and the restore check), Redis, Gotenberg and Tika (mail bodies and
+  Office files), and Proton Mail Bridge. LAN and Tailscale only, HTTPS through `tailscale serve`
+  like the other services. Originals, the archive copies and the database under
+  `/volume1/docker/paperless`, so rclone takes them to Hetzner; a weekly `document_exporter` run
+  as a second, readable copy. The Bridge's login volume stays out of the backup (log in again
+  after a restore).
+- Mail is Proton Mail, which has no IMAP of its own: Proton Mail Bridge runs headless in the
+  stack (a paid Proton plan is required) and Paperless reads it over IMAP. The Bridge only
+  listens on localhost, so the image forwards its ports (socat) and the Bridge publishes no port:
+  only Paperless, on the stack's own network, can reach it, which keeps the plain IMAP inside
+  that network acceptable. Image chosen at build time from the maintained ones built from Proton's
+  source (Enucatl/docker-protonmail-bridge, excavador/proton-bridge); shenxn's is out of date.
+  First login once by hand (`init`, with 2FA); Paperless gets the Bridge's own password, kept in
+  Paperless's mail settings, not in the repo.
+- Which mail: a Proton label "Paperless", set by Proton filters on the senders of bills and
+  statements (the energy supplier, insurers, the bank, the employer, the tax office, ...). One
+  Paperless mail rule watches `Labels/Paperless`: PDF attachments only (`*.pdf`), the sender as
+  correspondent, then moves the mail to a Proton folder `Paperless/Done` (moving works with the
+  Bridge; Paperless's "tag the mail" action does not, as it needs Gmail's IMAP extension). Bills
+  that only link to a portal ("see your invoice in My Account") can't be fetched; for those the
+  rule can store the mail itself as a PDF.
+- Mail already in Proton: per sender, search in Proton's web app and label the results
+  "Paperless" in bulk; for the first run the rule's maximum age is set to about ten years, then
+  back to 30 days. Paperless remembers which mails it processed, so a mail is never consumed
+  twice. Do it a few senders at a time and correct the first documents, so the matching learns
+  before the bulk.
+- Paper: a consume folder on an SMB share for scans (the iPhone's Files scanner or a scanner),
+  and a Paperless app on the iPhone for searching.
+- Set up once: document types (Invoice, Statement, Contract, Policy, Payslip, Tax, Warranty),
+  custom fields for amount, period and due date, and a storage path by year and correspondent
+  (`{created_year}/{correspondent}/{title}`), so the files on disk stay readable without
+  Paperless.
+- In the hub: Paperless in the service catalog with its health check, the new dump on the
+  Backups page, and its documents searchable from the command palette (M24).
+- Steps: the nas-docker stack and backup first; then the Bridge and one mail rule for one
+  sender; then the other senders and the old mail; then the hub's parts.
+
+**M24. Command palette** (added 2026-10-23)
+- ⌘K (Ctrl-K) opens a search box over any page; on the phone a search button in the page header.
+  Type a few letters, arrows to choose, Enter to go. Fuzzy matching, recent choices first.
+- Finds: the pages and the Settings sections, the services (opened on the LAN or Tailscale
+  address as the tiles do), the repos, the containers (their logs in Dozzle), and Paperless
+  documents by title and content (through the hub, which keeps the Paperless token).
+- A few actions through the hub's existing endpoints: lights on and off, music play, pause and
+  next. Nothing that deletes or imports.
+- Built in the hub without a new dependency unless the owner chooses one (cmdk was the obvious
+  candidate). Keyboard and screen reader friendly; the hub's style.
+
+**M25. AI** (added 2026-10-23; mockup `docs/hub-ai-mockup.html`)
+- The owner's Anthropic API key (NAS-only `.env`) for a few written extras. Every result is made
+  on a schedule and cached by a hash of its input; a page or panel never waits on the API, and
+  without it (down, or the cap reached) the hub shows what it had, or nothing extra.
+- Features, each with its own switch in Settings:
+  1. **Update notes** (first): for each image Watchtower updated, what changed and whether
+     anything needs doing, from the release notes (public data); for the pinned Immich, a
+     warning when a new release has breaking changes. Added to the Telegram update report.
+  2. **Morning digest**: weekdays at 06:30, one short paragraph in Telegram (backup, updates,
+     disks, alerts, weather, the train, the first event) and a Briefing screen on the Now panel
+     until 09:00.
+  3. **Headlines, one story per event**: hourly from 06:00 to 23:00, headlines from several
+     feeds about the same event grouped into one story with a one-sentence summary and every
+     source linked; on the News page and the Headlines panel screen.
+  4. **Alert explainer**: for ERROR alerts, a likely cause and what to try first, from the last
+     log lines (emails, IP addresses and tokens removed in the collector before sending), added
+     to the alert a minute later. It suggests; it never acts.
+- Models: Haiku for the scheduled features, Sonnet for the alert explainer. Estimated well under
+  EUR 1 a month for all four.
+- Cap (decided 2026-10-23): EUR 5 a month. The hub adds up each answer's token usage in SQLite,
+  sends a Telegram note at 80% and stops calling at 100% until the 1st. A spend limit on the
+  key's workspace in the Anthropic Console, a little above it, as a backstop.
+- Not for the mail or Paperless (decided 2026-10-23), and no `/ask` in Telegram.
+- Data sent: public text and the hub's own house state (redacted logs); no calendar titles beyond
+  the first event's time and name, no portfolio amounts.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22.
+M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25.
 
 ## 4. Open items
 
@@ -999,6 +1079,16 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22.
   so run two (NAS plus a VPS or the router). iCloud Private Relay and browser DoH bypass it.
   Proposed: AdGuard Home on the NAS and a second box, and a "blocked today" tile. Open
   question: which router (some can run AdGuard themselves).
+  Router checked 2026-10-23: a Zyxel EX5601-T1 (the ISP's T-56). It cannot run AdGuard, but its
+  stock firmware hands out a chosen DNS server to clients (Network Settings → Home Network →
+  DNS static), which is all that is needed: AdGuard Home on the NAS as the first server and the
+  freed Pi kiosk as the second, kept equal with AdGuard Home Sync. To check before switching:
+  whether the router also announces its own IPv6 DNS (clients would go round AdGuard over IPv6;
+  IPv6 itself must stay on for Thread and Matter). OpenWrt runs on this model but flashing
+  depends on the ISP firmware (newer builds block it, one user ended in a boot loop): not worth
+  it. The tile: today's queries and the share blocked from AdGuard's `/control/stats`, an hourly
+  sparkline and the most-blocked domain; counts only on the panels (which device visits what is
+  browsing history).
 - Hetzner VPS next to the NAS (discussed 2026-10-08, not decided; the exposure scan went to a
   GitHub workflow instead). A small cloud server (CX22 or CAX11, about EUR 4 to 5 a month) on the
   tailnet could be: an outside uptime watcher that also notices the NAS losing power or
@@ -1033,10 +1123,9 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22.
   Usernames and display names only; Tracearr's and Seerr's people records also carry emails.
   Jellyseerr was replaced by Seerr on 2026-10-14 (same data, same API and key).
 - Backlog, ideas not yet chosen (2026-10-08): dynamic energy prices for today and tomorrow
-  (EnergyZero, no key), an Immich "on this day" photo, a command palette (Cmd-K) for services,
-  pages and repos, and a morning digest in Telegram (overnight updates, backup, disk, weather).
-  Desk panels: house and productivity widgets and actions, later. (The calendar and the morning
-  train moved to M20; there are no bin days to show.)
+  (EnergyZero, no key) and an Immich "on this day" photo. Desk panels: house and productivity
+  widgets and actions, later. (The calendar and the morning train moved to M20, the command
+  palette to M24 and the morning digest to M25; there are no bin days to show.)
 - Desk panel screen ideas (2026-10-10). Chosen into M20 on 2026-10-10: calendar, the morning
   train (instead of general departures), Jellyfin, code and headlines (ambient was chosen,
   then dropped). Not chosen yet:
@@ -1067,12 +1156,13 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22.
   2026-10-23:** nas-docker runs the maintained fork `nickfedor/watchtower` (same `WATCHTOWER_*`
   settings and report template; its report also carries `.Restarted` and a `.Changelog` per
   update).
-- Discussed 2026-10-23, not decided: AI with the owner's Anthropic API key (morning digest,
-  update notes, grouped headlines, alert explainer, `/ask` in Telegram), with a monthly cost cap;
-  Paperless-ngx for the attachments of bills and statements from mail; a new home for the
-  recipes, as Tandoor's interface does not suit the owner (Mealie, KitchenOwl, or a Recipes page
-  in the hub on Tandoor's API). cloudflared stays: the household's second Obsidian user syncs
-  LiveSync through it.
+- Recipes (discussed 2026-10-23, not decided): Tandoor's interface does not suit the owner,
+  while the recipes in it are kept. Options: Mealie (the most polished, one container, imports a
+  Tandoor export; meal plans and shopping lists do not carry over), KitchenOwl (the best phone
+  app, weaker on recipes), or a Recipes page in the hub on Tandoor's API (cook mode, scaling, a
+  "Tonight" panel screen). Suggested: try Mealie with a Tandoor export first.
+- Ask the hub in Telegram (`/ask`, discussed 2026-10-23): dropped; the owner asks Claude Code.
+- cloudflared stays (2026-10-23): the household's second Obsidian user syncs LiveSync through it.
 
 ## 5. Non-goals
 
