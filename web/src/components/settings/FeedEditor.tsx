@@ -7,6 +7,7 @@ import type { Feed, FeedGroup } from '../../lib/newsTypes'
 import { useApi } from '../../lib/useApi'
 import { FeedForm, type FeedInput } from './FeedForm'
 import { buttonClass, iconButtonClass, inputClass, primaryButtonClass } from './fields'
+import { Loading, Unavailable } from '../ui/states'
 
 type Editing = { feed: number } | { addTo: string } | { group: string } | null
 type Deleting = { feed: Feed } | { group: FeedGroup } | null
@@ -71,13 +72,9 @@ export function FeedEditor() {
 
   if (!groups)
     return api.error ? (
-      <p role="alert" className="text-muted">
-        The feed list is not available right now.
-      </p>
+      <Unavailable what="The feed list" />
     ) : (
-      <p role="status" className="text-muted">
-        Loading…
-      </p>
+      <Loading />
     )
 
   return (

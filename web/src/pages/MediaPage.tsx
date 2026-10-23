@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { Card, Loading, StaleNote, Unavailable } from '../components/home/Card'
+import { Card } from '../components/ui/Card'
+import { Loading, StaleNote, Unavailable } from '../components/ui/states'
 import { DownloadTile } from '../components/media/DownloadTile'
 import { RequestsCard } from '../components/media/RequestsCard'
 import { LibraryCard, WatchingCard } from '../components/media/WatchingCard'

@@ -5,7 +5,7 @@ import { cn } from '../../lib/cn'
 import { formatMoney, formatPercent, formatSignedMoney, formatSignedPct } from '../../lib/format'
 import { holdingPath } from '../../lib/portfolio'
 import type { HoldingRow } from '../../lib/portfolioTypes'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { Segmented } from '../ui/Segmented'
 
 type Sort = 'value' | 'today' | 'gain'

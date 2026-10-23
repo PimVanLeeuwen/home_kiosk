@@ -13,6 +13,7 @@ import { formatAgo, formatDay } from '../lib/format'
 import type { Article, NewsGroup } from '../lib/newsTypes'
 import { useApi } from '../lib/useApi'
 import { usePaged } from '../lib/usePaged'
+import { Loading, Unavailable } from '../components/ui/states'
 
 function useDebounced(value: string, ms: number): string {
   const [debounced, setDebounced] = useState(value)
@@ -129,11 +130,9 @@ export function NewsPage() {
         </div>
 
         {list.loading && (
-          <p role="status" className="text-muted">
-            Loading…
-          </p>
+          <Loading />
         )}
-        {list.error && !list.items.length && <p className="text-muted">News is not available right now.</p>}
+        {list.error && !list.items.length && <Unavailable what="News" />}
         {!list.loading && !list.error && list.items.length === 0 && (
           <p className="py-4 text-muted">
             {q ? `Nothing matches “${q}”.` : unreadOnly ? 'All caught up.' : 'No articles yet.'}

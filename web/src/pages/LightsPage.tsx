@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { StaleNote } from '../components/home/Card'
+import { Loading, PageUnavailable, StaleNote } from '../components/ui/states'
 import { LightTile, type Change } from '../components/lights/LightTile'
 import { PageHeader } from '../components/PageHeader'
 import { Pill } from '../components/ui/Pill'
@@ -62,15 +62,10 @@ export function LightsPage() {
       />
 
       {loading && !lights && (
-        <p role="status" className="text-muted">
-          Loading the lights…
-        </p>
+        <Loading what="the lights" />
       )}
       {error && !lights && (
-        <div role="alert" className="rounded-[14px] border border-line bg-card p-5">
-          <p className="font-medium">The lights are not available yet</p>
-          <p className="mt-1 text-muted">The hub reads them from the Hue Bridge every minute.</p>
-        </div>
+        <PageUnavailable what="The lights" plural detail="The hub reads them from the Hue Bridge every minute." />
       )}
 
       {lights && (

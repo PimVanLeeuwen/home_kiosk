@@ -1,4 +1,4 @@
-import { Loading, StaleNote, Unavailable } from '../components/home/Card'
+import { Loading, StaleNote, Unavailable } from '../components/ui/states'
 import { DisksCard } from '../components/nas/DisksCard'
 import { InstrumentCard } from '../components/nas/InstrumentCard'
 import { StorageCard } from '../components/nas/StorageCard'

@@ -6,7 +6,8 @@ import type { ArticleList, NewsGroup } from '../../lib/newsTypes'
 import { useApi } from '../../lib/useApi'
 import { GlowDot } from '../ui/GlowDot'
 import { Pill } from '../ui/Pill'
-import { Card, Loading, Unavailable } from './Card'
+import { Card } from '../ui/Card'
+import { Loading, Unavailable } from '../ui/states'
 
 const SHOWN = 5
 

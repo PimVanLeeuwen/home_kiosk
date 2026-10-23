@@ -2,7 +2,8 @@ import { uniqueMonograms } from '../../lib/monogram'
 import type { Service } from '../../lib/types'
 import { useServiceLinks } from '../../lib/useServiceLinks'
 import { ServiceTile } from '../ServiceTile'
-import { Card, Loading, Unavailable } from './Card'
+import { Card } from '../ui/Card'
+import { Loading, Unavailable } from '../ui/states'
 
 interface Props {
   services: Service[] | undefined

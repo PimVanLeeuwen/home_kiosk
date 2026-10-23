@@ -5,7 +5,8 @@ import type { PortfolioFull } from '../../lib/portfolioTypes'
 import { useApi } from '../../lib/useApi'
 import { GlowArea } from '../ui/GlowArea'
 import { Pill } from '../ui/Pill'
-import { Card, Loading, StaleNote, Unavailable } from './Card'
+import { Card } from '../ui/Card'
+import { Loading, StaleNote, Unavailable } from '../ui/states'
 
 const tone = (n: number) => (n > 0 ? 'text-up' : n < 0 ? 'text-down' : 'text-muted')
 const chip = (n: number) => (n > 0 ? 'bg-up/12 text-up' : n < 0 ? 'bg-down/13 text-down' : 'bg-raised text-muted')

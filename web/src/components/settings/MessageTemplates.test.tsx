@@ -154,7 +154,7 @@ describe('MessageTemplates', () => {
         <MessageTemplates />
       </MemoryRouter>,
     )
-    expect(await screen.findByRole('alert')).toHaveTextContent('The messages are not available right now.')
+    expect(await screen.findByText('The messages are not available right now.')).toBeInTheDocument()
   })
 })
 

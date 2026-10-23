@@ -2,7 +2,7 @@ import { POOL_FULL_PCT } from '../../lib/attention'
 import { formatBytes, formatRunway } from '../../lib/format'
 import { shortRunway } from '../../lib/nasHealth'
 import type { Pool } from '../../lib/types'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { ArcGauge } from '../ui/ArcGauge'
 
 /** Every pool on a dial, fullest first, with its free space and runway, and all of them together below. */

@@ -180,7 +180,7 @@ describe('ReposPage', () => {
     stubApi({})
     renderRoute('/repos')
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('The repo list is not available yet')
+    expect(await screen.findByRole('alert')).toHaveTextContent('The repo list is not available right now')
   })
 
   it('shows the backup status per repo for mirrored owners', async () => {

@@ -938,6 +938,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   together: spacing, card headers, the loading, empty, error and stale states, number styles and
   units, button and pill styles, and colours outside the tokens in `index.css`. Fix the drift
   into shared components in `components/ui`, one page or pattern per step.
+  Audited 2026-10-23: header state pills in different places, three patterns for a page's
+  headline numbers, about ten button looks, loading, error and stale texts written per page, 18
+  hand-built card surfaces, 30 text sizes, about 150 colour literals (many copies of the tokens),
+  and own single-choice switches beside `Segmented`. Decided 2026-10-23: every page with a state
+  shows it as a pill on the right of its header (buttons beside it); a page's headline numbers are
+  one row of stat tiles; a type scale of about nine sizes, done last. Steps: shared states and
+  `Card` in `components/ui`; cards through `Card`; a `Button`; the header pill; stat tiles;
+  `Segmented` everywhere; colours to tokens; the type scale.
 - **Motion.** Small and calm, always off with `prefers-reduced-motion`: numbers that move to a new
   value instead of jumping, cards that ease in and out when they appear (train, laundry), a
   press response on the light and music controls, and a soft change between pages. No looping

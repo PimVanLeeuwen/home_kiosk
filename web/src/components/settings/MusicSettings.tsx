@@ -5,6 +5,7 @@ import { cn } from '../../lib/cn'
 import type { Favourite, Music, Playlist } from '../../lib/musicTypes'
 import { useApi } from '../../lib/useApi'
 import { Cover } from '../music/NowPlaying'
+import { Loading, Unavailable } from '../ui/states'
 
 const MAX = 4
 const RETURNED: Record<string, { ok: boolean; text: string }> = {
@@ -35,7 +36,7 @@ function Favourites({ current, onSaved }: { current: Favourite[]; onSaved: () =>
     }
   }
 
-  if (!lists.data) return <p className="py-3 text-muted">{lists.error ? 'Your playlists are not available right now.' : 'Loading your playlists…'}</p>
+  if (!lists.data) return lists.error ? <Unavailable what="Your playlists" plural /> : <Loading what="your playlists" />
   return (
     <div className="border-t border-line-soft py-3">
       <p className="mb-2.5 text-[12.5px] text-faint">
@@ -114,7 +115,7 @@ export function MusicSettings() {
   }
 
   if (!state.data) {
-    return <p className="text-muted">{state.error ? state.error.message : 'Loading…'}</p>
+    return state.error ? <p className="text-muted">{state.error.message}</p> : <Loading />
   }
   return (
     <div className="rounded-[14px] border border-line-soft bg-card px-5 py-2 md:px-6">

@@ -5,6 +5,7 @@ import { formatAgo } from '../../lib/format'
 import type { DeskBoard, DeskPanel, PanelFirmware } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { Segmented } from '../ui/Segmented'
+import { Loading, Unavailable } from '../ui/states'
 
 type Choice = DeskPanel | 'none'
 
@@ -53,7 +54,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
   }
 
   if (!boards) {
-    return <p className="text-muted">{loaded.error ? 'The desk panels are not available right now.' : 'Loading…'}</p>
+    return loaded.error ? <Unavailable what="The desk panels" plural /> : <Loading />
   }
   if (!boards.length) {
     return <p className="text-muted">No desk panels yet: a board appears here once it has asked the hub, showing its MAC address on its screen.</p>

@@ -2,7 +2,8 @@ import { cn } from '../../lib/cn'
 import { formatWhen } from '../../lib/format'
 import { lasted, weekOf } from '../../lib/incidents'
 import type { Incident } from '../../lib/types'
-import { Card, Loading } from '../home/Card'
+import { Card } from '../ui/Card'
+import { Loading } from '../ui/states'
 import { Pill } from '../ui/Pill'
 
 function Week({ incidents, now, className }: { incidents: Incident[]; now: Date; className?: string }) {

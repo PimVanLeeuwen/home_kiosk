@@ -1,7 +1,8 @@
 import { formatAgo } from '../../lib/format'
 import type { Air } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
-import { Card, Loading, StaleNote, Unavailable } from './Card'
+import { Card } from '../ui/Card'
+import { Loading, StaleNote, Unavailable } from '../ui/states'
 
 type Level = NonNullable<Air['level']>
 

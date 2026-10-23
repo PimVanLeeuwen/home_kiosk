@@ -1,7 +1,7 @@
 import { formatBytes, formatRunway, formatWhen } from '../../lib/format'
 import { shortRunway } from '../../lib/nasHealth'
 import type { StorageBox } from '../../lib/types'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { ArcGauge } from '../ui/ArcGauge'
 import { Pill } from '../ui/Pill'
 

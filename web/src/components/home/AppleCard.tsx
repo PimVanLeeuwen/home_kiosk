@@ -3,7 +3,8 @@ import { curve, H, orbs, threadLinks, W, zones, type Orb } from '../../lib/apple
 import { cn } from '../../lib/cn'
 import type { AppleDevices, ApplePlaying } from '../../lib/types'
 import { Pill } from '../ui/Pill'
-import { Card, StaleNote } from './Card'
+import { Card } from '../ui/Card'
+import { StaleNote } from '../ui/states'
 
 const VIDEO = '#5aa9ff'
 const MUSIC = '#b4a9ff'

@@ -3,7 +3,7 @@ import { cn } from '../../lib/cn'
 import { formatDuration, formatWhen } from '../../lib/format'
 import type { BackupHistory } from '../../lib/types'
 import { changed, volumeColour } from '../../lib/volumes'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { GlowDot } from '../ui/GlowDot'
 
 type Summary = BackupHistory['volumes'][number]

@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { ApiError, sendJson } from '../../lib/api'
 import type { AlertRules, RuleSettings } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
-import { Card, Loading, Unavailable } from '../home/Card'
+import { Card } from '../ui/Card'
+import { Loading, Unavailable } from '../ui/states'
 import { Switch } from '../ui/Switch'
 
 type NumberField = Exclude<keyof RuleSettings, 'enabled'>

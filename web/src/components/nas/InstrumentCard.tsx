@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../lib/cn'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { GlowArea } from '../ui/GlowArea'
 import type { Tone } from '../ui/tones'
 

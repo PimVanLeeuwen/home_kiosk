@@ -4,7 +4,8 @@ import { formatTime } from '../../lib/format'
 import { followed, minutesToGo, trainShows, trainStatus } from '../../lib/train'
 import type { Train, TrainRun } from '../../lib/types'
 import { TONE_COLOR } from '../ui/tones'
-import { Card, StaleNote } from './Card'
+import { Card } from '../ui/Card'
+import { StaleNote } from '../ui/states'
 
 const R = 26
 const C = 2 * Math.PI * R

@@ -9,7 +9,8 @@ import { GlassTile } from '../ui/GlassTile'
 import { GlowDot } from '../ui/GlowDot'
 import { MiniSparkline } from '../ui/MiniSparkline'
 import { Pill } from '../ui/Pill'
-import { Card, Loading, StaleNote, Unavailable } from './Card'
+import { Card } from '../ui/Card'
+import { Loading, StaleNote, Unavailable } from '../ui/states'
 import { Meter } from './Meter'
 
 

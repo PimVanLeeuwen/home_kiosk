@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ApiError, sendJson } from '../../lib/api'
 import type { AlertSettings, QuietHours } from '../../lib/types'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { QuietRing } from './QuietRing'
 import { Switch } from '../ui/Switch'
 

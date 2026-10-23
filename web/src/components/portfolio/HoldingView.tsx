@@ -5,9 +5,10 @@ import { formatDate, formatMoney, formatPrice, formatQuantity, formatSignedMoney
 import type { HoldingDetail } from '../../lib/portfolioTypes'
 import { useApi } from '../../lib/useApi'
 import { PageHeader } from '../PageHeader'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { Pill } from '../ui/Pill'
 import { LineChart } from './LineChart'
+import { Loading, Unavailable } from '../ui/states'
 
 const TYPES: Record<string, string> = {
   BUY: 'Buy',
@@ -52,11 +53,9 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
         {back}
         <PageHeader title={symbol} />
         {error ? (
-          <p className="text-muted">This holding is not available right now.</p>
+          <Unavailable what="This holding" />
         ) : (
-          <p role="status" className="text-muted">
-            Loading…
-          </p>
+          <Loading />
         )}
       </>
     )

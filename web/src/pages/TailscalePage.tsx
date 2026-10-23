@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Loading, Unavailable } from '../components/home/Card'
+import { Loading, StaleNote, Unavailable } from '../components/ui/states'
 import { PageHeader } from '../components/PageHeader'
 import { CopyButton, DeviceTile, Facts } from '../components/tailscale/DeviceTile'
 import { TailnetMap } from '../components/tailscale/TailnetMap'
@@ -94,9 +94,7 @@ export function TailscalePage() {
       {data && (
         <>
           {stale && (
-            <p role="status" className="-mt-3 mb-4 text-[12.5px] text-warn">
-              Tailscale could not be read just now; this is the last known state.
-            </p>
+            <StaleNote banner>Tailscale could not be read just now; this is the last known state.</StaleNote>
           )}
 
           {data.health.map((warning) => (

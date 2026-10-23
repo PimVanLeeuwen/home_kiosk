@@ -11,6 +11,7 @@ import { cn } from '../lib/cn'
 import { formatAgo, formatWhen } from '../lib/format'
 import type { GitHubMirror, MirroredRepo, Repo, ReposResponse } from '../lib/types'
 import { useApi } from '../lib/useApi'
+import { Loading, PageUnavailable, StaleNote } from '../components/ui/states'
 
 const REFRESH_MS = 300_000
 
@@ -68,18 +69,10 @@ export function ReposPage() {
       />
 
       {loading && !data && (
-        <p role="status" className="text-muted">
-          Loading repos…
-        </p>
+        <Loading what="repos" />
       )}
       {error && !data && (
-        <div role="alert" className="flex flex-col items-start gap-3 rounded-[14px] border border-line bg-card p-5">
-          <p className="font-medium">The repo list is not available yet</p>
-          <p className="text-muted">The collector fetches it from GitHub every 30 minutes.</p>
-          <button type="button" onClick={reload} className="rounded-[9px] border border-line bg-raised px-3 py-2 font-medium hover:border-faint">
-            Try again
-          </button>
-        </div>
+        <PageUnavailable what="The repo list" detail="The collector fetches it from GitHub every 30 minutes." onRetry={reload} />
       )}
 
       {data && <CodeCard data={data} />}
@@ -153,10 +146,10 @@ export function ReposPage() {
 
 
             {active.error && (
-              <p role="status" className="mb-4 text-[13px] text-warn">
+              <StaleNote banner>
                 {active.repos.length ? 'Showing the last known list. ' : ''}
                 {active.error}
-              </p>
+              </StaleNote>
             )}
 
             {shown.length > 0 ? (

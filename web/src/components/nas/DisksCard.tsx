@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { cn } from '../../lib/cn'
 import { WARM_DISK_C } from '../../lib/nasHealth'
 import type { Nas } from '../../lib/types'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { GlowDot } from '../ui/GlowDot'
 import { Pill } from '../ui/Pill'
 

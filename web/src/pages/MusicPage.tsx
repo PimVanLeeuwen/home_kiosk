@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { StaleNote } from '../components/home/Card'
+import { Loading, PageUnavailable, StaleNote } from '../components/ui/states'
 import { MusicSide } from '../components/music/MusicSide'
 import { NothingPlaying, NowPlaying } from '../components/music/NowPlaying'
 import { PageHeader } from '../components/PageHeader'
@@ -24,15 +24,10 @@ export function MusicPage() {
       <PageHeader title="Music" subtitle="Spotify · your devices and favourites" />
 
       {loading && !music && (
-        <p role="status" className="text-muted">
-          Loading…
-        </p>
+        <Loading />
       )}
       {error && !music && (
-        <div role="alert" className="rounded-[14px] border border-line bg-card p-5">
-          <p className="font-medium">Music is not available right now</p>
-          <p className="mt-1 text-muted">{error.message}</p>
-        </div>
+        <PageUnavailable what="Music" detail={error.message} />
       )}
       {music && !music.connected && (
         <div className="rounded-[14px] border border-line-soft bg-card p-5">

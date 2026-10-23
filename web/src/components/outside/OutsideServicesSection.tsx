@@ -4,6 +4,7 @@ import { useApi } from '../../lib/useApi'
 import { BrandLogo } from './BrandLogo'
 import { IncidentCard } from './IncidentCard'
 import { ReadNotes } from './ReadNotes'
+import { Loading, StaleNote, Unavailable } from '../ui/states'
 
 const REFRESH_MS = 60_000
 
@@ -26,11 +27,7 @@ export function OutsideServicesSection() {
       <p className="mb-3.5 text-[12.5px] text-faint">
         What the house depends on, from their status pages. Only the parts the house uses count.
       </p>
-      {!data && (
-        <p role="status" className="text-muted">
-          {error ? 'The status of outside services is not available right now.' : 'Loading…'}
-        </p>
-      )}
+      {!data && (error ? <Unavailable what="The status of outside services" /> : <Loading />)}
       {data && (
         <>
           <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
@@ -62,7 +59,7 @@ export function OutsideServicesSection() {
             </div>
           )}
           <ReadNotes services={services} />
-          {data.stale && <p className="mt-3 text-[12px] text-warn">Showing the last known status.</p>}
+          {data.stale && <StaleNote>Showing the last known status.</StaleNote>}
         </>
       )}
     </section>

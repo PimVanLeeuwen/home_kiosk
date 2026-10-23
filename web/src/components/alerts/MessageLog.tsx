@@ -5,7 +5,7 @@ import { cn } from '../../lib/cn'
 import { formatWhen } from '../../lib/format'
 import type { AlertMessage, AlertSettings } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { SeverityPill } from './SeverityPill'
 
 const SOURCE_LABEL: Record<string, string> = {

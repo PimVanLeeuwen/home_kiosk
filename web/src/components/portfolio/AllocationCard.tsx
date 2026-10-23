@@ -1,5 +1,5 @@
 import { formatPercent } from '../../lib/format'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 
 // Theme colours, accent first; red is left out so no slice reads as a loss.
 const COLOURS = [

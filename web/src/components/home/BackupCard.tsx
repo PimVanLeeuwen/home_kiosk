@@ -7,7 +7,8 @@ import { FlowLine } from '../ui/FlowLine'
 import { Pill } from '../ui/Pill'
 import { Seal } from '../ui/Seal'
 import { RestoreLine } from '../backups/RestoreLine'
-import { Card, Loading, Unavailable } from './Card'
+import { Card } from '../ui/Card'
+import { Loading, Unavailable } from '../ui/states'
 
 /**
  * The latest nightly run with the nights before it: per volume from the run

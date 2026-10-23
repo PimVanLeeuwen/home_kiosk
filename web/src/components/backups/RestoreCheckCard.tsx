@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Card, StaleNote } from '../home/Card'
+import { Card } from '../ui/Card'
+import { StaleNote } from '../ui/states'
 import { ApiError, sendJson } from '../../lib/api'
 import { cn } from '../../lib/cn'
 import { formatWhen } from '../../lib/format'

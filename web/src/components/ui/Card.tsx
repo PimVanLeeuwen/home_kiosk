@@ -42,20 +42,3 @@ export function Card({ title, link, actions, className, children }: Props) {
     </section>
   )
 }
-
-/** Shown in a card whose source is not answering. */
-export function Unavailable({ what }: { what: string }) {
-  return <p className="text-muted">{what} is not available right now.</p>
-}
-
-export function Loading() {
-  return (
-    <p role="status" className="text-muted">
-      Loading…
-    </p>
-  )
-}
-
-export function StaleNote() {
-  return <p className="mt-3 text-[12px] text-warn">Showing the last known figures.</p>
-}

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../lib/cn'
 import type { Repo } from '../../lib/types'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { GlowDot } from '../ui/GlowDot'
 
 function Tile({ title, figure, sub, children }: { title: string; figure: ReactNode; sub?: ReactNode; children?: ReactNode }) {

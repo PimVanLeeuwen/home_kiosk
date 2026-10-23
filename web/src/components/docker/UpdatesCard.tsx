@@ -1,7 +1,7 @@
 import { cn } from '../../lib/cn'
 import { formatWhen } from '../../lib/format'
 import type { ContainerUpdate } from '../../lib/types'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 
 const SHOWN = 25
 const shortId = (id: string) => id.replace(/^sha256:/, '').slice(0, 12)

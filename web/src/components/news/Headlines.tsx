@@ -6,7 +6,7 @@ import { cn } from '../../lib/cn'
 import { formatAgo } from '../../lib/format'
 import type { Headline, HeadlinesResponse } from '../../lib/newsTypes'
 import { useApi } from '../../lib/useApi'
-import { StaleNote } from '../home/Card'
+import { StaleNote } from '../ui/states'
 
 type Colour = { bg: string; fg: string }
 type SaveState = 'saving' | 'saved' | 'failed'

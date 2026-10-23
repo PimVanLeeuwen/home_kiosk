@@ -9,6 +9,7 @@ import { uniqueMonograms } from '../lib/monogram'
 import type { Service, ServiceStatus, ServicesResponse } from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { useServiceLinks } from '../lib/useServiceLinks'
+import { StaleNote } from '../components/ui/states'
 
 const REFRESH_MS = 30_000
 
@@ -95,9 +96,7 @@ export function ServicesPage() {
       )}
 
       {services.data && !statusKnown && (
-        <p role="status" className="mb-4 text-[13px] text-warn">
-          Status may be out of date: the latest container check did not come through.
-        </p>
+        <StaleNote banner>Status may be out of date: the latest container check did not come through.</StaleNote>
       )}
 
       {services.data && onNas.length > 0 && (

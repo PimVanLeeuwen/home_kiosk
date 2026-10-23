@@ -4,7 +4,7 @@ import { cn } from '../../lib/cn'
 import { formatAgo } from '../../lib/format'
 import type { Activity, Repo, ReposResponse } from '../../lib/types'
 import { Pill } from '../ui/Pill'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 
 const MAX_BUILDS = 6
 const MAX_PULLS = 5

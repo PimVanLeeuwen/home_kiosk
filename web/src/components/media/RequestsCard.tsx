@@ -1,6 +1,6 @@
 import { cn } from '../../lib/cn'
 import type { MediaOverview, RequestState } from '../../lib/types'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { Poster } from './Poster'
 
 const STATE: Record<RequestState, { label: string; tone: string }> = {

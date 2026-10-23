@@ -1,7 +1,7 @@
 import { formatBytes } from '../../lib/format'
 import { monogram, tileColour } from '../../lib/monogram'
 import type { MediaOverview } from '../../lib/types'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 
 const hours = new Intl.NumberFormat('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 const count = new Intl.NumberFormat('nl-NL')

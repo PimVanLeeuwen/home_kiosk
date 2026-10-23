@@ -1,6 +1,7 @@
 import { headline, STATE_LABEL, troubled } from '../../lib/outside'
 import type { OutsideService, OutsideServices } from '../../lib/types'
-import { Card, Loading, StaleNote, Unavailable } from '../home/Card'
+import { Card } from '../ui/Card'
+import { Loading, StaleNote, Unavailable } from '../ui/states'
 import { BrandLogo } from './BrandLogo'
 import { IncidentCard } from './IncidentCard'
 import { ReadNotes } from './ReadNotes'

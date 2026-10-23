@@ -3,7 +3,8 @@ import { cn } from '../../lib/cn'
 import { formatAgo, formatTime } from '../../lib/format'
 import type { Laundry, Machine } from '../../lib/types'
 import { Pill } from '../ui/Pill'
-import { Card, StaleNote } from './Card'
+import { Card } from '../ui/Card'
+import { StaleNote } from '../ui/states'
 
 const R = 44
 const C = 2 * Math.PI * R

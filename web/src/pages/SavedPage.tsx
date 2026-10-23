@@ -8,6 +8,7 @@ import { cn } from '../lib/cn'
 import { formatAgo } from '../lib/format'
 import type { Bookmark } from '../lib/newsTypes'
 import { usePaged } from '../lib/usePaged'
+import { Loading } from '../components/ui/states'
 
 function details(b: Bookmark): string {
   return [
@@ -78,9 +79,7 @@ export function SavedPage() {
         </div>
 
         {list.loading && (
-          <p role="status" className="text-muted">
-            Loading…
-          </p>
+          <Loading />
         )}
         {list.error && !list.items.length && (
           <p role="alert" className="text-muted">

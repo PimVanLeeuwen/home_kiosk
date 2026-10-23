@@ -4,7 +4,7 @@ import { formatSignedPct } from '../../lib/format'
 import { holdingPath } from '../../lib/portfolio'
 import type { HoldingRow } from '../../lib/portfolioTypes'
 import { squarify, type Tile } from '../../lib/treemap'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 
 /** On a phone, holdings below this weight share one "others" tile, so none is too thin to read. */
 const PHONE_MIN_WEIGHT = 3

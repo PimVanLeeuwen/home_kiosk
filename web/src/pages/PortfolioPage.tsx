@@ -1,7 +1,7 @@
 import { FileUp } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
-import { StaleNote } from '../components/home/Card'
+import { Loading, StaleNote, Unavailable } from '../components/ui/states'
 import { AllocationCard } from '../components/portfolio/AllocationCard'
 import { DegiroImport } from '../components/portfolio/DegiroImport'
 import { HoldingView } from '../components/portfolio/HoldingView'
@@ -34,11 +34,9 @@ export function PortfolioPage() {
       <>
         <PageHeader title="Portfolio" />
         {error ? (
-          <p className="text-muted">The portfolio is not available right now. Ghostfolio may be down.</p>
+          <Unavailable what="The portfolio" detail="Ghostfolio may be down." />
         ) : (
-          <p role="status" className="text-muted">
-            Loading…
-          </p>
+          <Loading />
         )}
       </>
     )

@@ -4,7 +4,8 @@ import { formatTime } from '../../lib/format'
 import { focusOf, hoursOf, isPast, ribbonX, todayShows } from '../../lib/today'
 import type { Today } from '../../lib/types'
 import { GlowDot } from '../ui/GlowDot'
-import { Card, StaleNote } from './Card'
+import { Card } from '../ui/Card'
+import { StaleNote } from '../ui/states'
 
 const R = 26
 const C = 2 * Math.PI * R

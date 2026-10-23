@@ -1,4 +1,5 @@
-import { Card, StaleNote } from '../home/Card'
+import { Card } from '../ui/Card'
+import { StaleNote } from '../ui/states'
 import { cn } from '../../lib/cn'
 import { formatBytes, formatCount, formatWhen } from '../../lib/format'
 import type { GitHubMirror } from '../../lib/types'

@@ -6,7 +6,7 @@ import { formatDate, formatPrice, formatQuantity } from '../../lib/format'
 import type { DegiroCandidate, DegiroChoices, DegiroPreview } from '../../lib/portfolioTypes'
 import { RememberedChoices } from './RememberedChoices'
 import { PageHeader } from '../PageHeader'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 import { buttonClass, inputClass, primaryButtonClass } from '../settings/fields'
 
 type Product = DegiroPreview['unknown'][number]

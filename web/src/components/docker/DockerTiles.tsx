@@ -3,7 +3,7 @@ import { cn } from '../../lib/cn'
 import { containerStatus } from '../../lib/containers'
 import { formatBytes } from '../../lib/format'
 import type { ContainerLoad, ContainerUpdate, DockerOverview } from '../../lib/types'
-import { Card } from '../home/Card'
+import { Card } from '../ui/Card'
 
 const pct = (n: number) => `${n.toFixed(1).replace('.', ',')}%`
 /** Colours for the biggest memory users; the rest is grey. */

@@ -3,6 +3,7 @@ import { sendJson } from '../../lib/api'
 import type { CalendarInfo } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { Switch } from '../ui/Switch'
+import { Loading, Unavailable } from '../ui/states'
 
 /** Which calendars show on Home and the Now panel; nothing changes in iCloud. */
 export function CalendarsEditor() {
@@ -21,7 +22,7 @@ export function CalendarsEditor() {
   }
 
   if (!calendars) {
-    return <p className="text-muted">{loaded.error ? 'Calendars are not available right now.' : 'Loading…'}</p>
+    return loaded.error ? <Unavailable what="Calendars" plural /> : <Loading />
   }
   if (!calendars.length) {
     return <p className="text-muted">No calendars yet: they appear after the hub has read iCloud once (set ICLOUD_USERNAME and ICLOUD_APP_PASSWORD on the NAS).</p>

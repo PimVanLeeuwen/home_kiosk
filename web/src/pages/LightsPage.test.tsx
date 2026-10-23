@@ -204,6 +204,6 @@ describe('LightsPage', () => {
     stubApi({})
     renderRoute('/lights')
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('The lights are not available yet')
+    expect(await screen.findByRole('alert')).toHaveTextContent('The lights are not available right now')
   })
 })

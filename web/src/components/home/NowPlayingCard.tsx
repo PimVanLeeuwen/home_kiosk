@@ -5,7 +5,7 @@ import type { HomeSend } from '../../lib/useHomeNowPlaying'
 import { Cover, Progress } from '../music/NowPlaying'
 import { Pill } from '../ui/Pill'
 import { cn } from '../../lib/cn'
-import { Card } from './Card'
+import { Card } from '../ui/Card'
 
 interface Props {
   playing: Playing | null

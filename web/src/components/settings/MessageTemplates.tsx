@@ -7,6 +7,7 @@ import type { AlertMessage, MessageTemplate } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { buttonClass, iconButtonClass, inputClass, primaryButtonClass } from './fields'
 import { TelegramText } from './TelegramText'
+import { Loading, Unavailable } from '../ui/states'
 
 const ENDPOINT = '/api/alerts/templates'
 const PREVIEW_DELAY_MS = 300
@@ -197,13 +198,9 @@ export function MessageTemplates() {
 
   if (!items)
     return api.error ? (
-      <p role="alert" className="text-muted">
-        The messages are not available right now.
-      </p>
+      <Unavailable what="The messages" plural />
     ) : (
-      <p role="status" className="text-muted">
-        Loading…
-      </p>
+      <Loading />
     )
 
   const groups = [...new Set(items.map((t) => t.group))]

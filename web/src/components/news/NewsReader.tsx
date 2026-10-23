@@ -5,6 +5,7 @@ import { formatAgo } from '../../lib/format'
 import type { Article, ArticleContent } from '../../lib/newsTypes'
 import { useApi } from '../../lib/useApi'
 import { ArticleView, ReaderAction } from './ArticleView'
+import { Loading } from '../ui/states'
 
 interface Props {
   id: string
@@ -37,9 +38,7 @@ export function NewsReader({ id, known, groupTitle, groupColour, onReadChange }:
     return fetched.error ? (
       <p className="text-muted">This article is no longer here. Articles are kept for a week.</p>
     ) : (
-      <p role="status" className="text-muted">
-        Loading…
-      </p>
+      <Loading />
     )
   }
 
