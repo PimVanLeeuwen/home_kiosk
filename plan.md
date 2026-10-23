@@ -1091,7 +1091,13 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M2
     (panel only, `screen_day.c`; the hub's data was already there): the night field fades out
     over an hour at sunrise and sunset and at its top and bottom (a hard-edged field read as a
     box again); the now line is solid, so it is not taken for the dotted sunset line.
-  - Calendar: with today nearly done, tomorrow's first events below.
+  - Calendar: with today nearly done, tomorrow's first events below. Decided 2026-10-23: the hub
+    reads today and tomorrow (one CalDAV query for both days; replaces "today only" of
+    2026-10-10); tomorrow shows once no timed event of today is left (all-day events do not hold
+    it) and on a day without events; the screen is skipped only when both days are empty.
+    Built 2026-10-23 (source `tomorrow`, hub `mode` and `tomorrow` in the calendar answer, panel:
+    "Nothing more today" or "Nothing today", then tomorrow's first three events with time, a bar in
+    the calendar's colour, title and calendar, and up to two all-day chips).
   - NAS: the gauge's amber tied to the alert threshold instead of a fixed blend (82% came out pink).
   - Money: the faint vertical stripes in the fill where the line bends.
   - Train: the empty band between the countdown and the route.

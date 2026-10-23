@@ -78,6 +78,12 @@ DTEND:20261014T191500Z
 SUMMARY:Dinner
 END:VEVENT
 BEGIN:VEVENT
+UID:dentist
+DTSTART:20261015T070000Z
+DTEND:20261015T073000Z
+SUMMARY:Dentist
+END:VEVENT
+BEGIN:VEVENT
 UID:bday
 DTSTART;VALUE=DATE:20261014
 DTEND;VALUE=DATE:20261015
@@ -169,6 +175,15 @@ def test_todays_events_with_a_moved_repeat_and_an_all_day_one(cal_store):
         ("Standup (moved)", "09:30", "09:45", "Work"),
         ("Dinner", "19:00", "21:15", "Pim en Sanne")]
     assert [(e.title, e.calendar) for e in today.all_day] == [("Mama's birthday", "Pim en Sanne")]
+
+
+def test_tomorrow_is_read_alongside_and_kept_apart(cal_store):
+    today = collect(cal_store, ICloud())
+
+    assert "Dentist" not in [e.title for e in today.events]
+    assert today.tomorrow is not None and today.tomorrow.date == "2026-10-15"
+    assert [(e.title, e.start.strftime("%H:%M")) for e in today.tomorrow.events] == [
+        ("Dentist", "09:00")]
 
 
 def test_subscriptions_are_read_from_their_feed_without_the_icloud_login(cal_store):

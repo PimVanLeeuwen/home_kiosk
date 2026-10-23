@@ -141,6 +141,19 @@ desk_agenda_t desk_agenda(void)
     return copy;
 }
 
+/* As desk_agenda, into the caller's buffer: with tomorrow's events it is about 3 kB,
+ * too much for a task's stack. */
+void desk_agenda_copy(desk_agenda_t *into)
+{
+    if (lock == NULL) {
+        memset(into, 0, sizeof *into);
+        return;
+    }
+    xSemaphoreTake(lock, portMAX_DELAY);
+    *into = agenda_state;
+    xSemaphoreGive(lock);
+}
+
 static bool has(const bool *present)
 {
     if (lock == NULL) {
@@ -633,6 +646,36 @@ static void parse_agenda(const cJSON *screen, desk_agenda_t *agenda)
         int i = agenda->all_day_count++;
         copy_string(agenda->all_day[i].title, sizeof agenda->all_day[i].title, cJSON_GetObjectItem(item, "title"));
         agenda->all_day[i].color = colour(cJSON_GetObjectItem(item, "color"));
+    }
+    const cJSON *mode = cJSON_GetObjectItem(screen, "mode");
+    const cJSON *later = cJSON_GetObjectItem(screen, "tomorrow");
+    agenda->tomorrow_mode = cJSON_IsString(mode) && strcmp(mode->valuestring, "tomorrow") == 0 && cJSON_IsObject(later);
+    if (!agenda->tomorrow_mode) {
+        return;
+    }
+    copy_string(agenda->today_line, sizeof agenda->today_line, cJSON_GetObjectItem(screen, "today_line"));
+    copy_string(agenda->tomorrow_title, sizeof agenda->tomorrow_title, cJSON_GetObjectItem(later, "title"));
+    cJSON_ArrayForEach(item, cJSON_GetObjectItem(later, "events"))
+    {
+        if (agenda->tomorrow_count == DESK_AGENDA_TOMORROW) {
+            break;
+        }
+        typeof(agenda->tomorrow[0]) *e = &agenda->tomorrow[agenda->tomorrow_count++];
+        copy_string(e->title, sizeof e->title, cJSON_GetObjectItem(item, "title"));
+        copy_string(e->calendar, sizeof e->calendar, cJSON_GetObjectItem(item, "calendar"));
+        e->color = colour(cJSON_GetObjectItem(item, "color"));
+        copy_string(e->start, sizeof e->start, cJSON_GetObjectItem(item, "start"));
+        copy_string(e->end, sizeof e->end, cJSON_GetObjectItem(item, "end"));
+    }
+    cJSON_ArrayForEach(item, cJSON_GetObjectItem(later, "all_day"))
+    {
+        if (agenda->tomorrow_all_day_count == 2) {
+            break;
+        }
+        int i = agenda->tomorrow_all_day_count++;
+        copy_string(agenda->tomorrow_all_day[i].title, sizeof agenda->tomorrow_all_day[i].title,
+                    cJSON_GetObjectItem(item, "title"));
+        agenda->tomorrow_all_day[i].color = colour(cJSON_GetObjectItem(item, "color"));
     }
 }
 

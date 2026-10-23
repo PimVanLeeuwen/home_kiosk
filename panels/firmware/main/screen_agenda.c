@@ -3,7 +3,9 @@
  * ring counting its minutes down in its calendar's colour; the all-day events;
  * the day from 07:00 to 23:00 as a ribbon of coloured blocks with a now line;
  * then what comes later. The events come from the hub (app/desk_agenda.py);
- * which one is "now or next" follows the panel's own clock, minute by minute. */
+ * which one is "now or next" follows the panel's own clock, minute by minute.
+ * Once today has nothing left, or had nothing, tomorrow's first events take the
+ * room under "Nothing more today" (2026-10-23). */
 
 #include "screen_agenda.h"
 
@@ -31,7 +33,7 @@ LV_IMAGE_DECLARE(glow_round);
 #define BOTTOM 700
 
 static lv_obj_t *glow, *title, *count, *ring, *ring_number, *ring_label, *kicker, *event_title, *event_time;
-static lv_obj_t *focus_text, *done, *chips, *ribbon, *later;
+static lv_obj_t *focus_text, *done, *done_text, *chips, *ribbon, *later, *next_head, *next;
 EXT_RAM_BSS_ATTR static desk_agenda_t shown; /* about 2 kB: in PSRAM, off the LVGL task's stack */
 static int shown_minute = -1;
 
@@ -195,10 +197,60 @@ static void show_later(int y, int focus, int64_t now)
     }
 }
 
+/* Tomorrow's first events: the time, a bar in the calendar's colour, the title and
+ * the calendar; its all-day events as chips below. */
+static void show_tomorrow(int y)
+{
+    char caps[48];
+    ui_upper(caps, sizeof caps, shown.tomorrow_title);
+    lv_label_set_text(next_head, caps);
+    lv_obj_set_pos(next_head, LEFT, y);
+    lv_obj_clean(next);
+    lv_obj_set_pos(next, LEFT, y + 48);
+    lv_obj_set_height(next, BOTTOM - y - 48);
+    int top = 0;
+    for (int i = 0; i < shown.tomorrow_count; i++, top += 96) {
+        lv_obj_t *at = ui_text(next, &instrument_40, 0xf1eff7);
+        lv_label_set_text(at, shown.tomorrow[i].start);
+        lv_obj_set_pos(at, 0, top);
+        lv_obj_t *bar = ui_plain(next);
+        lv_obj_set_size(bar, 6, 72);
+        lv_obj_set_pos(bar, 124, top + 4);
+        lv_obj_set_style_radius(bar, 3, 0);
+        lv_obj_set_style_bg_opa(bar, LV_OPA_COVER, 0);
+        lv_obj_set_style_bg_color(bar, lv_color_hex(shown.tomorrow[i].color), 0);
+        lv_obj_t *name = ui_one_line(next, &instrument_40, 0xf1eff7, WIDTH - 152);
+        lv_label_set_text(name, shown.tomorrow[i].title);
+        lv_obj_set_pos(name, 152, top);
+        lv_obj_t *cal = ui_one_line(next, &instrument_24, 0x8a8794, WIDTH - 152);
+        char line[64];
+        snprintf(line, sizeof line, "%s%s%s", shown.tomorrow[i].calendar, shown.tomorrow[i].end[0] ? " · until " : "",
+                 shown.tomorrow[i].end);
+        lv_label_set_text(cal, line);
+        lv_obj_set_pos(cal, 152, top + 50);
+    }
+    for (int i = 0; i < shown.tomorrow_all_day_count; i++) {
+        lv_obj_t *chip = ui_plain(next);
+        lv_obj_set_size(chip, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        lv_obj_set_flex_flow(chip, LV_FLEX_FLOW_ROW);
+        lv_obj_set_flex_align(chip, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+        lv_obj_set_style_pad_hor(chip, 14, 0);
+        lv_obj_set_style_pad_ver(chip, 6, 0);
+        lv_obj_set_style_pad_column(chip, 10, 0);
+        lv_obj_set_style_radius(chip, 18, 0);
+        lv_obj_set_style_bg_opa(chip, 40, 0);
+        lv_obj_set_style_bg_color(chip, lv_color_hex(shown.tomorrow_all_day[i].color), 0);
+        dot(chip, 12, shown.tomorrow_all_day[i].color);
+        lv_obj_t *label = ui_one_line(chip, &instrument_24, 0xf1eff7, 280);
+        lv_label_set_text(label, shown.tomorrow_all_day[i].title);
+        lv_obj_set_pos(chip, i * 320, top + 4);
+    }
+}
+
 static void tick(lv_timer_t *timer)
 {
     EXT_RAM_BSS_ATTR static desk_agenda_t latest;
-    latest = desk_agenda();
+    desk_agenda_copy(&latest);
     bool changed = latest.version != shown.version;
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -225,6 +277,24 @@ static void tick(lv_timer_t *timer)
     lv_label_set_text(title, caps);
     ui_upper(caps, sizeof caps, shown.count);
     lv_label_set_text(count, caps);
+
+    bool tomorrow = shown.tomorrow_mode;
+    lv_obj_set_flag(next_head, LV_OBJ_FLAG_HIDDEN, !tomorrow);
+    lv_obj_set_flag(next, LV_OBJ_FLAG_HIDDEN, !tomorrow);
+    if (tomorrow) { /* today is done: the calm line, then tomorrow */
+        lv_obj_add_flag(ring, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(glow, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(focus_text, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(chips, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(ribbon, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_height(later, 0);
+        lv_obj_clean(later);
+        lv_label_set_text(done_text, shown.today_line[0] ? shown.today_line : "Nothing more today");
+        lv_obj_remove_flag(done, LV_OBJ_FLAG_HIDDEN);
+        show_tomorrow(200);
+        return;
+    }
+    lv_label_set_text(done_text, "Nothing more today");
 
     int focus = show_focus(tv.tv_sec);
     int y = 96 + RING + 24;
@@ -307,8 +377,8 @@ void screen_agenda_create(lv_obj_t *screen)
     lv_obj_set_style_pad_column(done, 16, 0);
     lv_obj_set_pos(done, LEFT, 110);
     dot(done, 16, 0x5fd39c);
-    lv_obj_t *nothing = ui_text(done, &instrument_40, 0xf1eff7);
-    lv_label_set_text(nothing, "Nothing more today");
+    done_text = ui_text(done, &instrument_40, 0xf1eff7);
+    lv_label_set_text(done_text, "Nothing more today");
     lv_obj_add_flag(done, LV_OBJ_FLAG_HIDDEN);
 
     chips = ui_plain(screen);
@@ -321,6 +391,13 @@ void screen_agenda_create(lv_obj_t *screen)
     lv_obj_set_size(ribbon, WIDTH, 90);
     later = ui_plain(screen);
     lv_obj_set_size(later, WIDTH, 0);
+
+    next_head = ui_text(screen, &instrument_24, 0x8a8794);
+    lv_obj_set_style_text_letter_space(next_head, 2, 0);
+    lv_obj_add_flag(next_head, LV_OBJ_FLAG_HIDDEN);
+    next = ui_plain(screen);
+    lv_obj_set_size(next, WIDTH, 0);
+    lv_obj_add_flag(next, LV_OBJ_FLAG_HIDDEN);
 
     lv_timer_create(tick, 1000, NULL);
 }

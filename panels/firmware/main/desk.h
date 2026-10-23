@@ -95,6 +95,7 @@ typedef struct {
 
 #define DESK_AGENDA_EVENTS 12
 #define DESK_AGENDA_ALL_DAY 3
+#define DESK_AGENDA_TOMORROW 3
 
 /* The Now panel's calendar screen: today's events (app/desk_agenda.py). */
 typedef struct {
@@ -117,6 +118,22 @@ typedef struct {
         char title[64];
         uint32_t color;
     } all_day[DESK_AGENDA_ALL_DAY];
+    /* Once today has nothing left (or had nothing), tomorrow's first events (2026-10-23). */
+    bool tomorrow_mode;
+    char today_line[24];     /* "Nothing more today", "Nothing today" */
+    char tomorrow_title[40]; /* "Tomorrow · Tue 20 Oct" */
+    int tomorrow_count;
+    struct {
+        char title[64];
+        char calendar[40];
+        uint32_t color;
+        char start[6], end[6];
+    } tomorrow[DESK_AGENDA_TOMORROW];
+    int tomorrow_all_day_count;
+    struct {
+        char title[64];
+        uint32_t color;
+    } tomorrow_all_day[2];
 } desk_agenda_t;
 
 #define DESK_STORIES 3
@@ -628,6 +645,7 @@ desk_day_t desk_day(void);
 desk_board_t desk_board(void);
 desk_train_t desk_train(void);
 desk_agenda_t desk_agenda(void);
+void desk_agenda_copy(desk_agenda_t *into);
 
 /* Whether the hub's answer has each screen, without copying its values: the
  * rotation asks every second, and some states are kilobytes (too much to copy

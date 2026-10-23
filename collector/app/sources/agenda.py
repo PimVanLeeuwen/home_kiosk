@@ -65,11 +65,19 @@ class CalendarEvent(BaseModel):
     all_day: bool = False
 
 
+class Tomorrow(BaseModel):
+    date: str
+    events: list[CalendarEvent]  # timed, by start
+    all_day: list[CalendarEvent]
+
+
 class Today(Envelope):
     date: str  # the local date, YYYY-MM-DD
     events: list[CalendarEvent]  # timed, by start
     all_day: list[CalendarEvent]
     errors: dict[str, str] = {}  # calendar name -> a short reason
+    # Read since 2026-10-23 for the Now panel, which shows it once today has nothing left.
+    tomorrow: Tomorrow | None = None
 
 
 def ensure_tables(store: Store) -> None:
@@ -205,8 +213,9 @@ def events_today(calendars: list[icalendar.Calendar], info: CalendarInfo, day: d
     return found
 
 
-def _report(day: date, tz: ZoneInfo) -> str:
-    start, end = _day_bounds(day, tz)
+def _report(day: date, tz: ZoneInfo, days: int = 1) -> str:
+    start, _ = _day_bounds(day, tz)
+    end = start + timedelta(days=days)
     stamp = "%Y%m%dT%H%M%SZ"
     return ('<c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop>'
             '<c:calendar-data/></d:prop><c:filter><c:comp-filter name="VCALENDAR">'
@@ -277,19 +286,21 @@ async def collect(cfg: dict[str, Any], store: Store, now: datetime | None = None
     day = now.astimezone(s["timezone"]).date()
     off = hidden(store)
     events: list[CalendarEvent] = []
+    later: list[CalendarEvent] = []
     errors: dict[str, str] = {}
     async with httpx.AsyncClient(auth=s["auth"], timeout=TIMEOUT_SECONDS,
                                  transport=reader.transport) as client:
         calendars = await reader.calendar_list(client, s["server"], now)
         shown = [(info, url) for info, url in calendars if info.id not in off]
 
-        async def one(info: CalendarInfo, url: str) -> list[CalendarEvent]:
+        async def one(info: CalendarInfo, url: str) -> tuple[list[CalendarEvent], ...]:
             if info.kind == "subscribed":
                 data = [await reader.feed(client, info, url, now)]
-            else:
-                answer = await _dav(client, "REPORT", url, "1", _report(day, s["timezone"]))
+            else:  # today and tomorrow in one query, split below
+                answer = await _dav(client, "REPORT", url, "1", _report(day, s["timezone"], 2))
                 data = parse_report(answer)
-            return events_today(data, info, day, s["timezone"])
+            return (events_today(data, info, day, s["timezone"]),
+                    events_today(data, info, day + timedelta(days=1), s["timezone"]))
 
         results = await asyncio.gather(*(one(i, u) for i, u in shown), return_exceptions=True)
     for (info, _), result in zip(shown, results, strict=True):
@@ -298,10 +309,15 @@ async def collect(cfg: dict[str, Any], store: Store, now: datetime | None = None
             log.warning("calendar %s failed: %s", info.id[:8], type(result).__name__)
             errors[info.name] = _reason(result)
         else:
-            events += result
+            events += result[0]
+            later += result[1]
     timed = sorted((e for e in events if not e.all_day), key=lambda e: e.start)
     return Today(as_of=now, stale=False, date=day.isoformat(), events=timed,
-                 all_day=[e for e in events if e.all_day], errors=errors)
+                 all_day=[e for e in events if e.all_day], errors=errors,
+                 tomorrow=Tomorrow(date=(day + timedelta(days=1)).isoformat(),
+                                   events=sorted((e for e in later if not e.all_day),
+                                                 key=lambda e: e.start),
+                                   all_day=[e for e in later if e.all_day]))
 
 
 def calendar_list(store: Store, reader: Reader | None = None) -> list[CalendarInfo]:
