@@ -765,6 +765,12 @@ export interface DatabaseDumps {
   last_verified?: string | null
 }
 
+/** /api/backups/restore-check: a check asked for from the Backups page (restore_request.py). */
+export interface RestoreRequest {
+  state: 'idle' | 'requested' | 'running'
+  since: string | null
+}
+
 export interface RestoreCheck {
   started: string
   finished: string

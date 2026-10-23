@@ -178,6 +178,11 @@ python3 dashboard/serve.py
 - LVGL's `LV_LABEL_LONG_DOT` only cuts with "…" when the label has a fixed height; with only a
   width it wraps and runs into what is below. For one line use `ui_one_line()`
   (`panels/firmware/main/ui.c`); for more lines set a height or `max_height`.
+- The LVGL adapter (`espressif/esp_lvgl_adapter` 0.6.3, and still 0.7.3) overruns its stack when a
+  frame has many small staggered dirty areas (`copy_unrendered_area_from_front_to_back`): keep the
+  patched copy in `panels/firmware/components/esp_lvgl_adapter` (`override_path`) until a release
+  bounds it. A panel that restarts with "Instruction access fault" at a jump to a small address
+  on core 0 is the sign.
 - A panel reads the hub's answer into one buffer (32 kB since 2026-10-23, 8 kB before) and a cut
   answer cannot be parsed: the board then stays on its start-up screen. Boards send `room=`; the
   hub's `desk.fit` leaves screens out to fit. Keep each screen's payload small (strings and short

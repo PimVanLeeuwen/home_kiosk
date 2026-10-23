@@ -16,7 +16,7 @@ import { useApi } from '../lib/useApi'
 export function BackupsPage() {
   const { data, error } = useApi<BackupHistory>('/api/backups', 300_000)
   const { data: mirror } = useApi<GitHubMirror>('/api/github-mirror', 300_000)
-  const { data: dumps } = useApi<DatabaseDumps>('/api/database-dumps', 300_000)
+  const { data: dumps, reload: reloadDumps } = useApi<DatabaseDumps>('/api/database-dumps', 300_000)
   const last = data?.runs[0]
   const recent = data?.runs.slice(0, 30) ?? []
   const now = new Date()
@@ -64,6 +64,7 @@ export function BackupsPage() {
             checks={dumps.restore_checks ?? []}
             lastVerified={dumps.last_verified ?? null}
             stale={dumps.stale}
+            onFinished={reloadDumps}
           />
         </div>
       )}

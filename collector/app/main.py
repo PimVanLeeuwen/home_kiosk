@@ -27,6 +27,7 @@ from . import (
     exposure_api,
     lights_api,
     music_api,
+    restore_request,
     scheduler,
     settings_api,
 )
@@ -345,6 +346,22 @@ def ups_status() -> Any:
 @app.get("/api/database-dumps")
 def database_dumps() -> Any:
     return _serve("dumps")
+
+
+@app.get("/api/backups/restore-check")
+def restore_check_state() -> Any:
+    """Whether a restore check is asked for or running on the NAS now."""
+    return restore_request.state(app.state.store.path.parent)
+
+
+@app.post("/api/backups/restore-check", status_code=202, dependencies=[Depends(same_origin_json)])
+def restore_check_now() -> Any:
+    """Asks the NAS for a restore check; it starts it within 5 minutes (restore_request.py)."""
+    checks = (app.state.store.get_cache("dumps") or {}).get("restore_checks") or []
+    try:
+        return restore_request.request(app.state.store.path.parent, checks, datetime.now(UTC))
+    except restore_request.NotNow as exc:
+        return JSONResponse(status_code=409, content={"detail": str(exc)})
 
 
 @app.get("/api/docker")

@@ -1,7 +1,7 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { BACKUPS, DUMPS, MIRROR } from '../test/fixtures'
 import { renderRoute } from '../test/renderRoute'
-import { stubApi } from '../test/stubApi'
+import { failWith, stubApi } from '../test/stubApi'
 
 describe('BackupsPage', () => {
   it('leads with last night: a seal, what failed, the route and three facts', async () => {
@@ -227,6 +227,54 @@ describe('BackupsPage', () => {
 
     const card = await screen.findByRole('region', { name: 'Restore check' })
     expect(within(card).getByText(/No restore check recorded yet/)).toBeInTheDocument()
+  })
+
+  it('asks the NAS for a restore check now and says when it will start', async () => {
+    let asked = false
+    stubApi({
+      '/api/backups': BACKUPS,
+      '/api/database-dumps': DUMPS,
+      '/api/backups/restore-check': () =>
+        asked ? { state: 'requested', since: new Date().toISOString() } : { state: 'idle', since: null },
+      'POST /api/backups/restore-check': () => {
+        asked = true
+        return { state: 'requested', since: new Date().toISOString() }
+      },
+    })
+    renderRoute('/backups')
+
+    const card = await screen.findByRole('region', { name: 'Restore check' })
+    const button = await within(card).findByRole('button', { name: 'Run a check now' })
+    fireEvent.click(button)
+    expect(await within(card).findByRole('status')).toHaveTextContent('the NAS starts it within 5 minutes')
+    expect(button).toBeDisabled()
+  })
+
+  it('says why the NAS cannot run another check yet', async () => {
+    stubApi({
+      '/api/backups': BACKUPS,
+      '/api/database-dumps': DUMPS,
+      '/api/backups/restore-check': { state: 'idle', since: null },
+      'POST /api/backups/restore-check': failWith(409, { detail: 'A restore check ran less than an hour ago.' }),
+    })
+    renderRoute('/backups')
+
+    const card = await screen.findByRole('region', { name: 'Restore check' })
+    fireEvent.click(await within(card).findByRole('button', { name: 'Run a check now' }))
+    expect(await within(card).findByRole('alert')).toHaveTextContent('less than an hour ago')
+  })
+
+  it('shows a check running on the NAS', async () => {
+    stubApi({
+      '/api/backups': BACKUPS,
+      '/api/database-dumps': DUMPS,
+      '/api/backups/restore-check': { state: 'running', since: null },
+    })
+    renderRoute('/backups')
+
+    const card = await screen.findByRole('region', { name: 'Restore check' })
+    expect(await within(card).findByRole('status')).toHaveTextContent('Running on the NAS…')
+    expect(within(card).getByRole('button', { name: 'Run a check now' })).toBeDisabled()
   })
 
   it('shows the mirror even before the first rclone run record', async () => {

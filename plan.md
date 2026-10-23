@@ -191,6 +191,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   is a record in `restore-checks.jsonl`; the Backups page shows "last verified restore" and the
   backup_missing rule warns when the newest check failed or the last good one is older than 45
   days (editable).
+  Decided 2026-10-23: a check can be asked for from the hub's Backups page only ("Run a check
+  now"; not from the panels): the hub writes `restore-check.request` into its own data folder and
+  nas-docker's `host-jobs/restore-check-on-request.sh` (root's crontab, every 5 minutes) renames it
+  to `.running`, runs the check and removes it, looking only at whether the file is there; at most
+  one check an hour. Built 2026-10-23 (`restore_request.py`, `/api/backups/restore-check`).
 - Storage Box space on the Backups page: used and free from `rclone about`, with the same runway
   projection as the NAS storage, and an alert above 85%.
 
