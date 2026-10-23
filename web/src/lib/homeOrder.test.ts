@@ -58,6 +58,12 @@ describe('homeOrder', () => {
     expect([morning?.column, evening?.column]).toEqual(['wide', 'narrow'])
   })
 
+  it('keeps an outside incident out of the hero but first among the cards', () => {
+    const order = homeOrder({ ...calm, outside: 'warn' }, at(14))
+    expect(order.hero).toBeNull()
+    expect(order.cards[0]).toEqual({ id: 'outside', column: 'narrow' })
+  })
+
   it('leaves hidden cards out and makes an event happening now the hero', () => {
     const order = homeOrder({ ...calm, today: 'now', laundry: 'hidden' }, at(14))
     expect(order.hero).toBe('today')

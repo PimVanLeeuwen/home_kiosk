@@ -86,12 +86,15 @@ const LIVE_ORDER: HomeCardId[] = ['train', 'nowPlaying', 'today', 'laundry', 'ap
 
 const isFolded = (id: HomeCardId): id is FoldedCardId => (FOLDED as readonly string[]).includes(id)
 
+/** Outside services can have a problem but never the hero: nothing the house can fix. */
+const NEVER_HERO: HomeCardId[] = ['outside']
+
 /**
  * The hero is the first of: something down, the train, a warning, music
  * playing, an event happening now.
  */
 function pickHero(states: Partial<Record<HomeCardId, CardState>>): HomeCardId | null {
-  const ids = Object.keys(states) as HomeCardId[]
+  const ids = (Object.keys(states) as HomeCardId[]).filter((id) => !NEVER_HERO.includes(id))
   const down = ids.find((id) => states[id] === 'down')
   if (down) return down
   if (states.train === 'live') return 'train'

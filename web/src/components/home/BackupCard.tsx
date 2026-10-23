@@ -14,10 +14,9 @@ import { Card, Loading, Unavailable } from './Card'
  * history when it exists, else just the result from backup.sh's status marker
  * (in /api/nas).
  */
-export function BackupCard({ nas, error }: { nas: Nas | undefined; error: Error | undefined }) {
-  const history = useApi<BackupHistory>('/api/backups', 300_000)
+export function BackupCard({ nas, error, history }: { nas: Nas | undefined; error: Error | undefined; history: BackupHistory | undefined }) {
   const dumps = useApi<DatabaseDumps>('/api/database-dumps', 300_000)
-  const runs = history.data?.runs ?? []
+  const runs = history?.runs ?? []
   const last = runs[0]
   const now = new Date()
   const verdict = last && VERDICT_PILL[backupVerdict(last, now)]
@@ -26,7 +25,7 @@ export function BackupCard({ nas, error }: { nas: Nas | undefined; error: Error 
   return (
     <Card title="Backups" link={{ to: '/backups', label: 'History' }} actions={pill}>
       {last ? (
-        <LastRun last={last} runs={runs} history={history.data!} dumps={dumps.data} now={now} />
+        <LastRun last={last} runs={runs} history={history!} dumps={dumps.data} now={now} />
       ) : (
         <>
           {!nas && (error ? <Unavailable what="Backup status" /> : <Loading />)}

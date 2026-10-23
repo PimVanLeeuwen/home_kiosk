@@ -35,8 +35,15 @@ test('Home brings status, cards and services together', async ({ page }) => {
   await expect(page.getByText(/1 thing needs a look/)).toBeVisible()
   await expect(page.getByText('volume2 98% full')).toBeVisible()
   await expect(page.getByRole('region', { name: 'Portfolio' })).toContainText('not available right now')
-  await expect(page.getByRole('region', { name: 'Services' }).getByRole('link', { name: /Jellyfin/ })).toContainText('2 streaming')
+  // The full pool unfolds the NAS card by itself; Services stays folded in its chip until opened.
   await expect(page.getByRole('region', { name: 'NAS' }).getByRole('meter', { name: 'volume2' })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Services' })).toHaveCount(0)
+  const chip = page.getByRole('button', { name: /^Services: 1 \/ 1 up/ })
+  await chip.click()
+  await expect(chip).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('region', { name: 'Services' }).getByRole('link', { name: /Jellyfin/ })).toContainText('2 streaming')
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('region', { name: 'Services' })).toHaveCount(0)
 })
 
 test('Home shows the weather with the rain in the next two hours', async ({ page }) => {

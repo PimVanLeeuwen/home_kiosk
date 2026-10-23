@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { AirCard } from '../components/home/AirCard'
 import { AppleCard } from '../components/home/AppleCard'
 import { BackupCard } from '../components/home/BackupCard'
@@ -8,7 +8,7 @@ import { NewsCard } from '../components/home/NewsCard'
 import { NowPlayingCard } from '../components/home/NowPlayingCard'
 import { PortfolioCard } from '../components/home/PortfolioCard'
 import { ServicesCard } from '../components/home/ServicesCard'
-import { StatusStrip } from '../components/home/StatusStrip'
+import { OPENED_ID, StatusStrip } from '../components/home/StatusStrip'
 import { TodayCard } from '../components/home/TodayCard'
 import { TrainCard } from '../components/home/TrainCard'
 import { WeatherCard } from '../components/home/WeatherCard'
@@ -16,7 +16,8 @@ import { OutsideServicesCard } from '../components/outside/OutsideServicesCard'
 import { PageHeader } from '../components/PageHeader'
 import { attentionItems } from '../lib/attention'
 import { greeting } from '../lib/greeting'
-import { homeOrder, type HomeCardId, type PlacedCard } from '../lib/homeOrder'
+import { homeChips } from '../lib/homeChips'
+import { FOLDED, homeOrder, type FoldedCardId, type HomeCardId, type PlacedCard } from '../lib/homeOrder'
 import {
   appleState,
   backupsState,
@@ -29,12 +30,25 @@ import {
   trainState,
 } from '../lib/homeStates'
 import { skyGlow } from '../lib/sky'
-import type { AppleDevices, Laundry, Nas, OutsideServices, ServicesResponse, Sites, Today, Train } from '../lib/types'
+import type {
+  AppleDevices,
+  BackupHistory,
+  Laundry,
+  Nas,
+  OutsideServices,
+  ServicesResponse,
+  Sites,
+  Today,
+  Train,
+} from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { useHomeNowPlaying } from '../lib/useHomeNowPlaying'
 import { useMediaQuery } from '../lib/useMediaQuery'
 
 const dateLine = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+
+/** Where the open card's pointer sits under its chip: four chips of 1fr and Alerts of 1.25fr. */
+const pointerAt = (id: FoldedCardId) => `${((FOLDED.indexOf(id) + 0.5) / 5.25) * 100}%`
 
 /** Home's cards in the order of what matters now (lib/homeOrder): two stacks on a wide screen, one column on the phone. */
 export function HomePage() {
@@ -47,8 +61,10 @@ export function HomePage() {
   const laundry = useApi<Laundry>('/api/laundry', 60_000)
   const apple = useApi<AppleDevices>('/api/apple', 60_000)
   const outside = useApi<OutsideServices>('/api/outside-services', 60_000)
+  const backups = useApi<BackupHistory>('/api/backups', 300_000)
   const music = useHomeNowPlaying()
   const wide = useMediaQuery('(min-width: 1024px)')
+  const [open, setOpen] = useState<FoldedCardId | null>(null)
   const now = new Date()
   const attention = attentionItems(nas.data, all ?? [], now, sites.data?.sites)
 
@@ -83,9 +99,20 @@ export function HomePage() {
     portfolio: <PortfolioCard />,
     nas: <NasCard nas={nas.data} error={nas.error} />,
     services: <ServicesCard services={all} error={services.error} />,
-    backups: <BackupCard nas={nas.data} error={nas.error} />,
+    backups: <BackupCard nas={nas.data} error={nas.error} history={backups.data} />,
     outside: <OutsideServicesCard data={outside.data} error={outside.error} />,
   }
+  // A chip only opens a card that is still folded; one that unfolded itself is on the page.
+  const opened = open && order.folded.includes(open) ? open : null
+  const chips = homeChips({ nas: nas.data, services: all, backups: backups.data, outside: outside.data, attention, now })
+
+  useEffect(() => {
+    if (!opened) return
+    const close = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(null)
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [opened])
+
   const stack = (placed: PlacedCard[]) => (
     <div className="grid min-w-0 content-start gap-5">
       {placed.map(({ id }) => (
@@ -114,7 +141,24 @@ export function HomePage() {
       />
       <div className="relative">
         <PageHeader title={greeting(now.getHours())} subtitle={`${dateLine.format(now)} · ${summary}`} documentTitle="Home" />
-        <StatusStrip nas={nas.data} attention={attention} />
+        <StatusStrip
+          chips={chips}
+          folded={order.folded}
+          open={opened}
+          onToggle={(id) => setOpen((current) => (current === id ? null : id))}
+          onShow={(id) => document.querySelector(`[data-card="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        />
+        {opened && (
+          <div id={OPENED_ID} data-card={opened} className="relative -mt-1 mb-5 grid">
+            {/* A small pointer up to the chip, where the chips sit in one row. */}
+            <span
+              aria-hidden="true"
+              style={{ left: pointerAt(opened) }}
+              className="absolute -top-[7px] z-10 hidden size-3.5 -translate-x-1/2 rotate-45 border-t border-l border-accent bg-[#191a21] xl:block"
+            />
+            <div className="grid rounded-[15px] ring-1 ring-accent">{cards[opened]}</div>
+          </div>
+        )}
         {order.hero && (
           <div data-card={order.hero} className="mb-5 grid">
             {cards[order.hero]}
@@ -127,16 +171,6 @@ export function HomePage() {
           </div>
         ) : (
           stack(order.cards)
-        )}
-        {/* Until the status strip can open them (next step), the quiet house cards stay at the end. */}
-        {order.folded.length > 0 && (
-          <div className="mt-5 grid gap-5 lg:grid-cols-2">
-            {order.folded.map((id) => (
-              <div key={id} data-card={id} className={id === 'services' ? 'grid lg:col-span-2' : 'grid'}>
-                {cards[id]}
-              </div>
-            ))}
-          </div>
         )}
       </div>
     </div>

@@ -1,13 +1,14 @@
 import { screen, within } from '@testing-library/react'
 import { ACTIONS_DELAYED, outsideServices } from '../../test/outsideFixtures'
 import { SERVICES } from '../../test/fixtures'
+import { openHomeCard } from '../../test/openHomeCard'
 import { renderRoute } from '../../test/renderRoute'
 import { stubApi } from '../../test/stubApi'
 
 function home(outside: unknown) {
   stubApi({ '/api/services': SERVICES, '/api/outside-services': outside })
   renderRoute('/')
-  return screen.findByRole('region', { name: 'Outside services' })
+  return openHomeCard('Outside services')
 }
 
 describe('Outside services on Home', () => {

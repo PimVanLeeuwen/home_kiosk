@@ -34,6 +34,8 @@ const serve = (page: Page, json: object) =>
 test('Home shows the outside services around a check when all is well', async ({ page }) => {
   await serve(page, outside())
   await page.goto('/')
+  // All clear: the card is folded into its chip in the status strip.
+  await page.getByRole('button', { name: /^Outside services: All clear/ }).click()
 
   const card = page.getByRole('region', { name: 'Outside services' })
   await expect(card).toContainText('All operational')
