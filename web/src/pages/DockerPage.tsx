@@ -1,4 +1,3 @@
-import { Search } from 'lucide-react'
 import { useState } from 'react'
 import { ContainerRow } from '../components/docker/ContainerRow'
 import { DockerTiles } from '../components/docker/DockerTiles'
@@ -11,6 +10,8 @@ import { cn } from '../lib/cn'
 import { containerStatus } from '../lib/containers'
 import type { ContainerLoad, ContainerUpdate, DockerOverview, Nas, Sparklines } from '../lib/types'
 import { useApi } from '../lib/useApi'
+import { SearchField } from '../components/ui/SearchField'
+import { Segmented } from '../components/ui/Segmented'
 
 type Order = 'stack' | 'cpu' | 'memory' | 'name'
 
@@ -96,38 +97,14 @@ export function DockerPage() {
           <DockerTiles overview={overview.data} updates={updates.data ?? []} memTotal={nas.data?.mem_total_bytes} />
 
           <div className="mb-4 flex flex-wrap items-center gap-3">
-            <label className="flex min-w-0 flex-1 basis-64 items-center gap-2 rounded-[11px] border border-glass-line bg-glass px-3 py-2 text-muted focus-within:border-accent-line">
-              <Search aria-hidden="true" className="size-4 shrink-0" />
-              <span className="sr-only">Filter containers</span>
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Filter by name, image or stack"
-                className="min-w-0 flex-1 bg-transparent text-fg placeholder:text-faint focus:outline-none"
-              />
-            </label>
-            <div
-              role="radiogroup"
-              aria-label="Order"
-              className="flex w-full gap-0.5 rounded-[11px] border border-glass-line bg-glass p-[3px] text-[12.5px] sm:w-auto"
-            >
-              {(Object.entries(ORDERS) as [Order, string][]).map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  role="radio"
-                  aria-checked={order === value}
-                  onClick={() => setOrder(value)}
-                  className={cn(
-                    'flex-1 rounded-[8px] px-2.5 py-1.5 whitespace-nowrap sm:flex-none',
-                    order === value ? 'bg-accent/20 text-fg shadow-[inset_0_0_0_1px_rgb(143_128_255/0.4)]' : 'text-muted hover:text-fg',
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <SearchField
+              label="Filter containers"
+              value={query}
+              onChange={setQuery}
+              placeholder="Filter by name, image or stack"
+              className="flex-1 basis-64"
+            />
+            <Segmented label="Order" options={Object.entries(ORDERS) as [Order, string][]} value={order} onChange={setOrder} stretch />
           </div>
 
           <Card title="Containers">

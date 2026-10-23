@@ -38,7 +38,7 @@ describe('SavedPage', () => {
   it('switches to the archive', async () => {
     const { fetchMock } = setup({ '/api/saved?archived=true&limit=30&offset=0': { bookmarks: [], total: 0 } })
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Archived' }))
+    fireEvent.click(await screen.findByRole('radio', { name: 'Archived' }))
     expect(await screen.findByText('Nothing archived yet.')).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith('/api/saved?archived=true&limit=30&offset=0', expect.anything())
   })

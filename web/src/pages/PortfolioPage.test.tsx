@@ -49,9 +49,9 @@ describe('PortfolioPage', () => {
     const chart = within(card).getByRole('img', { name: /Portfolio value, 1Y/ }).parentElement!
     expect(chart).toHaveAttribute('data-tone', 'up')
     expect(within(card).getByText(/^high €\s9\.155$/)).toBeInTheDocument()
-    expect(within(card).getByRole('button', { name: '1Y' })).toHaveAttribute('aria-pressed', 'true')
+    expect(within(card).getByRole('radio', { name: '1Y' })).toHaveAttribute('aria-checked', 'true')
 
-    fireEvent.click(within(card).getByRole('button', { name: 'Max' }))
+    fireEvent.click(within(card).getByRole('radio', { name: 'Max' }))
     expect(await within(card).findByText(/Gain since the start/)).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith('/api/portfolio/history?range=max', expect.anything())
   })
@@ -72,9 +72,9 @@ describe('PortfolioPage', () => {
     const table = within(card).getByRole('table')
     const symbols = () => within(table).getAllByRole('link').map((l) => l.firstElementChild?.textContent)
     expect(symbols()).toEqual(['ASML.AS', 'NVDA', 'XDWT.DE'])
-    fireEvent.click(within(card).getByRole('button', { name: 'Today' }))
+    fireEvent.click(within(card).getByRole('radio', { name: 'Today' }))
     expect(symbols()).toEqual(['NVDA', 'XDWT.DE', 'ASML.AS'])
-    fireEvent.click(within(card).getByRole('button', { name: 'Gain' }))
+    fireEvent.click(within(card).getByRole('radio', { name: 'Gain' }))
     expect(symbols()).toEqual(['NVDA', 'ASML.AS', 'XDWT.DE'])
 
     expect(within(table).getAllByRole('link')[0]).toHaveAttribute('href', '/portfolio?h=YAHOO%2FNVDA')

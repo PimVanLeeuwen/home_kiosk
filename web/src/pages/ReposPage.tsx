@@ -1,4 +1,3 @@
-import { Search } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
@@ -13,6 +12,7 @@ import { formatAgo, formatWhen } from '../lib/format'
 import type { GitHubMirror, MirroredRepo, Repo, ReposResponse } from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { Loading, PageUnavailable, StaleNote } from '../components/ui/states'
+import { SearchField } from '../components/ui/SearchField'
 
 const REFRESH_MS = 300_000
 
@@ -129,17 +129,13 @@ export function ReposPage() {
             />
 
             <div className="mb-4 flex flex-wrap items-center gap-3">
-              <label className="flex min-w-0 flex-1 basis-64 items-center gap-2 rounded-[11px] border border-glass-line bg-glass px-3 py-2 text-muted focus-within:border-accent-line">
-                <Search aria-hidden="true" className="size-4 shrink-0" />
-                <span className="sr-only">Filter repos</span>
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Filter by name, description or language"
-                  className="min-w-0 flex-1 bg-transparent text-fg placeholder:text-faint focus:outline-none"
-                />
-              </label>
+              <SearchField
+                label="Filter repos"
+                value={query}
+                onChange={setQuery}
+                placeholder="Filter by name, description or language"
+                className="flex-1 basis-64"
+              />
               {forks > 0 && (
                 <span className="flex items-center gap-2.5 text-[13px] text-muted">
                   <Switch checked={showForks} onChange={setShowForks} label={`Show forks (${forks})`} />

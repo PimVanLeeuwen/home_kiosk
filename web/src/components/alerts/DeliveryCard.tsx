@@ -5,8 +5,7 @@ import { Card } from '../ui/Card'
 import { QuietRing } from './QuietRing'
 import { Switch } from '../ui/Switch'
 import { buttonClass } from '../ui/buttonStyles'
-
-const FIELD = 'rounded-[7px] border border-glass-line bg-glass px-2 py-1 text-fg focus:border-accent-line focus:outline-none'
+import { inlineInputClass } from '../ui/fieldStyles'
 
 interface Props {
   settings: AlertSettings
@@ -44,11 +43,11 @@ export function DeliveryCard({ settings, onSaved }: Props) {
           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[13px] text-muted">
             <label className="flex items-center gap-1.5">
               From
-              <input type="time" value={quiet.start} onChange={(e) => setQuiet({ ...quiet, start: e.target.value })} className={FIELD} />
+              <input type="time" value={quiet.start} onChange={(e) => setQuiet({ ...quiet, start: e.target.value })} className={inlineInputClass} />
             </label>
             <label className="flex items-center gap-1.5">
               to
-              <input type="time" value={quiet.end} onChange={(e) => setQuiet({ ...quiet, end: e.target.value })} className={FIELD} />
+              <input type="time" value={quiet.end} onChange={(e) => setQuiet({ ...quiet, end: e.target.value })} className={inlineInputClass} />
             </label>
           </div>
           <p className="mt-1.5 text-[12px] text-faint">Errors still go out; the rest arrives as one digest when quiet hours end.</p>
@@ -64,7 +63,7 @@ export function DeliveryCard({ settings, onSaved }: Props) {
               aria-label={`Chat for ${label}`}
               value={routing[key]}
               onChange={(e) => setRouting({ ...routing, [key]: e.target.value })}
-              className={FIELD}
+              className={inlineInputClass}
             >
               {settings.chats.map((c) => (
                 <option key={c.key} value={c.key}>

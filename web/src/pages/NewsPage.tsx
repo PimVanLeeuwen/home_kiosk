@@ -1,4 +1,4 @@
-import { CheckCheck, Search } from 'lucide-react'
+import { CheckCheck } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
@@ -15,6 +15,7 @@ import { useApi } from '../lib/useApi'
 import { usePaged } from '../lib/usePaged'
 import { Loading, Unavailable } from '../components/ui/states'
 import { buttonClass } from '../components/ui/buttonStyles'
+import { SearchField } from '../components/ui/SearchField'
 
 function useDebounced(value: string, ms: number): string {
   const [debounced, setDebounced] = useState(value)
@@ -91,18 +92,7 @@ export function NewsPage() {
       <div className="lg:grid lg:grid-cols-[minmax(300px,400px)_minmax(0,1fr)] lg:gap-10">
       <section aria-label="Articles" className={cn(selected && 'hidden lg:block')}>
         <div className="mb-3 flex gap-2">
-        <label className="flex min-w-0 flex-1 items-center gap-2 rounded-[11px] border border-glass-line bg-glass px-3 py-2.5 text-muted focus-within:border-accent-line">
-          <Search aria-hidden="true" className="size-4 shrink-0" />
-          <span className="sr-only">Search articles</span>
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            maxLength={100}
-            placeholder="Search articles…"
-            className="min-w-0 flex-1 bg-transparent text-fg placeholder:text-faint focus:outline-none"
-          />
-        </label>
+        <SearchField label="Search articles" value={search} onChange={setSearch} maxLength={100} placeholder="Search articles…" className="flex-1" />
           {unread > 0 && (
             <button
               type="button"

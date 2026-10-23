@@ -18,12 +18,12 @@ describe('DeskBoardsEditor', () => {
     stubApi({ '/api/settings/desk-boards': BOARDS })
     render(<DeskBoardsEditor now={NOW} />)
 
-    const now = await screen.findByRole('group', { name: 'Panel for e8:f6:0a:e4:42:b0' })
-    expect(within(now).getByRole('button', { name: 'Now' })).toHaveAttribute('aria-pressed', 'true')
+    const now = await screen.findByRole('radiogroup', { name: 'Panel for e8:f6:0a:e4:42:b0' })
+    expect(within(now).getByRole('radio', { name: 'Now' })).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByText('a1b2c3d')).toBeInTheDocument()
     expect(screen.getByText(/Online/)).toBeInTheDocument()
-    const spare = screen.getByRole('group', { name: 'Panel for e8:f6:0a:e4:42:c8' })
-    expect(within(spare).getByRole('button', { name: 'None' })).toHaveAttribute('aria-pressed', 'true')
+    const spare = screen.getByRole('radiogroup', { name: 'Panel for e8:f6:0a:e4:42:c8' })
+    expect(within(spare).getByRole('radio', { name: 'None' })).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByText('Last seen 45 min ago')).toBeInTheDocument()
   })
 
@@ -34,12 +34,12 @@ describe('DeskBoardsEditor', () => {
     })
     render(<DeskBoardsEditor now={NOW} />)
 
-    const spare = await screen.findByRole('group', { name: 'Panel for e8:f6:0a:e4:42:c8' })
-    fireEvent.click(within(spare).getByRole('button', { name: 'Now' }))
+    const spare = await screen.findByRole('radiogroup', { name: 'Panel for e8:f6:0a:e4:42:c8' })
+    fireEvent.click(within(spare).getByRole('radio', { name: 'Now' }))
 
-    await vi.waitFor(() => expect(within(spare).getByRole('button', { name: 'Now' })).toHaveAttribute('aria-pressed', 'true'))
-    const first = screen.getByRole('group', { name: 'Panel for e8:f6:0a:e4:42:b0' })
-    expect(within(first).getByRole('button', { name: 'None' })).toHaveAttribute('aria-pressed', 'true')
+    await vi.waitFor(() => expect(within(spare).getByRole('radio', { name: 'Now' })).toHaveAttribute('aria-checked', 'true'))
+    const first = screen.getByRole('radiogroup', { name: 'Panel for e8:f6:0a:e4:42:b0' })
+    expect(within(first).getByRole('radio', { name: 'None' })).toHaveAttribute('aria-checked', 'true')
     expect(sentBody(fetchMock, 'PUT', URL_C8)).toEqual({ panel: 'now' })
   })
 
@@ -51,7 +51,7 @@ describe('DeskBoardsEditor', () => {
     })
     render(<DeskBoardsEditor now={NOW} />)
 
-    fireEvent.click(within(await screen.findByRole('group', { name: 'Panel for e8:f6:0a:e4:42:b0' })).getByRole('button', { name: 'None' }))
+    fireEvent.click(within(await screen.findByRole('radiogroup', { name: 'Panel for e8:f6:0a:e4:42:b0' })).getByRole('radio', { name: 'None' }))
     await vi.waitFor(() => expect(sentBody(fetchMock, 'PUT', URL_B0)).toEqual({ panel: null }))
 
     fireEvent.click(screen.getByRole('button', { name: 'Forget e8:f6:0a:e4:42:c8' }))
@@ -109,7 +109,7 @@ describe('DeskBoardsEditor', () => {
     stubApi({ '/api/settings/desk-boards': BOARDS, [`PUT ${URL_C8}`]: failWith(404, { detail: 'No such board.' }) })
     render(<DeskBoardsEditor now={NOW} />)
 
-    fireEvent.click(within(await screen.findByRole('group', { name: 'Panel for e8:f6:0a:e4:42:c8' })).getByRole('button', { name: 'Home' }))
+    fireEvent.click(within(await screen.findByRole('radiogroup', { name: 'Panel for e8:f6:0a:e4:42:c8' })).getByRole('radio', { name: 'Home' }))
 
     expect(within(await screen.findByRole('alert')).getByText(/No such board/)).toBeInTheDocument()
   })

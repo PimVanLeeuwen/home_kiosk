@@ -124,11 +124,11 @@ test('assigns a desk panel board in Settings', async ({ page }) => {
   })
 
   await page.goto('/settings/desk-panels')
-  const panel = page.getByRole('group', { name: 'Panel for e8:f6:0a:e4:42:b0' })
+  const panel = page.getByRole('radiogroup', { name: 'Panel for e8:f6:0a:e4:42:b0' })
   await expect(page.getByText('Online')).toBeVisible()
-  await panel.getByRole('button', { name: 'Now' }).click()
+  await panel.getByRole('radio', { name: 'Now' }).click()
 
-  await expect(panel.getByRole('button', { name: 'Now' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(panel.getByRole('radio', { name: 'Now' })).toHaveAttribute('aria-checked', 'true')
   expect(assigned).toEqual({ panel: 'now' })
 })
 

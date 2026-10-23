@@ -6,6 +6,8 @@ import { Card } from '../ui/Card'
 import { Loading, Unavailable } from '../ui/states'
 import { Switch } from '../ui/Switch'
 import { buttonClass } from '../ui/buttonStyles'
+import { cn } from '../../lib/cn'
+import { inlineInputClass } from '../ui/fieldStyles'
 
 type NumberField = Exclude<keyof RuleSettings, 'enabled'>
 
@@ -89,7 +91,7 @@ export function RulesCard() {
                         value={rule[field] ?? ''}
                         disabled={!rule.enabled}
                         onChange={(e) => change(name, { [field]: Number(e.target.value) })}
-                        className="w-14 rounded-[7px] border border-glass-line bg-glass px-1.5 py-0.5 text-center text-fg focus:border-accent-line focus:outline-none disabled:opacity-50"
+                        className={cn(inlineInputClass, 'w-14 px-1.5 py-0.5 text-center')}
                       />
                       {after}
                     </label>

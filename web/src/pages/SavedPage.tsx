@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
-import { FilterPill } from '../components/news/FilterPill'
 import { SavedReader } from '../components/news/SavedReader'
 import { Pill } from '../components/ui/Pill'
 import { cn } from '../lib/cn'
@@ -9,6 +8,7 @@ import { formatAgo } from '../lib/format'
 import type { Bookmark } from '../lib/newsTypes'
 import { usePaged } from '../lib/usePaged'
 import { Loading } from '../components/ui/states'
+import { Segmented } from '../components/ui/Segmented'
 
 function details(b: Bookmark): string {
   return [
@@ -73,14 +73,16 @@ export function SavedPage() {
       </div>
       <div className="lg:grid lg:grid-cols-[minmax(300px,400px)_minmax(0,1fr)] lg:gap-10">
         <section aria-label="Bookmarks" className={cn(selected && 'hidden lg:block')}>
-          <div role="group" aria-label="Show" className="mb-4 flex gap-1.5">
-            <FilterPill on={!archived} onClick={() => setArchived(false)}>
-              Reading list
-            </FilterPill>
-            <FilterPill on={archived} onClick={() => setArchived(true)}>
-              Archived
-            </FilterPill>
-          </div>
+          <Segmented
+            label="Show"
+            options={[
+              ['reading', 'Reading list'],
+              ['archived', 'Archived'],
+            ]}
+            value={archived ? 'archived' : 'reading'}
+            onChange={(v) => setArchived(v === 'archived')}
+            className="mb-4"
+          />
 
           {list.loading && (
             <Loading />

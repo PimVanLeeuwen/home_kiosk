@@ -8,6 +8,7 @@ import { useApi } from '../../lib/useApi'
 import { Card } from '../ui/Card'
 import { SeverityPill } from './SeverityPill'
 import { buttonClass } from '../ui/buttonStyles'
+import { inputClass } from '../ui/fieldStyles'
 
 const SOURCE_LABEL: Record<string, string> = {
   backup: 'Backup',
@@ -42,8 +43,6 @@ const DOT: Record<AlertMessage['severity'], string> = {
   ok: 'bg-up shadow-[0_0_7px_var(--color-up)]',
   info: 'bg-accent-line shadow-[0_0_7px_var(--color-accent-line)]',
 }
-
-const GLASS = 'rounded-[11px] border border-glass-line bg-glass text-fg'
 
 export function MessageLog({ settings }: { settings: AlertSettings }) {
   const [category, setCategory] = useState<string | null>(null)
@@ -90,7 +89,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
             maxLength={3000}
             rows={1}
             placeholder="Send a message… (first line is the title)"
-            className={cn(GLASS, 'block min-h-[42px] w-full resize-y px-3 py-2.5 placeholder:text-faint focus:border-accent-line focus:outline-none')}
+            className={cn(inputClass, 'block min-h-[40px] resize-y')}
           />
         </label>
         <label className="flex items-center gap-2 text-[13px] text-muted">
@@ -98,7 +97,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
           <select
             value={chat}
             onChange={(e) => setChat(e.target.value)}
-            className={cn(GLASS, 'px-3 py-2.5')}
+            className={cn(inputClass, 'w-auto')}
           >
             {settings.chats.map((c) => (
               <option key={c.key} value={c.key}>
