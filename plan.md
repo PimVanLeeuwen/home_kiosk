@@ -820,7 +820,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   per device; panel): the mesh as on the hub's card (a chain per room, rooms joined where their
   routers are nearest, the last back to the first), gentle curves drawn once into a canvas with
   a pulse running along each link, dashed amber to a device offline or without Thread; two rings
-  rippling from each orb that plays; orbs 88 px (were 76).
+  rippling from each orb that plays; orbs 88 px (were 76). Neighbours in one room are joined by
+  an arch over them (side by side the link left only a dot); links between rooms always bend
+  downwards, clear of the rooms' names; the lines are solid colours mixed beforehand, as part
+  opacity beaded at the segments' ends.
 - **NAS, Backups, Alerts and the train**, redesigned again 2026-10-10 to be desk pieces:
   - NAS: an instrument-style arc gauge for the fullest volume (ticks, a glow, a red mark where
     it would alert), its size and runway below, then tiles for CPU and memory with live

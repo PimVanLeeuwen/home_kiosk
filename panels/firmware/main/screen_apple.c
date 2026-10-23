@@ -183,7 +183,18 @@ static void add_link(lv_layer_t *layer, int *count, int ra, int da, int rb, int 
     centre(ra, da, &x0, &y0);
     centre(rb, db, &x1, &y1);
     float dx = x1 - x0, dy = y1 - y0;
-    float cx = (x0 + x1) / 2.0f - dy * 0.16f, cy = (y0 + y1) / 2.0f + dx * 0.16f;
+    float cx, cy;
+    if (ra == rb) {
+        /* Neighbours in one room sit close: an arch over them, so the link shows. */
+        cx = (x0 + x1) / 2.0f, cy = (y0 + y1) / 2.0f - ORB;
+    } else {
+        /* Between rooms a gentle bend, always downwards, away from the rooms' names. */
+        float px = -dy * 0.2f, py = dx * 0.2f;
+        if (py < 0) {
+            px = -px, py = -py;
+        }
+        cx = (x0 + x1) / 2.0f + px, cy = (y0 + y1) / 2.0f + py;
+    }
     /* Each end stops short of its orb, along the way to the bend. */
     float r = ORB / 2.0f + 8, la = hypotf(cx - x0, cy - y0), lb = hypotf(cx - x1, cy - y1);
     link_t *l = &links[(*count)++];
@@ -193,9 +204,10 @@ static void add_link(lv_layer_t *layer, int *count, int ra, int da, int rb, int 
 
     lv_draw_line_dsc_t line;
     lv_draw_line_dsc_init(&line);
-    line.color = lv_color_hex(up ? MESH : OFFLINE);
-    line.opa = up ? 90 : 150;
-    line.width = 2;
+    /* Solid colours, mixed with the black beforehand: at part opacity the short segments'
+     * overlapping ends showed as beads. */
+    line.color = lv_color_hex(up ? 0x5f5a80 : 0x8a6a2f);
+    line.width = 3;
     line.round_start = line.round_end = 1;
     const int steps = 32;
     float px, py;
