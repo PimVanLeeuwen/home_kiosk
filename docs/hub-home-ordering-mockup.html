@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of Home ordered by what matters now (plan.md M22): the most important thing
+     gets a full-width hero, then live cards, then an order for the part of the day; the quiet
+     "all good" cards fold into the status strip. Example data only. Not served by the hub. -->
+<title>Home hub: Home ordered by what matters now</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #0e0f12; --card: #14151a; --raised: #1b1c22;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b; --rain: #6aa8f0; --sun: #f0b86e;
+  --glass: rgba(255, 255, 255, .035); --glass-line: rgba(255, 255, 255, .075);
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.chrome { max-width: 1480px; margin: 0 auto; padding: 22px 20px 10px; display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+.chrome h1 { margin: 0; font-size: 22px; font-weight: 600; } .chrome p { margin: 3px 0 0; color: var(--muted); max-width: 72ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl button { background: #17181c; border: 1px solid var(--line); border-radius: 9px; padding: 7px 13px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { background: rgba(124, 108, 242, .18); border-color: var(--accent); }
+.ctl .sep { width: 1px; background: var(--line); margin: 2px 4px; }
+.stage { display: flex; justify-content: center; padding: 14px 20px 30px; }
+.device { width: 1440px; height: 1180px; border-radius: 14px; overflow: hidden; border: 1px solid #1a1b1f; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.device.mobile { width: 390px; height: 1900px; border-radius: 44px; border: 10px solid #000; }
+
+/* App frame */
+.app { display: flex; height: 100%; background: var(--canvas); position: relative; }
+.side { width: 240px; flex: none; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; }
+.side b.brand { font-size: 15px; padding: 0 10px; } .side small.host { color: var(--faint); padding: 0 10px 14px; font-size: 12px; }
+.side .grp { font-size: 11px; letter-spacing: .08em; color: var(--faint); padding: 14px 10px 4px; text-transform: uppercase; font-weight: 600; }
+.side a { padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; display: flex; gap: 10px; align-items: center; }
+.side a.on { background: rgba(124,108,242,.14); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent-line); }
+.side a i { width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; opacity: .7; }
+.main { flex: 1; margin: 8px 8px 8px 0; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); overflow: hidden; position: relative; isolation: isolate; }
+.mobile .side { display: none; } .mobile .main { margin: 0; border-radius: 0; border: 0; }
+.tabbar { display: none; }
+.mobile .tabbar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 74px; background: rgba(8,9,10,.86); backdrop-filter: blur(16px); border-top: 1px solid var(--line-soft); justify-content: space-around; padding-top: 10px; font-size: 11px; color: var(--muted); z-index: 5; }
+.mobile .tabbar span { display: grid; justify-items: center; gap: 3px; } .mobile .tabbar span.on { color: var(--accent-fg); }
+.mobile .tabbar i { width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 5px; }
+
+/* The sky: two soft light sources for the part of the day, and a fine grain over everything */
+.sky { position: absolute; inset: 0 0 auto 0; height: 620px; z-index: -1; pointer-events: none;
+  background: radial-gradient(50% 75% at 12% -8%, var(--sky1), transparent 70%), radial-gradient(40% 60% at 88% -10%, var(--sky2), transparent 72%);
+  mask-image: linear-gradient(#000 45%, transparent); }
+.grain { position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .5; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.page { position: relative; padding: 38px 44px 48px; height: 100%; overflow: auto; } .mobile .page { padding: 58px 16px 96px; }
+.ph { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+.ph h2 { font-size: 34px; font-weight: 600; margin: 0; letter-spacing: -.025em; line-height: 1.05; }
+.mobile .ph h2 { font-size: 28px; }
+.ph p { margin: 6px 0 0; color: var(--muted); }
+.ph .clock { font-size: 13px; color: var(--faint); text-align: right; }
+.ph .clock b { display: block; font-size: 28px; font-weight: 500; color: var(--fg); letter-spacing: -.02em; }
+.mobile .ph .clock { display: none; }
+
+/* Entrance: one staggered reveal, nothing looping */
+.in { animation: rise .7s var(--ease) both; animation-delay: calc(var(--i, 0) * 55ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) { .in { animation: none; } }
+
+/* Status strip: glass chips, each with its own small meter; the folded cards live here */
+.strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.25fr); gap: 12px; margin-bottom: 18px; }
+.mobile .strip { grid-template-columns: 1fr 1fr; gap: 9px; }
+.mobile .strip .chip.alerts { grid-column: 1 / -1; }
+.chip { position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 11px; align-items: center; border-radius: 14px; border: 1px solid var(--glass-line); background: linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.012)); backdrop-filter: blur(10px); padding: 12px 14px 11px; text-align: left; cursor: pointer; min-width: 0; transition: border-color .2s, background .2s, transform .2s var(--ease); }
+.chip:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.14); }
+.chip small { display: block; font-size: 12px; color: var(--muted); } .chip b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip .t { min-width: 0; }
+.chip .chev { color: var(--faint); font-size: 11px; transition: transform .25s var(--ease); }
+.chip .meter { grid-column: 1 / -1; display: flex; gap: 2px; height: 3px; margin-top: 4px; }
+.chip .meter i { flex: 1; border-radius: 2px; background: rgba(255,255,255,.08); }
+.chip .meter i.f { background: color-mix(in srgb, var(--c, var(--up)) 75%, transparent); }
+.chip[aria-expanded="true"] { border-color: var(--accent); background: linear-gradient(160deg, rgba(124,108,242,.22), rgba(124,108,242,.05)); }
+.chip[aria-expanded="true"] .chev { transform: rotate(180deg); color: var(--accent-fg); }
+.chip.down { border-color: rgba(229,100,106,.45); background: linear-gradient(160deg, rgba(229,100,106,.2), rgba(229,100,106,.03)); }
+.chip.alerts { cursor: default; } .chip.alerts .chev { visibility: hidden; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; background: var(--c, var(--up)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--up)) 16%, transparent), 0 0 12px var(--c, var(--up)); }
+
+/* The hero: the one thing that matters most right now, full width, with its own light */
+.hero { position: relative; border-radius: 20px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--glass-line); padding: 26px 30px; min-height: 210px;
+  background: radial-gradient(70% 140% at 100% 0%, color-mix(in srgb, var(--h) 26%, transparent), transparent 62%), radial-gradient(60% 120% at 0% 100%, color-mix(in srgb, var(--h2, var(--h)) 12%, transparent), transparent 70%), linear-gradient(180deg, #17181e, #121318);
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 24px 60px -30px color-mix(in srgb, var(--h) 60%, transparent); }
+.mobile .hero { padding: 20px; border-radius: 18px; }
+.hero .kicker { font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--h) 70%, white); display: flex; gap: 8px; align-items: center; }
+.hero h3 { margin: 6px 0 4px; font-size: 40px; font-weight: 600; letter-spacing: -.03em; line-height: 1.05; }
+.mobile .hero h3 { font-size: 30px; }
+.hero .sub { color: var(--muted); font-size: 15px; }
+.hero .grid { display: grid; grid-template-columns: auto 1fr auto; gap: 34px; align-items: center; }
+.mobile .hero .grid { grid-template-columns: 1fr auto; gap: 18px; }
+.mobile .hero .grid > .wide-only, .mobile .hero .wide-only { display: none; }
+.mobile .hero .cover { width: 84px !important; height: 84px !important; }
+.backdrop { position: absolute; inset: -40px; z-index: -1; background: var(--art); filter: blur(60px) saturate(1.3); opacity: .55; }
+.hero.has-art { background: linear-gradient(90deg, rgba(14,15,18,.82), rgba(14,15,18,.35)); }
+.hero.has-art .backdrop { z-index: 0; } .hero.has-art > *:not(.backdrop) { position: relative; z-index: 1; }
+.depbox { border: 1px solid var(--glass-line); background: rgba(255,255,255,.04); border-radius: 14px; padding: 12px 16px 14px; }
+.depbox .lab { display: block; } .depbox .t { font-size: 44px; font-weight: 600; letter-spacing: -.03em; line-height: 1; }
+.route { display: flex; align-items: center; gap: 0; margin-top: 18px; }
+.route span { display: grid; justify-items: center; gap: 4px; font-size: 12px; color: var(--muted); flex: none; }
+.route span i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--up); background: var(--panel); }
+.route span:first-child i { background: var(--up); box-shadow: 0 0 10px var(--up); }
+.route em { flex: 1; height: 2px; background: linear-gradient(90deg, var(--up), rgba(63,185,127,.25)); margin: 0 6px 18px; font-style: normal; }
+.hist { display: flex; gap: 5px; align-items: end; height: 54px; }
+.hist i { width: 12px; border-radius: 3px; background: rgba(63,185,127,.55); height: var(--v); }
+.hist i.x { background: var(--down); box-shadow: 0 0 14px var(--down); }
+
+/* Cards */
+.cols { display: grid; grid-template-columns: 1.35fr 1fr; gap: 20px; align-items: start; }
+.cols > div { display: grid; gap: 20px; }
+.mobile .cols { grid-template-columns: 1fr; }
+.card { border-radius: 16px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.028), transparent 36%), var(--card); padding: 20px 22px; min-width: 0; position: relative; overflow: hidden; box-shadow: 0 1px 0 rgba(255,255,255,.04) inset; transition: border-color .2s, transform .25s var(--ease); }
+.card:hover { border-color: #2a2c33; }
+.card.live { border-color: rgba(143,128,255,.28); background: radial-gradient(80% 60% at 100% 0%, rgba(124,108,242,.12), transparent 70%), linear-gradient(180deg, rgba(255,255,255,.028), transparent 36%), var(--card); }
+.card.done { border-color: rgba(63,185,127,.3); background: radial-gradient(80% 60% at 100% 0%, rgba(63,185,127,.12), transparent 70%), var(--card); }
+.mobile .card { padding: 18px; }
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.head a { color: var(--accent-fg); font-size: 13px; font-weight: 500; text-decoration: none; }
+.pill { font-size: 10.5px; font-weight: 600; letter-spacing: .07em; border-radius: 999px; padding: 3px 9px; text-transform: uppercase; white-space: nowrap; display: inline-flex; gap: 6px; align-items: center; }
+.pill.up { color: var(--up); background: rgba(63,185,127,.13); } .pill.down { color: var(--down); background: rgba(229,100,106,.15); }
+.pill.warn { color: var(--warn); background: rgba(224,162,59,.15); } .pill.acc { color: var(--accent-fg); background: rgba(124,108,242,.18); }
+.lab { font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--f-mono); }
+.muted { color: var(--muted); } .faint { color: var(--faint); } .up { color: var(--up); } .down { color: var(--down); } .warn-t { color: var(--warn); }
+.num { font-size: 32px; font-weight: 600; letter-spacing: -.025em; line-height: 1; }
+.num small { font-size: 13px; color: var(--faint); font-weight: 500; letter-spacing: 0; margin-left: 2px; }
+.row { display: grid; grid-template-columns: 52px 10px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line-soft); }
+.row .c { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.timeline { position: relative; height: 8px; border-radius: 99px; background: rgba(255,255,255,.06); margin: 18px 0 6px; }
+.timeline i { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: var(--c); opacity: .85; }
+.timeline .now { position: absolute; top: -5px; bottom: -5px; width: 2px; background: #fff; border-radius: 2px; box-shadow: 0 0 10px #fff; }
+.ticks { display: flex; justify-content: space-between; font: 11px var(--f-mono); color: var(--faint); }
+.news { display: grid; grid-template-columns: 1fr 72px; gap: 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line-soft); }
+.news:first-of-type { border-top: 0; padding-top: 0; }
+.news b { font-weight: 600; font-size: 14.5px; line-height: 1.3; display: block; } .news small { color: var(--faint); font-size: 12px; }
+.thumb { width: 72px; height: 54px; border-radius: 8px; background: var(--g); }
+.lead { height: 150px; border-radius: 12px; background: var(--g); margin: -2px 0 14px; position: relative; overflow: hidden; }
+.lead::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,.55)); }
+.house { position: relative; border: 1px solid rgba(143,128,255,.3); border-radius: 14px; height: 170px; background: radial-gradient(70% 90% at 50% 60%, rgba(109,92,232,.16), transparent), rgba(255,255,255,.015); }
+.house .lab { position: absolute; top: 12px; left: 14px; color: var(--accent-fg); }
+.node { position: absolute; top: 62px; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid rgba(143,128,255,.65); background: radial-gradient(circle, rgba(124,108,242,.35), rgba(124,108,242,.06)); box-shadow: 0 0 22px rgba(124,108,242,.45); }
+.node.on { border-color: #fff; box-shadow: 0 0 0 6px rgba(124,108,242,.15), 0 0 34px rgba(143,128,255,.8); }
+.node i { width: 16px; height: 16px; border: 1.5px solid #fff; border-radius: 4px; opacity: .85; }
+.link { position: absolute; top: 88px; height: 1.5px; background: linear-gradient(90deg, rgba(143,128,255,.2), rgba(143,128,255,.7), rgba(143,128,255,.2)); }
+.cover { width: 92px; height: 92px; border-radius: 12px; background: var(--art); box-shadow: 0 18px 40px -12px rgba(0,0,0,.8); flex: none; }
+.prog { height: 4px; border-radius: 99px; background: rgba(255,255,255,.12); overflow: hidden; margin-top: 12px; } .prog i { display: block; height: 100%; width: var(--w); background: #fff; border-radius: 99px; }
+.why { position: absolute; top: 8px; right: 10px; font-size: 10.5px; font-family: var(--f-mono); color: var(--accent-fg); background: rgba(14,15,18,.85); border: 1px dashed rgba(143,128,255,.6); border-radius: 6px; padding: 1px 6px; display: none; z-index: 3; }
+.show-why .why { display: block; }
+.opened { margin: -4px 0 20px; position: relative; }
+.opened::before { content: ''; position: absolute; top: -8px; left: var(--x, 10%); width: 14px; height: 14px; background: #191a21; border-left: 1px solid var(--accent); border-top: 1px solid var(--accent); transform: rotate(45deg); z-index: 1; }
+.mobile .opened::before { display: none; }
+.opened .card { border-color: var(--accent); background: radial-gradient(60% 80% at 0% 0%, rgba(124,108,242,.14), transparent 70%), var(--card); }
+.disks { display: flex; gap: 8px; margin-top: 4px; } .disks i { width: 26px; height: 34px; border-radius: 5px; border: 1px solid rgba(63,185,127,.5); background: linear-gradient(180deg, rgba(63,185,127,.25), rgba(63,185,127,.05)); }
+
+.notes { max-width: 1000px; margin: 0 auto; padding: 0 20px 60px; color: var(--muted); }
+.notes h4 { color: var(--fg); margin: 22px 0 6px; font-size: 14px; } .notes ul { margin: 0; padding-left: 18px; } .notes li { margin: 4px 0; }
+.notes table { border-collapse: collapse; font-size: 13px; } .notes td, .notes th { padding: 5px 14px 5px 0; text-align: left; vertical-align: top; border-top: 1px solid var(--line-soft); } .notes th { color: var(--faint); font-weight: 600; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; border: 0; }
+</style>
+
+<div class="chrome">
+  <div>
+    <h1>Home, ordered by what matters now <span class="pill acc" style="margin-left:8px;vertical-align:3px">example data</span></h1>
+    <p>The most important thing right now gets the hero: the train in the morning, the music in the evening, a problem in red. Then the live cards, then the rest in an order for the part of the day. Cards that only say "all good" fold into the status strip; a chip opens its card. "Why here" shows each card's reason.</p>
+  </div>
+  <div class="ctl">
+    <button data-v="desktop" aria-pressed="true">Desktop</button>
+    <button data-v="mobile" aria-pressed="false">Mobile</button>
+    <span class="sep"></span>
+    <button data-s="morning" aria-pressed="true">Morning 07:05</button>
+    <button data-s="day" aria-pressed="false">Afternoon 14:30</button>
+    <button data-s="evening" aria-pressed="false">Evening 20:40</button>
+    <button data-s="problem" aria-pressed="false">Backup failed</button>
+    <button data-s="open" aria-pressed="false">NAS chip opened</button>
+    <span class="sep"></span>
+    <button data-w aria-pressed="false">Why here</button>
+  </div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+
+<div class="notes">
+  <h4>How the order is made</h4>
+  <ul>
+    <li><b>Hero:</b> the first of: a problem (a failed backup, a failing disk, a service down, an outside incident), the train before it leaves, music playing, an event now. Its own light follows its state: green for an on-time train, the cover's colours for music, red for a problem. Nothing to show means no hero, and the cards move up.</li>
+    <li><b>Live:</b> the other live cards next: laundry running or done, an event within the hour, an Apple device playing. They get a faint violet (or green when done) light in their corner.</li>
+    <li><b>Part of the day:</b> the rest in the order below. Cards with nothing to show stay hidden, as today.</li>
+    <li><b>Folded:</b> NAS, Services, Backups and Outside services live in the status strip while all is well, each chip with a small meter (storage, services running, nights backed up, components clear). A chip opens its card below the strip, one at a time.</li>
+  </ul>
+  <h4>Order per part of the day</h4>
+  <table>
+    <tr><th>Part</th><th>Wide column</th><th>Narrow column</th></tr>
+    <tr><td>Morning, 06 to 10</td><td>Today, News, Air</td><td>Weather, Portfolio</td></tr>
+    <tr><td>Day, 10 to 18</td><td>Today, News, Air</td><td>Portfolio, Weather</td></tr>
+    <tr><td>Evening, 18 to 23</td><td>Apple devices, Today, News</td><td>Weather (tomorrow), Air, Portfolio</td></tr>
+    <tr><td>Night, 23 to 06</td><td>Today (tomorrow), News</td><td>Weather, Air, Portfolio</td></tr>
+  </table>
+  <h4>Look and motion</h4>
+  <ul>
+    <li>The sky: two soft lights at the top for the part of the day (amber and rose at dawn, violet in the day, indigo at dusk, almost none at night) and a fine grain, so the dark has depth without colour washing over the cards.</li>
+    <li>Two stacks instead of rows: each card has its column and the order runs within it, so a short card never leaves a gap. On the phone one column, by rank.</li>
+    <li>One staggered reveal when the page opens. When the order changes the cards slide to their place in about 300 ms, never while the pointer is over a card or a chip is open. Nothing loops; no motion with reduced motion.</li>
+  </ul>
+</div>
+
+<script>
+const st = { view: 'desktop', state: 'morning', why: false };
+const nav = [['', 'Home', 1], ['', 'Lights'], ['', 'Music'], ['Read', 'News'], ['', 'Saved'], ['Money', 'Portfolio'], ['House', 'NAS'], ['', 'Docker'], ['', 'Backups'], ['', 'Services'], ['', 'Media'], ['', 'Tailscale'], ['Code', 'Repos'], ['System', 'Alerts'], ['', 'Settings']];
+const ART = 'conic-gradient(from 210deg at 35% 40%, #ff7a59, #d6336c, #6d5ce8, #1fb6a6, #ff7a59)';
+
+// SVG helpers
+const ring = (pct, { size = 120, w = 9, c = 'var(--accent-line)', glow = true, track = 'rgba(255,255,255,.07)' } = {}) => {
+  const r = (size - w) / 2, L = 2 * Math.PI * r;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex:none;overflow:visible">
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${track}" stroke-width="${w}"/>
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="${L * pct} ${L}" transform="rotate(-90 ${size / 2} ${size / 2})" ${glow ? `style="filter:drop-shadow(0 0 7px ${c})"` : ''}/></svg>`;
+};
+const center = (svg, inner, size) => `<div style="position:relative;width:${size}px;height:${size}px;flex:none">${svg}<div style="position:absolute;inset:0;display:grid;place-items:center;text-align:center">${inner}</div></div>`;
+// Rain ring: the next two hours in 24 segments round the temperature, length by intensity.
+const rainRing = (vals, temp) => {
+  const S = 132, c = S / 2, r0 = 46;
+  const seg = vals.map((v, i) => { const a = (i / vals.length) * 2 * Math.PI - Math.PI / 2, r1 = r0 + 4 + v * 16;
+    return `<line x1="${c + r0 * Math.cos(a)}" y1="${c + r0 * Math.sin(a)}" x2="${c + r1 * Math.cos(a)}" y2="${c + r1 * Math.sin(a)}" stroke="${v ? 'var(--rain)' : 'rgba(255,255,255,.12)'}" stroke-width="4" stroke-linecap="round" ${v ? 'style="filter:drop-shadow(0 0 4px var(--rain))"' : ''}/>`; }).join('');
+  return center(`<svg width="${S}" height="${S}">${seg}</svg>`, `<div><div class="num" style="font-size:30px">${temp}</div></div>`, S);
+};
+// Sun arc over a band from night through dawn, day and dusk.
+const sunArc = (t) => {
+  const W = 400, H = 64, x = 20 + t * (W - 40), y = H - 8 - Math.sin(Math.PI * t) * 50;
+  return `<svg viewBox="0 0 ${W} ${H + 18}" style="width:100%;height:auto;display:block">
+    <defs><linearGradient id="band" x1="0" x2="1"><stop offset="0" stop-color="#1b2140"/><stop offset=".22" stop-color="#e58a6a"/><stop offset=".5" stop-color="#6aa8f0"/><stop offset=".78" stop-color="#e58a6a"/><stop offset="1" stop-color="#1b2140"/></linearGradient></defs>
+    <path d="M20 ${H - 8} Q ${W / 2} ${H - 112} ${W - 20} ${H - 8}" fill="none" stroke="rgba(255,255,255,.18)" stroke-dasharray="3 5"/>
+    <rect x="0" y="${H}" width="${W}" height="5" rx="2.5" fill="url(#band)" opacity=".8"/>
+    <circle cx="${x}" cy="${y}" r="7" fill="var(--sun)" style="filter:drop-shadow(0 0 10px var(--sun))"/>
+    <text x="20" y="${H + 18}" fill="var(--faint)" font-size="10" font-family="JetBrains Mono">07:58</text><text x="${W - 20}" y="${H + 18}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="JetBrains Mono">18:31</text></svg>`;
+};
+const area = (pts, c = 'var(--up)') => {
+  const W = 300, H = 80, max = Math.max(...pts), min = Math.min(...pts);
+  const xy = pts.map((p, i) => [i / (pts.length - 1) * W, H - 6 - (p - min) / (max - min) * (H - 16)]);
+  const d = xy.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:calc(100% + 44px);height:86px;display:block;margin:14px -22px -20px"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".35"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs><path d="${d} L${W} ${H} L0 ${H}Z" fill="url(#ag)"/><path d="${d}" fill="none" stroke="${c}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
+};
+
+const why = (t) => t ? `<span class="why">${t}</span>` : '';
+const card = (title, body, o = {}) => `<section class="card ${o.cls || ''}">${why(o.why)}<div class="head"><h3>${title}</h3>${o.right || ''}</div>${body}</section>`;
+
+const HERO = {
+  train: () => `<section class="hero" style="--h: var(--up); --h2: #6aa8f0">${why('hero: train before departure')}
+    <div class="grid">
+      <div class="depbox"><span class="lab">Departure</span><div class="t">07:16</div></div>
+      <div><div class="kicker"><span class="dot"></span>Your train</div><h3 class="up">On time</h3><div class="sub">Leaves in 11 min from platform <b style="color:var(--fg);background:var(--raised);border-radius:6px;padding:0 7px">4</b></div>
+        <div class="route wide-only"><span><i></i>07:16</span><em></em><span><i></i>07:31</span><em></em><span><i></i>07:44</span><em></em><span><i></i>07:58</span></div></div>
+      ${center(ring(0.82, { size: 112, w: 8, c: 'var(--up)' }), `<div><div class="num" style="font-size:30px">11</div><div class="lab" style="margin-top:2px">min</div></div>`, 112)}
+    </div></section>`,
+  focus: () => `<section class="hero" style="--h: var(--accent-line); --h2: var(--warn)">${why('hero: event now')}
+    <div class="grid">
+      ${center(ring(0.62, { size: 112, w: 8, c: 'var(--warn)' }), `<div><div class="num" style="font-size:30px">40</div><div class="lab" style="margin-top:2px">min left</div></div>`, 112)}
+      <div><div class="kicker" style="color:var(--warn)">Now · work</div><h3>Focus block</h3><div class="sub">until 15:10 · then Lunch walk is over, Sports at 18:00</div>
+        <div class="timeline wide-only"><i style="left:4%;width:12%;--c:#c98bdb"></i><i style="left:30%;width:28%;--c:var(--warn)"></i><i style="left:70%;width:10%;--c:var(--down)"></i><span class="now" style="left:49%"></span></div>
+        <div class="ticks wide-only"><span>07:00</span><span>12:00</span><span>17:00</span><span>23:00</span></div></div>
+      <div class="wide-only" style="text-align:right"><div class="lab">Today</div><div class="num">5</div><div class="faint" style="font-size:12px">events</div></div>
+    </div></section>`,
+  music: () => `<section class="hero has-art" style="--h: #d6336c; --art: ${ART}">${why('hero: music playing')}<div class="backdrop"></div>
+    <div class="grid">
+      <div class="cover" style="width:132px;height:132px;border-radius:14px"></div>
+      <div><div class="kicker" style="color:#ffb3c6"><span class="dot" style="--c:#ff7a9c"></span>Now playing · Living room</div><h3>Song title</h3><div class="sub" style="color:#d9d2e4">Artist · Album</div>
+        <div class="prog" style="max-width:420px"><i style="--w:38%"></i></div><div class="ticks" style="max-width:420px;margin-top:6px;color:#b9b0c9"><span>1:24</span><span>3:41</span></div></div>
+      <div class="wide-only"><div style="display:flex;gap:10px">${['⏮', '❚❚', '⏭'].map((s, i) => `<button style="width:${i === 1 ? 56 : 44}px;height:${i === 1 ? 56 : 44}px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:${i === 1 ? '#fff' : 'rgba(255,255,255,.08)'};color:${i === 1 ? '#111' : '#fff'};font-size:${i === 1 ? 15 : 13}px">${s}</button>`).join('')}</div></div>
+    </div></section>`,
+  backup: () => `<section class="hero" style="--h: var(--down); --h2: var(--down); border-color: rgba(229,100,106,.4)">${why('hero: problem, unfolded from its chip')}
+    <div class="grid">
+      ${center(ring(1, { size: 104, w: 7, c: 'var(--down)' }), `<div class="num down" style="font-size:34px">!</div>`, 104)}
+      <div><div class="kicker" style="color:#ff9ca1">Backups · needs a look</div><h3>Last backup failed</h3><div class="sub">03:00 to Hetzner: <span class="mono" style="font-size:13px;color:#ffb3b6">rclone: connection reset by peer</span></div>
+        <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap"><span class="pill acc">Open Backups →</span><span class="pill" style="color:var(--muted);background:var(--glass)">Logs in Dozzle</span></div></div>
+      <div class="wide-only"><div class="lab" style="margin-bottom:8px">Last 14 nights</div><div class="hist">${[70, 62, 80, 66, 74, 58, 90, 64, 72, 60, 78, 66, 70, 100].map((v, i) => `<i class="${i === 13 ? 'x' : ''}" style="--v:${v}%"></i>`).join('')}</div></div>
+    </div></section>`,
+};
+
+const C = {
+  today: (w, mode) => card(mode === 'tomorrow' ? 'Tomorrow · Sat 24 Oct' : 'Today · Fri 23 Oct', `
+    ${mode === 'soon' ? `<div style="display:flex;gap:18px;align-items:center;margin-bottom:6px">${center(ring(0.58, { size: 84, w: 7 }), `<div><div class="num" style="font-size:24px">25</div><div class="lab">min</div></div>`, 84)}<div><span class="lab" style="color:var(--accent-fg)">Next · in 25 min</span><div style="font-size:22px;font-weight:600;letter-spacing:-.01em">Stand-up</div><span class="muted">09:30 to 09:45</span></div></div>` : ''}
+    <div class="timeline"><i style="left:16%;width:4%;--c:var(--accent-line)"></i><i style="left:30%;width:28%;--c:var(--warn)"></i><i style="left:70%;width:10%;--c:var(--down)"></i><span class="now" style="left:${mode === 'soon' ? 8 : 49}%"></span></div>
+    <div class="ticks" style="margin-bottom:8px"><span>07:00</span><span>12:00</span><span>17:00</span><span>23:00</span></div>
+    ${[['13:00', 'Lunch walk', 'var(--up)'], ['15:30', 'Review', 'var(--warn)'], ['18:00', 'Sports', 'var(--down)']].map(r => `<div class="row"><span class="mono faint" style="font-size:12.5px">${r[0]}</span><span class="c" style="--c:${r[2]}"></span><span>${r[1]}</span><span></span></div>`).join('')}`,
+    { why: w, cls: mode === 'soon' ? 'live' : '', right: '<span class="faint" style="font-size:12px">5 events</span>' }),
+  weather: (w, tomorrow) => card(tomorrow ? 'Weather · tomorrow' : 'Weather · Rain in 2 hours', `
+    <div style="display:flex;gap:16px;align-items:center">${rainRing(tomorrow ? Array(24).fill(0) : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .2, .4, .7, 1, .8, .5, .3, .1, 0, 0], tomorrow ? '14°' : '12°')}
+      <div><div style="font-weight:600;font-size:15px">${tomorrow ? 'Dry, sun after 11:00' : 'Rain 16:10 to 17:05'}</div><div class="muted" style="font-size:13px">${tomorrow ? '8° to 16°, wind 3' : 'peak 2,1 mm/u · then dry'}</div></div></div>
+    <div style="margin-top:12px">${sunArc(tomorrow ? 0.0 : 0.3)}</div>`, { why: w }),
+  news: (w) => card('Latest news', `
+    <div class="lead" style="--g: linear-gradient(135deg, #2b3a55, #6b4d7a 55%, #d08a6a)"><div style="position:absolute;left:14px;bottom:12px;right:14px;z-index:1"><b style="font-size:17px;font-weight:600;line-height:1.25">Cabinet presents its housing plan: 100,000 homes a year</b><div style="font-size:12px;color:#d5d7dc;margin-top:3px">NOS · NU.nl · 3 more · 08:40</div></div></div>
+    ${[['Rail strike on Monday called off after a new offer', 'NOS · 07:55', 'linear-gradient(135deg,#1e5f5a,#6aa8f0)'], ['iOS 27.1 fixes Wi-Fi drops', 'Tweakers · 06:30', 'linear-gradient(135deg,#3a3f4b,#9aa3b5)']].map(n => `<div class="news"><div><b>${n[0]}</b><small>${n[1]}</small></div><div class="thumb" style="--g:${n[2]}"></div></div>`).join('')}`,
+    { why: w, right: '<a href="#">All →</a>' }),
+  air: (w) => card('Air · living room', `<div style="display:flex;gap:30px;align-items:end;flex-wrap:wrap">
+    <div><span class="lab">CO₂</span><div class="num">640<small>ppm</small></div><div class="up" style="font-size:12px;margin-top:4px">Fresh</div></div>
+    <div><span class="lab">Humidity</span><div class="num">48<small>%</small></div></div>
+    <div><span class="lab">Temperature</span><div class="num">20,5<small>°</small></div></div></div>
+    ${area([620, 640, 700, 760, 820, 780, 690, 650, 630, 640], 'var(--rain)')}`, { why: w }),
+  portfolio: (w) => card('Portfolio', `<div class="num" style="font-size:36px">€ 12.345</div><div class="down" style="font-size:13px;margin-top:6px">−€ 25 today <span class="up">· +1,8% in 30 days</span></div>
+    ${area([100, 103, 101, 108, 112, 110, 115, 113, 118, 116, 114, 117, 116])}`, { why: w, right: '<span class="pill down">−0,20% today</span>' }),
+  laundry: (w, done) => card('Laundry', `<div style="display:flex;gap:20px;align-items:center">
+    ${center(ring(done ? 1 : 0.45, { size: 116, w: 9, c: done ? 'var(--up)' : 'var(--accent-line)' }), done ? `<div><div style="font-size:18px;font-weight:600" class="up">Done</div><div class="mono faint" style="font-size:11px">20:12</div></div>` : `<div><div class="num" style="font-size:28px">48</div><div class="lab">min</div></div>`, 116)}
+    <div><div style="font-weight:600;font-size:15px">Washing machine</div><div class="muted" style="font-size:13px">${done ? 'Ready since 20:12' : 'Program 7 · ready at 15:18'}</div>${done ? '' : '<div style="display:flex;gap:4px;margin-top:10px">' + ['Wash', 'Rinse', 'Spin'].map((s, i) => `<span class="pill ${i === 0 ? 'acc' : ''}" style="${i ? 'color:var(--faint);background:var(--glass)' : ''}">${s}</span>`).join('') + '</div>'}</div></div>`,
+    { why: w, cls: done ? 'done' : 'live', right: done ? '<span class="pill up">Done</span>' : '<span class="pill acc"><span class="dot" style="--c:var(--accent-line);width:6px;height:6px"></span>Running</span>' }),
+  playing: (w) => card('Now playing', `<div style="display:flex;gap:16px;align-items:center"><div class="cover" style="--art:${ART}"></div><div style="min-width:0;flex:1"><div style="font-weight:600;font-size:16px">Song title</div><div class="muted">Artist · Living room</div><div class="prog"><i style="--w:38%"></i></div></div></div>`, { why: w, cls: 'live', right: '<span class="pill acc">Playing</span>' }),
+  apple: (w, live) => card('Apple devices', `<div class="house"><span class="lab">Living room</span>
+      <div class="link" style="left:22%;width:24%"></div><div class="link" style="left:54%;width:24%"></div>
+      <div class="node" style="left:calc(16% - 26px)"><i style="border-radius:50%"></i></div><div class="node ${live ? 'on' : ''}" style="left:calc(50% - 26px)"><i></i></div><div class="node" style="left:calc(84% - 26px)"><i style="border-radius:50%"></i></div>
+      <span style="position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:12px;color:var(--muted)">${live ? 'Apple TV playing · 2 HomePods' : 'Apple TV and 2 HomePods online'}</span></div>`,
+    { why: w, cls: live ? 'live' : '', right: live ? '<span class="pill acc">Playing in living room</span>' : '' }),
+  nas: (w) => card('NAS', `<div style="display:flex;gap:28px;align-items:center;flex-wrap:wrap">
+    ${center(ring(0.71, { size: 110, w: 9, c: 'var(--accent-line)' }), `<div><div class="num" style="font-size:26px">71<small>%</small></div><div class="lab">storage</div></div>`, 110)}
+    <div><span class="lab">CPU</span><div class="num">8<small>%</small></div></div><div><span class="lab">Memory</span><div class="num">42<small>%</small></div></div>
+    <div><span class="lab">Disks</span><div class="disks"><i></i><i></i><i></i><i></i></div></div><div><span class="lab">UPS</span><div class="num up" style="font-size:22px">On mains</div></div></div>`,
+    { why: w, right: '<a href="#">Open →</a>' }),
+};
+
+const chipsFor = (s) => {
+  const fail = s === 'problem';
+  const meter = (n, of, c) => `<span class="meter" style="--c:${c}">${Array.from({ length: of }, (_, i) => `<i class="${i < n ? 'f' : ''}"></i>`).join('')}</span>`;
+  const items = [
+    ['nas', 'NAS', 'Healthy', '', meter(7, 10, 'var(--accent-line)')],
+    ['services', 'Services', '14 / 14 up', '', meter(14, 14, 'var(--up)')],
+    ['backups', 'Last backup', fail ? 'Failed at 03:00' : 'Today 03:01', fail ? 'down' : '', meter(fail ? 13 : 14, 14, fail ? 'var(--down)' : 'var(--up)')],
+    ['outside', 'Outside services', 'All clear', '', meter(9, 9, 'var(--up)')],
+    ['alerts', 'Alerts', fail ? '1 error · Last backup failed' : 'None', fail ? 'down' : '', ''],
+  ];
+  return `<div class="strip">${items.map(([k, l, v, tone, m], i) => `<button class="chip in ${tone} ${k === 'alerts' ? 'alerts' : ''}" style="--i:${i}" aria-expanded="${s === 'open' && k === 'nas'}"><span class="dot" style="--c: var(--${tone || 'up'})"></span><span class="t"><small>${l}</small><b>${v}</b></span><span class="chev">▾</span>${m}</button>`).join('')}</div>`;
+};
+
+const L = {
+  morning: { sky1: 'rgba(240,150,100,.20)', sky2: 'rgba(200,110,170,.12)', hello: 'Good morning', clock: '07:05', date: 'Friday 23 October · everything is running', hero: HERO.train(),
+    wide: [C.today('live: next event within the hour', 'soon'), C.news('morning: 2'), C.air('morning: 3')],
+    narrow: [C.weather('morning: 1'), C.portfolio('morning: 2')] },
+  day: { sky1: 'rgba(124,108,242,.16)', sky2: 'rgba(106,168,240,.12)', hello: 'Good afternoon', clock: '14:30', date: 'Friday 23 October · everything is running', hero: HERO.focus(),
+    wide: [C.news('day: 2'), C.air('day: 3')],
+    narrow: [C.laundry('live: washer running'), C.portfolio('day: 1'), C.weather('day: 2')] },
+  evening: { sky1: 'rgba(90,80,210,.20)', sky2: 'rgba(214,51,108,.12)', hello: 'Good evening', clock: '20:40', date: 'Friday 23 October · everything is running', hero: HERO.music(),
+    wide: [C.apple('live: playing', true), C.news('evening: 3')],
+    narrow: [C.laundry('live: done', true), C.weather('evening: 1, tomorrow', true), C.air('evening: 2'), C.portfolio('evening: 3')] },
+};
+L.problem = { ...L.evening, sky1: 'rgba(229,100,106,.16)', sky2: 'rgba(90,80,210,.14)', date: 'Friday 23 October · 1 thing needs a look', hero: HERO.backup(),
+  narrow: [C.playing('live: music playing'), ...L.evening.narrow] };
+L.open = { ...L.day, opened: C.nas('opened from its chip') };
+
+function render() {
+  const d = document.getElementById('device'), mob = st.view === 'mobile', S = L[st.state];
+  let i = 6;
+  const tag = (html) => html.replace('class="card', `style="--i:${i++}" class="in card`);
+  const merged = []; const a = [...S.wide], b = [...S.narrow];
+  while (a.length || b.length) { if (b.length && merged.length % 2) merged.push(b.shift()); else if (a.length) merged.push(a.shift()); else merged.push(b.shift()); }
+  const cols = mob ? `<div class="cols"><div>${merged.map(tag).join('')}</div></div>` : `<div class="cols"><div>${S.wide.map(tag).join('')}</div><div>${S.narrow.map(tag).join('')}</div></div>`;
+  d.className = 'device' + (mob ? ' mobile' : '') + (st.why ? ' show-why' : '');
+  d.innerHTML = `<div class="app"><nav class="side"><b class="brand">Home hub</b><small class="host">nas</small>
+    ${nav.map(x => `${x[0] ? `<span class="grp">${x[0]}</span>` : ''}<a href="#" class="${x[2] ? 'on' : ''}"><i></i>${x[1]}</a>`).join('')}</nav>
+    <main class="main"><div class="sky" style="--sky1:${S.sky1};--sky2:${S.sky2}"></div><div class="grain"></div><div class="page">
+      <div class="ph in"><div><h2>${S.hello}</h2><p>${S.date}</p></div><div class="clock"><b>${S.clock}</b>12° · dry</div></div>
+      ${chipsFor(st.state)}
+      ${S.opened ? `<div class="opened in" style="--i:5;--x:${mob ? '22%' : '8%'}">${S.opened}</div>` : ''}
+      ${S.hero ? `<div class="in" style="--i:5">${S.hero}</div>` : ''}
+      ${cols}
+    </div></main>
+    <div class="tabbar">${['Home', 'News', 'Portfolio', 'NAS', 'More'].map((t, j) => `<span class="${j === 0 ? 'on' : ''}"><i></i>${t}</span>`).join('')}</div></div>`;
+}
+document.querySelectorAll('.ctl button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.v) { st.view = b.dataset.v; document.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if (b.dataset.s) { st.state = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  if ('w' in b.dataset) { st.why = !st.why; b.setAttribute('aria-pressed', st.why); }
+  render();
+}));
+render();
+</script>
+</html>

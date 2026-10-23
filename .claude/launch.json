@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-live",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["HUB_API=http://100.93.99.47:8000", "npm", "--prefix", "web", "run", "dev", "--", "--port", "5173", "--strictPort"],
+      "port": 5173
+    }
+  ]
+}
