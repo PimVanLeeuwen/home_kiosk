@@ -7,6 +7,7 @@ import type { AlertMessage, AlertSettings } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { Card } from '../ui/Card'
 import { SeverityPill } from './SeverityPill'
+import { buttonClass } from '../ui/buttonStyles'
 
 const SOURCE_LABEL: Record<string, string> = {
   backup: 'Backup',
@@ -109,7 +110,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
         <button
           type="submit"
           disabled={sending || !text.trim()}
-          className="inline-flex items-center gap-1.5 rounded-[11px] border border-accent bg-accent px-3.5 py-2.5 font-medium text-white shadow-[0_0_14px_-4px_var(--color-accent-line)] hover:brightness-110 disabled:opacity-50"
+          className={buttonClass('primary')}
         >
           <Send aria-hidden="true" className="size-4" />
           {sending ? 'Sending…' : 'Send'}

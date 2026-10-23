@@ -14,6 +14,7 @@ import type { Article, NewsGroup } from '../lib/newsTypes'
 import { useApi } from '../lib/useApi'
 import { usePaged } from '../lib/usePaged'
 import { Loading, Unavailable } from '../components/ui/states'
+import { buttonClass } from '../components/ui/buttonStyles'
 
 function useDebounced(value: string, ms: number): string {
   const [debounced, setDebounced] = useState(value)
@@ -107,7 +108,7 @@ export function NewsPage() {
               type="button"
               onClick={markAllRead}
               aria-label="Mark all read"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-[11px] border border-glass-line bg-glass px-3 text-[13px] text-muted hover:text-fg"
+              className={cn(buttonClass(), 'shrink-0')}
             >
               <CheckCheck aria-hidden="true" className="size-4" />
               <span className="hidden sm:inline">Mark all read</span>

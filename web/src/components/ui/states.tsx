@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Button } from './Button'
 import {  } from './states'
 
 /**
@@ -46,9 +47,9 @@ export function PageUnavailable({ what, plural, detail, onRetry }: PageUnavailab
       </p>
       {detail && <p className="text-muted">{detail}</p>}
       {onRetry && (
-        <button type="button" onClick={onRetry} className="mt-2 rounded-[9px] border border-line bg-raised px-3 py-2 font-medium hover:border-faint">
+        <Button onClick={onRetry} className="mt-2">
           Try again
-        </button>
+        </Button>
       )}
     </div>
   )

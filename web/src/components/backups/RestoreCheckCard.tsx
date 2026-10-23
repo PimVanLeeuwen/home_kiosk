@@ -7,6 +7,7 @@ import { formatWhen } from '../../lib/format'
 import type { RestoreCheck, RestoreRequest } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { Seal } from '../ui/Seal'
+import { buttonClass } from '../ui/buttonStyles'
 
 const LABELS: Record<string, string> = {
   'download:databases': 'Download of the dumps',
@@ -106,7 +107,7 @@ function RunNow({ onFinished }: { onFinished?: () => void }) {
         type="button"
         disabled={state !== 'idle'}
         onClick={ask}
-        className="rounded-[10px] bg-accent px-3.5 py-2 text-[13px] font-medium text-white disabled:opacity-40"
+        className={buttonClass('primary')}
       >
         Run a check now
       </button>

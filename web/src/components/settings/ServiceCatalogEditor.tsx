@@ -7,7 +7,7 @@ import type { CatalogService, ContainerList, ServiceInput, SettingsCatalog } fro
 import { useApi } from '../../lib/useApi'
 import { ServiceIcon } from '../ServiceIcon'
 import { ServiceForm } from './ServiceForm'
-import { buttonClass, iconButtonClass, inputClass, primaryButtonClass } from './fields'
+import { buttonClass, iconButtonClass, inputClass, primaryButtonClass, dangerButtonClass } from './fields'
 import { Surface } from '../ui/Card'
 
 const ENDPOINT = '/api/settings/services'
@@ -164,7 +164,7 @@ export function ServiceCatalogEditor() {
                           setDeleting(null)
                           await act('DELETE', `${ENDPOINT}/${service.id}`, undefined, `${service.name} deleted`)
                         }}
-                        className={`${buttonClass} border-down text-down`}
+                        className={dangerButtonClass}
                       >
                         Delete
                       </button>

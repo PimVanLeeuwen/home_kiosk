@@ -14,6 +14,7 @@ import { formatMoney, formatSignedMoney, formatSignedPct, formatWhen } from '../
 import { dayMove, parseHolding } from '../lib/portfolio'
 import type { PortfolioFull } from '../lib/portfolioTypes'
 import { useApi } from '../lib/useApi'
+import { buttonClass } from '../components/ui/buttonStyles'
 
 const tone = (n: number | null | undefined) => (!n ? 'text-fg' : n > 0 ? 'text-up' : 'text-down')
 
@@ -65,7 +66,7 @@ export function PortfolioPage() {
           <Link
             to="/portfolio?import"
             aria-label="Update from DEGIRO"
-            className="inline-flex items-center gap-1.5 rounded-[10px] border border-glass-line bg-glass px-3 py-2 text-[13px] font-medium hover:border-line"
+            className={buttonClass()}
           >
             <FileUp aria-hidden="true" className="size-4" />
             <span className="hidden sm:inline">Update from DEGIRO</span>

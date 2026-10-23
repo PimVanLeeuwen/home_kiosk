@@ -7,6 +7,7 @@ import { useApi } from '../../lib/useApi'
 import { Cover } from '../music/NowPlaying'
 import { Loading, Unavailable } from '../ui/states'
 import { Surface } from '../ui/Card'
+import { buttonClass } from '../ui/buttonStyles'
 
 const MAX = 4
 const RETURNED: Record<string, { ok: boolean; text: string }> = {
@@ -83,7 +84,7 @@ function Favourites({ current, onSaved }: { current: Favourite[]; onSaved: () =>
           type="button"
           disabled={chosen === null}
           onClick={save}
-          className="rounded-[10px] bg-accent px-3.5 py-2 text-[13px] font-medium text-white disabled:opacity-40"
+          className={buttonClass('primary')}
         >
           Save favourites
         </button>
@@ -138,11 +139,11 @@ export function MusicSettings() {
           )}
         </div>
         {state.data.connected ? (
-          <button type="button" onClick={disconnect} className="rounded-[10px] border border-glass-line bg-glass px-3 py-2 text-[13px] hover:border-faint">
+          <button type="button" onClick={disconnect} className={buttonClass()}>
             Disconnect
           </button>
         ) : (
-          <a href="/api/music/login" className="rounded-[10px] bg-accent px-3.5 py-2 text-[13px] font-medium text-white">
+          <a href="/api/music/login" className={buttonClass('primary')}>
             Connect Spotify
           </a>
         )}

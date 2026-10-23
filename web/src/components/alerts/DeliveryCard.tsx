@@ -4,6 +4,7 @@ import type { AlertSettings, QuietHours } from '../../lib/types'
 import { Card } from '../ui/Card'
 import { QuietRing } from './QuietRing'
 import { Switch } from '../ui/Switch'
+import { buttonClass } from '../ui/buttonStyles'
 
 const FIELD = 'rounded-[7px] border border-glass-line bg-glass px-2 py-1 text-fg focus:border-accent-line focus:outline-none'
 
@@ -80,7 +81,7 @@ export function DeliveryCard({ settings, onSaved }: Props) {
           type="button"
           onClick={save}
           disabled={!dirty}
-          className="rounded-[10px] border border-accent bg-accent px-3 py-1.5 font-medium text-white shadow-[0_0_14px_-4px_var(--color-accent-line)] hover:brightness-110 disabled:opacity-40 disabled:shadow-none"
+          className={buttonClass('primary', 'sm')}
         >
           Save
         </button>

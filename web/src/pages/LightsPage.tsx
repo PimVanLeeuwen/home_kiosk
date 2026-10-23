@@ -9,6 +9,7 @@ import { formatAgo } from '../lib/format'
 import { applyIntent, HOLD_MS, pending, type Intent } from '../lib/lightIntent'
 import type { Lights } from '../lib/types'
 import { useApi } from '../lib/useApi'
+import { buttonClass } from '../components/ui/buttonStyles'
 
 /** While the page is open; the hub itself is kept live by the bridge's event stream. */
 const REFRESH_MS = 2_000
@@ -86,7 +87,7 @@ export function LightsPage() {
                   { on: on === 0 },
                 )
               }
-              className="flex-none rounded-[10px] border border-glass-line bg-glass px-3 py-[7px] text-[13px] whitespace-nowrap hover:border-faint disabled:opacity-50"
+              className={cn(buttonClass(), 'flex-none')}
             >
               {on ? 'All off' : 'All on'}
             </button>

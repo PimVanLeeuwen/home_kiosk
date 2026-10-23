@@ -5,6 +5,7 @@ import { useApi } from '../../lib/useApi'
 import { Card } from '../ui/Card'
 import { Loading, Unavailable } from '../ui/states'
 import { Switch } from '../ui/Switch'
+import { buttonClass } from '../ui/buttonStyles'
 
 type NumberField = Exclude<keyof RuleSettings, 'enabled'>
 
@@ -102,7 +103,7 @@ export function RulesCard() {
               type="button"
               onClick={save}
               disabled={!draft}
-              className="rounded-[10px] border border-accent bg-accent px-3 py-1.5 font-medium text-white shadow-[0_0_14px_-4px_var(--color-accent-line)] hover:brightness-110 disabled:opacity-40 disabled:shadow-none"
+              className={buttonClass('primary', 'sm')}
             >
               Save rules
             </button>
