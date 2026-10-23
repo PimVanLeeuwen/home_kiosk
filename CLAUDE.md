@@ -1,14 +1,14 @@
 # home_kiosk (Home hub): notes for Claude
 
-The household's main website and the 720×1280 Pi desk kiosk, served from one stack on the Ugreen
-NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests required) live in
+The household's main website and the API behind the three ESP32-P4 desk panels, served from one
+stack on the Ugreen NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests required) live in
 `~/.claude/CLAUDE.md`; this file adds the project facts. The plan and all decisions are in
 [plan.md](plan.md).
 
 ## Project rules
 
 - **The kiosk must keep working.** Today the `/kiosk/` carousel; from M16 the three ESP32-P4
-  desk panels that replace the Pi kiosk. Any change to URLs or `/api/*` shapes has to keep them
+  desk panels that replaced the planned Pi kiosk (never built; there is no Pi). Any change to URLs or `/api/*` shapes has to keep them
   rendering.
 - **The desk panels are desk pieces.** Information and control, but also beautiful objects:
   design quality is part of done for every panel screen (docs/desk-panels.md, Design).
@@ -22,8 +22,10 @@ NAS. Global rules (git owner-only, no em dashes, ask don't assume, tests require
   delete, read progress), Telegram messages, DEGIRO imports into Ghostfolio after you confirm
   them, the living room's Hue lights (switch, dim, white), Spotify playback (play, pause, skip,
   volume, move, start a favourite) and waking the living room Apple TV to open Spotify. Planned
-  (M17, M20): the Hue plugs, and saving a headline to Readeck from a panel. The GitHub mirror
-  only reads from GitHub; it writes to `/volume3/backups/github`.
+  (M17, M20): the Hue plugs, and saving a headline to Readeck from a panel. Planned (M23):
+  Paperless, in its own stack, moves each processed mail to a Proton folder (`Paperless/Done`)
+  through the Bridge; the sender inventory only reads. The GitHub mirror only reads from GitHub;
+  it writes to `/volume3/backups/github`.
 - Style: see plan.md §1. Dark first, violet accent, mono only for technical values.
 
 ## Architecture
@@ -132,6 +134,15 @@ python3 dashboard/serve.py
 - 2026-10-22: an ERROR alert takes over all three panels until dismissed on one of them, for all
   three, until it resolves; also in quiet hours; the Alerts screen counts only warnings and
   errors; no Mute 1h for now. plan.md M20.
+- 2026-10-23: Watchtower runs the maintained fork `nickfedor/watchtower` (containrrr's was
+  archived); same settings and report template.
+- 2026-10-23: Paperless-ngx for documents, mail read from Proton Mail through a headless Proton
+  Mail Bridge in its stack (never published), senders found with a read-only inventory and
+  checked monthly for new ones; no AI on mail or documents. plan.md M23.
+- 2026-10-23: AdGuard Home on the NAS only, no extra box: the router hands out the NAS as DNS
+  server 1 and Quad9 as server 2, so the internet works when the NAS is down. plan.md M24.
+- 2026-10-23: AI with the owner's Anthropic API key for update notes, a morning digest, grouped
+  headlines and an alert explainer, capped at EUR 5 a month; no `/ask` in Telegram. plan.md M26.
 
 ## Gotchas
 

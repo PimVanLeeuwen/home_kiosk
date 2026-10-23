@@ -1068,7 +1068,15 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M2
   Sans has no µ or ³. The comma stays.) Agreed to do, one step each:
   - Apple devices: the Thread mesh between the five border routers (lines with travelling pulses,
     a broken amber line to an offline device, ripples from what plays) and larger orbs.
-  - Clock: a prettier screen in general (on a dry day the lower half is empty).
+  - Clock: a prettier screen in general (on a dry day the lower half is empty). Chosen 2026-10-23
+    from three mockups: Horizon, the sky of the moment filling the panel down to a horizon line,
+    the sun or the moon in its phase on its arc at the time it is, stars on a clear night, the
+    coming rain hanging under the horizon. Built 2026-10-23 (hub `horizon` in the clock answer:
+    the sky's three colours by light and weather, the body and how far along its arc, the
+    moon's phase from the date; panel: one canvas redrawn per answer, labels on top).
+  - Your day: Y1, chosen 2026-10-23 (the sky band and the sun's arc go, as the clock has them):
+    the temperature curve across the middle, night a slightly darker field with sunrise and
+    sunset as quiet lines, the rain chance as bars underneath, and a now line.
   - Calendar: with today nearly done, tomorrow's first events below.
   - NAS: the gauge's amber tied to the alert threshold instead of a fixed blend (82% came out pink).
   - Money: the faint vertical stripes in the fill where the line bends.
