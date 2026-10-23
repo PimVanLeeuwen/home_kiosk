@@ -218,6 +218,7 @@ def test_before_any_pipeline_data_the_card_waits(store):
         {"kind": "services", "stale": False, "present": False},
         {"kind": "tailnet", "stale": False, "present": False},
         {"kind": "movers", "stale": False, "present": False},
+        {"kind": "media", "stale": False, "present": False},
         {"kind": "backups", "stale": False, "present": False},
         {"kind": "alerts", "stale": False, "present": True, "title": "ALERTS",
          "status": "NONE OPEN", "tone": "ok",

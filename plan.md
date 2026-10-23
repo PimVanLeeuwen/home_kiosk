@@ -697,6 +697,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   tiles already use; one app down leaves the other's part. Posters through the hub
   (`/api/media/posters/…`, the apps' own 250-pixel versions, only for items in the current
   answer). In the hub a Media page under House (mockup `docs/hub-media-mockup.html`).
+  Decided 2026-10-22: the panel shows the posters, as small baseline JPEGs from the hub
+  (`/api/desk/poster/{source}/{id}`, 96 by 144). Built 2026-10-22 (hub `desk_media.py`, panel
+  `screen_media.c`), in House's turn before Backups: up to two downloads with poster, progress
+  and time left (or what holds them up, in amber), the missing episodes, and the next to air.
+  Not yet confirmed by the owner: with nothing downloading or missing the screen stays in the
+  turn as "Up to date" with the week ahead, rather than leaving it.
 - **Top movers** (House, Money; redesigned 2026-10-12): a heat map of the holdings, each tile
   sized by its share of the portfolio and tinted green or red by today's move, with the ticker,
   the change and the name (type scales with the tile; the name is left out on the smallest);
@@ -834,6 +840,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
     one, CPU and memory with 24 points each, the disks' SMART and the UPS; last run's start, how
     long it took and what it copied ("Today", "Last night", "Yesterday" or the date), the last
     restore check, the Storage Box and one bar per night.
+    Built 2026-10-22 (panel): NAS (`screen_nas.c`: the gauge, its ticks and the alert mark, and
+    the sparklines drawn once per answer into canvases) and Backups (`screen_backups.c`: the seal
+    and the night bars in canvases, one light moving along the NAS to Hetzner line, chosen
+    2026-10-22).
     Built 2026-10-22 (panel): the Alerts screen (`screen_alerts.c`: the icon pulsing in the
     alert's colour, or ripples round a green check and the week's dots) and the takeover
     (`takeover.c`, on LVGL's top layer above the dark layer; the rotation and the dips stand still

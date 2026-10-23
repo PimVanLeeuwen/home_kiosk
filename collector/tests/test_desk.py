@@ -127,6 +127,7 @@ def test_the_route_and_its_panel_names(store):
         {"kind": "services", "stale": False, "present": False},
         {"kind": "tailnet", "stale": False, "present": False},
         {"kind": "movers", "stale": False, "present": False},
+        {"kind": "media", "stale": False, "present": False},
         {"kind": "backups", "stale": False, "present": False},
         {"kind": "alerts", "stale": False, "present": True, "title": "ALERTS",
          "status": "NONE OPEN", "tone": "ok",

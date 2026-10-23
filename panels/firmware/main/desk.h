@@ -176,7 +176,8 @@ typedef struct {
 #define DESK_FAVOURITES 4
 #define PICTURE_PLAYING 3   /* picture slots: 0 to 2 the headlines, 3 the cover playing, */
 #define PICTURE_FAVOURITE 4 /* 4 to 7 the favourites, */
-#define PICTURE_LAST 8      /* 8 the cover of what played last */
+#define PICTURE_LAST 8      /* 8 the cover of what played last, */
+#define PICTURE_POSTER 9    /* 9 and 10 the posters of the downloads on House */
 
 /* The Home panel's music: the favourites to start. */
 typedef struct {
@@ -292,6 +293,61 @@ typedef struct {
     char ups[24];            /* "UPS ok", "UPS on battery", or "" */
     bool ups_ok;
 } desk_nas_t;
+
+/* The House panel's Backups screen: last run under a seal, the restore check, the NAS to
+ * Hetzner line and the nights as bars. Ready to draw (app/desk_backups.py). */
+#define DESK_NIGHTS 30
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[16];          /* "BACKUPS" */
+    char status[20];         /* "ALL SAFE", "1 PROBLEM" */
+    bool warn;               /* an open backup alert */
+    bool ok;                 /* the last run went well */
+    char time[8];            /* "03:00": when the last run started */
+    char line[64];           /* "Last night · 1 h 12 min · 4.1 GB" */
+    char restore[64];        /* "Restore verified 12 days ago" */
+    char restore_tone;       /* 'o' ok, 'f' failed, 'n' none yet */
+    char box[40];            /* "Storage Box · 22% used" */
+    int night_count;
+    struct {
+        uint16_t minutes;
+        char state;          /* 'o' ok, 's' slow, 'f' failed */
+    } nights[DESK_NIGHTS];   /* oldest first */
+} desk_backups_t;
+
+/* The House panel's Media screen: the downloads with their posters, the missing episodes
+ * and the next to air, or the week ahead when all is in. Ready to draw (app/desk_media.py). */
+#define DESK_MEDIA_DOWNLOADS 2
+#define DESK_MEDIA_ROWS 3
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[16];          /* "MEDIA" */
+    char status[24];         /* "2 DOWNLOADING", "1 NEEDS A LOOK", "UP TO DATE" */
+    char tone;               /* 'b' busy, 'w' needs a look or missing, 'o' up to date */
+    int download_count;
+    struct {
+        char title[64];
+        char detail[48];     /* "S2 E5 · 1.4 GB" */
+        int progress;        /* 0..1000 */
+        char pct[8];         /* "72%" */
+        char left[24];       /* "6 min", "Importing", "Needs a look" */
+        bool trouble;        /* warning or failed */
+        bool has_poster;
+    } downloads[DESK_MEDIA_DOWNLOADS];
+    char missing_title[32];  /* "MISSING · 2 EPISODES", or "" */
+    int missing_count;
+    int week_count;          /* rows below: missing episodes, or the week ahead */
+    struct {
+        char title[64];
+        char episode[12];    /* "S3 E2" */
+        char line[32];       /* "aired 2 days ago", "tomorrow" */
+    } rows[DESK_MEDIA_ROWS];
+    char next[96];           /* "Next to air: ...", or "" */
+} desk_media_t;
 
 /* An open error that takes over every panel until it is dismissed on one of them
  * (the answer's "takeover", app/desk_alerts.py). */
@@ -572,6 +628,12 @@ void desk_takeover_copy(desk_takeover_t *into);
 bool desk_has_nas(void);
 uint32_t desk_nas_version(void);
 void desk_nas_copy(desk_nas_t *into);
+bool desk_has_backups(void);
+uint32_t desk_backups_version(void);
+void desk_backups_copy(desk_backups_t *into);
+bool desk_has_media(void);
+uint32_t desk_media_version(void);
+void desk_media_copy(desk_media_t *into);
 bool desk_has_movers(void);
 uint32_t desk_movers_version(void);
 void desk_movers_copy(desk_movers_t *into);

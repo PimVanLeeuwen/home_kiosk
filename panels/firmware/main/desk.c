@@ -11,6 +11,8 @@
 #include "desk_tailnet.h"
 #include "desk_alerts.h"
 #include "desk_nas.h"
+#include "desk_backups.h"
+#include "desk_media.h"
 #include "desk_pipelines.h"
 #include "esp_attr.h"
 
@@ -53,6 +55,8 @@ EXT_RAM_BSS_ATTR static desk_services_t services_state;
 EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet_state;
 EXT_RAM_BSS_ATTR static desk_alerts_t alerts_state;
 EXT_RAM_BSS_ATTR static desk_nas_t nas_state;
+EXT_RAM_BSS_ATTR static desk_backups_t backups_state;
+EXT_RAM_BSS_ATTR static desk_media_t media_state;
 EXT_RAM_BSS_ATTR static desk_takeover_t takeover_state;
 EXT_RAM_BSS_ATTR static desk_movers_t movers_state;
 EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline_state;
@@ -270,6 +274,8 @@ COPIERS(services, desk_services_t, services_state)
 COPIERS(tailnet, desk_tailnet_t, tailnet_state)
 COPIERS(alerts, desk_alerts_t, alerts_state)
 COPIERS(nas, desk_nas_t, nas_state)
+COPIERS(backups, desk_backups_t, backups_state)
+COPIERS(media, desk_media_t, media_state)
 COPIERS(takeover, desk_takeover_t, takeover_state)
 COPIERS(movers, desk_movers_t, movers_state)
 GETTERS(apple, desk_apple_t, apple_state)
@@ -746,6 +752,8 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet;
     EXT_RAM_BSS_ATTR static desk_alerts_t alerts;
     EXT_RAM_BSS_ATTR static desk_nas_t nas;
+    EXT_RAM_BSS_ATTR static desk_backups_t backups;
+    EXT_RAM_BSS_ATTR static desk_media_t media;
     EXT_RAM_BSS_ATTR static desk_takeover_t takeover;
     EXT_RAM_BSS_ATTR static desk_movers_t movers;
     EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline;
@@ -765,6 +773,8 @@ static void apply(const char *body)
     memset(&tailnet, 0, sizeof tailnet);
     memset(&alerts, 0, sizeof alerts);
     memset(&nas, 0, sizeof nas);
+    memset(&backups, 0, sizeof backups);
+    memset(&media, 0, sizeof media);
     memset(&takeover, 0, sizeof takeover);
     const cJSON *error = cJSON_GetObjectItem(root, "takeover");
     takeover.present = cJSON_IsObject(error);
@@ -809,6 +819,14 @@ static void apply(const char *body)
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "tailnet") == 0) {
             desk_parse_tailnet(screen, &tailnet);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "media") == 0) {
+            desk_parse_media(screen, &media);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "backups") == 0) {
+            desk_parse_backups(screen, &backups);
             continue;
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "nas") == 0) {
@@ -943,6 +961,10 @@ static void apply(const char *body)
     alerts_state = alerts;
     nas.version = nas_state.version + 1;
     nas_state = nas;
+    backups.version = backups_state.version + 1;
+    backups_state = backups;
+    media.version = media_state.version + 1;
+    media_state = media;
     takeover.version = takeover_state.version + 1;
     takeover_state = takeover;
     movers.version = movers_state.version + 1;

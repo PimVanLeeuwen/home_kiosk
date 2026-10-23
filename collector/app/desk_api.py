@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Res
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from . import desk, desk_alerts, desk_boards, desk_headlines, desk_home, desk_keys
+from . import desk, desk_alerts, desk_boards, desk_headlines, desk_home, desk_keys, desk_media
 from .lights_api import Change, RoomSwitch
 from .sources import hue, music, readeck, spotify
 
@@ -138,6 +138,20 @@ async def lights_group(group_id: str, body: Change, request: Request,
     return await _lights(request, lambda cfg, bridge: hue.change(
         cfg, store, group_id, on=body.on, brightness=body.brightness, kelvin=body.kelvin,
         bridge=bridge))
+
+
+@router.get("/poster/{source}/{item_id}")
+async def poster(source: Literal["sonarr", "radarr"], item_id: int, request: Request) -> Response:
+    """A download's poster from the current Media answer, as a small JPEG for House."""
+    try:
+        data = await desk_media.poster(request.app.state.config, request.app.state.store,
+                                       source, item_id)
+    except LookupError:
+        raise HTTPException(404, "No such poster.") from None
+    except Exception:
+        raise HTTPException(502, "The poster could not be loaded.") from None
+    return Response(data, media_type="image/jpeg",
+                    headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/cover/{key}/{size}")

@@ -26,6 +26,7 @@ from .desk_home import (
     music_screen,
     playing_screen,
 )
+from .desk_media import media_screen
 from .desk_movers import movers_screen
 from .desk_nas import nas_screen
 from .desk_pipelines import house_pipelines
@@ -116,7 +117,7 @@ NOW = (clock_screen, train_screen, agenda_screen, day_screen, _headlines)
 HOME = (lights_screen, air_screen, laundry_screen, apple_screen)
 # Decided 2026-10-22: NAS first and Backups before Alerts, as in the mockup.
 HOUSE = (nas_screen, code_screen, sites_screen, services_screen, tailnet_screen, movers_screen,
-         backups_screen, alerts_screen)
+         media_screen, backups_screen, alerts_screen)
 SCREENS = {"now": NOW, "home": HOME, "house": HOUSE, "test": NOW}
 # Panels that turn through their screens on their own; Home decides per answer (home_rules).
 ROTATES = {"now": True, "house": True, "test": True}
