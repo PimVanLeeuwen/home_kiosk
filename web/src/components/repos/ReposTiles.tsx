@@ -5,7 +5,7 @@ import { StatTile, StatTiles } from '../ui/StatTile'
 import { GlowDot } from '../ui/GlowDot'
 
 const CI_DOT: Record<Repo['ci'], string> = {
-  passing: 'bg-up shadow-[0_0_5px_rgb(63_185_127/0.7)]',
+  passing: 'bg-up shadow-[0_0_5px_--alpha(var(--color-up)/70%)]',
   running: 'bg-warn shadow-[0_0_6px_var(--color-warn)]',
   failing: 'bg-down shadow-[0_0_7px_var(--color-down)] motion-safe:animate-halo [--glow:var(--color-down)]',
   none: 'bg-white/14',

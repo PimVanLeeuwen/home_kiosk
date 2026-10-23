@@ -6,9 +6,9 @@ import { Pill } from '../ui/Pill'
 import { Card } from '../ui/Card'
 import { StaleNote } from '../ui/states'
 
-const VIDEO = '#5aa9ff'
-const MUSIC = '#b4a9ff'
-const AMBER = '#f0bd5a'
+const VIDEO = 'var(--color-data-deep-blue)'
+const MUSIC = 'var(--color-accent-fg)'
+const AMBER = 'var(--color-data-amber)'
 
 type Room = AppleDevices['rooms'][number]
 
@@ -87,7 +87,7 @@ function Plan({ rooms }: { rooms: Room[] }) {
               height={z.h}
               rx={3.4}
               fill={colour ? `url(#apple-glow-${z.room.id})` : 'rgb(255 255 255 / 0.025)'}
-              stroke={colour ? `${colour}66` : 'rgb(255 255 255 / 0.1)'}
+              stroke={colour ? `color-mix(in srgb, ${colour} 40%, transparent)` : 'rgb(255 255 255 / 0.1)'}
               strokeWidth={0.35}
             />
             <text
@@ -108,11 +108,11 @@ function Plan({ rooms }: { rooms: Room[] }) {
         const d = curve(a, b)
         const key = `${a.device.id}-${b.device.id}`
         return broken(a) || broken(b) ? (
-          <path key={key} data-link="broken" d={d} fill="none" stroke="rgb(240 189 90 / 0.5)" strokeWidth={0.4} strokeDasharray=".8 1.6" />
+          <path key={key} data-link="broken" d={d} fill="none" stroke="color-mix(in srgb, var(--color-data-amber) 50%, transparent)" strokeWidth={0.4} strokeDasharray=".8 1.6" />
         ) : (
           <g key={key} data-link="up">
-            <path d={d} fill="none" stroke="rgb(180 169 255 / 0.2)" strokeWidth={0.45} />
-            <path d={d} fill="none" stroke="#c3b9ff" strokeWidth={0.8} strokeLinecap="round" strokeDasharray="2 30" className="motion-safe:animate-thread" />
+            <path d={d} fill="none" stroke="color-mix(in srgb, var(--color-accent-fg) 20%, transparent)" strokeWidth={0.45} />
+            <path d={d} fill="none" stroke="var(--color-data-lavender)" strokeWidth={0.8} strokeLinecap="round" strokeDasharray="2 30" className="motion-safe:animate-thread" />
           </g>
         )
       })}
@@ -243,7 +243,7 @@ export function AppleCard({ data }: { data: AppleDevices | undefined }) {
               aria-hidden="true"
               className={cn(
                 'size-[7px] rounded-full',
-                threadUp === routers.length ? 'bg-[#b4a9ff] shadow-[0_0_8px_#b4a9ff]' : 'bg-[#f0bd5a] shadow-[0_0_8px_#f0bd5a]',
+                threadUp === routers.length ? 'bg-[var(--color-accent-fg)] shadow-[0_0_8px_#b4a9ff]' : 'bg-[var(--color-data-amber)] shadow-[0_0_8px_#f0bd5a]',
               )}
             />
             Thread · {threadUp} of {routers.length} border routers

@@ -147,7 +147,7 @@ export function HomePage() {
     if (states[id] === 'warn') return { light: TONE_COLOR.warn }
     if (id === 'train' && train.data) return { light: TONE_COLOR[trainStatus(train.data).tone], light2: '#6aa8f0' }
     if (id === 'nowPlaying' && music.playing)
-      return { light: music.playing.colour ?? '#9c8ffb', backdrop: music.playing.cover ? coverUrl(music.playing.cover) : null }
+      return { light: music.playing.colour ?? 'var(--color-data-violet)', backdrop: music.playing.cover ? coverUrl(music.playing.cover) : null }
     if (id === 'today' && today.data)
       return { light: focusOf(today.data.events, now)?.event.color ?? TONE_COLOR.accent, light2: TONE_COLOR.accent }
     return { light: TONE_COLOR.accent }
@@ -189,8 +189,8 @@ export function HomePage() {
                 className={cn(
                   'pointer-events-none absolute inset-0 rounded-[14px] ring-1',
                   light === 'up'
-                    ? 'bg-[radial-gradient(80%_60%_at_100%_0%,rgb(63_185_127/0.12),transparent_70%)] ring-up/30'
-                    : 'bg-[radial-gradient(80%_60%_at_100%_0%,rgb(124_108_242/0.13),transparent_70%)] ring-accent-line/30',
+                    ? 'bg-[radial-gradient(80%_60%_at_100%_0%,--alpha(var(--color-up)/12%),transparent_70%)] ring-up/30'
+                    : 'bg-[radial-gradient(80%_60%_at_100%_0%,--alpha(var(--color-violet)/13%),transparent_70%)] ring-accent-line/30',
                 )}
               />
             )}

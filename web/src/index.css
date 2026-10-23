@@ -20,6 +20,7 @@
 
   /* Filled accent (buttons, toggles) carries white text at 4.8:1. */
   --color-accent: #6d5ce8;
+  --color-violet: #7c6cf2; /* the brand violet (plan §1), for glows and tints */
   --color-accent-soft: rgb(124 108 242 / 0.14);
   --color-accent-fg: #b4aaff; /* accent-coloured text and icons */
   --color-accent-line: #8f80ff; /* active indicator, chart lines */
@@ -27,6 +28,19 @@
   --color-up: #3fb97f;
   --color-down: #e5646a;
   --color-warn: #e0a23b;
+
+  /*
+   * Chart and series colours beside the states, for a second or third line,
+   * a machine, a kind of media. Colours written outside these tokens are data
+   * (brand logos, the monogram and volume palettes, the sky's lights) or
+   * neutral black and white shading.
+   */
+  --color-data-violet: #9c8ffb; /* music, the washer */
+  --color-data-blue: #7cc4ff;
+  --color-data-deep-blue: #5aa9ff; /* video, the dryer */
+  --color-data-mint: #7fe0b0;
+  --color-data-lavender: #c3b9ff;
+  --color-data-amber: #f0bd5a;
 
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;

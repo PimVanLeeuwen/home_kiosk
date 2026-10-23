@@ -40,7 +40,7 @@ export function WatchingCard({ overview }: { overview: MediaOverview }) {
                     <div className="min-w-0">
                       <p className="truncate text-[13.5px]">{v.name}</p>
                       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/7">
-                        <i style={{ width: `${(v.watch_seconds / top) * 100}%` }} className="block h-full rounded-full bg-linear-to-r from-accent to-accent-fg shadow-[0_0_8px_rgb(143_128_255/0.6)]" />
+                        <i style={{ width: `${(v.watch_seconds / top) * 100}%` }} className="block h-full rounded-full bg-linear-to-r from-accent to-accent-fg shadow-[0_0_8px_--alpha(var(--color-accent-line)/60%)]" />
                       </div>
                     </div>
                     <p className="text-right text-[13px] font-semibold">

@@ -16,7 +16,7 @@ interface Props {
  * letter tile for a brand without a bundled logo (TransIP). */
 export function BrandLogo({ service, size = 36, halo, dim, className }: Props) {
   const logo = BRAND_LOGOS[service.key]
-  const glow = logo?.glow ?? '#b4aaff'
+  const glow = logo?.glow ?? 'var(--color-accent-fg)'
   return (
     <span
       aria-hidden="true"

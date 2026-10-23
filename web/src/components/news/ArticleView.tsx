@@ -120,7 +120,7 @@ export function ArticleView({ content, title, url, meta, actions, back, bodyRef 
           className="sticky top-0 z-10 -mt-1 mb-4 h-0.5 overflow-hidden rounded-full bg-raised"
         >
           <span
-            className="block h-full rounded-full bg-linear-to-r from-[#6f60ea] to-[#b4a9ff] shadow-[0_0_8px_var(--color-accent-line)] transition-[width] duration-150"
+            className="block h-full rounded-full bg-linear-to-r from-[var(--color-accent)] to-[var(--color-accent-fg)] shadow-[0_0_8px_var(--color-accent-line)] transition-[width] duration-150"
             style={{ width: `${progress}%` }}
           />
         </div>

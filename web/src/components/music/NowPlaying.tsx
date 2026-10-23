@@ -4,7 +4,7 @@ import { cn } from '../../lib/cn'
 import { coverUrl, minutes, type MusicItem, type Playing } from '../../lib/musicTypes'
 import { useProgress } from '../../lib/useMusic'
 
-const VIOLET = '#9c8ffb'
+const VIOLET = 'var(--color-data-violet)'
 /** A volume is sent once the slider has rested this long. */
 const SETTLE_MS = 300
 

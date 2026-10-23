@@ -8,7 +8,7 @@ import { StaleNote } from '../ui/states'
 
 const R = 44
 const C = 2 * Math.PI * R
-const MACHINE_COLOUR = { washer: '#9c8ffb', dryer: '#5aa9ff' } as const
+const MACHINE_COLOUR = { washer: 'var(--color-data-violet)', dryer: 'var(--color-data-deep-blue)' } as const
 const STATE_COLOUR = { done: 'var(--color-up)', paused: 'var(--color-warn)', error: 'var(--color-down)' } as const
 
 function ringColour(m: Machine): string {
@@ -71,11 +71,11 @@ function Porthole({ m }: { m: Machine }) {
         className={cn(
           'absolute inset-[13%] grid place-items-center overflow-hidden rounded-full bg-[radial-gradient(circle_at_35%_30%,rgb(255_255_255/0.14),rgb(255_255_255/0.02)_60%),#0e0e14]',
           m.state === 'done'
-            ? 'shadow-[inset_0_0_0_4px_rgb(63_185_127/0.35),0_0_32px_rgb(63_185_127/0.3)]'
+            ? 'shadow-[inset_0_0_0_4px_--alpha(var(--color-up)/35%),0_0_32px_--alpha(var(--color-up)/30%)]'
             : m.state === 'paused'
-              ? 'shadow-[inset_0_0_0_4px_rgb(224_162_59/0.35),0_0_28px_rgb(224_162_59/0.25)]'
+              ? 'shadow-[inset_0_0_0_4px_--alpha(var(--color-warn)/35%),0_0_28px_--alpha(var(--color-warn)/25%)]'
               : m.state === 'error'
-                ? 'shadow-[inset_0_0_0_4px_rgb(229_100_106/0.4),0_0_28px_rgb(229_100_106/0.3)]'
+                ? 'shadow-[inset_0_0_0_4px_--alpha(var(--color-down)/40%),0_0_28px_--alpha(var(--color-down)/30%)]'
                 : 'shadow-[inset_0_0_0_4px_rgb(255_255_255/0.08),inset_0_-12px_24px_rgb(0_0_0/0.5)]',
         )}
       >

@@ -49,7 +49,7 @@ function Platform({ run }: { run: TrainRun }) {
         className={cn(
           'rounded-[6px] px-1.5 font-semibold',
           changed
-            ? 'bg-warn/15 text-warn shadow-[0_0_0_1px_rgb(224_162_59/0.4),0_0_14px_-2px_rgb(224_162_59/0.6)]'
+            ? 'bg-warn/15 text-warn shadow-[0_0_0_1px_--alpha(var(--color-warn)/40%),0_0_14px_-2px_--alpha(var(--color-warn)/60%)]'
             : 'bg-raised text-fg',
         )}
       >

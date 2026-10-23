@@ -102,7 +102,7 @@ export function ReposPage() {
                   onClick={() => setParams({ tab: g.label }, { replace: true })}
                   className={cn(
                     'rounded-[9px] px-3.5 py-1.5 font-medium whitespace-nowrap',
-                    selected ? 'bg-accent/20 text-fg shadow-[inset_0_0_0_1px_rgb(143_128_255/0.4)]' : 'text-muted hover:text-fg',
+                    selected ? 'bg-accent/20 text-fg shadow-[inset_0_0_0_1px_--alpha(var(--color-accent-line)/40%)]' : 'text-muted hover:text-fg',
                   )}
                 >
                   {g.label} <span className={selected ? 'text-accent-fg' : 'text-faint'}>{count}</span>

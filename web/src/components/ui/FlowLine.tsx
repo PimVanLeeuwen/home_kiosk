@@ -16,7 +16,7 @@ export function FlowLine({ from, to, ok = true }: Props) {
       <span className={chip}>{from}</span>
       <span className={cn('relative h-0.5 flex-1 overflow-hidden rounded-full', ok ? 'bg-up/22' : 'bg-down/35')}>
         {ok && (
-          <i className="absolute -top-px h-1 w-[28%] rounded-full bg-linear-to-r from-transparent via-[#7fe0b0] to-transparent motion-safe:animate-flow motion-reduce:left-[36%]" />
+          <i className="absolute -top-px h-1 w-[28%] rounded-full bg-linear-to-r from-transparent via-[var(--color-data-mint)] to-transparent motion-safe:animate-flow motion-reduce:left-[36%]" />
         )}
       </span>
       <span className={chip}>{to}</span>

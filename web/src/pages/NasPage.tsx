@@ -23,7 +23,7 @@ const headroom = (top: number | null, floor = 10) => Math.min(100, Math.max(floo
 const TEMP_FLOOR_C = 20
 
 /** The temperature line when all is well: a cool blue rather than the accent. */
-const COOL = '#7cc4ff'
+const COOL = 'var(--color-data-blue)'
 
 function peak(points: NasPoint[], key: 'cpu' | 'ram' | 'temp' | 'rx_mbps' | 'tx_mbps'): number | null {
   const values = points.map((p) => p[key]).filter((v): v is number => v != null)

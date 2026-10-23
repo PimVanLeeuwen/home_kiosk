@@ -26,12 +26,12 @@ export function RainRing({ points, temperature }: Props) {
     <svg role="img" aria-label={rainSummary(points)} viewBox="0 0 100 100" className="block w-full">
       <defs>
         <radialGradient id={`${id}-rain`} cx="50" cy="50" r="52" gradientUnits="userSpaceOnUse">
-          <stop offset="0.7" stopColor="#6f60ea" />
-          <stop offset="1" stopColor="#c3b9ff" />
+          <stop offset="0.7" stopColor="var(--color-accent)" />
+          <stop offset="1" stopColor="var(--color-data-lavender)" />
         </radialGradient>
         <radialGradient id={`${id}-core`}>
-          <stop offset="0" stopColor="rgb(124 108 242 / 0.2)" />
-          <stop offset="1" stopColor="rgb(124 108 242 / 0)" />
+          <stop offset="0" stopColor="color-mix(in srgb, var(--color-violet) 20%, transparent)" />
+          <stop offset="1" stopColor="color-mix(in srgb, var(--color-violet) 0%, transparent)" />
         </radialGradient>
       </defs>
       <circle cx="50" cy="50" r="33" fill={`url(#${id}-core)`} />

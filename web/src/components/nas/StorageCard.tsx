@@ -49,7 +49,7 @@ export function StorageCard({ pools }: { pools: Pool[] }) {
                 aria-valuemax={100}
                 className="h-[5px] flex-1 overflow-hidden rounded-full bg-raised"
               >
-                <span className="block h-full rounded-full bg-linear-to-r from-[#6f60ea] to-[#b4a9ff]" style={{ width: `${pct}%` }} />
+                <span className="block h-full rounded-full bg-linear-to-r from-[var(--color-accent)] to-[var(--color-accent-fg)]" style={{ width: `${pct}%` }} />
               </span>
               <span className="whitespace-nowrap">
                 {formatBytes(used)} of {formatBytes(total)} used

@@ -68,7 +68,7 @@ describe('NasPage', () => {
     stubApi({ '/api/nas': nasFixture({ cpu_temp_c: 48 }), '/api/nas/history': [point(0), point(10)] })
     const { unmount } = renderRoute('/nas')
     expect(await screen.findByText('48 °C')).not.toHaveClass('text-warn')
-    expect(line()).toHaveAttribute('stroke', '#7cc4ff')
+    expect(line()).toHaveAttribute('stroke', 'var(--color-data-blue)')
     unmount()
 
     stubApi({ '/api/nas': nasFixture({ cpu_temp_c: 74 }), '/api/nas/history': [point(0), point(10)] })

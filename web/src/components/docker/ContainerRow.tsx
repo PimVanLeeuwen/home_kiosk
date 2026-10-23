@@ -73,7 +73,7 @@ export function ContainerRow({ container: c, spark, updates, open, onToggle, cpu
         <span className="text-right text-[13px]">
           <span className="sr-only">Memory </span>
           {c.mem_bytes == null ? '–' : formatBytes(c.mem_bytes)}
-          {c.mem_bytes != null && <LoadBar share={c.mem_bytes / memTop} color="#7cc4ff" />}
+          {c.mem_bytes != null && <LoadBar share={c.mem_bytes / memTop} color="var(--color-data-blue)" />}
         </span>
         <span className="col-span-3 text-[12px] whitespace-nowrap text-muted md:col-span-1 md:text-right">
           {c.state !== 'running' ? (
@@ -117,7 +117,7 @@ function ContainerDetail({ id, container: c, updates }: { id: string; container:
       </Panel>
       <Panel title="Memory, last 24 hours" note={c.mem_limit ? `limit ${formatBytes(c.mem_limit)}` : ''}>
         {points.length > 1 ? (
-          <GlowArea values={mem} label={`${c.name} memory, last 24 hours`} min={0} color="#7cc4ff" peak height={80} />
+          <GlowArea values={mem} label={`${c.name} memory, last 24 hours`} min={0} color="var(--color-data-blue)" peak height={80} />
         ) : (
           empty
         )}

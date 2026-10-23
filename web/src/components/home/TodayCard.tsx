@@ -119,7 +119,7 @@ export function TodayCard({ data }: { data: Today | undefined }) {
             })}
             <b
               style={{ left: `${nowX}%` }}
-              className="absolute -inset-y-1 -ml-px block w-0.5 rounded-sm bg-white shadow-[0_0_8px_#fff,0_0_14px_rgb(180_170_255/0.9)]"
+              className="absolute -inset-y-1 -ml-px block w-0.5 rounded-sm bg-white shadow-[0_0_8px_#fff,0_0_14px_--alpha(var(--color-accent-fg)/90%)]"
             />
           </div>
           <p aria-hidden="true" className="relative mt-1 flex justify-between font-mono text-[11px] text-faint">

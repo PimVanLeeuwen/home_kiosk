@@ -18,7 +18,7 @@ interface Props {
 export function NowPlayingCard({ playing, send, hero }: Props) {
   if (!playing) return null
   const on = playing.state === 'playing'
-  const colour = playing.colour ?? '#9c8ffb'
+  const colour = playing.colour ?? 'var(--color-data-violet)'
 
   return (
     <Card

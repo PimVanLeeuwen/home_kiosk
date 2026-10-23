@@ -32,7 +32,7 @@ export function Segmented<T extends string>({ label, options, value, onChange, s
           className={cn(
             'rounded-[7px] px-2.5 py-1 whitespace-nowrap',
             stretch && 'flex-1 sm:flex-none',
-            value === v ? 'bg-accent/20 text-fg shadow-[inset_0_0_0_1px_rgb(143_128_255/0.4)]' : 'text-muted hover:text-fg',
+            value === v ? 'bg-accent/20 text-fg shadow-[inset_0_0_0_1px_--alpha(var(--color-accent-line)/40%)]' : 'text-muted hover:text-fg',
           )}
         >
           {text}

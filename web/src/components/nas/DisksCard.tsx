@@ -53,7 +53,7 @@ export function DisksCard({ nas }: { nas: Nas }) {
                 <span className="relative h-[5px] overflow-hidden rounded-full bg-raised" aria-hidden="true">
                   {disk.temp_c != null && (
                     <span
-                      className="absolute inset-y-0 left-0 rounded-full bg-linear-to-r from-[#4fa3e8] via-[#3fb97f] via-45% to-[#e5646a]"
+                      className="absolute inset-y-0 left-0 rounded-full bg-linear-to-r from-[#4fa3e8] via-[var(--color-up)] via-45% to-[var(--color-down)]"
                       // The gradient spans the whole bar, so a warm disk's bar ends in a warm colour.
                       style={{ width: `${fill}%`, backgroundSize: `${(100 / fill) * 100}% 100%` }}
                     />

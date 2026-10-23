@@ -54,7 +54,7 @@ export function IncidentCard({ service, incident, now = new Date() }: Props) {
                 aria-hidden="true"
                 className={cn(
                   'absolute top-[0.45em] -left-[16.5px] size-[7px] rounded-full',
-                  i === 0 ? 'bg-fg shadow-[0_0_0_3px_rgb(236_237_239/0.12)]' : 'bg-faint',
+                  i === 0 ? 'bg-fg shadow-[0_0_0_3px_--alpha(var(--color-fg)/12%)]' : 'bg-faint',
                 )}
               />
               <span className={i === 0 ? 'font-medium' : 'text-muted'}>{statusWord(u.status)}</span>

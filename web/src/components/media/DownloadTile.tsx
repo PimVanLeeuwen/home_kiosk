@@ -64,8 +64,8 @@ export function DownloadTile({ item }: { item: MediaDownload }) {
               bad
                 ? 'bg-down'
                 : warn
-                  ? 'bg-warn shadow-[0_0_10px_rgb(224_162_59/0.6)]'
-                  : 'bg-linear-to-r from-accent to-accent-fg shadow-[0_0_10px_rgb(143_128_255/0.7)]',
+                  ? 'bg-warn shadow-[0_0_10px_--alpha(var(--color-warn)/60%)]'
+                  : 'bg-linear-to-r from-accent to-accent-fg shadow-[0_0_10px_--alpha(var(--color-accent-line)/70%)]',
             )}
           >
             {running && (

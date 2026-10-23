@@ -12,11 +12,11 @@ function Constellation({ services }: { services: OutsideService[] }) {
     <div className="relative mx-auto aspect-square w-full max-w-[230px]">
       <div
         aria-hidden="true"
-        className="absolute inset-[18%] rounded-full bg-[radial-gradient(circle,rgb(63_185_127/0.16),transparent_70%)]"
+        className="absolute inset-[18%] rounded-full bg-[radial-gradient(circle,--alpha(var(--color-up)/16%),transparent_70%)]"
       />
       <svg aria-hidden="true" viewBox="0 0 60 60" className="absolute inset-[32%]">
-        <circle cx="30" cy="30" r="22" fill="rgb(63 185 127 / 0.14)" stroke="rgb(63 185 127 / 0.45)" strokeWidth="1.5" />
-        <path d="M21 30.5l6 6 12-13" fill="none" stroke="#3fb97f" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="30" cy="30" r="22" fill="color-mix(in srgb, var(--color-up) 14%, transparent)" stroke="color-mix(in srgb, var(--color-up) 45%, transparent)" strokeWidth="1.5" />
+        <path d="M21 30.5l6 6 12-13" fill="none" stroke="var(--color-up)" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <ul>
         {services.map((s, i) => {

@@ -25,9 +25,9 @@ export function SunArc({ sunrise, sunset, now }: Props) {
     <svg role="img" aria-label={label} viewBox="0 0 100 36" className="block w-full max-w-[260px] overflow-visible">
       <defs>
         <linearGradient id={`${id}-arc`} x1="0" x2="1">
-          <stop offset="0" stopColor="rgb(224 162 59 / 0.15)" />
-          <stop offset="0.5" stopColor="rgb(224 162 59 / 0.55)" />
-          <stop offset="1" stopColor="rgb(229 100 106 / 0.2)" />
+          <stop offset="0" stopColor="color-mix(in srgb, var(--color-warn) 15%, transparent)" />
+          <stop offset="0.5" stopColor="color-mix(in srgb, var(--color-warn) 55%, transparent)" />
+          <stop offset="1" stopColor="color-mix(in srgb, var(--color-down) 20%, transparent)" />
         </linearGradient>
       </defs>
       <line x1="2" x2="98" y1="34" y2="34" stroke="rgb(255 255 255 / 0.08)" />
@@ -38,8 +38,8 @@ export function SunArc({ sunrise, sunset, now }: Props) {
           cx={x.toFixed(1)}
           cy={y.toFixed(1)}
           r="3"
-          fill="#f2c45a"
-          style={{ filter: 'drop-shadow(0 0 4px #f2c45a)' }}
+          fill="var(--color-data-amber)"
+          style={{ filter: 'drop-shadow(0 0 4px var(--color-data-amber))' }}
         />
       )}
     </svg>

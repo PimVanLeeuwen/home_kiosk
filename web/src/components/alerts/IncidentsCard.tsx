@@ -60,7 +60,7 @@ export function IncidentsCard({ incidents, now }: { incidents: Incident[] | unde
               />
             ))}
             <svg viewBox="0 0 60 60" className="w-16">
-              <circle cx="30" cy="30" r="22" fill="rgb(63 185 127 / 0.14)" stroke="rgb(63 185 127 / 0.5)" strokeWidth="1.4" />
+              <circle cx="30" cy="30" r="22" fill="color-mix(in srgb, var(--color-up) 14%, transparent)" stroke="color-mix(in srgb, var(--color-up) 50%, transparent)" strokeWidth="1.4" />
               <path d="M21 30.5l6 6 12-13" fill="none" stroke="var(--color-up)" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>

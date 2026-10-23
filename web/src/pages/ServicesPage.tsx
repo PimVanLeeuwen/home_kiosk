@@ -16,7 +16,7 @@ const REFRESH_MS = 30_000
 
 /** The summary's dot per service: green up, amber starting or unhealthy, red down, grey for a link. */
 const DOT: Record<ServiceStatus | 'link', string> = {
-  up: 'bg-up shadow-[0_0_5px_rgb(63_185_127/0.7)]',
+  up: 'bg-up shadow-[0_0_5px_--alpha(var(--color-up)/70%)]',
   starting: 'bg-warn shadow-[0_0_7px_var(--color-warn)]',
   unhealthy: 'bg-warn shadow-[0_0_7px_var(--color-warn)]',
   down: 'bg-down shadow-[0_0_7px_var(--color-down)]',

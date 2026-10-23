@@ -68,7 +68,7 @@ export function HoldingsCard({ holdings, currency }: { holdings: HoldingRow[]; c
                 {formatPercent(h.weight_pct)}
                 <span className="ml-2 inline-block h-1 w-14 overflow-hidden rounded-full bg-raised align-middle" aria-hidden="true">
                   <span
-                    className="block h-full rounded-full bg-linear-to-r from-[#6f60ea] to-[#b4a9ff]"
+                    className="block h-full rounded-full bg-linear-to-r from-[var(--color-accent)] to-[var(--color-accent-fg)]"
                     style={{ width: `${Math.min(100, (h.weight_pct / topWeight) * 100)}%` }}
                   />
                 </span>

@@ -48,7 +48,7 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
                 <span
                   className={cn(
                     'ml-1.5 rounded-[6px] px-1.5 text-[10.5px] font-semibold tracking-[0.04em]',
-                    db.kind === 'sqlite' ? 'bg-[#8cc4ff]/14 text-[#8cc4ff]' : 'bg-accent/18 text-accent-fg',
+                    db.kind === 'sqlite' ? 'bg-[var(--color-data-blue)]/14 text-[var(--color-data-blue)]' : 'bg-accent/18 text-accent-fg',
                   )}
                 >
                   {db.kind === 'sqlite' ? 'SQLite' : 'pg_dump'}

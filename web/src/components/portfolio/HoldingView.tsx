@@ -22,7 +22,7 @@ const TYPES: Record<string, string> = {
 /** A colour per transaction type for its dot and chip; money in green, costs amber. */
 const TYPE_COLOURS: Record<string, string> = {
   BUY: 'var(--color-accent-line)',
-  SELL: '#7cc4ff',
+  SELL: 'var(--color-data-blue)',
   DIVIDEND: 'var(--color-up)',
   INTEREST: 'var(--color-up)',
   FEE: 'var(--color-warn)',

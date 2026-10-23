@@ -2,7 +2,7 @@ import { formatBytes, formatCount } from './format'
 import type { BackupVolume } from './types'
 
 /** A colour per backup volume, by its place in the list, shared by the tiles and the run history. */
-export const VOLUME_COLOURS = ['#8f80ff', '#7cc4ff', '#7fe0b0', '#f5b86a', '#e0a2f5', '#ff9aa0']
+export const VOLUME_COLOURS = ['var(--color-accent-line)', 'var(--color-data-blue)', 'var(--color-data-mint)', '#f5b86a', '#e0a2f5', '#ff9aa0']
 
 export const volumeColour = (index: number) => VOLUME_COLOURS[index % VOLUME_COLOURS.length]
 

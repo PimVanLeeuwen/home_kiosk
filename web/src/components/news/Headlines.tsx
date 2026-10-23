@@ -39,7 +39,7 @@ function SaveButton({ h, state, onSave, onImage }: { h: Headline; state?: SaveSt
         onImage
           ? 'top-3.5 right-3.5 size-[38px] rounded-[11px] border-white/14 bg-[rgb(12_12_18/0.45)] backdrop-blur-[8px]'
           : 'top-2.5 right-2.5 size-8 rounded-[9px] border-glass-line bg-glass',
-        saved && 'border-[rgb(180_169_255/0.6)] bg-accent/35 shadow-[0_0_16px_-2px_rgb(143_128_255/0.8)]',
+        saved && 'border-[--alpha(var(--color-accent-fg)/60%)] bg-accent/35 shadow-[0_0_16px_-2px_--alpha(var(--color-accent-line)/80%)]',
         state === 'failed' && 'border-down/60',
       )}
     >

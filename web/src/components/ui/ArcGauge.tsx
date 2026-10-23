@@ -50,8 +50,8 @@ export function ArcGauge({ pct, alertAt, label, children, className }: Props) {
       >
         <defs>
           <linearGradient id={`${id}-arc`} x1="0" x2="1">
-            <stop offset="0" stopColor="#6f60ea" />
-            <stop offset="0.75" stopColor="#b4a9ff" />
+            <stop offset="0" stopColor="var(--color-accent)" />
+            <stop offset="0.75" stopColor="var(--color-accent-fg)" />
             <stop offset="1" stopColor={over ? 'var(--color-warn)' : '#cfc8ff'} />
           </linearGradient>
           <filter id={`${id}-glow`} x="-20%" y="-20%" width="140%" height="140%">

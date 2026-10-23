@@ -6,7 +6,7 @@ import { OutOf, StatTile, StatTiles } from '../ui/StatTile'
 
 const pct = (n: number) => `${n.toFixed(1).replace('.', ',')}%`
 /** Colours for the biggest memory users; the rest is grey. */
-const MEMORY_COLOURS = ['#8f80ff', '#7cc4ff', '#7fe0b0']
+const MEMORY_COLOURS = ['var(--color-accent-line)', 'var(--color-data-blue)', 'var(--color-data-mint)']
 const DAY = 86_400_000
 const weekday = new Intl.DateTimeFormat('en-GB', { weekday: 'narrow' })
 
@@ -54,7 +54,7 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
                 title={c.name}
                 className={cn(
                   'block size-[7px] rounded-full',
-                  status === 'up' && 'bg-up shadow-[0_0_5px_rgb(63_185_127/0.7)]',
+                  status === 'up' && 'bg-up shadow-[0_0_5px_--alpha(var(--color-up)/70%)]',
                   (status === 'unhealthy' || status === 'starting') && 'bg-warn shadow-[0_0_6px_var(--color-warn)]',
                   status === 'down' && 'bg-down shadow-[0_0_6px_var(--color-down)]',
                 )}
@@ -75,7 +75,7 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
               <span className="truncate font-mono text-[11px] text-muted">{c.name}</span>
               <span className="order-last col-span-2 h-1 overflow-hidden rounded-full bg-raised md:order-none md:col-span-1" aria-hidden="true">
                 <span
-                  className="block h-full rounded-full bg-linear-to-r from-[#6f60ea] to-[#b4a9ff]"
+                  className="block h-full rounded-full bg-linear-to-r from-[var(--color-accent)] to-[var(--color-accent-fg)]"
                   style={{ width: `${Math.min(100, (c.cpu_pct! / Math.max(overview.cpu_pct, 0.1)) * 100)}%` }}
                 />
               </span>

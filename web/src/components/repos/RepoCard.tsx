@@ -135,7 +135,7 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
 
       {repo.pushed_at && (
         <span className="mt-2.5 block h-[3px] overflow-hidden rounded-full bg-raised" aria-hidden="true">
-          <span data-testid="fresh" className="block h-full rounded-full bg-linear-to-r from-[#6f60ea] to-[#b4a9ff]" style={{ width: `${fresh}%` }} />
+          <span data-testid="fresh" className="block h-full rounded-full bg-linear-to-r from-[var(--color-accent)] to-[var(--color-accent-fg)]" style={{ width: `${fresh}%` }} />
         </span>
       )}
 

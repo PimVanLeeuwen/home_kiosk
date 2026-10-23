@@ -131,7 +131,7 @@ export function ExposureCard() {
                 <span
                   className={cn(
                     'rounded-[6px] px-1.5 text-[10.5px] font-semibold tracking-[0.04em] uppercase',
-                    host.source === 'tunnel' ? 'bg-accent/18 text-accent-fg' : 'bg-[#8cc4ff]/14 text-[#8cc4ff]',
+                    host.source === 'tunnel' ? 'bg-accent/18 text-accent-fg' : 'bg-[var(--color-data-blue)]/14 text-[var(--color-data-blue)]',
                   )}
                 >
                   {host.source === 'tunnel' ? 'Tunnel' : 'DNS'}

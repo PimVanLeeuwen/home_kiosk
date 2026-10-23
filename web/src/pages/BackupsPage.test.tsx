@@ -77,8 +77,8 @@ describe('BackupsPage', () => {
     expect(rows[1]).toHaveTextContent('500 MB · 118 files')
     // A bar per run with a segment per volume, the failed one red, in the legend's colours.
     const segments = (row: HTMLElement) => [...row.querySelectorAll('td:nth-child(3) i')] as HTMLElement[]
-    expect(segments(rows[0]).map((i) => i.style.backgroundColor)).toEqual(['rgb(143, 128, 255)', 'var(--color-down)'])
-    expect(segments(rows[1]).map((i) => i.style.backgroundColor)).toEqual(['rgb(143, 128, 255)', 'rgb(124, 196, 255)'])
+    expect(segments(rows[0]).map((i) => i.style.backgroundColor)).toEqual(['var(--color-accent-line)', 'var(--color-down)'])
+    expect(segments(rows[1]).map((i) => i.style.backgroundColor)).toEqual(['var(--color-accent-line)', 'var(--color-data-blue)'])
     expect(within(history).getByText('volume1', { selector: 'span' })).toBeInTheDocument()
   })
 

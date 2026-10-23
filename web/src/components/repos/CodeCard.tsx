@@ -10,10 +10,10 @@ const MAX_BUILDS = 6
 const MAX_PULLS = 5
 const LEVEL = [
   'bg-white/6',
-  'bg-[rgb(124_108_242/0.3)]',
-  'bg-[rgb(124_108_242/0.55)]',
+  'bg-[--alpha(var(--color-violet)/30%)]',
+  'bg-[--alpha(var(--color-violet)/55%)]',
   'bg-[rgb(150_136_250/0.82)] shadow-[0_0_6px_rgb(150_136_250/0.35)]',
-  'bg-[#c3b9ff] shadow-[0_0_9px_rgb(195_185_255/0.6)]',
+  'bg-[var(--color-data-lavender)] shadow-[0_0_9px_--alpha(var(--color-data-lavender)/60%)]',
 ]
 const CI_COLOUR: Record<Repo['ci'], string> = {
   passing: 'var(--color-up)',
@@ -137,7 +137,7 @@ function ActivityGrid({ activity }: { activity: Activity }) {
                 key={c.day}
                 title={`${c.count} on ${c.day}`}
                 data-level={c.level}
-                className={cn('aspect-square rounded-[4px]', LEVEL[c.level] ?? LEVEL[0], c.day === today && 'outline-[1.5px] outline-offset-1 outline-[rgb(195_185_255/0.8)]')}
+                className={cn('aspect-square rounded-[4px]', LEVEL[c.level] ?? LEVEL[0], c.day === today && 'outline-[1.5px] outline-offset-1 outline-[--alpha(var(--color-data-lavender)/80%)]')}
               />
             ) : (
               <i key={`future-${i}`} className="aspect-square" />
