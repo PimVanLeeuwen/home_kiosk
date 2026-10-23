@@ -1,13 +1,13 @@
-/* The Now panel's day view (plan.md M20): the sun's arc over a sky band from
- * night through dawn, day and dusk, the temperature from 06:00 to midnight as a
- * curve, the chance of rain per hour, and a sentence on the day. As in the
- * desk-panels mockup's forecast screen. Values come ready-made from the hub
- * (app/desk.py); the now line follows the panel's own clock.
+/* The Now panel's day view (plan.md M20, redrawn as Y1 on 2026-10-23): the temperature from
+ * 06:00 to midnight as a curve across the middle, the night hours a slightly darker field with
+ * sunrise and sunset as quiet dotted lines, the chance of rain per hour underneath, a now line,
+ * and a sentence on the day. The sky band and the sun's arc went: the clock (Horizon) has the
+ * sky. Values come ready-made from the hub (app/desk.py); the now line follows the panel's own
+ * clock.
  *
- * The chart is drawn once into a canvas when the hub's answer changes: drawn
- * from a draw event, LVGL repeats every shape for every strip of every frame,
- * which held the display lock for seconds. Sun, moon and the now line sit on
- * top as objects. */
+ * The chart is drawn once into a canvas when the hub's answer changes: drawn from a draw
+ * event, LVGL repeats every shape for every strip of every frame, which held the display lock
+ * for seconds. The now line sits on top as an object. */
 
 #include "screen_day.h"
 
@@ -25,24 +25,22 @@
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
-LV_IMAGE_DECLARE(glow_round);
 
-/* The chart: hours 6 to 24 across, in four bands from the top. */
+/* The chart: hours 6 to 24 across; the night field and the sun lines span it all. */
 #define LEFT 36
 #define WIDTH 648
-#define SKY_TOP 236
-#define HORIZON 360    /* the sky band's bottom and the sun's horizon */
-#define ARC 100        /* the sun's arc at noon above the horizon */
-#define CURVE_TOP 392
-#define CURVE_BOTTOM 498
-#define FILL_BOTTOM 540
+#define CHART_TOP 236  /* the night field's top, and the sun lines' labels */
+#define CURVE_TOP 300
+#define CURVE_BOTTOM 470
+#define FILL_BOTTOM 528
 #define BARS_BOTTOM 600
-#define BAR_HEIGHT 52
+#define BAR_HEIGHT 56
 #define TICKS 614
-#define CANVAS_TOP 226 /* the chart's canvas: from just above the sky to below the hours */
+#define CANVAS_TOP 226 /* the chart's canvas: from just above the chart to below the hours */
 #define CANVAS_HEIGHT 420
+#define NIGHT 0x0c0e1d
 
-static lv_obj_t *canvas, *now_line, *title, *range, *lead, *rest, *sun_times, *credit, *sun, *sun_glow, *moon, *moon_shadow;
+static lv_obj_t *canvas, *now_line, *title, *range, *lead, *rest, *credit;
 EXT_RAM_BSS_ATTR static desk_day_t shown;
 static int shown_minute = -1;
 static int now_minute = -1; /* local, on this panel's clock; -1 before it is set */
@@ -55,27 +53,6 @@ static float x_of(float hour)
 static lv_color_t mix(uint32_t a, uint32_t b, float t)
 {
     return lv_color_mix(lv_color_hex(b), lv_color_hex(a), (uint8_t)(fminf(fmaxf(t, 0), 1) * 255));
-}
-
-/* The sky through the day, around the real sunrise and sunset. */
-static lv_color_t sky_at(float h, float sunrise, float sunset)
-{
-    const struct { float at; uint32_t colour; } stops[] = {
-        {6.0f, 0x121633},          {sunrise - 0.5f, 0x2a2552}, {sunrise + 0.35f, 0xb8606a},
-        {sunrise + 1.8f, 0x4a6fae}, {13.0f, 0x3f73b8},          {sunset - 1.1f, 0x5e6fa8},
-        {sunset, 0xd07a4e},         {sunset + 1.1f, 0x3a2650},  {24.0f, 0x121633},
-    };
-    int n = sizeof stops / sizeof stops[0];
-    if (h <= stops[0].at) {
-        return lv_color_hex(stops[0].colour);
-    }
-    for (int i = 1; i < n; i++) {
-        if (h <= stops[i].at) {
-            float span = stops[i].at - stops[i - 1].at;
-            return mix(stops[i - 1].colour, stops[i].colour, span > 0 ? (h - stops[i - 1].at) / span : 1);
-        }
-    }
-    return lv_color_hex(stops[n - 1].colour);
 }
 
 /* The temperature line runs from cool blue to warm and back, as in the mockup. */
@@ -158,14 +135,19 @@ static void draw_chart(lv_draw_buf_t *buf)
     float points[DESK_DAY_POINTS];
     curve(ys, points);
 
-    /* The sky band, and below the curve a warm glow fading out. */
-    lv_color_t warm = lv_color_hex(0xffb86b);
+    /* Night: a slightly darker field before sunrise and after sunset, half an hour soft at
+     * each edge; and below the curve a warm glow fading out. */
+    lv_color_t warm = lv_color_hex(0xffb86b), night = lv_color_hex(NIGHT);
     for (int x = 0; x < WIDTH; x++) {
-        lv_color_t sky = sky_at(6.0f + (float)x / WIDTH * 18.0f, sunrise, sunset);
-        for (int y = SKY_TOP; y < HORIZON; y++) {
-            paint(buf, LEFT + x, y, sky, 190);
+        float h = 6.0f + (float)x / WIDTH * 18.0f;
+        float dark = fmaxf(fminf((sunrise - h) / 1.0f + 0.5f, 1), fminf((h - sunset) / 1.0f + 0.5f, 1));
+        if (dark > 0) {
+            /* Faded out at the top and the bottom too, so it reads as dusk, not a box. */
+            for (int y = CHART_TOP + 20; y < FILL_BOTTOM + 30; y++) {
+                float edge = fminf(fminf((y - CHART_TOP - 20) / 70.0f, (FILL_BOTTOM + 30 - y) / 70.0f), 1);
+                paint(buf, LEFT + x, y, night, (uint8_t)(255 * fminf(dark, 1) * edge));
+            }
         }
-        paint(buf, LEFT + x, HORIZON, lv_color_white(), 46);
         for (int y = ys[x]; y < FILL_BOTTOM; y++) {
             paint(buf, LEFT + x, y, warm, (uint8_t)(50 * (FILL_BOTTOM - y) / (FILL_BOTTOM - ys[x])));
         }
@@ -173,13 +155,21 @@ static void draw_chart(lv_draw_buf_t *buf)
 
     lv_layer_t layer;
 
-    /* The sun's path, dotted. */
+    /* Sunrise and sunset: quiet dotted lines, their times at the top. */
     lv_canvas_init_layer(canvas, &layer);
-    for (int i = 0; i <= 44; i++) {
-        float f = i / 44.0f;
-        int x = (int)x_of(sunrise + (sunset - sunrise) * f);
-        int y = HORIZON - (int)(sinf((float)M_PI * f) * ARC);
-        rect(&layer, x - 2, y - 2, x + 2, y + 2, lv_color_hex(0xffecc8), 150, 2);
+    const float at[2] = {sunrise, sunset};
+    const char *names[2] = {shown.sunrise, shown.sunset};
+    for (int k = 0; k < 2; k++) {
+        if (at[k] <= 6.2f || at[k] >= 23.8f) {
+            continue;
+        }
+        int x = (int)x_of(at[k]);
+        for (int y = CHART_TOP + 34; y < BARS_BOTTOM; y += 10) {
+            rect(&layer, x - 1, y, x, y + 3, lv_color_hex(0xffb27a), 90, 0);
+        }
+        char words[24];
+        snprintf(words, sizeof words, "%s %s", k ? "sunset" : "sunrise", names[k]);
+        text_at(&layer, words, &instrument_24, 0xc99877, x, CHART_TOP, LV_TEXT_ALIGN_CENTER);
     }
     lv_canvas_finish_layer(canvas, &layer);
 
@@ -240,8 +230,7 @@ static void redraw_chart(void)
     }
 }
 
-/* Now, as a dashed line on today's view; the sun on its arc while it is up,
- * else the moon above now. */
+/* Now, as a solid line on today's view (the sun's lines are the dotted ones). */
 static void place_now(void)
 {
     bool line = shown.present && shown.today && now_minute >= 360;
@@ -249,27 +238,6 @@ static void place_now(void)
         lv_obj_set_x(now_line, (int)x_of(now_minute / 60.0f));
     }
     lv_obj_set_flag(now_line, LV_OBJ_FLAG_HIDDEN, !line);
-
-    float sunrise = shown.sunrise_minute / 60.0f, sunset = shown.sunset_minute / 60.0f;
-    float now = now_minute / 60.0f;
-    bool up = shown.present && shown.today && now_minute >= 0 && now > sunrise && now < sunset;
-    if (up) {
-        float f = (now - sunrise) / (sunset - sunrise);
-        int x = (int)x_of(now), y = HORIZON - (int)(sinf((float)M_PI * f) * ARC);
-        lv_obj_set_pos(sun, x - 9, y - 9);
-        lv_obj_set_pos(sun_glow, x - 80, y - 80);
-    }
-    lv_obj_set_flag(sun, LV_OBJ_FLAG_HIDDEN, !up);
-    lv_obj_set_flag(sun_glow, LV_OBJ_FLAG_HIDDEN, !up);
-
-    bool night = shown.present && shown.today && now_minute >= 360 && !up;
-    if (night) {
-        int x = (int)x_of(now);
-        lv_obj_set_pos(moon, x - 10, HORIZON - 70);
-        lv_obj_set_pos(moon_shadow, x - 5, HORIZON - 74);
-    }
-    lv_obj_set_flag(moon, LV_OBJ_FLAG_HIDDEN, !night);
-    lv_obj_set_flag(moon_shadow, LV_OBJ_FLAG_HIDDEN, !night);
 }
 
 static void tick(lv_timer_t *timer)
@@ -286,7 +254,6 @@ static void tick(lv_timer_t *timer)
             lv_label_set_text_fmt(range, "HIGH %d°  ·  LOW %d°", now.high, now.low);
             lv_label_set_text(lead, now.lead);
             lv_label_set_text(rest, now.rest);
-            lv_label_set_text_fmt(sun_times, "Sunrise %s  ·  Sunset %s", now.sunrise, now.sunset);
             lv_label_set_text(credit, now.credit);
         } else {
             lv_label_set_text(range, "");
@@ -307,18 +274,6 @@ static void tick(lv_timer_t *timer)
         shown_minute = now_minute;
         place_now();
     }
-}
-
-static lv_obj_t *dot(lv_obj_t *parent, int size, uint32_t colour)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(obj);
-    lv_obj_set_size(obj, size, size);
-    lv_obj_set_style_radius(obj, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(colour), 0);
-    lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, 0);
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
-    return obj;
 }
 
 void screen_day_create(lv_obj_t *screen)
@@ -342,29 +297,14 @@ void screen_day_create(lv_obj_t *screen)
     lv_obj_set_pos(canvas, 0, CANVAS_TOP);
     lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_COVER);
 
-    static lv_point_precise_t ends[] = {{0, SKY_TOP + 4}, {0, BARS_BOTTOM}};
+    static lv_point_precise_t ends[] = {{0, CHART_TOP + 34}, {0, BARS_BOTTOM}};
     now_line = lv_line_create(screen);
     lv_line_set_points(now_line, ends, 2);
     lv_obj_set_style_line_color(now_line, lv_color_white(), 0);
-    lv_obj_set_style_line_opa(now_line, 115, 0);
+    lv_obj_set_style_line_opa(now_line, 150, 0);
     lv_obj_set_style_line_width(now_line, 2, 0);
-    lv_obj_set_style_line_dash_width(now_line, 4, 0);
-    lv_obj_set_style_line_dash_gap(now_line, 6, 0);
     lv_obj_add_flag(now_line, LV_OBJ_FLAG_HIDDEN);
 
-    /* The sun: a warm glow and a pale disc; the moon: a disc with a shadow. */
-    sun_glow = lv_image_create(screen);
-    lv_image_set_src(sun_glow, &glow_round);
-    lv_obj_set_style_image_recolor(sun_glow, lv_color_hex(0xffb86b), 0);
-    lv_obj_set_style_image_recolor_opa(sun_glow, LV_OPA_COVER, 0);
-    lv_obj_set_style_image_opa(sun_glow, 200, 0);
-    lv_obj_add_flag(sun_glow, LV_OBJ_FLAG_HIDDEN);
-    sun = dot(screen, 18, 0xfff2d6);
-    moon = dot(screen, 20, 0xc9c4ee);
-    moon_shadow = dot(screen, 18, 0x0f0f1a);
-
-    sun_times = ui_text(screen, &instrument_24, 0x8a8794);
-    lv_obj_align(sun_times, LV_ALIGN_BOTTOM_LEFT, 36, -22);
     credit = ui_text(screen, &instrument_24, 0x7d7a8c);
     lv_obj_align(credit, LV_ALIGN_BOTTOM_RIGHT, -36, -22);
 

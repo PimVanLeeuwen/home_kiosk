@@ -1087,7 +1087,10 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M2
     moon's phase from the date; panel: one canvas redrawn per answer, labels on top).
   - Your day: Y1, chosen 2026-10-23 (the sky band and the sun's arc go, as the clock has them):
     the temperature curve across the middle, night a slightly darker field with sunrise and
-    sunset as quiet lines, the rain chance as bars underneath, and a now line.
+    sunset as quiet lines, the rain chance as bars underneath, and a now line. Built 2026-10-23
+    (panel only, `screen_day.c`; the hub's data was already there): the night field fades out
+    over an hour at sunrise and sunset and at its top and bottom (a hard-edged field read as a
+    box again); the now line is solid, so it is not taken for the dotted sunset line.
   - Calendar: with today nearly done, tomorrow's first events below.
   - NAS: the gauge's amber tied to the alert threshold instead of a fixed blend (82% came out pink).
   - Money: the faint vertical stripes in the fill where the line bends.
