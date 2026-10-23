@@ -3,6 +3,13 @@ import { MemoryRouter } from 'react-router'
 import type { Laundry, Machine } from '../../lib/types'
 import { stubApi } from '../../test/stubApi'
 import { LaundryCard } from './LaundryCard'
+import { useApi } from '../../lib/useApi'
+
+/** The card as Home gives it its data. */
+function Fetched() {
+  const { data } = useApi<Laundry>('/api/laundry')
+  return <LaundryCard data={data} />
+}
 
 const at = (h: number, m: number) => new Date(2026, 9, 14, h, m).toISOString()
 const base = { online: true, door_open: false, error: null, done_at: null, program: null, remaining_minutes: null, total_minutes: null, ready_at: null }
@@ -14,7 +21,7 @@ function show(machines: Machine[], showing = true, stale = false) {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 9, 14, 10, 14))
   stubApi({ '/api/laundry': { as_of: at(10, 13), stale, machines, showing } satisfies Laundry })
-  render(<MemoryRouter><LaundryCard /></MemoryRouter>)
+  render(<MemoryRouter><Fetched /></MemoryRouter>)
 }
 
 afterEach(() => vi.useRealTimers())

@@ -21,9 +21,11 @@ describe('Outside services on Home', () => {
   })
 
   it('leads with the incident, its latest word and its timeline', async () => {
-    const card = await home(outsideServices({ github: ACTIONS_DELAYED }))
+    await home(outsideServices({ github: ACTIONS_DELAYED }))
 
-    const incident = await within(card).findByRole('article', { name: 'GitHub: Actions runs are delayed' })
+    // An incident lifts the card to the top, so look it up once it is there.
+    const incident = await screen.findByRole('article', { name: 'GitHub: Actions runs are delayed' })
+    const card = screen.getByRole('region', { name: 'Outside services' })
     expect(within(incident).getByText('Degraded')).toBeInTheDocument()
     expect(within(incident).getByText(/for 24 min/)).toBeInTheDocument()
     expect(within(incident).getByText(/a fix is rolling out/)).toBeInTheDocument()

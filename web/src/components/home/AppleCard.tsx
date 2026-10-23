@@ -2,7 +2,6 @@ import type { CSSProperties, ReactNode } from 'react'
 import { curve, H, orbs, threadLinks, W, zones, type Orb } from '../../lib/applePlan'
 import { cn } from '../../lib/cn'
 import type { AppleDevices, ApplePlaying } from '../../lib/types'
-import { useApi } from '../../lib/useApi'
 import { Pill } from '../ui/Pill'
 import { Card, StaleNote } from './Card'
 
@@ -215,8 +214,7 @@ function NowPlaying({ room }: { room: Room & { playing: ApplePlaying } }) {
  * each Apple TV and HomePod an orb, the Thread border routers as one network,
  * and what plays per room below.
  */
-export function AppleCard() {
-  const { data } = useApi<AppleDevices>('/api/apple', 60_000)
+export function AppleCard({ data }: { data: AppleDevices | undefined }) {
   if (!data?.rooms.length) return null
   const devices = data.rooms.flatMap((r) => r.devices)
   const offline = devices.filter((d) => !d.online).length

@@ -3,6 +3,13 @@ import { MemoryRouter } from 'react-router'
 import type { CalendarEvent, Today } from '../../lib/types'
 import { stubApi } from '../../test/stubApi'
 import { TodayCard } from './TodayCard'
+import { useApi } from '../../lib/useApi'
+
+/** The card as Home gives it its data. */
+function Fetched() {
+  const { data } = useApi<Today>('/api/calendar')
+  return <TodayCard data={data} />
+}
 
 const at = (h: number, m = 0) => new Date(2026, 9, 14, h, m).toISOString()
 const ev = (s: [number, number], e: [number, number], title: string, calendar: string, color: string): CalendarEvent => ({
@@ -19,7 +26,7 @@ function show(today: Today | null, h: number, m = 0) {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 9, 14, h, m))
   stubApi(today ? { '/api/calendar': today } : {})
-  render(<MemoryRouter><TodayCard /></MemoryRouter>)
+  render(<MemoryRouter><Fetched /></MemoryRouter>)
 }
 
 afterEach(() => vi.useRealTimers())

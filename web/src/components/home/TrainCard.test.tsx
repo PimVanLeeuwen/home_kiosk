@@ -3,6 +3,13 @@ import { MemoryRouter } from 'react-router'
 import type { Train, TrainRun } from '../../lib/types'
 import { stubApi } from '../../test/stubApi'
 import { TrainCard } from './TrainCard'
+import { useApi } from '../../lib/useApi'
+
+/** The card as Home gives it its data. */
+function Fetched() {
+  const { data } = useApi<Train>('/api/train')
+  return <TrainCard data={data} />
+}
 
 const at = (h: number, m: number) => new Date(2026, 9, 14, h, m).toISOString()
 
@@ -33,7 +40,7 @@ function show(train: Train | null, now = new Date(2026, 9, 14, 6, 42)) {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(now)
   stubApi(train ? { '/api/train': train } : {})
-  render(<MemoryRouter><TrainCard /></MemoryRouter>)
+  render(<MemoryRouter><Fetched /></MemoryRouter>)
 }
 
 afterEach(() => vi.useRealTimers())

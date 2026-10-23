@@ -1,12 +1,9 @@
 import { headline, STATE_LABEL, troubled } from '../../lib/outside'
 import type { OutsideService, OutsideServices } from '../../lib/types'
-import { useApi } from '../../lib/useApi'
 import { Card, Loading, StaleNote, Unavailable } from '../home/Card'
 import { BrandLogo } from './BrandLogo'
 import { IncidentCard } from './IncidentCard'
 import { ReadNotes } from './ReadNotes'
-
-const REFRESH_MS = 60_000
 
 /** All well: the services as a ring around a glowing check. */
 function Constellation({ services }: { services: OutsideService[] }) {
@@ -43,8 +40,7 @@ function Constellation({ services }: { services: OutsideService[] }) {
 }
 
 /** The outside services the house depends on, for a glance on Home. */
-export function OutsideServicesCard() {
-  const { data, error } = useApi<OutsideServices>('/api/outside-services', REFRESH_MS)
+export function OutsideServicesCard({ data, error }: { data: OutsideServices | undefined; error: Error | undefined }) {
   const services = data?.services ?? []
   const problems = troubled(services)
   const fine = services.filter((s) => s.state === 'ok').length

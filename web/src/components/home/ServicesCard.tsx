@@ -14,7 +14,7 @@ export function ServicesCard({ services, error }: Props) {
   const labels = uniqueMonograms((services ?? []).map((s) => s.name))
 
   return (
-    <Card title="Services" link={{ to: '/services', label: 'All' }} className="lg:col-span-2">
+    <Card title="Services" link={{ to: '/services', label: 'All' }}>
       {!services && (error ? <Unavailable what="The service list" /> : <Loading />)}
       {services && (
         <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">

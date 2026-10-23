@@ -1,36 +1,14 @@
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
-import { useEffect, useState, type CSSProperties } from 'react'
+import type { CSSProperties } from 'react'
 import type { Playing } from '../../lib/musicTypes'
-import { useMusic } from '../../lib/useMusic'
+import type { HomeSend } from '../../lib/useHomeNowPlaying'
 import { Cover, Progress } from '../music/NowPlaying'
 import { Pill } from '../ui/Pill'
 import { Card } from './Card'
 
-/** Home asks less often than the Music page. */
-const REFRESH_MS = 5_000
-/** A paused item leaves Home after this long, as on the Home panel. */
-const PAUSED_FOR_MS = 2 * 60_000
-
-/** How long `playing` has been paused, by its own clock (React's pattern for state that follows a prop). */
-function usePausedFor(playing: Playing | null | undefined): number {
-  const key = playing?.state === 'paused' ? `${playing.title}|${playing.progress_ms}` : ''
-  const [since, setSince] = useState({ key: '', at: 0 })
-  const [now, setNow] = useState(() => new Date().getTime())
-  useEffect(() => {
-    if (!key) return
-    const timer = window.setInterval(() => setNow(new Date().getTime()), 10_000)
-    return () => window.clearInterval(timer)
-  }, [key])
-  if (since.key !== key) setSince({ key, at: new Date().getTime() })
-  return key && since.key === key ? Math.max(0, now - since.at) : 0
-}
-
-/** Now Playing on Home while something plays, or for two minutes after a pause. */
-export function NowPlayingCard() {
-  const { music, send } = useMusic(REFRESH_MS)
-  const playing = music?.connected ? music.playing : null
-  const pausedFor = usePausedFor(playing)
-  if (!playing || (playing.state === 'paused' && pausedFor >= PAUSED_FOR_MS)) return null
+/** Now Playing on Home, with what `useHomeNowPlaying` gives. */
+export function NowPlayingCard({ playing, send }: { playing: Playing | null; send: HomeSend }) {
+  if (!playing) return null
   const on = playing.state === 'playing'
   const colour = playing.colour ?? '#9c8ffb'
 

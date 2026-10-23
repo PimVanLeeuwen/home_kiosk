@@ -3,7 +3,6 @@ import { cn } from '../../lib/cn'
 import { formatTime } from '../../lib/format'
 import { followed, minutesToGo, trainShows, trainStatus } from '../../lib/train'
 import type { Train, TrainRun } from '../../lib/types'
-import { useApi } from '../../lib/useApi'
 import { TONE_COLOR } from '../ui/tones'
 import { Card, StaleNote } from './Card'
 
@@ -64,8 +63,7 @@ function Platform({ run }: { run: TrainRun }) {
  * panel's card: shown from 06:00 until it has left, and the evening before
  * only when tomorrow's train has a problem. Hidden the rest of the time.
  */
-export function TrainCard() {
-  const { data } = useApi<Train>('/api/train', 30_000)
+export function TrainCard({ data }: { data: Train | undefined }) {
   const now = new Date()
   if (!trainShows(data, now)) return null
 

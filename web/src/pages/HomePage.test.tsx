@@ -111,8 +111,9 @@ describe('HomePage', () => {
       }),
     })
 
-    const nas = await screen.findByRole('region', { name: 'NAS' })
-    expect(await within(nas).findByText('Full in about 1 month')).toHaveClass('text-warn')
+    // A failing disk lifts the NAS card to the top, so look it up once it is there.
+    expect(await screen.findByText('Full in about 1 month')).toHaveClass('text-warn')
+    const nas = screen.getByRole('region', { name: 'NAS' })
     expect(within(nas).getByText('Needs a look')).toBeInTheDocument()
     expect(within(nas).getByText('1 of 2')).toBeInTheDocument()
     expect(within(nas).getByRole('img', { name: 'sdb: failing' })).toBeInTheDocument()
@@ -285,5 +286,21 @@ describe('HomePage', () => {
 
     expect(await within(card('Portfolio')).findByText('The portfolio is not available right now.')).toBeInTheDocument()
     expect(await within(card('NAS')).findByRole('meter', { name: 'volume3' })).toBeInTheDocument()
+  })
+
+  it('puts a failed backup first and running laundry before the calm cards', async () => {
+    const machine = {
+      id: 'w', name: 'Washing machine', kind: 'washer', state: 'running', online: true, door_open: false, error: null,
+      done_at: null, program: 'Cotton', remaining_minutes: 38, total_minutes: 95, ready_at: null,
+    }
+    setup({
+      '/api/nas': nasFixture({ backup: { status: 'fail', at: new Date().toISOString() } }),
+      '/api/laundry': { as_of: new Date().toISOString(), stale: false, showing: true, machines: [machine] },
+    })
+
+    await screen.findByRole('region', { name: 'Laundry' })
+    const regions = screen.getAllByRole('region').map((r) => r.getAttribute('aria-labelledby'))
+    expect(regions[0]).toBe('card-backups')
+    expect(regions.indexOf('card-laundry')).toBeLessThan(regions.indexOf('card-latest-news'))
   })
 })

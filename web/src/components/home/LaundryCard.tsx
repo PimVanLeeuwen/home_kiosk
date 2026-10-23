@@ -2,7 +2,6 @@ import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../lib/cn'
 import { formatAgo, formatTime } from '../../lib/format'
 import type { Laundry, Machine } from '../../lib/types'
-import { useApi } from '../../lib/useApi'
 import { Pill } from '../ui/Pill'
 import { Card, StaleNote } from './Card'
 
@@ -123,8 +122,7 @@ function headline(machines: Machine[]): ReactNode {
  * The washer and dryer on Home, the Home panel's laundry card: only while a
  * machine runs, is paused, has an error or is done (until its door opens).
  */
-export function LaundryCard() {
-  const { data } = useApi<Laundry>('/api/laundry', 60_000)
+export function LaundryCard({ data }: { data: Laundry | undefined }) {
   if (!data?.showing) return null
   const now = new Date()
 

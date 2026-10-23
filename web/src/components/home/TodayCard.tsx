@@ -3,7 +3,6 @@ import { cn } from '../../lib/cn'
 import { formatTime } from '../../lib/format'
 import { focusOf, hoursOf, isPast, ribbonX, todayShows } from '../../lib/today'
 import type { Today } from '../../lib/types'
-import { useApi } from '../../lib/useApi'
 import { GlowDot } from '../ui/GlowDot'
 import { Card, StaleNote } from './Card'
 
@@ -45,8 +44,7 @@ function Ring({ minutes, color, label }: { minutes: number; color: string; label
  * 07:00 to 23:00 as a ribbon with a glowing now line, then the rest of the
  * day. Left out on a day without events.
  */
-export function TodayCard() {
-  const { data } = useApi<Today>('/api/calendar', 60_000)
+export function TodayCard({ data }: { data: Today | undefined }) {
   const now = new Date()
   if (!todayShows(data, now)) return null
 

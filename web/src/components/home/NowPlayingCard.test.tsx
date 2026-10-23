@@ -3,7 +3,14 @@ import { MemoryRouter } from 'react-router'
 import { vi } from 'vitest'
 import type { Music } from '../../lib/musicTypes'
 import { stubApi } from '../../test/stubApi'
+import { useHomeNowPlaying } from '../../lib/useHomeNowPlaying'
 import { NowPlayingCard } from './NowPlayingCard'
+
+/** The card as Home gives it what plays. */
+function Home() {
+  const { playing, send } = useHomeNowPlaying()
+  return <NowPlayingCard playing={playing} send={send} />
+}
 
 const playing = (state: 'playing' | 'paused') => ({
   kind: 'track' as const,
@@ -31,7 +38,7 @@ const music = (p: Music['playing']): Music => ({
 const show = () =>
   render(
     <MemoryRouter>
-      <NowPlayingCard />
+      <Home />
     </MemoryRouter>,
   )
 

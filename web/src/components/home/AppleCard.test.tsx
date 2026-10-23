@@ -2,6 +2,13 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import type { AppleDevices, ApplePlaying } from '../../lib/types'
 import { stubApi } from '../../test/stubApi'
 import { AppleCard } from './AppleCard'
+import { useApi } from '../../lib/useApi'
+
+/** The card as Home gives it its data. */
+function Fetched() {
+  const { data } = useApi<AppleDevices>('/api/apple')
+  return <AppleCard data={data} />
+}
 
 const dev = (id: string, kind: 'tv' | 'homepod' | 'homepod_mini', thread: boolean | null, over = {}) => ({
   id,
@@ -36,7 +43,7 @@ const card = () => screen.findByRole('region', { name: 'Apple devices' })
 describe('AppleCard', () => {
   it('draws every device and the Thread network, all online', async () => {
     stubApi({ '/api/apple': house() })
-    render(<AppleCard />)
+    render(<Fetched />)
 
     const c = await card()
     expect(within(c).getByText('All online')).toBeInTheDocument()
@@ -49,7 +56,7 @@ describe('AppleCard', () => {
 
   it('lights the room that plays and says what plays there', async () => {
     stubApi({ '/api/apple': house({ living: show }) })
-    render(<AppleCard />)
+    render(<Fetched />)
 
     const c = await card()
     expect(within(c).getByText('Playing in Living room')).toBeInTheDocument()
@@ -65,7 +72,7 @@ describe('AppleCard', () => {
   it('shows artwork through the hub and a paused item without ripples', async () => {
     const paused: ApplePlaying = { ...show, state: 'paused', media: 'music', title: 'Nightcall', artwork: true, device: 'mini2' }
     stubApi({ '/api/apple': house({ bath: paused, living: show }) })
-    render(<AppleCard />)
+    render(<Fetched />)
 
     const c = await card()
     expect(within(c).getByText('Playing in Living room')).toBeInTheDocument()
@@ -78,7 +85,7 @@ describe('AppleCard', () => {
 
   it('marks an offline device and breaks its Thread links', async () => {
     stubApi({ '/api/apple': house({ bathOnline: false, living: show }) })
-    render(<AppleCard />)
+    render(<Fetched />)
 
     const c = await card()
     expect(within(c).getByText('1 offline')).toBeInTheDocument()
@@ -90,14 +97,14 @@ describe('AppleCard', () => {
 
   it('notes a stale answer', async () => {
     stubApi({ '/api/apple': house({ stale: true }) })
-    render(<AppleCard />)
+    render(<Fetched />)
 
     expect(await screen.findByText('Showing the last known figures.')).toBeInTheDocument()
   })
 
   it('stays away until the first answer', async () => {
     const fetchMock = stubApi({})
-    const { container } = render(<AppleCard />)
+    const { container } = render(<Fetched />)
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled())
     expect(container).toBeEmptyDOMElement()
