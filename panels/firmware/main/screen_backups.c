@@ -163,9 +163,17 @@ static void tick(lv_timer_t *timer)
 
     int slow_x = draw_bars();
     lv_label_set_text_fmt(count_label, "%d night%s", shown.night_count, shown.night_count == 1 ? "" : "s");
-    lv_obj_set_flag(slow_label, LV_OBJ_FLAG_HIDDEN, slow_x < 0);
-    if (slow_x >= 0) {
-        lv_obj_set_x(slow_label, LEFT + slow_x - lv_obj_get_width(slow_label) / 2);
+    /* "slow" under the latest slow night, unless it would touch the words at either end:
+     * the amber bar says it then. */
+    lv_obj_update_layout(lv_obj_get_parent(slow_label));
+    int32_t width = lv_obj_get_width(slow_label);
+    int32_t x = LEFT + slow_x - width / 2;
+    int32_t after_count = lv_obj_get_x(count_label) + lv_obj_get_width(count_label) + 16;
+    int32_t before_last = lv_obj_get_x(last_label) - 16;
+    bool fits = slow_x >= 0 && x >= after_count && x + width <= before_last;
+    lv_obj_set_flag(slow_label, LV_OBJ_FLAG_HIDDEN, !fits);
+    if (fits) {
+        lv_obj_set_x(slow_label, x);
     }
 }
 

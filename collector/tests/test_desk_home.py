@@ -280,7 +280,7 @@ def test_the_air_screen_is_ready_to_draw(store):
 
     assert {k: v for k, v in screen.items() if k != "history"} == {
         "kind": "air", "stale": False, "present": True, "room": "Living room",
-        "outside": "Outside 10°", "temperature": "22,9°", "humidity": "47%", "pm25": "2",
+        "outside": "Outside 10°", "temperature": "22.9°", "humidity": "47%", "pm25": "2",
         "quality": "Good", "co2": 1000, "ring": 375, "word": "Getting stuffy", "colour": "#e0a23b"}
     assert screen["history"] == [400 + i for i in range(23, 120)]  # the last 97, 8 hours
 

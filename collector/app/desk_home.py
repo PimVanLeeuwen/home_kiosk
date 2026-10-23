@@ -246,7 +246,8 @@ def air_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
         "present": True,
         "room": latin1(cached.get("room") or "Living room"),
         "outside": f"Outside {outside}°" if outside is not None else "",
-        "temperature": f"{temperature:.1f}°".replace(".", ",") if temperature is not None else "",
+        # A point, as every panel number (2026-10-23); the hub's own pages use a comma.
+        "temperature": f"{temperature:.1f}°" if temperature is not None else "",
         "humidity": f"{cached['humidity']}%" if cached.get("humidity") is not None else "",
         "pm25": str(cached["pm25"]) if cached.get("pm25") is not None else "",
         "quality": latin1(cached.get("quality") or ""),

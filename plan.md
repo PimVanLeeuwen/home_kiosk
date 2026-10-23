@@ -941,15 +941,33 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   as a second, readable copy. The Bridge's login volume stays out of the backup (log in again
   after a restore).
 - Mail is Proton Mail, which has no IMAP of its own: Proton Mail Bridge runs headless in the
-  stack (a paid Proton plan is required) and Paperless reads it over IMAP. The Bridge only
-  listens on localhost, so the image forwards its ports (socat) and the Bridge publishes no port:
-  only Paperless, on the stack's own network, can reach it, which keeps the plain IMAP inside
-  that network acceptable. Image chosen at build time from the maintained ones built from Proton's
-  source (Enucatl/docker-protonmail-bridge, excavador/proton-bridge); shenxn's is out of date.
+  stack (it needs a paid Proton plan, which the owner has) and Paperless reads it over IMAP. The
+  Bridge only listens on localhost, so the image forwards its ports (socat) and the Bridge
+  publishes no port: only Paperless, on the stack's own network, can reach it, which keeps the
+  plain IMAP inside that network acceptable. Image chosen at build time from the maintained ones
+  built from Proton's source (Enucatl/docker-protonmail-bridge, excavador/proton-bridge);
+  shenxn's is out of date.
   First login once by hand (`init`, with 2FA); Paperless gets the Bridge's own password, kept in
   Paperless's mail settings, not in the repo.
-- Which mail: a Proton label "Paperless", set by Proton filters on the senders of bills and
-  statements (the energy supplier, insurers, the bank, the employer, the tax office, ...). One
+- Find the senders first (the owner has no complete list, and providers change with each move:
+  energy, internet, water, insurance, the landlord or mortgage, the municipality). A one-off
+  read-only script over the Bridge's IMAP lists, for every mail with a PDF attachment in all
+  folders and years: the sender's domain and address, the number of mails, the first and last
+  date and three sample subjects, grouped by domain. It reads headers and the message structure
+  only (IMAP `EXAMINE`, `ENVELOPE`, `BODYSTRUCTURE`), never bodies or attachments, and writes a
+  CSV on the NAS (never in a repo) for the owner to tick: keep, skip, or "only when the subject
+  says invoice". Former providers stay in: their old bills are what is hardest to find. A second
+  pass looks for mail without an attachment whose subject reads like a bill (factuur, nota,
+  jaaroverzicht, jaaropgave, polis, aanslag, betaalherinnering, invoice, statement), for the
+  providers that only send a portal link.
+- Keep the list current: the same script, run monthly, reports senders with PDF attachments that
+  are not on the list yet (a new provider after a move or a switch), in one Telegram message;
+  adding one is a new Proton filter. Rules match on the sender's domain rather than one address
+  (providers send from several), and bills sent through a billing platform (a payment or
+  e-signature service sending for the provider) get their correspondent from the content, which
+  Paperless matches on its own. A tag per home address keeps the documents of a former home
+  together; the address itself stays out of the repo.
+- Which mail: a Proton label "Paperless", set by Proton filters on the senders from that list. One
   Paperless mail rule watches `Labels/Paperless`: PDF attachments only (`*.pdf`), the sender as
   correspondent, then moves the mail to a Proton folder `Paperless/Done` (moving works with the
   Bridge; Paperless's "tag the mail" action does not, as it needs Gmail's IMAP extension). Bills
@@ -968,8 +986,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Paperless.
 - In the hub: Paperless in the service catalog with its health check, the new dump on the
   Backups page, and its documents searchable from the command palette (M24).
-- Steps: the nas-docker stack and backup first; then the Bridge and one mail rule for one
-  sender; then the other senders and the old mail; then the hub's parts.
+- Steps: the nas-docker stack and backup first; then the Bridge and the sender inventory; then
+  one mail rule for one sender; then the other senders and the old mail; then the monthly
+  new-sender check and the hub's parts.
 
 **M24. Command palette** (added 2026-10-23)
 - ⌘K (Ctrl-K) opens a search box over any page; on the phone a search button in the page header.
@@ -1013,6 +1032,20 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25.
 
 ## 4. Open items
 
+- Panel design review (2026-10-23, every screen looked at on the panels). Fixed the same day: the
+  running pipeline's commit ran into its author and hash; Backups' "slow" could touch "Latest";
+  Air showed "22,7°" (now a point, as every panel number) and "2 PM2.5 fine dust" (now
+  "2 µg/m³  fine dust"). Agreed to do, one step each:
+  - Apple devices: the Thread mesh between the five border routers (lines with travelling pulses,
+    a broken amber line to an offline device, ripples from what plays) and larger orbs.
+  - Clock: a prettier screen in general (on a dry day the lower half is empty).
+  - Calendar: with today nearly done, tomorrow's first events below.
+  - NAS: the gauge's amber tied to the alert threshold instead of a fixed blend (82% came out pink).
+  - Money: the faint vertical stripes in the fill where the line bends.
+  - Train: the empty band between the countdown and the route.
+  - Services: TransIP's real logo instead of the "T".
+  Not now: Music's gap with two favourites (more favourites will fill it); the Alerts hero's raw
+  log text, later perhaps an AI summary of the message.
 - House answer too big (found 2026-10-23): with Media and Backups, House's answer grew to
   8.2 kB, past the 8 kB the panels read; a cut answer cannot be parsed, so the House board stayed
   on its start-up screen ("The hub is not ready · answered 200"). **Fixed 2026-10-23.** Boards
@@ -1081,10 +1114,23 @@ M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25.
   question: which router (some can run AdGuard themselves).
   Router checked 2026-10-23: a Zyxel EX5601-T1 (the ISP's T-56). It cannot run AdGuard, but its
   stock firmware hands out a chosen DNS server to clients (Network Settings → Home Network →
-  DNS static), which is all that is needed: AdGuard Home on the NAS as the first server and the
-  freed Pi kiosk as the second, kept equal with AdGuard Home Sync. To check before switching:
-  whether the router also announces its own IPv6 DNS (clients would go round AdGuard over IPv6;
-  IPv6 itself must stay on for Thread and Matter). OpenWrt runs on this model but flashing
+  DNS static), which is all that is needed (the router's "DNS-item" page is something else: local
+  host names, not the DNS server it hands out). There is no Pi in the house (the Pi kiosk was
+  never built). Leaning (2026-10-23): AdGuard Home on the NAS only, as no extra box is wanted, but
+  the internet must keep working when the NAS is down. So DHCP hands out the NAS as the first DNS
+  server and a plain resolver as the second (the router itself, or Quad9), which answers when the
+  NAS does not. The cost: some devices (Android more than Apple and Windows) also ask the second
+  server now and then, so a little advertising gets through. If that bothers, a used thin client
+  (Dell Wyse 3040, Fujitsu Futro S520, about EUR 20 to 40, a few watts) can later replace the
+  second server, kept equal with AdGuard Home Sync. A second instance on the NAS does not help
+  (it is down with the NAS), and neither does a VPS (devices without Tailscale cannot reach it).
+  Checked 2026-10-23: the router's LAN settings (DNS values) take two static DNS servers (now on
+  "DNS-proxy", the router answering itself), and its LAN IPv6 mode is off, so it announces no
+  IPv6 DNS that clients could use to go round AdGuard (Thread and Matter use their own IPv6
+  addresses, not the router's). The switch, once AdGuard runs: "Statisch", server 1 the NAS's
+  LAN address, server 2 Quad9 (`9.9.9.9`); devices take it at their next lease or reconnect. The
+  NAS itself gets a fixed DNS in UGOS (Quad9), so it never depends on its own container. Back to
+  "DNS-proxy" undoes it. OpenWrt runs on this model but flashing
   depends on the ISP firmware (newer builds block it, one user ended in a boot loop): not worth
   it. The tile: today's queries and the share blocked from AdGuard's `/control/stats`, an hourly
   sparkline and the most-blocked domain; counts only on the panels (which device visits what is

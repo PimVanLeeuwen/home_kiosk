@@ -282,6 +282,10 @@ static void show_run(void)
     lv_label_set_text(second, r->second);
     lv_label_set_text(commit, r->commit);
     lv_label_set_text(meta, r->meta);
+    /* The commit takes what the author and hash on the right leave, so the two never meet. */
+    int32_t taken = lv_text_get_width(r->meta, strlen(r->meta), &instrument_24, 0);
+    int32_t room = WIDTH - taken - 24;
+    lv_obj_set_width(commit, room > 160 ? room : 160);
     show_cards();
 }
 
@@ -395,7 +399,7 @@ void screen_pipeline_create(lv_obj_t *screen)
     lv_obj_set_style_bg_opa(rule, 20, 0);
     commit = ui_text(screen, &instrument_24, 0xffffff);
     lv_label_set_long_mode(commit, LV_LABEL_LONG_DOT);
-    lv_obj_set_size(commit, 430, lv_font_get_line_height(&instrument_24)); /* one line */
+    lv_obj_set_size(commit, 430, lv_font_get_line_height(&instrument_24)); /* one line; its width per run */
     lv_obj_set_pos(commit, LEFT, 652);
     meta = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_align(meta, LV_ALIGN_TOP_RIGHT, -LEFT, 652);
