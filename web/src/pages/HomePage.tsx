@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { AirCard } from '../components/home/AirCard'
 import { AppleCard } from '../components/home/AppleCard'
 import { BackupCard } from '../components/home/BackupCard'
+import { CardSlot } from '../components/home/CardSlot'
 import { HeroFrame } from '../components/home/HeroFrame'
 import { LaundryCard } from '../components/home/LaundryCard'
 import { NasCard } from '../components/home/NasCard'
@@ -118,7 +119,8 @@ export function HomePage() {
   const hold = pointerOver || open !== null
   if (!hold && held.key !== key) setHeld({ key, order: latest })
   const order = hold ? held.order : latest
-  useFlip(page, hold ? held.key : key)
+  // After the first reveal, a card that arrives rises in on its own; one that leaves fades out (CardSlot).
+  useFlip(page, hold ? held.key : key, !revealing)
 
   useEffect(() => {
     const timer = window.setTimeout(() => setRevealing(false), REVEAL_MS)
@@ -180,7 +182,7 @@ export function HomePage() {
         const light = liveLight(id)
         const r = reveal()
         return (
-          <div key={id} data-card={id} style={r.style} className={cn('relative grid min-w-0 empty:hidden', r.className)}>
+          <CardSlot key={id} id={id} layer={page} style={r.style} className={r.className}>
             {cards[id]}
             {light && (
               <span
@@ -194,7 +196,7 @@ export function HomePage() {
                 )}
               />
             )}
-          </div>
+          </CardSlot>
         )
       })}
     </div>
@@ -251,15 +253,16 @@ export function HomePage() {
         )}
         <div
           ref={page}
+          className="relative"
           onPointerEnter={(e) => e.pointerType === 'mouse' && setPointerOver(true)}
           onPointerLeave={() => setPointerOver(false)}
         >
           {order.hero && hero && (
-            <div data-card={order.hero} style={heroReveal.style} className={cn('mb-5 grid', heroReveal.className)}>
+            <CardSlot key={order.hero} id={order.hero} layer={page} style={heroReveal.style} className={cn('mb-5', heroReveal.className)}>
               <HeroFrame light={hero.light} light2={hero.light2} backdrop={hero.backdrop}>
                 {cards[order.hero]}
               </HeroFrame>
-            </div>
+            </CardSlot>
           )}
           {wide ? (
             <div className="grid grid-cols-[1.35fr_1fr] items-start gap-5">

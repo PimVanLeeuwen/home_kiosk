@@ -956,6 +956,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   value instead of jumping, cards that ease in and out when they appear (train, laundry), a
   press response on the light and music controls, and a soft change between pages. No looping
   ambient animation.
+  **Done 2026-10-24.** A press response (`pressable`) on the light and music controls and on every
+  `Button`; a soft change between pages through React Router's view transitions (only the content
+  panel moves); figures that move to a new value on a refresh (`AnimatedNumber`); on Home, cards
+  that arrive rise in, leave by fading out where they were (`CardSlot`), and slide when the order
+  changes. None of it on the first load beyond Home's one reveal, and none with reduced motion.
 - **Mobile tab bar check.** The bar is Home, News, Portfolio, NAS and More. Check which pages are
   actually used on the phone (Lights and Music may be used more than NAS) and decide the four
   tabs with the owner.
