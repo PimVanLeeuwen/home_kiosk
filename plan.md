@@ -982,9 +982,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   stack (it needs a paid Proton plan, which the owner has) and Paperless reads it over IMAP. The
   Bridge only listens on localhost, so the image forwards its ports (socat) and the Bridge
   publishes no port: only Paperless, on the stack's own network, can reach it, which keeps the
-  plain IMAP inside that network acceptable. Image chosen at build time from the maintained ones
-  built from Proton's source (Enucatl/docker-protonmail-bridge, excavador/proton-bridge);
-  shenxn's is out of date.
+  plain IMAP inside that network acceptable. Chosen 2026-10-24: `shenxn/protonmail-bridge`
+  plus `libfido2`, built on the NAS (`paperless/bridge-image`): its repo follows every Proton
+  release but its last published image is Bridge 3.19.0 (April 2025), and the Bridge's own signed
+  updates in its volume need that library; the Bridge keeps itself current. Its login in a named Docker
+  volume (UGOS folders refuse a root container's folders, and the volume stays out of the backup).
+  The Bridge's generated IMAP password sits in `paperless/.env` for the sender scan.
   First login once by hand (`init`, with 2FA); Paperless gets the Bridge's own password, kept in
   Paperless's mail settings, not in the repo.
 - Find the senders first (the owner has no complete list, and providers change with each move:
@@ -1005,12 +1008,21 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   e-signature service sending for the provider) get their correspondent from the content, which
   Paperless matches on its own. A tag per home address keeps the documents of a former home
   together; the address itself stays out of the repo.
-- Which mail: a Proton label "Paperless", set by Proton filters on the senders from that list. One
-  Paperless mail rule watches `Labels/Paperless`: PDF attachments only (`*.pdf`), the sender as
-  correspondent, then moves the mail to a Proton folder `Paperless/Done` (moving works with the
-  Bridge; Paperless's "tag the mail" action does not, as it needs Gmail's IMAP extension). Bills
-  that only link to a portal ("see your invoice in My Account") can't be fetched; for those the
-  rule can store the mail itself as a PDF.
+- Which mail: a Proton label "Paperless", set by one Proton Sieve filter built from the decided
+  sender list (2026-10-24): 119 domains kept whole, matched exactly (a parent domain can carry
+  both: `service.icscards.nl` keep, `icsmarketing.icscards.nl` skip), nine Apple Hide My Email
+  relay addresses one by one, and 24 shops and platforms only when the subject reads like a bill
+  or a document. One Paperless mail rule watches `Labels/Paperless`: PDF attachments only, the
+  sender as correspondent, then "moves" the mail to the label "Paperless done" (IMAP
+  `Labels/Paperless done`): through the Bridge that swaps the two labels and leaves the mail in
+  its folder, so the owner's own folder rules are untouched (decided 2026-10-24, instead of a
+  folder). The Sieve filter only labels, and sits first in Proton's filter list so no rule's
+  `stop` comes before it. Checked 2026-10-24 with Brabant Water: 15 documents filed, each
+  mail swapped to "Paperless done" and stayed in its folder. (A correspondent the rule creates
+  shows as "Private" until the page is reloaded: Paperless's page caches the list.) Decided 2026-10-24: "mark as read"
+  was dropped, as Paperless then only takes unread mail (old bills, and a bill opened within
+  its 10 minutes, would be skipped); starring was the other option. Bills that only link to a portal can't be
+  fetched; for those the rule can store the mail itself as a PDF.
 - Mail already in Proton: per sender, search in Proton's web app and label the results
   "Paperless" in bulk; for the first run the rule's maximum age is set to about ten years, then
   back to 30 days. Paperless remembers which mails it processed, so a mail is never consumed
@@ -1024,6 +1036,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Paperless.
 - In the hub: Paperless in the service catalog with its health check, the new dump on the
   Backups page, and its documents searchable from the command palette (M25).
+- Built 2026-10-24 (nas-docker): the stack, its dump and a weekly export (`paperless/`,
+  `host-jobs/export-paperless.sh`); the Bridge and the read-only sender scan
+  (`paperless/sender-scan.py`, a CSV per domain with a `decision` column).
 - Steps: the nas-docker stack and backup first; then the Bridge and the sender inventory; then
   one mail rule for one sender; then the other senders and the old mail; then the monthly
   new-sender check and the hub's parts.

@@ -23,8 +23,8 @@ stack on the Ugreen NAS. Global rules (git owner-only, no em dashes, ask don't a
   them, the living room's Hue lights (switch, dim, white), Spotify playback (play, pause, skip,
   volume, move, start a favourite) and waking the living room Apple TV to open Spotify. Planned
   (M17, M20): the Hue plugs, and saving a headline to Readeck from a panel. Planned (M23):
-  Paperless, in its own stack, moves each processed mail to a Proton folder (`Paperless/Done`)
-  through the Bridge; the sender inventory only reads. The GitHub mirror only reads from GitHub;
+  Paperless, in its own stack, swaps the label "Paperless" for "Paperless done" on each
+  processed mail through the Bridge (its folder stays); the sender inventory only reads. The GitHub mirror only reads from GitHub;
   it writes to `/volume3/backups/github`.
 - Style: see plan.md §1. Dark first, violet accent, mono only for technical values.
 - **Build pages from `components/ui`:** `Card` or `Surface` for boxes, `states` for loading and
@@ -158,6 +158,9 @@ python3 dashboard/serve.py
 - Every endpoint that changes data needs `dependencies=[Depends(same_origin_json)]` (see
   `collector/app/security.py`). Never re-add CORS, and keep `changeOrigin: false` in the Vite
   proxy, or dev writes get a 403.
+- Give the owner Tailscale addresses (`https://dev-minotaur.tail870392.ts.net:<port + 10000>` or
+  `http://100.93.99.47:<port>`), never the LAN ones (`192.168.1.242`): the LAN addresses do not
+  work from the owner's devices.
 - On the Mac, the Vite dev proxy can't reach the NAS on its LAN IP (`EHOSTUNREACH`, probably
   macOS Local Network privacy). Point `HUB_API` at the NAS's Tailscale IP on port 8000 (the one
   in `collector/config.local.yaml`).
