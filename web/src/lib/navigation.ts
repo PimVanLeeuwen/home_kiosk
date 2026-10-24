@@ -172,7 +172,7 @@ export const NAV: NavSection[] = [
 export const NAV_ITEMS: NavItem[] = NAV.flatMap((section) => section.items)
 
 /** Sections with their own tab in the mobile tab bar; the rest sit under More. */
-export const TAB_ROUTES = ['/', '/news', '/portfolio', '/nas']
+export const TAB_ROUTES = ['/', '/news', '/portfolio', '/services']
 
 export const TAB_ITEMS: NavItem[] = TAB_ROUTES.map(
   (to) => NAV_ITEMS.find((item) => item.to === to)!,

@@ -25,7 +25,7 @@ repo in `~/Pictures/pr-screenshots/home_kiosk/2026-09-30-mockups/`.
 | Link hosts | Chosen in the browser from `location.hostname`: `*.ts.net` or `100.x` means Tailscale links, anything else means LAN links (`192.168.1.10`). |
 | Style | Dark first. "Calm graphite": near-black, darker sidebar, page in a raised rounded panel, violet accent (`#7C6CF2`), comfortable density. |
 | Type | Instrument Sans with tabular figures for all numbers. JetBrains Mono only for technical values (container names, hosts, commands). Both self-hosted. |
-| Navigation | Laptop: fixed left sidebar with grouped sections (Home / Read / Money / House / System). Mobile: bottom tab bar (Home, News, Portfolio, NAS, More). |
+| Navigation | Laptop: fixed left sidebar with grouped sections (Home / Read / Money / House / System). Mobile: bottom tab bar (Home, News, Portfolio, Services, More; NAS until 2026-10-24). |
 | Brand | Text only: "Home hub" with the NAS host name as subtitle. No logo. |
 | Settings | Editable in the app, stored in SQLite. `config.yaml` only seeds defaults on first start. |
 | Article reading | Backend extraction with trafilatura, cached in SQLite; falls back to "Open original". Readeck stays as "Save for later". |
@@ -964,6 +964,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - **Mobile tab bar check.** The bar is Home, News, Portfolio, NAS and More. Check which pages are
   actually used on the phone (Lights and Music may be used more than NAS) and decide the four
   tabs with the owner.
+  **Done 2026-10-24:** the owner chose Home, News, Portfolio and Services; NAS moves under More.
 
 **M23. Paperless** (added 2026-10-23)
 - Paperless-ngx on the NAS to find important documents back: invoices, monthly statements,

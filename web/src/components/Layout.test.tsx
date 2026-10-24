@@ -41,7 +41,7 @@ describe('Layout', () => {
     const names = within(tabBar())
       .getAllByRole('link')
       .map((link) => link.textContent)
-    expect(names).toEqual(['Home', 'News', 'Portfolio', 'NAS', 'More'])
+    expect(names).toEqual(['Home', 'News', 'Portfolio', 'Services', 'More'])
   })
 
   it('highlights More while on a section that lives under it', () => {

@@ -21,8 +21,13 @@ test('the NAS page shows live figures, pools and disks', async ({ page, isMobile
   await page.route('**/api/nas/history', (route) => route.fulfill({ json: HISTORY }))
   await page.goto('/')
 
-  const nav = isMobile ? page.locator('nav.fixed') : page.locator('aside')
-  await nav.getByRole('link', { name: 'NAS' }).click()
+  // On the phone NAS sits under More (the tab bar is Home, News, Portfolio and Services).
+  if (isMobile) {
+    await page.locator('nav.fixed').getByRole('link', { name: 'More' }).click()
+    await page.getByRole('main').getByRole('link', { name: /^NAS/ }).click()
+  } else {
+    await page.locator('aside').getByRole('link', { name: 'NAS' }).click()
+  }
 
   await expect(page.getByText('dev-minotaur · up 86 days')).toBeVisible()
   await expect(page.getByRole('region', { name: 'CPU' }).getByText('Peak 30% in 24 hours')).toBeVisible()
