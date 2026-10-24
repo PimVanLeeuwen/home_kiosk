@@ -41,7 +41,7 @@ function Favourites({ current, onSaved }: { current: Favourite[]; onSaved: () =>
   if (!lists.data) return lists.error ? <Unavailable what="Your playlists" plural /> : <Loading what="your playlists" />
   return (
     <div className="border-t border-line-soft py-3">
-      <p className="mb-2.5 text-[12.5px] text-faint">
+      <p className="mb-2.5 text-caption text-faint">
         Up to four favourites for the Music page and the Home panel, in the order you tick them ({picked.length} of {MAX}).
       </p>
       <ul aria-label="Your playlists" className="grid max-h-[360px] gap-1 overflow-y-auto">
@@ -63,12 +63,12 @@ function Favourites({ current, onSaved }: { current: Favourite[]; onSaved: () =>
                 <Cover item={{ cover: p.cover, colour: null }} className="size-9 rounded-[7px]" />
                 <span className="min-w-0">
                   <span className="block truncate">{p.name}</span>
-                  {p.owner && <span className="block truncate text-[12px] text-faint">{p.owner}</span>}
+                  {p.owner && <span className="block truncate text-caption text-faint">{p.owner}</span>}
                 </span>
                 <span
                   aria-hidden="true"
                   className={cn(
-                    'grid size-6 place-items-center rounded-full border text-[12px] font-semibold',
+                    'grid size-6 place-items-center rounded-full border text-caption font-semibold',
                     n >= 0 ? 'border-accent-line bg-accent text-white' : 'border-glass-line',
                   )}
                 >
@@ -89,7 +89,7 @@ function Favourites({ current, onSaved }: { current: Favourite[]; onSaved: () =>
           Save favourites
         </button>
         {message && (
-          <span role={message.ok ? 'status' : 'alert'} className={cn('text-[12.5px]', message.ok ? 'text-up' : 'text-down')}>
+          <span role={message.ok ? 'status' : 'alert'} className={cn('text-caption', message.ok ? 'text-up' : 'text-down')}>
             {message.text}
           </span>
         )}
@@ -122,20 +122,20 @@ export function MusicSettings() {
   return (
     <Surface padding="list">
       {returned && (
-        <p role={returned.ok ? 'status' : 'alert'} className={cn('pt-3 text-[13px]', returned.ok ? 'text-up' : 'text-down')}>
+        <p role={returned.ok ? 'status' : 'alert'} className={cn('pt-3 text-small', returned.ok ? 'text-up' : 'text-down')}>
           {returned.text}
         </p>
       )}
       <div className="flex flex-wrap items-center justify-between gap-3 py-3">
         <div>
           <p className="font-medium">{state.data.connected ? 'Spotify is connected' : 'Spotify is not connected'}</p>
-          <p className="text-[12.5px] text-faint">
+          <p className="text-caption text-faint">
             {state.data.connected
               ? 'The hub reads what plays only while a page, the Home card or a panel looks, and keeps nothing about it.'
               : 'Sign in once with your Spotify account; Spotify sends you back here.'}
           </p>
           {!state.data.connected && !onTsNet && (
-            <p className="mt-1 text-[12.5px] text-warn">Connect from the hub's ts.net address: Spotify only returns there.</p>
+            <p className="mt-1 text-caption text-warn">Connect from the hub's ts.net address: Spotify only returns there.</p>
           )}
         </div>
         {state.data.connected ? (
@@ -150,7 +150,7 @@ export function MusicSettings() {
       </div>
       {state.data.connected && <Favourites current={state.data.favourites} onSaved={state.reload} />}
       {error && (
-        <p role="alert" className="pb-3 text-[12.5px] text-down">
+        <p role="alert" className="pb-3 text-caption text-down">
           {error}
         </p>
       )}

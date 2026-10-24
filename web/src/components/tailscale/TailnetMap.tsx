@@ -69,7 +69,7 @@ export function TailnetMap({ peers, warn }: Props) {
         // Names on the outside: above a device in the top half, below it otherwise.
         const above = at[i].y < MAP_CENTRE.y
         const name = (
-          <span className={cn('text-[12px] whitespace-nowrap', p.online ? 'text-muted' : 'text-faint')}>
+          <span className={cn('text-caption whitespace-nowrap', p.online ? 'text-muted' : 'text-faint')}>
             {p.name}
             {!p.online && <span className="sr-only">, offline</span>}
           </span>
@@ -99,7 +99,7 @@ export function TailnetMap({ peers, warn }: Props) {
               {p.exit_node && (
                 <b
                   className={cn(
-                    'absolute -right-3 rounded-full bg-accent px-1.5 text-[9.5px] font-semibold text-white',
+                    'absolute -right-3 rounded-full bg-accent px-1.5 text-micro font-semibold text-white',
                     // Away from the name: below the tile when the name is above it.
                     above ? '-bottom-2' : '-top-2',
                   )}

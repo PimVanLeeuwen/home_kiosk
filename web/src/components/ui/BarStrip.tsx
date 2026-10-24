@@ -75,7 +75,7 @@ export function BarStrip({ values, label, tone = 'up', marks = {}, start, end, m
       </svg>
       {/* Words in HTML rather than SVG text, so they keep their size however wide the strip runs. */}
       {(start || end || markLabel) && (
-        <div className="relative mt-1 flex h-4 justify-between text-[11.5px]" aria-hidden="true">
+        <div className="relative mt-1 flex h-4 justify-between text-label" aria-hidden="true">
           <span style={labelStyle(undefined)}>{start}</span>
           {markLabel && labelled != null && marks[labelled] && !atEnd && (
             <span

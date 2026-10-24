@@ -42,6 +42,23 @@
   --color-data-lavender: #c3b9ff;
   --color-data-amber: #f0bd5a;
 
+  /*
+   * The type scale: every text size in the hub is one of these (text-label,
+   * text-stat, ...). Line height comes from the element or a leading class.
+   */
+  --text-micro: 10px; /* badges on a map, tile labels in capitals */
+  --text-label: 11px; /* small capitals, pills */
+  --text-caption: 12.5px; /* meta lines, notes under a figure */
+  --text-small: 13px; /* card titles, secondary text */
+  --text-body: 14px;
+  --text-title: 16px; /* a name or headline inside a card; reading text */
+  --text-heading: 19px;
+  --text-stat: 22px; /* a tile's figure on the phone */
+  --text-page: 26px; /* page titles, a tile's figure on a wide screen */
+  --text-display: 31px; /* a card's main figure */
+  --text-hero: 40px;
+  --text-giant: 48px; /* the Air card's temperature */
+
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 

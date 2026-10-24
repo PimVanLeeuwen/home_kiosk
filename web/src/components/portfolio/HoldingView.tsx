@@ -41,7 +41,7 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
     `/api/portfolio/holdings/${dataSource}/${encodeURIComponent(symbol)}`,
   )
   const back = (
-    <Link to="/portfolio" className="mb-4 inline-flex items-center gap-1 text-[13px] text-accent-fg hover:underline">
+    <Link to="/portfolio" className="mb-4 inline-flex items-center gap-1 text-small text-accent-fg hover:underline">
       <ChevronLeft aria-hidden="true" className="size-4" />
       Portfolio
     </Link>
@@ -96,9 +96,9 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
 
       <Card title="Price" className="pb-0 md:pb-0">
         <p className="-mt-1 mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <span className="text-[31px] leading-tight font-semibold tracking-tight md:text-[38px]">{formatMoney(data.value, currency)}</span>
+          <span className="text-display leading-tight font-semibold tracking-tight md:text-hero">{formatMoney(data.value, currency)}</span>
           {data.gain_abs != null && (
-            <span className={cn('text-[14px] font-semibold', gainTone)}>
+            <span className={cn('text-body font-semibold', gainTone)}>
               {formatSignedMoney(data.gain_abs, currency)}
               {data.gain_pct != null && ` · ${formatSignedPct(data.gain_pct)}`}
             </span>
@@ -115,11 +115,11 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
       </Card>
 
       <Card title="Position" className="mt-5">
-        <dl className="grid grid-cols-2 gap-2.5 text-[13.5px] md:grid-cols-4">
+        <dl className="grid grid-cols-2 gap-2.5 text-small md:grid-cols-4">
           {figures.map(([label, value, tone]) => (
             <div key={label} className="min-w-0 rounded-[11px] border border-glass-line bg-glass px-3 py-2">
-              <dt className="text-[10px] font-semibold tracking-[0.08em] text-faint uppercase">{label}</dt>
-              <dd className={cn('mt-0.5 truncate text-[15px] font-semibold', tone)}>{value}</dd>
+              <dt className="text-micro font-semibold tracking-[0.08em] text-faint uppercase">{label}</dt>
+              <dd className={cn('mt-0.5 truncate text-title font-semibold', tone)}>{value}</dd>
             </div>
           ))}
         </dl>
@@ -128,15 +128,15 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
       <Card
         title="Transactions"
         className="mt-5"
-        actions={<span className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">From Ghostfolio</span>}
+        actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">From Ghostfolio</span>}
       >
         {data.activities.length === 0 ? (
           <p className="text-muted">No transactions recorded.</p>
         ) : (
-          <table className="w-full text-[13.5px]">
+          <table className="w-full text-small">
             <caption className="sr-only">Transactions in {data.symbol}, newest first</caption>
             <thead>
-              <tr className="text-left text-[12px] text-faint">
+              <tr className="text-left text-caption text-faint">
                 <th scope="col" className="w-5 pb-2">
                   <span className="sr-only">Kind</span>
                 </th>
@@ -159,7 +159,7 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
                   <td className="py-2 whitespace-nowrap text-muted">{formatDate(a.date)}</td>
                   <td className="py-2">
                     <span
-                      className="rounded-[6px] px-1.5 py-px text-[10.5px] font-semibold tracking-[0.04em] uppercase"
+                      className="rounded-[6px] px-1.5 py-px text-micro font-semibold tracking-[0.04em] uppercase"
                       style={{
                         color: TYPE_COLOURS[a.type] ?? 'var(--color-muted)',
                         backgroundColor: `color-mix(in srgb, ${TYPE_COLOURS[a.type] ?? 'var(--color-muted)'} 16%, transparent)`,

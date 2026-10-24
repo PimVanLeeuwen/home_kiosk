@@ -12,7 +12,7 @@ const chip = 'rounded-full border border-glass-line bg-glass px-[9px] py-[3px] w
 /** A route between two places, such as the NAS to Hetzner, with a slow light along it. */
 export function FlowLine({ from, to, ok = true }: Props) {
   return (
-    <div className="flex items-center gap-2.5 text-[12px]" aria-label={`${from} to ${to}`} role="img">
+    <div className="flex items-center gap-2.5 text-caption" aria-label={`${from} to ${to}`} role="img">
       <span className={chip}>{from}</span>
       <span className={cn('relative h-0.5 flex-1 overflow-hidden rounded-full', ok ? 'bg-up/22' : 'bg-down/35')}>
         {ok && (

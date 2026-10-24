@@ -14,7 +14,7 @@ export function StorageBoxCard({ box }: { box: StorageBox }) {
   return (
     <Card title="Storage box" actions={<Pill tone={full ? 'warn' : 'up'}>{full ? 'Nearly full' : 'Room left'}</Pill>}>
       <ArcGauge pct={box.used_pct} alertAt={BOX_FULL_PCT} label="Hetzner" />
-      <div className="mt-1 text-center text-[12.5px]">
+      <div className="mt-1 text-center text-caption">
         <p className="text-muted">
           {formatBytes(box.used)} of {formatBytes(box.total)} · {formatBytes(box.free)} free
         </p>

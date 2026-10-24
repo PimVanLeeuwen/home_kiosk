@@ -45,7 +45,7 @@ export function FeedForm({ feed, groupId, groups, onSubmit, onCancel }: Props) {
       className="grid gap-3 rounded-[12px] border border-line bg-panel p-4 sm:grid-cols-2"
     >
       <label htmlFor={`${id}-url`} className="block sm:col-span-2">
-        <span className="mb-1 block text-[13px] text-muted">Feed address</span>
+        <span className="mb-1 block text-small text-muted">Feed address</span>
         <input
           id={`${id}-url`}
           type="url"
@@ -54,11 +54,11 @@ export function FeedForm({ feed, groupId, groups, onSubmit, onCancel }: Props) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://example.com/feed.xml"
-          className={`${inputClass} font-mono text-[13px]`}
+          className={`${inputClass} font-mono text-small`}
         />
       </label>
       <label htmlFor={`${id}-name`} className="block">
-        <span className="mb-1 block text-[13px] text-muted">Name (optional)</span>
+        <span className="mb-1 block text-small text-muted">Name (optional)</span>
         <input
           id={`${id}-name`}
           maxLength={60}
@@ -69,7 +69,7 @@ export function FeedForm({ feed, groupId, groups, onSubmit, onCancel }: Props) {
         />
       </label>
       <label htmlFor={`${id}-group`} className="block">
-        <span className="mb-1 block text-[13px] text-muted">Group</span>
+        <span className="mb-1 block text-small text-muted">Group</span>
         <select id={`${id}-group`} value={group} onChange={(e) => setGroup(e.target.value)} className={inputClass}>
           {groups.map((g) => (
             <option key={g.id} value={g.id}>
@@ -79,7 +79,7 @@ export function FeedForm({ feed, groupId, groups, onSubmit, onCancel }: Props) {
         </select>
       </label>
       {error && (
-        <p role="alert" className="text-[13px] text-down sm:col-span-2">
+        <p role="alert" className="text-small text-down sm:col-span-2">
           {error}
         </p>
       )}

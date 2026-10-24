@@ -6,7 +6,7 @@ export function ReadNotes({ services }: { services: OutsideService[] }) {
   const unread = services.filter((s) => s.stale)
   if (unread.length === 0) return null
   return (
-    <ul className="mt-3 grid gap-0.5 text-[12px] text-warn">
+    <ul className="mt-3 grid gap-0.5 text-caption text-warn">
       {unread.map((s) => (
         <li key={s.key}>
           {s.name}: {s.error ?? 'the status page could not be read'}

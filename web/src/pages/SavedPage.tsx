@@ -111,7 +111,7 @@ export function SavedPage() {
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block font-medium">{b.title}</span>
-                    <span className="mt-0.5 block text-[12px] text-faint">{details(b)}</span>
+                    <span className="mt-0.5 block text-caption text-faint">{details(b)}</span>
                   </span>
                   {(b.thumbnail || inProgress(b)) && (
                     <span className="relative shrink-0">
@@ -137,7 +137,7 @@ export function SavedPage() {
             <button
               type="button"
               onClick={list.loadMore}
-              className="mt-3 w-full rounded-[11px] border border-glass-line bg-glass py-2.5 text-[13px] text-muted hover:text-fg"
+              className="mt-3 w-full rounded-[11px] border border-glass-line bg-glass py-2.5 text-small text-muted hover:text-fg"
             >
               Show more ({list.total - list.items.length} left)
             </button>

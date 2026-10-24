@@ -30,12 +30,12 @@ export function DownloadTile({ item }: { item: MediaDownload }) {
     >
       <Poster poster={item.poster} title={item.title} />
       <div className="min-w-0">
-        <p className="truncate text-[14.5px] font-medium">
+        <p className="truncate text-body font-medium">
           {item.title}
           {CHIP[item.state] && (
             <span
               className={cn(
-                'ml-1.5 rounded-[6px] border px-1.5 align-[1px] text-[11px] whitespace-nowrap',
+                'ml-1.5 rounded-[6px] border px-1.5 align-[1px] text-label whitespace-nowrap',
                 bad ? 'border-down/40 text-down' : warn ? 'border-warn/35 text-warn' : 'border-glass-line bg-white/5 text-muted',
               )}
             >
@@ -43,12 +43,12 @@ export function DownloadTile({ item }: { item: MediaDownload }) {
             </span>
           )}
         </p>
-        <p className="text-[12.5px] text-muted">{item.detail}</p>
-        <p className="text-[12.5px] text-muted">
+        <p className="text-caption text-muted">{item.detail}</p>
+        <p className="text-caption text-muted">
           {formatBytes(item.size_bytes)}
           {item.client && ` · ${item.client}`}
         </p>
-        {item.message && <p className={cn('text-[12.5px]', bad ? 'text-down' : 'text-warn')}>{item.message}</p>}
+        {item.message && <p className={cn('text-caption', bad ? 'text-down' : 'text-warn')}>{item.message}</p>}
         <div
           role="progressbar"
           aria-label={`${item.title} ${item.detail}`}
@@ -75,9 +75,9 @@ export function DownloadTile({ item }: { item: MediaDownload }) {
         </div>
       </div>
       <div className="text-right">
-        <b className="block text-[18px] font-semibold">{Math.round(item.progress_pct)}%</b>
+        <b className="block text-heading font-semibold">{Math.round(item.progress_pct)}%</b>
         {item.time_left_seconds != null && running && (
-          <span className="text-[12px] whitespace-nowrap text-muted">{formatDuration(item.time_left_seconds)} left</span>
+          <span className="text-caption whitespace-nowrap text-muted">{formatDuration(item.time_left_seconds)} left</span>
         )}
       </div>
     </li>

@@ -131,7 +131,7 @@ export function NewsPage() {
         )}
         {byDay(list.items).map(([day, articles]) => (
           <div key={day}>
-            <h2 className="mt-4 mb-1 flex items-center gap-2 text-[11px] font-semibold tracking-[0.08em] text-faint uppercase after:h-px after:flex-1 after:bg-line-soft first:mt-0">
+            <h2 className="mt-4 mb-1 flex items-center gap-2 text-label font-semibold tracking-[0.08em] text-faint uppercase after:h-px after:flex-1 after:bg-line-soft first:mt-0">
               {day}
             </h2>
             <ul>
@@ -155,9 +155,9 @@ export function NewsPage() {
                     />
                     <span className="min-w-0">
                       <span className={cn('block', isRead(a) ? 'text-muted' : 'font-medium')}>{a.title}</span>
-                      <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[12px] text-faint">
+                      <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-caption text-faint">
                         <span
-                          className="rounded-[6px] px-1.5 text-[10.5px] font-semibold"
+                          className="rounded-[6px] px-1.5 text-micro font-semibold"
                           style={{ backgroundColor: colourOf(a.group_id).bg, color: colourOf(a.group_id).fg }}
                         >
                           {groupTitle(a.group_id)}
@@ -178,7 +178,7 @@ export function NewsPage() {
           <button
             type="button"
             onClick={list.loadMore}
-            className="mt-3 w-full rounded-[11px] border border-glass-line bg-glass py-2.5 text-[13px] text-muted hover:text-fg"
+            className="mt-3 w-full rounded-[11px] border border-glass-line bg-glass py-2.5 text-small text-muted hover:text-fg"
           >
             Show more ({list.total - list.items.length} left)
           </button>

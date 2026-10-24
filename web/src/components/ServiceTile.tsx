@@ -37,7 +37,7 @@ export function ServiceTile({ service, href, label, index }: Props) {
     >
       <ServiceIcon icon={service.icon} label={label} index={index} />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13.5px] font-medium">{service.name}</span>
+        <span className="block truncate text-small font-medium">{service.name}</span>
         {stats ? (
           // Two chips fit; the tooltip has them all. The separators keep the line readable aloud.
           <span className="mt-0.5 flex min-w-0 gap-1 overflow-hidden" title={fullDetail}>
@@ -46,7 +46,7 @@ export function ServiceTile({ service, href, label, index }: Props) {
               return (
                 <span key={st.label} className="contents">
                   {i > 0 && <span className="sr-only"> · </span>}
-                  <span className="shrink-0 rounded-[6px] border border-glass-line bg-white/5 px-1.5 text-[11px] whitespace-nowrap text-muted">
+                  <span className="shrink-0 rounded-[6px] border border-glass-line bg-white/5 px-1.5 text-label whitespace-nowrap text-muted">
                     <b className="font-semibold text-fg">{figure}</b> {word}
                   </span>
                 </span>
@@ -55,7 +55,7 @@ export function ServiceTile({ service, href, label, index }: Props) {
           </span>
         ) : (
           service.description && (
-            <span className={cn('block truncate text-[11.5px]', trouble === 'down' ? 'text-down' : 'text-muted')} title={fullDetail}>
+            <span className={cn('block truncate text-label', trouble === 'down' ? 'text-down' : 'text-muted')} title={fullDetail}>
               {trouble === 'down' ? 'Stopped' : service.description}
             </span>
           )

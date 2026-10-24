@@ -21,9 +21,9 @@ export function RunHistoryCard({ runs, volumes }: Props) {
     <Card
       title={`Last ${runs.length} runs`}
       className="mt-5"
-      actions={<span className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">How long each volume took</span>}
+      actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">How long each volume took</span>}
     >
-      <p className="mb-2.5 flex flex-wrap gap-x-3.5 gap-y-1 text-[11.5px] text-muted" aria-hidden="true">
+      <p className="mb-2.5 flex flex-wrap gap-x-3.5 gap-y-1 text-label text-muted" aria-hidden="true">
         {volumes.map((s, i) => (
           <span key={s.name} className="flex items-center gap-1.5">
             <i className="inline-block size-[9px] rounded-[3px]" style={{ backgroundColor: volumeColour(i) }} />
@@ -32,10 +32,10 @@ export function RunHistoryCard({ runs, volumes }: Props) {
         ))}
       </p>
       <div className="overflow-x-auto">
-        <table className="w-full text-[13px]">
+        <table className="w-full text-small">
           <caption className="sr-only">Each run with its result, how long each volume took and what it changed</caption>
           <thead>
-            <tr className="text-left text-[11.5px] text-faint">
+            <tr className="text-left text-label text-faint">
               <th className="w-5 pb-2 font-medium">
                 <span className="sr-only">Result</span>
               </th>

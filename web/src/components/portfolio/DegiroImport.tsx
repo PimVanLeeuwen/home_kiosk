@@ -104,7 +104,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
   const fresh = preview?.rows.filter((r) => r.status === 'new') ?? []
   return (
     <>
-      <Link to="/portfolio" className="mb-4 inline-flex items-center gap-1 text-[13px] text-accent-fg hover:underline">
+      <Link to="/portfolio" className="mb-4 inline-flex items-center gap-1 text-small text-accent-fg hover:underline">
         <ChevronLeft aria-hidden="true" className="size-4" />
         Portfolio
       </Link>
@@ -120,7 +120,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
           {fileName ? 'Choose another file' : 'Choose the CSV file'}
           <input type="file" accept=".csv,text/csv" onChange={pick} className="sr-only" />
         </label>
-        {fileName && <span className="ml-3 text-[13px] text-faint">{fileName}</span>}
+        {fileName && <span className="ml-3 text-small text-faint">{fileName}</span>}
         <RememberedChoices
           products={Object.fromEntries((preview?.rows ?? []).map((r) => [r.isin, r.product]))}
           onForget={() => csv && void check(csv, choices)}
@@ -157,8 +157,8 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
 
           {products.length > 0 && (
             <fieldset className="mb-5">
-              <legend className="mb-2 text-[13px] font-semibold text-muted">Which holding is this?</legend>
-              <p className="mb-3 text-[13px] text-faint">The hub remembers your choice for next time.</p>
+              <legend className="mb-2 text-small font-semibold text-muted">Which holding is this?</legend>
+              <p className="mb-3 text-small text-faint">The hub remembers your choice for next time.</p>
               <div className="space-y-3">
                 {products.map((p) => {
                   const current = choices[p.isin]
@@ -172,7 +172,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
                   return (
                     <label key={p.isin} className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center sm:gap-3">
                       <span>
-                        {p.product} <span className="font-mono text-[12px] text-faint">{p.isin}</span>
+                        {p.product} <span className="font-mono text-caption text-faint">{p.isin}</span>
                       </span>
                       <select
                         value={current?.ignore ? LEAVE_OUT : current ? `${current.data_source}/${current.symbol}` : ''}
@@ -185,7 +185,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
                         <optgroup label="New holding in Ghostfolio">{p.candidates.filter((c) => !c.held).map(option)}</optgroup>
                       </select>
                       {picked && !picked.held && (
-                        <span role="alert" className="text-[12.5px] text-warn sm:col-start-2">
+                        <span role="alert" className="text-caption text-warn sm:col-start-2">
                           This adds {picked.symbol} as a new holding. If you already hold this fund, choose it under You
                           hold, or it will count twice.
                         </span>
@@ -199,7 +199,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
 
           {preview.accounts.length > 1 && (
             <label className="mb-5 block max-w-sm">
-              <span className="mb-1 block text-[13px] font-semibold text-muted">Ghostfolio account</span>
+              <span className="mb-1 block text-small font-semibold text-muted">Ghostfolio account</span>
               <select value={account} onChange={(e) => setAccount(e.target.value)} className={inputClass}>
                 {preview.accounts.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -211,10 +211,10 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
           )}
 
           {fresh.length > 0 && (
-            <table className="mb-5 w-full text-[13.5px]">
-              <caption className="mb-2 text-left text-[13px] font-semibold text-muted">New trades</caption>
+            <table className="mb-5 w-full text-small">
+              <caption className="mb-2 text-left text-small font-semibold text-muted">New trades</caption>
               <thead>
-                <tr className="text-left text-[12px] text-faint">
+                <tr className="text-left text-caption text-faint">
                   <th scope="col" className="pb-2 font-medium">Date</th>
                   <th scope="col" className="pb-2 font-medium">Holding</th>
                   <th scope="col" className="pb-2 font-medium">Type</th>
@@ -226,7 +226,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
                 {fresh.map((r) => (
                   <tr key={r.line} className="border-t border-line-soft">
                     <td className="py-2 whitespace-nowrap">{formatDate(r.date)}</td>
-                    <td className="py-2 font-mono text-[12.5px]">{r.symbol}</td>
+                    <td className="py-2 font-mono text-caption">{r.symbol}</td>
                     <td className="py-2">{r.type === 'BUY' ? 'Buy' : 'Sell'}</td>
                     <td className="py-2 text-right">{formatQuantity(r.quantity)}</td>
                     <td className="py-2 text-right whitespace-nowrap">{formatPrice(r.price, r.currency)}</td>
@@ -237,7 +237,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
           )}
 
           {preview.skipped.length > 0 && (
-            <details className="mb-5 text-[13px] text-muted">
+            <details className="mb-5 text-small text-muted">
               <summary className="cursor-pointer">
                 {preview.skipped.length} {preview.skipped.length === 1 ? 'line' : 'lines'} left out
               </summary>

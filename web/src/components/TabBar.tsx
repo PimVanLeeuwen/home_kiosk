@@ -5,7 +5,7 @@ import { cn } from '../lib/cn'
 
 const tabClass = (active: boolean) =>
   cn(
-    'flex flex-1 flex-col items-center gap-0.5 py-1 text-[10.5px] font-medium',
+    'flex flex-1 flex-col items-center gap-0.5 py-1 text-micro font-medium',
     active ? 'text-accent-fg' : 'text-faint',
   )
 

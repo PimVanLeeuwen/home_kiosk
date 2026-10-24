@@ -29,7 +29,7 @@ const HEIGHT = 220
 export function LineChart({ points, aLabel, bLabel, format, label, bleed }: Props) {
   const gradient = useId()
   const [hover, setHover] = useState<number | null>(null)
-  if (points.length < 2) return <p className="py-16 text-center text-[13px] text-faint">Not enough history yet.</p>
+  if (points.length < 2) return <p className="py-16 text-center text-small text-faint">Not enough history yet.</p>
 
   const values = points.flatMap((p) => (p.b != null ? [p.a, p.b] : [p.a]))
   const lo = Math.min(...values)
@@ -65,7 +65,7 @@ export function LineChart({ points, aLabel, bLabel, format, label, bleed }: Prop
 
   return (
     <div>
-      <p aria-live="off" className="mb-2 flex flex-wrap items-baseline gap-x-4 gap-y-0.5 text-[13px]">
+      <p aria-live="off" className="mb-2 flex flex-wrap items-baseline gap-x-4 gap-y-0.5 text-small">
         <span className="text-faint">{formatDate(shown.d)}</span>
         <span>
           <span className="mr-1.5 inline-block size-2 rounded-full align-middle" style={{ backgroundColor: colour, boxShadow: `0 0 6px ${colour}` }} aria-hidden="true" />
@@ -126,7 +126,7 @@ export function LineChart({ points, aLabel, bLabel, format, label, bleed }: Prop
           style={{ left: `${topX}%`, top: `${topY}%`, backgroundColor: colour, boxShadow: `0 0 8px ${colour}` }}
         />
       </div>
-      <div aria-hidden="true" className={cn('mt-1.5 flex justify-between text-[11px] text-faint', bleed && 'pb-4')}>
+      <div aria-hidden="true" className={cn('mt-1.5 flex justify-between text-label text-faint', bleed && 'pb-4')}>
         <span>{formatChartDate(points[0].d, long)}</span>
         <span className="text-muted">high {format(points[top].a)}</span>
         <span>{formatChartDate(points.at(-1)!.d, long)}</span>

@@ -10,5 +10,5 @@ const STYLE: Record<Severity, { label: string; className: string }> = {
 
 export function SeverityPill({ severity }: { severity: Severity }) {
   const s = STYLE[severity]
-  return <span className={cn('rounded-[6px] px-1.5 py-px text-[10.5px] font-bold tracking-[0.06em] uppercase', s.className)}>{s.label}</span>
+  return <span className={cn('rounded-[6px] px-1.5 py-px text-micro font-bold tracking-[0.06em] uppercase', s.className)}>{s.label}</span>
 }

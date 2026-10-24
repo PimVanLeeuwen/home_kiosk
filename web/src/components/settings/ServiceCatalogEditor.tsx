@@ -89,7 +89,7 @@ export function ServiceCatalogEditor() {
         {message}
       </p>
       {error && (
-        <p role="alert" className="text-[13px] text-down">
+        <p role="alert" className="text-small text-down">
           {error}
         </p>
       )}
@@ -118,7 +118,7 @@ export function ServiceCatalogEditor() {
               />
             ) : (
               <>
-                <h3 className="flex-1 text-[13px] font-semibold text-muted">{group.name}</h3>
+                <h3 className="flex-1 text-small font-semibold text-muted">{group.name}</h3>
                 <button type="button" aria-label={`Rename group ${group.name}`} onClick={() => setRenaming(group.name)} className={iconButtonClass}>
                   <Pencil aria-hidden="true" className="size-4" />
                 </button>
@@ -157,7 +157,7 @@ export function ServiceCatalogEditor() {
                   <ServiceSummary service={service} label={labels[index]} index={index} />
                   {deleting === service.id ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-[13px]">Delete {service.name}?</span>
+                      <span className="text-small">Delete {service.name}?</span>
                       <button
                         type="button"
                         onClick={async () => {
@@ -204,7 +204,7 @@ function ServiceSummary({ service, label, index }: { service: CatalogService; la
       <ServiceIcon icon={service.icon} label={label} index={index} />
       <div className="min-w-0">
         <p className="truncate font-medium">{service.name}</p>
-        <p className="truncate text-[12px] text-muted">
+        <p className="truncate text-caption text-muted">
           <span className="font-mono">
             {service.url ?? `:${service.port}${service.path !== '/' ? service.path : ''}`}
           </span>
@@ -259,7 +259,7 @@ function GroupRenameForm({
         Cancel
       </button>
       {error && (
-        <p role="alert" className="w-full text-[13px] text-down">
+        <p role="alert" className="w-full text-small text-down">
           {error}
         </p>
       )}

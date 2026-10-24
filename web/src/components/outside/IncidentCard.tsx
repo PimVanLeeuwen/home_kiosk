@@ -36,20 +36,20 @@ export function IncidentCard({ service, incident, now = new Date() }: Props) {
       <header className="flex items-center gap-3">
         <BrandLogo service={service} size={40} halo={incident.impact !== 'maintenance'} />
         <div className="min-w-0">
-          <p className="text-[15px] leading-tight font-semibold">
+          <p className="text-title leading-tight font-semibold">
             {service.name}: {incident.title}
           </p>
-          <p className="mt-0.5 text-[12.5px] text-muted">
+          <p className="mt-0.5 text-caption text-muted">
             <span className={STATE_TEXT[state]}>{STATE_LABEL[state]}</span>
             {since && <> · {since}</>}
           </p>
         </div>
       </header>
-      {latest?.text && <p className="text-[13.5px] leading-snug">{latest.text}</p>}
+      {latest?.text && <p className="text-small leading-snug">{latest.text}</p>}
       {timeline.length > 0 && (
         <ol aria-label="Timeline" className="grid gap-1.5 border-l border-line pl-3">
           {timeline.map((u, i) => (
-            <li key={u.at + u.status} className="relative flex items-baseline gap-2 text-[12.5px]">
+            <li key={u.at + u.status} className="relative flex items-baseline gap-2 text-caption">
               <span
                 aria-hidden="true"
                 className={cn(
@@ -68,7 +68,7 @@ export function IncidentCard({ service, incident, now = new Date() }: Props) {
           href={incident.url}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex w-fit items-center gap-1.5 text-[12.5px] font-medium text-accent-fg hover:underline"
+          className="inline-flex w-fit items-center gap-1.5 text-caption font-medium text-accent-fg hover:underline"
         >
           On the status page
           <ExternalLink aria-hidden="true" className="size-3.5" />

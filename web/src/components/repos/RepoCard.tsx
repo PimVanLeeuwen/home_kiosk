@@ -103,21 +103,21 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
           </a>
         </h3>
         {repo.private && (
-          <span className="inline-flex items-center gap-1 rounded-[6px] border border-glass-line bg-glass px-1.5 py-0.5 text-[11px] text-muted">
+          <span className="inline-flex items-center gap-1 rounded-[6px] border border-glass-line bg-glass px-1.5 py-0.5 text-label text-muted">
             <Lock aria-hidden="true" className="size-3" />
             Private
           </span>
         )}
         {repo.fork && (
-          <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 py-0.5 text-[11px] text-muted">Fork</span>
+          <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 py-0.5 text-label text-muted">Fork</span>
         )}
       </div>
 
-      <p className={cn('mt-1.5 line-clamp-2 min-h-[2.6em] text-[13px]', repo.description ? 'text-muted' : 'text-faint')}>
+      <p className={cn('mt-1.5 line-clamp-2 min-h-[2.6em] text-small', repo.description ? 'text-muted' : 'text-faint')}>
         {repo.description ?? 'No description'}
       </p>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-[12px] text-muted">
+      <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-caption text-muted">
         {repo.language && (
           <span className="inline-flex items-center gap-1.5">
             <span
@@ -139,7 +139,7 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
         </span>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-line-soft pt-3 text-[12px]">
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-line-soft pt-3 text-caption">
         <span className={cn('inline-flex items-center gap-1.5 font-semibold', ci.className)}>
           <GlowDot tone={ci.tone} halo={repo.ci === 'failing'} className="size-[7px]" />
           {ci.label}
@@ -152,7 +152,7 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
             href={repo.release.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto inline-flex items-center gap-1 font-mono text-[11.5px] text-accent-fg hover:underline"
+            className="ml-auto inline-flex items-center gap-1 font-mono text-label text-accent-fg hover:underline"
             title={`Latest release${repo.release.published_at ? `, ${formatAgo(repo.release.published_at)}` : ''}`}
           >
             <Tag aria-hidden="true" className="size-3.5" />

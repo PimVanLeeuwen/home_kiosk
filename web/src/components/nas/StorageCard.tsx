@@ -13,7 +13,7 @@ export function StorageCard({ pools }: { pools: Pool[] }) {
   return (
     <Card
       title="Storage"
-      actions={pools.length > 1 && <span className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">Fullest first</span>}
+      actions={pools.length > 1 && <span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Fullest first</span>}
     >
       {pools.length === 0 ? (
         <p className="text-muted">No storage pools reported.</p>
@@ -28,19 +28,19 @@ export function StorageCard({ pools }: { pools: Pool[] }) {
               >
                 <ArcGauge pct={pool.used_pct} alertAt={POOL_FULL_PCT} label={pool.name} className="mx-auto w-full sm:w-[82%] sm:max-w-[200px]" />
                 <div className="min-w-0">
-                  <p className="font-mono text-[12.5px] font-semibold">{pool.name}</p>
-                  <p className="text-[12.5px] text-muted">
+                  <p className="font-mono text-caption font-semibold">{pool.name}</p>
+                  <p className="text-caption text-muted">
                     {formatBytes(pool.used_bytes)} of {formatBytes(pool.total_bytes)}
                   </p>
-                  <p className="text-[12.5px] text-muted">{formatBytes(pool.free_bytes)} free</p>
-                  <p className={shortRunway(pool) ? 'text-[12px] text-warn' : 'text-[12px] text-faint'}>{formatRunway(pool.projection_months)}</p>
+                  <p className="text-caption text-muted">{formatBytes(pool.free_bytes)} free</p>
+                  <p className={shortRunway(pool) ? 'text-caption text-warn' : 'text-caption text-faint'}>{formatRunway(pool.projection_months)}</p>
                 </div>
               </li>
             ))}
           </ul>
           {pools.length > 1 && (
-            <div className="mt-4 flex items-center gap-3 border-t border-line-soft pt-3 text-[13px]">
-              <span className="text-[11px] font-semibold tracking-[0.06em] text-faint uppercase">All pools</span>
+            <div className="mt-4 flex items-center gap-3 border-t border-line-soft pt-3 text-small">
+              <span className="text-label font-semibold tracking-[0.06em] text-faint uppercase">All pools</span>
               <span
                 role="meter"
                 aria-label="All pools"

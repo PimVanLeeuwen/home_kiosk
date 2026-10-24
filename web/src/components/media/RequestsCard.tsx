@@ -16,8 +16,8 @@ const STATE: Record<RequestState, { label: string; tone: string }> = {
 function Count({ n, label, warn }: { n: number; label: string; warn?: boolean }) {
   return (
     <div className={cn('min-w-0 rounded-[10px] border bg-glass px-3 py-2', warn && n > 0 ? 'border-warn/35' : 'border-glass-line')}>
-      <b className={cn('block text-[20px] font-semibold', warn && n > 0 && 'text-warn')}>{n}</b>
-      <span className="text-[11.5px] text-muted">{label}</span>
+      <b className={cn('block text-heading font-semibold', warn && n > 0 && 'text-warn')}>{n}</b>
+      <span className="text-label text-muted">{label}</span>
     </div>
   )
 }
@@ -26,7 +26,7 @@ function Count({ n, label, warn }: { n: number; label: string; warn?: boolean })
 export function RequestsCard({ overview }: { overview: MediaOverview }) {
   const counts = overview.requests
   return (
-    <Card title="Requests" actions={<span className="text-[12px] text-faint">Seerr</span>}>
+    <Card title="Requests" actions={<span className="text-caption text-faint">Seerr</span>}>
       {!counts ? (
         <p className="text-muted">Seerr could not be read{overview.errors.jellyseerr ? ` (${overview.errors.jellyseerr})` : ''}.</p>
       ) : (
@@ -42,13 +42,13 @@ export function RequestsCard({ overview }: { overview: MediaOverview }) {
                 <li key={`${r.title}-${i}`} className="grid grid-cols-[34px_minmax(0,1fr)_auto] items-center gap-3 border-glass-line py-2 not-first:border-t">
                   <Poster poster={r.poster} title={r.title} small />
                   <div className="min-w-0">
-                    <p className="truncate text-[13.5px] font-medium">{r.title}</p>
-                    <p className="truncate text-[12px] text-muted">
+                    <p className="truncate text-small font-medium">{r.title}</p>
+                    <p className="truncate text-caption text-muted">
                       {r.kind === 'movie' ? 'Movie' : 'Series'}
                       {r.year && ` · ${r.year}`} · {r.by}
                     </p>
                   </div>
-                  <span data-state={r.state} className={cn('rounded-[6px] border px-[7px] text-[11px] whitespace-nowrap', STATE[r.state].tone)}>
+                  <span data-state={r.state} className={cn('rounded-[6px] border px-[7px] text-label whitespace-nowrap', STATE[r.state].tone)}>
                     {STATE[r.state].label}
                   </span>
                 </li>

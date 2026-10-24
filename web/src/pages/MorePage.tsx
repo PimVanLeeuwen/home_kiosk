@@ -16,7 +16,7 @@ export function MorePage() {
               <item.icon aria-hidden="true" className="size-5 shrink-0 text-muted" strokeWidth={1.8} />
               <span className="min-w-0 flex-1">
                 <span className="block font-medium">{item.label}</span>
-                <span className="block truncate text-[12.5px] text-muted">{item.description}</span>
+                <span className="block truncate text-caption text-muted">{item.description}</span>
               </span>
               <ChevronRight aria-hidden="true" className="size-4 text-faint" />
             </Link>

@@ -55,7 +55,7 @@ export function Progress({ playing, colour, className }: { playing: Playing; col
           className="relative block h-full rounded-full bg-white shadow-[0_0_10px_var(--pc)] after:absolute after:top-[-4px] after:right-[-6px] after:size-[13px] after:rounded-full after:bg-white after:shadow-[0_0_12px_var(--pc)]"
         />
       </div>
-      <div className="mt-[7px] flex justify-between text-[12px] text-white/70">
+      <div className="mt-[7px] flex justify-between text-caption text-white/70">
         <span>{minutes(at)}</span>
         <span>{minutes(playing.duration_ms)}</span>
       </div>
@@ -119,7 +119,7 @@ export function NowPlaying({ playing, onControl, onVolume }: Props) {
         </div>
         {playing.device && (
           // On a phone the Devices list below says where it plays; the chip would cover the record.
-          <span className="hidden items-center gap-[7px] rounded-full border border-white/18 bg-white/12 px-3 py-1.5 text-[12.5px] whitespace-nowrap text-white backdrop-blur-[8px] sm:inline-flex">
+          <span className="hidden items-center gap-[7px] rounded-full border border-white/18 bg-white/12 px-3 py-1.5 text-caption whitespace-nowrap text-white backdrop-blur-[8px] sm:inline-flex">
             <i aria-hidden="true" className="size-[7px] rounded-full bg-up shadow-[0_0_6px_var(--color-up)]" />
             {playing.device.name}
           </span>
@@ -128,8 +128,8 @@ export function NowPlaying({ playing, onControl, onVolume }: Props) {
 
       <div className="relative mt-[22px] flex items-end justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-[21px] leading-[1.15] font-semibold tracking-[-0.015em] text-white md:text-[26px]">{playing.title}</h2>
-          <p className="mt-1 text-[15px] text-white/75">
+          <h2 className="text-stat leading-[1.15] font-semibold tracking-[-0.015em] text-white md:text-page">{playing.title}</h2>
+          <p className="mt-1 text-title text-white/75">
             {playing.state === 'paused' && 'Paused · '}
             {playing.subtitle}
           </p>
@@ -158,7 +158,7 @@ export function NowPlaying({ playing, onControl, onVolume }: Props) {
       </div>
 
       {volume !== null && (
-        <label className="relative mt-4 flex items-center gap-2.5 text-[12px] text-white/75">
+        <label className="relative mt-4 flex items-center gap-2.5 text-caption text-white/75">
           <Volume2 aria-hidden="true" className="size-4" />
           <span className="sr-only">Volume</span>
           <input
@@ -181,15 +181,15 @@ export function NowPlaying({ playing, onControl, onVolume }: Props) {
 export function NothingPlaying({ last, defaultDevice }: { last: MusicItem | null; defaultDevice: string }) {
   return (
     <section aria-label="Now playing" data-state="idle" className="rounded-[18px] border border-glass-line bg-card px-[18px] py-5 md:min-h-[380px] md:px-7 md:pt-[26px]">
-      <p className="text-[11.5px] font-semibold tracking-[0.07em] text-faint uppercase">Now playing</p>
-      <h2 className="mt-[18px] text-[22px] font-semibold">Nothing playing</h2>
+      <p className="text-label font-semibold tracking-[0.07em] text-faint uppercase">Now playing</p>
+      <h2 className="mt-[18px] text-stat font-semibold">Nothing playing</h2>
       <p className="text-muted">Start a favourite: it plays on {defaultDevice}, or play on any of your devices.</p>
       {last && (
         <div className="mt-[18px] flex items-center gap-3 rounded-[12px] border border-glass-line bg-glass p-2.5">
           <Cover item={last} className="size-[46px] flex-none rounded-[9px]" />
           <div className="min-w-0">
-            <b className="block truncate text-[14px]">{last.title}</b>
-            <span className="block truncate text-[12.5px] text-muted">Played last{last.subtitle ? ` · ${last.subtitle}` : ''}</span>
+            <b className="block truncate text-body">{last.title}</b>
+            <span className="block truncate text-caption text-muted">Played last{last.subtitle ? ` · ${last.subtitle}` : ''}</span>
           </div>
         </div>
       )}

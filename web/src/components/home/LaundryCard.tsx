@@ -36,14 +36,14 @@ function Porthole({ m }: { m: Machine }) {
       </svg>
     )
   } else if (m.state === 'error') {
-    inside = <span className="text-[20px] text-down">{m.error}</span>
+    inside = <span className="text-heading text-down">{m.error}</span>
   } else if (m.state === 'idle') {
-    inside = <span className="text-[12px] font-normal text-muted">Off</span>
+    inside = <span className="text-caption font-normal text-muted">Off</span>
   } else {
     inside = (
       <>
         {m.remaining_minutes}
-        <small className="mt-0.5 text-[11px] font-normal text-muted">min</small>
+        <small className="mt-0.5 text-label font-normal text-muted">min</small>
       </>
     )
   }
@@ -86,7 +86,7 @@ function Porthole({ m }: { m: Machine }) {
             className={cn('absolute -left-1/2 block size-[200%] rounded-[42%] bg-[color-mix(in_srgb,var(--wc)_35%,transparent)]', turning && 'motion-safe:animate-drum')}
           />
         )}
-        <span className="relative grid place-items-center text-[22px] leading-none font-semibold md:text-[26px]">{inside}</span>
+        <span className="relative grid place-items-center text-stat leading-none font-semibold md:text-page">{inside}</span>
       </div>
     </div>
   )
@@ -135,14 +135,14 @@ export function LaundryCard({ data }: { data: Laundry | undefined }) {
           return (
             <li key={m.id} data-state={m.state} className={cn('grid content-start justify-items-center gap-0.5 text-center', m.state === 'idle' && 'opacity-45')}>
               <Porthole m={m} />
-              <p className="text-[15px] font-semibold">{m.name}</p>
-              {first && <p className="text-[12.5px] text-muted">{first}</p>}
-              {second && <p className="text-[13px] font-semibold">{second}</p>}
+              <p className="text-title font-semibold">{m.name}</p>
+              {first && <p className="text-caption text-muted">{first}</p>}
+              {second && <p className="text-small font-semibold">{second}</p>}
             </li>
           )
         })}
       </ul>
-      <p className="mt-3.5 text-center text-[12px] text-faint">Updated {formatAgo(data.as_of, now)} · ConnectLife</p>
+      <p className="mt-3.5 text-center text-caption text-faint">Updated {formatAgo(data.as_of, now)} · ConnectLife</p>
       {data.stale && <StaleNote />}
     </Card>
   )

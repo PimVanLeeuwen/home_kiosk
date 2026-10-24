@@ -46,10 +46,10 @@ export function DisksCard({ nas }: { nas: Nas }) {
             return (
               <li
                 key={disk.name}
-                className="grid grid-cols-[14px_56px_minmax(0,1fr)_48px] items-center gap-2.5 rounded-[10px] border border-glass-line bg-linear-to-r from-white/[0.04] to-white/[0.015] px-3 py-[9px] text-[13px] sm:grid-cols-[14px_64px_minmax(0,1fr)_56px_74px]"
+                className="grid grid-cols-[14px_56px_minmax(0,1fr)_48px] items-center gap-2.5 rounded-[10px] border border-glass-line bg-linear-to-r from-white/[0.04] to-white/[0.015] px-3 py-[9px] text-small sm:grid-cols-[14px_64px_minmax(0,1fr)_56px_74px]"
               >
                 <GlowDot tone={smart.tone} halo={disk.smart !== 'ok'} className="size-[7px]" />
-                <span className="font-mono text-[12.5px]">{disk.name}</span>
+                <span className="font-mono text-caption">{disk.name}</span>
                 <span className="relative h-[5px] overflow-hidden rounded-full bg-raised" aria-hidden="true">
                   {disk.temp_c != null && (
                     <span
@@ -63,13 +63,13 @@ export function DisksCard({ nas }: { nas: Nas }) {
                   {disk.temp_c != null ? `${Math.round(disk.temp_c)} °C` : '–'}
                 </span>
                 {/* On a phone the LED carries the SMART state; the word is still read out. */}
-                <span className={cn('text-right text-[12.5px] font-semibold max-sm:sr-only', smart.text)}>{smart.label}</span>
+                <span className={cn('text-right text-caption font-semibold max-sm:sr-only', smart.text)}>{smart.label}</span>
               </li>
             )
           })}
         </ul>
       )}
-      <p className="mt-3.5 flex items-center gap-2.5 border-t border-line-soft pt-3 text-[13px]">
+      <p className="mt-3.5 flex items-center gap-2.5 border-t border-line-soft pt-3 text-small">
         <GlowDot tone={allRunning ? 'up' : 'warn'} />
         Containers: {nas.containers.running} of {nas.containers.total} running
         <Link to="/docker" className="ml-auto font-medium text-accent-fg hover:underline">

@@ -11,7 +11,7 @@ function Week({ incidents, now, className }: { incidents: Incident[]; now: Date;
   return (
     <ol aria-label="The last 7 days" className={cn('flex gap-2.5', className)}>
       {days.map((d, i) => (
-        <li key={i} className="grid justify-items-center gap-1 text-[10.5px] text-faint">
+        <li key={i} className="grid justify-items-center gap-1 text-micro text-faint">
           <b
             data-worst={d.worst ?? 'none'}
             className={cn(
@@ -64,8 +64,8 @@ export function IncidentsCard({ incidents, now }: { incidents: Incident[] | unde
               <path d="M21 30.5l6 6 12-13" fill="none" stroke="var(--color-up)" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <p className="mt-1 text-[20px] font-semibold">All quiet</p>
-          <p className="text-[12.5px] text-muted">
+          <p className="mt-1 text-heading font-semibold">All quiet</p>
+          <p className="text-caption text-muted">
             {lastEnd ? `Nothing has needed you for ${lasted(now.getTime() - lastEnd)}` : 'Nothing has needed you yet'}
           </p>
           <Week incidents={incidents} now={now} className="mt-3 justify-center" />
@@ -94,9 +94,9 @@ export function IncidentsCard({ incidents, now }: { incidents: Incident[] | unde
                   </span>
                   <div className="min-w-0">
                     <Pill tone={error ? 'down' : i.severity === 'warning' ? 'warn' : 'accent'}>{i.severity}</Pill>
-                    <p className="mt-1 text-[16px] leading-snug font-semibold">{i.title}</p>
-                    {i.body && <p className="mt-0.5 text-[12px] text-muted">{i.body}</p>}
-                    <p className="mt-0.5 text-[12px] text-faint">
+                    <p className="mt-1 text-title leading-snug font-semibold">{i.title}</p>
+                    {i.body && <p className="mt-0.5 text-caption text-muted">{i.body}</p>}
+                    <p className="mt-0.5 text-caption text-faint">
                       open {lasted(now.getTime() - new Date(i.opened_at).getTime())} · since {formatWhen(i.opened_at, now)}
                     </p>
                   </div>
@@ -106,7 +106,7 @@ export function IncidentsCard({ incidents, now }: { incidents: Incident[] | unde
           </ul>
           <div className="mt-3.5 flex items-end">
             <Week incidents={incidents!} now={now} />
-            <span className="ml-auto text-[11px] text-faint">last 7 days</span>
+            <span className="ml-auto text-label text-faint">last 7 days</span>
           </div>
         </>
       )}

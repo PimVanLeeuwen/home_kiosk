@@ -24,14 +24,14 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
   return (
     <Card
       title="Database dumps"
-      actions={<span className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">02:30 · 02:45</span>}
+      actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">02:30 · 02:45</span>}
     >
-      <p className="mb-3 text-[12.5px] text-muted">
+      <p className="mb-3 text-caption text-muted">
         Consistent copies of the live databases, made before the nightly backup takes them to Hetzner: a{' '}
-        <span className="font-mono text-[12px]">pg_dump</span> per Postgres database at 02:30 into{' '}
-        <span className="font-mono text-[12px]">/volume3/backups/databases</span>, and the hub's own database at 02:45.
+        <span className="font-mono text-caption">pg_dump</span> per Postgres database at 02:30 into{' '}
+        <span className="font-mono text-caption">/volume3/backups/databases</span>, and the hub's own database at 02:45.
       </p>
-      <ul className="grid gap-2 text-[13px]">
+      <ul className="grid gap-2 text-small">
         {dumps.databases.map((db) => {
           const failed = db.ok === false
           return (
@@ -47,7 +47,7 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
                 <span className="font-semibold">{db.label}</span>
                 <span
                   className={cn(
-                    'ml-1.5 rounded-[6px] px-1.5 text-[10.5px] font-semibold tracking-[0.04em]',
+                    'ml-1.5 rounded-[6px] px-1.5 text-micro font-semibold tracking-[0.04em]',
                     db.kind === 'sqlite' ? 'bg-[var(--color-data-blue)]/14 text-[var(--color-data-blue)]' : 'bg-accent/18 text-accent-fg',
                   )}
                 >
@@ -58,13 +58,13 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
                 <Status db={db} />
               </span>
               {db.ok != null && (
-                <p className="col-start-2 col-end-4 text-[12px] text-muted">
+                <p className="col-start-2 col-end-4 text-caption text-muted">
                   {db.at && <>Last attempt {formatWhen(db.at)} · </>}
                   Last success {db.last_success ? formatWhen(db.last_success) : 'never recorded'}
                 </p>
               )}
               {failed && db.error && (
-                <p className="col-start-2 col-end-4 rounded-lg border border-down/40 bg-down/10 px-2.5 py-1.5 font-mono text-[11.5px] break-words text-fg">
+                <p className="col-start-2 col-end-4 rounded-lg border border-down/40 bg-down/10 px-2.5 py-1.5 font-mono text-label break-words text-fg">
                   {db.error}
                 </p>
               )}
@@ -72,7 +72,7 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
           )
         })}
       </ul>
-      <div className="mt-3 border-t border-line-soft pt-2.5 text-[12.5px] text-muted">
+      <div className="mt-3 border-t border-line-soft pt-2.5 text-caption text-muted">
         {recent.length === 0 ? (
           <p>
             No dump run recorded yet. The dumps run from root's crontab on the NAS (see the nas-docker README, Database

@@ -29,16 +29,16 @@ export function RememberedChoices({ products, onForget }: Props) {
   }
 
   return (
-    <details className="mt-4 text-[13px]">
+    <details className="mt-4 text-small">
       <summary className="cursor-pointer text-muted">Remembered products ({choices.length})</summary>
       <ul className="mt-2 divide-y divide-line-soft">
         {choices.map(([isin, c]) => (
           <li key={isin} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
             <span className="min-w-0 flex-1">
               {products[isin] && <>{products[isin]} </>}
-              <span className="font-mono text-[12px] text-faint">{isin}</span>
+              <span className="font-mono text-caption text-faint">{isin}</span>
             </span>
-            <span className="font-mono text-[12.5px]">{c.ignore ? 'left out' : c.symbol}</span>
+            <span className="font-mono text-caption">{c.ignore ? 'left out' : c.symbol}</span>
             <button
               type="button"
               onClick={() => forget(isin)}

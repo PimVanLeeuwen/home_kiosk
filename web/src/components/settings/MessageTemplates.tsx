@@ -19,7 +19,7 @@ function Bubble({ html, label }: { html: string; label: string }) {
     <div
       role="figure"
       aria-label={label}
-      className="rounded-[12px] rounded-bl-[4px] border border-line-soft bg-raised px-3.5 py-2.5 text-[13.5px] leading-relaxed break-words whitespace-pre-wrap"
+      className="rounded-[12px] rounded-bl-[4px] border border-line-soft bg-raised px-3.5 py-2.5 text-small leading-relaxed break-words whitespace-pre-wrap"
     >
       <TelegramText html={html} />
     </div>
@@ -116,18 +116,18 @@ function Editor({ template, parentLabel, onSaved, onClose }: EditorProps) {
     >
       <div className="min-w-0 space-y-3">
         <label className="block">
-          <span className="mb-1.5 block text-[12.5px] text-muted">Message text</span>
+          <span className="mb-1.5 block text-caption text-muted">Message text</span>
           <textarea
             ref={area}
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={Math.min(14, Math.max(3, text.split('\n').length + 1))}
             spellCheck={false}
-            className={cn(inputClass, 'font-mono text-[12.5px] leading-relaxed')}
+            className={cn(inputClass, 'font-mono text-caption leading-relaxed')}
           />
         </label>
         <div>
-          <p className="mb-1.5 text-[12.5px] text-muted">
+          <p className="mb-1.5 text-caption text-muted">
             Placeholders <span className="text-faint">(click to insert)</span>
           </p>
           <ul className="flex flex-wrap gap-1.5">
@@ -137,7 +137,7 @@ function Editor({ template, parentLabel, onSaved, onClose }: EditorProps) {
                   type="button"
                   onClick={() => insert(p.name)}
                   title={p.description}
-                  className="rounded-md border border-line bg-raised px-2 py-1 font-mono text-[12px] text-accent-fg hover:border-accent-line"
+                  className="rounded-md border border-line bg-raised px-2 py-1 font-mono text-caption text-accent-fg hover:border-accent-line"
                 >
                   {`{${p.name}}`}
                   <span className="sr-only">: {p.description}</span>
@@ -145,24 +145,24 @@ function Editor({ template, parentLabel, onSaved, onClose }: EditorProps) {
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-[12px] text-faint">
+          <p className="mt-2 text-caption text-faint">
             Allowed tags: {'<b> <i> <u> <s> <code> <pre>'}; Telegram allows no other tags inside {'<pre>'}. A line that only has an empty placeholder is left out.
           </p>
         </div>
       </div>
 
       <div className="min-w-0 space-y-3">
-        <p className="text-[12.5px] text-muted">
+        <p className="text-caption text-muted">
           Preview with sample values{parentLabel ? `, inside the ${parentLabel}` : ''}
         </p>
         <Bubble html={preview.html} label="Preview" />
         {preview.error && (
-          <p role="alert" className="text-[13px] text-down">
+          <p role="alert" className="text-small text-down">
             {preview.error}
           </p>
         )}
         {note && (
-          <p role="status" className={cn('text-[13px]', note.ok ? 'text-up' : 'text-down')}>
+          <p role="status" className={cn('text-small', note.ok ? 'text-up' : 'text-down')}>
             {note.text}
           </p>
         )}
@@ -227,7 +227,7 @@ export function MessageTemplates() {
         return (
           <Surface as="section" padding="compact" key={group} aria-label={group}>
             {/* Folded by default: the groups together hold dozens of messages. */}
-            <h3 className="text-[13px] font-semibold text-muted">
+            <h3 className="text-small font-semibold text-muted">
               <button
                 type="button"
                 aria-expanded={isOpen}
@@ -252,12 +252,12 @@ export function MessageTemplates() {
                         <p className="font-medium">
                           {t.label}
                           {t.customised && (
-                            <span className="ml-2 rounded-md border border-accent-line px-1.5 py-0.5 align-middle text-[11px] font-normal text-accent-fg">
+                            <span className="ml-2 rounded-md border border-accent-line px-1.5 py-0.5 align-middle text-label font-normal text-accent-fg">
                               Customised
                             </span>
                           )}
                         </p>
-                        <p className="text-[12.5px] text-muted">
+                        <p className="text-caption text-muted">
                           {t.description}
                           {t.category && <span className="text-faint"> · routed as {t.category}</span>}
                         </p>

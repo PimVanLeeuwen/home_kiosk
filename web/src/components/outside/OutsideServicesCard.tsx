@@ -53,7 +53,7 @@ export function OutsideServicesCard({ data, error }: { data: OutsideServices | u
       {data && problems.length === 0 && (
         <>
           <Constellation services={services} />
-          <p className="mt-3 text-center text-[13.5px] font-medium">
+          <p className="mt-3 text-center text-small font-medium">
             {fine === services.length ? 'All operational' : `${fine} of ${services.length} operational`}
           </p>
         </>
@@ -64,13 +64,13 @@ export function OutsideServicesCard({ data, error }: { data: OutsideServices | u
             <IncidentCard key={s.key} service={s} incident={headline(s)} />
           ))}
           {problems.length > 2 && (
-            <p className="text-[12.5px] text-muted">And {problems.length - 2} more on the Services page.</p>
+            <p className="text-caption text-muted">And {problems.length - 2} more on the Services page.</p>
           )}
           <div className="mt-1 flex flex-wrap items-center gap-2">
             {others.map((s) => (
               <BrandLogo key={s.key} service={s} size={26} dim={s.state === 'unknown'} />
             ))}
-            <span className="text-[12.5px] text-muted">
+            <span className="text-caption text-muted">
               {fine === others.length
                 ? `The other ${others.length} are operational`
                 : `${fine} of the other ${others.length} operational`}

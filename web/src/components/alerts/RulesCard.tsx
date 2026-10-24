@@ -79,7 +79,7 @@ export function RulesCard() {
                     label={`${loaded.data!.labels[name] ?? name} on`}
                   />
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12.5px] text-muted">
+                <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-caption text-muted">
                   {NOTES[name]}
                   {(FIELDS[name] ?? []).map(({ field, before, after, min, max }) => (
                     <label key={field} className="flex items-center gap-1.5">
@@ -110,7 +110,7 @@ export function RulesCard() {
               Save rules
             </button>
             {message && (
-              <p role={message.ok ? 'status' : 'alert'} className={message.ok ? 'text-[13px] text-up' : 'text-[13px] text-down'}>
+              <p role={message.ok ? 'status' : 'alert'} className={message.ok ? 'text-small text-up' : 'text-small text-down'}>
                 {message.text}
               </p>
             )}

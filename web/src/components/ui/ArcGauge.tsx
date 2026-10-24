@@ -89,7 +89,7 @@ export function ArcGauge({ pct, alertAt, label, children, className }: Props) {
           {Math.round(value)}%
         </text>
       </svg>
-      {children && <div className="-mt-1 text-[12.5px] leading-snug">{children}</div>}
+      {children && <div className="-mt-1 text-caption leading-snug">{children}</div>}
     </div>
   )
 }

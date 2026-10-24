@@ -13,8 +13,8 @@ function Tile({ value, label, bad }: { value: string; label: string; bad?: boole
         bad ? 'border-down/40 bg-linear-to-br from-down/12 to-down/[0.03]' : 'border-glass-line bg-glass',
       )}
     >
-      <p className={cn('text-[18px] leading-tight font-semibold', bad && 'text-down')}>{value}</p>
-      <p className="truncate text-[12px] text-muted">{label}</p>
+      <p className={cn('text-heading leading-tight font-semibold', bad && 'text-down')}>{value}</p>
+      <p className="truncate text-caption text-muted">{label}</p>
     </div>
   )
 }
@@ -45,9 +45,9 @@ export function MirrorCard({ mirror }: { mirror: GitHubMirror }) {
               <Tile value={formatBytes(last.bytes)} label="on the NAS" />
             </div>
           )}
-          <p className="mt-3 text-[12.5px] text-muted">
+          <p className="mt-3 text-caption text-muted">
             A bare git copy of every repo of {mirror.owners.map((o) => o.login).join(' and ') || 'the mirrored owners'}{' '}
-            (no forks), kept in <span className="font-mono text-[12px]">/volume3/backups/github</span> and taken to Hetzner
+            (no forks), kept in <span className="font-mono text-caption">/volume3/backups/github</span> and taken to Hetzner
             by the nightly backup. Repos deleted on GitHub are deleted here too.
           </p>
         </div>
@@ -57,7 +57,7 @@ export function MirrorCard({ mirror }: { mirror: GitHubMirror }) {
               No run yet.{mirror.next_due ? ` The first one is due ${formatWhen(mirror.next_due)}.` : ''}
             </p>
           ) : (
-            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-[13.5px]">
+            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-small">
               <dt className="text-muted">Last run</dt>
               <dd>
                 <span className={cn('font-semibold', last.ok ? 'text-up' : 'text-down')}>{last.ok ? 'Succeeded' : 'Failed'}</span>{' '}
@@ -83,7 +83,7 @@ export function MirrorCard({ mirror }: { mirror: GitHubMirror }) {
             </dl>
           )}
           {problems.length > 0 && (
-            <ul className="mt-3 space-y-1 rounded-lg border border-down/40 bg-down/10 px-3 py-2 font-mono text-[12px] break-words text-fg">
+            <ul className="mt-3 space-y-1 rounded-lg border border-down/40 bg-down/10 px-3 py-2 font-mono text-caption break-words text-fg">
               {problems.map((p) => (
                 <li key={p}>{p}</li>
               ))}

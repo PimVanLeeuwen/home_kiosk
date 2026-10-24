@@ -4,7 +4,7 @@ export type ButtonVariant = 'primary' | 'secondary' | 'danger'
 export type ButtonSize = 'md' | 'sm'
 
 const BASE =
-  'inline-flex items-center justify-center gap-1.5 rounded-[10px] border text-[13px] font-medium whitespace-nowrap transition-[filter,border-color] disabled:pointer-events-none disabled:opacity-40 disabled:shadow-none'
+  'inline-flex items-center justify-center gap-1.5 rounded-[10px] border text-small font-medium whitespace-nowrap transition-[filter,border-color] disabled:pointer-events-none disabled:opacity-40 disabled:shadow-none'
 
 const VARIANT: Record<ButtonVariant, string> = {
   // The one action a card or form is for.

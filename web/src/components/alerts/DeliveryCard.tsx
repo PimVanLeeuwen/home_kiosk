@@ -40,7 +40,7 @@ export function DeliveryCard({ settings, onSaved }: Props) {
             <span className="flex-1 font-medium">Quiet hours</span>
             <Switch checked={quiet.enabled} onChange={(enabled) => setQuiet({ ...quiet, enabled })} label="Quiet hours on" />
           </div>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[13px] text-muted">
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-small text-muted">
             <label className="flex items-center gap-1.5">
               From
               <input type="time" value={quiet.start} onChange={(e) => setQuiet({ ...quiet, start: e.target.value })} className={inlineInputClass} />
@@ -50,12 +50,12 @@ export function DeliveryCard({ settings, onSaved }: Props) {
               <input type="time" value={quiet.end} onChange={(e) => setQuiet({ ...quiet, end: e.target.value })} className={inlineInputClass} />
             </label>
           </div>
-          <p className="mt-1.5 text-[12px] text-faint">Errors still go out; the rest arrives as one digest when quiet hours end.</p>
+          <p className="mt-1.5 text-caption text-faint">Errors still go out; the rest arrives as one digest when quiet hours end.</p>
         </div>
       </div>
 
       <p className="mt-5 mb-1.5 font-medium">Which chat gets what</p>
-      <ul className="space-y-1.5 text-[13px]">
+      <ul className="space-y-1.5 text-small">
         {Object.entries(settings.categories).map(([key, label]) => (
           <li key={key} className="flex items-center justify-between gap-3">
             <span className="text-muted">{label}</span>
@@ -85,7 +85,7 @@ export function DeliveryCard({ settings, onSaved }: Props) {
           Save
         </button>
         {message && (
-          <p role={message.ok ? 'status' : 'alert'} className={message.ok ? 'text-[13px] text-up' : 'text-[13px] text-down'}>
+          <p role={message.ok ? 'status' : 'alert'} className={message.ok ? 'text-small text-up' : 'text-small text-down'}>
             {message.text}
           </p>
         )}

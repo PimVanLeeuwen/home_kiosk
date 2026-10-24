@@ -36,12 +36,12 @@ export function BackupCard({ nas, error, history }: { nas: Nas | undefined; erro
                 <Seal ok={nas.backup.status === 'ok'} label={nas.backup.status === 'ok' ? 'Backup succeeded' : 'Backup failed'} />
               )}
               <div>
-                <p className="text-[13px] text-muted">Last nightly run to Hetzner</p>
-                <p className="mt-0.5 text-[22px] font-semibold">
+                <p className="text-small text-muted">Last nightly run to Hetzner</p>
+                <p className="mt-0.5 text-stat font-semibold">
                   <span className={nas.backup.status === 'ok' ? 'text-up' : nas.backup.status === 'fail' ? 'text-down' : 'text-muted'}>
                     {nas.backup.status === 'ok' ? 'Succeeded' : nas.backup.status === 'fail' ? 'Failed' : 'Unknown'}
                   </span>
-                  {nas.backup.at && <span className="ml-2 text-[14px] font-normal text-muted">{formatWhen(nas.backup.at)}</span>}
+                  {nas.backup.at && <span className="ml-2 text-body font-normal text-muted">{formatWhen(nas.backup.at)}</span>}
                 </p>
               </div>
             </div>
@@ -70,11 +70,11 @@ function LastRun({ last, runs, history, dumps, now }: LastRunProps) {
       <div className="flex items-center gap-4">
         <Seal ok={last.ok} label={last.ok ? 'Backup succeeded' : 'Backup failed'} />
         <div className="min-w-0">
-          <p className="text-[22px] font-semibold">
+          <p className="text-stat font-semibold">
             <span className={last.ok ? 'text-up' : 'text-down'}>{last.ok ? 'Succeeded' : 'Failed'}</span>
-            <span className="ml-2 text-[14px] font-normal text-muted">{formatWhen(last.finished)}</span>
+            <span className="ml-2 text-body font-normal text-muted">{formatWhen(last.finished)}</span>
           </p>
-          <p className="text-[12.5px] text-muted">
+          <p className="text-caption text-muted">
             {last.volumes.length} {last.volumes.length === 1 ? 'volume' : 'volumes'} · {formatDuration(runSeconds(last))}
             {bytes > 0 && ` · ${formatBytes(bytes)}`}
           </p>
@@ -82,7 +82,7 @@ function LastRun({ last, runs, history, dumps, now }: LastRunProps) {
         </div>
       </div>
       {failed.length > 0 && (
-        <ul className="mt-3 space-y-1 text-[13px]">
+        <ul className="mt-3 space-y-1 text-small">
           {failed.map((v) => (
             <li key={v.name} className="flex justify-between gap-3">
               <span className="text-muted">{v.name}</span>
@@ -103,7 +103,7 @@ function LastRun({ last, runs, history, dumps, now }: LastRunProps) {
         start={`${n} ${n === 1 ? 'night' : 'nights'}`}
         end="last night"
       />
-      {history.next_due && <p className="mt-2.5 text-[12.5px] text-faint">Next run due {formatWhen(history.next_due)}</p>}
+      {history.next_due && <p className="mt-2.5 text-caption text-faint">Next run due {formatWhen(history.next_due)}</p>}
     </>
   )
 }

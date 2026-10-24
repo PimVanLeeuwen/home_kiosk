@@ -28,14 +28,14 @@ const DOT: Record<ServiceStatus | 'link', string> = {
 /** "3/4" running in a group, tinted by its worst service; "2 links" for a group of links. */
 function GroupCount({ services }: { services: Service[] }) {
   const nas = services.filter((s) => !s.url)
-  if (!nas.length) return <span className="rounded-[6px] bg-raised px-1.5 text-[10.5px] text-muted">{services.length} links</span>
+  if (!nas.length) return <span className="rounded-[6px] bg-raised px-1.5 text-micro text-muted">{services.length} links</span>
   const up = nas.filter((s) => s.status === 'up').length
   const tone = nas.some((s) => s.status === 'down' || s.status === 'missing') ? 'down' : up < nas.length ? 'warn' : 'up'
   return (
     <span
       data-tone={tone}
       className={cn(
-        'rounded-[6px] px-1.5 text-[10.5px]',
+        'rounded-[6px] px-1.5 text-micro',
         tone === 'up' ? 'bg-up/13 text-up' : tone === 'down' ? 'bg-down/14 text-down' : 'bg-warn/15 text-warn',
       )}
     >
@@ -111,7 +111,7 @@ export function ServicesPage() {
           {services.data.groups.map((group) => (
             <Surface as="section" key={group.name} aria-labelledby={`group-${group.name}`}>
               <div className="mb-3.5 flex items-center gap-2">
-                <h2 id={`group-${group.name}`} className="text-[13px] font-semibold text-muted">
+                <h2 id={`group-${group.name}`} className="text-small font-semibold text-muted">
                   {group.name}
                 </h2>
                 <GroupCount services={group.services} />

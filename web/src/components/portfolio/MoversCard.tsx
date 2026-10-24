@@ -49,13 +49,13 @@ function TileView({ tile, box }: { tile: Tile<Cell>; box: { w: number; h: number
   const words = `${move >= 0 ? 'up' : 'down'} ${formatSignedPct(Math.abs(move)).replace(/^[+−]/, '')} today`
   const body = (
     <>
-      <span className="truncate font-mono text-[12.5px] font-semibold">
+      <span className="truncate font-mono text-caption font-semibold">
         {c.kind === 'holding' ? c.h.symbol : size === 'xs' ? `+${c.count}` : `${c.count} others`}
       </span>
       {size !== 'xs' && (
         <span className={cn('min-w-0', size === 'sm' && 'inline')}>
-          <b className={cn('font-semibold', size === 'lg' ? 'block text-[15px]' : 'text-[12px]')}>{formatSignedPct(move)}</b>
-          {size === 'lg' && c.kind === 'holding' && <small className="block truncate text-[11px] text-fg/75">{c.h.name}</small>}
+          <b className={cn('font-semibold', size === 'lg' ? 'block text-title' : 'text-caption')}>{formatSignedPct(move)}</b>
+          {size === 'lg' && c.kind === 'holding' && <small className="block truncate text-label text-fg/75">{c.h.name}</small>}
         </span>
       )}
     </>
@@ -113,7 +113,7 @@ export function MoversCard({ holdings }: { holdings: HoldingRow[] }) {
     <Card
       title="Today's movers"
       actions={
-        <span className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">
+        <span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">
           {up} up · {sorted.length - up} down
         </span>
       }

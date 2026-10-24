@@ -20,7 +20,7 @@ export function CopyButton({ value, what }: { value: string; what: string }) {
           window.setTimeout(() => setCopied(false), 1500)
         })
       }
-      className="ml-1.5 rounded-[6px] border border-glass-line bg-glass px-1.5 align-[1px] font-sans text-[10.5px] text-muted hover:text-fg"
+      className="ml-1.5 rounded-[6px] border border-glass-line bg-glass px-1.5 align-[1px] font-sans text-micro text-muted hover:text-fg"
     >
       {copied ? 'Copied' : 'Copy'}
     </button>
@@ -30,10 +30,10 @@ export function CopyButton({ value, what }: { value: string; what: string }) {
 /** Label and value pairs; side by side on wide screens, stacked on a phone. */
 export function Facts({ rows, className }: { rows: [string, ReactNode][]; className?: string }) {
   return (
-    <dl className={cn('grid grid-cols-1 gap-x-4 text-[13px] sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-y-1.5 [&>div:first-child>dt]:mt-0', className)}>
+    <dl className={cn('grid grid-cols-1 gap-x-4 text-small sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-y-1.5 [&>div:first-child>dt]:mt-0', className)}>
       {rows.map(([label, value]) => (
         <div key={label} className="contents">
-          <dt className="mt-2 text-[11.5px] text-faint sm:mt-0 sm:text-[13px]">{label}</dt>
+          <dt className="mt-2 text-label text-faint sm:mt-0 sm:text-small">{label}</dt>
           <dd className="m-0 min-w-0 [overflow-wrap:anywhere]">{value}</dd>
         </div>
       ))}
@@ -41,13 +41,13 @@ export function Facts({ rows, className }: { rows: [string, ReactNode][]; classN
   )
 }
 
-const Mono = ({ children }: { children: ReactNode }) => <span className="font-mono text-[12.5px]">{children}</span>
+const Mono = ({ children }: { children: ReactNode }) => <span className="font-mono text-caption">{children}</span>
 
 function Chip({ tone, children }: { tone?: 'direct' | 'relay' | 'exit'; children: ReactNode }) {
   return (
     <span
       className={cn(
-        'rounded-[6px] border px-[7px] text-[11px] whitespace-nowrap',
+        'rounded-[6px] border px-[7px] text-label whitespace-nowrap',
         tone === 'direct' && 'border-up/25 text-up',
         tone === 'relay' && 'border-accent-line/30 text-accent-fg',
         tone === 'exit' && 'border-transparent bg-accent text-white',
@@ -92,13 +92,13 @@ export function DeviceTile({ device: d, open, onToggle, now }: Props) {
           <DeviceIcon device={d} className="size-[18px]" />
         </span>
         <span className="min-w-0">
-          <span className="flex items-center gap-2 text-[14px] font-medium">
+          <span className="flex items-center gap-2 text-body font-medium">
             {d.name}
             {d.online && <GlowDot tone="up" label="Online" className="size-1.5" />}
           </span>
-          <span className="block truncate font-mono text-[11.5px] text-faint">{d.dns_name}</span>
+          <span className="block truncate font-mono text-label text-faint">{d.dns_name}</span>
         </span>
-        <span className="font-mono text-[13px]">{d.ipv4}</span>
+        <span className="font-mono text-small">{d.ipv4}</span>
         <span className="col-start-2 col-end-4 mt-1 flex flex-wrap gap-1.5">
           {d.os && <Chip>{osName(d.os)}</Chip>}
           {d.online ? (

@@ -946,6 +946,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   one row of stat tiles; a type scale of about nine sizes, done last. Steps: shared states and
   `Card` in `components/ui`; cards through `Card`; a `Button`; the header pill; stat tiles;
   `Segmented` everywhere; colours to tokens; the type scale.
+  **Done 2026-10-24.** In `components/ui`: `Card` and `Surface` (four paddings), `states`
+  (`Loading`, `Unavailable`, `PageUnavailable`, `StaleNote`), `Button` and `buttonStyles`,
+  `fieldStyles` and `SearchField` (raised, like the buttons), `Segmented` (a radio group),
+  `StatTile`, and `PageHeader`'s `status`. The theme has chart colours (`data-*`), the brand
+  `violet`, and a type scale of twelve sizes (`text-micro` to `text-giant`); colours outside the
+  tokens are data or neutral shading.
 - **Motion.** Small and calm, always off with `prefers-reduced-motion`: numbers that move to a new
   value instead of jumping, cards that ease in and out when they appear (train, laundry), a
   press response on the light and music controls, and a soft change between pages. No looping

@@ -58,24 +58,24 @@ export function ContainerRow({ container: c, spark, updates, open, onToggle, cpu
         <span className="flex min-w-0 items-center gap-2.5">
           <StatusDot status={status} />
           <span className="min-w-0">
-            <span className="block truncate font-mono text-[13px]">{c.name}</span>
-            <span className="block truncate text-[11.5px] text-faint">{c.image}</span>
+            <span className="block truncate font-mono text-small">{c.name}</span>
+            <span className="block truncate text-label text-faint">{c.image}</span>
           </span>
         </span>
         <span className="hidden w-20 md:block">
           {known.length > 1 && <MiniSparkline values={known} label={`${c.name} CPU, last 24 hours`} min={0} floor={0.5} />}
         </span>
-        <span className="text-right text-[13px]">
+        <span className="text-right text-small">
           <span className="sr-only">CPU </span>
           {pct(c.cpu_pct)}
           {c.cpu_pct != null && <LoadBar share={c.cpu_pct / cpuTop} color="var(--color-accent-line)" />}
         </span>
-        <span className="text-right text-[13px]">
+        <span className="text-right text-small">
           <span className="sr-only">Memory </span>
           {c.mem_bytes == null ? '–' : formatBytes(c.mem_bytes)}
           {c.mem_bytes != null && <LoadBar share={c.mem_bytes / memTop} color="var(--color-data-blue)" />}
         </span>
-        <span className="col-span-3 text-[12px] whitespace-nowrap text-muted md:col-span-1 md:text-right">
+        <span className="col-span-3 text-caption whitespace-nowrap text-muted md:col-span-1 md:text-right">
           {c.state !== 'running' ? (
             <span className="text-down">{exited(c.status)}</span>
           ) : c.rx_bps == null ? (
@@ -94,7 +94,7 @@ export function ContainerRow({ container: c, spark, updates, open, onToggle, cpu
 function Panel({ title, note, children }: { title: string; note: string; children: ReactNode }) {
   return (
     <div className="overflow-hidden rounded-[11px] border border-glass-line bg-glass px-3 pt-2.5">
-      <p className="flex justify-between gap-3 text-[12.5px]">
+      <p className="flex justify-between gap-3 text-caption">
         <span className="text-muted">{title}</span>
         <span>{note}</span>
       </p>
@@ -108,7 +108,7 @@ function ContainerDetail({ id, container: c, updates }: { id: string; container:
   const points = history.data ?? []
   const cpu = points.map((p) => p.cpu ?? 0)
   const mem = points.map((p) => p.mem ?? 0)
-  const empty = <p className="px-3 py-6 text-[13px] text-faint">No history yet.</p>
+  const empty = <p className="px-3 py-6 text-small text-faint">No history yet.</p>
 
   return (
     <div id={id} className="grid gap-4 px-2.5 pt-1.5 pb-4 md:grid-cols-2 md:pl-8">
@@ -122,11 +122,11 @@ function ContainerDetail({ id, container: c, updates }: { id: string; container:
           empty
         )}
       </Panel>
-      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-[13px] md:col-span-2">
+      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-small md:col-span-2">
         <dt className="text-muted">Status</dt>
         <dd>{c.status || c.state}</dd>
         <dt className="text-muted">Image</dt>
-        <dd className="truncate font-mono text-[12.5px]">{c.image}</dd>
+        <dd className="truncate font-mono text-caption">{c.image}</dd>
         <dt className="text-muted">Last update</dt>
         <dd>{updates[0] ? formatWhen(updates[0].at) : 'None seen yet'}</dd>
       </dl>

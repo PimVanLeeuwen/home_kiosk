@@ -31,10 +31,10 @@ export function InstrumentCard({ title, now, detail, values, label, min = 0, max
   const alert = tone === 'warn' || tone === 'down'
   return (
     <Card title={title} className="pb-0 md:pb-0">
-      <p className={cn('-mt-2 text-[23px] leading-tight font-semibold tracking-tight md:text-[30px]', tone === 'warn' && 'text-warn', tone === 'down' && 'text-down')}>
+      <p className={cn('-mt-2 text-stat leading-tight font-semibold tracking-tight md:text-display', tone === 'warn' && 'text-warn', tone === 'down' && 'text-down')}>
         {now}
       </p>
-      {detail && <p className="mt-0.5 text-[11.5px] text-muted md:text-[12.5px]">{detail}</p>}
+      {detail && <p className="mt-0.5 text-label text-muted md:text-caption">{detail}</p>}
       {known(values).length > 1 ? (
         <>
           <div className="-mx-5 mt-2.5 md:-mx-6">
@@ -51,7 +51,7 @@ export function InstrumentCard({ title, now, detail, values, label, min = 0, max
             />
           </div>
           {secondary && (
-            <p className="flex gap-3 pb-2.5 text-[11.5px] text-muted" aria-hidden="true">
+            <p className="flex gap-3 pb-2.5 text-label text-muted" aria-hidden="true">
               <span className="flex items-center gap-1">
                 <i className="inline-block h-0.5 w-2 rounded-full bg-accent-line" />
                 {secondary.primaryLabel}
@@ -64,7 +64,7 @@ export function InstrumentCard({ title, now, detail, values, label, min = 0, max
           )}
         </>
       ) : (
-        <p className="pt-6 pb-8 text-[13px] text-faint">The 24-hour chart fills in as readings come in.</p>
+        <p className="pt-6 pb-8 text-small text-faint">The 24-hour chart fills in as readings come in.</p>
       )}
     </Card>
   )

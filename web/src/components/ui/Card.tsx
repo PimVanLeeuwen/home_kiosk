@@ -48,14 +48,14 @@ export function Card({ title, link, actions, className, children }: Props) {
   return (
     <Surface as="section" aria-labelledby={id} className={className}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 id={id} className="text-[13px] font-semibold text-muted">
+        <h2 id={id} className="text-small font-semibold text-muted">
           {title}
         </h2>
         {(actions || link) && (
           <div className="flex flex-wrap items-center gap-3">
             {actions}
             {link && (
-              <Link to={link.to} className="text-[13px] font-medium text-accent-fg hover:underline">
+              <Link to={link.to} className="text-small font-medium text-accent-fg hover:underline">
                 {link.label} →
               </Link>
             )}

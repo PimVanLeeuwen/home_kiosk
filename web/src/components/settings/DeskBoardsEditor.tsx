@@ -62,7 +62,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
   }
   return (
     <Surface padding="list">
-      <p className="pt-3 pb-1 text-[12.5px] text-faint">
+      <p className="pt-3 pb-1 text-caption text-faint">
         Every board runs the same firmware; choose which panel each one is. A panel has one board: choosing it here takes it from another. A board with a panel gets a device key, which lets it save headlines (and later control lights and music).
       </p>
       <ul>
@@ -77,8 +77,8 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
                   className={cn('block size-2.5 shrink-0 rounded-full', on ? 'bg-up shadow-[0_0_6px_var(--color-up)]' : 'bg-white/20')}
                 />
                 <span className="min-w-0">
-                  <span className="block font-mono text-[13.5px]">{b.mac}</span>
-                  <span className="block text-[12px] text-faint">
+                  <span className="block font-mono text-small">{b.mac}</span>
+                  <span className="block text-caption text-faint">
                     {on ? 'Online' : `Last seen ${formatAgo(b.last_seen, now)}`}
                     {b.firmware && (
                       <>
@@ -87,7 +87,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
                       </>
                     )}
                   </span>
-                  <span className="mt-1 flex flex-wrap items-center gap-x-3 text-[12px]">
+                  <span className="mt-1 flex flex-wrap items-center gap-x-3 text-caption">
                     <span className={b.key === 'active' ? 'text-faint' : b.panel ? 'text-warn' : 'text-faint'}>{KEY_STATE[b.key]}</span>
                     {b.panel && (
                       <button type="button" onClick={() => send('POST', b, {}, '/key')} className="text-muted underline-offset-2 hover:text-fg hover:underline">
@@ -102,14 +102,14 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
                   </span>
                   {behind &&
                     (b.update_requested ? (
-                      <span role="status" className="mt-1 block text-[12px] text-accent-fg">
+                      <span role="status" className="mt-1 block text-caption text-accent-fg">
                         Updating to <span className="font-mono">{offered.version}</span> at its next visit; it restarts once
                       </span>
                     ) : (
                       <button
                         type="button"
                         onClick={() => send('POST', b, {}, '/update')}
-                        className="mt-1.5 rounded-[9px] border border-accent-line bg-accent/12 px-2.5 py-1 text-[12.5px] text-fg hover:bg-accent/20"
+                        className="mt-1.5 rounded-[9px] border border-accent-line bg-accent/12 px-2.5 py-1 text-caption text-fg hover:bg-accent/20"
                       >
                         Update to <span className="font-mono">{offered.version}</span>
                       </button>
@@ -127,7 +127,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
                 type="button"
                 onClick={() => send('DELETE', b)}
                 aria-label={`Forget ${b.mac}`}
-                className="rounded-[9px] px-2 py-1 text-[12.5px] text-muted hover:bg-white/5 hover:text-fg"
+                className="rounded-[9px] px-2 py-1 text-caption text-muted hover:bg-white/5 hover:text-fg"
               >
                 Forget
               </button>
@@ -136,7 +136,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
         })}
       </ul>
       {error && (
-        <p role="alert" className="pb-3 text-[12.5px] text-down">
+        <p role="alert" className="pb-3 text-caption text-down">
           {error}
         </p>
       )}

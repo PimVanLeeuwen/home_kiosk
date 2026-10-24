@@ -37,10 +37,10 @@ export function PortfolioCard() {
       {!data && (error ? <Unavailable what="The portfolio" /> : <Loading />)}
       {data && today && (
         <>
-          <p className="text-[30px] leading-tight font-semibold tracking-tight md:text-[34px]">
+          <p className="text-display leading-tight font-semibold tracking-tight md:text-display">
             {formatMoney(data.total_value, data.currency)}
           </p>
-          <p className="mt-0.5 text-[13.5px] font-semibold">
+          <p className="mt-0.5 text-small font-semibold">
             <span className={tone(today.abs)}>{formatSignedMoney(today.abs, data.currency)} today</span>
             {periodPct != null && (
               <span className={tone(periodPct)}> · {formatSignedPct(periodPct)} in 30 days</span>
@@ -55,7 +55,7 @@ export function PortfolioCard() {
               height={110}
             />
           </div>
-          <div className="mt-1.5 mb-2 flex flex-wrap justify-between gap-x-3 text-[11px] font-semibold tracking-[0.08em] uppercase">
+          <div className="mt-1.5 mb-2 flex flex-wrap justify-between gap-x-3 text-label font-semibold tracking-[0.08em] uppercase">
             <span className="text-faint">Last 30 days</span>
             {high && history.length > 1 && (
               <span className="text-muted">
@@ -64,7 +64,7 @@ export function PortfolioCard() {
             )}
           </div>
 
-          <table className="w-full table-fixed text-[13.5px]">
+          <table className="w-full table-fixed text-small">
             <caption className="sr-only">Largest holdings</caption>
             <colgroup>
               <col className="w-[4.5rem]" />
@@ -76,7 +76,7 @@ export function PortfolioCard() {
               {data.holdings.slice(0, 3).map((h) => (
                 <tr key={h.symbol} className="border-t border-line-soft first:border-t-0">
                   <td className="py-1.5 pr-2">
-                    <span className="inline-block min-w-[3.25rem] truncate rounded-[6px] border border-glass-line bg-glass px-1.5 py-0.5 text-center font-mono text-[12px]">
+                    <span className="inline-block min-w-[3.25rem] truncate rounded-[6px] border border-glass-line bg-glass px-1.5 py-0.5 text-center font-mono text-caption">
                       {h.symbol}
                     </span>
                   </td>
@@ -85,7 +85,7 @@ export function PortfolioCard() {
                   </td>
                   <td className="py-1.5 pr-3 text-right whitespace-nowrap">{formatMoney(h.value, data.currency)}</td>
                   <td className="py-1.5 text-right">
-                    <span className={cn('rounded-[7px] px-1.5 py-0.5 text-[12.5px] font-semibold whitespace-nowrap', chip(h.day_pct))}>
+                    <span className={cn('rounded-[7px] px-1.5 py-0.5 text-caption font-semibold whitespace-nowrap', chip(h.day_pct))}>
                       {formatSignedPct(h.day_pct)}
                     </span>
                   </td>

@@ -12,7 +12,7 @@ import { Surface } from '../components/ui/Card'
 
 const REFRESH_MS = 60_000
 
-const mono = (value: string) => <span className="font-mono text-[12.5px]">{value}</span>
+const mono = (value: string) => <span className="font-mono text-caption">{value}</span>
 
 /** The NAS's own names and addresses, with what is known; empty rows left out. */
 function selfRows(self: TailnetDevice, served: number, issues: number): [string, ReactNode][] {
@@ -38,7 +38,7 @@ function Group({ title, devices, open, setOpen, now }: {
   const id = `devices-${title.toLowerCase()}`
   return (
     <section aria-labelledby={id} className="mt-5">
-      <h2 id={id} className="mb-2.5 flex items-center gap-2 text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">
+      <h2 id={id} className="mb-2.5 flex items-center gap-2 text-label font-semibold tracking-[0.08em] text-faint uppercase">
         {title}
         <span className={title === 'Online' ? 'rounded-[6px] bg-up/13 px-1.5 text-up' : 'rounded-[6px] bg-raised px-1.5 text-muted'}>
           {devices.length}
@@ -112,7 +112,7 @@ export function TailscalePage() {
               </span>
               <div>
                 <p className="font-semibold text-warn">Tailscale health</p>
-                <p className="mt-0.5 text-[13px] text-muted">{warning}</p>
+                <p className="mt-0.5 text-small text-muted">{warning}</p>
               </div>
             </section>
           ))}
@@ -125,10 +125,10 @@ export function TailscalePage() {
           >
             <TailnetMap peers={data.peers} warn={issues > 0} />
             <div>
-              <p className="mb-3 flex items-center gap-2.5 text-[19px] font-semibold">
+              <p className="mb-3 flex items-center gap-2.5 text-heading font-semibold">
                 <GlowDot tone={issues ? 'warn' : 'accent'} halo={issues > 0} />
                 {data.self.name}
-                <span className="text-[13px] font-normal text-faint">this NAS</span>
+                <span className="text-small font-normal text-faint">this NAS</span>
               </p>
               <Facts rows={selfRows(data.self, served, issues)} />
             </div>

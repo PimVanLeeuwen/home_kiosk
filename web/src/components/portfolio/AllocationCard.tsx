@@ -59,7 +59,7 @@ export function AllocationCard({ allocation }: { allocation: { label: string; pc
           {largest.label}
         </text>
       </svg>
-      <ul className="space-y-1.5 text-[13.5px]">
+      <ul className="space-y-1.5 text-small">
         {allocation.map((slice, i) => (
           <li key={slice.label} className="flex items-center gap-2.5">
             <span

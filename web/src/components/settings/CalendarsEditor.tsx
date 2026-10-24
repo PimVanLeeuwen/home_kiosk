@@ -30,21 +30,21 @@ export function CalendarsEditor() {
   }
   return (
     <Surface padding="list">
-      <p className="pt-3 pb-1 text-[12.5px] text-faint">Which calendars show on Home and on the Now panel. Off means never shown; nothing is changed in iCloud.</p>
+      <p className="pt-3 pb-1 text-caption text-faint">Which calendars show on Home and on the Now panel. Off means never shown; nothing is changed in iCloud.</p>
       <ul>
         {calendars.map((c) => (
           <li key={c.id} className="grid grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-3 border-line-soft py-2.5 not-first:border-t">
             <i aria-hidden="true" style={{ backgroundColor: c.color }} className="block size-3 rounded-[4px]" />
             <span className="min-w-0">
               <span className="block truncate">{c.name}</span>
-              <span className="block text-[12px] text-faint">{c.kind === 'subscribed' ? 'Subscription' : 'iCloud'}</span>
+              <span className="block text-caption text-faint">{c.kind === 'subscribed' ? 'Subscription' : 'iCloud'}</span>
             </span>
             <Switch checked={c.shown} onChange={(shown) => toggle(c, shown)} label={`Show ${c.name}`} />
           </li>
         ))}
       </ul>
       {error && (
-        <p role="alert" className="pb-3 text-[12.5px] text-down">
+        <p role="alert" className="pb-3 text-caption text-down">
           {error}
         </p>
       )}

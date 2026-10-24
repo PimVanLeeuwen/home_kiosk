@@ -10,7 +10,7 @@ const TYPE: Record<string, string> = { computer: 'Computer', smartphone: 'Phone'
 
 function Label({ children, aside }: { children: string; aside?: string }) {
   return (
-    <p className="mb-2.5 flex justify-between gap-2.5 text-[11.5px] font-semibold tracking-[0.07em] text-faint uppercase">
+    <p className="mb-2.5 flex justify-between gap-2.5 text-label font-semibold tracking-[0.07em] text-faint uppercase">
       {children}
       {aside && <b className="truncate font-medium tracking-normal text-muted normal-case">{aside}</b>}
     </p>
@@ -53,16 +53,16 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate">{d.name}</span>
-                    <small className="block text-[11.5px] text-faint">{TYPE[d.type] ?? 'Device'}</small>
+                    <small className="block text-label text-faint">{TYPE[d.type] ?? 'Device'}</small>
                   </span>
-                  <span className={cn('text-[11.5px]', d.active ? 'text-up' : 'text-faint')}>{d.active ? 'Playing here' : 'Move here'}</span>
+                  <span className={cn('text-label', d.active ? 'text-up' : 'text-faint')}>{d.active ? 'Playing here' : 'Move here'}</span>
                 </button>
               </li>
             )
           })}
         </ul>
       ) : (
-        <p className="mb-[18px] text-[13px] text-muted">No Spotify devices right now: open Spotify on a phone, Mac or the Apple TV.</p>
+        <p className="mb-[18px] text-small text-muted">No Spotify devices right now: open Spotify on a phone, Mac or the Apple TV.</p>
       )}
 
       <Label aside="Settings → Music">Favourites</Label>
@@ -80,7 +80,7 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
               >
                 <Cover item={f} className="absolute inset-0 size-full" />
                 <span aria-hidden="true" className="absolute inset-0 bg-linear-to-b from-transparent from-45% to-black/60" />
-                <span className="relative text-[13.5px] font-semibold">{f.name}</span>
+                <span className="relative text-small font-semibold">{f.name}</span>
                 <span
                   aria-hidden="true"
                   className={cn(
@@ -95,7 +95,7 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
           ))}
         </ul>
       ) : (
-        <p className="text-[13px] text-muted">
+        <p className="text-small text-muted">
           No favourites yet: choose four in{' '}
           <Link to="/settings/music" className="text-accent-fg hover:underline">
             Settings → Music

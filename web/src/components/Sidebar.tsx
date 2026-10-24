@@ -23,7 +23,7 @@ export function Sidebar({ host }: { host: string | null }) {
         {NAV.map((section, i) => (
           <div key={section.title ?? i}>
             {section.title && (
-              <p className="px-2.5 pb-1.5 text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">
+              <p className="px-2.5 pb-1.5 text-label font-semibold tracking-[0.08em] text-faint uppercase">
                 {section.title}
               </p>
             )}

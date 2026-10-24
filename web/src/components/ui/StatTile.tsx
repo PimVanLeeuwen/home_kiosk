@@ -21,11 +21,11 @@ export function StatTile({ title, figure, sub, tone, children }: Props) {
     <Card title={title} className="px-3.5 py-3.5 md:px-4.5 md:py-4">
       <div
         style={tone ? { color: TONE_COLOR[tone] } : undefined}
-        className="-mt-2 text-[21px] leading-tight font-semibold tracking-tight md:text-[26px]"
+        className="-mt-2 text-stat leading-tight font-semibold tracking-tight md:text-page"
       >
         {figure}
       </div>
-      {sub && <p className="mt-0.5 text-[12px] text-muted">{sub}</p>}
+      {sub && <p className="mt-0.5 text-caption text-muted">{sub}</p>}
       {children}
     </Card>
   )

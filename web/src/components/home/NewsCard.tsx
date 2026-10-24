@@ -42,16 +42,16 @@ export function NewsCard() {
                     <span
                       className={cn(
                         'group-hover:underline',
-                        i === 0 ? 'text-[17px] leading-snug font-semibold' : 'font-medium',
+                        i === 0 ? 'text-title leading-snug font-semibold' : 'font-medium',
                         a.read && 'text-muted',
                       )}
                     >
                       {a.title}
                     </span>
-                    <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[12px] text-faint">
+                    <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-caption text-faint">
                       {group && (
                         <span
-                          className="rounded-[6px] px-1.5 text-[10.5px] font-semibold tracking-[0.04em]"
+                          className="rounded-[6px] px-1.5 text-micro font-semibold tracking-[0.04em]"
                           style={{ backgroundColor: group.colour.bg, color: group.colour.fg }}
                         >
                           {group.title}

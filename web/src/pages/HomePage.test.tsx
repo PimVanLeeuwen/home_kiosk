@@ -142,8 +142,8 @@ describe('HomePage', () => {
     expect(chip).toHaveStyle({ color: '#b4aaff' })
     expect(within(news).getAllByText('Tech')[0]).toHaveStyle({ color: '#8cc4ff' })
     expect(within(news).getByText(/^NOS · /)).toBeInTheDocument()
-    expect(within(news).getByText(/Kabinet presenteert Miljoenennota/)).toHaveClass('text-[17px]')
-    expect(within(news).getByText(/Jellyfin 12.1 lands/)).not.toHaveClass('text-[17px]')
+    expect(within(news).getByText(/Kabinet presenteert Miljoenennota/)).toHaveClass('text-title')
+    expect(within(news).getByText(/Jellyfin 12.1 lands/)).not.toHaveClass('text-title')
     expect(within(news).getByText('2 unread')).toBeInTheDocument()
   })
 

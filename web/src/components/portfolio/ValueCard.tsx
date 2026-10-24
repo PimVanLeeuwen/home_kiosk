@@ -43,12 +43,12 @@ export function ValueCard({ currency, total }: Props) {
       className="pb-0 md:pb-0"
       actions={<Segmented label="Period" options={RANGES.map(([r, label]) => [r, label])} value={range} onChange={setRange} />}
     >
-      <p className="-mt-1 text-[31px] leading-tight font-semibold tracking-tight md:text-[38px]">{money(total)}</p>
+      <p className="-mt-1 text-display leading-tight font-semibold tracking-tight md:text-hero">{money(total)}</p>
       {!points && <div className="pb-5">{error ? <Unavailable what="The value history" /> : <Loading />}</div>}
       {points && (
         <>
           {gain != null && (
-            <p className="mt-1 mb-3 text-[13px] text-muted">
+            <p className="mt-1 mb-3 text-small text-muted">
               {gainLabel}:{' '}
               <span className={cn('font-semibold', gain > 0 ? 'text-up' : gain < 0 ? 'text-down' : 'text-fg')}>
                 {formatSignedMoney(gain, currency)}

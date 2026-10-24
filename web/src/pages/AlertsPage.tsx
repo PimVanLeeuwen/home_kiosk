@@ -43,7 +43,7 @@ export function AlertsPage() {
       {settings && (
         <>
           {missing && missing.length > 0 && (
-            <p role="alert" className="mb-4 rounded-[12px] border border-warn/40 bg-warn/10 px-4 py-3 text-[13.5px]">
+            <p role="alert" className="mb-4 rounded-[12px] border border-warn/40 bg-warn/10 px-4 py-3 text-small">
               Not set up yet: {missing.join(', ')}. Add {missing.length === 1 ? 'it' : 'them'} to the hub&apos;s .env on
               the NAS.
             </p>
@@ -61,15 +61,15 @@ export function AlertsPage() {
               {/* Keyed on the saved settings, so the form resets to what was stored. */}
               <DeliveryCard key={JSON.stringify(settings)} settings={settings} onSaved={setSaved} />
               <Card title="Bot commands">
-                <ul className="space-y-1.5 text-[13px]">
+                <ul className="space-y-1.5 text-small">
                   {COMMANDS.map(([command, what]) => (
                     <li key={command} className="flex items-center justify-between gap-3">
-                      <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 font-mono text-[12px]">{command}</span>
+                      <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 font-mono text-caption">{command}</span>
                       <span className="text-faint">{what}</span>
                     </li>
                   ))}
                 </ul>
-                <p className="mt-3 text-[12px] text-faint">Answered in the two configured chats only.</p>
+                <p className="mt-3 text-caption text-faint">Answered in the two configured chats only.</p>
               </Card>
             </div>
           </div>

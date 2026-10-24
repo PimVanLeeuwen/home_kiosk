@@ -31,7 +31,7 @@ function wordCount(blocks: Block[]): number {
 function BlockView({ block, lead }: { block: Block; lead: boolean }) {
   switch (block.type) {
     case 'heading':
-      return <h2 className="mt-8 mb-3 text-[19px] font-semibold tracking-tight text-fg">{block.text}</h2>
+      return <h2 className="mt-8 mb-3 text-heading font-semibold tracking-tight text-fg">{block.text}</h2>
     case 'quote':
       return (
         <blockquote className="my-5 border-l-2 border-accent-line pl-4 text-muted italic shadow-[-6px_0_14px_-10px_var(--color-accent-line)]">
@@ -59,7 +59,7 @@ function BlockView({ block, lead }: { block: Block; lead: boolean }) {
         </figure>
       )
     default:
-      return <p className={lead ? 'mb-5 text-[18px] leading-[1.6] text-fg' : 'mb-5'}>{block.text}</p>
+      return <p className={lead ? 'mb-5 text-heading leading-[1.6] text-fg' : 'mb-5'}>{block.text}</p>
   }
 }
 
@@ -106,7 +106,7 @@ export function ArticleView({ content, title, url, meta, actions, back, bodyRef 
 
   return (
     <article aria-label={data?.title || title} className="mx-auto max-w-[68ch] pb-10">
-      <Link to={back.to} className="mb-5 inline-flex items-center gap-1 text-[13px] text-accent-fg hover:underline lg:hidden">
+      <Link to={back.to} className="mb-5 inline-flex items-center gap-1 text-small text-accent-fg hover:underline lg:hidden">
         <ChevronLeft aria-hidden="true" className="size-4" />
         {back.label}
       </Link>
@@ -125,12 +125,12 @@ export function ArticleView({ content, title, url, meta, actions, back, bodyRef 
           />
         </div>
       )}
-      <div className="mb-3 flex flex-wrap items-center gap-x-1 gap-y-1.5 text-[12.5px] text-faint">
+      <div className="mb-3 flex flex-wrap items-center gap-x-1 gap-y-1.5 text-caption text-faint">
         {meta}
         {minutes && <span>· {minutes} min read</span>}
       </div>
-      <h1 className="text-[24px] leading-tight font-semibold tracking-tight md:text-[28px]">{data?.title || title}</h1>
-      {data?.author && <p className="mt-2 text-[13px] text-muted">{data.author}</p>}
+      <h1 className="text-stat leading-tight font-semibold tracking-tight md:text-page">{data?.title || title}</h1>
+      {data?.author && <p className="mt-2 text-small text-muted">{data.author}</p>}
       <div className="mt-4 mb-7 flex flex-wrap gap-2">{actions}</div>
 
       {!data && !content.error && (
@@ -142,12 +142,12 @@ export function ArticleView({ content, title, url, meta, actions, back, bodyRef 
       {data && !data.ok && (
         <Surface>
           <p className="font-medium">This one does not read well in the hub.</p>
-          <p className="mt-1 text-[13px] text-muted">{data.reason}</p>
+          <p className="mt-1 text-small text-muted">{data.reason}</p>
           <a
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-medium text-accent-fg hover:underline"
+            className="mt-3 inline-flex items-center gap-1.5 text-small font-medium text-accent-fg hover:underline"
           >
             Open the original
             <ExternalLink aria-hidden="true" className="size-3.5" />
@@ -167,7 +167,7 @@ export function ArticleView({ content, title, url, meta, actions, back, bodyRef 
         </figure>
       )}
       {data?.ok && (
-        <div ref={attachBody} className="text-[16.5px] leading-[1.7] text-fg/90">
+        <div ref={attachBody} className="text-title leading-[1.7] text-fg/90">
           {blocks.map((block, i) => (
             <BlockView key={i} block={block} lead={i === firstParagraph} />
           ))}
@@ -192,7 +192,7 @@ interface ActionProps {
 /** A reader action button, or a link styled like one. */
 export function ReaderAction({ onClick, href, icon, label, short, primary, disabled, danger }: ActionProps) {
   const className = [
-    'inline-flex items-center gap-1.5 rounded-[10px] border px-3 py-2 text-[13px] font-medium disabled:opacity-50',
+    'inline-flex items-center gap-1.5 rounded-[10px] border px-3 py-2 text-small font-medium disabled:opacity-50',
     primary
       ? 'border-accent bg-accent text-white shadow-[0_0_14px_-4px_var(--color-accent-line)] hover:brightness-110'
       : danger

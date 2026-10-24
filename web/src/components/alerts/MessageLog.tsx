@@ -78,7 +78,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
   ]
 
   return (
-    <Card title="Messages" actions={<span className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">Last 100</span>}>
+    <Card title="Messages" actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Last 100</span>}>
       <form onSubmit={send} aria-label="Send a message" className="mb-4 flex flex-wrap items-start gap-2">
         <label className="min-w-0 flex-1 basis-64">
           <span className="sr-only">Message</span>
@@ -92,7 +92,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
             className={cn(inputClass, 'block min-h-[40px] resize-y')}
           />
         </label>
-        <label className="flex items-center gap-2 text-[13px] text-muted">
+        <label className="flex items-center gap-2 text-small text-muted">
           <span className="sr-only">To</span>
           <select
             value={chat}
@@ -115,7 +115,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
           {sending ? 'Sending…' : 'Send'}
         </button>
         {error && (
-          <p role="alert" className="w-full text-[13px] text-down">
+          <p role="alert" className="w-full text-small text-down">
             {error}
           </p>
         )}
@@ -129,7 +129,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
             aria-pressed={category === key}
             onClick={() => setCategory(key)}
             className={cn(
-              'rounded-full border px-3 py-1 text-[12.5px]',
+              'rounded-full border px-3 py-1 text-caption',
               category === key
                 ? 'border-accent-line/40 bg-accent/20 text-fg'
                 : 'border-glass-line bg-glass text-muted hover:text-fg',
@@ -149,16 +149,16 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
           return (
             <li key={m.id} className="relative border-t border-line-soft py-3 first:border-t-0 first:pt-0.5">
               <span aria-hidden="true" className={cn('absolute -left-[20.5px] size-[7px] rounded-full', DOT[m.severity], 'top-[1.15rem] in-[li:first-child]:top-[0.55rem]')} />
-              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-faint">
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-faint">
                 <span>{formatWhen(m.ts)}</span>
-                <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 text-[10.5px] font-semibold tracking-[0.04em] text-muted">
+                <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 text-micro font-semibold tracking-[0.04em] text-muted">
                   {sourceLabel(m.source)}
                 </span>
                 <SeverityPill severity={m.severity} />
               </p>
               <p className="mt-1 font-semibold">{m.title}</p>
-              {m.body && <p className="mt-0.5 text-[13px] whitespace-pre-line text-muted">{m.body}</p>}
-              <p className="mt-1 flex items-center gap-1.5 text-[12px]">
+              {m.body && <p className="mt-0.5 text-small whitespace-pre-line text-muted">{m.body}</p>}
+              <p className="mt-1 flex items-center gap-1.5 text-caption">
                 <span aria-hidden="true" className={d.markClass}>
                   {d.mark}
                 </span>

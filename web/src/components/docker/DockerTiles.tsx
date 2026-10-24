@@ -65,14 +65,14 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
       </StatTile>
 
       <StatTile title="CPU, all containers" figure={pct(overview.cpu_pct)} sub="of the NAS">
-        <ul className="mt-2 grid gap-1 text-[11.5px]">
+        <ul className="mt-2 grid gap-1 text-label">
           {busiest.map((c) => (
             // On a phone the bar takes its own line under the name and the figure.
             <li
               key={c.name}
               className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-0.5 md:grid-cols-[minmax(0,4.5rem)_minmax(0,1fr)_2.25rem]"
             >
-              <span className="truncate font-mono text-[11px] text-muted">{c.name}</span>
+              <span className="truncate font-mono text-label text-muted">{c.name}</span>
               <span className="order-last col-span-2 h-1 overflow-hidden rounded-full bg-raised md:order-none md:col-span-1" aria-hidden="true">
                 <span
                   className="block h-full rounded-full bg-linear-to-r from-[var(--color-accent)] to-[var(--color-accent-fg)]"
@@ -92,7 +92,7 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
           ))}
           <i className="block h-full flex-1 bg-white/12" />
         </p>
-        <ul className="mt-1.5 flex flex-wrap gap-x-2.5 gap-y-0.5 text-[11px] text-muted">
+        <ul className="mt-1.5 flex flex-wrap gap-x-2.5 gap-y-0.5 text-label text-muted">
           {biggest.map((c, i) => (
             <li key={c.name} className="flex min-w-0 items-center gap-1">
               <i className="inline-block size-[7px] shrink-0 rounded-[2px]" style={{ backgroundColor: MEMORY_COLOURS[i] }} />
@@ -105,7 +105,7 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
       <StatTile title="Updates, last 7 days" figure={recent} sub={recent === 1 ? 'image replaced' : 'images replaced'}>
         <p className="mt-2.5 flex items-end gap-1.5" aria-hidden="true">
           {days.map((d, i) => (
-            <span key={i} className="grid justify-items-center gap-0.5 text-[10px] text-faint">
+            <span key={i} className="grid justify-items-center gap-0.5 text-micro text-faint">
               <b
                 className={cn('block w-2.5 rounded-[3px]', d.count ? 'bg-accent-line shadow-[0_0_6px_var(--color-accent-line)]' : 'bg-accent-line/25')}
                 style={{ height: 6 + Math.min(d.count, 4) * 6 }}

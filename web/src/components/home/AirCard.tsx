@@ -87,7 +87,7 @@ function Co2Curve({ history, level }: { history: Air['history']; level: Level })
         <path d={`${line} L ${w} ${h} L 0 ${h} Z`} fill={colour} fillOpacity="0.13" />
         <path d={line} fill="none" stroke={colour} strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
       </svg>
-      <figcaption className="mt-1 flex justify-between text-[11.5px] text-faint">
+      <figcaption className="mt-1 flex justify-between text-label text-faint">
         <span>8 h ago</span>
         <span>now</span>
       </figcaption>
@@ -102,16 +102,16 @@ export function AirCard() {
   const outside = air?.outside != null ? ` · outside ${air.outside}°` : ''
 
   return (
-    <Card title="Air" actions={air && <span className="text-[12.5px] text-muted">{air.room}{outside}</span>}>
+    <Card title="Air" actions={air && <span className="text-caption text-muted">{air.room}{outside}</span>}>
       {!air && (error ? <Unavailable what="The air sensor" /> : <Loading />)}
       {air && (
         <>
           <div className="grid grid-cols-[minmax(0,1fr)_130px] items-center gap-4 sm:grid-cols-[minmax(0,1fr)_170px]">
             <div className="min-w-0">
-              <p className="text-[46px] leading-none font-semibold tracking-tight tabular-nums sm:text-[56px]">
+              <p className="text-giant leading-none font-semibold tracking-tight tabular-nums sm:text-giant">
                 {air.temperature != null ? `${degrees(air.temperature)}°` : '–'}
               </p>
-              <ul className="mt-3 grid gap-1 text-[13.5px] text-muted">
+              <ul className="mt-3 grid gap-1 text-small text-muted">
                 {air.humidity != null && (
                   <li>
                     <span className="font-semibold text-fg">{air.humidity}%</span> humidity
@@ -120,7 +120,7 @@ export function AirCard() {
                 {air.pm25 != null && (
                   <li>
                     <span className="font-semibold text-fg">{air.pm25}</span> µg/m³ fine dust
-                    {air.quality && <span className="block text-[12px] text-faint">Sensor says: {air.quality}</span>}
+                    {air.quality && <span className="block text-caption text-faint">Sensor says: {air.quality}</span>}
                   </li>
                 )}
               </ul>
@@ -128,13 +128,13 @@ export function AirCard() {
             {air.co2 != null && air.level && (
               <div className="grid justify-items-center">
                 <Co2Ring ppm={air.co2} level={air.level} />
-                <p className={`-mt-3 text-[14px] font-semibold ${LEVEL[air.level].className}`}>{LEVEL[air.level].word}</p>
+                <p className={`-mt-3 text-body font-semibold ${LEVEL[air.level].className}`}>{LEVEL[air.level].word}</p>
               </div>
             )}
           </div>
           {air.level && <Co2Curve history={air.history} level={air.level} />}
-          {!air.available && <p className="mt-3 text-[12px] text-warn">The sensor is not answering: showing its last values.</p>}
-          <p className="mt-3 text-[12px] text-faint">Updated {formatAgo(air.as_of, now)} · IKEA ALPSTUGA</p>
+          {!air.available && <p className="mt-3 text-caption text-warn">The sensor is not answering: showing its last values.</p>}
+          <p className="mt-3 text-caption text-faint">Updated {formatAgo(air.as_of, now)} · IKEA ALPSTUGA</p>
           {air.stale && <StaleNote />}
         </>
       )}

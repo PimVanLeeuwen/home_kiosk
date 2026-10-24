@@ -82,12 +82,12 @@ export function MusicPage() {
             />
           </div>
           {starting !== null && (
-            <p role="status" className="mt-3 text-[13px] text-muted">
+            <p role="status" className="mt-3 text-small text-muted">
               Starting… waking {music.default_device} can take a few seconds.
             </p>
           )}
           {failure && (
-            <p role="alert" className="mt-3 text-[13px] text-down">
+            <p role="alert" className="mt-3 text-small text-down">
               {failure}
             </p>
           )}

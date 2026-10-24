@@ -42,7 +42,7 @@ export function UpsCard() {
         ) : (
           <span />
         )}
-        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-[13.5px]">
+        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-small">
           <dt className="text-muted">Status</dt>
           <dd>
             <span className={cn('font-semibold', status.className)}>{status.label}</span>
@@ -61,11 +61,11 @@ export function UpsCard() {
         </dl>
       </div>
 
-      <p className="mt-4 text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">Power cuts</p>
+      <p className="mt-4 text-label font-semibold tracking-[0.08em] text-faint uppercase">Power cuts</p>
       {past.length === 0 ? (
-        <p className="mt-1 text-[12.5px] text-muted">None recorded.</p>
+        <p className="mt-1 text-caption text-muted">None recorded.</p>
       ) : (
-        <ol className="mt-2 grid gap-2 border-l border-line pl-3.5 text-[12.5px]">
+        <ol className="mt-2 grid gap-2 border-l border-line pl-3.5 text-caption">
           {past.map((o) => (
             <li key={o.started_at} className="relative">
               <span
@@ -80,7 +80,7 @@ export function UpsCard() {
           ))}
         </ol>
       )}
-      <p className="mt-3 text-[12px] text-faint">
+      <p className="mt-3 text-caption text-faint">
         At {ups.charge_low ?? 15}% UGOS stops all services. Telegram gets one message per power cut once the internet is
         back.
       </p>

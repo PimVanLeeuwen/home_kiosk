@@ -89,11 +89,11 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block text-[12.5px] text-muted">Name</span>
+          <span className="mb-1 block text-caption text-muted">Name</span>
           <input id={field('name')} required maxLength={60} value={values.name} onChange={set('name')} className={inputClass} />
         </label>
         <label className="block">
-          <span className="mb-1 block text-[12.5px] text-muted">Group</span>
+          <span className="mb-1 block text-caption text-muted">Group</span>
           <input required maxLength={40} list={field('groups')} value={values.group} onChange={set('group')} className={inputClass} />
           <datalist id={field('groups')}>
             {groups.map((g) => (
@@ -102,7 +102,7 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
           </datalist>
         </label>
         <label className="block">
-          <span className="mb-1 block text-[12.5px] text-muted">Icon</span>
+          <span className="mb-1 block text-caption text-muted">Icon</span>
           <span className="flex items-center gap-2">
             <select value={values.icon} onChange={set('icon')} className={inputClass}>
               <option value="">Letters</option>
@@ -118,12 +118,12 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
           </span>
         </label>
         <label className="block">
-          <span className="mb-1 block text-[12.5px] text-muted">Description</span>
+          <span className="mb-1 block text-caption text-muted">Description</span>
           <input maxLength={80} value={values.description} onChange={set('description')} className={inputClass} />
         </label>
         {values.kind === 'link' ? (
           <label className="block sm:col-span-2">
-            <span className="mb-1 block text-[12.5px] text-muted">Address</span>
+            <span className="mb-1 block text-caption text-muted">Address</span>
             <input
               required
               type="url"
@@ -137,15 +137,15 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
         ) : (
           <>
             <label className="block">
-              <span className="mb-1 block text-[12.5px] text-muted">Port</span>
+              <span className="mb-1 block text-caption text-muted">Port</span>
               <input required type="number" min={1} max={65535} inputMode="numeric" value={values.port} onChange={set('port')} className={inputClass} />
             </label>
             <label className="block">
-              <span className="mb-1 block text-[12.5px] text-muted">Path</span>
+              <span className="mb-1 block text-caption text-muted">Path</span>
               <input maxLength={200} value={values.path} onChange={set('path')} className={`${inputClass} font-mono`} />
             </label>
             <label className="block">
-              <span className="mb-1 block text-[12.5px] text-muted">Container (for the status dot)</span>
+              <span className="mb-1 block text-caption text-muted">Container (for the status dot)</span>
               <input maxLength={128} list={field('containers')} value={values.container} onChange={set('container')} className={`${inputClass} font-mono`} />
               <datalist id={field('containers')}>
                 {containers.map((c) => (
@@ -154,7 +154,7 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
               </datalist>
             </label>
             <label className="block">
-              <span className="mb-1 block text-[12.5px] text-muted">Stats widget</span>
+              <span className="mb-1 block text-caption text-muted">Stats widget</span>
               <select value={values.widget} onChange={set('widget')} className={inputClass}>
                 <option value="">None</option>
                 {widgets.map((w) => (
@@ -169,7 +169,7 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
       </div>
 
       {error && (
-        <p role="alert" className="mt-3 text-[13px] text-down">
+        <p role="alert" className="mt-3 text-small text-down">
           {error}
         </p>
       )}

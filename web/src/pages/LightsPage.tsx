@@ -72,7 +72,7 @@ export function LightsPage() {
       {lights && (
         <>
           <div className="mb-3.5 flex items-center justify-between gap-2.5">
-            <p className="text-[13px] text-muted">
+            <p className="text-small text-muted">
               {lights.stale ? 'Last known state: the bridge is not answering right now.' : 'Changes from the switch, Siri or the Home app show here at once.'}
             </p>
             <button
@@ -107,12 +107,12 @@ export function LightsPage() {
             ))}
           </div>
           {failure && (
-            <p role="alert" className="mt-3 text-[13px] text-down">
+            <p role="alert" className="mt-3 text-small text-down">
               {failure}
             </p>
           )}
           {lights.stale && <StaleNote />}
-          <p className="mt-3.5 text-[12px] text-faint">Updated {formatAgo(lights.as_of)} · Hue Bridge</p>
+          <p className="mt-3.5 text-caption text-faint">Updated {formatAgo(lights.as_of)} · Hue Bridge</p>
         </>
       )}
     </>

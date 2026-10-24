@@ -96,7 +96,7 @@ export function NasCard({ nas, error }: Props) {
             </div>
           )}
 
-          <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 border-t border-line-soft pt-2.5 text-[12.5px] text-muted">
+          <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 border-t border-line-soft pt-2.5 text-caption text-muted">
             <span>
               Network ↓ {formatMbit(nas.network.rx_mbps)} · ↑ {formatMbit(nas.network.tx_mbps)}
             </span>

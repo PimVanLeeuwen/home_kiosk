@@ -82,10 +82,10 @@ function RunRow({ row, now }: { row: Row; now: Date }) {
           )}
         />
         <span className="min-w-0">
-          <b className="font-mono text-[13px] font-medium">{row.name}</b>
-          <small className="block truncate text-[12px] text-muted">{row.detail}</small>
+          <b className="font-mono text-small font-medium">{row.name}</b>
+          <small className="block truncate text-caption text-muted">{row.detail}</small>
         </span>
-        <span className="text-right text-[12px] whitespace-nowrap text-muted">
+        <span className="text-right text-caption whitespace-nowrap text-muted">
           <em className="block font-semibold not-italic" style={{ color: CI_COLOUR[row.ci] }}>
             {CI_WORD[row.ci]}
           </em>
@@ -98,7 +98,7 @@ function RunRow({ row, now }: { row: Row; now: Date }) {
 
 function Label({ children, aside }: { children: string; aside?: string }) {
   return (
-    <p className="mb-2.5 flex justify-between gap-2.5 text-[11.5px] font-semibold tracking-[0.07em] text-faint uppercase">
+    <p className="mb-2.5 flex justify-between gap-2.5 text-label font-semibold tracking-[0.07em] text-faint uppercase">
       {children}
       {aside && <b className="font-medium tracking-normal text-muted normal-case">{aside}</b>}
     </p>
@@ -116,14 +116,14 @@ function ActivityGrid({ activity }: { activity: Activity }) {
       <Label aside={activity.login}>Activity · 16 weeks</Label>
       <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
         <span />
-        <div aria-hidden="true" className="grid h-[13px] gap-1 text-[10.5px] text-faint" style={columns}>
+        <div aria-hidden="true" className="grid h-[13px] gap-1 text-micro text-faint" style={columns}>
           {months.map((m, i) => (
             <span key={i} className="whitespace-nowrap">
               {m}
             </span>
           ))}
         </div>
-        <div aria-hidden="true" className="grid grid-rows-7 gap-1 text-[10.5px] leading-none text-faint">
+        <div aria-hidden="true" className="grid grid-rows-7 gap-1 text-micro leading-none text-faint">
           {['Mon', '', 'Wed', '', 'Fri', '', ''].map((d, i) => (
             <span key={i} className="flex items-center">
               {d}
@@ -152,14 +152,14 @@ function ActivityGrid({ activity }: { activity: Activity }) {
           [`${stats.streak} day${stats.streak === 1 ? '' : 's'}`, 'streak'],
         ].map(([value, label]) => (
           <div key={label} className="grid">
-            <dt className="order-last text-[12px] text-muted">{label}</dt>
-            <dd className="text-[19px] font-semibold tracking-[-0.02em] md:text-[22px]">{value}</dd>
+            <dt className="order-last text-caption text-muted">{label}</dt>
+            <dd className="text-heading font-semibold tracking-[-0.02em] md:text-stat">{value}</dd>
           </div>
         ))}
       </dl>
-      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2.5 text-[12px] text-muted">
+      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2.5 text-caption text-muted">
         <span>{activity.error ? <span className="text-warn">GitHub: {activity.error}</span> : stats.busiest && `Busiest on ${stats.busiest}`}</span>
-        <span aria-hidden="true" className="inline-flex items-center gap-[3px] text-[11px] text-faint">
+        <span aria-hidden="true" className="inline-flex items-center gap-[3px] text-label text-faint">
           Less
           {LEVEL.map((l) => (
             <i key={l} className={cn('size-2.5 rounded-[3px]', l)} />
@@ -209,7 +209,7 @@ export function CodeCard({ data }: { data: ReposResponse }) {
               ))}
             </ul>
           ) : (
-            <p className="px-2.5 py-2 text-[13px] text-muted">No builds yet.</p>
+            <p className="px-2.5 py-2 text-small text-muted">No builds yet.</p>
           )}
           <div className="mt-4">
             <Label aside={`${open} open`}>Pull requests</Label>
@@ -220,7 +220,7 @@ export function CodeCard({ data }: { data: ReposResponse }) {
                 ))}
               </ul>
             ) : (
-              <p className="px-2.5 py-2 text-[13px] text-muted">No open pull requests.</p>
+              <p className="px-2.5 py-2 text-small text-muted">No open pull requests.</p>
             )}
           </div>
         </div>

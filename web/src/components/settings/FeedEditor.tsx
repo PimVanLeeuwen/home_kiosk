@@ -82,7 +82,7 @@ export function FeedEditor() {
     <div className="space-y-4">
       <p className="text-muted">Feeds are fetched every 10 minutes. Articles are kept for a week.</p>
       {error && (
-        <p role="alert" className="text-[13px] text-down">
+        <p role="alert" className="text-small text-down">
           {error}
         </p>
       )}
@@ -109,7 +109,7 @@ export function FeedEditor() {
               </form>
             ) : deleting && 'group' in deleting && deleting.group.id === group.id ? (
               <div className="flex flex-1 flex-wrap items-center gap-2">
-                <span className="text-[13px]">
+                <span className="text-small">
                   Delete {group.title} and its {group.feeds.length} feeds?
                 </span>
                 <button type="button" onClick={() => run('DELETE', `/api/settings/feed-groups/${group.id}`)} className={`${buttonClass} border-down text-down`}>
@@ -121,7 +121,7 @@ export function FeedEditor() {
               </div>
             ) : (
               <>
-                <h3 className="flex-1 text-[13px] font-semibold text-muted">{group.title}</h3>
+                <h3 className="flex-1 text-small font-semibold text-muted">{group.title}</h3>
                 <button type="button" aria-label={`Rename group ${group.title}`} onClick={() => (setRenameTo(group.title), setEditing({ group: group.id }))} className={iconButtonClass}>
                   <Pencil aria-hidden="true" className="size-4" />
                 </button>
@@ -142,14 +142,14 @@ export function FeedEditor() {
                 <li key={feed.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 py-2.5">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">{feedLabel(feed)}</p>
-                    <p className="truncate font-mono text-[12px] text-faint">{feed.url}</p>
-                    <p className="text-[12px]">
+                    <p className="truncate font-mono text-caption text-faint">{feed.url}</p>
+                    <p className="text-caption">
                       <Health feed={feed} />
                     </p>
                   </div>
                   {deleting && 'feed' in deleting && deleting.feed.id === feed.id ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-[13px]">Delete {feedLabel(feed)}?</span>
+                      <span className="text-small">Delete {feedLabel(feed)}?</span>
                       <button type="button" onClick={() => run('DELETE', `/api/settings/feeds/${feed.id}`)} className={`${buttonClass} border-down text-down`}>
                         Delete
                       </button>
@@ -177,7 +177,7 @@ export function FeedEditor() {
               <FeedForm groupId={group.id} groups={groups} onSubmit={(input) => write('POST', '/api/settings/feeds', input)} onCancel={() => setEditing(null)} />
             </div>
           ) : (
-            <button type="button" onClick={() => setEditing({ addTo: group.id })} className="mt-1 inline-flex items-center gap-1.5 px-1 py-1.5 text-[13px] text-accent-fg hover:underline">
+            <button type="button" onClick={() => setEditing({ addTo: group.id })} className="mt-1 inline-flex items-center gap-1.5 px-1 py-1.5 text-small text-accent-fg hover:underline">
               <Plus aria-hidden="true" className="size-4" />
               Add a feed to {group.title}
             </button>

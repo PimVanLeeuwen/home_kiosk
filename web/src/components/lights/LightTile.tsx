@@ -68,10 +68,10 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
       >
         <span className="flex items-start justify-between gap-2.5">
           <span>
-            <span id={`lights-${group.id}`} className="block text-[18px] font-semibold">
+            <span id={`lights-${group.id}`} className="block text-heading font-semibold">
               {group.name}
             </span>
-            <span className="mt-0.5 block text-[12.5px] text-muted">{subtitle}</span>
+            <span className="mt-0.5 block text-caption text-muted">{subtitle}</span>
           </span>
           <span
             aria-hidden="true"
@@ -83,11 +83,11 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
             <Lightbulb className="size-[22px]" strokeWidth={1.8} />
           </span>
         </span>
-        <span className={cn('mt-[22px] mb-1 block text-[40px] leading-none font-semibold tracking-[-0.03em]', !group.on && 'text-faint')}>
+        <span className={cn('mt-[22px] mb-1 block text-hero leading-none font-semibold tracking-[-0.03em]', !group.on && 'text-faint')}>
           {group.on ? (
             <>
               {level}
-              <small className="ml-0.5 text-[16px] font-medium text-muted">%</small>
+              <small className="ml-0.5 text-title font-medium text-muted">%</small>
             </>
           ) : (
             'Off'
@@ -138,14 +138,14 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
               )
             })}
           </div>
-          <div aria-hidden="true" className="mt-1.5 flex justify-between text-[11px] text-faint">
+          <div aria-hidden="true" className="mt-1.5 flex justify-between text-label text-faint">
             <span>Warm</span>
             <span>Cool</span>
           </div>
         </>
       )}
 
-      <ul aria-label={`${group.name}: each light`} className="mt-3.5 flex flex-wrap gap-2 border-t border-line-soft pt-3 text-[12px] text-muted">
+      <ul aria-label={`${group.name}: each light`} className="mt-3.5 flex flex-wrap gap-2 border-t border-line-soft pt-3 text-caption text-muted">
         {group.lights.map((light) => (
           <li
             key={light.id}

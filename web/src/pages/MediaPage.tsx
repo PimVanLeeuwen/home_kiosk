@@ -30,12 +30,12 @@ function EpisodeRow({ episode, right }: { episode: MediaEpisode; right: ReactNod
     <li className="grid grid-cols-[34px_minmax(0,1fr)_auto] items-center gap-3 border-glass-line py-2 not-first:border-t">
       <Poster poster={episode.poster} title={episode.series} small />
       <div className="min-w-0">
-        <p className="truncate text-[13.5px] font-medium">
+        <p className="truncate text-small font-medium">
           {episode.series} <span className="font-normal text-muted">{episodeCode(episode)}</span>
         </p>
-        {episode.title && <p className="truncate text-[12px] text-muted">{episode.title}</p>}
+        {episode.title && <p className="truncate text-caption text-muted">{episode.title}</p>}
       </div>
-      <span className="text-right text-[12px] whitespace-nowrap text-faint">{right}</span>
+      <span className="text-right text-caption whitespace-nowrap text-faint">{right}</span>
     </li>
   )
 }
@@ -71,7 +71,7 @@ export function MediaPage() {
       {data && (
         <>
           {Object.entries(data.errors).map(([source, reason]) => (
-            <p key={source} role="status" className="-mt-3 mb-4 text-[12.5px] text-warn">
+            <p key={source} role="status" className="-mt-3 mb-4 text-caption text-warn">
               {NAMES[source] ?? source} could not be read ({reason}); its part is missing below.
             </p>
           ))}
@@ -90,7 +90,7 @@ export function MediaPage() {
 
           <div className="grid items-start gap-3.5 md:gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <div className="grid gap-3.5 md:gap-5">
-              <Card title="Downloading" actions={<span className="text-[12px] text-faint">Sonarr · Radarr</span>}>
+              <Card title="Downloading" actions={<span className="text-caption text-faint">Sonarr · Radarr</span>}>
                 {data.downloads.length ? (
                   <ul className="space-y-2.5">
                     {data.downloads.map((d) => (
@@ -119,15 +119,15 @@ export function MediaPage() {
                   <Empty>Nothing missing</Empty>
                 )}
                 {data.missing_total > data.missing.length && (
-                  <p className="mt-2 text-[12px] text-faint">The newest {data.missing.length} of {data.missing_total}.</p>
+                  <p className="mt-2 text-caption text-faint">The newest {data.missing.length} of {data.missing_total}.</p>
                 )}
               </Card>
 
-              <Card title="Next to air" actions={<span className="text-[12px] text-faint">7 days</span>}>
+              <Card title="Next to air" actions={<span className="text-caption text-faint">7 days</span>}>
                 {data.upcoming.length ? (
                   byDay(data.upcoming, now).map(([day, episodes]) => (
                     <section key={day} aria-label={day} className="not-first:mt-3">
-                      <h3 className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">{day}</h3>
+                      <h3 className="text-label font-semibold tracking-[0.08em] text-faint uppercase">{day}</h3>
                       <ul>
                         {episodes.map((e) => (
                           <EpisodeRow

@@ -12,8 +12,8 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     // One line on a phone (label left, value right), a small tile from sm up.
     <div className="flex min-w-0 items-baseline justify-between gap-3 rounded-[10px] border border-glass-line bg-glass px-2.5 py-2 sm:block">
-      <dt className="shrink-0 text-[10px] font-semibold tracking-[0.08em] text-faint uppercase">{label}</dt>
-      <dd className="mt-px truncate text-[14px] font-semibold">{children}</dd>
+      <dt className="shrink-0 text-micro font-semibold tracking-[0.08em] text-faint uppercase">{label}</dt>
+      <dd className="mt-px truncate text-body font-semibold">{children}</dd>
     </div>
   )
 }
@@ -37,23 +37,23 @@ export function LastNightCard({ last, history, dumps, now }: Props) {
   return (
     <Card
       title="Last night"
-      actions={<span className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">Hetzner · encrypted</span>}
+      actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Hetzner · encrypted</span>}
     >
       <div className="grid items-center gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-7">
         <div className="min-w-0">
           <div className="flex items-center gap-4">
             <Seal ok={last.ok} label={last.ok ? 'Backup succeeded' : 'Backup failed'} size={80} />
             <div className="min-w-0">
-              <p className="text-[24px] leading-tight font-semibold">
+              <p className="text-stat leading-tight font-semibold">
                 <span className={last.ok ? 'text-up' : 'text-down'}>{last.ok ? 'Succeeded' : 'Failed'}</span>{' '}
-                <span className="text-[14px] font-normal text-muted">{formatWhen(last.finished)}</span>
+                <span className="text-body font-normal text-muted">{formatWhen(last.finished)}</span>
               </p>
-              <p className="text-[13px] text-muted">
+              <p className="text-small text-muted">
                 {last.volumes.length} {last.volumes.length === 1 ? 'volume' : 'volumes'} · took {formatDuration(runSeconds(last))}
                 {bytes > 0 && ` · ${formatBytes(bytes)} changed`}
               </p>
               {failed.length > 0 && (
-                <p className="text-[13px] text-down">
+                <p className="text-small text-down">
                   {failed.map((v) => `${v.name}${v.last_error ? `: ${v.last_error}` : ' failed'}`).join(' · ')}
                 </p>
               )}

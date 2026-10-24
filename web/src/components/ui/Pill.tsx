@@ -15,7 +15,7 @@ export function Pill({ tone, children, className }: { tone: Tone; children: Reac
   return (
     <span
       className={cn(
-        'inline-block rounded-full px-[9px] py-0.5 text-[11px] font-semibold tracking-[0.06em] whitespace-nowrap uppercase',
+        'inline-block rounded-full px-[9px] py-0.5 text-label font-semibold tracking-[0.06em] whitespace-nowrap uppercase',
         STYLE[tone],
         className,
       )}

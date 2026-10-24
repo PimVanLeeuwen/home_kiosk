@@ -61,8 +61,8 @@ export function StatusStrip({ chips, folded, open, reveal, onToggle, onShow }: P
           <>
             <GlowDot tone={DOT_TONE[chip.tone]} halo={needsLook} />
             <span className="min-w-0">
-              <span className="block text-[12px] text-muted">{chip.label}</span>
-              <span className="block truncate text-[15px] font-semibold">{chip.value}</span>
+              <span className="block text-caption text-muted">{chip.label}</span>
+              <span className="block truncate text-title font-semibold">{chip.value}</span>
             </span>
           </>
         )

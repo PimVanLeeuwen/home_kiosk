@@ -17,7 +17,7 @@ export function FilterPill({ on, onClick, children, colour }: Props) {
       aria-pressed={on}
       onClick={onClick}
       className={cn(
-        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12.5px]',
+        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-caption',
         on ? 'border-accent-line/40 bg-accent/20 text-fg' : 'border-glass-line bg-glass text-muted hover:text-fg',
       )}
     >

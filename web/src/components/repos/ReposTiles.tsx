@@ -47,7 +47,7 @@ export function ReposTiles({ repos, forksHidden, backup, mirrored }: Props) {
                 <i key={l.name} className="block h-full" style={{ width: `${(l.count / withLanguage) * 100}%`, backgroundColor: l.colour }} />
               ))}
             </p>
-            <ul className="mt-1.5 flex flex-wrap gap-x-2.5 gap-y-0.5 text-[11px] text-muted">
+            <ul className="mt-1.5 flex flex-wrap gap-x-2.5 gap-y-0.5 text-label text-muted">
               {languages.slice(0, 4).map((l) => (
                 <li key={l.name} className="flex items-center gap-1">
                   <i className="inline-block size-[7px] rounded-full" style={{ backgroundColor: l.colour }} />
@@ -84,7 +84,7 @@ export function ReposTiles({ repos, forksHidden, backup, mirrored }: Props) {
       <StatTile
         title="Backup"
         figure={
-          <span className="flex items-center gap-2 text-[16px] md:text-[19px]">
+          <span className="flex items-center gap-2 text-title md:text-heading">
             {mirrored == null ? (
               <span className="text-muted">Not mirrored</span>
             ) : (
@@ -96,7 +96,7 @@ export function ReposTiles({ repos, forksHidden, backup, mirrored }: Props) {
           </span>
         }
       >
-        <div className="mt-1 text-[12px] [&_p]:mb-0 [&_p]:text-[12px]">{backup}</div>
+        <div className="mt-1 text-caption [&_p]:mb-0 [&_p]:text-caption">{backup}</div>
       </StatTile>
     </StatTiles>
   )

@@ -17,7 +17,7 @@ export function Segmented<T extends string>({ label, options, value, onChange, s
       role="radiogroup"
       aria-label={label}
       className={cn(
-        'inline-flex gap-0.5 rounded-[10px] border border-line bg-raised p-[3px] text-[12.5px]',
+        'inline-flex gap-0.5 rounded-[10px] border border-line bg-raised p-[3px] text-caption',
         stretch && 'flex w-full sm:inline-flex sm:w-auto',
         className,
       )}

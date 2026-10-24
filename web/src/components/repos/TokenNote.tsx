@@ -13,7 +13,7 @@ const FINAL_DAYS = 3
 export function TokenNote({ token, now = new Date() }: { token: GitHubToken | undefined; now?: Date }) {
   if (!token?.checked) return null
   const which = token.owners.length > 1 ? `GitHub token (${token.owners.join(' and ')})` : 'GitHub token'
-  if (!token.expires_at) return <p className="mb-4 text-[13px] text-muted">{which}: no expiry date.</p>
+  if (!token.expires_at) return <p className="mb-4 text-small text-muted">{which}: no expiry date.</p>
 
   const expires = new Date(token.expires_at)
   const days = (expires.getTime() - now.getTime()) / 86_400_000
@@ -23,7 +23,7 @@ export function TokenNote({ token, now = new Date() }: { token: GitHubToken | un
       ? `${which} expired on ${date.format(expires)}. Make a new one and put it in the hub's .env.`
       : `${which} expires ${date.format(expires)} (${days < 1 ? 'today' : `in ${whole} day${whole === 1 ? '' : 's'}`}).`
   return (
-    <p className={cn('mb-4 text-[13px]', days <= FINAL_DAYS ? 'text-down' : days <= WARN_DAYS ? 'text-warn' : 'text-muted')}>
+    <p className={cn('mb-4 text-small', days <= FINAL_DAYS ? 'text-down' : days <= WARN_DAYS ? 'text-warn' : 'text-muted')}>
       {text}
     </p>
   )

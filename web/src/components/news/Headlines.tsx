@@ -16,7 +16,7 @@ const picture = (h: Headline, size: 'lead' | 'thumb') => `/api/news/headlines/${
 function Source({ h, colour }: { h: Headline; colour: Colour }) {
   return (
     <span
-      className="rounded-[6px] px-[7px] py-0.5 text-[11px] font-semibold tracking-[0.02em] text-white"
+      className="rounded-[6px] px-[7px] py-0.5 text-label font-semibold tracking-[0.02em] text-white"
       style={{ background: `color-mix(in srgb, ${colour.fg} 55%, rgb(0 0 0 / 0.4))`, boxShadow: `0 0 12px -2px ${colour.fg}` }}
     >
       {h.source}
@@ -53,7 +53,7 @@ function Thumb({ h, colour }: { h: Headline; colour: Colour }) {
   return (
     <span
       aria-hidden="true"
-      className="relative grid aspect-square place-items-center overflow-hidden rounded-[10px] border border-glass-line bg-[#16161d] text-[20px] font-bold text-white/85"
+      className="relative grid aspect-square place-items-center overflow-hidden rounded-[10px] border border-glass-line bg-[#16161d] text-heading font-bold text-white/85"
       style={h.image ? undefined : { background: `radial-gradient(80% 90% at 30% 20%, color-mix(in srgb, ${colour.fg} 55%, transparent), transparent 70%), #16161d` }}
     >
       {h.image ? <img src={picture(h, 'thumb')} alt="" loading="lazy" className="size-full object-cover" /> : h.source[0]}
@@ -87,7 +87,7 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
   const leadColour = colourOf(lead.group_id)
   return (
     <section aria-labelledby="headlines-title" className="mb-6 md:mb-7">
-      <p className="mb-2.5 flex justify-between gap-3 text-[11.5px] font-semibold tracking-[0.07em] text-faint uppercase">
+      <p className="mb-2.5 flex justify-between gap-3 text-label font-semibold tracking-[0.07em] text-faint uppercase">
         <span id="headlines-title">Headlines</span>
         <span className="truncate font-medium tracking-normal normal-case">{data.items.map((h) => h.group).join(' · ')}</span>
       </p>
@@ -103,12 +103,12 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
             }
           >
             {lead.image === 'lead' && <img src={picture(lead, 'lead')} alt="" className="absolute inset-0 size-full object-cover" />}
-            <span className="relative z-[1] flex items-center gap-2 text-[12px] text-white/75">
+            <span className="relative z-[1] flex items-center gap-2 text-caption text-white/75">
               <Source h={lead} colour={leadColour} />
               {formatAgo(lead.published)}
             </span>
-            <h3 className="relative z-[1] mt-2.5 text-[20px] leading-[1.2] font-semibold tracking-[-0.01em] text-balance md:text-[26px]">{lead.title}</h3>
-            {lead.summary && <p className="relative z-[1] mt-2 hidden max-w-[60ch] text-[14px] leading-[1.45] text-white/72 md:block">{lead.summary}</p>}
+            <h3 className="relative z-[1] mt-2.5 text-heading leading-[1.2] font-semibold tracking-[-0.01em] text-balance md:text-page">{lead.title}</h3>
+            {lead.summary && <p className="relative z-[1] mt-2 hidden max-w-[60ch] text-body leading-[1.45] text-white/72 md:block">{lead.summary}</p>}
           </Link>
           <SaveButton h={lead} state={saves[lead.id]} onSave={() => save(lead)} onImage />
         </li>
@@ -120,11 +120,11 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
             >
               <Thumb h={h} colour={colourOf(h.group_id)} />
               <span className="min-w-0">
-                <span className="flex items-center gap-2 text-[12px] text-faint">
+                <span className="flex items-center gap-2 text-caption text-faint">
                   <Source h={h} colour={colourOf(h.group_id)} />
                   {formatAgo(h.published)}
                 </span>
-                <span className="mt-1.5 line-clamp-3 block text-[14px] leading-[1.3] font-semibold md:text-[15px]">{h.title}</span>
+                <span className="mt-1.5 line-clamp-3 block text-body leading-[1.3] font-semibold md:text-title">{h.title}</span>
               </span>
             </Link>
             <SaveButton h={h} state={saves[h.id]} onSave={() => save(h)} onImage={false} />
@@ -132,7 +132,7 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
         ))}
       </ul>
       {failure && (
-        <p role="alert" className="mt-2.5 text-[13px] text-down">
+        <p role="alert" className="mt-2.5 text-small text-down">
           {failure}
         </p>
       )}

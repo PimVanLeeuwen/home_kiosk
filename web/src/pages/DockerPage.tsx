@@ -115,12 +115,12 @@ export function DockerPage() {
                   // One card with stacks as headed sections: most stacks hold one container.
                   return (
                     <section key={stack} aria-label={`${stack} · ${up}/${list.length}`} className="mt-4 first:mt-0">
-                      <h3 className="mb-1 flex items-center gap-2 px-2.5 text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">
+                      <h3 className="mb-1 flex items-center gap-2 px-2.5 text-label font-semibold tracking-[0.08em] text-faint uppercase">
                         {stack}
                         <span
                           data-tone={up === list.length ? 'up' : stopped ? 'down' : 'warn'}
                           className={cn(
-                            'rounded-[6px] px-1.5 text-[10.5px] tracking-normal normal-case',
+                            'rounded-[6px] px-1.5 text-micro tracking-normal normal-case',
                             up === list.length ? 'bg-up/13 text-up' : stopped ? 'bg-down/14 text-down' : 'bg-warn/15 text-warn',
                           )}
                         >

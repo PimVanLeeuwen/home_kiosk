@@ -19,10 +19,10 @@ function Row({ site, index, now }: { site: Site; index: number; now: Date }) {
   if (site.up === false) right = <span className="font-semibold text-down">{site.down_since ? since(site.down_since, now) : 'down'}</span>
   else if (site.uptime_pct != null && site.uptime_pct < 100) right = <span className="text-warn">{formatUptime(site.uptime_pct)}</span>
   return (
-    <li className="grid grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2.5 border-glass-line py-1.5 text-[13.5px] not-first:border-t">
+    <li className="grid grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2.5 border-glass-line py-1.5 text-small not-first:border-t">
       <i aria-hidden="true" style={{ '--key': siteKey(site, index) } as CSSProperties} className="block h-1 w-2.5 rounded-[2px] bg-(--key)" />
       <span className="truncate">{site.name}</span>
-      <span className="text-[12.5px] tabular-nums">{right}</span>
+      <span className="text-caption tabular-nums">{right}</span>
     </li>
   )
 }
@@ -48,13 +48,13 @@ export function MySitesSection() {
       {data && sites.length === 0 && <p className="text-muted">No sites on Kuma's status page yet.</p>}
       {sites.length > 0 && (
         <>
-          <p className="-mt-2 mb-3 text-[12.5px] text-faint">From Uptime Kuma, 30 days, a segment per day.</p>
+          <p className="-mt-2 mb-3 text-caption text-faint">From Uptime Kuma, 30 days, a segment per day.</p>
           <div className="grid items-center justify-items-center gap-4 md:grid-cols-[260px_minmax(0,1fr)] md:justify-items-stretch md:gap-7">
             <SiteRings sites={sites} />
             <div className="grid w-full gap-x-7 sm:grid-cols-2">
               {groups.map((group) => (
                 <section key={group} aria-label={group}>
-                  <h3 className="mt-0.5 mb-1 text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">{group}</h3>
+                  <h3 className="mt-0.5 mb-1 text-label font-semibold tracking-[0.08em] text-faint uppercase">{group}</h3>
                   <ul>
                     {sites.map((s, i) => [s, i] as const).filter(([s]) => s.group === group).map(([s, i]) => (
                       <Row key={s.id} site={s} index={i} now={now} />

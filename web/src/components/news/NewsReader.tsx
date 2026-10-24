@@ -69,7 +69,7 @@ export function NewsReader({ id, known, groupTitle, groupColour, onReadChange }:
       meta={
         <>
           <span
-            className="mr-1 rounded-[6px] px-1.5 py-px text-[11px] font-semibold"
+            className="mr-1 rounded-[6px] px-1.5 py-px text-label font-semibold"
             style={{ backgroundColor: groupColour(article.group_id).bg, color: groupColour(article.group_id).fg }}
           >
             {groupTitle(article.group_id)}
@@ -97,7 +97,7 @@ export function NewsReader({ id, known, groupTitle, groupColour, onReadChange }:
             short={read ? 'Unread' : 'Read'}
           />
           {save.state === 'failed' && (
-            <p role="alert" className="w-full text-[13px] text-down">
+            <p role="alert" className="w-full text-small text-down">
               {save.message}
             </p>
           )}

@@ -94,7 +94,7 @@ export function SavedReader({ id, known, onChange, onDeleted }: Props) {
       back={{ to: '/saved', label: 'Saved' }}
       meta={
         <>
-          {archived && <span className="mr-1 rounded-[6px] border border-glass-line bg-glass px-1.5 py-px text-[11px] font-semibold text-muted">Archived</span>}
+          {archived && <span className="mr-1 rounded-[6px] border border-glass-line bg-glass px-1.5 py-px text-label font-semibold text-muted">Archived</span>}
           <span>
             {[known?.site ?? content.data?.site, known?.created && `saved ${formatAgo(known.created)}`]
               .filter(Boolean)
@@ -124,7 +124,7 @@ export function SavedReader({ id, known, onChange, onDeleted }: Props) {
             <ReaderAction onClick={() => setConfirming(true)} disabled={busy} icon={<Trash2 aria-hidden="true" className={icon} />} label="Delete" />
           )}
           {error && (
-            <p role="alert" className="w-full text-[13px] text-down">
+            <p role="alert" className="w-full text-small text-down">
               {error}
             </p>
           )}

@@ -41,8 +41,8 @@ export function NowPlayingCard({ playing, send, hero }: Props) {
           )}
         />
         <div className="min-w-0">
-          <h3 className={cn('truncate font-semibold', hero ? 'text-[20px] tracking-tight md:text-[34px]' : 'text-[16px]')}>{playing.title}</h3>
-          <p className={cn('truncate text-muted', hero ? 'text-[14px] md:text-[15px]' : 'text-[13px]')}>
+          <h3 className={cn('truncate font-semibold', hero ? 'text-heading tracking-tight md:text-display' : 'text-title')}>{playing.title}</h3>
+          <p className={cn('truncate text-muted', hero ? 'text-body md:text-title' : 'text-small')}>
             {on ? '' : 'Paused · '}
             {playing.subtitle}
           </p>

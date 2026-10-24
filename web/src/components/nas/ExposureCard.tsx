@@ -84,20 +84,20 @@ export function ExposureCard() {
   return (
     <Card
       title="Exposure"
-      actions={<span className="text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">Every 6 hours</span>}
+      actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Every 6 hours</span>}
     >
       <div className="mb-3.5 flex items-center gap-3.5">
         {verdict && <Shield ok={unexpected.length === 0} />}
         <div className="min-w-0">
           {verdict && (
-            <p className={cn('text-[17px] leading-snug font-semibold', unexpected.length > 0 && 'text-down')}>
+            <p className={cn('text-title leading-snug font-semibold', unexpected.length > 0 && 'text-down')}>
               {unexpected.length
                 ? `${unexpected.length} hostname${unexpected.length === 1 ? '' : 's'} not on the allowlist`
                 : 'Nothing public beyond the allowlist'}
             </p>
           )}
-          <p className="text-[12.5px] text-muted">
-            Public names in <span className="font-mono text-[12px]">{data.zone}</span> that lead to the house, from
+          <p className="text-caption text-muted">
+            Public names in <span className="font-mono text-caption">{data.zone}</span> that lead to the house, from
             Cloudflare&apos;s DNS and tunnel settings, each requested from outside. Checked {formatWhen(data.as_of)}.
           </p>
         </div>
@@ -121,30 +121,30 @@ export function ExposureCard() {
               )}
             >
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <span className="font-mono text-[12.5px] break-all">{host.hostname}</span>
-                <span className={cn('flex items-center gap-1.5 text-[12.5px] font-semibold', host.allowed ? 'text-up' : 'text-down')}>
+                <span className="font-mono text-caption break-all">{host.hostname}</span>
+                <span className={cn('flex items-center gap-1.5 text-caption font-semibold', host.allowed ? 'text-up' : 'text-down')}>
                   {!host.allowed && <GlowDot tone="down" halo className="size-[7px]" />}
                   {host.allowed ? 'Allowed' : 'Not allowed'}
                 </span>
               </div>
-              <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-[12px] text-muted">
+              <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-caption text-muted">
                 <span
                   className={cn(
-                    'rounded-[6px] px-1.5 text-[10.5px] font-semibold tracking-[0.04em] uppercase',
+                    'rounded-[6px] px-1.5 text-micro font-semibold tracking-[0.04em] uppercase',
                     host.source === 'tunnel' ? 'bg-accent/18 text-accent-fg' : 'bg-[var(--color-data-blue)]/14 text-[var(--color-data-blue)]',
                   )}
                 >
                   {host.source === 'tunnel' ? 'Tunnel' : 'DNS'}
                 </span>
-                <span className="font-mono text-[11.5px] break-all">{host.target}</span>
+                <span className="font-mono text-label break-all">{host.target}</span>
                 <span>· {answer(host)}</span>
               </p>
             </li>
           ))}
         </ul>
       )}
-      <div className="mt-3.5 border-t border-line-soft pt-3 text-[12.5px]">
-        <p className="mb-1.5 text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">Port scan from outside</p>
+      <div className="mt-3.5 border-t border-line-soft pt-3 text-caption">
+        <p className="mb-1.5 text-label font-semibold tracking-[0.08em] text-faint uppercase">Port scan from outside</p>
         <ScanLine scan={scan} />
       </div>
       {data.stale && <StaleNote />}

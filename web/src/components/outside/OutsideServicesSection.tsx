@@ -19,10 +19,10 @@ export function OutsideServicesSection() {
 
   return (
     <Surface as="section" aria-labelledby="group-outside" className="mt-5">
-      <h2 id="group-outside" className="mb-1 text-[13px] font-semibold text-muted">
+      <h2 id="group-outside" className="mb-1 text-small font-semibold text-muted">
         Outside services
       </h2>
-      <p className="mb-3.5 text-[12.5px] text-faint">
+      <p className="mb-3.5 text-caption text-faint">
         What the house depends on, from their status pages. Only the parts the house uses count.
       </p>
       {!data && (error ? <Unavailable what="The status of outside services" /> : <Loading />)}
@@ -41,7 +41,7 @@ export function OutsideServicesSection() {
                   <BrandLogo service={s} size={32} halo={s.state === 'degraded' || s.state === 'outage'} dim={s.state === 'unknown'} />
                   <span className="min-w-0">
                     <span className="block font-medium">{s.name}</span>
-                    <span className={`block text-[12.5px] ${STATE_TEXT[s.state]}`}>{STATE_LABEL[s.state]}</span>
+                    <span className={`block text-caption ${STATE_TEXT[s.state]}`}>{STATE_LABEL[s.state]}</span>
                   </span>
                 </a>
               </li>

@@ -30,7 +30,7 @@ function MirrorNote({ mirror, login }: { mirror: GitHubMirror; login: string }) 
   const failed = owner.repos.filter((r) => !r.ok).length
   const problem = mirror.error ?? owner.error ?? (failed ? `${failed} of ${owner.repos.length} repos failed` : null)
   return (
-    <p className={cn('mb-4 text-[13px]', problem ? 'text-warn' : 'text-muted')}>
+    <p className={cn('mb-4 text-small', problem ? 'text-warn' : 'text-muted')}>
       {problem
         ? `Backup: ${problem} in the run of ${formatWhen(last.finished)}. See Backups.`
         : `Backed up nightly to the NAS and Hetzner: ${owner.repos.length} repo${owner.repos.length === 1 ? '' : 's'}, last run ${formatWhen(last.finished)}.`}
@@ -137,7 +137,7 @@ export function ReposPage() {
                 className="flex-1 basis-64"
               />
               {forks > 0 && (
-                <span className="flex items-center gap-2.5 text-[13px] text-muted">
+                <span className="flex items-center gap-2.5 text-small text-muted">
                   <Switch checked={showForks} onChange={setShowForks} label={`Show forks (${forks})`} />
                   <span aria-hidden="true">Show forks ({forks})</span>
                 </span>

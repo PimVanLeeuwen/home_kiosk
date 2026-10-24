@@ -19,7 +19,7 @@ export function Poster({ poster, title, small }: Props) {
   }
   const colour = tileColour([...title].reduce((sum, ch) => sum + ch.charCodeAt(0), 0))
   return (
-    <span aria-hidden="true" style={{ backgroundColor: colour.bg, color: colour.fg }} className={cn(frame, 'grid place-items-center font-semibold', small ? 'text-[10px]' : 'text-[13px]')}>
+    <span aria-hidden="true" style={{ backgroundColor: colour.bg, color: colour.fg }} className={cn(frame, 'grid place-items-center font-semibold', small ? 'text-micro' : 'text-small')}>
       {monogram(title)}
     </span>
   )

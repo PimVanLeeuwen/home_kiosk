@@ -99,8 +99,8 @@ export function TrainCard({ data }: { data: Train | undefined }) {
       />
       <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-7">
         <div className="rounded-[12px] border border-glass-line bg-glass px-3.5 pt-2.5 pb-3 md:min-w-32">
-          <span className="block text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">Departure</span>
-          <span className="text-[30px] leading-tight font-semibold tracking-tight">
+          <span className="block text-label font-semibold tracking-[0.08em] text-faint uppercase">Departure</span>
+          <span className="text-display leading-tight font-semibold tracking-tight">
             {gone ? (
               <s className="text-faint">{train.departure}</s>
             ) : late && run.actual_departure ? (
@@ -114,7 +114,7 @@ export function TrainCard({ data }: { data: Train | undefined }) {
           </span>
         </div>
         <div className="col-span-2 row-start-2 min-w-0 md:col-span-1 md:row-start-auto">
-          <p data-tone={status.tone} className="text-[22px] leading-tight font-semibold tracking-tight md:text-[26px]" style={{ color }}>
+          <p data-tone={status.tone} className="text-stat leading-tight font-semibold tracking-tight md:text-page" style={{ color }}>
             {status.word}
           </p>
           <p className="mt-1 text-muted">{sub}</p>
@@ -124,8 +124,8 @@ export function TrainCard({ data }: { data: Train | undefined }) {
 
       {gone && train.next_direct && (
         <div className="relative mt-4 flex flex-wrap items-baseline gap-x-3.5 gap-y-1 rounded-[12px] border border-glass-line bg-glass px-3.5 py-3">
-          <span className="basis-full text-[11px] font-semibold tracking-[0.08em] text-faint uppercase">Next direct train</span>
-          <span className="text-[22px] font-semibold">{formatTime(train.next_direct.planned_departure)}</span>
+          <span className="basis-full text-label font-semibold tracking-[0.08em] text-faint uppercase">Next direct train</span>
+          <span className="text-stat font-semibold">{formatTime(train.next_direct.planned_departure)}</span>
           <span>
             <Platform run={train.next_direct} />
             {train.next_direct.stops.length > 0 && (
@@ -157,10 +157,10 @@ export function TrainCard({ data }: { data: Train | undefined }) {
                     i === 0 && !gone ? 'border-(--line) bg-(--line) shadow-[0_0_10px_var(--line)]' : 'border-white/25 bg-card',
                   )}
                 />
-                <span className={cn('font-mono text-[13px]', shifted && 'text-warn', (gone || stop.cancelled) && 'line-through')}>
+                <span className={cn('font-mono text-small', shifted && 'text-warn', (gone || stop.cancelled) && 'line-through')}>
                   {formatTime(at)}
                 </span>
-                <span className={cn('truncate text-[13px] text-muted md:block', stop.cancelled && 'line-through')}>{stop.name}</span>
+                <span className={cn('truncate text-small text-muted md:block', stop.cancelled && 'line-through')}>{stop.name}</span>
               </li>
             )
           })}
@@ -168,7 +168,7 @@ export function TrainCard({ data }: { data: Train | undefined }) {
       )}
 
       {train.disruptions.map((d) => (
-        <div key={d.id} role="note" className="relative mt-4 flex items-start gap-2.5 rounded-[10px] border border-warn/35 bg-warn/8 px-3 py-2.5 text-[13px]">
+        <div key={d.id} role="note" className="relative mt-4 flex items-start gap-2.5 rounded-[10px] border border-warn/35 bg-warn/8 px-3 py-2.5 text-small">
           <span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-warn shadow-[0_0_8px_var(--color-warn)]" />
           <p>
             <b className="text-warn">{d.title}</b> <span className="text-muted">{[d.text, d.until].filter(Boolean).join(' ')} (NS)</span>
