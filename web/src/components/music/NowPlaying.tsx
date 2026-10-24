@@ -140,7 +140,7 @@ export function NowPlaying({ playing, onControl, onVolume }: Props) {
       <Progress playing={playing} colour={colour} className="relative mt-[22px]" />
 
       <div className="relative mt-3 flex items-center justify-center gap-[30px] text-white">
-        <button type="button" aria-label="Previous" onClick={() => onControl('previous')} className="grid place-items-center">
+        <button type="button" aria-label="Previous" onClick={() => onControl('previous')} className="pressable grid place-items-center">
           <SkipBack className="size-[26px]" fill="currentColor" />
         </button>
         <button
@@ -148,11 +148,11 @@ export function NowPlaying({ playing, onControl, onVolume }: Props) {
           aria-label={on ? 'Pause' : 'Play'}
           onClick={() => onControl(on ? 'pause' : 'play')}
           style={{ boxShadow: `0 0 28px color-mix(in srgb, ${colour} 60%, transparent)` }}
-          className="grid size-[62px] place-items-center rounded-full bg-white text-[#111]"
+          className="pressable grid size-[62px] place-items-center rounded-full bg-white text-[#111]"
         >
           {on ? <Pause className="size-6" fill="currentColor" /> : <Play className="size-6" fill="currentColor" />}
         </button>
-        <button type="button" aria-label="Next" onClick={() => onControl('next')} className="grid place-items-center">
+        <button type="button" aria-label="Next" onClick={() => onControl('next')} className="pressable grid place-items-center">
           <SkipForward className="size-[26px]" fill="currentColor" />
         </button>
       </div>

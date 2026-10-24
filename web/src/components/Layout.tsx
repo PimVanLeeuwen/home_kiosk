@@ -30,6 +30,7 @@ export function Layout() {
         <main
           id={MAIN_ID}
           tabIndex={-1}
+          style={{ viewTransitionName: 'page' }}
           className="min-h-0 flex-1 overflow-y-auto pt-2 pr-[max(1rem,env(safe-area-inset-right))] pb-28 pl-[max(1rem,env(safe-area-inset-left))] focus:outline-none md:rounded-[14px] md:border md:border-line-soft md:bg-panel md:px-8 md:py-8 lg:px-11 lg:py-9"
         >
           <Outlet />

@@ -152,6 +152,63 @@
   color-scheme: dark;
 }
 
+/*
+ * A press response for controls you tap a lot (lights, music, buttons): a
+ * small, quick give, nothing with reduced motion.
+ */
+@utility pressable {
+  transition:
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 150ms,
+    border-color 150ms,
+    background-color 150ms,
+    box-shadow 150ms;
+  &:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &:active:not(:disabled) {
+      transform: none;
+    }
+  }
+}
+
+/*
+ * The change between pages (React Router's view transitions): the content
+ * panel fades out quickly and the new page rises in; the sidebar and tab bar
+ * stay still. Nothing moves with reduced motion.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(page) {
+    animation: page-out 120ms ease-in both;
+  }
+  ::view-transition-new(page) {
+    animation: page-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
 body {
   margin: 0;
   background-color: var(--color-canvas);

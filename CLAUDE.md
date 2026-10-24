@@ -27,6 +27,11 @@ stack on the Ugreen NAS. Global rules (git owner-only, no em dashes, ask don't a
   through the Bridge; the sender inventory only reads. The GitHub mirror only reads from GitHub;
   it writes to `/volume3/backups/github`.
 - Style: see plan.md §1. Dark first, violet accent, mono only for technical values.
+- **Build pages from `components/ui`:** `Card` or `Surface` for boxes, `states` for loading and
+  errors, `Button`, `fieldStyles` and `SearchField`, `Segmented`, `StatTile`, and `PageHeader`'s
+  `status` for the page's state. Text sizes come from the type scale (`text-label` …
+  `text-giant`) and colours from the theme tokens; a colour outside them is data (brand,
+  palette) or neutral shading.
 
 ## Architecture
 

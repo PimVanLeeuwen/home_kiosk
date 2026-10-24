@@ -48,18 +48,18 @@ export function NowPlayingCard({ playing, send, hero }: Props) {
           </p>
           <Progress playing={playing} colour={colour} className="mt-3 [&_[role=progressbar]]:h-1 [&_div:last-child]:text-muted" />
           <div className="mt-1 flex items-center justify-end gap-3.5">
-            <button type="button" aria-label="Previous" onClick={() => send('POST', '/api/music/control/previous', {})}>
+            <button type="button" aria-label="Previous" className="pressable" onClick={() => send('POST', '/api/music/control/previous', {})}>
               <SkipBack className="size-5" fill="currentColor" />
             </button>
             <button
               type="button"
               aria-label={on ? 'Pause' : 'Play'}
               onClick={() => send('POST', `/api/music/control/${on ? 'pause' : 'play'}`, {}, { state: on ? 'paused' : 'playing' })}
-              className="grid size-[38px] place-items-center rounded-full bg-white text-[#111]"
+              className="pressable grid size-[38px] place-items-center rounded-full bg-white text-[#111]"
             >
               {on ? <Pause className="size-[18px]" fill="currentColor" /> : <Play className="size-[18px]" fill="currentColor" />}
             </button>
-            <button type="button" aria-label="Next" onClick={() => send('POST', '/api/music/control/next', {})}>
+            <button type="button" aria-label="Next" className="pressable" onClick={() => send('POST', '/api/music/control/next', {})}>
               <SkipForward className="size-5" fill="currentColor" />
             </button>
           </div>

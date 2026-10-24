@@ -31,6 +31,7 @@ export function Sidebar({ host }: { host: string | null }) {
               {section.items.map((item) => (
                 <li key={item.to}>
                   <NavLink
+                    viewTransition
                     to={item.to}
                     end={item.to === '/'}
                     className={({ isActive }) =>

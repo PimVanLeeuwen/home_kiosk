@@ -44,7 +44,7 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
                   onClick={() => onTransfer(d)}
                   aria-label={d.active ? `${d.name}: playing here` : `Move playback to ${d.name}`}
                   className={cn(
-                    'grid w-full grid-cols-[30px_1fr_auto] items-center gap-2.5 rounded-[11px] border px-[11px] py-[9px] text-left',
+                    'pressable grid w-full grid-cols-[30px_1fr_auto] items-center gap-2.5 rounded-[11px] border px-[11px] py-[9px] text-left',
                     d.active ? 'border-up/45 bg-linear-to-r from-up/12 to-transparent to-70%' : 'border-glass-line bg-glass hover:border-faint',
                   )}
                 >
@@ -76,7 +76,7 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
                 onClick={() => onFavourite(f)}
                 aria-label={`Play ${f.name}`}
                 aria-busy={starting === f.position}
-                className="relative flex aspect-[1.45] w-full items-end overflow-hidden rounded-[14px] px-3 py-2.5 text-left text-white disabled:cursor-wait"
+                className="pressable relative flex aspect-[1.45] w-full items-end overflow-hidden rounded-[14px] px-3 py-2.5 text-left text-white disabled:cursor-wait"
               >
                 <Cover item={f} className="absolute inset-0 size-full" />
                 <span aria-hidden="true" className="absolute inset-0 bg-linear-to-b from-transparent from-45% to-black/60" />

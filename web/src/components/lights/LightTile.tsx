@@ -64,7 +64,7 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
         aria-pressed={group.on}
         disabled={disabled}
         onClick={() => onChange({ on: !group.on })}
-        className="block w-full text-left disabled:cursor-default"
+        className="pressable block w-full text-left disabled:cursor-default"
       >
         <span className="flex items-start justify-between gap-2.5">
           <span>
@@ -131,7 +131,7 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
                   onClick={() => onChange({ kelvin: k })}
                   style={{ background: whiteOf(k), '--c': whiteOf(k) } as CSSProperties}
                   className={cn(
-                    'h-[30px] flex-1 rounded-[10px] border border-white/10',
+                    'pressable h-[30px] flex-1 rounded-[10px] border border-white/10',
                     chosen && 'shadow-[0_0_14px_var(--c)] outline-2 outline-offset-2 outline-white',
                   )}
                 />

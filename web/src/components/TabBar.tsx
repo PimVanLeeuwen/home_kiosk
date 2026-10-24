@@ -22,6 +22,7 @@ export function TabBar() {
     >
       {TAB_ITEMS.map((item) => (
         <NavLink
+            viewTransition
           key={item.to}
           to={item.to}
           end={item.to === '/'}
@@ -32,7 +33,7 @@ export function TabBar() {
         </NavLink>
       ))}
       {/* A plain Link: NavLink would only mark /more itself as current. */}
-      <Link to={MORE_ROUTE} className={tabClass(inMore)} aria-current={inMore ? 'page' : undefined}>
+      <Link to={MORE_ROUTE} viewTransition className={tabClass(inMore)} aria-current={inMore ? 'page' : undefined}>
         <Ellipsis aria-hidden="true" className="size-[22px]" strokeWidth={1.8} />
         More
       </Link>
