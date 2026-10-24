@@ -7,6 +7,7 @@ import { Card } from '../ui/Card'
 import { Loading, Unavailable } from '../ui/states'
 import { Segmented } from '../ui/Segmented'
 import { LineChart } from './LineChart'
+import { AnimatedNumber } from '../ui/AnimatedNumber'
 
 const RANGES: [ChartRange, string, string][] = [
   ['month', '1M', 'Gain over the last month'],
@@ -43,7 +44,7 @@ export function ValueCard({ currency, total }: Props) {
       className="pb-0 md:pb-0"
       actions={<Segmented label="Period" options={RANGES.map(([r, label]) => [r, label])} value={range} onChange={setRange} />}
     >
-      <p className="-mt-1 text-display leading-tight font-semibold tracking-tight md:text-hero">{money(total)}</p>
+      <p className="-mt-1 text-display leading-tight font-semibold tracking-tight md:text-hero"><AnimatedNumber value={total} format={money} /></p>
       {!points && <div className="pb-5">{error ? <Unavailable what="The value history" /> : <Loading />}</div>}
       {points && (
         <>

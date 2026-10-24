@@ -3,6 +3,7 @@ import { containerStatus } from '../../lib/containers'
 import { formatBytes } from '../../lib/format'
 import type { ContainerLoad, ContainerUpdate, DockerOverview } from '../../lib/types'
 import { OutOf, StatTile, StatTiles } from '../ui/StatTile'
+import { AnimatedNumber } from '../ui/AnimatedNumber'
 
 const pct = (n: number) => `${n.toFixed(1).replace('.', ',')}%`
 /** Colours for the biggest memory users; the rest is grey. */
@@ -64,7 +65,7 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
         </p>
       </StatTile>
 
-      <StatTile title="CPU, all containers" figure={pct(overview.cpu_pct)} sub="of the NAS">
+      <StatTile title="CPU, all containers" figure={<AnimatedNumber value={overview.cpu_pct} format={pct} />} sub="of the NAS">
         <ul className="mt-2 grid gap-1 text-label">
           {busiest.map((c) => (
             // On a phone the bar takes its own line under the name and the figure.
@@ -85,7 +86,7 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
         </ul>
       </StatTile>
 
-      <StatTile title="Memory, all containers" figure={formatBytes(overview.mem_bytes)} sub={memTotal ? `of ${formatBytes(memTotal)}` : undefined}>
+      <StatTile title="Memory, all containers" figure={<AnimatedNumber value={overview.mem_bytes} format={formatBytes} />} sub={memTotal ? `of ${formatBytes(memTotal)}` : undefined}>
         <p className="mt-2.5 flex h-2 gap-0.5 overflow-hidden rounded-full bg-raised" aria-hidden="true">
           {biggest.map((c, i) => (
             <i key={c.name} className="block h-full" style={{ width: `${(c.mem_bytes! / memTop) * 100}%`, backgroundColor: MEMORY_COLOURS[i] }} />

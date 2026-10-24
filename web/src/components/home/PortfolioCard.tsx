@@ -7,6 +7,7 @@ import { GlowArea } from '../ui/GlowArea'
 import { Pill } from '../ui/Pill'
 import { Card } from '../ui/Card'
 import { Loading, StaleNote, Unavailable } from '../ui/states'
+import { AnimatedNumber } from '../ui/AnimatedNumber'
 
 const tone = (n: number) => (n > 0 ? 'text-up' : n < 0 ? 'text-down' : 'text-muted')
 const chip = (n: number) => (n > 0 ? 'bg-up/12 text-up' : n < 0 ? 'bg-down/13 text-down' : 'bg-raised text-muted')
@@ -37,8 +38,8 @@ export function PortfolioCard() {
       {!data && (error ? <Unavailable what="The portfolio" /> : <Loading />)}
       {data && today && (
         <>
-          <p className="text-display leading-tight font-semibold tracking-tight md:text-display">
-            {formatMoney(data.total_value, data.currency)}
+          <p className="text-display leading-tight font-semibold tracking-tight">
+            <AnimatedNumber value={data.total_value} format={(n) => formatMoney(n, data.currency)} />
           </p>
           <p className="mt-0.5 text-small font-semibold">
             <span className={tone(today.abs)}>{formatSignedMoney(today.abs, data.currency)} today</span>

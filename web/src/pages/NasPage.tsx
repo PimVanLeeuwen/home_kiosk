@@ -10,6 +10,10 @@ import { formatBytes, formatMbit } from '../lib/format'
 import { HOT_CPU_C, nasNeedsLook, WARM_CPU_C } from '../lib/nasHealth'
 import type { Nas, NasPoint } from '../lib/types'
 import { useApi } from '../lib/useApi'
+import { AnimatedNumber } from '../components/ui/AnimatedNumber'
+
+const percent = (n: number) => `${Math.round(n)}%`
+const celsius = (n: number) => `${Math.round(n)} °C`
 
 /** The figure of formatMbit without its unit, which the Network card sets smaller. */
 const mbit = (n: number) => formatMbit(n).replace(/ Mbit\/s$/, '')
@@ -55,7 +59,7 @@ export function NasPage() {
           <div className="grid grid-cols-2 gap-2.5 md:gap-4 xl:grid-cols-4">
             <InstrumentCard
               title="CPU"
-              now={`${Math.round(n.cpu_pct)}%`}
+              now={<AnimatedNumber value={n.cpu_pct} format={percent} />}
               detail={peak(points, 'cpu') != null && `Peak ${Math.round(peak(points, 'cpu')!)}% in 24 hours`}
               values={points.map((p) => p.cpu)}
               label="CPU, last 24 hours"
@@ -63,7 +67,7 @@ export function NasPage() {
             />
             <InstrumentCard
               title="Memory"
-              now={`${Math.round(n.ram_pct)}%`}
+              now={<AnimatedNumber value={n.ram_pct} format={percent} />}
               detail={memUsed != null && n.mem_total_bytes ? `${formatBytes(memUsed)} of ${formatBytes(n.mem_total_bytes)}` : undefined}
               values={points.map((p) => p.ram)}
               label="Memory, last 24 hours"
@@ -71,7 +75,7 @@ export function NasPage() {
             />
             <InstrumentCard
               title="CPU temperature"
-              now={n.cpu_temp_c != null ? `${Math.round(n.cpu_temp_c)} °C` : '–'}
+              now={n.cpu_temp_c != null ? <AnimatedNumber value={n.cpu_temp_c} format={celsius} /> : '–'}
               detail={peak(points, 'temp') != null && `Peak ${Math.round(peak(points, 'temp')!)} °C in 24 hours`}
               values={points.map((p) => p.temp)}
               label="CPU temperature, last 24 hours"
@@ -83,7 +87,7 @@ export function NasPage() {
               title="Network"
               now={
                 <>
-                  ↓ {mbit(n.network.rx_mbps)}
+                  ↓ <AnimatedNumber value={n.network.rx_mbps} format={mbit} />
                   <span className="text-[0.55em] font-medium text-muted"> Mbit/s</span>
                 </>
               }

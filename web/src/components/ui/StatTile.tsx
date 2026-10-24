@@ -2,10 +2,11 @@ import type { ReactNode } from 'react'
 import { cn } from '../../lib/cn'
 import { Card } from './Card'
 import { TONE_COLOR, type Tone } from './tones'
+import { AnimatedNumber } from './AnimatedNumber'
 
 interface Props {
   title: string
-  /** The figure, large. */
+  /** The figure, large; a plain number moves to its new value when it changes. */
   figure: ReactNode
   /** A line under the figure. */
   sub?: ReactNode
@@ -23,7 +24,7 @@ export function StatTile({ title, figure, sub, tone, children }: Props) {
         style={tone ? { color: TONE_COLOR[tone] } : undefined}
         className="-mt-2 text-stat leading-tight font-semibold tracking-tight md:text-page"
       >
-        {figure}
+        {typeof figure === 'number' ? <AnimatedNumber value={figure} /> : figure}
       </div>
       {sub && <p className="mt-0.5 text-caption text-muted">{sub}</p>}
       {children}
@@ -46,7 +47,7 @@ export function StatTiles({ label, count, children }: { label: string; count: ke
 export function OutOf({ n, of, unit }: { n: number; of: number; unit?: string }) {
   return (
     <>
-      {n} <span className="text-[0.55em] font-medium text-muted">/ {of}{unit ? ` ${unit}` : ''}</span>
+      <AnimatedNumber value={n} /> <span className="text-[0.55em] font-medium text-muted">/ {of}{unit ? ` ${unit}` : ''}</span>
     </>
   )
 }

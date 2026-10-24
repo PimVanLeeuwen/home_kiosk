@@ -5,6 +5,7 @@ import type { Laundry, Machine } from '../../lib/types'
 import { Pill } from '../ui/Pill'
 import { Card } from '../ui/Card'
 import { StaleNote } from '../ui/states'
+import { AnimatedNumber } from '../ui/AnimatedNumber'
 
 const R = 44
 const C = 2 * Math.PI * R
@@ -42,7 +43,7 @@ function Porthole({ m }: { m: Machine }) {
   } else {
     inside = (
       <>
-        {m.remaining_minutes}
+        {m.remaining_minutes != null && <AnimatedNumber value={m.remaining_minutes} />}
         <small className="mt-0.5 text-label font-normal text-muted">min</small>
       </>
     )

@@ -17,6 +17,7 @@ import { buttonClass } from '../components/ui/buttonStyles'
 import { Pill } from '../components/ui/Pill'
 import { StatTile, StatTiles } from '../components/ui/StatTile'
 import type { Tone } from '../components/ui/tones'
+import { AnimatedNumber } from '../components/ui/AnimatedNumber'
 
 const tone = (n: number | null | undefined): Tone | undefined => (!n ? undefined : n > 0 ? 'up' : 'down')
 
@@ -47,16 +48,13 @@ export function PortfolioPage() {
   const money = (n: number) => formatMoney(n, data.currency)
   // The sum of the holdings' moves, like the daily report, so it matches the table.
   const { abs: dayAbs, pct: dayPct } = dayMove(data)
-  const summary: [string, string, string, Tone?][] = [
-    ['Today', formatSignedMoney(dayAbs, data.currency), formatSignedPct(dayPct), tone(dayAbs)],
-    [
-      'Total gain',
-      data.gain_abs != null ? formatSignedMoney(data.gain_abs, data.currency) : '–',
-      formatSignedPct(data.change.all_pct),
-      tone(data.gain_abs),
-    ],
-    ['Invested', data.invested != null ? money(data.invested) : '–', ''],
-    ['Cash', data.cash != null ? money(data.cash) : '–', data.dividends ? `${money(data.dividends)} dividends` : ''],
+  const signed = (n: number) => formatSignedMoney(n, data.currency)
+  // Label, amount (moving to a new value on a refresh), how it is written, the line below, its colour.
+  const summary: [string, number | null | undefined, (n: number) => string, string, Tone?][] = [
+    ['Today', dayAbs, signed, formatSignedPct(dayPct), tone(dayAbs)],
+    ['Total gain', data.gain_abs, signed, formatSignedPct(data.change.all_pct), tone(data.gain_abs)],
+    ['Invested', data.invested, money, ''],
+    ['Cash', data.cash, money, data.dividends ? `${money(data.dividends)} dividends` : ''],
   ]
 
   return (
@@ -83,8 +81,14 @@ export function PortfolioPage() {
 
       <div className="mt-5">
         <StatTiles label="Summary" count={4}>
-          {summary.map(([label, value, detail, colour]) => (
-            <StatTile key={label} title={label} figure={value} sub={detail || undefined} tone={colour} />
+          {summary.map(([label, value, format, detail, colour]) => (
+            <StatTile
+              key={label}
+              title={label}
+              figure={value != null ? <AnimatedNumber value={value} format={format} /> : '–'}
+              sub={detail || undefined}
+              tone={colour}
+            />
           ))}
         </StatTiles>
       </div>
