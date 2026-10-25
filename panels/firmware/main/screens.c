@@ -383,6 +383,18 @@ void screens_start(void)
     backdrops_attach(screens[APPLE], "apple");
     backdrops_attach(screens[PLAYING], "playing");
     backdrops_attach(screens[LAUNDRY], "laundry");
+    backdrops_attach(screens[NAS], "nas");
+    backdrops_attach(screens[CODE], "code");
+    backdrops_attach(screens[SITES], "sites");
+    backdrops_attach(screens[SERVICES], "services");
+    backdrops_attach(screens[TAILNET], "tailnet");
+    backdrops_attach(screens[MONEY], "money");
+    backdrops_attach(screens[MOVERS], "movers");
+    backdrops_attach(screens[MEDIA], "media");
+    backdrops_attach(screens[BACKUPS], "backups");
+    backdrops_attach(screens[ALERTS], "alerts");
+    backdrops_attach(screens[PIPELINES], "pipelines");
+    backdrops_attach(screens[PIPELINE], "pipeline");
     screen_headlines_create(screens[HEADLINES]);
     screen_playing_create(screens[PLAYING]);
     screen_lights_create(screens[LIGHTS]);

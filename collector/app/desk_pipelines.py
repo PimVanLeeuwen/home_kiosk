@@ -1,8 +1,9 @@
 """The House panel's pipelines (plan.md M21), ready to draw.
 
 While a watched repo's main CI runs, House shows its job graph and stops turning;
-a finished run stays for 5 minutes (green or red), and so does a run that reaches
-an approval gate, after which House turns again with the gate on the idle card.
+a finished run stays a minute when it passed and 5 minutes when it did not (M27, W),
+and a run that reaches an approval gate stays 5 minutes, after which House turns again
+with the gate on the idle card.
 Two runs at once take turns ("1 of 2"). Otherwise the idle card is one of House's
 screens: each repo's last result and its last runs as bars.
 """
@@ -17,7 +18,8 @@ from .panel_text import latin1
 from .sources import pipelines
 from .store import Store
 
-SHOWN_FOR = timedelta(minutes=5)  # a finished run, or one waiting at a gate
+SHOWN_FOR = timedelta(minutes=5)  # a run that failed, or one waiting at a gate
+PASSED_FOR = timedelta(minutes=1)  # a run that passed: its tick, then House turns again
 
 TONE = {"running": "#b4a9ff", "approval": "#e0a23b", "success": "#3fb97f",
         "failure": "#e5646a", "cancelled": "#8a8794"}
@@ -58,7 +60,8 @@ def showing(run: dict[str, Any] | None, now: datetime) -> bool:
         since = _time(run.get("approval_since"))
         return since is None or now - since <= SHOWN_FOR
     ended = _time(run.get("ended_at"))
-    return ended is not None and now - ended <= SHOWN_FOR
+    stay = PASSED_FOR if run["state"] == "success" else SHOWN_FOR
+    return ended is not None and now - ended <= stay
 
 
 def _layout(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[list[int]], int]:

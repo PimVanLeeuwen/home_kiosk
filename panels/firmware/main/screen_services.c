@@ -14,6 +14,7 @@
 #include "esp_attr.h"
 #include "images/logos.h"
 #include "lvgl.h"
+#include "backdrops.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
@@ -62,6 +63,7 @@ static tile_t tile_create(lv_obj_t *parent, int size)
     lv_obj_set_style_radius(t.box, size * 28 / 100, 0);
     lv_obj_set_style_bg_color(t.box, lv_color_hex(0x101014), 0);
     lv_obj_set_style_bg_opa(t.box, LV_OPA_COVER, 0);
+    backdrops_glass(t.box);
     lv_obj_set_style_border_color(t.box, lv_color_hex(0x24242c), 0);
     lv_obj_set_style_border_width(t.box, 1, 0);
     lv_obj_set_style_shadow_width(t.box, size / 2, 0);
@@ -237,6 +239,7 @@ static void create_incident(lv_obj_t *screen)
     lv_obj_set_style_pad_all(card, 28, 0);
     lv_obj_set_style_radius(card, 24, 0);
     lv_obj_set_style_bg_opa(card, LV_OPA_COVER, 0);
+    backdrops_glass(card);
     lv_obj_set_style_border_width(card, 2, 0);
     lv_obj_set_style_border_opa(card, 115, 0);
     lv_obj_set_layout(card, LV_LAYOUT_FLEX);
@@ -287,6 +290,7 @@ void screen_services_create(lv_obj_t *screen)
 
     /* House's quiet violet from the top; the incident's colour during one. */
     sky = lv_image_create(screen);
+    backdrops_aside(sky); /* the hub's painted light instead (plan.md M27) */
     lv_image_set_src(sky, &glow_sky);
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);

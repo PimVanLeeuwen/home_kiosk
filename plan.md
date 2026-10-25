@@ -1360,11 +1360,70 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   rim from the hub, a highlight on the glass, bubbles rising while it runs (12.5 a second
   through the door's clip). Apple devices: the rooms that play lit from within, the others
   glass.
+- Step 3, the House panel, done 2026-10-25. One painter for all twelve House screens
+  (`app/paint_house.py`): a light where the screen's main thing sits, coloured by how things
+  stand (violet the hub's own, green all well, amber to look at, red wrong; Money stays violet,
+  as its chart's colour follows the period chosen on the panel); the screen's own violet light
+  steps aside and its tiles turn to glass (`backdrops_aside`, `backdrops_glass`). The running
+  pipeline has light flowing along the lines into the jobs still to finish. W done too: a run
+  that passed leaves House after a minute, one that failed after 5. Not done, for the owner to
+  choose: the bigger rebuilds from the mockup (Code as a city, Sites as heartbeat lines,
+  Services as a constellation, Backups' turning seal).
 - Not chosen: T a calendar week, U Paperless's new documents on Home or in the digest, V a live
   preview per panel in Settings, X picking each panel's screens in Settings.
 
+**M28. Running** (added 2026-10-25, to look into; mockup `docs/hub-running-mockup.html`)
+- The owner runs with Runna (subscribed) and Strava (free). Goal: the runs as a beautiful screen
+  on a desk panel and a Running page in the hub: the route, pace, distance, the week's distance
+  against the plan, the last run and the next session. Insights into the running itself may live
+  outside the hub.
+- Sources, as found on 2026-10-25:
+  - Strava API: since 2026-06-01 creating an API app needs a paid Strava subscription
+    (Standard tier; the free account is not enough). A personal app stays in "single player"
+    mode (only the owner's account; reads 100 per 15 minutes, 1,000 a day). The API agreement of
+    2026-06-01 forbids using API data in any AI application (also in a prompt; Strava's own MCP
+    connector is the only exception), caps how long its data may be cached at 7 days, deletes
+    within 48 hours, and lets a user's data be shown only to that user. The 7-day cap rules out a
+    year of history kept from the API; webhooks are expected for new activities and deauthorising.
+  - Runna: no public API. Its runs reach Strava (and Apple Health through the Runna or Apple
+    Watch app). Runna's Calendar Sync gives an iCalendar (ICS) feed with the upcoming plan
+    workouts and, as chosen in the app, the completed ones: enough for the next session, the
+    planned week and the race date. The hub already reads CalDAV; an ICS URL is one more source
+    (the URL is a secret: NAS-only `.env`).
+  - Apple Health: the owner's own data, no Strava terms. Health Auto Export (iOS, Premium for its
+    REST automation) posts workouts as JSON, with the route points and heart rate, to a URL;
+    the phone could post to the hub over Tailscale (a new write endpoint, with a key, as the
+    phone is not same-origin). Needs: the runs recorded on an iPhone or Apple Watch, and a
+    paid app (a new dependency: ask first).
+  - Strava's bulk export (Settings, My account): every activity as GPX or FIT in a zip, by hand.
+    Good for filling the history once (the year of routes), not for the last run.
+- Candidate screens (letters as in the mockup): A Last run, the route as a glowing line coloured
+  by pace with a light running along it, distance, pace and time; B The week, seven columns of
+  done against Runna's planned distance and a ring for the week; C Next session, Runna's workout
+  as blocks by effort ("Tomorrow, 6 x 800 m"); D Your streets, every route of the year layered,
+  brighter where run more; E Splits, a bar per kilometre over the elevation; F Race countdown,
+  the days to the race and the plan's weeks as a ring; G The year, kilometres per month as a
+  dial; H Every day of the year as a grid lit by distance.
+- The panel way (M27): the hub paints the route, the streets and the glow as the 720 x 720
+  picture; the panel adds the numbers and one moving object (the light along the route). The
+  payload stays small: no route points on the panel.
+- Hub: a Running page (last run large, the week against the plan, next session, the year's
+  streets, monthly distance, personal bests) and a Home card on a day with a run or a session.
+- No map tiles from outside (no third-party requests): the route is drawn on its own, or over
+  streets the hub draws once from an OpenStreetMap extract of the town kept on the NAS.
+- Privacy: routes start at home. Never in the public repo: fixtures and PR screenshots use made-
+  up routes. No route or heart rate goes to Anthropic.
+- Insights, outside the hub if need be: with a Strava subscription, Strava's official MCP
+  connector in Claude (read-only, the only allowed AI use of Strava data); otherwise Claude Code
+  on the owner's own Apple Health or bulk export, by hand. In the hub only figures it computes
+  itself (weekly load against the four weeks before, the long run's share, easy pace at the same
+  heart rate over time, consistency), no AI on Strava data.
+- Open questions for the owner: which device records the runs (iPhone, Apple Watch, Garmin)?
+  Is a Strava subscription wanted (Runna and Strava are sold as a bundle since 2025)? Which
+  panel shows the runs, and which screens? Is a paid Health Auto Export acceptable?
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27.
+M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28.
 
 ## 4. Open items
 

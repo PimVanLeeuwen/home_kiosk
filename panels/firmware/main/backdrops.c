@@ -20,7 +20,7 @@
 
 static const char *TAG = "backdrops";
 
-#define KINDS 16
+#define KINDS 32 /* every screen kind the hub may send, and the screens that show one */
 #define SIZE 720
 #define MAX_JPEG (160 * 1024)
 #define CHECK_MS 2000
@@ -43,6 +43,14 @@ typedef struct {
 EXT_RAM_BSS_ATTR static stored_t stored[KINDS];
 EXT_RAM_BSS_ATTR static screen_t screens[KINDS];
 static int kinds, attached;
+
+#define DEPENDANTS 64
+#define GLASS_OPA 175
+EXT_RAM_BSS_ATTR static struct {
+    lv_obj_t *obj;
+    bool glass; /* else: steps aside */
+} dependants[DEPENDANTS];
+static int dependant_count;
 static SemaphoreHandle_t lock;
 static uint8_t *buffers[2];
 static size_t rooms[2];
@@ -110,6 +118,35 @@ void backdrops_want(const char *kind, const char *path)
     xSemaphoreGive(lock);
 }
 
+void backdrops_aside(lv_obj_t *obj)
+{
+    if (dependant_count < DEPENDANTS) {
+        dependants[dependant_count].obj = obj, dependants[dependant_count++].glass = false;
+    }
+}
+
+void backdrops_glass(lv_obj_t *obj)
+{
+    if (dependant_count < DEPENDANTS) {
+        dependants[dependant_count].obj = obj, dependants[dependant_count++].glass = true;
+    }
+}
+
+/* The screen's own light and tiles, for whether it shows a painted background now. */
+static void depend(lv_obj_t *screen, bool painted)
+{
+    for (int i = 0; i < dependant_count; i++) {
+        if (lv_obj_get_screen(dependants[i].obj) != screen) {
+            continue;
+        }
+        if (dependants[i].glass) {
+            lv_obj_set_style_bg_opa(dependants[i].obj, painted ? GLASS_OPA : LV_OPA_COVER, 0);
+        } else {
+            lv_obj_set_flag(dependants[i].obj, LV_OBJ_FLAG_HIDDEN, painted);
+        }
+    }
+}
+
 static screen_t *find(const lv_obj_t *screen)
 {
     for (int i = 0; i < attached; i++) {
@@ -125,6 +162,7 @@ static void clear(screen_t *s)
 {
     lv_image_set_src(s->image, NULL);
     lv_obj_add_flag(s->image, LV_OBJ_FLAG_HIDDEN);
+    depend(s->screen, false);
     s->buffer = -1;
     s->shown_version = 0;
 }
@@ -173,6 +211,7 @@ static void show(screen_t *s)
     lv_image_cache_drop(&dscs[b]);
     lv_image_set_src(s->image, &dscs[b]);
     lv_obj_remove_flag(s->image, LV_OBJ_FLAG_HIDDEN);
+    depend(s->screen, true);
     s->buffer = b; /* its old buffer, if any, is free now */
     s->shown_version = version;
 }

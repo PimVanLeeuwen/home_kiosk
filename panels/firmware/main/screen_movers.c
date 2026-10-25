@@ -11,6 +11,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "backdrops.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_40);
@@ -114,6 +115,7 @@ void screen_movers_create(lv_obj_t *screen)
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
     lv_obj_t *sky = lv_image_create(screen);
+    backdrops_aside(sky); /* the hub's painted light instead (plan.md M27) */
     lv_image_set_src(sky, &glow_sky);
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);

@@ -14,5 +14,10 @@ void backdrops_want(const char *kind, const char *path);
 /* When a screen is made: it shows `kind`'s background under everything else. */
 void backdrops_attach(lv_obj_t *screen, const char *kind);
 
+/* While its screen shows a painted background: `obj` steps aside (the screen's own,
+ * plainer light), or turns to glass (a tile the light should show through). */
+void backdrops_aside(lv_obj_t *obj);
+void backdrops_glass(lv_obj_t *obj);
+
 /* From screens.c, before it loads `screen`: decodes that screen's background. */
 void backdrops_show(lv_obj_t *screen);

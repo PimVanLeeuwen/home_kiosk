@@ -6,7 +6,10 @@
  * columns and rows; wording and colours from the hub (app/desk_pipelines.py).
  *
  * The lines are painted into a transparent canvas when the answer changes: as
- * smooth curves they would be hundreds of shapes in one LVGL layer. */
+ * smooth curves they would be hundreds of shapes in one LVGL layer.
+ *
+ * Lifted (plan.md M27): light flows along the lines into the jobs still to finish, one
+ * small glowing dot per line, while the screen shows; the hub paints the light behind. */
 
 #include "screen_pipeline.h"
 
@@ -17,6 +20,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "backdrops.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_time);
@@ -34,6 +38,9 @@ LV_IMAGE_DECLARE(glow_sky);
 #define NARROW 200      /* narrower cards put the icon on top, the name below */
 #define TALL_MAX 124    /* ... and may be this tall: two lines of name and a progress line */
 #define TURN_MS 15000 /* two pipelines take turns */
+#define PULSES 8
+#define FLOW_MS 40      /* 25 steps a second */
+#define FLOW_STEP 0.02f /* two seconds along a line */
 
 #define VIOLET 0x8f80ff
 #define SOFT 0xb4a9ff
@@ -43,6 +50,10 @@ LV_IMAGE_DECLARE(glow_sky);
 #define AMBER 0xe0a23b
 
 static lv_obj_t *sky, *canvas, *title, *number, *big, *first, *second, *commit, *meta;
+static lv_obj_t *self, *pulses[PULSES];
+static float live[PULSES][5]; /* the lines into jobs still to finish: x1, y1, x2, y2, handle */
+static float pulse_at[PULSES];
+static int live_count;
 static struct {
     lv_obj_t *card, *icon, *spinner, *name, *count, *time, *track, *bar;
 } cards[DESK_PIPELINE_JOBS];
@@ -176,10 +187,39 @@ static void paint(lv_draw_buf_t *buf, int x, int y, uint32_t colour, uint8_t alp
     px[0] = colour & 0xff, px[1] = (colour >> 8) & 0xff, px[2] = (colour >> 16) & 0xff, px[3] = alpha;
 }
 
+/* A point along a line between two cards, `t` from 0 to 1, in the screen's coordinates. */
+static void along(const float *line, float t, float *x, float *y)
+{
+    float x1 = line[0], y1 = line[1], x2 = line[2], y2 = line[3], hx = line[4], u = 1 - t;
+    *x = u * u * u * x1 + 3 * u * u * t * (x1 + hx) + 3 * u * t * t * (x2 - hx) + t * t * t * x2 + LEFT;
+    *y = u * u * u * y1 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y2 + TOP;
+}
+
+/* The light along the lines into jobs still to finish, while this screen shows. */
+static void flow(lv_timer_t *timer)
+{
+    bool on = lv_screen_active() == self;
+    for (int i = 0; i < PULSES; i++) {
+        if (!on || i >= live_count) {
+            lv_obj_add_flag(pulses[i], LV_OBJ_FLAG_HIDDEN);
+            continue;
+        }
+        pulse_at[i] += FLOW_STEP;
+        if (pulse_at[i] > 1) {
+            pulse_at[i] -= 1;
+        }
+        float x, y;
+        along(live[i], pulse_at[i], &x, &y);
+        lv_obj_set_pos(pulses[i], (int32_t)x - 4, (int32_t)y - 4);
+        lv_obj_remove_flag(pulses[i], LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
 /* The lines between the cards, as GitHub draws them: from a card's right edge to the
  * next one's left, an S-curve with its handles a gap's width out. */
 static void draw_lines(void)
 {
+    live_count = 0;
     lv_draw_buf_t *buf = lv_canvas_get_draw_buf(canvas);
     memset(buf->data, 0, buf->header.stride * HEIGHT);
     desk_run_t *r = run();
@@ -191,6 +231,12 @@ static void draw_lines(void)
         float x1 = boxes[a].x + boxes[a].w - LEFT, y1 = boxes[a].y + boxes[a].h / 2.0f - TOP;
         float x2 = boxes[b].x - LEFT, y2 = boxes[b].y + boxes[b].h / 2.0f - TOP;
         float hx = COL_GAP / 1.2f;
+        if (!is(r->jobs[b].state, "done") && live_count < PULSES) {
+            float *line = live[live_count];
+            line[0] = x1, line[1] = y1, line[2] = x2, line[3] = y2, line[4] = hx;
+            pulse_at[live_count] = (float)live_count / PULSES; /* not all at once */
+            live_count++;
+        }
         int steps = (int)(x2 - x1 + (y2 > y1 ? y2 - y1 : y1 - y2)) + 2;
         for (int s = 0; s <= steps; s++) {
             float t = (float)s / steps, u = 1 - t;
@@ -328,9 +374,11 @@ static void tick(lv_timer_t *timer)
 
 void screen_pipeline_create(lv_obj_t *screen)
 {
+    self = screen;
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
     sky = lv_image_create(screen);
+    backdrops_aside(sky); /* the hub's painted light instead (plan.md M27) */
     lv_image_set_src(sky, &glow_sky);
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);
@@ -356,6 +404,7 @@ void screen_pipeline_create(lv_obj_t *screen)
         lv_obj_set_style_radius(card, 12, 0);
         lv_obj_set_style_bg_color(card, lv_color_hex(0x121119), 0);
         lv_obj_set_style_bg_opa(card, LV_OPA_COVER, 0);
+        backdrops_glass(card);
         lv_obj_set_style_border_opa(card, LV_OPA_COVER, 0);
         cards[i].icon = ui_plain(card);
         lv_obj_set_size(cards[i].icon, 30, 30);
@@ -405,6 +454,18 @@ void screen_pipeline_create(lv_obj_t *screen)
     lv_obj_align(meta, LV_ALIGN_TOP_RIGHT, -LEFT, 652);
 
     turned_at = lv_tick_get();
+    for (int i = 0; i < PULSES; i++) {
+        pulses[i] = ui_plain(screen);
+        lv_obj_set_size(pulses[i], 8, 8);
+        lv_obj_set_style_radius(pulses[i], LV_RADIUS_CIRCLE, 0);
+        lv_obj_set_style_bg_color(pulses[i], lv_color_hex(0xe2dcff), 0);
+        lv_obj_set_style_bg_opa(pulses[i], LV_OPA_COVER, 0);
+        lv_obj_set_style_shadow_width(pulses[i], 14, 0);
+        lv_obj_set_style_shadow_color(pulses[i], lv_color_hex(SOFT), 0);
+        lv_obj_set_style_shadow_opa(pulses[i], 200, 0);
+        lv_obj_add_flag(pulses[i], LV_OBJ_FLAG_HIDDEN);
+    }
+    lv_timer_create(flow, FLOW_MS, NULL);
     lv_timer_create(tick, 1000, NULL);
     tick(NULL);
 }

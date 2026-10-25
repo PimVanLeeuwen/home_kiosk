@@ -17,6 +17,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "backdrops.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
@@ -238,6 +239,7 @@ static lv_obj_t *tile(lv_obj_t *parent, int size, uint32_t fill)
     lv_obj_set_size(box, size, size);
     lv_obj_set_style_radius(box, size / 4, 0);
     lv_obj_set_style_bg_opa(box, LV_OPA_COVER, 0);
+    backdrops_glass(box);
     lv_obj_set_style_bg_color(box, lv_color_hex(fill), 0);
     lv_obj_set_style_border_width(box, 2, 0);
     return box;
@@ -249,6 +251,7 @@ void screen_tailnet_create(lv_obj_t *screen)
 
     /* House's quiet violet from the top; amber while tailscaled warns. */
     sky = lv_image_create(screen);
+    backdrops_aside(sky); /* the hub's painted light instead (plan.md M27) */
     lv_image_set_src(sky, &glow_sky);
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);

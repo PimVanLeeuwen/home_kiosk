@@ -15,6 +15,7 @@ from app import (
     paint_apple,
     paint_clock,
     paint_headlines,
+    paint_house,
     paint_laundry,
 )
 
@@ -199,3 +200,30 @@ def test_now_playing_washes_in_its_covers_colours(store):
         assert r > g and r > 40  # the cover's red, washed over the top
     nothing = {"kind": "playing", "stale": False, "present": False}
     assert attached(store, nothing) is None
+
+
+def test_the_house_screens_are_lit_by_how_things_stand(store):
+    def colour(kind, **screen):
+        return paint_house.inputs_for(kind)({"present": True, **screen}, LOCAL)["colour"]
+
+    assert colour("nas", used_pct=82, limit_pct=90, warn=False) == paint_house.VIOLET
+    assert colour("nas", used_pct=82, limit_pct=90, warn=True) == paint_house.AMBER
+    assert colour("nas", used_pct=93, limit_pct=90, warn=True) == paint_house.RED
+    assert colour("sites", down=0) == paint_house.GREEN
+    assert colour("sites", down=1) == paint_house.RED
+    assert colour("services", tone="ok") == paint_house.GREEN
+    assert colour("services", tone="degraded") == paint_house.AMBER
+    assert colour("services", tone="maintenance") == paint_house.BLUE
+    assert colour("alerts", tone="error") == paint_house.RED
+    assert colour("alerts", tone="warning") == paint_house.AMBER
+    assert colour("backups", ok=False, warn=True) == paint_house.RED
+    assert colour("backups", ok=True, warn=True) == paint_house.AMBER
+    assert colour("pipeline", colour="#e5646a") == "#e5646a"
+    assert paint_house.inputs_for("money")({"present": False}, LOCAL) is None
+
+    # The same state paints the same picture, whatever the numbers do.
+    nas = {"kind": "nas", "stale": False, "present": True, "used_pct": 82, "limit_pct": 90}
+    assert attached(store, nas) == attached(store, {**nas, "used_pct": 83})
+    with Image.open(io.BytesIO(desk_backgrounds.picture(
+            store, attached(store, nas).rsplit("/", 1)[1]))) as image:
+        assert image.size == (720, 720)

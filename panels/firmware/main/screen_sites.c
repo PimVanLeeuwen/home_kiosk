@@ -14,6 +14,7 @@
 #include "esp_attr.h"
 #include "lvgl.h"
 #include "arrive.h"
+#include "backdrops.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
@@ -132,6 +133,7 @@ void screen_sites_create(lv_obj_t *screen)
 
     /* House's quiet violet from the top; red while a site is down. */
     sky = lv_image_create(screen);
+    backdrops_aside(sky); /* the hub's painted light instead (plan.md M27) */
     lv_image_set_src(sky, &glow_sky);
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);
@@ -161,6 +163,7 @@ void screen_sites_create(lv_obj_t *screen)
         lv_obj_set_pos(t->box, LEFT + (i % 2) * (TILE_W + GAP), TOP + (i / 2) * (TILE_H + GAP));
         lv_obj_set_style_radius(t->box, 18, 0);
         lv_obj_set_style_bg_opa(t->box, LV_OPA_COVER, 0);
+        backdrops_glass(t->box);
         lv_obj_set_style_border_width(t->box, 1, 0);
         lv_obj_add_flag(t->box, LV_OBJ_FLAG_HIDDEN);
 

@@ -143,8 +143,8 @@ def test_a_run_slower_than_usual_says_so(store):
     assert screen["first"] == "longer than usual"
 
 
-def test_a_finished_run_stays_five_minutes_then_house_turns_again(store):
-    done = repo(run=a_run("success", started=11.2, ended=4))
+def test_a_passed_run_stays_a_minute_then_house_turns_again(store):
+    done = repo(run=a_run("success", started=7.7, ended=0.5))
     [screen], rotate = house(store, done)
     assert (screen["state"], screen["first"], screen["big"], screen["since"], rotate) == (
         "success",
@@ -154,7 +154,16 @@ def test_a_finished_run_stays_five_minutes_then_house_turns_again(store):
         False,
     )
 
-    [screen, *_rest], rotate = house(store, done, now=NOW + timedelta(minutes=2))
+    [screen, *_rest], rotate = house(store, done, now=NOW + timedelta(minutes=1))
+    assert (screen["kind"], rotate) == ("pipelines", True)
+
+
+def test_a_failed_run_stays_five_minutes(store):
+    failed = repo(run=a_run("failure", started=10, ended=4, failed="e2e"))
+    [screen], rotate = house(store, failed)
+    assert (screen["kind"], screen["state"], rotate) == ("pipeline", "failure", False)
+
+    [screen, *_rest], rotate = house(store, failed, now=NOW + timedelta(minutes=2))
     assert (screen["kind"], rotate) == ("pipelines", True)
 
 
@@ -211,7 +220,8 @@ def test_the_idle_card_has_each_repos_last_result_and_bars(store):
 
 def test_before_any_pipeline_data_the_card_waits(store):
     out = desk.answer(CFG, store, "house", NOW)
-    assert out["screens"] == [{"kind": "pipelines", "stale": False, "present": False},
+    screens = [{k: v for k, v in s.items() if k != "background"} for s in out["screens"]]
+    assert screens == [{"kind": "pipelines", "stale": False, "present": False},
         {"kind": "nas", "stale": False, "present": False},
         {"kind": "code", "stale": False, "present": False},
         {"kind": "sites", "stale": False, "present": False},

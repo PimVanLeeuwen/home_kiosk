@@ -120,7 +120,8 @@ def test_the_route_and_its_panel_names(store):
     assert client.get("/api/desk/test").json()["screens"][0]["kind"] == "clock"
     home = [s["kind"] for s in client.get("/api/desk/home").json()["screens"]]
     assert home == ["playing", "lights", "air", "laundry", "apple", "music"]
-    assert client.get("/api/desk/house").json()["screens"] == [
+    house = client.get("/api/desk/house").json()["screens"]
+    assert [{k: v for k, v in s.items() if k != "background"} for s in house] == [
         {"kind": "pipelines", "stale": False, "present": False},
         {"kind": "nas", "stale": False, "present": False},
         {"kind": "code", "stale": False, "present": False},
