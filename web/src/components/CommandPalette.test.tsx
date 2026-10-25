@@ -132,4 +132,35 @@ describe('CommandPalette', () => {
     expect(await screen.findByText('Pause did not work: Nothing is playing.')).toBeInTheDocument()
     expect(palette().open).toBe(true)
   })
+
+  it('asks Paperless once typing pauses, and lists its documents after the hub’s own rows', async () => {
+    const fetchMock = stubApi({
+      '/api/services': { as_of: null, stale: false, groups: [{ name: 'Apps', services: [
+        { id: 'paperless', name: 'Paperless', group: 'Apps', description: 'Documents', port: 8010, path: '/', container: 'paperless', widget: 'paperless', icon: null, status: 'up' },
+      ] }] },
+      '/api/documents/search?q=water': { as_of: '', stale: false, available: true, reason: null, results: [
+        { id: 41, title: 'Jaaropgave 2025', correspondent: 'Brabant Water', created: '2026-02-14' },
+      ] },
+    })
+    renderRoute('/')
+    openWithKeys()
+
+    fireEvent.change(field(), { target: { value: 'wa' } })
+    fireEvent.change(field(), { target: { value: 'water' } })
+
+    const doc = await screen.findByRole('option', { name: /Jaaropgave 2025/, hidden: true })
+    expect(doc).toHaveTextContent('Brabant Water · 14 Feb 2026')
+    const asked = fetchMock.mock.calls.map(([path]) => String(path)).filter((p) => p.startsWith('/api/documents'))
+    expect(asked).toEqual(['/api/documents/search?q=water'])
+  })
+
+  it('says why there are no documents when Paperless does not answer', async () => {
+    stubApi({ '/api/documents/search?q=bill': { as_of: '', stale: false, available: false, reason: 'Not reachable', results: [] } })
+    renderRoute('/')
+    openWithKeys()
+
+    fireEvent.change(field(), { target: { value: 'bill' } })
+
+    expect(await screen.findByText('Paperless: Not reachable')).toBeInTheDocument()
+  })
 })

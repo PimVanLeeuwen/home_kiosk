@@ -1,5 +1,5 @@
-import { dataItems, loadRecent, staticItems, RECENT_KEY, saveRecent, search, type PaletteData } from './palette'
-import type { ContainerLoad, Repo, Service } from './types'
+import { dataItems, documentItems, loadRecent, staticItems, RECENT_KEY, saveRecent, search, type PaletteData } from './palette'
+import type { ContainerLoad, DocumentSearch, Repo, Service } from './types'
 
 const labels = (rows: ReturnType<typeof search>) => rows.map((r) => r.item.label)
 
@@ -127,5 +127,36 @@ describe('palette actions', () => {
     })
     expect(search(staticItems(), 'pause', [])[0].item.action?.path).toBe('/api/music/control/pause')
     expect(search(staticItems(), 'skip', [])[0].item.label).toBe('Next track')
+  })
+})
+
+describe('palette documents', () => {
+  const found: DocumentSearch = {
+    as_of: '', stale: false, available: true, reason: null,
+    results: [
+      { id: 41, title: 'Jaaropgave 2025', correspondent: 'Brabant Water', created: '2026-02-14' },
+      { id: 12, title: 'Scan', correspondent: null, created: null },
+    ],
+  }
+  const withPaperless: PaletteData = {
+    services: { as_of: null, stale: false, groups: [{ name: 'Apps', services: [
+      service('paperless', { port: 8010, widget: 'paperless' }),
+    ] }] },
+  }
+
+  it('opens each match on its Paperless page, with who sent it and when', () => {
+    const [jaaropgave, scan] = documentItems(found, withPaperless, 'nas')
+
+    expect(jaaropgave).toMatchObject({
+      id: 'document:41', group: 'Documents', label: 'Jaaropgave 2025',
+      hint: 'Brabant Water · 14 Feb 2026', href: 'http://nas:8010/documents/41/details',
+    })
+    expect(scan.hint).toBe('Paperless')
+  })
+
+  it('has none without an answer, or without Paperless in the catalog', () => {
+    expect(documentItems({ ...found, available: false }, withPaperless, 'nas')).toEqual([])
+    expect(documentItems(undefined, withPaperless, 'nas')).toEqual([])
+    expect(documentItems(found, {}, 'nas')).toEqual([])
   })
 })

@@ -3,7 +3,20 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 
 import { useNavigate } from 'react-router'
 import { cn } from '../lib/cn'
 import { ApiError, getJson, sendJson } from '../lib/api'
-import { dataItems, loadRecent, staticItems, saveRecent, search, type PaletteData, type PaletteItem } from '../lib/palette'
+import {
+  dataItems,
+  documentItems,
+  DOCUMENTS_DELAY_MS,
+  DOCUMENTS_FROM,
+  loadRecent,
+  saveRecent,
+  search,
+  staticItems,
+  type PaletteData,
+  type PaletteItem,
+  type PaletteRow,
+} from '../lib/palette'
+import type { DocumentSearch } from '../lib/types'
 
 interface Props {
   open: boolean
@@ -35,6 +48,28 @@ function usePaletteData(open: boolean): PaletteData {
   return data
 }
 
+/** Paperless's matches for the query, asked through the hub once typing pauses. */
+function useDocuments(query: string, open: boolean): DocumentSearch | undefined {
+  const [found, setFound] = useState<{ q: string; answer: DocumentSearch }>()
+  const q = query.trim()
+  useEffect(() => {
+    if (!open || q.length < DOCUMENTS_FROM) return
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => {
+      getJson<DocumentSearch>(`/api/documents/search?q=${encodeURIComponent(q)}`, controller.signal).then(
+        (answer) => setFound({ q, answer }),
+        () => {},
+      )
+    }, DOCUMENTS_DELAY_MS)
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [q, open])
+  // An answer to an earlier query never shows under a newer one.
+  return found?.q === q ? found.answer : undefined
+}
+
 /**
  * The command palette (plan.md M25): a search box over any page. Type a few
  * letters, arrows to choose, Enter to go. A native modal dialog, so focus stays
@@ -53,7 +88,12 @@ export function CommandPalette({ open, onClose }: Props) {
   const closing = useRef<number | undefined>(undefined)
   const data = usePaletteData(open)
   const items = useMemo(() => [...staticItems(), ...dataItems(data, window.location.hostname)], [data])
-  const rows = useMemo(() => search(items, query, recent), [items, query, recent])
+  const documents = useDocuments(query, open)
+  const rows = useMemo((): PaletteRow[] => {
+    const own = search(items, query, recent)
+    if (!query.trim()) return own
+    return [...own, ...documentItems(documents, data, window.location.hostname).map((item) => ({ item }))]
+  }, [items, query, recent, documents, data])
 
   useEffect(() => {
     const d = dialog.current
@@ -138,7 +178,7 @@ export function CommandPalette({ open, onClose }: Props) {
             setNotice(null)
           }}
           onKeyDown={onKeyDown}
-          placeholder="Search, or type an action: lights off, pause…"
+          placeholder="Search, documents too, or type an action…"
           // The hub's focus ring (index.css) would box the field in; the open palette is its focus.
           style={{ outline: 'none' }}
           className="min-w-0 flex-1 bg-transparent text-body text-fg placeholder:text-faint"
@@ -185,6 +225,9 @@ export function CommandPalette({ open, onClose }: Props) {
         <p role={notice.ok ? 'status' : 'alert'} className={cn('border-t border-line-soft px-4 py-2.5 text-small', notice.ok ? 'text-up' : 'text-down')}>
           {notice.text}
         </p>
+      )}
+      {documents && !documents.available && query.trim().length >= DOCUMENTS_FROM && (
+        <p className="border-t border-line-soft px-4 py-2 text-caption text-faint">Paperless: {documents.reason}</p>
       )}
       {rows.length === 0 && (
         <p role="status" className="px-5 pt-1 pb-6 text-muted">

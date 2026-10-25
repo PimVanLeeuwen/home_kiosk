@@ -24,6 +24,7 @@ from . import (
     desk_api,
     desk_boards,
     desk_headlines,
+    documents_api,
     exposure_api,
     lights_api,
     music_api,
@@ -147,6 +148,7 @@ app = FastAPI(title="Desk Dashboard Collector", version="0.1.0", lifespan=lifesp
 app.include_router(settings_api.router)
 app.include_router(exposure_api.router)
 app.include_router(lights_api.router)
+app.include_router(documents_api.router)
 app.include_router(music_api.router)
 app.include_router(desk_api.router)
 app.include_router(alerts_api.router)

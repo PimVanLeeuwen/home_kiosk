@@ -1143,6 +1143,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   /api/music/control/…`); the same writes as the Lights and Music pages, no new ones. The
   palette says how it went: "done" for a moment and then it closes, or the hub's reason and it
   stays open.
+- Step 4 (2026-10-25): Paperless documents by title and content. `GET /api/documents/search?q=`
+  (collector `documents_api.py`, read-only) asks Paperless's full-text search with the
+  widget's address and token, so the token stays on the NAS, and answers with titles,
+  correspondents and dates only; the query is never logged. Paperless not answering is an
+  answer too (`available: false` and the reason, shown under the results). The palette asks
+  from three letters, once typing pauses for 250 ms; the matches come after the hub's own
+  rows, in Paperless's order, and open on the document's page in Paperless. M25 is complete.
 
 **M26. AI** (added 2026-10-23; mockup `docs/hub-ai-mockup.html`)
 - The owner's Anthropic API key (NAS-only `.env`) for a few written extras. Every result is made

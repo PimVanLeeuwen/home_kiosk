@@ -122,6 +122,16 @@ export interface AppleDevices {
   rooms: { id: string; name: string; devices: AppleDevice[]; playing: ApplePlaying | null }[]
 }
 
+/** Paperless's full-text search for the command palette (`/api/documents/search`). */
+export interface DocumentSearch {
+  as_of: string
+  stale: boolean
+  /** False when Paperless is not set up or did not answer; `reason` says which ("Not reachable"). */
+  available: boolean
+  reason: string | null
+  results: { id: number; title: string; correspondent: string | null; created: string | null }[]
+}
+
 /** AdGuard Home's last 24 hours (`/api/dns`): counts only, never per device. */
 export interface DnsStats {
   as_of: string

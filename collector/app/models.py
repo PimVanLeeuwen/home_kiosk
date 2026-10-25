@@ -796,6 +796,20 @@ class AirState(Envelope):
     history: list[AirPoint] = []  # CO2 every 5 minutes, the last 8 hours
 
 
+class DocumentHit(BaseModel):
+    id: int
+    title: str
+    correspondent: str | None = None
+    created: str | None = None  # YYYY-MM-DD
+
+
+class DocumentSearch(Envelope):
+    """Paperless's full-text search for the command palette (documents_api.py)."""
+    available: bool = True
+    reason: str | None = None
+    results: list[DocumentHit] = []
+
+
 class DnsHour(BaseModel):
     queries: int
     blocked: int

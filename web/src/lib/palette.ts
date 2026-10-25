@@ -1,16 +1,17 @@
-import { Box, FolderGit2, LayoutGrid, Lightbulb, LightbulbOff, Pause, Play, SkipForward, type LucideIcon } from 'lucide-react'
+import { Box, FileText, FolderGit2, LayoutGrid, Lightbulb, LightbulbOff, Pause, Play, SkipForward, type LucideIcon } from 'lucide-react'
 import { fold, fuzzyScore } from './fuzzy'
 import { iconUrl } from './icons'
 import { serviceHref } from './links'
 import { NAV_ITEMS } from './navigation'
 import { SETTINGS_SECTIONS } from './settingsSections'
-import type { DockerOverview, Hosts, ReposResponse, ServicesResponse } from './types'
+import { formatDate } from './format'
+import type { DockerOverview, DocumentSearch, Hosts, ReposResponse, ServicesResponse } from './types'
 
 /** Something the command palette can go to. */
 export interface PaletteItem {
   /** Stable across visits: recent choices are kept by it. */
   id: string
-  group: 'Actions' | 'Pages' | 'Settings' | 'Services' | 'Repos' | 'Containers'
+  group: 'Actions' | 'Pages' | 'Settings' | 'Services' | 'Repos' | 'Containers' | 'Documents'
   label: string
   /** A short line beside the label. */
   hint?: string
@@ -189,4 +190,28 @@ export function dataItems({ services, repos, docker, hosts }: PaletteData, pageH
       )
     : []
   return [...serviceRows, ...repoRows, ...containerRows]
+}
+
+/** Typed letters before the palette asks Paperless, and the pause in typing it waits for. */
+export const DOCUMENTS_FROM = 3
+export const DOCUMENTS_DELAY_MS = 250
+
+/**
+ * Paperless's matches (title and content), opened on its document page. They
+ * come as Paperless ranked them, after the hub's own rows; without Paperless in
+ * the catalog there is nowhere to open them, so none.
+ */
+export function documentItems(found: DocumentSearch | undefined, { services, hosts }: PaletteData, pageHost: string): PaletteItem[] {
+  const paperless = services?.groups.flatMap((g) => g.services).find((s) => s.widget === 'paperless' && s.port)
+  if (!found?.available || !paperless) return []
+  return found.results.map((d) => ({
+    id: `document:${d.id}`,
+    group: 'Documents',
+    label: d.title,
+    hint: [d.correspondent, // Noon, so the day never shifts with the time zone.
+      d.created && formatDate(`${d.created}T12:00`)].filter(Boolean).join(' · ') || 'Paperless',
+    icon: FileText,
+    href: serviceHref({ ...paperless, path: `/documents/${d.id}/details` }, pageHost, hosts),
+    searchOnly: true,
+  }))
 }

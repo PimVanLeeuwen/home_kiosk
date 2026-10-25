@@ -86,3 +86,25 @@ test('the command palette runs an action through the hub and says it worked', as
   expect(sent).toEqual({ on: false })
   await expect(palette).toBeHidden()
 })
+
+test('the command palette finds a Paperless document and opens its page', async ({ page, context, isMobile }) => {
+  await page.route('**/api/services', (route) => route.fulfill({ json: {
+    as_of: null, stale: false, groups: [{ name: 'Apps', services: [
+      { id: 'paperless', name: 'Paperless', group: 'Apps', description: 'Documents', port: 8010, path: '/', container: 'paperless', widget: 'paperless', icon: null, status: 'up' },
+    ] }],
+  } }))
+  await page.route('**/api/documents/search?q=*', (route) => route.fulfill({ json: {
+    as_of: new Date().toISOString(), stale: false, available: true, reason: null,
+    results: [{ id: 41, title: 'Jaaropgave 2025', correspondent: 'Brabant Water', created: '2026-02-14' }],
+  } }))
+  await context.route('**:8010/**', (route) => route.fulfill({ body: 'Paperless' }))
+  await page.goto('/')
+
+  await openPalette(page, isMobile)
+  const palette = page.getByRole('dialog', { name: 'Search the hub' })
+  await palette.getByRole('combobox').fill('jaaropgave')
+  const doc = palette.getByRole('option', { name: /Jaaropgave 2025/ })
+  await expect(doc).toContainText('Brabant Water')
+  const [tab] = await Promise.all([context.waitForEvent('page'), doc.click()])
+  expect(tab.url()).toContain(':8010/documents/41/details')
+})
