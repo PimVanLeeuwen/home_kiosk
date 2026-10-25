@@ -1,5 +1,9 @@
+import { Search } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router'
+import { isPaletteKey } from '../lib/palette'
 import { useNasHost } from '../lib/useNasHost'
+import { CommandPalette } from './CommandPalette'
 import { Brand, Sidebar } from './Sidebar'
 import { ConnectionBadge } from './ConnectionBadge'
 import { TabBar } from './TabBar'
@@ -8,6 +12,17 @@ const MAIN_ID = 'main'
 
 export function Layout() {
   const host = useNasHost()
+  const [searching, setSearching] = useState(false)
+
+  useEffect(() => {
+    const toggle = (e: KeyboardEvent) => {
+      if (!isPaletteKey(e)) return
+      e.preventDefault()
+      setSearching((open) => !open)
+    }
+    window.addEventListener('keydown', toggle)
+    return () => window.removeEventListener('keydown', toggle)
+  }, [])
 
   return (
     <div className="flex h-dvh bg-panel md:bg-canvas">
@@ -18,13 +33,23 @@ export function Layout() {
         Skip to content
       </a>
 
-      <Sidebar host={host} />
+      <Sidebar host={host} onSearch={() => setSearching(true)} />
 
       <div className="flex min-w-0 flex-1 flex-col md:py-2 md:pr-2">
         {/* The insets keep the bar clear of the iPhone's status bar and notch in the installed app. */}
         <header className="flex items-center justify-between pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-2 pl-[max(1rem,env(safe-area-inset-left))] md:hidden">
           <Brand host={null} />
-          <ConnectionBadge />
+          <div className="flex items-center gap-3">
+            <ConnectionBadge />
+            <button
+              type="button"
+              onClick={() => setSearching(true)}
+              aria-label="Search"
+              className="grid size-9 place-items-center rounded-full border border-line bg-raised text-muted hover:text-fg"
+            >
+              <Search aria-hidden="true" className="size-[17px]" strokeWidth={1.9} />
+            </button>
+          </div>
         </header>
 
         <main
@@ -38,6 +63,7 @@ export function Layout() {
       </div>
 
       <TabBar />
+      <CommandPalette open={searching} onClose={() => setSearching(false)} />
     </div>
   )
 }

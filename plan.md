@@ -1126,6 +1126,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   next. Nothing that deletes or imports.
 - Built in the hub without a new dependency unless the owner chooses one (cmdk was the obvious
   candidate). Keyboard and screen reader friendly; the hub's style.
+- Decided 2026-10-25: built in the hub, no cmdk; four steps: the palette with pages and Settings
+  sections, then services, repos and containers, then the actions, then Paperless documents.
+- Step 1 (2026-10-25): `CommandPalette`, a native modal `<dialog>` with an ARIA combobox over a
+  listbox; ⌘K or Ctrl-K anywhere, a Search button in the sidebar and a search button in the
+  phone's top bar. `lib/fuzzy.ts` matches a label's letters in order (word starts and runs
+  first); descriptions and keywords need each word as typed. The last five choices are kept in
+  `localStorage` and come first. Settings sections moved to `lib/settingsSections.ts`.
 
 **M26. AI** (added 2026-10-23; mockup `docs/hub-ai-mockup.html`)
 - The owner's Anthropic API key (NAS-only `.env`) for a few written extras. Every result is made

@@ -1,5 +1,7 @@
+import { Search } from 'lucide-react'
 import { Link, NavLink } from 'react-router'
 import { NAV } from '../lib/navigation'
+import { shortcutLabel } from '../lib/palette'
 import { cn } from '../lib/cn'
 import { ConnectionBadge } from './ConnectionBadge'
 
@@ -12,11 +14,21 @@ export function Brand({ host }: { host: string | null }) {
   )
 }
 
-export function Sidebar({ host }: { host: string | null }) {
+export function Sidebar({ host, onSearch }: { host: string | null; onSearch: () => void }) {
   return (
     <aside className="hidden w-62 shrink-0 flex-col md:flex">
       <div className="px-5.5 pt-5.5 pb-4.5">
         <Brand host={host} />
+        <button
+          type="button"
+          onClick={onSearch}
+          aria-keyshortcuts="Meta+K Control+K"
+          className="mt-4 flex w-full items-center gap-2.5 rounded-[10px] border border-line bg-raised px-3 py-2 text-left text-muted transition-colors hover:border-white/15 hover:text-fg"
+        >
+          <Search aria-hidden="true" className="size-4 shrink-0" />
+          <span className="flex-1">Search</span>
+          <kbd className="font-sans text-label text-faint">{shortcutLabel()}</kbd>
+        </button>
       </div>
 
       <nav aria-label="Sections" className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-1">

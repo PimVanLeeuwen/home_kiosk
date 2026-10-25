@@ -1,4 +1,3 @@
-import { CalendarDays, LayoutGrid, MessageSquareText, Music, Newspaper, PanelsTopLeft } from 'lucide-react'
 import type { ReactElement } from 'react'
 import { Navigate, useLocation, useParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
@@ -9,20 +8,23 @@ import { MessageTemplates } from '../components/settings/MessageTemplates'
 import { MusicSettings } from '../components/settings/MusicSettings'
 import { ServiceCatalogEditor } from '../components/settings/ServiceCatalogEditor'
 import { SettingsNav, type SettingsNavItem } from '../components/settings/SettingsNav'
+import { SETTINGS_SECTIONS } from '../lib/settingsSections'
 
 interface Section extends SettingsNavItem {
   element: ReactElement
 }
 
-/** One page per area, at `/settings/<slug>`. Later milestones add their own. */
-const SECTIONS: Section[] = [
-  { slug: 'services', label: 'Services', icon: LayoutGrid, element: <ServiceCatalogEditor /> },
-  { slug: 'feeds', label: 'News feeds', icon: Newspaper, element: <FeedEditor /> },
-  { slug: 'calendars', label: 'Calendars', icon: CalendarDays, element: <CalendarsEditor /> },
-  { slug: 'music', label: 'Music', icon: Music, element: <MusicSettings /> },
-  { slug: 'desk-panels', label: 'Desk panels', icon: PanelsTopLeft, element: <DeskBoardsEditor /> },
-  { slug: 'messages', label: 'Messages', icon: MessageSquareText, element: <MessageTemplates /> },
-]
+const ELEMENTS: Record<string, ReactElement> = {
+  services: <ServiceCatalogEditor />,
+  feeds: <FeedEditor />,
+  calendars: <CalendarsEditor />,
+  music: <MusicSettings />,
+  'desk-panels': <DeskBoardsEditor />,
+  messages: <MessageTemplates />,
+}
+
+/** One page per area, at `/settings/<slug>` (lib/settingsSections). */
+const SECTIONS: Section[] = SETTINGS_SECTIONS.map((s) => ({ ...s, element: ELEMENTS[s.slug] }))
 
 const find = (slug: string | undefined) => SECTIONS.find((s) => s.slug === slug)
 
