@@ -56,7 +56,9 @@ PRICES = {
 }
 
 # The features, with their switch in Settings. Each step of M26 adds its own.
-FEATURES: dict[str, str] = {}
+FEATURES: dict[str, str] = {
+    "update_notes": "Update notes",  # app/update_notes.py
+}
 
 WARN_SHARE = 0.8
 TIMEOUT_SECONDS = 60

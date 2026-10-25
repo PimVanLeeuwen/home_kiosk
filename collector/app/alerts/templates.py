@@ -7,8 +7,8 @@ volumes, ...) repeats a line template of its own, joined by a separator.
 
 Only your changes are stored (setting "templates", {id: text}); without one
 the built-in text applies, which gives exactly the messages from before this
-existed. A line that holds a placeholder and renders empty is left out, so an
-empty body or block leaves no blank line behind.
+existed. A line that holds a placeholder and renders empty (or only empty
+inline tags) is left out, so an empty body or block leaves no blank line behind.
 """
 
 from __future__ import annotations
@@ -31,6 +31,9 @@ _ESCAPED_TAG = re.compile(r"&lt;(/?)(" + "|".join(TAGS) + r")&gt;")
 _TAG = re.compile(r"<(/?)([a-z]+)>")
 # Telegram refuses a message with formatting inside a <pre> block.
 _TAG_IN_PRE = re.compile(r"<pre>(?:(?!</pre>).)*<(?!/pre>)", re.S)
+# A line left with nothing but inline tags, such as "<i></i>" for a missing note;
+# never <pre>, which spans lines.
+_EMPTY_LINE = re.compile(r"(?:</?(?:b|i|u|s|code)>|\s)*")
 # Blank lines left at the edges of a <pre> block by an empty block placeholder.
 _PRE_EDGES = re.compile(r"<pre>\s+|\s+</pre>")
 # Placeholders that were renamed or dropped, for texts saved before.
@@ -351,15 +354,21 @@ CATALOG: dict[str, Template] = {
         {"scanned": ("Containers checked", "24"), "updated_count": ("Updated", "2"),
          "failed_count": ("Failed", "1"),
          "updated": ("One line per updated container", [
-             {"name": "sonarr", "image": "lscr.io/linuxserver/sonarr:latest"},
+             {"name": "sonarr", "image": "lscr.io/linuxserver/sonarr:latest",
+              "versions": "4.0.9.2244-ls255 → 4.0.10.2544-ls256",
+              "note": "Fixes imports from some indexers and speeds up the calendar. "
+                      "Nothing to do."},
              {"name": "readeck", "image": "codeberg.org/readeck/readeck:latest"}]),
          "failed": ("One line per failed container", [
              {"name": "bazarr", "error": "pull access denied"}])},
         {"updated": Block("watchtower_updated"), "failed": Block("watchtower_failed")}),
     "watchtower_updated": _line(
         NAS, "Watchtower: updated line", "One line per updated container.",
-        "Updated {name} ({image})", "watchtower",
-        {"name": ("Container", "sonarr"), "image": ("Image", "lscr.io/linuxserver/sonarr:latest")}),
+        "Updated {name} ({image})\n{versions}\n<i>{note}</i>", "watchtower",
+        {"name": ("Container", "sonarr"), "image": ("Image", "lscr.io/linuxserver/sonarr:latest"),
+         "versions": ("From and to version, when the image says", "4.0.9 → 4.0.10"),
+         "note": ("What changed and whether to act (AI, Settings, AI)",
+                  "Fixes imports from some indexers. Nothing to do.")}),
     "watchtower_failed": _line(
         NAS, "Watchtower: failed line", "One line per container that failed to update.",
         "Failed {name}: {error}", "watchtower",
@@ -443,7 +452,7 @@ def _render(store: Store | None, template_id: str, values: dict[str, Any],
             return "" if value is None else html.escape(str(value), quote=False)
 
         rendered = PLACEHOLDER.sub(fill, line)
-        if had_placeholder and not rendered.strip():
+        if had_placeholder and _EMPTY_LINE.fullmatch(rendered):
             continue
         lines.append(rendered)
     return "\n".join(lines).strip()

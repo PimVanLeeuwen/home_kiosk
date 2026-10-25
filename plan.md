@@ -1189,6 +1189,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   EUR 5. Refusals, cut answers and API errors are no answer. Settings, AI (`/api/ai`): the
   month's spend against the cap and, as features arrive, a switch for each (off until switched
   on). `ANTHROPIC_API_KEY` in the NAS's `.env`.
+- Step 2 (2026-10-25): update notes (`collector/app/update_notes.py`, switch "Update notes").
+  The hub keeps each image's OCI `version` and `source` labels by image ID (Docker copies them
+  onto the container; kept because Watchtower removes the old image). When Watchtower's report
+  comes in with updates, `/api/notify` answers at once and sends the report from the
+  background: per updated container the from and to versions, and from its GitHub repo the
+  releases after the old version up to the new one (no drafts or prereleases, at most 5, 3000
+  characters each), which Haiku turns into at most two sentences ("Nothing to do." when so).
+  The report waits for its notes 180 s at most and goes out once; the Watchtower line template
+  gained `{versions}` and `{note}`, and a line left with only empty tags (`<i></i>`) is left
+  out like an empty one. Without the switch, or an image without labels, the report is as
+  before. Next: the pinned Immich, a warning when a newer release has breaking changes.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26.

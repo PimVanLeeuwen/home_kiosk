@@ -43,6 +43,8 @@ def parse(raw: list[dict[str, Any]]) -> list[ContainerState]:
                 image_id=entry.get("ImageID") or "",
                 project=labels.get("com.docker.compose.project"),
                 status=entry.get("Status") or "",
+                version=labels.get("org.opencontainers.image.version"),
+                source=labels.get("org.opencontainers.image.source"),
             )
         )
     containers.sort(key=lambda c: c.name)

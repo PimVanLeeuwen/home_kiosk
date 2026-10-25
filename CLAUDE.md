@@ -148,6 +148,9 @@ python3 dashboard/serve.py
   server 1 and Quad9 as server 2, so the internet works when the NAS is down. plan.md M24.
 - 2026-10-23: AI with the owner's Anthropic API key for update notes, a morning digest, grouped
   headlines and an alert explainer, capped at EUR 5 a month; no `/ask` in Telegram. plan.md M26.
+- 2026-10-25: AI through the official `anthropic` Python SDK; every call goes through
+  `app/ai.py`'s `ask()` (feature switch, answer cache by input hash, the monthly cap counted in
+  dollars); the Watchtower report waits for the update notes and goes out once. plan.md M26.
 
 ## Gotchas
 

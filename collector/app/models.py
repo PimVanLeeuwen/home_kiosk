@@ -360,6 +360,9 @@ class ContainerState(BaseModel):
     image_id: str = ""
     project: str | None = None  # docker compose project, i.e. the stack
     status: str = ""  # Docker's human status, e.g. "Up 3 days (healthy)"
+    # The image's OCI labels, which Docker copies onto the container (update notes, M26).
+    version: str | None = None
+    source: str | None = None
 
 
 class ContainerList(Envelope):

@@ -27,6 +27,10 @@ log = logging.getLogger(__name__)
 
 COUNTERS_KEY = "container_counters"
 IMAGES_KEY = "container_images"
+# image ID -> [version, source] from its OCI labels. Kept after an update, as
+# Watchtower removes the old image: the update notes need the version it was.
+LABELS_KEY = "image_labels"
+LABELS_KEEP = 500
 CONCURRENCY = 8
 
 
@@ -123,6 +127,12 @@ def note_updates(store: Store, containers: list[ContainerState], now: datetime) 
     # Keep names that are gone for now, so a container recreated a few minutes
     # later still compares against its old image.
     store.put_cache(IMAGES_KEY, {**previous, **current})
+    labels: dict[str, list[str | None]] = store.get_cache(LABELS_KEY) or {}
+    for c in containers:
+        if c.image_id and (c.version or c.source):
+            labels.pop(c.image_id, None)
+            labels[c.image_id] = [c.version, c.source]
+    store.put_cache(LABELS_KEY, dict(list(labels.items())[-LABELS_KEEP:]))
     return updated
 
 

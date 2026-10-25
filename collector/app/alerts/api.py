@@ -3,14 +3,18 @@
 from __future__ import annotations
 
 import hmac
+import logging
 import re
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from .. import update_notes
 from ..security import same_origin_json
 from . import core, formats, rules, templates
+
+log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
 write = [Depends(same_origin_json)]
@@ -66,10 +70,34 @@ class NotifyIn(BaseModel):
         return value
 
 
+async def _report_with_notes(body: NotifyIn, state: Any, names: list[str]) -> None:
+    """Watchtower's report once its update notes are in (M26); as it came on any failure."""
+    store, cfg = state.store, state.config
+    try:
+        # Tests put their fake Docker, GitHub and Claude here.
+        extras = await update_notes.extras(cfg, store, names,
+                                           **getattr(state, "update_notes_test", {}))
+    except Exception as exc:
+        log.warning("update notes failed: %s", type(exc).__name__)
+        extras = {}
+    fields = body.model_dump(exclude={"data"})
+    sent = formats.watchtower(store, body.severity, body.title, body.body, extras)
+    if sent is not None:
+        fields |= {"title": sent.title, "body": sent.body, "formatted": sent.html}
+    await core.notify(store, cfg, **fields)
+
+
 @router.post("/notify", dependencies=[Depends(notify_key), Depends(same_origin_json)])
-async def notify(body: NotifyIn, request: Request) -> core.AlertMessage:
-    """For senders on the NAS: backup.sh, Watchtower, Uptime Kuma."""
-    store = request.app.state.store
+async def notify(body: NotifyIn, request: Request, background: BackgroundTasks) -> Any:
+    """For senders on the NAS: backup.sh, Watchtower, Uptime Kuma. With update notes
+    on, Watchtower's report is answered at once and sent when its notes are in."""
+    store, cfg = request.app.state.store, request.app.state.config
+    if body.source == "watchtower" and update_notes.enabled(cfg, store):
+        values = formats.watchtower_values(body.title, body.body)
+        if values and values["updated"]:
+            names = [item["name"] for item in values["updated"]]
+            background.add_task(_report_with_notes, body, request.app.state, names)
+            return {"queued": True, "notes_for": names}
     fields = body.model_dump(exclude={"data"})
     sent = formats.from_sender(store, body.source, body.severity, body.title, body.body, body.data)
     if sent is not None:

@@ -35,8 +35,8 @@ def backup(store: Store, data: dict[str, Any]) -> templates.Rendered | None:
                              "ok" if ok else "error")
 
 
-def watchtower(store: Store, severity: core.Severity, title: str,
-               body: str) -> templates.Rendered | None:
+def watchtower_values(title: str, body: str) -> dict[str, Any] | None:
+    """The report's figures and lines, or None when it does not read as one."""
     head = _WATCHTOWER_HEAD.search(title)
     if not head:
         return None
@@ -51,9 +51,19 @@ def watchtower(store: Store, severity: core.Severity, title: str,
         else:
             return None
     scanned, updated_count, failed_count = head.groups()
-    return templates.message(store, "watchtower", {
-        "scanned": scanned, "updated_count": updated_count, "failed_count": failed_count,
-        "updated": updated, "failed": failed}, severity)
+    return {"scanned": scanned, "updated_count": updated_count, "failed_count": failed_count,
+            "updated": updated, "failed": failed}
+
+
+def watchtower(store: Store, severity: core.Severity, title: str, body: str,
+               extras: dict[str, dict[str, Any]] | None = None) -> templates.Rendered | None:
+    """`extras` adds per container name its versions line and update note (M26)."""
+    values = watchtower_values(title, body)
+    if values is None:
+        return None
+    for item in values["updated"]:
+        item.update((extras or {}).get(item["name"]) or {})
+    return templates.message(store, "watchtower", values, severity)
 
 
 def from_sender(store: Store, source: str, severity: core.Severity, title: str, body: str,
