@@ -17,6 +17,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "arrive.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_clock);
@@ -84,7 +85,8 @@ static void draw_ring(lv_event_t *event)
         gap.p2.y = CY + (int)((R + 11) * sinf(a));
         lv_draw_line(layer, &gap);
     }
-    int end = angle(shown.ring > 3 ? shown.ring : 3);
+    int filled = shown.ring * arrive_share(ring) / 1000; /* sweeps in as the screen arrives */
+    int end = angle(filled > 3 ? filled : 3);
     arc(layer, RING_START, end, lv_color_hex(shown.colour), opa);
 
     float a = end * (float)M_PI / 180;
@@ -203,6 +205,7 @@ void screen_air_create(lv_obj_t *screen)
     lv_obj_align(outside, LV_ALIGN_TOP_RIGHT, -LEFT, 30);
 
     temperature = ui_text(screen, &instrument_clock, 0xffffff);
+    arrive_count(temperature);
     lv_obj_set_pos(temperature, LEFT - 6, 104);
     humidity = ui_text(screen, &instrument_28_bold, 0xd8d6e0);
     lv_obj_set_pos(humidity, LEFT, 296);
@@ -216,7 +219,9 @@ void screen_air_create(lv_obj_t *screen)
     lv_obj_set_size(ring, 720, 720);
     lv_obj_remove_flag(ring, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(ring, draw_ring, LV_EVENT_DRAW_MAIN, NULL);
+    arrive_redraw(ring);
     co2 = ui_text(screen, &instrument_52_bold, 0xffffff);
+    arrive_count(co2);
     lv_obj_align(co2, LV_ALIGN_TOP_MID, CX - 360, CY - 40);
     unit = ui_text(screen, &instrument_24, 0x8a8794);
     lv_label_set_text(unit, "ppm CO2");
@@ -227,6 +232,7 @@ void screen_air_create(lv_obj_t *screen)
     canvas = lv_canvas_create(screen);
     lv_canvas_set_draw_buf(canvas, lv_draw_buf_create(CHART_WIDTH, CHART_HEIGHT, LV_COLOR_FORMAT_RGB888, 0));
     lv_obj_set_pos(canvas, LEFT, CHART_TOP);
+    arrive_draw_in(canvas, CHART_WIDTH, CHART_HEIGHT);
     lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_COVER);
     axis_start = ui_text(screen, &instrument_24, 0x8a8794);
     lv_label_set_text(axis_start, "8 h ago");

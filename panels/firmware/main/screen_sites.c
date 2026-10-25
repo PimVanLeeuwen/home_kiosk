@@ -13,6 +13,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "arrive.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
@@ -178,6 +179,7 @@ void screen_sites_create(lv_obj_t *screen)
         t->strip = lv_canvas_create(t->box);
         lv_canvas_set_draw_buf(t->strip, lv_draw_buf_create(STRIP_W, STRIP_H, LV_COLOR_FORMAT_ARGB8888, 0));
         lv_obj_set_pos(t->strip, PAD, TILE_H - PAD - STRIP_H);
+        arrive_draw_in(t->strip, STRIP_W, STRIP_H);
         memset(lv_canvas_get_draw_buf(t->strip)->data, 0, lv_canvas_get_draw_buf(t->strip)->header.stride * STRIP_H);
     }
 

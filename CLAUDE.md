@@ -235,6 +235,12 @@ python3 dashboard/serve.py
   `panels/firmware/components/esp_driver_ppa` until the IDF in use has Espressif's fix. After
   adding or removing a project component, run `idf.py reconfigure`, or an existing build keeps
   the old one.
+- Pillow's `Image.radial_gradient` reaches 181 halfway along an edge, not 255: scale by 181
+  (`app/paint.py`), or glows end in a square.
+- To try a panel change against new hub code before it is deployed: build a copy of
+  `panels/firmware` with `CONFIG_PANEL_HUB_URL` pointing at a small pass-through hub on the Mac
+  (firmware files come from Caddy on 8083, the API from 8000); afterwards `update.py` puts the
+  hub's firmware back.
 - GitHub's "Re-run jobs" repeats a run on its original commit; after fixing a workflow, start a
   new run (Run workflow) instead.
 - UGREEN's desktop app runs "Sync Space", which is Syncthing (`syncspace_pro`): it opens TCP

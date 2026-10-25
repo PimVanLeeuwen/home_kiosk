@@ -20,6 +20,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "arrive.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_40);
@@ -295,6 +296,7 @@ void screen_day_create(lv_obj_t *screen)
     canvas = lv_canvas_create(screen);
     lv_canvas_set_draw_buf(canvas, lv_draw_buf_create(720, CANVAS_HEIGHT, LV_COLOR_FORMAT_RGB888, 0));
     lv_obj_set_pos(canvas, 0, CANVAS_TOP);
+    arrive_draw_in(canvas, 720, CANVAS_HEIGHT);
     lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_COVER);
 
     static lv_point_precise_t ends[] = {{0, CHART_TOP + 34}, {0, BARS_BOTTOM}};

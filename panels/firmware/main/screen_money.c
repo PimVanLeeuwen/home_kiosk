@@ -16,6 +16,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "arrive.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
@@ -204,6 +205,7 @@ void screen_money_create(lv_obj_t *screen)
     lv_obj_set_style_text_letter_space(pill_text, 2, 0);
 
     change = ui_text(screen, &instrument_52_bold, GREEN);
+    arrive_count(change);
     lv_obj_set_pos(change, LEFT, 96);
     span = ui_one_line(screen, &instrument_24, 0x8a8794, WIDTH);
     lv_obj_set_pos(span, LEFT, 168);
@@ -212,6 +214,7 @@ void screen_money_create(lv_obj_t *screen)
     lv_canvas_set_draw_buf(chart, lv_draw_buf_create(CHART_W, CHART_H, LV_COLOR_FORMAT_ARGB8888, 0));
     memset(lv_canvas_get_draw_buf(chart)->data, 0, lv_canvas_get_draw_buf(chart)->header.stride * CHART_H);
     lv_obj_set_pos(chart, 0, CHART_TOP);
+    arrive_draw_in(chart, CHART_W, CHART_H);
     high = ui_text(screen, &instrument_24, 0xf1eff7);
     lv_obj_add_flag(high, LV_OBJ_FLAG_HIDDEN);
 

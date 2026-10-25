@@ -1331,6 +1331,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   into its canvas (its own plainer sky without one) and lets 16 streaks fall while it rains,
   at a full 30 steps a second. Clouds are crisp layered shapes, not soft noise (the owner's
   wish, the same day): banks on an overcast sky, a few apart under the words otherwise.
+- Step 2 done 2026-10-25: `panels/firmware/main/arrive.c`. A screen registers its parts once;
+  screens.c starts them as it loads a screen, while the light is down. Rings and bars sweep
+  (Calendar, Train, Laundry, Media), numbers count up with their ring (Air's temperature, CO2
+  with its ring; Money's gain), charts draw in left to right through a widening clip box
+  (Day, Air, Money, Code, Sites, Backups, the NAS sparklines), 700 ms, ease-out, the charts
+  90 ms apart. NAS keeps its number still: its gauge is drawn once into a canvas and would not
+  follow. A part the screen itself changes while it moves stops where the screen put it.
 - Not chosen: T a calendar week, U Paperless's new documents on Home or in the digest, V a live
   preview per panel in Settings, X picking each panel's screens in Settings.
 

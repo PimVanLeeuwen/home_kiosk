@@ -17,6 +17,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "arrive.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_time);
@@ -272,6 +273,7 @@ void screen_backups_create(lv_obj_t *screen)
     lv_canvas_set_draw_buf(bars, lv_draw_buf_create(WIDTH, BARS_H, LV_COLOR_FORMAT_ARGB8888, 0));
     memset(lv_canvas_get_draw_buf(bars)->data, 0, lv_canvas_get_draw_buf(bars)->header.stride * BARS_H);
     lv_obj_set_pos(bars, LEFT, BARS_TOP);
+    arrive_draw_in(bars, WIDTH, BARS_H);
     int under = BARS_TOP + BARS_H + 8;
     count_label = ui_text(screen, &instrument_24, 0x7d7a8c);
     lv_obj_set_pos(count_label, LEFT, under);

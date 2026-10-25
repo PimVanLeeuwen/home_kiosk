@@ -15,6 +15,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "arrive.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_time);
@@ -289,6 +290,7 @@ void screen_train_create(lv_obj_t *screen)
 
     /* Minutes to go: a ring that empties over the last hour. */
     ring = lv_arc_create(screen);
+    arrive_sweep(ring);
     lv_obj_remove_style(ring, NULL, LV_PART_KNOB);
     lv_obj_remove_flag(ring, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_size(ring, RING, RING);

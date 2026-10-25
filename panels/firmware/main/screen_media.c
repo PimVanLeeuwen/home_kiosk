@@ -11,6 +11,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "arrive.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_40);
@@ -135,6 +136,7 @@ static void build_download(lv_obj_t *column, int i)
     lv_obj_set_size(bar, TEXT_W, 10);
     lv_obj_set_pos(bar, TEXT_X, 88);
     lv_bar_set_range(bar, 0, 1000);
+    arrive_sweep(bar);
     lv_obj_set_style_bg_color(bar, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(bar, 30, LV_PART_MAIN);
     lv_obj_set_style_radius(bar, 5, LV_PART_MAIN);

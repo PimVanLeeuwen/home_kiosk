@@ -16,6 +16,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "arrive.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
@@ -339,6 +340,7 @@ void screen_agenda_create(lv_obj_t *screen)
     lv_obj_align(count, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
 
     ring = lv_arc_create(screen);
+    arrive_sweep(ring);
     lv_obj_remove_style(ring, NULL, LV_PART_KNOB);
     lv_obj_remove_flag(ring, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_size(ring, RING, RING);

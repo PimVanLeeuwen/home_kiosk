@@ -16,6 +16,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "arrive.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_time);
@@ -211,6 +212,7 @@ static lv_obj_t *spark(lv_obj_t *box)
     lv_canvas_set_draw_buf(canvas, lv_draw_buf_create(SPARK_W, SPARK_H, LV_COLOR_FORMAT_ARGB8888, 0));
     memset(lv_canvas_get_draw_buf(canvas)->data, 0, lv_canvas_get_draw_buf(canvas)->header.stride * SPARK_H);
     lv_obj_set_pos(canvas, 18, TILE_H - 18 - SPARK_H);
+    arrive_draw_in(canvas, SPARK_W, SPARK_H);
     return canvas;
 }
 

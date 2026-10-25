@@ -27,6 +27,8 @@
 
 #include "screens.h"
 
+#include "arrive.h"
+
 #include "bsp/display.h"
 #include "bsp/esp-bsp.h"
 #include "desk.h"
@@ -185,6 +187,7 @@ static void dark(lv_anim_t *anim)
         turns++;
         current = coming;
         lv_screen_load(screens[current]);
+        arrive_begin(screens[current]); /* N: its rings sweep, numbers count, charts draw in */
     } else {
         lv_obj_invalidate(lv_layer_top()); /* only the shade changed: draw once */
     }

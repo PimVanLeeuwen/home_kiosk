@@ -14,6 +14,7 @@
 #include "desk.h"
 #include "esp_attr.h"
 #include "lvgl.h"
+#include "arrive.h"
 #include "ui.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
@@ -138,6 +139,7 @@ void screen_code_create(lv_obj_t *screen)
     canvas = lv_canvas_create(screen);
     lv_canvas_set_draw_buf(canvas, lv_draw_buf_create(GRID_WIDTH, GRID_HEIGHT, LV_COLOR_FORMAT_ARGB8888, 0));
     lv_obj_set_pos(canvas, GRID_X, GRID_Y);
+    arrive_draw_in(canvas, GRID_WIDTH, GRID_HEIGHT);
     memset(lv_canvas_get_draw_buf(canvas)->data, 0, lv_canvas_get_draw_buf(canvas)->header.stride * GRID_HEIGHT);
 
     for (int w = 0; w < 16; w++) {
