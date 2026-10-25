@@ -204,7 +204,8 @@ typedef struct {
 #define PICTURE_PLAYING 3   /* picture slots: 0 to 2 the headlines, 3 the cover playing, */
 #define PICTURE_FAVOURITE 4 /* 4 to 7 the favourites, */
 #define PICTURE_LAST 8      /* 8 the cover of what played last, */
-#define PICTURE_POSTER 9    /* 9 and 10 the posters of the downloads on House */
+#define PICTURE_POSTER 9    /* 9 and 10 the posters of the downloads on House, */
+#define PICTURE_CLOCK_SKY 11 /* 11 the Clock's painted background (plan.md M27) */
 
 /* The Home panel's music: the favourites to start. */
 typedef struct {

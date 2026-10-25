@@ -164,6 +164,7 @@ def horizon(now: datetime, sunrise: datetime | None, sunset: datetime | None,
         "body": body, "at": max(0, min(1000, at)),
         "moon": round(moon_phase(now) * 1000),
         "veiled": group == "overcast",  # the sun or moon behind clouds: dimmer
+        "weather": kind,  # the kind of sky, for the painted background's clouds
         "stars": phase == "night" and group != "overcast",
         "rise": f"{rise:%H:%M}" if rise else "",
         "set": f"{down:%H:%M}" if down else "",

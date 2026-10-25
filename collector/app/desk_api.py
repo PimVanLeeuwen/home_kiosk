@@ -19,12 +19,22 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Res
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from . import desk, desk_alerts, desk_boards, desk_headlines, desk_home, desk_keys, desk_media
+from . import (
+    desk,
+    desk_alerts,
+    desk_backgrounds,
+    desk_boards,
+    desk_headlines,
+    desk_home,
+    desk_keys,
+    desk_media,
+)
 from .lights_api import Change, RoomSwitch
 from .sources import hue, music, readeck, spotify
 
 router = APIRouter(prefix="/api/desk")
 ARTICLE = re.compile(r"^[0-9a-f]{16}$")
+BACKGROUND = ARTICLE  # the same shape: 16 hex digits
 
 # The three panels, and "test" for a board on the bench (it shows the Now panel's screens).
 PanelName = Literal["now", "home", "house", "test"]
@@ -93,6 +103,18 @@ async def save(body: Save, request: Request,
     if not found:
         raise HTTPException(404, "That story is no longer among the headlines.")
     return {"saved": True}
+
+
+@router.get("/background/{key}")
+def background(key: str, request: Request) -> Response:
+    """A screen's painted background (app/desk_backgrounds.py), painted on first use."""
+    if not BACKGROUND.match(key):
+        raise HTTPException(404, "No such background.")
+    data = desk_backgrounds.picture(request.app.state.store, key)
+    if data is None:
+        raise HTTPException(404, "No such background.")
+    return Response(data, media_type="image/jpeg",
+                    headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/picture/{article_id}/{size}")

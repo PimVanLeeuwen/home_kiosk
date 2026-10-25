@@ -6,7 +6,7 @@
 /* Headline pictures for the Now panel (plan.md M20): small JPEGs from the hub,
  * decoded by the ESP32-P4's JPEG engine into PSRAM. */
 
-#define PICTURE_SLOTS 11 /* see desk.h: headlines, cover playing, favourites, last, posters */
+#define PICTURE_SLOTS 12 /* see desk.h: headlines, cover playing, favourites, last, posters, backgrounds */
 
 typedef struct {
     uint8_t *pixels; /* RGB888 in LVGL's byte order (blue first), in PSRAM; NULL for none */

@@ -1319,6 +1319,18 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   favourites; `/api/music` carries `paused_until`.
 - W: a running pipeline keeps taking House over (M21), but a finished run leaves sooner: a
   green run after 1 minute, a red one after 5 (today both 5). A run waiting at a gate stays 5.
+- Steps (2026-10-25): 1 the foundation (the hub paints a background per screen kind, the panel
+  draws it under the live text), proven on the Clock; 2 N arrival motion on every screen; 3 the
+  lifted screens, Now, then Home, then House; 4 the new screens A, B, C, F, H, I, J, K, then E;
+  5 L and M; 6 the hub pages O to R. The screens that are mainly beautiful (A, B, C, F, H) are
+  panel only; I, J, K and E also get a view in the hub (2026-10-13). Panel steps are checked on
+  a board on the cable (update.py, shot.py).
+- Step 1 done 2026-10-25: `app/desk_backgrounds.py` gives a screen with a painter a
+  `background` path keyed by what it shows, painted with Pillow on the panel's first request
+  (`app/paint.py`, `app/paint_clock.py`) and kept, the newest six per kind; the Clock copies it
+  into its canvas (its own plainer sky without one) and lets 16 streaks fall while it rains,
+  at a full 30 steps a second. Clouds are crisp layered shapes, not soft noise (the owner's
+  wish, the same day): banks on an overcast sky, a few apart under the words otherwise.
 - Not chosen: T a calendar week, U Paperless's new documents on Home or in the digest, V a live
   preview per panel in Settings, X picking each panel's screens in Settings.
 

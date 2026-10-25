@@ -13,6 +13,7 @@ from datetime import UTC, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from . import desk_backgrounds
 from .desk_agenda import agenda_screen
 from .desk_alerts import alerts_screen, takeover
 from .desk_backups import backups_screen
@@ -213,6 +214,7 @@ def answer(cfg: dict[str, Any], store: Store, name: str | None,
         # No screens yet at all, or none with anything to show yet.
         hint = "Nothing to show yet." if screens else "Its screens come in a later update."
         screens = [*screens, board_screen(board, f"{name.title()} panel", hint)]
+    desk_backgrounds.attach(store, screens, now.astimezone(zone))
     return {
         "name": name,
         "board": board,

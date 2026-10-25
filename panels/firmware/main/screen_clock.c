@@ -8,7 +8,12 @@
  * the sun's times below.
  *
  * The scene is drawn into one canvas when the hub's answer changes (every 30 s or so),
- * so the sun moves in small steps and nothing animates; the text is labels on top. */
+ * so the sun moves in small steps; the text is labels on top.
+ *
+ * Lifted (plan.md M27): the hub paints the whole scene (app/paint_clock.py: clouds, the
+ * light around the sun or moon, the stars, the bars) as a picture, which is copied into
+ * the canvas instead; without it the panel draws the plainer scene itself. While it
+ * rains, a few streaks fall through the sky: the one thing that moves. */
 
 #include "screen_clock.h"
 
@@ -20,6 +25,8 @@
 
 #include "desk.h"
 #include "esp_attr.h"
+#include "esp_heap_caps.h"
+#include "esp_random.h"
 #include "lvgl.h"
 #include "ui.h"
 
@@ -40,9 +47,14 @@ LV_FONT_DECLARE(instrument_24);
 #define SHORTEST 8      /* a bar with the least rain that counts */
 #define TOP_MM 3.0f     /* rain this heavy fills a bar */
 #define WET_MM 0.1f
+#define STREAKS 16      /* the rain falling while it rains */
+#define STREAK_MS 33    /* about 30 frames a second, only while it rains and shows */
 
 static lv_obj_t *scene, *clock_label, *weather_row, *temperature, *weather, *date, *sun, *rain_line, *axis[3],
     *rise_label, *set_label;
+static lv_obj_t *self, *streaks[STREAKS];
+static int16_t streak_y[STREAKS], streak_speed[STREAKS];
+static bool hub_sky; /* the canvas shows the hub's painted scene */
 EXT_RAM_BSS_ATTR static desk_clock_t shown;
 static int shown_minute = -1;
 static int shown_hour = -1;
@@ -219,6 +231,57 @@ static void lay_out(void)
     lv_obj_set_flag(set_label, LV_OBJ_FLAG_HIDDEN, wet || !day);
 }
 
+/* The hub's painted scene, when a new one has come in: copied into the canvas (both are
+ * RGB888 with blue first); without one, the panel's own scene again. */
+static void take_sky(int hour)
+{
+    picture_t fresh;
+    if (!pictures_take(PICTURE_CLOCK_SKY, &fresh)) {
+        return;
+    }
+    hub_sky = fresh.pixels && fresh.width == SIZE && fresh.height == SIZE;
+    if (hub_sky) {
+        lv_draw_buf_t *buf = lv_canvas_get_draw_buf(scene);
+        for (int32_t y = 0; y < SIZE; y++) {
+            memcpy(buf->data + y * buf->header.stride, fresh.pixels + y * SIZE * 3, SIZE * 3);
+        }
+        lv_obj_invalidate(scene);
+    } else {
+        draw_scene(hour);
+    }
+    heap_caps_free(fresh.pixels);
+}
+
+static void streak_restart(int i, bool anywhere)
+{
+    lv_obj_set_x(streaks[i], (int32_t)(esp_random() % (SIZE + 40)));
+    streak_y[i] = anywhere ? (int16_t)(esp_random() % HORIZON) : -(int16_t)(24 + esp_random() % 160);
+    streak_speed[i] = (int16_t)(14 + esp_random() % 9);
+}
+
+/* While it rains now and this screen shows: streaks fall through the sky, slanting a
+ * little, and start again above it once they reach the horizon. */
+static void fall(lv_timer_t *timer)
+{
+    bool raining = shown.wet && shown.rain_count > 0 && shown.rain[0] >= WET_MM;
+    bool on = raining && lv_screen_active() == self;
+    for (int i = 0; i < STREAKS; i++) {
+        if (!on) {
+            if (!lv_obj_has_flag(streaks[i], LV_OBJ_FLAG_HIDDEN)) {
+                lv_obj_add_flag(streaks[i], LV_OBJ_FLAG_HIDDEN);
+                streak_restart(i, true);
+            }
+            continue;
+        }
+        lv_obj_remove_flag(streaks[i], LV_OBJ_FLAG_HIDDEN);
+        streak_y[i] += streak_speed[i];
+        if (streak_y[i] > HORIZON - 26) {
+            streak_restart(i, false);
+        }
+        lv_obj_set_pos(streaks[i], lv_obj_get_x(streaks[i]) - streak_speed[i] / 4, streak_y[i]);
+    }
+}
+
 static void tick(lv_timer_t *timer)
 {
     desk_clock_t now = desk_clock();
@@ -227,6 +290,7 @@ static void tick(lv_timer_t *timer)
     time_t local_now = tv.tv_sec + now.utc_offset;
     struct tm t_now;
     gmtime_r(&local_now, &t_now);
+    take_sky(t_now.tm_hour);
     if (now.version != shown.version) {
         shown = now;
         char text_up[64];
@@ -249,7 +313,9 @@ static void tick(lv_timer_t *timer)
         lv_label_set_text_fmt(rise_label, "Sunrise %s", now.rise);
         lv_label_set_text_fmt(set_label, "Sunset %s", now.set);
         lay_out();
-        draw_scene(t_now.tm_hour);
+        if (!hub_sky) {
+            draw_scene(t_now.tm_hour);
+        }
     }
 
     /* The time, once the hub has set the clock. */
@@ -260,7 +326,7 @@ static void tick(lv_timer_t *timer)
         return;
     }
     shown_minute = t_now.tm_min;
-    if (t_now.tm_hour != shown_hour && !shown.has_horizon) {
+    if (t_now.tm_hour != shown_hour && !shown.has_horizon && !hub_sky) {
         draw_scene(t_now.tm_hour); /* by the hour, without the hub's sky */
     }
     shown_hour = t_now.tm_hour;
@@ -276,6 +342,7 @@ static lv_obj_t *quiet(lv_obj_t *screen, lv_align_t align, int32_t x, int32_t y)
 
 void screen_clock_create(lv_obj_t *screen)
 {
+    self = screen;
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
     /* The whole scene in one opaque canvas: the sky, the body, the horizon, the rain. */
@@ -283,6 +350,19 @@ void screen_clock_create(lv_obj_t *screen)
     lv_canvas_set_draw_buf(scene, lv_draw_buf_create(SIZE, SIZE, LV_COLOR_FORMAT_RGB888, 0));
     memset(lv_canvas_get_draw_buf(scene)->data, 0, lv_canvas_get_draw_buf(scene)->header.stride * SIZE);
     lv_obj_set_pos(scene, 0, 0);
+
+    /* The rain: short slanting lines between the scene and the words. */
+    static lv_point_precise_t streak_points[] = {{6, 0}, {0, 22}};
+    for (int i = 0; i < STREAKS; i++) {
+        streaks[i] = lv_line_create(screen);
+        lv_line_set_points(streaks[i], streak_points, 2);
+        lv_obj_set_style_line_width(streaks[i], 2, 0);
+        lv_obj_set_style_line_rounded(streaks[i], true, 0);
+        lv_obj_set_style_line_color(streaks[i], lv_color_hex(0xb4cdff), 0);
+        lv_obj_set_style_line_opa(streaks[i], 80 + (i % 3) * 30, 0);
+        lv_obj_add_flag(streaks[i], LV_OBJ_FLAG_HIDDEN);
+        streak_restart(i, true);
+    }
 
     date = ui_text(screen, &instrument_24, 0xc4c8de);
     lv_obj_set_style_text_letter_space(date, 2, 0);
@@ -320,5 +400,6 @@ void screen_clock_create(lv_obj_t *screen)
     lay_out();
     draw_scene(12);
     lv_timer_create(tick, 1000, NULL);
+    lv_timer_create(fall, STREAK_MS, NULL);
     tick(NULL);
 }

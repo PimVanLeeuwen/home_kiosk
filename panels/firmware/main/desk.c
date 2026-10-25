@@ -984,6 +984,9 @@ static void apply(const char *body)
         copy_string(next.description, sizeof next.description, cJSON_GetObjectItem(screen, "description"));
         copy_string(next.rain_line, sizeof next.rain_line, cJSON_GetObjectItem(screen, "rain_line"));
         copy_string(next.sun, sizeof next.sun, cJSON_GetObjectItem(screen, "sun"));
+        /* The hub's painted sky (plan.md M27), fetched only when it changes. */
+        const cJSON *background = cJSON_GetObjectItem(screen, "background");
+        pictures_want(PICTURE_CLOCK_SKY, cJSON_IsString(background) ? background->valuestring : "");
         const cJSON *sky = cJSON_GetObjectItem(screen, "sky");
         const cJSON *sky_colour = cJSON_GetObjectItem(sky, "colour");
         next.has_sky = cJSON_IsString(sky_colour);
