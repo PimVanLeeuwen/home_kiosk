@@ -12,6 +12,7 @@
 #include "screen_day.h"
 
 #include <math.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
@@ -40,8 +41,12 @@ LV_FONT_DECLARE(instrument_24);
 #define CANVAS_TOP 226 /* the chart's canvas: from just above the chart to below the hours */
 #define CANVAS_HEIGHT 420
 #define NIGHT 0x0c0e1d
+#define GLOW 12 /* how far the line's glow reaches, up and down */
 
-static lv_obj_t *canvas, *now_line, *title, *range, *lead, *rest, *credit;
+static lv_obj_t *canvas, *now_line, *now_dot, *now_ring, *title, *range, *lead, *rest, *credit;
+EXT_RAM_BSS_ATTR static int ys[WIDTH]; /* the curve's height per pixel column */
+static bool curve_ready;
+static int dot_x, dot_y; /* the dot at now, for its ring */
 EXT_RAM_BSS_ATTR static desk_day_t shown;
 static int shown_minute = -1;
 static int now_minute = -1; /* local, on this panel's clock; -1 before it is set */
@@ -102,11 +107,19 @@ static float curve_y(const float *ys, int n, float pos)
                    (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t);
 }
 
-/* One pixel of the canvas (RGB888, stored blue first), over black. */
+/* One pixel of the canvas (ARGB8888, blue first), laid over what is there: the canvas is
+ * see-through, so the hub's painted background shows under the chart (plan.md M27). */
 static void paint(lv_draw_buf_t *buf, int x, int y, lv_color_t colour, uint8_t opa)
 {
-    uint8_t *px = buf->data + (y - CANVAS_TOP) * buf->header.stride + x * 3;
-    px[0] = colour.blue * opa / 255, px[1] = colour.green * opa / 255, px[2] = colour.red * opa / 255;
+    uint8_t *px = buf->data + (y - CANVAS_TOP) * buf->header.stride + x * 4;
+    int under = px[3] * (255 - opa) / 255, out = opa + under;
+    if (out == 0) {
+        return;
+    }
+    px[0] = (colour.blue * opa + px[0] * under) / out;
+    px[1] = (colour.green * opa + px[1] * under) / out;
+    px[2] = (colour.red * opa + px[2] * under) / out;
+    px[3] = out;
 }
 
 /* The curve's height at each pixel column, from the hourly temperatures. */
@@ -132,9 +145,9 @@ static void curve(int *ys_out, float *labels_y)
 static void draw_chart(lv_draw_buf_t *buf)
 {
     float sunrise = shown.sunrise_minute / 60.0f, sunset = shown.sunset_minute / 60.0f;
-    EXT_RAM_BSS_ATTR static int ys[WIDTH];
     float points[DESK_DAY_POINTS];
     curve(ys, points);
+    curve_ready = true;
 
     /* Night: a slightly darker field before sunrise and after sunset, half an hour soft at
      * each edge; and below the curve a warm glow fading out. */
@@ -142,7 +155,7 @@ static void draw_chart(lv_draw_buf_t *buf)
     for (int x = 0; x < WIDTH; x++) {
         float h = 6.0f + (float)x / WIDTH * 18.0f;
         float dark = fmaxf(fminf((sunrise - h) / 1.0f + 0.5f, 1), fminf((h - sunset) / 1.0f + 0.5f, 1));
-        if (dark > 0) {
+        if (dark > 0 && !shown.painted) { /* the hub paints them, with stars, when it can */
             /* Faded out at the top and the bottom too, so it reads as dusk, not a box. */
             for (int y = CHART_TOP + 20; y < FILL_BOTTOM + 30; y++) {
                 float edge = fminf(fminf((y - CHART_TOP - 20) / 70.0f, (FILL_BOTTOM + 30 - y) / 70.0f), 1);
@@ -174,7 +187,15 @@ static void draw_chart(lv_draw_buf_t *buf)
     }
     lv_canvas_finish_layer(canvas, &layer);
 
-    /* The temperature line, cool to warm and back. */
+    /* The temperature line, cool to warm and back, on a soft glow of its own colours,
+     * painted straight into the pixels (overlapping round line caps would show as beads). */
+    for (int x = 0; x < WIDTH; x++) {
+        lv_color_t colour = line_at((float)x / WIDTH);
+        for (int dy = -GLOW; dy <= GLOW; dy++) {
+            float fall = 1.0f - (float)abs(dy) / (GLOW + 1);
+            paint(buf, LEFT + x, ys[x] + dy, colour, (uint8_t)(70 * fall * fall));
+        }
+    }
     lv_canvas_init_layer(canvas, &layer);
     for (int x = 8; x < WIDTH; x += 8) {
         lv_draw_line_dsc_t line;
@@ -224,21 +245,40 @@ static void draw_chart(lv_draw_buf_t *buf)
 
 static void redraw_chart(void)
 {
-    lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_COVER);
+    lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_TRANSP);
+    curve_ready = false;
     if (shown.present && shown.count >= 2) {
         draw_chart(lv_canvas_get_draw_buf(canvas));
         lv_obj_invalidate(canvas);
     }
 }
 
-/* Now, as a solid line on today's view (the sun's lines are the dotted ones). */
+/* Now, as a solid line on today's view (the sun's lines are the dotted ones), with a dot
+ * on the curve that breathes: the one thing on this screen that moves. */
 static void place_now(void)
 {
     bool line = shown.present && shown.today && now_minute >= 360;
     if (line) {
-        lv_obj_set_x(now_line, (int)x_of(now_minute / 60.0f));
+        int x = (int)x_of(now_minute / 60.0f);
+        lv_obj_set_x(now_line, x);
+        int column = x - LEFT < 0 ? 0 : (x - LEFT >= WIDTH ? WIDTH - 1 : x - LEFT);
+        int y = curve_ready ? ys[column] : CURVE_BOTTOM;
+        lv_obj_set_pos(now_dot, x - 8, y - 8);
+        dot_x = x, dot_y = y;
     }
     lv_obj_set_flag(now_line, LV_OBJ_FLAG_HIDDEN, !line);
+    lv_obj_set_flag(now_dot, LV_OBJ_FLAG_HIDDEN, !line || !curve_ready);
+    lv_obj_set_flag(now_ring, LV_OBJ_FLAG_HIDDEN, !line || !curve_ready);
+}
+
+/* 0 to 1000: the ring grows round the dot and fades (its real size: a transform would be
+ * drawn into a layer and scaled every frame). */
+static void breathe(void *ring, int32_t at)
+{
+    int32_t size = 18 + 46 * at / 1000;
+    lv_obj_set_size(ring, size, size);
+    lv_obj_set_pos(ring, dot_x - size / 2, dot_y - size / 2);
+    lv_obj_set_style_border_opa(ring, (lv_opa_t)(170 - at * 170 / 1000), 0);
 }
 
 static void tick(lv_timer_t *timer)
@@ -294,10 +334,10 @@ void screen_day_create(lv_obj_t *screen)
     lv_obj_align(rest, LV_ALIGN_TOP_LEFT, 36, 136);
 
     canvas = lv_canvas_create(screen);
-    lv_canvas_set_draw_buf(canvas, lv_draw_buf_create(720, CANVAS_HEIGHT, LV_COLOR_FORMAT_RGB888, 0));
+    lv_canvas_set_draw_buf(canvas, lv_draw_buf_create(720, CANVAS_HEIGHT, LV_COLOR_FORMAT_ARGB8888, 0));
     lv_obj_set_pos(canvas, 0, CANVAS_TOP);
     arrive_draw_in(canvas, 720, CANVAS_HEIGHT);
-    lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_COVER);
+    lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_TRANSP);
 
     static lv_point_precise_t ends[] = {{0, CHART_TOP + 34}, {0, BARS_BOTTOM}};
     now_line = lv_line_create(screen);
@@ -306,6 +346,32 @@ void screen_day_create(lv_obj_t *screen)
     lv_obj_set_style_line_opa(now_line, 150, 0);
     lv_obj_set_style_line_width(now_line, 2, 0);
     lv_obj_add_flag(now_line, LV_OBJ_FLAG_HIDDEN);
+
+    /* The dot on the curve at now, and its ring breathing out every two seconds. */
+    now_ring = ui_plain(screen);
+    lv_obj_set_size(now_ring, 52, 52);
+    lv_obj_set_style_radius(now_ring, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_border_width(now_ring, 3, 0);
+    lv_obj_set_style_border_color(now_ring, lv_color_white(), 0);
+    lv_obj_add_flag(now_ring, LV_OBJ_FLAG_HIDDEN);
+    now_dot = ui_plain(screen);
+    lv_obj_set_size(now_dot, 16, 16);
+    lv_obj_set_style_radius(now_dot, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_color(now_dot, lv_color_white(), 0);
+    lv_obj_set_style_bg_opa(now_dot, LV_OPA_COVER, 0);
+    lv_obj_set_style_shadow_width(now_dot, 22, 0);
+    lv_obj_set_style_shadow_color(now_dot, lv_color_white(), 0);
+    lv_obj_set_style_shadow_opa(now_dot, 140, 0);
+    lv_obj_add_flag(now_dot, LV_OBJ_FLAG_HIDDEN);
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+    lv_anim_set_var(&anim, now_ring);
+    lv_anim_set_exec_cb(&anim, breathe);
+    lv_anim_set_values(&anim, 0, 1000);
+    lv_anim_set_duration(&anim, 2000);
+    lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
+    lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_start(&anim);
 
     credit = ui_text(screen, &instrument_24, 0x7d7a8c);
     lv_obj_align(credit, LV_ALIGN_BOTTOM_RIGHT, -36, -22);

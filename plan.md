@@ -1338,6 +1338,18 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   (Day, Air, Money, Code, Sites, Backups, the NAS sparklines), 700 ms, ease-out, the charts
   90 ms apart. NAS keeps its number still: its gauge is drawn once into a canvas and would not
   follow. A part the screen itself changes while it moves stops where the screen put it.
+- Step 3, the Now panel, done 2026-10-25. `panels/firmware/main/backdrops.c`: every screen
+  but the Clock keeps its background as the JPEG and decodes it only as it turns in, into one
+  of two shared 720 x 720 buffers (a decoded picture per screen would not fit on House). The
+  hub paints the light and texture; the panel keeps drawing the data on top, in see-through
+  canvases, so the arrival motion still works. Day: night hours as dusk fields with stars,
+  a smooth glow under the line, a breathing dot at now. Calendar: a wash in the colour of the
+  event on now (the next one faintly), the now marker as a comet. Headlines: the lead picture
+  edge to edge with its title on frosted glass (painted from the hub's own copy). Takeover:
+  rings going out from behind the words. Measured on a board: a transformed object (scaled)
+  is drawn into a layer every frame, and what a moving object uncovers is redrawn, so the
+  rings grow by their real size and only to 450: 30 frames a second (6 before). A painter
+  change bumps `desk_backgrounds.VERSION`, or the stored pictures stay.
 - Not chosen: T a calendar week, U Paperless's new documents on Home or in the digest, V a live
   preview per panel in Settings, X picking each panel's screens in Settings.
 

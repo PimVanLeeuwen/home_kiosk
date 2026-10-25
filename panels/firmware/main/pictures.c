@@ -27,8 +27,38 @@ static struct {
 } slots[PICTURE_SLOTS];
 static SemaphoreHandle_t lock;
 static jpeg_decoder_handle_t decoder;
+static SemaphoreHandle_t engine; /* the one JPEG engine, for pictures and backdrops */
 
-static bool fetch(const char *path, uint8_t *into, size_t room, size_t *size)
+bool pictures_decode_into(const uint8_t *jpeg, size_t size, uint8_t *out, size_t room, int *width, int *height)
+{
+    if (engine == NULL) {
+        return false; /* pictures_init has not run */
+    }
+    xSemaphoreTake(engine, portMAX_DELAY);
+    bool ok = decoder != NULL || jpeg_new_decoder_engine(&(jpeg_decode_engine_cfg_t){.timeout_ms = 200}, &decoder) == ESP_OK;
+    jpeg_decode_picture_info_t info;
+    ok = ok && jpeg_decoder_get_info(jpeg, size, &info) == ESP_OK && info.width > 0 &&
+         (size_t)info.width * info.height * 3 <= room;
+    uint32_t written = 0;
+    jpeg_decode_cfg_t cfg = {.output_format = JPEG_DECODE_OUT_FORMAT_RGB888, .rgb_order = JPEG_DEC_RGB_ELEMENT_ORDER_BGR};
+    ok = ok && jpeg_decoder_process(decoder, &cfg, jpeg, size, out, room, &written) == ESP_OK;
+    xSemaphoreGive(engine);
+    if (ok) {
+        *width = info.width, *height = info.height;
+    }
+    return ok;
+}
+
+void pictures_init(void)
+{
+    if (engine == NULL) {
+        engine = xSemaphoreCreateMutex();
+        lock = xSemaphoreCreateMutex();
+    }
+}
+
+
+bool pictures_fetch(const char *path, uint8_t *into, size_t room, size_t *size)
 {
     char url[160];
     snprintf(url, sizeof url, "%s%s", CONFIG_PANEL_HUB_URL, path);
@@ -51,12 +81,6 @@ static bool fetch(const char *path, uint8_t *into, size_t room, size_t *size)
 
 static bool decode(const uint8_t *jpeg, size_t size, picture_t *picture)
 {
-    if (decoder == NULL) {
-        jpeg_decode_engine_cfg_t engine = {.timeout_ms = 200};
-        if (jpeg_new_decoder_engine(&engine, &decoder) != ESP_OK) {
-            return false;
-        }
-    }
     jpeg_decode_picture_info_t info;
     if (jpeg_decoder_get_info(jpeg, size, &info) != ESP_OK || info.width == 0 || info.height == 0) {
         return false;
@@ -64,17 +88,12 @@ static bool decode(const uint8_t *jpeg, size_t size, picture_t *picture)
     jpeg_decode_memory_alloc_cfg_t out_cfg = {.buffer_direction = JPEG_DEC_ALLOC_OUTPUT_BUFFER};
     size_t room = 0;
     uint8_t *pixels = jpeg_alloc_decoder_mem(info.width * info.height * 3, &out_cfg, &room);
-    if (pixels == NULL) {
-        return false;
-    }
-    jpeg_decode_cfg_t cfg = {.output_format = JPEG_DECODE_OUT_FORMAT_RGB888,
-                             .rgb_order = JPEG_DEC_RGB_ELEMENT_ORDER_BGR};
-    uint32_t written = 0;
-    if (jpeg_decoder_process(decoder, &cfg, jpeg, size, pixels, room, &written) != ESP_OK) {
+    int width, height;
+    if (pixels == NULL || !pictures_decode_into(jpeg, size, pixels, room, &width, &height)) {
         heap_caps_free(pixels);
         return false;
     }
-    *picture = (picture_t){.pixels = pixels, .width = info.width, .height = info.height};
+    *picture = (picture_t){.pixels = pixels, .width = width, .height = height};
     return true;
 }
 
@@ -83,9 +102,7 @@ void pictures_want(int slot, const char *path)
     if (slot < 0 || slot >= PICTURE_SLOTS) {
         return;
     }
-    if (lock == NULL) {
-        lock = xSemaphoreCreateMutex();
-    }
+    pictures_init();
     if (strcmp(slots[slot].path, path) == 0) {
         return;
     }
@@ -94,7 +111,7 @@ void pictures_want(int slot, const char *path)
         jpeg_decode_memory_alloc_cfg_t in_cfg = {.buffer_direction = JPEG_DEC_ALLOC_INPUT_BUFFER};
         size_t room = 0, size = 0;
         uint8_t *jpeg = jpeg_alloc_decoder_mem(MAX_JPEG, &in_cfg, &room);
-        bool ok = jpeg && fetch(path, jpeg, room, &size) && decode(jpeg, size, &picture);
+        bool ok = jpeg && pictures_fetch(path, jpeg, room, &size) && decode(jpeg, size, &picture);
         heap_caps_free(jpeg);
         if (!ok) {
             ESP_LOGW(TAG, "picture %d not loaded", slot);

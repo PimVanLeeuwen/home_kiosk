@@ -57,6 +57,7 @@ typedef struct {
     int sunrise_minute, sunset_minute;
     bool today;              /* false: tomorrow, so no now line */
     char credit[24];
+    bool painted;            /* the hub paints the night fields (plan.md M27) */
 } desk_day_t;
 
 #define DESK_TRAIN_STOPS 6
@@ -152,6 +153,7 @@ typedef struct {
         bool has_picture;
         bool saved;           /* saved to Readeck from a panel */
     } stories[DESK_STORIES];
+    bool painted;             /* the hub paints the lead's picture and its glass (plan.md M27) */
 } desk_headlines_t;
 
 #define DESK_LIGHT_GROUPS 4

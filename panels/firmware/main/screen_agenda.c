@@ -32,6 +32,7 @@ LV_IMAGE_DECLARE(glow_round);
 #define DAY_TO (23 * 60)
 #define ROW 42
 #define BOTTOM 700
+#define TAIL 120 /* the now comet's tail */
 
 static lv_obj_t *glow, *title, *count, *ring, *ring_number, *ring_label, *kicker, *event_title, *event_time;
 static lv_obj_t *focus_text, *done, *done_text, *chips, *ribbon, *later, *next_head, *next;
@@ -150,6 +151,29 @@ static void show_ribbon(int y, int now_minute)
         lv_obj_set_style_bg_color(block, lv_color_hex(shown.events[i].color), 0);
     }
     if (now_minute >= DAY_FROM && now_minute <= DAY_TO) {
+        /* Now as a comet (plan.md M27): a tail of light fading out behind it, and a head. */
+        int x = ribbon_x(now_minute), tail = x < TAIL ? x : TAIL;
+        if (tail > 4) {
+            lv_obj_t *trail = ui_plain(ribbon);
+            lv_obj_set_pos(trail, x - tail, 21);
+            lv_obj_set_size(trail, tail, 6);
+            lv_obj_set_style_radius(trail, 3, 0);
+            lv_obj_set_style_bg_color(trail, lv_color_white(), 0);
+            lv_obj_set_style_bg_grad_color(trail, lv_color_white(), 0);
+            lv_obj_set_style_bg_grad_dir(trail, LV_GRAD_DIR_HOR, 0);
+            lv_obj_set_style_bg_main_opa(trail, LV_OPA_TRANSP, 0);
+            lv_obj_set_style_bg_grad_opa(trail, 210, 0);
+            lv_obj_set_style_bg_opa(trail, LV_OPA_COVER, 0);
+        }
+        lv_obj_t *head = ui_plain(ribbon);
+        lv_obj_set_pos(head, x - 8, 16);
+        lv_obj_set_size(head, 16, 16);
+        lv_obj_set_style_radius(head, LV_RADIUS_CIRCLE, 0);
+        lv_obj_set_style_bg_opa(head, LV_OPA_COVER, 0);
+        lv_obj_set_style_bg_color(head, lv_color_white(), 0);
+        lv_obj_set_style_shadow_width(head, 20, 0);
+        lv_obj_set_style_shadow_color(head, lv_color_white(), 0);
+        lv_obj_set_style_shadow_opa(head, 150, 0);
         lv_obj_t *line = ui_plain(ribbon);
         lv_obj_set_pos(line, ribbon_x(now_minute) - 1, 0);
         lv_obj_set_size(line, 3, 48);

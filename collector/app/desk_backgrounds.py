@@ -19,11 +19,11 @@ from typing import Any
 
 from PIL import Image
 
-from . import paint, paint_clock
+from . import paint, paint_agenda, paint_clock, paint_day, paint_headlines
 from .store import Store
 
 # Bumped when a painter changes, so every background is painted again.
-VERSION = 1
+VERSION = 3
 KEEP = 6  # per kind: what the panels may still ask for
 PATH = "/api/desk/background/"
 
@@ -39,9 +39,13 @@ CREATE INDEX IF NOT EXISTS desk_background_kind ON desk_background (kind, made_a
 """
 
 Inputs = Callable[[dict[str, Any], datetime], dict[str, Any] | None]
-Painter = Callable[[dict[str, Any]], Image.Image]
+# A painter gets its inputs and the store (for pictures the hub keeps); None: nothing to paint.
+Painter = Callable[[dict[str, Any], Store], Image.Image | None]
 PAINTERS: dict[str, tuple[Inputs, Painter]] = {
     "clock": (paint_clock.inputs, paint_clock.paint_clock),
+    "day": (paint_day.inputs, paint_day.paint_day),
+    "agenda": (paint_agenda.inputs, paint_agenda.paint_agenda),
+    "headlines": (paint_headlines.inputs, paint_headlines.paint_headlines),
 }
 
 
@@ -95,7 +99,10 @@ def picture(store: Store, key: str) -> bytes | None:
         return None
     if row["jpeg"] is not None:
         return row["jpeg"]
-    data = paint.jpeg(PAINTERS[row["kind"]][1](json.loads(row["inputs"])))
+    painted = PAINTERS[row["kind"]][1](json.loads(row["inputs"]), store)
+    if painted is None:
+        return None
+    data = paint.jpeg(painted)
     with store.connect() as conn:
         conn.execute("UPDATE desk_background SET jpeg = ? WHERE key = ?", (data, key))
     return data

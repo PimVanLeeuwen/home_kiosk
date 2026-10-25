@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from app import desk_backgrounds, main, paint_clock
+from app import desk_backgrounds, main, paint_agenda, paint_clock, paint_headlines
 
 LOCAL = datetime(2026, 10, 25, 17, 44, tzinfo=ZoneInfo("Europe/Amsterdam"))
 
@@ -87,3 +87,57 @@ def test_the_route(client, store):
     assert answer.status_code == 200 and answer.headers["content-type"] == "image/jpeg"
     assert client.get("/api/desk/background/" + "0" * 16).status_code == 404
     assert client.get("/api/desk/background/not-a-key").status_code == 404
+
+
+def day(**over):
+    return {"kind": "day", "stale": False, "present": True, "sunrise_minute": 439,
+            "sunset_minute": 1044, "temperatures": [8, 9, 11, 13, 12, 10] + [9] * 13,
+            "now_minute": 1100} | over
+
+
+def agenda(now_ts, **over):
+    events = [{"color": "#e6965a", "start_at": now_ts - 600, "end_at": now_ts + 3000},
+              {"color": "#6aa8f0", "start_at": now_ts + 3600, "end_at": now_ts + 5400}]
+    return {"kind": "agenda", "stale": False, "present": True, "events": events} | over
+
+
+def test_day_paints_its_nights_and_changes_only_with_the_forecast(store):
+    first = attached(store, day())
+    assert first and attached(store, day(), LOCAL.replace(hour=21)) == first  # not the clock
+    assert attached(store, day(sunset_minute=1050)) != first
+    assert attached(store, {"kind": "day", "stale": True, "present": False}) is None
+    data = desk_backgrounds.picture(store, first.rsplit("/", 1)[1])
+    with Image.open(io.BytesIO(data)) as image:
+        assert image.size == (720, 720)
+
+
+def test_the_calendar_glows_in_the_colour_of_what_is_on(store):
+    now = LOCAL.timestamp()
+    on = paint_agenda.inputs(agenda(now), LOCAL)
+    assert on == {"focus": "#e6965a", "after": "#6aa8f0", "on": True}
+    later = paint_agenda.inputs(agenda(now), LOCAL + timedelta(minutes=50))
+    assert later == {"focus": "#6aa8f0", "after": None, "on": False}
+    assert paint_agenda.inputs(agenda(now, events=[]), LOCAL)["focus"] is None
+    assert paint_agenda.paint_agenda(on).size == (720, 720)
+
+
+def test_headlines_paint_the_lead_picture_with_its_glass(store, monkeypatch):
+    out = io.BytesIO()
+    Image.new("RGB", (900, 500), (40, 120, 200)).save(out, "WEBP")
+    monkeypatch.setattr(paint_headlines.headlines, "picture",
+                        lambda s, article, size: out.getvalue() if article == "a1" else None)
+    def screen(story, picture=True):
+        return {"kind": "headlines", "stale": False, "present": True,
+                "stories": [{"id": story, "picture": f"/api/desk/picture/{story}/lead"
+                             if picture else None}]}
+
+    key = attached(store, screen("a1")).rsplit("/", 1)[1]
+
+    with Image.open(io.BytesIO(desk_backgrounds.picture(store, key))) as image:
+        assert image.size == (720, 720)
+        assert image.getpixel((360, 120))[2] > 120   # the picture, up top
+        assert max(image.getpixel((360, 690))) < 12   # black under it, for the rows
+    assert attached(store, screen("a2", picture=False)) is None
+    # Its picture gone from the hub: nothing to paint, so nothing to serve.
+    gone = attached(store, screen("a3")).rsplit("/", 1)[1]
+    assert desk_backgrounds.picture(store, gone) is None

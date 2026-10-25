@@ -208,7 +208,7 @@ def _bars(base: Image.Image, rain: list[float], stale: bool) -> None:
     base.paste(paint.lay(base, layer))
 
 
-def paint_clock(data: dict[str, Any]) -> Image.Image:
+def paint_clock(data: dict[str, Any], store: Any = None) -> Image.Image:
     top, mid, low = (hex_colour(data[k]) for k in ("top", "mid", "low"))
     night = data["body"] == "moon"
     seed = data["day"]

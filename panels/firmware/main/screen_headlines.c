@@ -28,8 +28,12 @@ LV_FONT_DECLARE(instrument_24);
 #define THUMB 112
 #define ROW_TOP 390
 #define ROW_HEIGHT 150
+#define PAINTED_HEIGHT 440 /* the hub's picture, edge to edge (app/paint_headlines.py) */
+#define PAINTED_ROWS 466
+#define PAINTED_ROW 128
 
-static lv_obj_t *lead, *lead_image, *badge, *lead_age, *lead_title;
+static lv_obj_t *lead, *lead_image, *shade, *fade, *top, *badge, *lead_age, *lead_title;
+static int laid_out = -1; /* painted (1) or not (0), as laid out */
 static struct {
     lv_obj_t *row, *image, *placeholder, *kicker, *title;
 } rows[2];
@@ -114,6 +118,33 @@ static void on_tap(lv_event_t *event)
 }
 
 /* Swap in a newer picture for a slot, then free the one it replaces. */
+/* Painted (plan.md M27): the hub's background has the lead's picture edge to edge and the
+ * glass under its title, so the card goes and the words sit on the glass; the two rows move
+ * down under the picture. Otherwise the card as before. */
+static void lay_out(bool painted)
+{
+    if (laid_out == painted) {
+        return;
+    }
+    laid_out = painted;
+    lv_obj_set_pos(lead, painted ? 0 : LEFT, painted ? 0 : LEAD_TOP);
+    lv_obj_set_size(lead, painted ? 720 : WIDTH, painted ? PAINTED_HEIGHT : LEAD_HEIGHT);
+    lv_obj_set_style_radius(lead, painted ? 0 : 24, 0);
+    lv_obj_set_style_bg_opa(lead, painted ? LV_OPA_TRANSP : LV_OPA_COVER, 0);
+    lv_obj_set_flag(shade, LV_OBJ_FLAG_HIDDEN, painted);
+    lv_obj_set_flag(fade, LV_OBJ_FLAG_HIDDEN, painted);
+    if (painted) {
+        lv_obj_add_flag(lead_image, LV_OBJ_FLAG_HIDDEN);
+    }
+    lv_obj_set_pos(top, painted ? LEFT : 24, painted ? 30 : 22);
+    lv_obj_align(marks[0], LV_ALIGN_TOP_RIGHT, painted ? -LEFT : -22, painted ? 28 : 20);
+    lv_obj_set_width(lead_title, painted ? 720 - 2 * 48 : WIDTH - 48);
+    lv_obj_align(lead_title, LV_ALIGN_BOTTOM_LEFT, painted ? 48 : 24, painted ? -26 : -18);
+    for (int i = 0; i < 2; i++) {
+        lv_obj_set_pos(rows[i].row, LEFT, painted ? PAINTED_ROWS + i * PAINTED_ROW : ROW_TOP + i * ROW_HEIGHT);
+    }
+}
+
 static void tick(lv_timer_t *timer)
 {
     for (int i = 0; i < 3; i++) {
@@ -141,6 +172,7 @@ static void tick(lv_timer_t *timer)
     }
     shown = desk_headlines();
     version = shown.version;
+    lay_out(shown.painted);
     for (int i = 0; i < DESK_STORIES; i++) {
         if (strcmp(before[i], shown.stories[i].id) != 0) {
             tapped[i] = false; /* another story now */
@@ -190,7 +222,7 @@ void screen_headlines_create(lv_obj_t *screen)
     lv_obj_add_flag(lead_image, LV_OBJ_FLAG_HIDDEN);
 
     /* A softer fade at the top, so the badge, age and bookmark read on a bright picture. */
-    lv_obj_t *shade = ui_plain(lead);
+    shade = ui_plain(lead);
     lv_obj_set_size(shade, WIDTH, 110);
     lv_obj_align(shade, LV_ALIGN_TOP_MID, 0, 0);
     lv_obj_set_style_bg_opa(shade, LV_OPA_COVER, 0);
@@ -200,7 +232,7 @@ void screen_headlines_create(lv_obj_t *screen)
     lv_obj_set_style_bg_main_opa(shade, 150, 0);
     lv_obj_set_style_bg_grad_opa(shade, 0, 0);
 
-    lv_obj_t *fade = ui_plain(lead);
+    fade = ui_plain(lead);
     lv_obj_set_size(fade, WIDTH, 220);
     lv_obj_align(fade, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_set_style_bg_opa(fade, LV_OPA_COVER, 0);
@@ -211,7 +243,7 @@ void screen_headlines_create(lv_obj_t *screen)
     lv_obj_set_style_bg_grad_opa(fade, 220, 0);
 
     /* The source as a badge, its age beside it, the bookmark on the right. */
-    lv_obj_t *top = ui_plain(lead);
+    top = ui_plain(lead);
     lv_obj_set_pos(top, 24, 22);
     lv_obj_set_size(top, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(top, LV_FLEX_FLOW_ROW);

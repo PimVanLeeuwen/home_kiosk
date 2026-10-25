@@ -4,6 +4,7 @@
  * is set from it whenever it is off by more than a second. */
 
 #include "desk.h"
+#include "backdrops.h"
 #include "desk_briefing.h"
 #include "desk_code.h"
 #include "desk_movers.h"
@@ -583,6 +584,7 @@ static void parse_headlines(const cJSON *screen, desk_headlines_t *news)
 {
     news->present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
     news->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
+    news->painted = cJSON_IsString(cJSON_GetObjectItem(screen, "background"));
     const cJSON *item;
     cJSON_ArrayForEach(item, cJSON_GetObjectItem(screen, "stories"))
     {
@@ -597,7 +599,9 @@ static void parse_headlines(const cJSON *screen, desk_headlines_t *news)
         copy_string(news->stories[i].age, sizeof news->stories[i].age, cJSON_GetObjectItem(item, "age"));
         const cJSON *picture = cJSON_GetObjectItem(item, "picture");
         news->stories[i].has_picture = cJSON_IsString(picture);
-        pictures_want(i, cJSON_IsString(picture) ? picture->valuestring : "");
+        /* The lead's picture comes painted into the background when the hub paints one. */
+        bool own = cJSON_IsString(picture) && !(i == 0 && news->painted);
+        pictures_want(i, own ? picture->valuestring : "");
     }
     for (int i = news->count; i < DESK_STORIES; i++) {
         pictures_want(i, "");
@@ -853,6 +857,11 @@ static void apply(const char *body)
     cJSON_ArrayForEach(screen, cJSON_GetObjectItem(root, "screens"))
     {
         const cJSON *kind = cJSON_GetObjectItem(screen, "kind");
+        /* The hub's painted background (plan.md M27), the Clock's aside (screen_clock.c). */
+        const cJSON *background = cJSON_GetObjectItem(screen, "background");
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "clock") != 0) {
+            backdrops_want(kind->valuestring, cJSON_IsString(background) ? background->valuestring : "");
+        }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "playing") == 0) {
             parse_playing(screen, &playing);
             continue;
@@ -962,6 +971,7 @@ static void apply(const char *body)
             day.sunrise_minute = number(cJSON_GetObjectItem(screen, "sunrise_minute"), -1);
             day.sunset_minute = number(cJSON_GetObjectItem(screen, "sunset_minute"), -1);
             day.today = cJSON_IsNumber(cJSON_GetObjectItem(screen, "now_minute"));
+            day.painted = cJSON_IsString(background);
             const cJSON *t, *r = cJSON_GetObjectItem(screen, "rain");
             cJSON_ArrayForEach(t, cJSON_GetObjectItem(screen, "temperatures"))
             {
@@ -985,7 +995,6 @@ static void apply(const char *body)
         copy_string(next.rain_line, sizeof next.rain_line, cJSON_GetObjectItem(screen, "rain_line"));
         copy_string(next.sun, sizeof next.sun, cJSON_GetObjectItem(screen, "sun"));
         /* The hub's painted sky (plan.md M27), fetched only when it changes. */
-        const cJSON *background = cJSON_GetObjectItem(screen, "background");
         pictures_want(PICTURE_CLOCK_SKY, cJSON_IsString(background) ? background->valuestring : "");
         const cJSON *sky = cJSON_GetObjectItem(screen, "sky");
         const cJSON *sky_colour = cJSON_GetObjectItem(sky, "colour");

@@ -14,6 +14,7 @@
 #include "esp_log.h"
 #include "health.h"
 #include "net.h"
+#include "pictures.h"
 #include "nvs_flash.h"
 #include "screens.h"
 #include "takeover.h"
@@ -46,6 +47,7 @@ void app_main(void)
     esp_log_level_set("ESP32_P4_4B", ESP_LOG_WARN);
     /* Wait for LVGL's first frame: with this board package 0 means "do not wait". */
     ESP_ERROR_CHECK(bsp_display_lock(5000) ? ESP_OK : ESP_ERR_TIMEOUT);
+    pictures_init(); /* before any screen or the hub task decodes a picture */
     screens_start();
     takeover_start(); /* after the screens: above their dark layer */
     bsp_display_unlock();

@@ -28,6 +28,7 @@
 #include "screens.h"
 
 #include "arrive.h"
+#include "backdrops.h"
 
 #include "bsp/display.h"
 #include "bsp/esp-bsp.h"
@@ -186,6 +187,7 @@ static void dark(lv_anim_t *anim)
     if (coming != current) {
         turns++;
         current = coming;
+        backdrops_show(screens[current]); /* its painted background, while it is dark */
         lv_screen_load(screens[current]);
         arrive_begin(screens[current]); /* N: its rings sweep, numbers count, charts draw in */
     } else {
@@ -374,6 +376,9 @@ void screens_start(void)
     screen_train_create(screens[TRAIN]);
     screen_agenda_create(screens[AGENDA]);
     screen_day_create(screens[DAY]);
+    backdrops_attach(screens[DAY], "day");
+    backdrops_attach(screens[AGENDA], "agenda");
+    backdrops_attach(screens[HEADLINES], "headlines");
     screen_headlines_create(screens[HEADLINES]);
     screen_playing_create(screens[PLAYING]);
     screen_lights_create(screens[LIGHTS]);
