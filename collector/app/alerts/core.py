@@ -53,6 +53,8 @@ CATEGORIES = {
     "rules": "Hub alert rules",
     "portfolio": "Portfolio",
     "train": "Your train",
+    # New senders of bills for Paperless (nas-docker host-jobs/paperless-senders.sh).
+    "paperless": "Paperless",
     "manual": "Sent from the hub",
 }
 

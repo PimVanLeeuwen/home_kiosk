@@ -215,6 +215,16 @@ def test_notify_needs_the_shared_key(client):
     assert ok.json()["status"] in ("sent", "held")
 
 
+def test_notify_takes_paperless_new_senders_to_the_nas_chat(client):
+    post = {"source": "paperless", "category": "paperless", "severity": "info",
+            "title": "2 new senders for Paperless", "body": "energie-nieuw.nl: 3 PDFs"}
+
+    resp = client.post("/api/notify", json=post, headers={"X-Notify-Key": KEY})
+
+    assert resp.status_code == 200
+    assert client.get("/api/alerts/settings").json()["routing"]["paperless"] == "nas"
+
+
 def test_notify_is_closed_when_no_key_is_configured(client):
     main.app.state.config = {**CFG, "telegram": {**CFG["telegram"], "notify_key": ""}}
 

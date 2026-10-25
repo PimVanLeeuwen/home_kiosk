@@ -1019,7 +1019,26 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   folder). The Sieve filter only labels, and sits first in Proton's filter list so no rule's
   `stop` comes before it. Checked 2026-10-24 with Brabant Water: 15 documents filed, each
   mail swapped to "Paperless done" and stayed in its folder. (A correspondent the rule creates
-  shows as "Private" until the page is reloaded: Paperless's page caches the list.) Decided 2026-10-24: "mark as read"
+  shows as "Private" until the page is reloaded: Paperless's page caches the list.)
+  After the backlog came in (2026-10-24): one correspondent per organisation instead of the
+  sender's name (which made "Energyhouse | Info" and "Hans Weekers" two), through one mail rule
+  per sender before the general rule (`paperless/mail-rules.py`, from a `from,correspondent`
+  list); existing documents merged in place (`paperless/correspondents.py`). Clubs, the
+  university, events and LinkedIn moved from keep to subject-only, as their mail brought in
+  newsletters, invitations and logos. Documents without a date in their text get the day they
+  came in: Paperless reads the date from the document, not from the mail.
+  Document types (2026-10-24): Invoice, Statement, Contract, Policy, Payslip, Tax, Warranty,
+  Receipt, Order confirmation and Certificate, matched on Dutch and English words in the text
+  (`paperless/document-types.py`), existing documents through `document_retagger`; files stored
+  as `year/correspondent/title` (`PAPERLESS_FILENAME_FORMAT`). The owner keeps the few
+  newsletters that came in; no clean-up.
+  A tag per home (2026-10-25): "Home: <name>", matched on the street or postcode in the text
+  (`paperless/home-tags.py`, from a NAS-only `data/homes.csv`; the addresses stay out of the
+  repos), existing documents through `document_retagger -T`.
+  The monthly check for new senders (2026-10-25): `host-jobs/paperless-senders.sh` on the 1st at
+  07:00 runs the scan with `--since` and `--known` (the decided lists, plus `skipped.csv` for new
+  senders left out) and sends one message in a new hub alert category "Paperless" (routed to the
+  NAS chat by default), only when there is something new. Decided 2026-10-24: "mark as read"
   was dropped, as Paperless then only takes unread mail (old bills, and a bill opened within
   its 10 minutes, would be skipped); starring was the other option. Bills that only link to a portal can't be
   fetched; for those the rule can store the mail itself as a PDF.
