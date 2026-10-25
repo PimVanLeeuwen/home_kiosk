@@ -1055,6 +1055,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Paperless.
 - In the hub: Paperless in the service catalog with its health check, the new dump on the
   Backups page, and its documents searchable from the command palette (M25).
+  Built 2026-10-25: a `paperless` tile widget (`sources/widgets/documents.py`: documents, the
+  inbox when an inbox tag exists, correspondents, from `/api/statistics/` with a read token,
+  `PAPERLESS_API_KEY`), its icon from dashboard-icons, and the example catalog entry; the health
+  comes from the `paperless` container like every service. The dump shows on the Backups page
+  without a change (the hub reads the dump names from the run file).
 - Built 2026-10-24 (nas-docker): the stack, its dump and a weekly export (`paperless/`,
   `host-jobs/export-paperless.sh`); the Bridge and the read-only sender scan
   (`paperless/sender-scan.py`, a CSV per domain with a `decision` column).

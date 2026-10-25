@@ -277,6 +277,7 @@ widgets:
     sabnzbd: ${SABNZBD_API_KEY}
     # Not a tile widget: the Media page's watch stats and library (Settings > Data & API).
     tracearr: ${TRACEARR_API_KEY}
+    paperless: ${PAPERLESS_API_KEY}
   # Settings for widgets that need more than a key.
   options:
     uptimekuma:
@@ -358,6 +359,7 @@ services:
       - { id: couchdb, name: CouchDB, description: Obsidian LiveSync, port: 5984, path: /_utils, container: couchdb, icon: couchdb }
       - { id: ghostfolio, name: Ghostfolio, description: Portfolio, port: 3333, container: ghostfolio, icon: ghostfolio }
       - { id: readeck, name: Readeck, description: Read later, port: 8084, container: readeck, icon: readeck }
+      - { id: paperless, name: Paperless, description: Documents, port: 8010, container: paperless, widget: paperless, icon: paperless-ngx }
   # External links (from homepage's bookmarks): a url instead of a port.
   - group: Links
     items:

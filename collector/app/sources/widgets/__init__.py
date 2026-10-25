@@ -17,7 +17,7 @@ import httpx
 
 from ...models import Service, Stat, WidgetResult, WidgetStats
 from ...store import Store
-from . import arr, downloads, media, monitoring
+from . import arr, documents, downloads, media, monitoring
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +35,7 @@ REGISTRY: dict[str, tuple[Callable[..., Awaitable[list[Stat]]], bool]] = {
     "transmission": (downloads.transmission, False),
     "uptimekuma": (monitoring.uptimekuma, False),
     "scrutiny": (monitoring.scrutiny, False),
+    "paperless": (documents.paperless, True),
 }
 
 TIMEOUT_SECONDS = 8
