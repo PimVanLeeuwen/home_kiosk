@@ -278,6 +278,8 @@ widgets:
     # Not a tile widget: the Media page's watch stats and library (Settings > Data & API).
     tracearr: ${TRACEARR_API_KEY}
     paperless: ${PAPERLESS_API_KEY}
+    # The password of AdGuard Home's "hub" user (a user of its own; AdGuard has no read-only ones).
+    adguard: ${ADGUARD_API_KEY}
   # Settings for widgets that need more than a key.
   options:
     uptimekuma:
@@ -352,6 +354,7 @@ services:
       - { id: scrutiny, name: Scrutiny, description: Disk health, port: 8080, container: scrutiny, widget: scrutiny, icon: scrutiny-light }
       - { id: dozzle, name: Dozzle, description: Container logs, port: 8081, container: dozzle, icon: dozzle }
       - { id: tracearr, name: Tracearr, description: Streaming stats, port: 3000, container: tracearr, icon: tracearr }
+      - { id: adguard, name: AdGuard Home, description: DNS and ad blocking, port: 8053, container: adguard, widget: adguard, icon: adguard-home }
       - { id: dockge, name: Dockge, description: Stack manager, port: 5001, container: dockge, icon: dockge }
   - group: Apps
     items:

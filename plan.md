@@ -1089,9 +1089,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Steps: the nas-docker stack, tested from one device with its DNS set by hand; then the router
   switch; then the hub's tile and health check.
 - Built 2026-10-25 (nas-docker `adguard/`): `adguard/adguardhome:latest` as user 1000 (UGOS
-  folders refuse a root container; Docker lets the container's user listen on 53), DNS on 53,
-  the admin page on 8053 (18053 over Tailscale HTTPS), the first start's wizard on 3053;
-  upstream Quad9 over DoH. Tested with `dig` over Tailscale before the router switch.
+  folders refuse a root container; Docker lets the container's user listen on 53), DNS on the
+  LAN address only (`192.168.1.242:53`: UGOS's own dnsmasq holds 53 on loopback, so `0.0.0.0:53`
+  is refused, and the Tailscale address appears too late after a reboot),
+  the admin page on 8053 (18053 over Tailscale HTTPS); no setup wizard, as its first-launch
+  check demands root: it starts from a ready `AdGuardHome.yaml` (nas-docker
+  `adguard/AdGuardHome.yaml.example`, the password hash filled in on the NAS); upstream Quad9
+  over DoH. Tested on the NAS with `nslookup`; the router switched the same day.
+- Hub, step 1 (2026-10-25): AdGuard in the catalog (Monitoring) with a tile widget, the last 24
+  hours' queries, blocked and share blocked from `/control/stats`, as AdGuard's own "hub" user
+  (AdGuard has no read-only users; its password is `ADGUARD_API_KEY`). The container check
+  already alerts when it is down. Next: the Home card (hourly sparkline, most-blocked domain).
 
 **M25. Command palette** (added 2026-10-23)
 - ⌘K (Ctrl-K) opens a search box over any page; on the phone a search button in the page header.

@@ -17,7 +17,7 @@ import httpx
 
 from ...models import Service, Stat, WidgetResult, WidgetStats
 from ...store import Store
-from . import arr, documents, downloads, media, monitoring
+from . import arr, dns, documents, downloads, media, monitoring
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +36,8 @@ REGISTRY: dict[str, tuple[Callable[..., Awaitable[list[Stat]]], bool]] = {
     "uptimekuma": (monitoring.uptimekuma, False),
     "scrutiny": (monitoring.scrutiny, False),
     "paperless": (documents.paperless, True),
+    # The key is the password of AdGuard's own "hub" user (no read-only users there).
+    "adguard": (dns.adguard, True),
 }
 
 TIMEOUT_SECONDS = 8
