@@ -1133,6 +1133,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   phone's top bar. `lib/fuzzy.ts` matches a label's letters in order (word starts and runs
   first); descriptions and keywords need each word as typed. The last five choices are kept in
   `localStorage` and come first. Settings sections moved to `lib/settingsSections.ts`.
+- Step 2 (2026-10-25): services (their tile's link, in a new tab), repos (on GitHub) and
+  containers (their logs in Dozzle through its `/show?name=` page, with the stack beside them;
+  only while Dozzle is in the catalog). The palette asks `/api/services`, `/api/repos`,
+  `/api/docker` and `/api/hosts` each time it opens, not on every page load; these rows show
+  once something is typed, or as recent choices.
 
 **M26. AI** (added 2026-10-23; mockup `docs/hub-ai-mockup.html`)
 - The owner's Anthropic API key (NAS-only `.env`) for a few written extras. Every result is made

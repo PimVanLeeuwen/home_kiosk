@@ -1,12 +1,35 @@
-import { CornerDownLeft, Search } from 'lucide-react'
+import { CornerDownLeft, ExternalLink, Search } from 'lucide-react'
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { cn } from '../lib/cn'
-import { loadRecent, pageItems, saveRecent, search, type PaletteItem } from '../lib/palette'
+import { getJson } from '../lib/api'
+import { dataItems, loadRecent, pageItems, saveRecent, search, type PaletteData, type PaletteItem } from '../lib/palette'
 
 interface Props {
   open: boolean
   onClose: () => void
+}
+
+const SOURCES = { services: '/api/services', repos: '/api/repos', docker: '/api/docker', hosts: '/api/hosts' } as const
+
+/**
+ * The palette's data, asked for each time it opens (not on every page load). A
+ * source that fails keeps what it had; the pages are always there.
+ */
+function usePaletteData(open: boolean): PaletteData {
+  const [data, setData] = useState<PaletteData>({})
+  useEffect(() => {
+    if (!open) return
+    const controller = new AbortController()
+    for (const [key, path] of Object.entries(SOURCES)) {
+      getJson<unknown>(path, controller.signal).then(
+        (value) => setData((d) => ({ ...d, [key]: value })),
+        () => {},
+      )
+    }
+    return () => controller.abort()
+  }, [open])
+  return data
 }
 
 /**
@@ -22,7 +45,8 @@ export function CommandPalette({ open, onClose }: Props) {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const [recent, setRecent] = useState<string[]>([])
-  const items = useMemo(() => pageItems(), [])
+  const data = usePaletteData(open)
+  const items = useMemo(() => [...pageItems(), ...dataItems(data, window.location.hostname)], [data])
   const rows = useMemo(() => search(items, query, recent), [items, query, recent])
 
   useEffect(() => {
@@ -43,7 +67,8 @@ export function CommandPalette({ open, onClose }: Props) {
   function choose(item: PaletteItem) {
     saveRecent(item.id)
     onClose()
-    navigate(item.to, { viewTransition: true })
+    if (item.href) window.open(item.href, '_blank', 'noopener,noreferrer')
+    else if (item.to) navigate(item.to, { viewTransition: true })
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -74,7 +99,7 @@ export function CommandPalette({ open, onClose }: Props) {
         <Search aria-hidden="true" className="size-[18px] shrink-0 text-muted" />
         <input
           role="combobox"
-          aria-label="Search pages and settings"
+          aria-label="Search"
           aria-expanded={rows.length > 0}
           aria-controls={`${id}-list`}
           aria-activedescendant={rows.length ? optionId(current) : undefined}
@@ -87,7 +112,7 @@ export function CommandPalette({ open, onClose }: Props) {
             setActive(0)
           }}
           onKeyDown={onKeyDown}
-          placeholder="Search pages and settings…"
+          placeholder="Search pages, services, repos, containers…"
           // The hub's focus ring (index.css) would box the field in; the open palette is its focus.
           style={{ outline: 'none' }}
           className="min-w-0 flex-1 bg-transparent text-body text-fg placeholder:text-faint"
@@ -114,10 +139,18 @@ export function CommandPalette({ open, onClose }: Props) {
                 i === current ? 'bg-accent-soft text-accent-fg' : 'text-fg',
               )}
             >
-              <item.icon aria-hidden="true" className="size-[17px] shrink-0" strokeWidth={1.8} />
+              {item.image ? (
+                <img src={item.image} alt="" aria-hidden="true" width={17} height={17} className="size-[17px] shrink-0 object-contain" />
+              ) : (
+                <item.icon aria-hidden="true" className="size-[17px] shrink-0" strokeWidth={1.8} />
+              )}
               <span className="shrink-0 font-medium">{item.label}</span>
               {item.hint && <span className="min-w-0 truncate text-small text-muted">{item.hint}</span>}
-              {i === current && <CornerDownLeft aria-hidden="true" className="ml-auto size-3.5 shrink-0" />}
+              {item.href ? (
+                <ExternalLink aria-label="opens in a new tab" className={cn('ml-auto size-3.5 shrink-0', i !== current && 'text-faint')} />
+              ) : (
+                i === current && <CornerDownLeft aria-hidden="true" className="ml-auto size-3.5 shrink-0" />
+              )}
             </div>
           </li>
         ))}

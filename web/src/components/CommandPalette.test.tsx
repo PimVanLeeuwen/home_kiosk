@@ -1,9 +1,10 @@
 import { act, fireEvent, screen } from '@testing-library/react'
 import { RECENT_KEY, shortcutLabel } from '../lib/palette'
 import { renderRoute } from '../test/renderRoute'
+import { stubApi } from '../test/stubApi'
 
 const palette = () => document.querySelector<HTMLDialogElement>('dialog[aria-label="Search the hub"]')!
-const field = () => screen.getByRole('combobox', { name: 'Search pages and settings', hidden: true })
+const field = () => screen.getByRole('combobox', { name: 'Search', hidden: true })
 const selected = () => screen.getAllByRole('option', { hidden: true }).find((o) => o.getAttribute('aria-selected') === 'true')
 
 function openWithKeys() {
@@ -84,5 +85,24 @@ describe('CommandPalette', () => {
   it('writes the shortcut the way the computer does', () => {
     expect(shortcutLabel('MacIntel')).toBe('⌘K')
     expect(shortcutLabel('Win32')).toBe('Ctrl K')
+  })
+
+  it('finds a service once the palette has asked for them, and opens it in a new tab', async () => {
+    stubApi({
+      '/api/services': { as_of: null, stale: false, groups: [{ name: 'Media', services: [
+        { id: 'jellyfin', name: 'Jellyfin', group: 'Media', description: 'Media server', port: 8096, path: '/', container: 'jellyfin', widget: null, icon: 'jellyfin', status: 'up' },
+      ] }] },
+    })
+    const open = vi.spyOn(window, 'open').mockReturnValue(null)
+    renderRoute('/')
+    openWithKeys()
+
+    fireEvent.change(field(), { target: { value: 'jelly' } })
+    const option = await screen.findByRole('option', { name: /Jellyfin/, hidden: true })
+    expect(option).toHaveTextContent('Media server')
+    fireEvent.keyDown(field(), { key: 'Enter' })
+
+    expect(open).toHaveBeenCalledWith(expect.stringMatching(/:8096\/$/), '_blank', 'noopener,noreferrer')
+    expect(palette().open).toBe(false)
   })
 })

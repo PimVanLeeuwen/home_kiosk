@@ -1,20 +1,29 @@
-import type { LucideIcon } from 'lucide-react'
+import { Box, FolderGit2, LayoutGrid, type LucideIcon } from 'lucide-react'
 import { fold, fuzzyScore } from './fuzzy'
+import { iconUrl } from './icons'
+import { serviceHref } from './links'
 import { NAV_ITEMS } from './navigation'
 import { SETTINGS_SECTIONS } from './settingsSections'
+import type { DockerOverview, Hosts, ReposResponse, ServicesResponse } from './types'
 
 /** Something the command palette can go to. */
 export interface PaletteItem {
   /** Stable across visits: recent choices are kept by it. */
   id: string
-  group: 'Pages' | 'Settings'
+  group: 'Pages' | 'Settings' | 'Services' | 'Repos' | 'Containers'
   label: string
   /** A short line beside the label. */
   hint?: string
   /** More words to match on that are not shown. */
   keywords?: string
   icon: LucideIcon
-  to: string
+  /** A bundled service icon, shown instead of `icon`. */
+  image?: string
+  /** A page of the hub, or a link that opens in a new tab. */
+  to?: string
+  href?: string
+  /** Data rows (services, repos, containers) only show once something is typed, or as recent. */
+  searchOnly?: boolean
 }
 
 export const RECENT_KEY = 'hub.palette.recent'
@@ -71,7 +80,7 @@ export interface PaletteRow {
 export function search(items: PaletteItem[], query: string, recent: string[]): PaletteRow[] {
   if (!query.trim()) {
     const recents = recent.map((id) => items.find((i) => i.id === id)).filter((i): i is PaletteItem => !!i)
-    const rest = items.filter((i) => !recents.includes(i))
+    const rest = items.filter((i) => !recents.includes(i) && !i.searchOnly)
     const rows: PaletteRow[] = recents.map((item, n) => ({ item, heading: n === 0 ? 'Recent' : undefined }))
     let last: string | undefined
     for (const item of rest) {
@@ -104,3 +113,65 @@ export const shortcutLabel = (platform = typeof navigator === 'undefined' ? '' :
 /** ⌘K or Ctrl-K, whatever the keyboard layout's shift state. */
 export const isPaletteKey = (e: { key: string; metaKey: boolean; ctrlKey: boolean; altKey: boolean }) =>
   (e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k'
+
+export interface PaletteData {
+  services?: ServicesResponse
+  repos?: ReposResponse
+  docker?: DockerOverview
+  hosts?: Hosts
+}
+
+/**
+ * The services (opened as their tiles open them), the repos on GitHub, and the
+ * containers, whose logs open in Dozzle (its /show?name= page finds the newest
+ * container of that name). Containers only when Dozzle is in the catalog.
+ */
+export function dataItems({ services, repos, docker, hosts }: PaletteData, pageHost: string): PaletteItem[] {
+  const all = services?.groups.flatMap((g) => g.services) ?? []
+  const serviceRows = all
+    .filter((s) => s.url || s.port)
+    .map(
+      (s): PaletteItem => ({
+        id: `service:${s.id}`,
+        group: 'Services',
+        label: s.name,
+        hint: s.description,
+        keywords: s.group,
+        icon: LayoutGrid,
+        image: iconUrl(s.icon),
+        href: serviceHref(s, pageHost, hosts),
+        searchOnly: true,
+      }),
+    )
+  const repoRows = (repos?.groups ?? []).flatMap((g) =>
+    g.repos.map(
+      (r): PaletteItem => ({
+        id: `repo:${r.full_name}`,
+        group: 'Repos',
+        label: r.name,
+        hint: [g.label, r.description].filter(Boolean).join(' · '),
+        keywords: `repo ${r.full_name}`,
+        icon: FolderGit2,
+        href: r.url,
+        searchOnly: true,
+      }),
+    ),
+  )
+  const dozzle = all.find((s) => s.container === 'dozzle' && s.port)
+  const containerRows = dozzle
+    ? (docker?.containers ?? []).map(
+        (c): PaletteItem => ({
+          id: `container:${c.name}`,
+          group: 'Containers',
+          label: c.name,
+          // The stack says why a search for "kiosk" finds readeck.
+          hint: ['Logs in Dozzle', c.project !== c.name && c.project, c.state !== 'running' && c.state].filter(Boolean).join(' · '),
+          keywords: ['logs container', c.project].filter(Boolean).join(' '),
+          icon: Box,
+          href: serviceHref({ ...dozzle, path: `/show?name=${encodeURIComponent(c.name)}` }, pageHost, hosts),
+          searchOnly: true,
+        }),
+      )
+    : []
+  return [...serviceRows, ...repoRows, ...containerRows]
+}
