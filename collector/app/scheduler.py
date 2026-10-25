@@ -20,6 +20,7 @@ from .news import headlines
 from .portfolio import indices
 from .portfolio import report as portfolio_report
 from .sources import (
+    adguard,
     agenda,
     air,
     apple,
@@ -73,6 +74,7 @@ LIGHTS_INTERVAL_SECONDS = 60  # two local calls; the event stream does the rest
 APPLE_INTERVAL_SECONDS = 60  # local unicast queries, a fraction of a second per device
 LAUNDRY_INTERVAL_SECONDS = 60  # one signed status call; the token is reused
 PIPELINES_INTERVAL_SECONDS = 15  # a running pipeline moves fast; idle repos are asked once a minute
+DNS_INTERVAL_SECONDS = 60  # two local calls to AdGuard Home
 AIR_INTERVAL_SECONDS = 60  # one local WebSocket call; the Matter server keeps the sensor subscribed
 CALENDAR_INTERVAL_SECONDS = 300  # feeds at most every 15 min (agenda.FEED_EVERY)
 MEDIA_INTERVAL_SECONDS = 60  # local calls to Sonarr and Radarr
@@ -233,6 +235,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             seconds=PIPELINES_INTERVAL_SECONDS,
             args=[store, pipelines.CACHE_KEY, lambda: pipelines.collect(cfg, store)],
             id="pipelines",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
+
+    if adguard.settings(cfg)["enabled"]:
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=DNS_INTERVAL_SECONDS,
+            args=[store, adguard.CACHE_KEY, lambda: adguard.collect(cfg, store)],
+            id="dns",
             next_run_time=None,
             max_instances=1,
             coalesce=True,

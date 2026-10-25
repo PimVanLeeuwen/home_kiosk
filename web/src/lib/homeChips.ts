@@ -1,9 +1,9 @@
 import { POOL_FULL_PCT, type Attention } from './attention'
-import { formatWhen } from './format'
+import { formatPercent, formatWhen } from './format'
 import type { CardState, FoldedCardId } from './homeOrder'
-import { backupsState, nasState, outsideState, servicesState } from './homeStates'
+import { backupsState, dnsState, nasState, outsideState, servicesState } from './homeStates'
 import { troubled } from './outside'
-import type { BackupHistory, Nas, OutsideServices, OutsideState, Service, ServiceStatus } from './types'
+import type { BackupHistory, DnsStats, Nas, OutsideServices, OutsideState, Service, ServiceStatus } from './types'
 
 export type ChipTone = 'ok' | 'warn' | 'down' | 'unknown'
 /** One segment of a chip's small meter. */
@@ -54,12 +54,13 @@ interface Sources {
   services: Service[] | undefined
   backups: BackupHistory | undefined
   outside: OutsideServices | undefined
+  dns: DnsStats | undefined
   attention: Attention[]
   now: Date
 }
 
-/** The status strip's chips: NAS, Services, Backups and Outside services hold their folded card; Alerts only reports. */
-export function homeChips({ nas, services, backups, outside, attention, now }: Sources): Chip[] {
+/** The status strip's chips: NAS, Services, Backups, Outside services and DNS hold their folded card; Alerts only reports. */
+export function homeChips({ nas, services, backups, outside, dns, attention, now }: Sources): Chip[] {
   const nasTone = toneOf(nasState(nas), !!nas)
   const used = nas?.storage.used_pct ?? 0
   const storageFull = !!nas?.storage.pools.some((p) => p.used_pct >= POOL_FULL_PCT)
@@ -106,6 +107,14 @@ export function homeChips({ nas, services, backups, outside, attention, now }: S
       meter: squeeze((outside?.services ?? []).map((s) => OUTSIDE_SEGMENT[s.state])),
     },
     {
+      id: 'dns',
+      label: 'Ads blocked',
+      value: dnsValue(dns),
+      tone: toneOf(dnsState(dns), !!dns),
+      // An hour without a single query is a gap: AdGuard was not answering.
+      meter: (dns?.hours ?? []).map((h): Segment => (h.queries > 0 ? 'accent' : 'off')),
+    },
+    {
       id: 'alerts',
       label: 'Alerts',
       value: !worst ? 'None' : attention.length === 1 ? worst.text : `${worst.text} +${attention.length - 1}`,
@@ -113,4 +122,11 @@ export function homeChips({ nas, services, backups, outside, attention, now }: S
       meter: [],
     },
   ]
+}
+
+function dnsValue(dns: DnsStats | undefined): string {
+  if (!dns) return 'Unknown'
+  if (!dns.answering) return 'Down'
+  if (!dns.protection) return 'Paused'
+  return dns.share == null ? 'None yet' : formatPercent(dns.share)
 }

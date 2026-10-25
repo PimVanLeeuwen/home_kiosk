@@ -4,7 +4,7 @@ import type { Playing } from './musicTypes'
 import { troubled } from './outside'
 import { focusOf, todayShows } from './today'
 import { trainShows } from './train'
-import type { AppleDevices, Laundry, Nas, OutsideServices, Service, Today, Train } from './types'
+import type { AppleDevices, DnsStats, Laundry, Nas, OutsideServices, Service, Today, Train } from './types'
 
 /** An event starting within this many minutes counts as live on Home. */
 export const SOON_MINUTES = 60
@@ -54,4 +54,10 @@ export function servicesState(services: Service[] | undefined): CardState {
   if (!services) return 'quiet'
   if (services.some((s) => s.status === 'down' || s.status === 'missing')) return 'down'
   return services.some((s) => s.status === 'unhealthy') ? 'warn' : 'quiet'
+}
+
+/** No blocking (AdGuard not answering, or paused) lets every ad through: worth a look, never down. */
+export function dnsState(dns: DnsStats | undefined): CardState {
+  if (!dns) return 'quiet'
+  return !dns.answering || !dns.protection ? 'warn' : 'quiet'
 }

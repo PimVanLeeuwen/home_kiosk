@@ -54,7 +54,7 @@ interface Props {
  */
 export function StatusStrip({ chips, folded, open, reveal, onToggle, onShow }: Props) {
   return (
-    <div className="mb-5 grid grid-cols-2 gap-2.5 md:gap-3 xl:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,1.25fr)]">
+    <div className="mb-5 grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-3 2xl:grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1.25fr)]">
       {chips.map((chip, i) => {
         const needsLook = chip.tone === 'warn' || chip.tone === 'down'
         const body = (
@@ -74,7 +74,7 @@ export function StatusStrip({ chips, folded, open, reveal, onToggle, onShow }: P
         const delay = reveal ? { animationDelay: `${(i + 1) * 55}ms` } : undefined
         if (chip.id === 'alerts')
           return (
-            <div key={chip.id} data-tone={chip.tone} style={delay} className={cn(surface, 'col-span-2 xl:col-span-1')}>
+            <div key={chip.id} data-tone={chip.tone} style={delay} className={surface}>
               {body}
               <Meter segments={chip.meter} />
             </div>

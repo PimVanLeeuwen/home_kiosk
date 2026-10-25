@@ -185,3 +185,30 @@ test('Home shows the living room air with its CO2 word', async ({ page }) => {
   await expect(card.getByRole('img', { name: 'CO₂ over the last 8 hours' })).toBeVisible()
 })
 
+
+const DNS = {
+  as_of: new Date().toISOString(), stale: false, answering: true, failing_since: null, protection: true,
+  queries: 12480, blocked: 1530, share: 12.3,
+  hours: Array.from({ length: 24 }, (_, i) => ({ queries: 500, blocked: 40 + i })),
+  top_blocked: 'doubleclick.net', top_blocked_count: 312,
+}
+
+test('Home folds ad blocking into its chip, and unfolds it when AdGuard stops answering', async ({ page }) => {
+  await page.route('**/api/dns', (route) => route.fulfill({ json: DNS }))
+  await page.goto('/')
+
+  const chip = page.getByRole('button', { name: /^Ads blocked: 12,3%/ })
+  await expect(chip).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Ad blocking' })).toHaveCount(0)
+  await chip.click()
+  const card = page.getByRole('region', { name: 'Ad blocking' })
+  await expect(card).toContainText('1.530')
+  await expect(card).toContainText('doubleclick.net')
+  await page.keyboard.press('Escape')
+
+  await page.unroute('**/api/dns')
+  await page.route('**/api/dns', (route) => route.fulfill({ json: { ...DNS, answering: false, stale: true } }))
+  await page.reload()
+  await expect(page.getByRole('button', { name: /^Ads blocked: Down/ })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Ad blocking' })).toContainText('AdGuard is not answering')
+})

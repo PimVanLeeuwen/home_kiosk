@@ -796,6 +796,24 @@ class AirState(Envelope):
     history: list[AirPoint] = []  # CO2 every 5 minutes, the last 8 hours
 
 
+class DnsHour(BaseModel):
+    queries: int
+    blocked: int
+
+
+class DnsStats(Envelope):
+    """AdGuard Home's last 24 hours (sources/adguard.py): totals only, never per device."""
+    answering: bool = True  # False once AdGuard has failed for a few minutes
+    failing_since: datetime | None = None
+    protection: bool = True  # blocking on (AdGuard can pause it)
+    queries: int
+    blocked: int
+    share: float | None = None  # percent blocked; None before any query
+    hours: list[DnsHour] = []  # oldest first, the last one is the current hour
+    top_blocked: str | None = None
+    top_blocked_count: int | None = None
+
+
 # --- Home hub: pipelines (/api/pipelines) ----------------------------------------
 
 JobState = Literal["done", "running", "queued", "approval", "failed", "cancelled"]

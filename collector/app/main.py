@@ -43,6 +43,7 @@ from .portfolio import api as portfolio_api
 from .portfolio import degiro_import
 from .security import same_origin_json
 from .sources import (
+    adguard,
     agenda,
     air,
     apple,
@@ -229,6 +230,12 @@ def pipelines_status() -> Any:
 def air_status() -> Any:
     """The living room's air from the Matter sensor (sources/air.py)."""
     return _serve(air.CACHE_KEY)
+
+
+@app.get("/api/dns")
+def dns_status() -> Any:
+    """AdGuard Home's last 24 hours: counts and the most-blocked domain (sources/adguard.py)."""
+    return _serve(adguard.CACHE_KEY)
 
 
 @app.get("/api/laundry")

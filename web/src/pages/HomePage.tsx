@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { AirCard } from '../components/home/AirCard'
 import { AppleCard } from '../components/home/AppleCard'
 import { BackupCard } from '../components/home/BackupCard'
+import { DnsCard } from '../components/home/DnsCard'
 import { CardSlot } from '../components/home/CardSlot'
 import { HeroFrame } from '../components/home/HeroFrame'
 import { LaundryCard } from '../components/home/LaundryCard'
@@ -37,6 +38,7 @@ import {
   nasState,
   nowPlayingState,
   outsideState,
+  dnsState,
   servicesState,
   todayState,
   trainState,
@@ -48,6 +50,7 @@ import { trainStatus } from '../lib/train'
 import type {
   AppleDevices,
   BackupHistory,
+  DnsStats,
   Laundry,
   Nas,
   OutsideServices,
@@ -63,8 +66,8 @@ import { useMediaQuery } from '../lib/useMediaQuery'
 
 const dateLine = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
-/** Where the open card's pointer sits under its chip: four chips of 1fr and Alerts of 1.25fr. */
-const pointerAt = (id: FoldedCardId) => `${((FOLDED.indexOf(id) + 0.5) / 5.25) * 100}%`
+/** Where the open card's pointer sits under its chip: a chip of 1fr per folded card and Alerts of 1.25fr. */
+const pointerAt = (id: FoldedCardId) => `${((FOLDED.indexOf(id) + 0.5) / (FOLDED.length + 1.25)) * 100}%`
 
 /** A fine grain over the page, so the dark has depth without a colour washing over the cards. */
 const GRAIN =
@@ -87,6 +90,7 @@ export function HomePage() {
   const apple = useApi<AppleDevices>('/api/apple', 60_000)
   const outside = useApi<OutsideServices>('/api/outside-services', 60_000)
   const backups = useApi<BackupHistory>('/api/backups', 300_000)
+  const dns = useApi<DnsStats>('/api/dns', 60_000)
   const music = useHomeNowPlaying()
   const wide = useMediaQuery('(min-width: 1024px)')
   const [open, setOpen] = useState<FoldedCardId | null>(null)
@@ -110,6 +114,7 @@ export function HomePage() {
     services: servicesState(all),
     backups: backupsState(nas.data, now),
     outside: outsideState(outside.data),
+    dns: dnsState(dns.data),
   }
   const latest = homeOrder(states, now)
 
@@ -141,6 +146,7 @@ export function HomePage() {
     services: <ServicesCard services={all} error={services.error} />,
     backups: <BackupCard nas={nas.data} error={nas.error} history={backups.data} />,
     outside: <OutsideServicesCard data={outside.data} error={outside.error} />,
+    dns: <DnsCard data={dns.data} error={dns.error} />,
   }
 
   /** The hero's own light: a problem's tone, the train's status, the music's colour, the event's calendar. */
@@ -163,7 +169,7 @@ export function HomePage() {
 
   // A chip only opens a card that is still folded; one that unfolded itself is on the page.
   const opened = open && order.folded.includes(open) ? open : null
-  const chips = homeChips({ nas: nas.data, services: all, backups: backups.data, outside: outside.data, attention, now })
+  const chips = homeChips({ nas: nas.data, services: all, backups: backups.data, outside: outside.data, dns: dns.data, attention, now })
 
   useEffect(() => {
     if (!opened) return
@@ -242,11 +248,11 @@ export function HomePage() {
         />
         {opened && (
           <div id={OPENED_ID} data-card={opened} className="relative -mt-1 mb-5 grid motion-safe:animate-rise">
-            {/* A small pointer up to the chip, where the chips sit in one row. */}
+            {/* A small pointer up to the chip, where the chips sit in one row (2xl). */}
             <span
               aria-hidden="true"
               style={{ left: pointerAt(opened) }}
-              className="absolute -top-[7px] z-10 hidden size-3.5 -translate-x-1/2 rotate-45 border-t border-l border-accent bg-[#191a21] xl:block"
+              className="absolute -top-[7px] z-10 hidden size-3.5 -translate-x-1/2 rotate-45 border-t border-l border-accent bg-[#191a21] 2xl:block"
             />
             <div className="grid rounded-[15px] ring-1 ring-accent">{cards[opened]}</div>
           </div>

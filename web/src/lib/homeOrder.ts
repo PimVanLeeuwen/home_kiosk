@@ -1,8 +1,8 @@
 /**
  * The order of the cards on Home (plan.md M22): the most important thing as
  * the hero, then problems, then what is live, then an order for the part of
- * the day. NAS, Services, Backups and Outside services fold into the status
- * strip while they have nothing to report.
+ * the day. NAS, Services, Backups, Outside services and DNS blocking fold
+ * into the status strip while they have nothing to report.
  */
 
 export type HomeCardId =
@@ -19,9 +19,10 @@ export type HomeCardId =
   | 'services'
   | 'backups'
   | 'outside'
+  | 'dns'
 
 /** The cards that live in the status strip while all is well. */
-export type FoldedCardId = 'nas' | 'services' | 'backups' | 'outside'
+export type FoldedCardId = 'nas' | 'services' | 'backups' | 'outside' | 'dns'
 
 /**
  * What a card has to say right now. `now` is an event happening (Today), the
@@ -47,7 +48,7 @@ export interface HomeOrder {
   folded: FoldedCardId[]
 }
 
-export const FOLDED: readonly FoldedCardId[] = ['nas', 'services', 'backups', 'outside']
+export const FOLDED: readonly FoldedCardId[] = ['nas', 'services', 'backups', 'outside', 'dns']
 
 export function dayPart(hour: number): DayPart {
   if (hour >= 6 && hour < 10) return 'morning'
@@ -79,6 +80,7 @@ const HOME_COLUMN: Record<HomeCardId, Column> = {
   services: 'wide',
   backups: 'wide',
   outside: 'narrow',
+  dns: 'narrow',
 }
 
 /** Live cards among themselves: the one with a deadline first. */

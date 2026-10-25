@@ -1099,7 +1099,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Hub, step 1 (2026-10-25): AdGuard in the catalog (Monitoring) with a tile widget, the last 24
   hours' queries, blocked and share blocked from `/control/stats`, as AdGuard's own "hub" user
   (AdGuard has no read-only users; its password is `ADGUARD_API_KEY`). The container check
-  already alerts when it is down. Next: the Home card (hourly sparkline, most-blocked domain).
+  already alerts when it is down.
+- Hub, step 2 (2026-10-25): `/api/dns` (collector `sources/adguard.py`, every minute): the last 24
+  hours' totals, the hourly buckets, the most-blocked domain and whether blocking is on; never
+  `top_clients`. On Home an "Ads blocked" chip in the status strip (the share, and a meter of the
+  24 hours where an hour without a lookup is a gap) that folds its card: the blocked count, a
+  ring for the share, the hourly blocks and the most-blocked domain. A warning (the card unfolds
+  and can be the hero) when AdGuard has not answered for 3 minutes, or blocking is paused. The
+  strip now holds six tiles: three a row from tablet width, all in one row from 2xl, two a row
+  on the phone. Next: the alert when AdGuard stops answering DNS.
 
 **M25. Command palette** (added 2026-10-23)
 - ⌘K (Ctrl-K) opens a search box over any page; on the phone a search button in the page header.

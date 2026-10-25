@@ -1,5 +1,5 @@
-import { laundryState, todayState } from './homeStates'
-import type { CalendarEvent, Laundry, Machine, Today } from './types'
+import { dnsState, laundryState, todayState } from './homeStates'
+import type { CalendarEvent, DnsStats, Laundry, Machine, Today } from './types'
 
 const at = (h: number, m = 0) => new Date(2026, 9, 23, h, m)
 const event = (from: number, to: number): CalendarEvent => ({
@@ -32,5 +32,19 @@ describe('laundryState', () => {
     expect(laundryState(laundry('idle', false))).toBe('hidden')
     expect(laundryState(laundry('error'))).toBe('warn')
     expect(laundryState(laundry('done'))).toBe('live')
+  })
+})
+
+describe('dnsState', () => {
+  const dns = { answering: true, protection: true } as DnsStats
+
+  it('is quiet while AdGuard blocks, and before the first answer', () => {
+    expect(dnsState(dns)).toBe('quiet')
+    expect(dnsState(undefined)).toBe('quiet')
+  })
+
+  it('is a warning when AdGuard does not answer or blocking is paused', () => {
+    expect(dnsState({ ...dns, answering: false })).toBe('warn')
+    expect(dnsState({ ...dns, protection: false })).toBe('warn')
   })
 })

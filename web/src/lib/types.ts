@@ -122,6 +122,25 @@ export interface AppleDevices {
   rooms: { id: string; name: string; devices: AppleDevice[]; playing: ApplePlaying | null }[]
 }
 
+/** AdGuard Home's last 24 hours (`/api/dns`): counts only, never per device. */
+export interface DnsStats {
+  as_of: string
+  stale: boolean
+  /** False once AdGuard has not answered for a few minutes: the house then resolves through Quad9, unfiltered. */
+  answering: boolean
+  failing_since: string | null
+  /** Blocking is on (AdGuard can pause it). */
+  protection: boolean
+  queries: number
+  blocked: number
+  /** Percent blocked; null before any query. */
+  share: number | null
+  /** Oldest first; the last one is the current hour. */
+  hours: { queries: number; blocked: number }[]
+  top_blocked: string | null
+  top_blocked_count: number | null
+}
+
 /** The living room's air from the ALPSTUGA through the Matter server (`/api/air`). */
 export interface Air {
   as_of: string
