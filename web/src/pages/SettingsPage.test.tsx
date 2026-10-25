@@ -245,6 +245,7 @@ describe('SettingsPage sections', () => {
       'Music',
       'Desk panels',
       'Messages',
+      'AI',
     ])
     expect(within(nav).getByRole('link', { name: 'Services' })).toHaveAttribute('aria-current', 'page')
     expect(document.title).toBe('Services · Settings · Home hub')

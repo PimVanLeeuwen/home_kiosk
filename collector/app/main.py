@@ -20,6 +20,8 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, HttpUrl
 
 from . import (
+    ai,
+    ai_api,
     config,
     desk_api,
     desk_boards,
@@ -105,6 +107,7 @@ async def lifespan(app: FastAPI):
     apple.ensure_tables(app.state.store)
     laundry.ensure_tables(app.state.store)
     air.ensure_tables(app.state.store)
+    ai.ensure_tables(app.state.store)
     spotify.ensure_tables(app.state.store)
     # A favourite can wake the living room Apple TV and open Spotify on it.
     music.wake = apple_tv.wake_spotify
@@ -149,6 +152,7 @@ app.include_router(settings_api.router)
 app.include_router(exposure_api.router)
 app.include_router(lights_api.router)
 app.include_router(documents_api.router)
+app.include_router(ai_api.router)
 app.include_router(music_api.router)
 app.include_router(desk_api.router)
 app.include_router(alerts_api.router)

@@ -122,6 +122,20 @@ export interface AppleDevices {
   rooms: { id: string; name: string; devices: AppleDevice[]; playing: ApplePlaying | null }[]
 }
 
+/** Settings, AI (`/api/ai`): this month's spend against the cap and the feature switches. */
+export interface AiStatus {
+  as_of: string
+  stale: boolean
+  /** The NAS's .env has an Anthropic API key. */
+  configured: boolean
+  /** The monthly cap, and what is spent so far (counted in dollars). */
+  cap: number
+  spent: number
+  calls: number
+  capped: boolean
+  features: { id: string; label: string; on: boolean }[]
+}
+
 /** Paperless's full-text search for the command palette (`/api/documents/search`). */
 export interface DocumentSearch {
   as_of: string

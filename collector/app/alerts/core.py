@@ -55,6 +55,8 @@ CATEGORIES = {
     "train": "Your train",
     # New senders of bills for Paperless (nas-docker host-jobs/paperless-senders.sh).
     "paperless": "Paperless",
+    # The AI spend nearing its monthly cap (app/ai.py).
+    "ai": "AI",
     "manual": "Sent from the hub",
 }
 

@@ -138,6 +138,14 @@ air:
   node: 1
   room: Living room
 
+# AI (plan.md M26): Claude for a few written extras, each switched on in
+# Settings, AI. The key is the owner's Anthropic API key, NAS-only in .env; the
+# hub stops asking at the cap (counted in dollars, so a little under EUR 5) and
+# sends a Telegram note at 80%. Leave the key empty to switch AI off entirely.
+ai:
+  api_key: ${ANTHROPIC_API_KEY}
+  cap_eur: 5
+
 # DNS blocking (Home's status strip): AdGuard Home's last 24 hours, read as its
 # own "hub" user (AdGuard has no read-only users; nas-docker README, AdGuard
 # Home). Counts and the most-blocked domain only, never per device. Leave the

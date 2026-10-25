@@ -177,3 +177,14 @@ test('asks a desk panel board to update now', async ({ page }) => {
   await expect(page.getByRole('status').filter({ hasText: 'Updating to 2ca91f6' })).toBeVisible()
   expect(asked).toBe(true)
 })
+
+test('Settings shows the AI spend against its cap', async ({ page }) => {
+  await page.route('**/api/ai', (route) => route.fulfill({ json: {
+    as_of: new Date().toISOString(), stale: false, configured: true, cap: 5, spent: 0.42, calls: 31, capped: false, features: [],
+  } }))
+  await page.goto('/settings/ai')
+
+  await expect(page.getByRole('heading', { name: 'AI', level: 2 })).toBeVisible()
+  await expect(page.getByText('0.42 of 5.00 · 31 calls')).toBeVisible()
+  await expect(page.getByRole('meter', { name: 'Spent this month' })).toBeVisible()
+})

@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import { Navigate, useLocation, useParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
+import { AiSettings } from '../components/settings/AiSettings'
 import { CalendarsEditor } from '../components/settings/CalendarsEditor'
 import { DeskBoardsEditor } from '../components/settings/DeskBoardsEditor'
 import { FeedEditor } from '../components/settings/FeedEditor'
@@ -21,6 +22,7 @@ const ELEMENTS: Record<string, ReactElement> = {
   music: <MusicSettings />,
   'desk-panels': <DeskBoardsEditor />,
   messages: <MessageTemplates />,
+  ai: <AiSettings />,
 }
 
 /** One page per area, at `/settings/<slug>` (lib/settingsSections). */

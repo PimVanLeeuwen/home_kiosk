@@ -1,4 +1,4 @@
-import { CalendarDays, LayoutGrid, MessageSquareText, Music, Newspaper, PanelsTopLeft, type LucideIcon } from 'lucide-react'
+import { CalendarDays, LayoutGrid, MessageSquareText, Music, Newspaper, PanelsTopLeft, Sparkles, type LucideIcon } from 'lucide-react'
 
 export interface SettingsSection {
   slug: string
@@ -14,4 +14,5 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { slug: 'music', label: 'Music', icon: Music },
   { slug: 'desk-panels', label: 'Desk panels', icon: PanelsTopLeft },
   { slug: 'messages', label: 'Messages', icon: MessageSquareText },
+  { slug: 'ai', label: 'AI', icon: Sparkles },
 ]

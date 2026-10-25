@@ -1176,6 +1176,19 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Not for the mail or Paperless (decided 2026-10-23), and no `/ask` in Telegram.
 - Data sent: public text and the hub's own house state (redacted logs); no calendar titles beyond
   the first event's time and name, no portfolio amounts.
+- Decided 2026-10-25: the official `anthropic` Python SDK (2.3.0, with its own `httpx2`); the
+  Watchtower report waits for the update notes and goes out once, with a note under each
+  image (as it was when Claude does not answer); five steps: the foundation, update notes,
+  morning digest, grouped headlines, alert explainer. Models `claude-haiku-5-5` ($0.10 / $0.50
+  per million tokens) and `claude-sonnet-5-5` ($2 / $10).
+- Step 1 (2026-10-25): the foundation, no feature yet. `collector/app/ai.py`: one `ask()` for
+  every feature, which answers from `ai_answer` for an input it has seen (sha256 of feature,
+  model, system and prompt), refuses when the feature is off, the key is missing or the cap is
+  reached, records each call's tokens and price in `ai_usage`, and sends one Telegram note a
+  month (category "AI") past 80%. The cap is counted in dollars, so it stops a little before
+  EUR 5. Refusals, cut answers and API errors are no answer. Settings, AI (`/api/ai`): the
+  month's spend against the cap and, as features arrive, a switch for each (off until switched
+  on). `ANTHROPIC_API_KEY` in the NAS's `.env`.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26.

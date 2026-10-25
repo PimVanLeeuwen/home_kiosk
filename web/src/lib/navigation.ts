@@ -162,7 +162,7 @@ export const NAV: NavSection[] = [
         label: 'Settings',
         to: '/settings',
         icon: Settings,
-        description: 'Services, feeds, calendars, music, desk panels and messages',
+        description: 'Services, feeds, calendars, music, desk panels, messages and AI',
         milestone: 'M2',
       },
     ],
