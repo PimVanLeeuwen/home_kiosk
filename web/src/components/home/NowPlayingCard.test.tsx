@@ -8,8 +8,8 @@ import { NowPlayingCard } from './NowPlayingCard'
 
 /** The card as Home gives it what plays. */
 function Home() {
-  const { playing, send } = useHomeNowPlaying()
-  return <NowPlayingCard playing={playing} send={send} />
+  const { playing, send, pausedUntil } = useHomeNowPlaying()
+  return <NowPlayingCard playing={playing} send={send} pausedUntil={pausedUntil} />
 }
 
 const playing = (state: 'playing' | 'paused') => ({
@@ -50,6 +50,20 @@ describe('NowPlayingCard', () => {
     expect(await screen.findByRole('heading', { name: 'Midnight City' })).toBeInTheDocument()
     expect(screen.getByText('On Apple TV Living Room')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument()
+  })
+
+  it('says until when Spotify paused the hub, and the controls wait', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 25, 16, 40))
+    try {
+      stubApi({ '/api/music': { ...music(playing('playing')), stale: true, paused_until: new Date(2026, 9, 25, 16, 52).getTime() / 1000 } })
+      show()
+
+      expect(await screen.findByRole('status')).toHaveTextContent('Spotify paused the hub until 16:52')
+      for (const name of ['Previous', 'Pause', 'Next']) expect(screen.getByRole('button', { name })).toBeDisabled()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('is not there while nothing plays or Spotify is not connected', async () => {

@@ -25,12 +25,12 @@ export type HomeSend = ReturnType<typeof useMusic>['send']
 
 /**
  * What Home shows as playing: the item while it plays, or for two minutes
- * after a pause; otherwise null.
+ * after a pause; otherwise null. `pausedUntil`: while Spotify makes the hub wait.
  */
-export function useHomeNowPlaying(): { playing: Playing | null; send: HomeSend } {
+export function useHomeNowPlaying(): { playing: Playing | null; send: HomeSend; pausedUntil: number | null } {
   const { music, send } = useMusic(REFRESH_MS)
   const playing = music?.connected ? music.playing : null
   const pausedFor = usePausedFor(playing)
   const gone = !playing || (playing.state === 'paused' && pausedFor >= PAUSED_FOR_MS)
-  return { playing: gone ? null : playing, send }
+  return { playing: gone ? null : playing, send, pausedUntil: music?.paused_until ?? null }
 }

@@ -140,7 +140,7 @@ export function HomePage() {
   const cards: Record<HomeCardId, ReactNode> = {
     briefing: <BriefingCard data={briefing.data} />,
     train: <TrainCard data={train.data} />,
-    nowPlaying: <NowPlayingCard playing={music.playing} send={music.send} hero={order.hero === 'nowPlaying'} />,
+    nowPlaying: <NowPlayingCard playing={music.playing} send={music.send} pausedUntil={music.pausedUntil} hero={order.hero === 'nowPlaying'} />,
     today: <TodayCard data={today.data} />,
     laundry: <LaundryCard data={laundry.data} />,
     apple: <AppleCard data={apple.data} />,

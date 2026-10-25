@@ -55,3 +55,14 @@ test('While Spotify pauses the hub, Music says until when and the controls wait'
   await expect(page.getByText(/Spotify paused the hub until .*\d\d:\d\d; the controls wait until then\./)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Play Discover Weekly' })).toBeDisabled()
 })
+
+test('While Spotify pauses the hub, the Home card says so and its controls wait', async ({ page }) => {
+  const until = Date.now() / 1000 + 600
+  await page.route('**/api/music', (route) => route.fulfill({ json: { ...music(true), stale: true, paused_until: until } }))
+  await page.goto('/')
+
+  const card = page.getByRole('region', { name: 'Now playing' })
+  await expect(card).toContainText('Midnight City')
+  await expect(card.getByText(/Spotify paused the hub until .*\d\d:\d\d/)).toBeVisible()
+  await expect(card.getByRole('button', { name: 'Pause' })).toBeDisabled()
+})

@@ -1,6 +1,6 @@
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import type { Playing } from '../../lib/musicTypes'
+import { pauseNote, type Playing } from '../../lib/musicTypes'
 import type { HomeSend } from '../../lib/useHomeNowPlaying'
 import { Cover, Progress } from '../music/NowPlaying'
 import { Pill } from '../ui/Pill'
@@ -12,11 +12,14 @@ interface Props {
   send: HomeSend
   /** Larger, as Home's hero. */
   hero?: boolean
+  /** While Spotify makes the hub wait (epoch seconds): the controls are off until then. */
+  pausedUntil?: number | null
 }
 
 /** Now Playing on Home, with what `useHomeNowPlaying` gives. */
-export function NowPlayingCard({ playing, send, hero }: Props) {
+export function NowPlayingCard({ playing, send, hero, pausedUntil = null }: Props) {
   if (!playing) return null
+  const waiting = pausedUntil != null
   const on = playing.state === 'playing'
   const colour = playing.colour ?? 'var(--color-data-violet)'
 
@@ -48,21 +51,27 @@ export function NowPlayingCard({ playing, send, hero }: Props) {
           </p>
           <Progress playing={playing} colour={colour} className="mt-3 [&_[role=progressbar]]:h-1 [&_div:last-child]:text-muted" />
           <div className="mt-1 flex items-center justify-end gap-3.5">
-            <button type="button" aria-label="Previous" className="pressable" onClick={() => send('POST', '/api/music/control/previous', {})}>
+            <button type="button" aria-label="Previous" disabled={waiting} className="pressable disabled:opacity-40" onClick={() => send('POST', '/api/music/control/previous', {})}>
               <SkipBack className="size-5" fill="currentColor" />
             </button>
             <button
               type="button"
               aria-label={on ? 'Pause' : 'Play'}
+              disabled={waiting}
               onClick={() => send('POST', `/api/music/control/${on ? 'pause' : 'play'}`, {}, { state: on ? 'paused' : 'playing' })}
-              className="pressable grid size-[38px] place-items-center rounded-full bg-white text-[#111]"
+              className="pressable grid size-[38px] place-items-center rounded-full bg-white text-[#111] disabled:opacity-40"
             >
               {on ? <Pause className="size-[18px]" fill="currentColor" /> : <Play className="size-[18px]" fill="currentColor" />}
             </button>
-            <button type="button" aria-label="Next" className="pressable" onClick={() => send('POST', '/api/music/control/next', {})}>
+            <button type="button" aria-label="Next" disabled={waiting} className="pressable disabled:opacity-40" onClick={() => send('POST', '/api/music/control/next', {})}>
               <SkipForward className="size-5" fill="currentColor" />
             </button>
           </div>
+          {waiting && (
+            <p role="status" className="mt-1 text-right text-caption text-warn">
+              {pauseNote(pausedUntil)}
+            </p>
+          )}
         </div>
       </div>
     </Card>

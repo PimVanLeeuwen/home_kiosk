@@ -242,7 +242,9 @@ python3 dashboard/serve.py
   `exposure-scan` workflow catches it if something opens a port again.
 - Spotify answers 429 with a `Retry-After`; calling again inside that window extends the
   lock-out. The hub pauses every Spotify call until it has passed (`spotify.Client.paused_until`),
-  so never add a Spotify call that goes around `Client.call`.
+  so never add a Spotify call that goes around `Client.call`. The pause is kept in the database
+  (`spotify_pause`), so a restart waits too; so is the last answer (`music_last`), so pages and
+  panels do not go blank.
 - ConnectLife's Gigya login answers 403048 when it rate-limits ("Api rate limit exceeded"),
   and the Laundry card then hides on stale data. Never send a `gmid` copied from a reference
   client (everyone shares it), and keep logins rare: the hub renews with the refresh token and
