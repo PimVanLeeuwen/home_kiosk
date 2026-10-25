@@ -1235,6 +1235,18 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   group, as before. News: "Top stories · grouped by Claude", the sentence on the lead, "Also
   in" with a link to each other feed's article, "+N" on each badge. The panel's badge shows
   "+N" too (hub only, no new firmware).
+- Step 5 (2026-10-25, decided the same day: container alerts only, a reply in Telegram):
+  `collector/app/explainer.py`, switch "Alert explainer". When a "container down" (ERROR) or
+  "restarting" (warning) alert went out, a minute later the hub reads the container's state
+  (exit code, OOM kill, restarts, last health check) and last 200 log lines over the Docker
+  socket (read-only), adds the NAS's storage and memory, redacts emails, IPv4 and IPv6
+  addresses and MACs, passwords in URLs, bearer tokens and JWTs, `key=value` secrets and long
+  tokens, and asks Sonnet (`claude-sonnet-5-5`, effort medium, structured output) with its
+  server-side fallback (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`; a
+  fallback answer is counted at the price of the model that gave it). The likely cause and up
+  to three things to try go out as a reply to the alert's own message (template "Alert
+  explainer"; the hub now keeps each sent message's Telegram id) and in the message log. Held
+  or failed alerts are not explained. It suggests; it never acts. M26 is complete.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26.

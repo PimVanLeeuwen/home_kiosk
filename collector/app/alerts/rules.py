@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from .. import explainer
 from ..store import Store
 from . import core, templates
 
@@ -616,11 +617,13 @@ async def apply(
                     "resolved_at = NULL, dismissed_at = NULL",
                     (key, rule, problem.severity, sent.title, sent.body,
                      now.isoformat(), now.isoformat()))
-            await core.notify(store, cfg, source=f"rule.{rule}",
-                              category=RULE_CATEGORY.get(rule, "rules"),
-                              severity=problem.severity, title=sent.title, body=sent.body,
-                              formatted=sent.html, now=now, telegram=telegram,
-                              bypass_quiet=rule in BYPASS_QUIET)
+            alert = await core.notify(store, cfg, source=f"rule.{rule}",
+                                      category=RULE_CATEGORY.get(rule, "rules"),
+                                      severity=problem.severity, title=sent.title, body=sent.body,
+                                      formatted=sent.html, now=now, telegram=telegram,
+                                      bypass_quiet=rule in BYPASS_QUIET)
+            # A container alert that went out gets Claude's likely cause a minute later (M26).
+            explainer.later(cfg, store, problem, alert, telegram)
             changed.append(key)
         for key, incident in open_now.items():
             if incident["rule"] != rule or key in active:

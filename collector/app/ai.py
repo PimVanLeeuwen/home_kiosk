@@ -54,13 +54,22 @@ PRICES = {
     "claude-haiku-5-5": Price(0.10, 0.50, 0.01, long_from=100_000, long_input=0.50,
                               long_output=2.50),
     "claude-sonnet-5-5": Price(2.00, 10.00, 0.20),
+    # Where a declined Sonnet request can go with the server-side fallback (Anthropic routes it).
+    "claude-opus-4-8": Price(5.00, 25.00, 0.50),
+    "claude-opus-5": Price(5.00, 25.00, 0.50),
+    "claude-opus-5-5": Price(4.00, 20.00, 0.20),
 }
+
+# Sonnet 5.5's server-side fallback: a request its safeguards decline is answered by the
+# model Anthropic picks for that kind of decline, in the same call.
+FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 # The features, with their switch in Settings. Each step of M26 adds its own.
 FEATURES: dict[str, str] = {
     "update_notes": "Update notes",  # app/update_notes.py, app/pinned.py
     "briefing": "Morning digest",  # app/briefing.py
     "headlines": "Grouped headlines",  # app/news/stories.py
+    "explainer": "Alert explainer",  # app/explainer.py
 }
 
 WARN_SHARE = 0.8
@@ -184,11 +193,12 @@ def _client(api_key: str) -> anthropic.AsyncAnthropic:
 
 async def ask(cfg: dict[str, Any], store: Store, *, feature: str, model: str, system: str,
               prompt: str, max_tokens: int = 1024, effort: str = "low",
-              schema: dict[str, Any] | None = None,
+              schema: dict[str, Any] | None = None, fallback: bool = False,
               now: datetime | None = None, client: ClientFactory | None = None,
               telegram: Any = None) -> str | None:
     """Claude's answer for a feature, or None (off, no key, at the cap, or a failure).
-    With a JSON `schema` the answer is JSON in that shape (structured output).
+    With a JSON `schema` the answer is JSON in that shape (structured output);
+    `fallback` adds Sonnet's server-side fallback for a declined request.
     `client`, `now` and `telegram` are for tests."""
     now = now or datetime.now(UTC)
     s = settings(cfg)
@@ -203,11 +213,17 @@ async def ask(cfg: dict[str, Any], store: Store, *, feature: str, model: str, sy
         log.info("AI %s skipped: this month's cap is reached", feature)
         return None
     try:
-        response = await (client or _client)(s["api_key"]).messages.create(
-            model=model, max_tokens=max_tokens, system=system,
-            messages=[{"role": "user", "content": prompt}],
-            output_config={"effort": effort}
-            | ({"format": {"type": "json_schema", "schema": schema}} if schema else {}))
+        request: dict[str, Any] = {
+            "model": model, "max_tokens": max_tokens, "system": system,
+            "messages": [{"role": "user", "content": prompt}],
+            "output_config": {"effort": effort}
+            | ({"format": {"type": "json_schema", "schema": schema}} if schema else {})}
+        api = (client or _client)(s["api_key"])
+        if fallback:
+            response = await api.beta.messages.create(
+                **request, betas=[FALLBACK_BETA], fallbacks="default")
+        else:
+            response = await api.messages.create(**request)
     except anthropic.RateLimitError:
         log.warning("AI %s: rate limited", feature)
         return None
@@ -217,7 +233,10 @@ async def ask(cfg: dict[str, Any], store: Store, *, feature: str, model: str, sy
     except anthropic.APIConnectionError:
         log.warning("AI %s failed: the API did not answer", feature)
         return None
-    _record(store, now, feature, model, response.usage)
+    # A fallback is billed as the model that answered; one the hub has no price for counts
+    # as the asked model.
+    answered = getattr(response, "model", None)
+    _record(store, now, feature, answered if answered in PRICES else model, response.usage)
     await _warn_once(store, cfg, now, month_spend(store, cfg, now)[0], s["cap_eur"], telegram)
     if response.stop_reason == "refusal":
         log.warning("AI %s: the model declined", feature)

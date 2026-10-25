@@ -57,16 +57,20 @@ class Telegram:
             raise TelegramError(f"Telegram refused: {reason}"[:200])
         return body.get("result")
 
-    async def send(self, chat_id: str | int, html: str, silent: bool = False) -> None:
+    async def send(self, chat_id: str | int, html: str, silent: bool = False,
+                   reply_to: int | None = None) -> Any:
+        """Sends a message, as a reply to `reply_to` when given (and still sent if that
+        message is gone); returns Telegram's message, with its `message_id`."""
         if len(html) > MAX_LENGTH:
             html = html[: MAX_LENGTH - 1] + "…"
-        await self.call(
-            "sendMessage",
-            {
-                "chat_id": chat_id,
-                "text": html,
-                "parse_mode": "HTML",
-                "disable_web_page_preview": True,
-                "disable_notification": silent,
-            },
-        )
+        payload: dict[str, Any] = {
+            "chat_id": chat_id,
+            "text": html,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+            "disable_notification": silent,
+        }
+        if reply_to is not None:
+            payload["reply_parameters"] = {"message_id": reply_to,
+                                           "allow_sending_without_reply": True}
+        return await self.call("sendMessage", payload)

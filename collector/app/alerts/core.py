@@ -82,11 +82,16 @@ class AlertMessage(BaseModel):
     status: Literal["sent", "held", "digested", "failed"]
     error: str | None
     sent_at: datetime | None
+    telegram_id: int | None = None  # Telegram's id for the sent message
 
 
 def ensure_tables(store: Store) -> None:
     with store.connect() as conn:
         conn.executescript(TABLES)
+        columns = {r["name"] for r in conn.execute("PRAGMA table_info(alert_message)")}
+        if "telegram_id" not in columns:
+            # Added for the alert explainer (M26), which replies to the alert's message.
+            conn.execute("ALTER TABLE alert_message ADD COLUMN telegram_id INTEGER")
 
 
 # --- settings -------------------------------------------------------------------
@@ -162,10 +167,10 @@ def log_entry(store: Store, now: datetime, **fields: Any) -> AlertMessage:
     with store.connect() as conn:
         cur = conn.execute(
             "INSERT INTO alert_message (ts, source, category, severity, title, body, chat, "
-            "status, error, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "status, error, sent_at, telegram_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (now.isoformat(), fields["source"], fields["category"], fields["severity"],
              fields["title"], fields.get("body", ""), fields["chat"], fields["status"],
-             fields.get("error"), fields.get("sent_at")),
+             fields.get("error"), fields.get("sent_at"), fields.get("telegram_id")),
         )
         row = conn.execute("SELECT * FROM alert_message WHERE id = ?", (cur.lastrowid,)).fetchone()
     return AlertMessage.model_validate(dict(row))
@@ -185,9 +190,11 @@ async def notify(
     now: datetime | None = None,
     telegram: Telegram | None = None,
     formatted: str | None = None,
+    reply_to: int | None = None,
 ) -> AlertMessage:
     """Route (or use `chat`), hold for quiet hours or send, and log one message.
-    `formatted` is ready-made Telegram HTML to send instead of title and body."""
+    `formatted` is ready-made Telegram HTML to send instead of title and body;
+    `reply_to` a sent message's Telegram id to answer (the alert explainer)."""
     now = now or datetime.now(UTC)
     chat_key = chat or routing(store).get(category, "nas")
     fields = {"source": source, "category": category, "severity": severity,
@@ -206,12 +213,16 @@ async def notify(
         if not chat_id:
             raise ValueError(f"No chat id set for {chat_key}")
         client = telegram or Telegram((cfg.get("telegram") or {}).get("token", ""))
-        await client.send(chat_id, formatted or format_html(severity, title, body))
+        text = formatted or format_html(severity, title, body)
+        result = await (client.send(chat_id, text, reply_to=reply_to) if reply_to is not None
+                        else client.send(chat_id, text))
     except Exception as exc:
         reason = str(exc) if isinstance(exc, ValueError) else describe(exc)
         log.warning("telegram send for %s failed: %s", source, type(exc).__name__)
         return log_entry(store, now, **fields, status="failed", error=reason)
-    return log_entry(store, now, **fields, status="sent", sent_at=now.isoformat())
+    message_id = result.get("message_id") if isinstance(result, dict) else None
+    return log_entry(store, now, **fields, status="sent", sent_at=now.isoformat(),
+                     telegram_id=message_id)
 
 
 async def send_digests(

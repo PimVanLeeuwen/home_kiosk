@@ -370,6 +370,24 @@ CATALOG: dict[str, Template] = {
                        "Good morning. A quiet night: the backup finished at 03:41 and Sonarr "
                        "was updated. Your train is on time from platform 4; dry until 16:00. "
                        "First up: stand-up at 09:30.")}),
+    "explainer": _msg(
+        RULES, "Alert explainer",
+        "A minute after a container alert: the likely cause and what to try first (AI), as a "
+        "reply to the alert.",
+        "<b>Likely cause</b> · {container}\n{cause}\n<b>Try first</b>\n{steps}",
+        "rules", "info",
+        {"container": ("The container", "tracearr"),
+         "cause": ("The likely cause, from its logs (AI)",
+                   "The database ran out of disk space: every start ends with \"No space left "
+                   "on device\"."),
+         "steps": ("One line per thing to try", [
+             {"n": 1, "step": "Free space on volume2 (the downloads folder is the largest)."},
+             {"n": 2, "step": "Then restart tracearr-db; tracearr follows by itself."}])},
+        {"steps": Block("explainer_step")}),
+    "explainer_step": _line(
+        RULES, "Alert explainer: step", "One line per thing to try first.",
+        "{n}. {step}", "explainer",
+        {"n": ("Its number", "1"), "step": ("What to try", "Free space on volume2.")}),
     "pinned_breaking": _msg(
         NAS, "Pinned image: breaking changes",
         "A newer release of an image pinned to its version needs care before updating (AI).",
