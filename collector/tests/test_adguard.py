@@ -116,3 +116,100 @@ def test_without_a_password_it_is_off():
     off = {"adguard": {"url": "http://nas:8053", "password": ""}}
     assert adguard.settings(off)["enabled"] is False
     assert adguard.settings(CFG)["url"] == "http://nas:8053"
+
+
+async def no(_: str) -> bool:
+    return False
+
+
+async def yes(_: str) -> bool:
+    return True
+
+
+def collect_probed(store, transport, probe, now=NOW):
+    cfg = {"adguard": CFG["adguard"] | {"dns": "192.168.1.10"}}
+    return asyncio.run(adguard.collect(cfg, store, transport=transport, now=now, probe=probe))
+
+
+def test_dns_that_does_not_answer_fails_with_fresh_counts(store):
+    transport, _ = answer()
+
+    first = collect_probed(store, transport, no)
+    store.put_cache(adguard.CACHE_KEY, first.model_dump(mode="json"))
+    later = collect_probed(store, transport, no, NOW + adguard.GRACE)
+
+    assert first.failing == "dns" and first.answering and not first.stale
+    assert later.answering is False and later.failing_since == NOW and later.queries == 800
+
+
+def test_with_dns_answering_a_down_admin_page_only_leaves_old_counts(store):
+    transport, _ = answer()
+    good = collect_probed(store, transport, yes)
+    store.put_cache(adguard.CACHE_KEY, good.model_dump(mode="json"))
+
+    result = collect_probed(store, httpx.MockTransport(down), yes)
+
+    assert result.failing is None and result.answering and result.stale
+
+
+def test_without_the_dns_check_a_down_admin_page_fails_as_admin(store):
+    transport, _ = answer()
+    store.put_cache(adguard.CACHE_KEY, collect(store, transport).model_dump(mode="json"))
+
+    assert collect(store, httpx.MockTransport(down), NOW).failing == "admin"
+
+
+def test_without_a_dns_address_there_is_no_lookup(store):
+    transport, _ = answer()
+
+    asyncio.run(adguard.collect(CFG, store, transport=transport, now=NOW, probe=no))
+
+    assert collect(store, transport).failing is None
+
+
+def test_a_query_asks_for_the_a_record_and_an_answer_is_any_response_to_it():
+    packet = adguard.query("example.com", 0x1234)
+
+    assert packet[:4] == b"\x12\x34\x01\x00"
+    assert b"\x07example\x03com\x00\x00\x01\x00\x01" in packet
+    servfail = b"\x12\x34\x81\x82" + bytes(8)
+    assert adguard.is_answer(servfail, 0x1234)
+    assert not adguard.is_answer(servfail, 0x9999)
+    assert not adguard.is_answer(packet, 0x1234)  # the query itself is no answer
+
+
+def test_the_lookup_goes_over_udp_and_waits_for_the_answer():
+    async def scenario():
+        loop = asyncio.get_running_loop()
+
+        class Server(asyncio.DatagramProtocol):
+            def connection_made(self, transport):
+                self.transport = transport
+
+            def datagram_received(self, data, addr):
+                self.transport.sendto(data[:2] + b"\x81\x80" + data[4:], addr)
+
+        transport, _ = await loop.create_datagram_endpoint(Server, local_addr=("127.0.0.1", 0))
+        port = transport.get_extra_info("sockname")[1]
+        try:
+            return await adguard.dns_answers("127.0.0.1", port)
+        finally:
+            transport.close()
+
+    assert asyncio.run(scenario()) is True
+
+
+def test_a_silent_server_is_no_answer(monkeypatch):
+    monkeypatch.setattr(adguard, "PROBE_TIMEOUT_SECONDS", 0.2)
+
+    async def scenario():
+        loop = asyncio.get_running_loop()
+        transport, _ = await loop.create_datagram_endpoint(
+            asyncio.DatagramProtocol, local_addr=("127.0.0.1", 0))
+        port = transport.get_extra_info("sockname")[1]
+        try:
+            return await adguard.dns_answers("127.0.0.1", port)
+        finally:
+            transport.close()
+
+    assert asyncio.run(scenario()) is False

@@ -3,7 +3,7 @@ import type { DnsStats } from '../../lib/types'
 import { DnsCard } from './DnsCard'
 
 const DNS: DnsStats = {
-  as_of: new Date(2026, 9, 25, 14, 0).toISOString(), stale: false, answering: true, failing_since: null,
+  as_of: new Date(2026, 9, 25, 14, 0).toISOString(), stale: false, answering: true, failing: null, failing_since: null,
   protection: true, queries: 12480, blocked: 1530, share: 12.3,
   hours: Array.from({ length: 24 }, (_, i) => ({ queries: 500, blocked: 40 + i })),
   top_blocked: 'doubleclick.net', top_blocked_count: 312,
@@ -36,6 +36,12 @@ describe('DnsCard', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('AdGuard is not answering')
     expect(screen.getAllByRole('status')).toHaveLength(1)
+  })
+
+  it('says when only DNS lookups fail, with current figures', () => {
+    show({ ...DNS, answering: false, failing: 'dns' })
+
+    expect(screen.getByRole('status')).toHaveTextContent('AdGuard does not answer lookups')
   })
 
   it('says when blocking is paused', () => {

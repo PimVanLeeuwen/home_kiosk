@@ -48,6 +48,7 @@ DEFAULT_RULES: dict[str, dict[str, Any]] = {
     "train": {"enabled": True, "late_minutes": 3},
     "apple_offline": {"enabled": True, "offline_minutes": 10},
     "desk_panels": {"enabled": True, "offline_minutes": 10},
+    "adguard": {"enabled": True, "minutes": 5},
 }
 
 RULE_LABELS = {
@@ -64,6 +65,7 @@ RULE_LABELS = {
     "train": "Your train",
     "apple_offline": "Apple devices",
     "desk_panels": "Desk panels",
+    "adguard": "AdGuard Home",
 }
 
 # Rules whose problems end on their own and need no "resolved" message. A
@@ -294,6 +296,29 @@ def apple_offline(payload: dict[str, Any] | None, settings: dict[str, Any],
                 {"device": device["name"], "room": room["name"],
                  "minutes": int(gone.total_seconds() // 60)}))
     return problems
+
+
+# "admin" only without the DNS check (adguard.dns in config.yaml).
+FAILING = {"dns": "DNS lookups get no answer", "admin": "Its admin page does not answer"}
+
+
+def adguard(payload: dict[str, Any] | None, settings: dict[str, Any],
+            now: datetime) -> list[Problem] | None:
+    """AdGuard Home has not answered for the set minutes: every device then
+    looks names up through the router's second DNS server, Quad9, unfiltered.
+    Read without the freshness check, as a failing AdGuard keeps its last
+    counts (and their time); the collector updates `failing_since` each minute."""
+    if payload is None:
+        return None
+    since = payload.get("failing_since")
+    if not since:
+        return []
+    gone = now - datetime.fromisoformat(since)
+    if gone < timedelta(minutes=settings["minutes"]):
+        return []
+    return [Problem("adguard", "adguard", "warning", "adguard_down",
+                    {"minutes": int(gone.total_seconds() // 60),
+                     "why": FAILING.get(payload.get("failing") or "", "")})]
 
 
 def desk_panels(boards: list[Any], settings: dict[str, Any], now: datetime) -> list[Problem]:
@@ -653,6 +678,7 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
         "apple_offline": apple_offline(_fresh(store.get_cache("apple"), now),
                                        settings["apple_offline"], now),
         "desk_panels": desk_panels(desk_boards.boards(store), settings["desk_panels"], now),
+        "adguard": adguard(store.get_cache("dns"), settings["adguard"], now),
         "portfolio_move": portfolio_move(_fresh(store.get_cache("portfolio"), now),
                                          settings["portfolio_move"],
                                          core.local(now, cfg).date().isoformat()),

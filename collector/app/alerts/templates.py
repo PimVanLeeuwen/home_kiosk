@@ -145,6 +145,14 @@ CATALOG: dict[str, Template] = {
         {"device": ("The Apple TV or HomePod", "Badkamer"),
          "room": ("Its room", "Bathroom"),
          "minutes": ("How long it has been quiet", "10")}),
+    "adguard_down": _msg(
+        RULES, "AdGuard not answering",
+        "AdGuard Home has not answered for the set minutes: no ad blocking in the house.",
+        "<b>{level}</b> · <b>AdGuard is not answering</b>\n"
+        "{why} for {minutes} min. The house looks names up through Quad9, without blocking.",
+        "rules", "warning",
+        {"why": ("Which part fails", "DNS lookups get no answer"),
+         "minutes": ("How long it has failed", "5")}),
     "desk_panel_quiet": _msg(
         RULES, "Desk panel quiet",
         "A desk panel board has not asked the hub for the set minutes.",

@@ -146,6 +146,9 @@ adguard:
   url: http://${NAS_HOST:-100.70.0.10}:8053
   user: hub
   password: ${ADGUARD_API_KEY}
+  # The NAS's LAN address, where AdGuard serves DNS: one real lookup there each
+  # minute (the "AdGuard Home" alert rule). Empty: only the admin page is checked.
+  dns: ""
 
 # Laundry (Home card, Home panel): the Hisense washer and dryer through the
 # ConnectLife cloud (no local API), read every minute with a ConnectLife account

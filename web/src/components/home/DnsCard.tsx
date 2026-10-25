@@ -13,6 +13,8 @@ interface Props {
 
 /** Why nothing is blocked right now, when that is so. */
 function problem(dns: DnsStats): string | null {
+  if (!dns.answering && dns.failing === 'dns')
+    return 'AdGuard does not answer lookups: the house looks names up through Quad9, without blocking.'
   if (!dns.answering) return 'AdGuard is not answering: the house looks names up through Quad9, without blocking. Showing its last figures.'
   if (!dns.protection) return 'Blocking is paused in AdGuard: every ad gets through until it is switched back on.'
   return null
@@ -71,7 +73,7 @@ export function DnsCard({ data: dns, error }: Props) {
             </p>
           )}
           <p className="mt-3 text-caption text-faint">Updated {formatAgo(dns.as_of, now)} · AdGuard Home</p>
-          {dns.stale && dns.answering && <StaleNote />}
+          {dns.stale && !trouble && <StaleNote />}
         </>
       )}
     </Card>

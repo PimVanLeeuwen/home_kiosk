@@ -187,7 +187,7 @@ test('Home shows the living room air with its CO2 word', async ({ page }) => {
 
 
 const DNS = {
-  as_of: new Date().toISOString(), stale: false, answering: true, failing_since: null, protection: true,
+  as_of: new Date().toISOString(), stale: false, answering: true, failing: null, failing_since: null, protection: true,
   queries: 12480, blocked: 1530, share: 12.3,
   hours: Array.from({ length: 24 }, (_, i) => ({ queries: 500, blocked: 40 + i })),
   top_blocked: 'doubleclick.net', top_blocked_count: 312,

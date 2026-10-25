@@ -1107,7 +1107,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   ring for the share, the hourly blocks and the most-blocked domain. A warning (the card unfolds
   and can be the hero) when AdGuard has not answered for 3 minutes, or blocking is paused. The
   strip now holds six tiles: three a row from tablet width, all in one row from 2xl, two a row
-  on the phone. Next: the alert when AdGuard stops answering DNS.
+  on the phone.
+- Hub, step 3 (2026-10-25): the "AdGuard Home" alert rule (Alerts, Rules; on, 5 minutes): a
+  warning to Telegram when AdGuard has failed that long, and "resolved" when it answers again.
+  Each minute the collector also sends one real lookup to AdGuard's DNS (`adguard.dns`, the
+  NAS's LAN address, in the local config only; a plain UDP query, no new dependency); any
+  answer counts, a SERVFAIL too. With that check DNS decides, and an admin page that is down
+  only leaves old counts; without it the admin page decides. M24 is complete apart from the
+  optional tailnet DNS for devices away from home.
 
 **M25. Command palette** (added 2026-10-23)
 - ⌘K (Ctrl-K) opens a search box over any page; on the phone a search button in the page header.

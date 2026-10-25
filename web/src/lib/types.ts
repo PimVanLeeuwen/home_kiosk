@@ -128,6 +128,8 @@ export interface DnsStats {
   stale: boolean
   /** False once AdGuard has not answered for a few minutes: the house then resolves through Quad9, unfiltered. */
   answering: boolean
+  /** Which part does not answer: DNS lookups, or (without the DNS check) the admin page. */
+  failing: 'dns' | 'admin' | null
   failing_since: string | null
   /** Blocking is on (AdGuard can pause it). */
   protection: boolean
@@ -857,6 +859,8 @@ export interface RuleSettings {
   days?: number
   late_minutes?: number
   offline_minutes?: number
+  /** AdGuard Home not answering for this long. */
+  minutes?: number
 }
 
 export interface AlertRules {

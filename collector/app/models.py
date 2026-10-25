@@ -804,6 +804,7 @@ class DnsHour(BaseModel):
 class DnsStats(Envelope):
     """AdGuard Home's last 24 hours (sources/adguard.py): totals only, never per device."""
     answering: bool = True  # False once AdGuard has failed for a few minutes
+    failing: Literal["dns", "admin"] | None = None  # which part does not answer
     failing_since: datetime | None = None
     protection: bool = True  # blocking on (AdGuard can pause it)
     queries: int

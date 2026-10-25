@@ -538,3 +538,40 @@ def test_a_quiet_desk_panel_warns_once_and_resolves_when_it_asks_again(rule_stor
     desk_boards.check_in(rule_store, BOARD, "f4da96d", back)
     assert run_check(rule_store, back) == [
         "<b>OK</b> · <b>Resolved: The Home panel is quiet</b>\nafter 15 min"]
+
+
+def dns_payload(failing_since=None, failing="dns"):
+    return {"as_of": (NOW - timedelta(hours=1)).isoformat(), "stale": failing_since is not None,
+            "answering": failing_since is None, "failing": failing if failing_since else None,
+            "failing_since": failing_since, "protection": True, "queries": 800, "blocked": 96,
+            "share": 12.0, "hours": [], "top_blocked": None, "top_blocked_count": None}
+
+
+def test_adguard_failing_for_five_minutes_is_a_warning_with_the_part_that_fails():
+    settings = rules.DEFAULT_RULES["adguard"]
+    since = (NOW - timedelta(minutes=6)).isoformat()
+
+    (p,) = rules.adguard(dns_payload(since), settings, NOW)
+
+    assert (p.key, p.severity, p.title) == ("adguard", "warning", "AdGuard is not answering")
+    (admin,) = rules.adguard(dns_payload(since, "admin"), settings, NOW)
+    assert admin.values["why"] == "Its admin page does not answer"
+    assert rules.adguard(dns_payload((NOW - timedelta(minutes=4)).isoformat()), settings, NOW) == []
+    assert rules.adguard(dns_payload(), settings, NOW) == []
+    assert rules.adguard(None, settings, NOW) is None
+
+
+def test_adguard_warns_once_even_with_old_counts_and_resolves_when_back(rule_store):
+    rule_store.put_cache("dns", dns_payload((NOW - timedelta(minutes=5)).isoformat()))
+    assert run_check(rule_store) == [
+        "<b>WARNING</b> · <b>AdGuard is not answering</b>\n"
+        "DNS lookups get no answer for 5 min. The house looks names up through Quad9, "
+        "without blocking."]
+    # An hour on, the counts are still the old ones: the rule still judges.
+    later = NOW + timedelta(hours=1)
+    assert run_check(rule_store, later) == []
+    assert "adguard" in rules.open_incidents(rule_store)
+
+    rule_store.put_cache("dns", dns_payload())
+    assert run_check(rule_store, later) == [
+        "<b>OK</b> · <b>Resolved: AdGuard is not answering</b>\nafter 1 h 0 min"]
