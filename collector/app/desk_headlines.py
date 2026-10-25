@@ -78,6 +78,12 @@ def age(published: str, now: datetime) -> str:
     return f"{minutes // (24 * 60)} d"
 
 
+def badge(item: dict[str, Any]) -> str:
+    """The source's badge; a grouped story (M26) adds how many other feeds carry it."""
+    others = len(item.get("sources") or [])
+    return latin1(item["source"]) + (f" +{others}" if others else "")
+
+
 def headlines_screen(store: Store, now: datetime) -> dict[str, Any]:
     cached = store.get_cache(headlines.CACHE_KEY) or {}
     items = (cached.get("items") or [])[:3]
@@ -89,7 +95,7 @@ def headlines_screen(store: Store, now: datetime) -> dict[str, Any]:
         size = "lead" if i == 0 else "thumb"
         has = item.get("image") == "lead" or (size == "thumb" and item.get("image") == "thumb")
         stories.append({
-            "id": item["id"], "title": latin1(item["title"]), "source": latin1(item["source"]),
+            "id": item["id"], "title": latin1(item["title"]), "source": badge(item),
             "age": age(item["published"], now),
             "picture": f"/api/desk/picture/{item['id']}/{size}" if has else None,
             "saved": item["id"] in saved,

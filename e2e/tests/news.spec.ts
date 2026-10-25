@@ -107,3 +107,22 @@ test('News opens with the headlines: one story per group, saved to Readeck from 
   await expect(page).toHaveURL('/news?a=a1')
   await expect(page.getByRole('article', { name: ARTICLE.title }).getByRole('heading', { name: 'Tone mapping' })).toBeVisible()
 })
+
+test('News leads with the top stories when Claude groups them', async ({ page }) => {
+  const at = new Date().toISOString()
+  const item = (id: string, source: string, extra = {}) => ({
+    id, group_id: 'nl', group: 'Nederland', title: `Story ${id}`, source, url: `https://news.example/${id}`,
+    published: at, summary: null, image: null, ...extra,
+  })
+  await page.route('**/api/news/headlines', (route) => route.fulfill({ json: {
+    as_of: at, stale: false, grouped: true, items: [
+      item('a', 'NOS', { story: 'The cabinet presents a housing plan.', sources: [{ id: 'b', source: 'NU.nl', url: 'https://nu.example/b' }] }),
+      item('c', 'Tweakers'),
+    ],
+  } }))
+  await page.goto('/news')
+
+  const top = page.getByRole('region', { name: 'Top stories' })
+  await expect(top).toContainText('The cabinet presents a housing plan.')
+  await expect(top.getByRole('link', { name: 'NU.nl' })).toHaveAttribute('href', '/news?a=b')
+})

@@ -90,10 +90,15 @@ export interface Headline {
   summary: string | null
   /** Stored pictures: "lead" has both sizes, "thumb" only the square. */
   image: 'lead' | 'thumb' | null
+  /** A grouped story (M26): Claude's one sentence, and the other feeds' articles on it. */
+  story?: string | null
+  sources?: { id: string; source: string; url: string }[]
 }
 
 export interface HeadlinesResponse {
   as_of: string
   stale: boolean
   items: Headline[]
+  /** Top stories by event, grouped by Claude; otherwise the newest of each group. */
+  grouped?: boolean
 }

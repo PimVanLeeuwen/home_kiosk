@@ -1223,6 +1223,18 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   `screen_briefing.c` and `desk_briefing.c`): the line in large type (three lines at most,
   cut with "..."), the four facts as rows with a violet dot, and "written by Claude at
   06:30". Built 2026-10-25; to be flashed onto the Now panel.
+- Step 4 (2026-10-25, decided the same day: replace the headlines on News and the panel; most
+  covered first): `collector/app/news/stories.py`, switch "Grouped headlines". Hourly at a few
+  past from 06:00 to 23:00, Haiku gets the last 12 hours of articles from every feed (at most
+  80, numbered, source, title and the feed's first line) and returns, with structured output,
+  which report the same event, and one sentence for each story more than one feed carries
+  (only from those lines, in the language of most of its sources). The headlines job builds
+  up to 6 top stories from it: most feeds first, then the newest; each led by its newest
+  article with a lead picture under that article's own title, the others as its sources.
+  Without a grouping younger than 8 hours (AI off, the cap) the headlines are the newest per
+  group, as before. News: "Top stories · grouped by Claude", the sentence on the lead, "Also
+  in" with a link to each other feed's article, "+N" on each badge. The panel's badge shows
+  "+N" too (hub only, no new firmware).
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26.

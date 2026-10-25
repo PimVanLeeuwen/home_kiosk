@@ -96,3 +96,38 @@ describe('Headlines', () => {
     expect((await block()).parentElement).toHaveClass('hidden', 'lg:block')
   })
 })
+
+describe('Headlines, grouped by Claude', () => {
+  const GROUPED: HeadlinesResponse = {
+    ...HEADLINES,
+    grouped: true,
+    items: [
+      story('g1', {
+        title: 'Kabinet presenteert woningplan', story: 'The cabinet presents a plan for 100,000 homes a year.',
+        sources: [{ id: 'g1b', source: 'NU.nl', url: 'https://nu.example/1' }, { id: 'g1c', source: 'Tweakers', url: 'https://t.example/1' }],
+      }),
+      story('g2', { source: 'NU.nl', sources: [{ id: 'g2b', source: 'NOS', url: 'https://nos.example/2' }] }),
+      story('g3', { source: 'The Verge', image: 'thumb' }),
+      story('g4', { source: 'Tweakers', image: null }),
+    ],
+  }
+
+  it('shows the top stories with Claude’s sentence and every other feed', async () => {
+    setup({ '/api/news/headlines': GROUPED })
+
+    const section = await screen.findByRole('region', { name: 'Top stories' })
+    expect(within(section).getByText('grouped by Claude')).toBeInTheDocument()
+    expect(within(section).getByText('The cabinet presents a plan for 100,000 homes a year.')).toBeInTheDocument()
+    expect(within(section).getByText('NOS +2')).toBeInTheDocument()
+    expect(within(section).getByText('NU.nl +1')).toBeInTheDocument()
+    expect(within(section).getByRole('link', { name: 'Tweakers' })).toHaveAttribute('href', '/news?a=g1c')
+    expect(within(section).getAllByRole('listitem')).toHaveLength(4)
+  })
+
+  it('keeps the plain headlines without a grouping', async () => {
+    setup()
+
+    expect(await screen.findByRole('region', { name: 'Headlines' })).toBeInTheDocument()
+    expect(screen.queryByText('grouped by Claude')).not.toBeInTheDocument()
+  })
+})

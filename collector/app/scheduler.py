@@ -17,7 +17,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from . import briefing, pinned
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
-from .news import headlines
+from .news import headlines, stories
 from .portfolio import indices
 from .portfolio import report as portfolio_report
 from .sources import (
@@ -100,6 +100,13 @@ async def _run(store: Store, key: str, job: Callable[[], Awaitable[Any]]) -> Non
     except Exception:
         log.exception("%s refresh failed; serving cached payload as stale", key)
         mark_stale(store, key)
+
+
+async def _stories(cfg: dict[str, Any], store: Store) -> None:
+    try:
+        await stories.group(cfg, store)
+    except Exception:
+        log.exception("grouping the headlines failed")
 
 
 async def _briefing(cfg: dict[str, Any], store: Store) -> None:
@@ -360,7 +367,7 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         _run,
         "interval",
         seconds=HEADLINES_INTERVAL_SECONDS,
-        args=[store, headlines.CACHE_KEY, lambda: headlines.collect(store)],
+        args=[store, headlines.CACHE_KEY, lambda: headlines.collect(store, cfg=cfg)],
         id="headlines",
         next_run_time=None,
         max_instances=1,
@@ -505,6 +512,19 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         minute=minute,
         args=[cfg, store],
         id="briefing",
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=1800,
+    )
+
+    # Headlines, one story per event (M26): grouped hourly, read by the headlines job.
+    scheduler.add_job(
+        _stories,
+        "cron",
+        hour=stories.HOURS,
+        minute=3,
+        args=[cfg, store],
+        id="stories",
         max_instances=1,
         coalesce=True,
         misfire_grace_time=1800,

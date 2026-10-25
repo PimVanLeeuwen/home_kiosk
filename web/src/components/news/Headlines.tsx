@@ -1,4 +1,4 @@
-import { Bookmark } from 'lucide-react'
+import { Bookmark, Sparkles } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { ApiError, sendJson } from '../../lib/api'
@@ -20,6 +20,7 @@ function Source({ h, colour }: { h: Headline; colour: Colour }) {
       style={{ background: `color-mix(in srgb, ${colour.fg} 55%, rgb(0 0 0 / 0.4))`, boxShadow: `0 0 12px -2px ${colour.fg}` }}
     >
       {h.source}
+      {h.sources?.length ? ` +${h.sources.length}` : ''}
     </span>
   )
 }
@@ -63,7 +64,9 @@ function Thumb({ h, colour }: { h: Headline; colour: Colour }) {
 
 /**
  * The Now panel's Headlines screen at the top of News: the newest story of
- * each group, the lead over its picture; the bookmark saves to Readeck.
+ * each group, the lead over its picture; the bookmark saves to Readeck. With
+ * grouped headlines (M26) the top stories by event instead, with Claude's
+ * sentence and every other feed's article on it.
  */
 export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour }) {
   const { data } = useApi<HeadlinesResponse>('/api/news/headlines', 300_000)
@@ -85,17 +88,29 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
   }
 
   const leadColour = colourOf(lead.group_id)
+  // The lead spans every row of the smaller stories beside it.
+  const rows = Math.max(2, rest.length)
   return (
     <section aria-labelledby="headlines-title" className="mb-6 md:mb-7">
       <p className="mb-2.5 flex justify-between gap-3 text-label font-semibold tracking-[0.07em] text-faint uppercase">
-        <span id="headlines-title">Headlines</span>
-        <span className="truncate font-medium tracking-normal normal-case">{data.items.map((h) => h.group).join(' · ')}</span>
+        <span id="headlines-title">{data.grouped ? 'Top stories' : 'Headlines'}</span>
+        {data.grouped ? (
+          <span className="inline-flex items-center gap-1.5 font-medium tracking-normal normal-case">
+            <Sparkles aria-hidden="true" className="size-3.5 text-accent-fg" />
+            grouped by Claude
+          </span>
+        ) : (
+          <span className="truncate font-medium tracking-normal normal-case">{data.items.map((h) => h.group).join(' · ')}</span>
+        )}
       </p>
-      <ul className="grid gap-2.5 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] md:grid-rows-2 md:gap-3.5">
-        <li className="relative md:row-span-2" data-image={lead.image ?? 'none'}>
+      <ul
+        className="grid gap-2.5 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] md:grid-rows-[repeat(var(--rows),minmax(0,auto))] md:gap-3.5"
+        style={{ '--rows': rows } as CSSProperties}
+      >
+        <li className="relative flex flex-col gap-2 md:row-[1/span_var(--rows)]" data-image={lead.image ?? 'none'}>
           <Link
             to={`/news?a=${lead.id}`}
-            className="relative flex h-full min-h-[230px] flex-col justify-end overflow-hidden rounded-[16px] border border-glass-line p-4 text-fg after:absolute after:inset-0 after:bg-linear-to-b after:from-[rgb(10_10_14/0.15)] after:via-[rgb(10_10_14/0.35)] after:to-[rgb(10_10_14/0.92)] md:min-h-[290px] md:px-[22px] md:py-5"
+            className="relative flex min-h-[230px] flex-1 flex-col justify-end overflow-hidden rounded-[16px] border border-glass-line p-4 text-fg after:absolute after:inset-0 after:bg-linear-to-b after:from-[rgb(10_10_14/0.15)] after:via-[rgb(10_10_14/0.35)] after:to-[rgb(10_10_14/0.92)] md:min-h-[290px] md:px-[22px] md:py-5"
             style={
               lead.image === 'lead'
                 ? undefined
@@ -108,9 +123,23 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
               {formatAgo(lead.published)}
             </span>
             <h3 className="relative z-[1] mt-2.5 text-heading leading-[1.2] font-semibold tracking-[-0.01em] text-balance md:text-page">{lead.title}</h3>
-            {lead.summary && <p className="relative z-[1] mt-2 hidden max-w-[60ch] text-body leading-[1.45] text-white/72 md:block">{lead.summary}</p>}
+            {lead.story ? (
+              <p className="relative z-[1] mt-2 max-w-[60ch] text-body leading-[1.45] text-white/85">{lead.story}</p>
+            ) : (
+              lead.summary && <p className="relative z-[1] mt-2 hidden max-w-[60ch] text-body leading-[1.45] text-white/72 md:block">{lead.summary}</p>
+            )}
           </Link>
           <SaveButton h={lead} state={saves[lead.id]} onSave={() => save(lead)} onImage />
+          {!!lead.sources?.length && (
+            <p className="flex flex-wrap items-center gap-1.5 px-1 text-caption text-muted">
+              Also in
+              {lead.sources.map((s) => (
+                <Link key={s.id} to={`/news?a=${s.id}`} className="rounded-[6px] border border-line-soft bg-card px-2 py-0.5 font-medium text-fg hover:border-line">
+                  {s.source}
+                </Link>
+              ))}
+            </p>
+          )}
         </li>
         {rest.map((h) => (
           <li key={h.id} className="relative" data-image={h.image ?? 'none'}>

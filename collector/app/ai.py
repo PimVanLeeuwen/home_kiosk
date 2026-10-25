@@ -60,6 +60,7 @@ PRICES = {
 FEATURES: dict[str, str] = {
     "update_notes": "Update notes",  # app/update_notes.py, app/pinned.py
     "briefing": "Morning digest",  # app/briefing.py
+    "headlines": "Grouped headlines",  # app/news/stories.py
 }
 
 WARN_SHARE = 0.8

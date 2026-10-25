@@ -28,7 +28,7 @@ from pydantic import BaseModel
 
 from ..models import Envelope
 from ..store import Store
-from . import reader
+from . import reader, stories
 from . import store as news
 
 log = logging.getLogger(__name__)
@@ -51,6 +51,13 @@ _BIGGER = [(re.compile(r"(//images\.nu\.nl/m/[^/]+)_sqr\d+/"), r"\1_wd1280/")]
 _PAGE_IMAGE = ("og:image:secure_url", "og:image", "twitter:image", "twitter:image:src")
 
 
+class HeadlineSource(BaseModel):
+    """Another feed's article on the same event (a grouped story)."""
+    id: str
+    source: str
+    url: str
+
+
 class Headline(BaseModel):
     id: str  # the article id, as in /api/news/articles
     group_id: str
@@ -62,10 +69,14 @@ class Headline(BaseModel):
     summary: str | None = None
     # Which stored pictures exist: "lead" has both sizes, "thumb" only the square.
     image: Literal["lead", "thumb"] | None = None
+    # A grouped story (M26): Claude's sentence, and the other feeds' articles.
+    story: str | None = None
+    sources: list[HeadlineSource] = []
 
 
 class Headlines(Envelope):
     items: list[Headline]  # the lead first
+    grouped: bool = False  # top stories by event, not the newest of each group
 
 
 def page_image(page: str, base: str) -> str | None:
@@ -178,9 +189,57 @@ def picture(store: Store, article_id: str, size: Literal["lead", "thumb"]) -> by
     return row[0] if row else None
 
 
+TOP_STORIES = 6
+
+
+def _article_rows(store: Store, ids: list[str]) -> dict[str, Any]:
+    marks = ",".join("?" * len(ids))
+    with store.connect() as conn:
+        rows = conn.execute(f"SELECT * FROM article WHERE id IN ({marks})", ids).fetchall()
+    return {r["id"]: r for r in rows}
+
+
+async def _grouped(store: Store, kept: list[dict[str, Any]], now: datetime,
+                   transport: httpx.AsyncBaseTransport | None) -> list[Headline]:
+    """The top stories: most feeds first, then the newest; each led by its newest
+    article with a lead picture (else its newest), the others as its sources."""
+    rows = _article_rows(store, [i for s in kept for i in s["ids"]])
+    names = {g.id: g.title for g in news.groups(store)}
+    ranked = []
+    for story in kept:
+        found = sorted((rows[i] for i in story["ids"] if i in rows),
+                       key=lambda r: r["published"], reverse=True)
+        if found:
+            ranked.append((len({r["source"] for r in found}), found[0]["published"], found,
+                           story["summary"]))
+    ranked.sort(key=lambda s: (s[0], s[1]), reverse=True)
+    picked = []
+    for _, _, found, summary in ranked[:TOP_STORIES]:
+        images = {r["id"]: await _ensure_picture(store, r, now, transport) for r in found}
+        lead = next((r for r in found if images[r["id"]]["has_lead"]), found[0])
+        stored = images[lead["id"]]
+        others, seen = [], {lead["source"]}
+        for r in found:
+            if r["source"] not in seen:
+                seen.add(r["source"])
+                others.append(HeadlineSource(id=r["id"], source=r["source"], url=r["url"]))
+        picked.append(Headline(
+            id=lead["id"], group_id=lead["group_id"], group=names.get(lead["group_id"], ""),
+            title=lead["title"], source=lead["source"], url=lead["url"],
+            published=lead["published"], summary=lead["summary"],
+            image="lead" if stored["has_lead"] else "thumb" if stored["has_thumb"] else None,
+            story=summary, sources=others))
+    return picked
+
+
 async def collect(store: Store, transport: httpx.AsyncBaseTransport | None = None,
-                  now: datetime | None = None) -> Headlines:
+                  now: datetime | None = None, cfg: dict[str, Any] | None = None) -> Headlines:
     now = now or datetime.now(UTC)
+    kept = stories.fresh(cfg or {}, store, now)
+    if kept:
+        top = await _grouped(store, kept, now, transport)
+        if top:
+            return Headlines(as_of=now, stale=False, items=top, grouped=True)
     picked: list[Headline] = []
     for group in news.groups(store):
         with store.connect() as conn:
