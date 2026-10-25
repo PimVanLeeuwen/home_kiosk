@@ -1,5 +1,7 @@
 /** Shapes of `/api/music` (collector app/sources/music.py). */
 
+import { formatTime, formatWhen } from './format'
+
 export interface MusicDevice {
   id: string | null
   name: string
@@ -44,6 +46,8 @@ export interface Music {
   devices: MusicDevice[]
   favourites: Favourite[]
   last: MusicItem | null
+  /** While Spotify makes the hub wait (a 429): until when, epoch seconds; the controls wait too. */
+  paused_until?: number | null
 }
 
 export interface Playlist {
@@ -51,6 +55,13 @@ export interface Playlist {
   name: string
   cover: string | null
   owner: string | null
+}
+
+/** "Spotify paused the hub until 16:52" ("until Mon 26 Oct 09:12" on another day). */
+export function pauseNote(until: number, now = new Date()): string {
+  const end = new Date(until * 1000)
+  const sameDay = end.toDateString() === now.toDateString()
+  return `Spotify paused the hub until ${sameDay ? formatTime(end.toISOString()) : formatWhen(end.toISOString(), now)}`
 }
 
 export const coverUrl = (key: string) => `/api/music/covers/${key}`

@@ -95,26 +95,56 @@ async def state(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
     return base
 
 
-# The last state Spotify gave, for when it fails or asks the hub to slow down.
+# The last state Spotify gave, for when it fails or asks the hub to slow down;
+# kept in the database as well (at most every SAVE_EVERY seconds), so a restart
+# while Spotify pauses the hub still has something to show.
 LAST: dict[str, Any] = {}
+LAST_KEY = "music_last"
+SAVE_EVERY = 30.0
+_saved_at = [0.0]
 
 
 async def latest(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
     """state(), or the last good one marked stale while Spotify fails or rate-limits
-    the hub; raises when there is none yet, or when the hub was disconnected (401)."""
+    the hub. While Spotify pauses the hub, `paused_until` says until when (epoch
+    seconds) and, without any last answer, the favourites still show. Raises when
+    there is nothing to show, or when the hub was disconnected (401)."""
     try:
         answer = await state(cfg, store)
-    except SpotifyError as exc:
-        if exc.status == 401 or not LAST:
+    except Exception as exc:
+        if isinstance(exc, SpotifyError) and exc.status == 401:
             raise
-        return LAST | {"stale": True}
-    except Exception:
-        if not LAST:
+        paused = CLIENT.pause_end(store)
+        last = LAST or store.get_cache(LAST_KEY)
+        if last:
+            return last | {"stale": True, "paused_until": paused}
+        if paused is None:
             raise
-        return LAST | {"stale": True}
+        return await _waiting(cfg, store, paused)
+    answer["paused_until"] = None
     LAST.clear()
     LAST.update(answer)
+    if time.monotonic() - _saved_at[0] >= SAVE_EVERY or not _saved_at[0]:
+        store.put_cache(LAST_KEY, answer)
+        _saved_at[0] = time.monotonic()
     return answer
+
+
+def forget(store: Store) -> None:
+    """After disconnecting: no last answer to fall back on."""
+    LAST.clear()
+    store.put_cache(LAST_KEY, {})
+    _saved_at[0] = 0.0
+
+
+async def _waiting(cfg: dict[str, Any], store: Store, paused: float) -> dict[str, Any]:
+    """No last answer while Spotify pauses the hub: what the hub knows itself."""
+    favs = favourites(store)
+    for fav in favs:
+        fav["colour"] = await spotify.colour_of(store, fav["cover"], CLIENT.transport)
+    return {"as_of": time.time(), "stale": True, "connected": spotify.connected(store),
+            "default_device": spotify.settings(cfg)["default_label"], "playing": None,
+            "devices": [], "favourites": favs, "last": None, "paused_until": paused}
 
 
 # --- favourites ----------------------------------------------------------------------

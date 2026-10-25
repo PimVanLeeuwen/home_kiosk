@@ -97,7 +97,7 @@ def cloud(store):
     spotify.CLIENT.transport = None
     spotify.CLIENT.forget()
     music.wake = None
-    music.LAST.clear()
+    music.forget(store)
 
 
 def connect(store):
@@ -397,7 +397,7 @@ def test_a_failing_spotify_serves_the_last_answer_stale(client, store, cloud):
 def test_a_rate_limit_leaves_spotify_alone_for_its_retry_after(store, cloud, monkeypatch):
     connect(store)
     clock = [1000.0]
-    monkeypatch.setattr(spotify.time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(spotify.time, "time", lambda: clock[0])
     handler = cloud.handler
     limited = [True]
 
@@ -443,6 +443,66 @@ def test_the_panels_get_the_last_state_stale_while_spotify_is_limited(store, clo
     later = run(music.latest(CFG, store))
 
     assert later["stale"] is True and later["playing"]["title"] == "Midnight City"
+
+
+def limited_for(seconds):
+    def handler(request):
+        if request.url.host == "api.spotify.com":
+            return httpx.Response(429, headers={"retry-after": str(seconds)})
+        return httpx.Response(200, json={"access_token": "a", "expires_in": 3600})
+    return httpx.MockTransport(handler)
+
+
+def test_a_restart_inside_the_pause_neither_asks_spotify_nor_goes_blank(store, cloud):
+    connect(store)
+    cloud.player = {"is_playing": True, "item": track(), "device": device("iPhone", True)}
+    assert run(music.latest(CFG, store))["paused_until"] is None
+    spotify.CLIENT.cache.clear()
+    spotify.CLIENT.transport = limited_for(600)
+    run(music.latest(CFG, store))
+
+    # The collector restarts: nothing in memory any more.
+    spotify.CLIENT.forget()
+    music.LAST.clear()
+    spotify.CLIENT.transport = httpx.MockTransport(cloud.handler)
+    calls = len(cloud.calls)
+    after = run(music.latest(CFG, store))
+
+    assert len(cloud.calls) == calls  # Spotify is left alone
+    assert after["stale"] is True and after["playing"]["title"] == "Midnight City"
+    assert after["paused_until"] == pytest.approx(spotify.time.time() + 600, abs=5)
+
+
+def test_paused_with_no_last_answer_still_shows_the_favourites(client, store, cloud):
+    connect(store)
+    with store.connect() as conn:
+        conn.execute("INSERT INTO music_favourite (position, id, name, cover) "
+                     "VALUES (0, 'p1', 'Discover Weekly', NULL)")
+    spotify.CLIENT.transport = limited_for(300)
+
+    answer = client.get("/api/music")
+
+    assert answer.status_code == 200
+    body = answer.json()
+    assert body["stale"] is True and body["connected"] is True and body["playing"] is None
+    assert [f["name"] for f in body["favourites"]] == ["Discover Weekly"]
+    assert body["paused_until"] > spotify.time.time() + 250
+    # A control waits too: the hub does not ask Spotify inside the window.
+    assert client.post("/api/music/control/play", json={}).status_code == 429
+
+
+def test_without_a_pause_or_a_last_answer_it_still_fails(client, store, cloud):
+    connect(store)
+    spotify.CLIENT.transport = httpx.MockTransport(lambda r: httpx.Response(503))
+    assert client.get("/api/music").status_code == 502
+
+
+def test_disconnecting_forgets_the_last_answer(client, store, cloud):
+    connect(store)
+    cloud.player = {"is_playing": True, "item": track(), "device": device("iPhone", True)}
+    client.get("/api/music")
+    client.post("/api/music/disconnect", json={})
+    assert store.get_cache(music.LAST_KEY) == {} and not music.LAST
 
 
 def test_not_set_up_without_a_client_id(client):

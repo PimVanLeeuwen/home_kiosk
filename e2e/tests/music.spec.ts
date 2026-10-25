@@ -45,3 +45,13 @@ test('Music starts a favourite on the Apple TV and shows it on Home', async ({ p
   await expect(card).toContainText('Midnight City')
   await expect(card).toContainText('On Apple TV Living Room')
 })
+
+test('While Spotify pauses the hub, Music says until when and the controls wait', async ({ page }) => {
+  const until = Date.now() / 1000 + 600
+  await page.route('**/api/music', (route) =>
+    route.fulfill({ json: { ...music(false), stale: true, devices: [], paused_until: until } }))
+  await page.goto('/music')
+
+  await expect(page.getByText(/Spotify paused the hub until .*\d\d:\d\d; the controls wait until then\./)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Play Discover Weekly' })).toBeDisabled()
+})

@@ -24,10 +24,12 @@ interface Props {
   starting: number | null
   onTransfer: (device: MusicDevice) => void
   onFavourite: (favourite: Favourite) => void
+  /** Spotify makes the hub wait: nothing can be started or moved until then. */
+  waiting?: boolean
 }
 
 /** Your Spotify devices (tap one to move playback there) and the four favourites. */
-export function MusicSide({ devices, favourites, starting, onTransfer, onFavourite }: Props) {
+export function MusicSide({ devices, favourites, starting, onTransfer, onFavourite, waiting = false }: Props) {
   const active = devices.find((d) => d.active)
   return (
     <Surface as="section" aria-label="Devices and favourites">
@@ -40,7 +42,7 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
               <li key={d.id ?? d.name}>
                 <button
                   type="button"
-                  disabled={d.active || d.restricted || !d.id}
+                  disabled={waiting || d.active || d.restricted || !d.id}
                   onClick={() => onTransfer(d)}
                   aria-label={d.active ? `${d.name}: playing here` : `Move playback to ${d.name}`}
                   className={cn(
@@ -62,7 +64,9 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
           })}
         </ul>
       ) : (
-        <p className="mb-[18px] text-small text-muted">No Spotify devices right now: open Spotify on a phone, Mac or the Apple TV.</p>
+        <p className="mb-[18px] text-small text-muted">
+          {waiting ? 'Your devices show again once Spotify lets the hub ask.' : 'No Spotify devices right now: open Spotify on a phone, Mac or the Apple TV.'}
+        </p>
       )}
 
       <Label aside="Settings → Music">Favourites</Label>
@@ -72,11 +76,14 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
             <li key={f.position}>
               <button
                 type="button"
-                disabled={starting !== null}
+                disabled={waiting || starting !== null}
                 onClick={() => onFavourite(f)}
                 aria-label={`Play ${f.name}`}
                 aria-busy={starting === f.position}
-                className="pressable relative flex aspect-[1.45] w-full items-end overflow-hidden rounded-[14px] px-3 py-2.5 text-left text-white disabled:cursor-wait"
+                className={cn(
+                  'pressable relative flex aspect-[1.45] w-full items-end overflow-hidden rounded-[14px] px-3 py-2.5 text-left text-white disabled:cursor-wait',
+                  waiting && 'opacity-50 disabled:cursor-default',
+                )}
               >
                 <Cover item={f} className="absolute inset-0 size-full" />
                 <span aria-hidden="true" className="absolute inset-0 bg-linear-to-b from-transparent from-45% to-black/60" />

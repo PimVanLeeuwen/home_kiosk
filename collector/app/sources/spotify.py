@@ -41,6 +41,7 @@ TIMEOUT_SECONDS = 10
 # a Retry-After is believed (a garbled header must not silence the hub for days).
 PAUSE_SECONDS = 30
 MAX_PAUSE_SECONDS = 24 * 3600
+PAUSE_KEY = "spotify_pause"
 SLOW_DOWN = "Spotify asks the hub to slow down; try again in a moment."
 LOGIN_FOR = 600  # seconds a started login may take
 COVER_SIZE = 300
@@ -150,13 +151,28 @@ class Client:
         self.token_until = 0.0
         self.cache: dict[str, tuple[float, Any]] = {}
         self.lock = asyncio.Lock()
-        # After a 429, no calls until then (monotonic): every call in the window
-        # would only make Spotify's limit last longer.
+        # After a 429, no calls until then (epoch seconds): every call in the window
+        # would only make Spotify's limit last longer. Kept in the database too, so a
+        # restart (Watchtower's nightly update) does not ask again inside the window.
         self.paused_until = 0.0
+        self.pause_loaded = False
 
     def forget(self) -> None:
         self.token, self.token_until, self.cache = None, 0.0, {}
-        self.paused_until = 0.0
+        self.paused_until, self.pause_loaded = 0.0, False
+
+    def pause_end(self, store: Store, now: float | None = None) -> float | None:
+        """When Spotify lets the hub ask again (epoch seconds), or None when it may now."""
+        if not self.pause_loaded:
+            kept = store.get_cache(PAUSE_KEY) or {}
+            self.paused_until = max(self.paused_until, float(kept.get("until") or 0))
+            self.pause_loaded = True
+        now = time.time() if now is None else now
+        return self.paused_until if now < self.paused_until else None
+
+    def _pause(self, store: Store, seconds: int) -> None:
+        self.paused_until = time.time() + seconds
+        store.put_cache(PAUSE_KEY, {"until": self.paused_until})
 
     def http(self) -> httpx.AsyncClient:
         return httpx.AsyncClient(timeout=TIMEOUT_SECONDS, transport=self.transport)
@@ -214,7 +230,7 @@ class Client:
 
     async def call(self, cfg: dict[str, Any], store: Store, method: str, path: str,
                    params: dict[str, Any] | None = None, body: Any = None) -> Any:
-        if time.monotonic() < self.paused_until:
+        if self.pause_end(store) is not None:
             raise SpotifyError(SLOW_DOWN, 429)
         for attempt in (1, 2):
             token = await self._access(cfg, store)
@@ -227,7 +243,7 @@ class Client:
             break
         if resp.status_code == 429:
             wait = _retry_after(resp)
-            self.paused_until = time.monotonic() + wait
+            self._pause(store, wait)
             log.warning("spotify rate limit: leaving it alone for %d s", wait)
             raise SpotifyError(SLOW_DOWN, 429)
         if resp.status_code == 404 and "device" in resp.text.lower():

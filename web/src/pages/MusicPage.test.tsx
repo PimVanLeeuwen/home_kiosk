@@ -138,4 +138,30 @@ describe('MusicPage', () => {
     renderRoute('/music')
     expect(await screen.findByRole('alert')).toHaveTextContent('SPOTIFY_CLIENT_ID')
   })
+
+  it('says until when Spotify paused the hub, and the controls wait', async () => {
+    const until = new Date(2026, 9, 25, 16, 52).getTime() / 1000
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 25, 16, 40))
+    stubApi({ '/api/music': music({ stale: true, paused_until: until }) })
+    renderRoute('/music')
+
+    expect(await screen.findByText(/Spotify paused the hub until 16:52; the controls wait/)).toBeInTheDocument()
+    expect(screen.queryByText('Showing the last known figures.')).not.toBeInTheDocument()
+    const now = screen.getByRole('region', { name: 'Now playing' })
+    for (const name of ['Previous', 'Pause', 'Next']) expect(within(now).getByRole('button', { name })).toBeDisabled()
+    expect(within(now).getByRole('slider', { name: 'Volume' })).toBeDisabled()
+    const side = screen.getByRole('region', { name: 'Devices and favourites' })
+    expect(within(side).getByRole('button', { name: 'Move playback to MacBook Pro' })).toBeDisabled()
+    expect(within(side).getByRole('button', { name: 'Play Discover Weekly' })).toBeDisabled()
+    vi.useRealTimers()
+  })
+
+  it('without a last answer while paused, still shows the favourites', async () => {
+    stubApi({ '/api/music': music({ stale: true, playing: null, devices: [], paused_until: Date.now() / 1000 + 600 }) })
+    renderRoute('/music')
+
+    expect(await screen.findByText('Your devices show again once Spotify lets the hub ask.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Play Discover Weekly' })).toBeDisabled()
+  })
 })

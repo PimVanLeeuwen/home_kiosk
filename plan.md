@@ -1248,8 +1248,82 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   explainer"; the hub now keeps each sent message's Telegram id) and in the message log. Held
   or failed alerts are not explained. It suggests; it never acts. M26 is complete.
 
+**M27. Panels made to look at** (added 2026-10-25; mockup `docs/design-review-2026-10-mockup.html`)
+- From the design review of 2026-10-25: new screens made for the desk, and every existing screen
+  lifted beyond its information. Replaces "no ambient mode" (2026-10-10) as far as screens go: a
+  screen may be mainly beautiful, as long as it turns in the rotation like the others: every
+  turn, no quiet-hours-only showpieces.
+- How: the hub paints a screen's rich layer (light, glow, grain, art) as a 720 x 720 JPEG with
+  Pillow, as it does for headline pictures; the panel shows it through the hardware decoder and
+  adds what is live (the time, words, one or two moving shapes) in LVGL. A picture changes only
+  when its data does.
+- Chosen new screens (letters as in the mockup):
+  - A Living sky (Now): a slowly flowing gradient in the colours of the sky now (golden hour,
+    noon, dusk, night, greyed by rain), the time in it, what the light does next.
+  - B Night sky (Now, after dark on a clear night): the moon in its phase where it stands, the
+    stars, a constellation that is up, the town's glow, now and then a shooting star.
+  - C Orbit clock: hour, minute and second as bodies orbiting a warm sun, the second trailing.
+  - E Photo of the day (Home): Immich's "on this day", drifting, on a frosted label.
+    Picked locally, no AI call: Immich's own face recognition marks which named people are in a
+    picture, so a picture with people you named comes first, then the others (landscapes and
+    the like are fine); Immich's smart search (local CLIP)
+    leaves out text-like pictures (receipts, screenshots, documents, whiteboards). Nothing goes
+    to Anthropic. Needs an Immich key that may read memories, photos and people.
+  - F Art of the day: a generative piece painted by the hub each morning from the date
+    (a flow field in a palette of the season), numbered.
+  - H The year: 365 days as a dial of week-spokes, the days gone in violet, today glowing.
+  - I Rain radar (Now, in the rotation only while rain is expected within two hours): Buienradar's radar loop
+    around home, the next two hours as bars.
+  - J Your week (Now): seven days as columns from low to high with the line of the highs, the
+    sky, the rain and event dots. Needs the forecast for 7 days instead of 2.
+  - K Countdown (Now): the days to a trip or birthday from a calendar event marked as a
+    countdown, a dot per day left.
+- Chosen improvements: L the train's route as a line with the train moving along it; M Music as
+  a wall of eight covers over the colour of what plays; N arrival motion on every screen (the
+  ring sweeps, the number counts up, the small charts draw in, once per turn).
+- Not chosen: D daylight ring, G word clock.
+- Chosen: every existing screen lifted (all 21, mockup section 03). What you read stays where it
+  is; each screen gets one signature visual:
+  - Now. Clock: the sky with cloud layers and a low sun, rain falling over it when it rains.
+    Your day: the temperature line glowing from blue to amber, stars in the night hours, a
+    pulsing dot for now. Calendar: the event that is on lit in its calendar's colour, a ring
+    for the minutes left, a bright point moving along the day. Headlines: the lead picture full
+    bleed, its title on frosted glass. Error takeover: a slow red pulse with rings going out.
+  - Home. Now Playing: the cover's colours wash the screen, the cover lifts off it, a record
+    turns behind it. Lights: each group glows like the lamp, by its brightness. Air: motes
+    drifting behind the numbers, the CO2 ring and the 8-hour line glowing. Laundry: the one
+    machine that runs gets the screen (usually only one does): a large porthole with a chrome
+    rim, rolling water and bubbles, a ring for the time left; the other machine is one line
+    below; side by side only when both run; done is a green tick. Apple devices: the rooms as
+    glass tiles, devices as glowing orbs, pulses along the mesh.
+  - House. NAS: a glowing gauge, the disks as platters. My sites: a heartbeat line per site.
+    Services: light travelling in from each service to a centre check. Tailnet: traffic as
+    particles along each link. Code: sixteen weeks as a small isometric city. Portfolio: a
+    glowing line with soft light under it. Top movers: tiles lit from within by the move.
+    Media: the poster's colours behind the page. Backups: a seal with a turning ring, data
+    travelling from the NAS to Hetzner. Alerts: each lit in its severity, the worst largest.
+    Pipelines: light flowing along the job graph, the running job shimmering.
+  - The moving part stays one or two LVGL objects per screen (a pulse, particles on a line, a
+    ring); the rest is in the hub's picture, so the panels' task queue is not loaded (Gotchas,
+    LVGL).
+- Chosen for the hub: O Lights as a floor plan (the living room from above, each light a pool
+  of its warmth and brightness; the lights placed once in Settings by dragging); P a useful empty
+  reading pane on News and Saved ("Read next": the top story, the saved article you are halfway
+  through, a group with unread news); Q a Weather page (now, today's curve with the night shaded
+  and the rain below, the week as ranges, the radar from I); R motion on load (lines draw in,
+  gauges sweep, bars grow, once per page load, never with reduced motion).
+- Fixed first, before the rest of M27: S, Music goes blank while Spotify pauses the hub. Keep
+  the last answer and say until when Spotify paused it; the controls wait until then. Done
+  2026-10-25: the pause and the last answer are kept in the database (a restart neither asks
+  Spotify inside the window nor goes blank); with no last answer the page still shows the
+  favourites; `/api/music` carries `paused_until`.
+- W: a running pipeline keeps taking House over (M21), but a finished run leaves sooner: a
+  green run after 1 minute, a red one after 5 (today both 5). A run waiting at a gate stays 5.
+- Not chosen: T a calendar week, U Paperless's new documents on Home or in the digest, V a live
+  preview per panel in Settings, X picking each panel's screens in Settings.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26.
+M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27.
 
 ## 4. Open items
 

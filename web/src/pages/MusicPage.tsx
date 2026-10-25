@@ -5,7 +5,7 @@ import { MusicSide } from '../components/music/MusicSide'
 import { NothingPlaying, NowPlaying } from '../components/music/NowPlaying'
 import { PageHeader } from '../components/PageHeader'
 import { Pill } from '../components/ui/Pill'
-import type { Favourite, MusicDevice } from '../lib/musicTypes'
+import { pauseNote, type Favourite, type MusicDevice } from '../lib/musicTypes'
 import { useMusic } from '../lib/useMusic'
 import { Surface } from '../components/ui/Card'
 
@@ -13,6 +13,7 @@ import { Surface } from '../components/ui/Card'
 export function MusicPage() {
   const { music, error, loading, failure, send } = useMusic()
   const [starting, setStarting] = useState<number | null>(null)
+  const waiting = music?.paused_until != null
 
   async function startFavourite(favourite: Favourite) {
     setStarting(favourite.position)
@@ -61,6 +62,9 @@ export function MusicPage() {
 
       {music?.connected && (
         <>
+          {music.paused_until != null && (
+            <StaleNote banner>{pauseNote(music.paused_until)}; the controls wait until then.</StaleNote>
+          )}
           <div className="grid gap-3.5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-5">
             {music.playing ? (
               <NowPlaying
@@ -69,6 +73,7 @@ export function MusicPage() {
                   send('POST', `/api/music/control/${action}`, {}, action === 'play' || action === 'pause' ? { state: action === 'play' ? 'playing' : 'paused' } : {})
                 }
                 onVolume={(percent) => send('PUT', '/api/music/volume', { percent }, { volume: percent })}
+                waiting={waiting}
               />
             ) : (
               <NothingPlaying last={music.last} defaultDevice={music.default_device} />
@@ -79,6 +84,7 @@ export function MusicPage() {
               starting={starting}
               onTransfer={(d: MusicDevice) => d.id && send('POST', '/api/music/transfer', { device_id: d.id }, { device: d.id })}
               onFavourite={startFavourite}
+              waiting={waiting}
             />
           </div>
           {starting !== null && (
@@ -91,7 +97,7 @@ export function MusicPage() {
               {failure}
             </p>
           )}
-          {music.stale && <StaleNote />}
+          {music.stale && !waiting && <StaleNote />}
         </>
       )}
     </>

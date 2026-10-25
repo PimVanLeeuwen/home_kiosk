@@ -66,7 +66,7 @@ async def callback(request: Request, code: str = "", state: str = "",
 @router.post("/disconnect", dependencies=write)
 def disconnect(request: Request) -> dict[str, bool]:
     spotify.disconnect(request.app.state.store)
-    music.LAST.clear()
+    music.forget(request.app.state.store)
     return {"connected": False}
 
 

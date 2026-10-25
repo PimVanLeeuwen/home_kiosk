@@ -158,6 +158,12 @@ python3 dashboard/serve.py
   replace the headlines on News and the panel; Claude groups and summarises, the hub ranks
   (most feeds, then newest). Alert explainer: container alerts only, as a Telegram reply to the
   alert, with Sonnet's server-side fallback on. plan.md M26.
+- 2026-10-25: panels made to look at: screens that are mainly beautiful join the rotation every
+  turn (replaces "no ambient mode", 2026-10-10), and every existing screen gets a signature
+  visual. The hub paints a screen's rich layer as a 720 x 720 JPEG; the panel adds the live text
+  and one or two moving LVGL objects. The photo of the day is picked locally (Immich's people
+  first, text-like pictures left out), never by AI. A finished green pipeline leaves House after
+  1 minute, a red one after 5. plan.md M27.
 
 ## Gotchas
 

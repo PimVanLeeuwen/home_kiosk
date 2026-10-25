@@ -67,10 +67,12 @@ interface Props {
   playing: Playing
   onControl: (action: 'play' | 'pause' | 'next' | 'previous') => void
   onVolume: (percent: number) => void
+  /** Spotify makes the hub wait: the controls are off until then. */
+  waiting?: boolean
 }
 
 /** The Home panel's Now Playing as the top of the Music page. */
-export function NowPlaying({ playing, onControl, onVolume }: Props) {
+export function NowPlaying({ playing, onControl, onVolume, waiting = false }: Props) {
   const colour = playing.colour ?? VIOLET
   const on = playing.state === 'playing'
   const [dragging, setDragging] = useState<number | null>(null)
@@ -140,19 +142,20 @@ export function NowPlaying({ playing, onControl, onVolume }: Props) {
       <Progress playing={playing} colour={colour} className="relative mt-[22px]" />
 
       <div className="relative mt-3 flex items-center justify-center gap-[30px] text-white">
-        <button type="button" aria-label="Previous" onClick={() => onControl('previous')} className="pressable grid place-items-center">
+        <button type="button" aria-label="Previous" disabled={waiting} onClick={() => onControl('previous')} className="pressable grid place-items-center disabled:opacity-40">
           <SkipBack className="size-[26px]" fill="currentColor" />
         </button>
         <button
           type="button"
           aria-label={on ? 'Pause' : 'Play'}
+          disabled={waiting}
           onClick={() => onControl(on ? 'pause' : 'play')}
           style={{ boxShadow: `0 0 28px color-mix(in srgb, ${colour} 60%, transparent)` }}
-          className="pressable grid size-[62px] place-items-center rounded-full bg-white text-[#111]"
+          className="pressable grid size-[62px] place-items-center rounded-full bg-white text-[#111] disabled:opacity-40"
         >
           {on ? <Pause className="size-6" fill="currentColor" /> : <Play className="size-6" fill="currentColor" />}
         </button>
-        <button type="button" aria-label="Next" onClick={() => onControl('next')} className="pressable grid place-items-center">
+        <button type="button" aria-label="Next" disabled={waiting} onClick={() => onControl('next')} className="pressable grid place-items-center disabled:opacity-40">
           <SkipForward className="size-[26px]" fill="currentColor" />
         </button>
       </div>
@@ -166,9 +169,10 @@ export function NowPlaying({ playing, onControl, onVolume }: Props) {
             min={0}
             max={100}
             value={volume}
+            disabled={waiting}
             onChange={(e) => setVolume(Number(e.target.value))}
             style={{ '--p': `${volume}%` } as CSSProperties}
-            className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-[linear-gradient(90deg,rgb(255_255_255/0.85)_var(--p),rgb(255_255_255/0.18)_var(--p))] [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+            className="h-1 flex-1 cursor-pointer appearance-none disabled:cursor-default disabled:opacity-40 rounded-full bg-[linear-gradient(90deg,rgb(255_255_255/0.85)_var(--p),rgb(255_255_255/0.18)_var(--p))] [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
           />
           <span aria-hidden="true">{volume}%</span>
         </label>
