@@ -98,7 +98,7 @@ static void paint(int i)
     lv_obj_t *box = rooms[i].box;
     bool lit = room->glow != 0;
     lv_obj_set_style_bg_color(box, lv_color_hex(lit ? room->glow : 0x101015), 0);
-    lv_obj_set_style_bg_opa(box, lit ? 46 : LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_opa(box, lit ? 46 : 170, 0); /* glass over the hub's light (plan.md M27) */
     lv_obj_set_style_border_color(box, lv_color_hex(lit ? room->glow : 0xffffff), 0);
     lv_obj_set_style_border_opa(box, lit ? 170 : 26, 0);
     lv_obj_set_style_shadow_opa(box, lit ? 120 : 0, 0);

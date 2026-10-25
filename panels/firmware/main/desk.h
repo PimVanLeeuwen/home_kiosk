@@ -200,6 +200,7 @@ typedef struct {
     int64_t progress_ms, duration_ms;
     double at;               /* when the progress was read, seconds since 1970 */
     char device[48];
+    bool painted;            /* the hub paints the cover's colours behind it (plan.md M27) */
 } desk_playing_t;
 
 #define DESK_FAVOURITES 4

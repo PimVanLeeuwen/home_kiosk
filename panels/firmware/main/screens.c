@@ -379,6 +379,10 @@ void screens_start(void)
     backdrops_attach(screens[DAY], "day");
     backdrops_attach(screens[AGENDA], "agenda");
     backdrops_attach(screens[HEADLINES], "headlines");
+    backdrops_attach(screens[AIR], "air");
+    backdrops_attach(screens[APPLE], "apple");
+    backdrops_attach(screens[PLAYING], "playing");
+    backdrops_attach(screens[LAUNDRY], "laundry");
     screen_headlines_create(screens[HEADLINES]);
     screen_playing_create(screens[PLAYING]);
     screen_lights_create(screens[LIGHTS]);

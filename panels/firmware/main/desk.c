@@ -409,6 +409,7 @@ static void parse_playing(const cJSON *screen, desk_playing_t *now)
     now->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
     const cJSON *cover = cJSON_GetObjectItem(screen, "cover");
     now->has_cover = now->present && cJSON_IsString(cover);
+    now->painted = cJSON_IsString(cJSON_GetObjectItem(screen, "background"));
     pictures_want(PICTURE_PLAYING, now->has_cover ? cover->valuestring : "");
     if (!now->present) {
         return;

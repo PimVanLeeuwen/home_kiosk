@@ -1350,6 +1350,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   is drawn into a layer every frame, and what a moving object uncovers is redrawn, so the
   rings grow by their real size and only to 450: 30 frames a second (6 before). A painter
   change bumps `desk_backgrounds.VERSION`, or the stored pictures stay.
+- Step 3, the Home panel, done 2026-10-25. Now Playing: the cover's own colours, blurred and
+  saturated, wash the screen (from the hub's stored cover); the panel's own light steps
+  aside, the progress glows. Lights: drawn on the panel, not by the hub, so a tap changes the
+  light at once: each lit group throws a pool of its white behind its tile, larger the
+  brighter, and the tiles are glass. Air: a glow round the ring in the colour of the air;
+  motes drift while it shows. Laundry: the one machine that is on alone and large, its words
+  beside it, the other as one glass line (both side by side only when both are on); a chrome
+  rim from the hub, a highlight on the glass, bubbles rising while it runs (12.5 a second
+  through the door's clip). Apple devices: the rooms that play lit from within, the others
+  glass.
 - Not chosen: T a calendar week, U Paperless's new documents on Home or in the digest, V a live
   preview per panel in Settings, X picking each panel's screens in Settings.
 

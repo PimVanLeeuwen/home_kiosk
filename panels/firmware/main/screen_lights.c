@@ -5,7 +5,11 @@
  * A tap on a tile switches its group; holding it opens a sheet with a slider
  * for its brightness; a tap on a white sets it. Every change goes to the hub
  * from actions.c (with the board's key) and shows at once; the hub's answer
- * then shows what the bridge really did. */
+ * then shows what the bridge really did.
+ *
+ * Lifted (plan.md M27): each lit group throws a pool of its own light behind its tile,
+ * larger the brighter it is, and the tiles are glass over it. Drawn here, not by the hub,
+ * so a tap changes the light at once. */
 
 #include "screen_lights.h"
 
@@ -33,7 +37,7 @@ LV_IMAGE_DECLARE(glow_round);
 
 static lv_obj_t *title, *count, *whites_label, *whites_row, *room_button, *room_label;
 static struct {
-    lv_obj_t *tile, *glow, *name, *line, *dot;
+    lv_obj_t *tile, *glow, *pool, *name, *line, *dot;
 } tiles[DESK_LIGHT_GROUPS];
 static lv_obj_t *whites[DESK_WHITES];
 static lv_obj_t *sheet, *sheet_name, *sheet_value, *slider;
@@ -47,6 +51,12 @@ static void paint_tile(int i)
     bool on = shown.groups[i].on;
     uint32_t tone = shown.groups[i].tone;
     lv_obj_set_style_bg_color(tiles[i].tile, lv_color_hex(on ? 0x221f1c : 0x141318), 0);
+    lv_obj_set_style_bg_opa(tiles[i].tile, on ? 150 : LV_OPA_COVER, 0); /* glass while lit */
+    int bright = shown.groups[i].brightness < 1 ? 1 : shown.groups[i].brightness;
+    lv_image_set_scale(tiles[i].pool, 256 * 2 + 256 * 2 * bright / 100);
+    lv_obj_set_style_image_recolor(tiles[i].pool, lv_color_hex(tone), 0);
+    lv_obj_set_style_image_opa(tiles[i].pool, (lv_opa_t)(90 + bright * 110 / 100), 0);
+    lv_obj_set_flag(tiles[i].pool, LV_OBJ_FLAG_HIDDEN, !on || lv_obj_has_flag(tiles[i].tile, LV_OBJ_FLAG_HIDDEN));
     lv_obj_set_style_border_color(tiles[i].tile, lv_color_hex(on ? tone : 0xffffff), 0);
     lv_obj_set_style_border_opa(tiles[i].tile, on ? 110 : 30, 0);
     lv_obj_set_style_image_recolor(tiles[i].glow, lv_color_hex(tone), 0);
@@ -87,6 +97,7 @@ static void paint(void)
     lv_label_set_text(count, caps);
     for (int i = 0; i < DESK_LIGHT_GROUPS; i++) {
         lv_obj_set_flag(tiles[i].tile, LV_OBJ_FLAG_HIDDEN, i >= shown.group_count);
+        lv_obj_add_flag(tiles[i].pool, LV_OBJ_FLAG_HIDDEN); /* paint_tile lights it again */
         if (i < shown.group_count) {
             paint_tile(i);
         }
@@ -218,6 +229,18 @@ void screen_lights_create(lv_obj_t *screen)
 
     /* Up to four tiles, two side by side. */
     int tile_width = (WIDTH - TILE_GAP) / 2;
+    for (int i = 0; i < DESK_LIGHT_GROUPS; i++) {
+        /* The pool of light, under every tile (made first, so it lies under them). */
+        int x = LEFT + (i % 2) * (tile_width + TILE_GAP) + tile_width / 2;
+        int y = TILE_TOP + (i / 2) * (TILE_HEIGHT + TILE_GAP) + (i < 2 ? TILE_HEIGHT : TILE_HEIGHT / 2) / 2;
+        tiles[i].pool = lv_image_create(screen);
+        lv_image_set_src(tiles[i].pool, &glow_round);
+        lv_image_set_pivot(tiles[i].pool, 80, 80);
+        lv_obj_set_pos(tiles[i].pool, x - 80, y - 80);
+        lv_obj_set_style_image_recolor_opa(tiles[i].pool, LV_OPA_COVER, 0);
+        lv_obj_remove_flag(tiles[i].pool, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_flag(tiles[i].pool, LV_OBJ_FLAG_HIDDEN);
+    }
     for (int i = 0; i < DESK_LIGHT_GROUPS; i++) {
         lv_obj_t *tile = tiles[i].tile = ui_plain(screen);
         lv_obj_set_size(tile, tile_width, i < 2 ? TILE_HEIGHT : TILE_HEIGHT / 2);

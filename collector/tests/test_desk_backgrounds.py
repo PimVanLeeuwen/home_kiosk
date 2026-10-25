@@ -8,7 +8,15 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from app import desk_backgrounds, main, paint_agenda, paint_clock, paint_headlines
+from app import (
+    desk_backgrounds,
+    main,
+    paint_agenda,
+    paint_apple,
+    paint_clock,
+    paint_headlines,
+    paint_laundry,
+)
 
 LOCAL = datetime(2026, 10, 25, 17, 44, tzinfo=ZoneInfo("Europe/Amsterdam"))
 
@@ -141,3 +149,53 @@ def test_headlines_paint_the_lead_picture_with_its_glass(store, monkeypatch):
     # Its picture gone from the hub: nothing to paint, so nothing to serve.
     gone = attached(store, screen("a3")).rsplit("/", 1)[1]
     assert desk_backgrounds.picture(store, gone) is None
+
+
+def machine(name, state):
+    return {"name": name, "state": state, "colour": "#3fb97f" if state == "done" else "#9c8ffb"}
+
+
+def test_laundry_shows_the_one_machine_that_is_on_alone():
+    assert paint_laundry.layout([machine("Washer", "running"), machine("Dryer", "idle")]) == 0
+    assert paint_laundry.layout([machine("Washer", "idle"), machine("Dryer", "done")]) == 1
+    assert paint_laundry.layout([machine("Washer", "running"), machine("Dryer", "done")]) == -1
+    assert paint_laundry.layout([machine("Washer", "running")]) == 0
+    one = paint_laundry.inputs({"present": True, "machines": [machine("Washer", "running"),
+                                                               machine("Dryer", "idle")]}, LOCAL)
+    assert one == {"which": 0, "count": 2, "colours": [paint_laundry.RUNNING]}
+    assert paint_laundry.paint_laundry(one).size == (720, 720)
+    both = paint_laundry.inputs({"present": True, "machines": [machine("Washer", "running"),
+                                                                machine("Dryer", "done")]}, LOCAL)
+    assert both["which"] == -1 and both["colours"] == [paint_laundry.RUNNING, "#3fb97f"]
+    assert paint_laundry.paint_laundry(both).size == (720, 720)
+
+
+def test_air_and_apple_glow_only_with_what_changes(store):
+    air = {"kind": "air", "stale": False, "present": True, "colour": "#3fb97f", "co2": 600}
+    first = attached(store, air)
+    assert attached(store, {**air, "co2": 640}) == first
+    assert attached(store, {**air, "colour": "#e0a23b"}) != first
+    rooms = [{"name": "Living room", "glow": "#5aa9ff"}, {"name": "Bedroom", "glow": None}]
+    apple = paint_apple.inputs({"present": True, "rooms": rooms}, LOCAL)
+    assert apple == {"count": 2, "glows": ["#5aa9ff", None]}
+    assert paint_apple.paint_apple(apple).size == (720, 720)
+
+
+def test_now_playing_washes_in_its_covers_colours(store):
+    from app.sources import spotify
+    spotify.ensure_tables(store)
+    out = io.BytesIO()
+    Image.new("RGB", (300, 300), (220, 60, 120)).save(out, "WEBP")
+    with store.connect() as conn:
+        conn.execute("INSERT INTO music_cover (key, url, image) VALUES ('c1', 'u', ?)",
+                     (out.getvalue(),))
+    screen = {"kind": "playing", "stale": False, "present": True,
+              "cover": "/api/desk/cover/c1/big"}
+
+    key = attached(store, screen).rsplit("/", 1)[1]
+
+    with Image.open(io.BytesIO(desk_backgrounds.picture(store, key))) as image:
+        r, g, b = image.getpixel((360, 120))
+        assert r > g and r > 40  # the cover's red, washed over the top
+    nothing = {"kind": "playing", "stale": False, "present": False}
+    assert attached(store, nothing) is None

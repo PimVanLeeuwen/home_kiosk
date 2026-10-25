@@ -6,7 +6,10 @@
  * and colours come from the hub (app/desk_home.py, air_screen).
  *
  * The curve is painted straight into a canvas when the hub's answer changes:
- * a hundred small shapes in one LVGL layer would stall its task queue. */
+ * a hundred small shapes in one LVGL layer would stall its task queue.
+ *
+ * Lifted (plan.md M27): the hub paints a glow round the ring in the colour of the air
+ * (app/paint_air.py), and a few motes drift slowly through the room while it shows. */
 
 #include "screen_air.h"
 
@@ -16,6 +19,7 @@
 
 #include "desk.h"
 #include "esp_attr.h"
+#include "esp_random.h"
 #include "lvgl.h"
 #include "arrive.h"
 #include "ui.h"
@@ -37,7 +41,11 @@ LV_IMAGE_DECLARE(glow_sky);
 #define CHART_WIDTH (720 - 2 * LEFT)
 #define CURVE_LOW 350    /* ppm at the canvas's bottom and top */
 #define CURVE_HIGH 1600
+#define MOTES 14
+#define MOTE_MS 66      /* about 15 steps a second: they drift slowly */
 
+static lv_obj_t *self, *motes[MOTES];
+static float mote_x[MOTES], mote_y[MOTES], mote_phase[MOTES];
 static lv_obj_t *ring, *canvas, *header, *outside, *temperature, *humidity, *dust, *quality, *co2, *unit,
     *word, *axis_start, *axis_end;
 EXT_RAM_BSS_ATTR static desk_air_t shown; /* off the LVGL task's small stack */
@@ -183,9 +191,41 @@ static void tick(lv_timer_t *timer)
     draw_curve();
 }
 
+/* The motes drift up and to the right, swaying, and come round again; only while the
+ * screen shows (small, so each step redraws little). */
+static void drift(lv_timer_t *timer)
+{
+    if (lv_screen_active() != self) {
+        return;
+    }
+    for (int i = 0; i < MOTES; i++) {
+        mote_phase[i] += 0.035f;
+        mote_x[i] += 0.35f + 0.25f * sinf(mote_phase[i]);
+        mote_y[i] -= 0.22f + 0.04f * (i % 4);
+        if (mote_x[i] > 724 || mote_y[i] < -4) {
+            mote_x[i] = (float)(esp_random() % 700);
+            mote_y[i] = 724;
+        }
+        lv_obj_set_pos(motes[i], (int32_t)mote_x[i], (int32_t)mote_y[i]);
+    }
+}
+
 void screen_air_create(lv_obj_t *screen)
 {
+    self = screen;
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
+
+    for (int i = 0; i < MOTES; i++) {
+        motes[i] = ui_plain(screen);
+        int size = 3 + i % 3;
+        lv_obj_set_size(motes[i], size, size);
+        lv_obj_set_style_radius(motes[i], LV_RADIUS_CIRCLE, 0);
+        lv_obj_set_style_bg_color(motes[i], lv_color_hex(0xd8f5e6), 0);
+        lv_obj_set_style_bg_opa(motes[i], (lv_opa_t)(50 + (i * 37) % 90), 0);
+        mote_x[i] = (float)(esp_random() % 720), mote_y[i] = (float)(esp_random() % 720);
+        mote_phase[i] = (float)(esp_random() % 628) / 100;
+    }
+    lv_timer_create(drift, MOTE_MS, NULL);
 
     /* The room's warm light from the top, as the Home panel's other screens. */
     lv_obj_t *sky = lv_image_create(screen);

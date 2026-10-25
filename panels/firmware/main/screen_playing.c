@@ -2,7 +2,10 @@
  * cover with a record behind it, the title and artist, how far it is, and the
  * controls; the screen is lit in the cover's colour. The values come from the
  * hub (app/desk_home.py), the cover from pictures.c; the progress moves on with
- * the panel's own clock between the hub's answers. */
+ * the panel's own clock between the hub's answers.
+ *
+ * Lifted (plan.md M27): the hub paints the cover's own colours over the whole screen
+ * (app/paint_playing.py); its light and halo then step aside here, and the progress glows. */
 
 #include "screen_playing.h"
 
@@ -93,6 +96,8 @@ static void tick(lv_timer_t *timer)
             lv_obj_set_flag(lv_obj_get_parent(label_device), LV_OBJ_FLAG_HIDDEN, shown.device[0] == '\0');
             lv_obj_set_style_image_recolor(sky, lv_color_hex(shown.colour), 0);
             lv_obj_set_style_image_recolor(halo, lv_color_hex(shown.colour), 0);
+            lv_obj_set_flag(sky, LV_OBJ_FLAG_HIDDEN, shown.painted);
+            lv_obj_set_flag(halo, LV_OBJ_FLAG_HIDDEN, shown.painted);
             lv_obj_set_style_bg_color(cover, lv_color_hex(shown.colour), 0);
             lv_obj_set_style_bg_color(record_label, lv_color_hex(shown.colour), 0);
             icon_set(play_icon, shown.playing ? ICON_PAUSE : ICON_PLAY);
@@ -202,6 +207,9 @@ void screen_playing_create(lv_obj_t *screen)
     lv_obj_set_style_bg_color(progress, lv_color_white(), LV_PART_INDICATOR);
     lv_obj_set_style_radius(progress, 4, LV_PART_MAIN);
     lv_obj_set_style_radius(progress, 4, LV_PART_INDICATOR);
+    lv_obj_set_style_shadow_width(progress, 16, LV_PART_INDICATOR);
+    lv_obj_set_style_shadow_color(progress, lv_color_white(), LV_PART_INDICATOR);
+    lv_obj_set_style_shadow_opa(progress, 110, LV_PART_INDICATOR);
     elapsed = ui_text(screen, &instrument_24, 0xb4b1c2);
     lv_obj_set_pos(elapsed, LEFT, 538);
     length = ui_text(screen, &instrument_24, 0xb4b1c2);

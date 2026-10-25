@@ -19,11 +19,21 @@ from typing import Any
 
 from PIL import Image
 
-from . import paint, paint_agenda, paint_clock, paint_day, paint_headlines
+from . import (
+    paint,
+    paint_agenda,
+    paint_air,
+    paint_apple,
+    paint_clock,
+    paint_day,
+    paint_headlines,
+    paint_laundry,
+    paint_playing,
+)
 from .store import Store
 
 # Bumped when a painter changes, so every background is painted again.
-VERSION = 3
+VERSION = 4
 KEEP = 6  # per kind: what the panels may still ask for
 PATH = "/api/desk/background/"
 
@@ -46,6 +56,10 @@ PAINTERS: dict[str, tuple[Inputs, Painter]] = {
     "day": (paint_day.inputs, paint_day.paint_day),
     "agenda": (paint_agenda.inputs, paint_agenda.paint_agenda),
     "headlines": (paint_headlines.inputs, paint_headlines.paint_headlines),
+    "air": (paint_air.inputs, paint_air.paint_air),
+    "apple": (paint_apple.inputs, paint_apple.paint_apple),
+    "playing": (paint_playing.inputs, paint_playing.paint_playing),
+    "laundry": (paint_laundry.inputs, paint_laundry.paint_laundry),
 }
 
 

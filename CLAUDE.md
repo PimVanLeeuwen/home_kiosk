@@ -235,6 +235,12 @@ python3 dashboard/serve.py
   `panels/firmware/components/esp_driver_ppa` until the IDF in use has Espressif's fix. After
   adding or removing a project component, run `idf.py reconfigure`, or an existing build keeps
   the old one.
+- LVGL on the panels: a `transform_scale` (or rotation) draws the object into a layer every
+  frame, and whatever a moving object uncovers is redrawn. Grow shapes by their real size, keep
+  them small, and draw big still lights once into a canvas (the takeover went from 6 to 30
+  frames a second).
+- A change to a background painter (`app/paint_*.py`) must bump `desk_backgrounds.VERSION`, or
+  the hub keeps serving the pictures it already painted.
 - Pillow's `Image.radial_gradient` reaches 181 halfway along an edge, not 255: scale by 181
   (`app/paint.py`), or glows end in a square.
 - To try a panel change against new hub code before it is deployed: build a copy of
