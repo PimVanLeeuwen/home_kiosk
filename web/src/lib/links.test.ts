@@ -61,8 +61,15 @@ describe('serviceHref', () => {
     )
   })
 
-  it('keeps plain HTTP for services that are not served', () => {
+  it('keeps plain HTTP for services that are not served, on the Tailscale IP, as ts.net always upgrades to HTTPS', () => {
     expect(serviceHref({ port: 8989, path: '/' }, 'dev-minotaur.tail1234.ts.net', SERVED)).toBe(
+      `http://${HOSTS.tailscale!.ip}:8989/`,
+    )
+    // Opened on the IP already: it stays.
+    expect(serviceHref({ port: 8989, path: '/' }, '100.70.0.10', SERVED)).toBe('http://100.70.0.10:8989/')
+    // Without a known IP there is nothing better than the name.
+    const noIp: Hosts = { ...SERVED, tailscale: { ...SERVED.tailscale!, ip: null } }
+    expect(serviceHref({ port: 8989, path: '/' }, 'dev-minotaur.tail1234.ts.net', noIp)).toBe(
       'http://dev-minotaur.tail1234.ts.net:8989/',
     )
   })

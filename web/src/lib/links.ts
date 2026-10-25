@@ -25,7 +25,10 @@ export function serviceUrl(service: Pick<Service, 'port' | 'path' | 'url'>, host
 /**
  * The link for a service. On Tailscale, a service published with `tailscale
  * serve` gets its HTTPS address on the tailnet name; everything else keeps the
- * plain HTTP link on the host the hub was opened on.
+ * plain HTTP link on the host the hub was opened on. Except on the tailnet
+ * name itself: browsers upgrade every `*.ts.net` address to HTTPS (the domain
+ * is HSTS-preloaded), so a plain link there can never open. Those go to the
+ * NAS's Tailscale IP instead.
  */
 export function serviceHref(
   service: Pick<Service, 'port' | 'path' | 'url'>,
@@ -40,5 +43,6 @@ export function serviceHref(
     const port = httpsPort === 443 ? '' : `:${httpsPort}`
     return `https://${tailnet.dns_name}${port}${path}`
   }
+  if (pageHost.toLowerCase().endsWith('.ts.net') && tailnet?.ip) return serviceUrl(service, tailnet.ip)
   return serviceUrl(service, serviceHost(pageHost, hosts))
 }

@@ -1088,6 +1088,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   stops answering (every device then falls back to Quad9 unfiltered).
 - Steps: the nas-docker stack, tested from one device with its DNS set by hand; then the router
   switch; then the hub's tile and health check.
+- Built 2026-10-25 (nas-docker `adguard/`): `adguard/adguardhome:latest` as user 1000 (UGOS
+  folders refuse a root container; Docker lets the container's user listen on 53), DNS on 53,
+  the admin page on 8053 (18053 over Tailscale HTTPS), the first start's wizard on 3053;
+  upstream Quad9 over DoH. Tested with `dig` over Tailscale before the router switch.
 
 **M25. Command palette** (added 2026-10-23)
 - ⌘K (Ctrl-K) opens a search box over any page; on the phone a search button in the page header.
