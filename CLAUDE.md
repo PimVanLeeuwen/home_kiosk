@@ -151,6 +151,13 @@ python3 dashboard/serve.py
 - 2026-10-25: AI through the official `anthropic` Python SDK; every call goes through
   `app/ai.py`'s `ask()` (feature switch, answer cache by input hash, the monthly cap counted in
   dollars); the Watchtower report waits for the update notes and goes out once. plan.md M26.
+- 2026-10-25: each AI feature is off until switched on in Settings, AI. Pinned images: every
+  exact version pin with a GitHub source label is checked daily, and Telegram hears only of a
+  breaking release. Morning digest: weekdays 06:30, sent through quiet hours, on Home (live,
+  after the train) and as the Now panel's Briefing screen until 09:00. Grouped headlines
+  replace the headlines on News and the panel; Claude groups and summarises, the hub ranks
+  (most feeds, then newest). Alert explainer: container alerts only, as a Telegram reply to the
+  alert, with Sonnet's server-side fallback on. plan.md M26.
 
 ## Gotchas
 
