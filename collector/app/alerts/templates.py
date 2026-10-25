@@ -362,6 +362,18 @@ CATALOG: dict[str, Template] = {
          "failed": ("One line per failed container", [
              {"name": "bazarr", "error": "pull access denied"}])},
         {"updated": Block("watchtower_updated"), "failed": Block("watchtower_failed")}),
+    "pinned_breaking": _msg(
+        NAS, "Pinned image: breaking changes",
+        "A newer release of an image pinned to its version needs care before updating (AI).",
+        "<b>{level}</b> · <b>{app}: read before updating to {latest}</b>\n"
+        "You run {current}.\n<i>{note}</i>\n{url}", "updates", "warning",
+        {"app": ("The app", "immich"), "current": ("The pinned version", "v3.3.1"),
+         "latest": ("The newest release", "v3.4.0"),
+         "note": ("What to do, from the release notes (AI)",
+                  "v3.4.0 moves the machine-learning settings into the admin page; set them "
+                  "again after updating."),
+         "url": ("The newest release's page",
+                 "https://github.com/immich-app/immich/releases/tag/v3.4.0")}),
     "watchtower_updated": _line(
         NAS, "Watchtower: updated line", "One line per updated container.",
         "Updated {name} ({image})\n{versions}\n<i>{note}</i>", "watchtower",

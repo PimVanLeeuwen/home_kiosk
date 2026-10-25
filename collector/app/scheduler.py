@@ -14,6 +14,7 @@ from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from . import pinned
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
 from .news import headlines
@@ -486,6 +487,20 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             max_instances=1,
             coalesce=True,
         )
+
+    # Pinned images: a warning before an update that breaks (M26, with update notes).
+    hour, minute = (int(part) for part in pinned.CHECK_AT.split(":"))
+    scheduler.add_job(
+        _run,
+        "cron",
+        hour=hour,
+        minute=minute,
+        args=[store, pinned.CACHE_KEY, lambda: pinned.collect(cfg, store)],
+        id="pinned",
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=3600,
+    )
 
     # A consistent copy of the hub's own database for the 03:00 Hetzner backup.
     hour, minute = (int(part) for part in db_copy.settings(cfg)["at"].split(":"))

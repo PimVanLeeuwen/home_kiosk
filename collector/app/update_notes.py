@@ -73,7 +73,7 @@ def github_repo(source: str | None) -> str | None:
     return f"{match.group(1)}/{match.group(2)}" if match else None
 
 
-def _norm(version: str) -> str:
+def norm(version: str) -> str:
     return version.strip().lower().removeprefix("v")
 
 
@@ -101,32 +101,41 @@ async def changes(cfg: dict[str, Any], store: Store, names: list[str], now: date
     return found
 
 
+async def fetch_releases(client: httpx.AsyncClient, repo: str,
+                         token: str = "") -> list[dict[str, Any]]:
+    """A repo's last 30 releases on GitHub, newest first, without drafts."""
+    headers = {"Accept": "application/vnd.github+json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    resp = await client.get(f"https://api.github.com/repos/{repo}/releases",
+                            params={"per_page": 30}, headers=headers)
+    resp.raise_for_status()
+    return [r for r in resp.json() if isinstance(r, dict) and not r.get("draft")]
+
+
+def as_text(releases: list[dict[str, Any]]) -> str:
+    text = "\n\n".join(f"## {r.get('tag_name')}\n{(r.get('body') or '').strip()[:RELEASE_CHARS]}"
+                       for r in releases)
+    return text[:NOTES_CHARS]
+
+
 async def release_notes(client: httpx.AsyncClient, change: Change,
                         token: str = "") -> str | None:
     """The releases after the old version up to the new one, newest first."""
     if not change.repo or not change.new:
         return None
-    headers = {"Accept": "application/vnd.github+json"}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    resp = await client.get(f"https://api.github.com/repos/{change.repo}/releases",
-                            params={"per_page": 30}, headers=headers)
-    resp.raise_for_status()
     # Betas and develop builds sit among the tags; only the image's own version may be one.
-    releases = [r for r in resp.json() if isinstance(r, dict) and not r.get("draft")
-                and (not r.get("prerelease")
-                     or _norm(str(r.get("tag_name") or "")) == _norm(change.new))]
-    tags = [_norm(str(r.get("tag_name") or "")) for r in releases]
-    if _norm(change.new) not in tags:
+    releases = [r for r in await fetch_releases(client, change.repo, token)
+                if not r.get("prerelease")
+                or norm(str(r.get("tag_name") or "")) == norm(change.new)]
+    tags = [norm(str(r.get("tag_name") or "")) for r in releases]
+    if norm(change.new) not in tags:
         return None
-    start = tags.index(_norm(change.new))
+    start = tags.index(norm(change.new))
     end = start + 1
-    if change.old and _norm(change.old) in tags[start + 1:]:
-        end = tags.index(_norm(change.old), start + 1)
-    picked = releases[start:min(end, start + MAX_RELEASES)]
-    text = "\n\n".join(f"## {r.get('tag_name')}\n{(r.get('body') or '').strip()[:RELEASE_CHARS]}"
-                       for r in picked)
-    return text[:NOTES_CHARS] or None
+    if change.old and norm(change.old) in tags[start + 1:]:
+        end = tags.index(norm(change.old), start + 1)
+    return as_text(releases[start:min(end, start + MAX_RELEASES)]) or None
 
 
 async def note(cfg: dict[str, Any], store: Store, change: Change, client: httpx.AsyncClient,

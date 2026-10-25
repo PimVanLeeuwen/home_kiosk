@@ -1199,7 +1199,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   The report waits for its notes 180 s at most and goes out once; the Watchtower line template
   gained `{versions}` and `{note}`, and a line left with only empty tags (`<i></i>`) is left
   out like an empty one. Without the switch, or an image without labels, the report is as
-  before. Next: the pinned Immich, a warning when a newer release has breaking changes.
+  before.
+- Step 2b (2026-10-25, decided the same day: every exact pin, a message only when breaking):
+  `collector/app/pinned.py`, daily at 09:00, part of the "Update notes" switch. Every running
+  container whose tag is a full version (`v3.3.1`, `2.2.1`, `3.3.1.0`; not `18-alpine` or `8`)
+  and whose image names its GitHub repo, one per repo (the newest pin; Immich's server, not its
+  machine learning); the releases since (no betas, at most 8). When the newest is one not yet
+  judged, Haiku answers BREAKING or NONE; BREAKING sends one warning (template "Pinned image:
+  breaking changes", category updates) with what to do and the release's page; NONE is
+  silent. Each newest release is judged once (`pinned_judged`). Today: Immich and Uptime Kuma.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26.

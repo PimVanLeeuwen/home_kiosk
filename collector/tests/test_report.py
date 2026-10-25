@@ -105,7 +105,7 @@ def test_scheduler_adds_the_report_unless_disabled(store):
     assert isinstance(jobs["portfolio-report"].trigger, CronTrigger)
     # Startup only kicks the refreshes (main.py), so a restart sends no report.
     assert all(isinstance(j.trigger, IntervalTrigger) for k, j in jobs.items()
-               if k not in ("portfolio-report", "db-copy"))
+               if k not in ("portfolio-report", "db-copy", "pinned"))
 
     off = {**CFG, "portfolio": {"report": {"enabled": False}}}
     assert "portfolio-report" not in {j.id for j in scheduler.build(off, store).get_jobs()}

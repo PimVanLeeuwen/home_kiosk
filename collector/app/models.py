@@ -813,6 +813,20 @@ class DocumentSearch(Envelope):
     results: list[DocumentHit] = []
 
 
+class PinnedImage(BaseModel):
+    """An image pinned to an exact version, and the releases since (pinned.py)."""
+    repo: str  # owner/name on GitHub
+    container: str
+    current: str
+    latest: str | None = None  # the newest release after `current`
+    behind: int = 0  # releases since `current`, betas left out
+    url: str | None = None  # the newest release's page
+
+
+class PinnedImages(Envelope):
+    pins: list[PinnedImage]
+
+
 class DnsHour(BaseModel):
     queries: int
     blocked: int
