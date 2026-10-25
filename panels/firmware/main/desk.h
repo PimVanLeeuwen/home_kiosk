@@ -225,6 +225,19 @@ typedef struct {
     bool has_last_cover;
 } desk_music_t;
 
+/* The Now panel's Briefing screen: the morning digest's line and four facts, until 09:00
+ * (app/desk_briefing.py). Latin-1 text, as the fonts hold. */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[40];          /* "BRIEFING · THURSDAY" */
+    char line[200];          /* at most 70 characters */
+    int fact_count;
+    char facts[4][72];       /* at most 30 characters each */
+    char as_of[40];          /* "written by Claude at 06:30" */
+} desk_briefing_t;
+
 /* The House panel's Code screen: 16 weeks of contributions, Monday first, and per week. */
 #define DESK_CODE_DAYS 112
 typedef struct {
@@ -668,6 +681,9 @@ bool desk_has_music(void);
 bool desk_has_code(void);
 uint32_t desk_code_version(void);
 desk_code_t desk_code(void);
+bool desk_has_briefing(void);
+uint32_t desk_briefing_version(void);
+desk_briefing_t desk_briefing(void);
 bool desk_has_sites(void);
 uint32_t desk_sites_version(void);
 void desk_sites_copy(desk_sites_t *into);

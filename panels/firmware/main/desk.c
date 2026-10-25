@@ -4,6 +4,7 @@
  * is set from it whenever it is off by more than a second. */
 
 #include "desk.h"
+#include "desk_briefing.h"
 #include "desk_code.h"
 #include "desk_movers.h"
 #include "desk_services.h"
@@ -52,6 +53,7 @@ EXT_RAM_BSS_ATTR static desk_music_t music_state;
 EXT_RAM_BSS_ATTR static desk_laundry_t laundry_state;
 EXT_RAM_BSS_ATTR static desk_air_t air_state;
 EXT_RAM_BSS_ATTR static desk_code_t code_state;
+EXT_RAM_BSS_ATTR static desk_briefing_t briefing_state;
 EXT_RAM_BSS_ATTR static desk_sites_t sites_state;
 EXT_RAM_BSS_ATTR static desk_services_t services_state;
 EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet_state;
@@ -257,6 +259,7 @@ GETTERS(music, desk_music_t, music_state)
 GETTERS(laundry, desk_laundry_t, laundry_state)
 GETTERS(air, desk_air_t, air_state)
 GETTERS(code, desk_code_t, code_state)
+GETTERS(briefing, desk_briefing_t, briefing_state)
 
 /* As GETTERS, but copying into the caller's buffer: for states too big for a stack. */
 #define COPIERS(kind, type, state)                         \
@@ -800,6 +803,7 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_laundry_t laundry;
     EXT_RAM_BSS_ATTR static desk_air_t air;
     EXT_RAM_BSS_ATTR static desk_code_t code;
+    EXT_RAM_BSS_ATTR static desk_briefing_t briefing;
     EXT_RAM_BSS_ATTR static desk_sites_t sites;
     EXT_RAM_BSS_ATTR static desk_services_t services;
     EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet;
@@ -822,6 +826,7 @@ static void apply(const char *body)
     memset(&laundry, 0, sizeof laundry);
     memset(&air, 0, sizeof air);
     memset(&code, 0, sizeof code);
+    memset(&briefing, 0, sizeof briefing);
     memset(&sites, 0, sizeof sites);
     memset(&services, 0, sizeof services);
     memset(&tailnet, 0, sizeof tailnet);
@@ -862,6 +867,10 @@ static void apply(const char *body)
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "code") == 0) {
             desk_parse_code(screen, &code);
+            continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "briefing") == 0) {
+            desk_parse_briefing(screen, &briefing);
             continue;
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "sites") == 0) {
@@ -1027,6 +1036,8 @@ static void apply(const char *body)
     air_state = air;
     code.version = code_state.version + 1;
     code_state = code;
+    briefing.version = briefing_state.version + 1;
+    briefing_state = briefing;
     sites.version = sites_state.version + 1;
     sites_state = sites;
     services.version = services_state.version + 1;

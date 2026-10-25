@@ -37,6 +37,7 @@
 #include "screen_alerts.h"
 #include "screen_backups.h"
 #include "screen_board.h"
+#include "screen_briefing.h"
 #include "screen_clock.h"
 #include "screen_day.h"
 #include "screen_headlines.h"
@@ -66,7 +67,7 @@ LV_FONT_DECLARE(instrument_24);
 #define DIM_MS 250
 #define DARKEN 165 /* how much the dark layer takes away, of 255 */
 
-enum { CLOCK, TRAIN, AGENDA, DAY, HEADLINES, PLAYING, LIGHTS, AIR, LAUNDRY, APPLE, MUSIC, PIPELINE, PIPELINES,
+enum { CLOCK, BRIEFING, TRAIN, AGENDA, DAY, HEADLINES, PLAYING, LIGHTS, AIR, LAUNDRY, APPLE, MUSIC, PIPELINE, PIPELINES,
        NAS, CODE, SITES, SERVICES, TAILNET, MONEY, MOVERS, MEDIA, BACKUPS, ALERTS, BOARD, START, COUNT };
 
 static lv_obj_t *screens[COUNT];
@@ -89,6 +90,8 @@ static bool ready(int which)
         return !desk_clock().present;
     case CLOCK:
         return desk_clock().listed;
+    case BRIEFING:
+        return desk_has_briefing();
     case TRAIN:
         return desk_has_train();
     case AGENDA:
@@ -353,6 +356,7 @@ void screens_start(void)
     screens[PIPELINES] = lv_obj_create(NULL);
     screens[NAS] = lv_obj_create(NULL);
     screens[CODE] = lv_obj_create(NULL);
+    screens[BRIEFING] = lv_obj_create(NULL);
     screens[SITES] = lv_obj_create(NULL);
     screens[SERVICES] = lv_obj_create(NULL);
     screens[TAILNET] = lv_obj_create(NULL);
@@ -363,6 +367,7 @@ void screens_start(void)
     screens[ALERTS] = lv_obj_create(NULL);
     screens[BOARD] = lv_obj_create(NULL);
     screen_clock_create(screens[CLOCK]);
+    screen_briefing_create(screens[BRIEFING]);
     screen_train_create(screens[TRAIN]);
     screen_agenda_create(screens[AGENDA]);
     screen_day_create(screens[DAY]);

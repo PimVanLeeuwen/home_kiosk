@@ -146,7 +146,8 @@ def test_a_tap_saves_the_story_once_with_the_boards_key(client, monkeypatch):
     assert panel.post("/api/desk/save", json={"article_id": LEAD_ID}).json() == {"saved": True}
     assert panel.post("/api/desk/save", json={"article_id": LEAD_ID}).status_code == 200
     assert len(calls) == 1
-    stories = client.get(f"/api/desk/board/{MAC}").json()["screens"][4]["stories"]
+    screens = client.get(f"/api/desk/board/{MAC}").json()["screens"]
+    stories = next(s for s in screens if s["kind"] == "headlines")["stories"]
     assert [s["saved"] for s in stories] == [True, False, False]
 
     assert panel.post("/api/desk/save", json={"article_id": "ffffffffffffffff"}).status_code == 404

@@ -1218,7 +1218,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the rest is `/api/briefing`, shown until 09:00. On Home a Briefing card, live while shown,
   so it leads the morning right after the train (never the hero). Settings, AI: "Write one
   now" (`POST /api/ai/briefing/now`), which also sends it. `ai.ask` takes a JSON schema.
-  Next, step 3b: the Briefing screen on the Now panel.
+  Step 3b (2026-10-25): the Briefing screen on the Now panel, right after the clock, until
+  09:00 on the digest's day (hub `desk_briefing.py`, text in Latin-1 for the fonts; firmware
+  `screen_briefing.c` and `desk_briefing.c`): the line in large type (three lines at most,
+  cut with "..."), the four facts as rows with a violet dot, and "written by Claude at
+  06:30". Built 2026-10-25; to be flashed onto the Now panel.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26.

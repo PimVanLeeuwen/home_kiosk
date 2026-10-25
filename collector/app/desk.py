@@ -16,6 +16,7 @@ from zoneinfo import ZoneInfo
 from .desk_agenda import agenda_screen
 from .desk_alerts import alerts_screen, takeover
 from .desk_backups import backups_screen
+from .desk_briefing import briefing_screen
 from .desk_clock import clock_screen
 from .desk_code import code_screen
 from .desk_headlines import headlines_screen
@@ -115,7 +116,7 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     return headlines_screen(store, now)
 
 
-NOW = (clock_screen, train_screen, agenda_screen, day_screen, _headlines)
+NOW = (clock_screen, briefing_screen, train_screen, agenda_screen, day_screen, _headlines)
 HOME = (lights_screen, air_screen, laundry_screen, apple_screen)
 # Decided 2026-10-22: NAS first and Backups before Alerts, as in the mockup.
 HOUSE = (nas_screen, code_screen, sites_screen, services_screen, tailnet_screen, money_screen,
