@@ -1,7 +1,7 @@
-import { act, fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { RECENT_KEY, shortcutLabel } from '../lib/palette'
 import { renderRoute } from '../test/renderRoute'
-import { stubApi } from '../test/stubApi'
+import { failWith, stubApi } from '../test/stubApi'
 
 const palette = () => document.querySelector<HTMLDialogElement>('dialog[aria-label="Search the hub"]')!
 const field = () => screen.getByRole('combobox', { name: 'Search', hidden: true })
@@ -22,7 +22,7 @@ describe('CommandPalette', () => {
 
     openWithKeys()
     expect(palette().open).toBe(true)
-    expect(screen.getByRole('option', { name: /^Home/, hidden: true })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('option', { name: /^Lights on/, hidden: true })).toHaveAttribute('aria-selected', 'true')
 
     act(() => {
       fireEvent.keyDown(window, { key: 'K', metaKey: true })
@@ -104,5 +104,32 @@ describe('CommandPalette', () => {
 
     expect(open).toHaveBeenCalledWith(expect.stringMatching(/:8096\/$/), '_blank', 'noopener,noreferrer')
     expect(palette().open).toBe(false)
+  })
+
+  it('runs an action, says it worked and then closes', async () => {
+    const fetchMock = stubApi({ 'POST /api/lights/room': { groups: [] } })
+    renderRoute('/')
+    openWithKeys()
+
+    fireEvent.change(field(), { target: { value: 'lights off' } })
+    fireEvent.keyDown(field(), { key: 'Enter' })
+
+    expect(await screen.findByText('The living room lights are off.')).toBeInTheDocument()
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!
+    expect(post[0]).toBe('/api/lights/room')
+    expect(JSON.parse(String(post[1]!.body))).toEqual({ on: false })
+    await waitFor(() => expect(palette().open).toBe(false))
+  })
+
+  it('stays open with the hub’s reason when an action fails', async () => {
+    stubApi({ 'POST /api/music/control/pause': failWith(409, { detail: 'Nothing is playing.' }) })
+    renderRoute('/')
+    openWithKeys()
+
+    fireEvent.change(field(), { target: { value: 'pause' } })
+    fireEvent.keyDown(field(), { key: 'Enter' })
+
+    expect(await screen.findByText('Pause did not work: Nothing is playing.')).toBeInTheDocument()
+    expect(palette().open).toBe(true)
   })
 })

@@ -1,4 +1,4 @@
-import { dataItems, loadRecent, pageItems, RECENT_KEY, saveRecent, search, type PaletteData } from './palette'
+import { dataItems, loadRecent, staticItems, RECENT_KEY, saveRecent, search, type PaletteData } from './palette'
 import type { ContainerLoad, Repo, Service } from './types'
 
 const labels = (rows: ReturnType<typeof search>) => rows.map((r) => r.item.label)
@@ -6,17 +6,18 @@ const labels = (rows: ReturnType<typeof search>) => rows.map((r) => r.item.label
 describe('palette', () => {
   beforeEach(() => localStorage.clear())
 
-  it('lists every page and Settings section, under their headings, without a query', () => {
-    const rows = search(pageItems(), '', [])
+  it('lists the actions, every page and Settings section, under their headings, without a query', () => {
+    const rows = search(staticItems(), '', [])
 
-    expect(rows[0]).toMatchObject({ heading: 'Pages', item: { label: 'Home', to: '/' } })
+    expect(rows[0]).toMatchObject({ heading: 'Actions', item: { label: 'Lights on' } })
+    expect(rows.find((r) => r.heading === 'Pages')!.item).toMatchObject({ label: 'Home', to: '/' })
     const settings = rows.find((r) => r.heading === 'Settings')!
     expect(settings.item).toMatchObject({ label: 'Services', to: '/settings/services' })
-    expect(rows).toHaveLength(pageItems().length)
+    expect(rows).toHaveLength(staticItems().length)
   })
 
   it('puts recent choices first, without listing them twice', () => {
-    const rows = search(pageItems(), '', ['page:/backups', 'settings:feeds'])
+    const rows = search(staticItems(), '', ['page:/backups', 'settings:feeds'])
 
     expect(labels(rows).slice(0, 2)).toEqual(['Backups', 'News feeds'])
     expect(rows[0].heading).toBe('Recent')
@@ -24,17 +25,17 @@ describe('palette', () => {
   })
 
   it('finds by a few letters, best first', () => {
-    expect(labels(search(pageItems(), 'bk', []))[0]).toBe('Backups')
-    expect(labels(search(pageItems(), 'desk', []))[0]).toBe('Desk panels')
-    expect(search(pageItems(), 'zzz', [])).toEqual([])
+    expect(labels(search(staticItems(), 'bk', []))[0]).toBe('Backups')
+    expect(labels(search(staticItems(), 'desk', []))[0]).toBe('Desk panels')
+    expect(search(staticItems(), 'zzz', [])).toEqual([])
   })
 
   it('also matches the description and "settings", the label counting most', () => {
-    expect(labels(search(pageItems(), 'hue', []))).toContain('Lights')
-    const music = search(pageItems(), 'music', [])
+    expect(labels(search(staticItems(), 'hue', []))).toContain('Lights')
+    const music = search(staticItems(), 'music', [])
     expect(labels(music).slice(0, 2)).toEqual(['Music', 'Music'])
     expect(music[0].item.group).toBe('Pages')
-    expect(search(pageItems(), 'settings music', [])[0].item.to).toBe('/settings/music')
+    expect(search(staticItems(), 'settings music', [])[0].item.to).toBe('/settings/music')
   })
 
   it('remembers the last five choices, newest first', () => {
@@ -51,7 +52,7 @@ describe('palette', () => {
 
 describe('palette matching beyond the label', () => {
   it('needs the words typed, not scattered letters, in a description', () => {
-    const found = search(pageItems(), 'set', []).map((r) => r.item.label)
+    const found = search(staticItems(), 'set', []).map((r) => r.item.label)
 
     expect(found).toContain('Settings')
     expect(found).toContain('Desk panels')
@@ -109,12 +110,22 @@ describe('palette data rows', () => {
   })
 
   it('shows data rows only when searching, or as recent', () => {
-    const items = [...pageItems(), ...dataItems(DATA, 'nas')]
+    const items = [...staticItems(), ...dataItems(DATA, 'nas')]
 
     expect(search(items, '', []).some((r) => r.item.searchOnly)).toBe(false)
     expect(search(items, '', ['service:jellyfin'])[0].item.label).toBe('Jellyfin')
     expect(search(items, 'jelly', [])[0].item.id).toBe('service:jellyfin')
     expect(search(items, 'bridge', [])[0].item.id).toBe('container:paperless-bridge')
     expect(search(items, 'kiosk', [])[0].item.id).toBe('repo:someone/home_kiosk')
+  })
+})
+
+describe('palette actions', () => {
+  it('finds an action by its words, and runs it through the hub', () => {
+    expect(search(staticItems(), 'lights off', [])[0].item).toMatchObject({
+      id: 'action:lights-off', action: { path: '/api/lights/room', body: { on: false } },
+    })
+    expect(search(staticItems(), 'pause', [])[0].item.action?.path).toBe('/api/music/control/pause')
+    expect(search(staticItems(), 'skip', [])[0].item.label).toBe('Next track')
   })
 })

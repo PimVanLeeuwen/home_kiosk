@@ -1,4 +1,4 @@
-import { Box, FolderGit2, LayoutGrid, type LucideIcon } from 'lucide-react'
+import { Box, FolderGit2, LayoutGrid, Lightbulb, LightbulbOff, Pause, Play, SkipForward, type LucideIcon } from 'lucide-react'
 import { fold, fuzzyScore } from './fuzzy'
 import { iconUrl } from './icons'
 import { serviceHref } from './links'
@@ -10,7 +10,7 @@ import type { DockerOverview, Hosts, ReposResponse, ServicesResponse } from './t
 export interface PaletteItem {
   /** Stable across visits: recent choices are kept by it. */
   id: string
-  group: 'Pages' | 'Settings' | 'Services' | 'Repos' | 'Containers'
+  group: 'Actions' | 'Pages' | 'Settings' | 'Services' | 'Repos' | 'Containers'
   label: string
   /** A short line beside the label. */
   hint?: string
@@ -24,13 +24,28 @@ export interface PaletteItem {
   href?: string
   /** Data rows (services, repos, containers) only show once something is typed, or as recent. */
   searchOnly?: boolean
+  /** A write through one of the hub's own endpoints, and what to say when it worked. */
+  action?: { path: string; body: unknown; done: string }
 }
+
+/**
+ * The palette's few actions (plan.md M25), through the endpoints the Lights and
+ * Music pages use. Nothing that deletes or imports.
+ */
+export const ACTIONS: PaletteItem[] = [
+  { id: 'action:lights-on', group: 'Actions', label: 'Lights on', hint: 'Living room', keywords: 'hue switch', icon: Lightbulb, action: { path: '/api/lights/room', body: { on: true }, done: 'The living room lights are on.' } },
+  { id: 'action:lights-off', group: 'Actions', label: 'Lights off', hint: 'Living room', keywords: 'hue switch', icon: LightbulbOff, action: { path: '/api/lights/room', body: { on: false }, done: 'The living room lights are off.' } },
+  { id: 'action:play', group: 'Actions', label: 'Play', hint: 'Spotify', keywords: 'music resume', icon: Play, action: { path: '/api/music/control/play', body: {}, done: 'Playing.' } },
+  { id: 'action:pause', group: 'Actions', label: 'Pause', hint: 'Spotify', keywords: 'music stop', icon: Pause, action: { path: '/api/music/control/pause', body: {}, done: 'Paused.' } },
+  { id: 'action:next', group: 'Actions', label: 'Next track', hint: 'Spotify', keywords: 'music skip song', icon: SkipForward, action: { path: '/api/music/control/next', body: {}, done: 'Skipped to the next track.' } },
+]
 
 export const RECENT_KEY = 'hub.palette.recent'
 const RECENT_MAX = 5
 const RESULTS_MAX = 40
 
-export function pageItems(): PaletteItem[] {
+/** The actions, every page and every Settings section: always there, whatever the hub answers. */
+export function staticItems(): PaletteItem[] {
   const pages = NAV_ITEMS.map(
     (item): PaletteItem => ({ id: `page:${item.to}`, group: 'Pages', label: item.label, hint: item.description, icon: item.icon, to: item.to }),
   )
@@ -45,7 +60,7 @@ export function pageItems(): PaletteItem[] {
       to: `/settings/${s.slug}`,
     }),
   )
-  return [...pages, ...settings]
+  return [...ACTIONS, ...pages, ...settings]
 }
 
 export function loadRecent(): string[] {

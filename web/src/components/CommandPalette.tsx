@@ -2,13 +2,16 @@ import { CornerDownLeft, ExternalLink, Search } from 'lucide-react'
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { cn } from '../lib/cn'
-import { getJson } from '../lib/api'
-import { dataItems, loadRecent, pageItems, saveRecent, search, type PaletteData, type PaletteItem } from '../lib/palette'
+import { ApiError, getJson, sendJson } from '../lib/api'
+import { dataItems, loadRecent, staticItems, saveRecent, search, type PaletteData, type PaletteItem } from '../lib/palette'
 
 interface Props {
   open: boolean
   onClose: () => void
 }
+
+/** How long a done action's line stays before the palette closes. */
+const CLOSE_AFTER_MS = 900
 
 const SOURCES = { services: '/api/services', repos: '/api/repos', docker: '/api/docker', hosts: '/api/hosts' } as const
 
@@ -45,8 +48,11 @@ export function CommandPalette({ open, onClose }: Props) {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const [recent, setRecent] = useState<string[]>([])
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
+  const [busy, setBusy] = useState(false)
+  const closing = useRef<number | undefined>(undefined)
   const data = usePaletteData(open)
-  const items = useMemo(() => [...pageItems(), ...dataItems(data, window.location.hostname)], [data])
+  const items = useMemo(() => [...staticItems(), ...dataItems(data, window.location.hostname)], [data])
   const rows = useMemo(() => search(items, query, recent), [items, query, recent])
 
   useEffect(() => {
@@ -55,6 +61,8 @@ export function CommandPalette({ open, onClose }: Props) {
     if (open && !d.open) {
       setQuery('')
       setActive(0)
+      setNotice(null)
+      window.clearTimeout(closing.current)
       setRecent(loadRecent())
       d.showModal()
     } else if (!open && d.open) d.close()
@@ -64,8 +72,25 @@ export function CommandPalette({ open, onClose }: Props) {
     list.current?.querySelector('[aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest' })
   }, [active, rows])
 
+  async function run(item: PaletteItem, action: NonNullable<PaletteItem['action']>) {
+    setBusy(true)
+    setNotice(null)
+    try {
+      await sendJson('POST', action.path, action.body)
+      setNotice({ ok: true, text: action.done })
+      closing.current = window.setTimeout(onClose, CLOSE_AFTER_MS)
+    } catch (err) {
+      setNotice({ ok: false, text: `${item.label} did not work: ${err instanceof ApiError ? err.message : 'the hub did not answer.'}` })
+    } finally {
+      setBusy(false)
+    }
+  }
+
   function choose(item: PaletteItem) {
+    if (busy) return
     saveRecent(item.id)
+    // An action stays open to say how it went; the rest close at once.
+    if (item.action) return void run(item, item.action)
     onClose()
     if (item.href) window.open(item.href, '_blank', 'noopener,noreferrer')
     else if (item.to) navigate(item.to, { viewTransition: true })
@@ -110,9 +135,10 @@ export function CommandPalette({ open, onClose }: Props) {
           onChange={(e) => {
             setQuery(e.target.value)
             setActive(0)
+            setNotice(null)
           }}
           onKeyDown={onKeyDown}
-          placeholder="Search pages, services, repos, containers…"
+          placeholder="Search, or type an action: lights off, pause…"
           // The hub's focus ring (index.css) would box the field in; the open palette is its focus.
           style={{ outline: 'none' }}
           className="min-w-0 flex-1 bg-transparent text-body text-fg placeholder:text-faint"
@@ -120,7 +146,7 @@ export function CommandPalette({ open, onClose }: Props) {
         <kbd className="hidden rounded-[6px] border border-line px-1.5 py-0.5 font-sans text-label text-faint sm:block">Esc</kbd>
       </div>
 
-      <ul ref={list} id={`${id}-list`} role="listbox" aria-label="Results" className="max-h-[min(420px,60vh)] overflow-y-auto p-2">
+      <ul ref={list} id={`${id}-list`} role="listbox" aria-label="Results" aria-busy={busy} className="max-h-[min(420px,60vh)] overflow-y-auto p-2">
         {rows.map(({ item, heading }, i) => (
           <li key={item.id} role="presentation">
             {heading && (
@@ -155,6 +181,11 @@ export function CommandPalette({ open, onClose }: Props) {
           </li>
         ))}
       </ul>
+      {notice && (
+        <p role={notice.ok ? 'status' : 'alert'} className={cn('border-t border-line-soft px-4 py-2.5 text-small', notice.ok ? 'text-up' : 'text-down')}>
+          {notice.text}
+        </p>
+      )}
       {rows.length === 0 && (
         <p role="status" className="px-5 pt-1 pb-6 text-muted">
           Nothing found for “{query.trim()}”.

@@ -1138,6 +1138,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   only while Dozzle is in the catalog). The palette asks `/api/services`, `/api/repos`,
   `/api/docker` and `/api/hosts` each time it opens, not on every page load; these rows show
   once something is typed, or as recent choices.
+- Step 3 (2026-10-25): five actions, first in the empty list after recent choices: lights on and
+  off (the living room, `POST /api/lights/room`), play, pause and next track (`POST
+  /api/music/control/…`); the same writes as the Lights and Music pages, no new ones. The
+  palette says how it went: "done" for a moment and then it closes, or the hub's reason and it
+  stays open.
 
 **M26. AI** (added 2026-10-23; mockup `docs/hub-ai-mockup.html`)
 - The owner's Anthropic API key (NAS-only `.env`) for a few written extras. Every result is made

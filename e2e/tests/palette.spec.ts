@@ -67,3 +67,22 @@ test('the command palette opens a service in a new tab, and a container’s logs
   const [logs] = await Promise.all([context.waitForEvent('page'), palette.getByRole('option', { name: /paperless-bridge/ }).click()])
   expect(logs.url()).toContain(':8081/show?name=paperless-bridge')
 })
+
+test('the command palette runs an action through the hub and says it worked', async ({ page, isMobile }) => {
+  let sent: unknown = null
+  await page.route('**/api/lights/room', (route) => {
+    sent = route.request().postDataJSON()
+    return route.fulfill({ json: { groups: [] } })
+  })
+  await page.goto('/')
+
+  await openPalette(page, isMobile)
+  const palette = page.getByRole('dialog', { name: 'Search the hub' })
+  await expect(palette.getByText('Actions')).toBeVisible()
+  await palette.getByRole('combobox').fill('lights off')
+  await palette.getByRole('combobox').press('Enter')
+
+  await expect(palette.getByText('The living room lights are off.')).toBeVisible()
+  expect(sent).toEqual({ on: false })
+  await expect(palette).toBeHidden()
+})
