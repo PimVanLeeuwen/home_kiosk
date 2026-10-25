@@ -14,7 +14,7 @@ from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from . import pinned
+from . import briefing, pinned
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
 from .news import headlines
@@ -100,6 +100,13 @@ async def _run(store: Store, key: str, job: Callable[[], Awaitable[Any]]) -> Non
     except Exception:
         log.exception("%s refresh failed; serving cached payload as stale", key)
         mark_stale(store, key)
+
+
+async def _briefing(cfg: dict[str, Any], store: Store) -> None:
+    try:
+        await briefing.run(cfg, store)
+    except Exception:
+        log.exception("morning digest failed")
 
 
 def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
@@ -487,6 +494,21 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             max_instances=1,
             coalesce=True,
         )
+
+    # The morning digest (M26): weekdays, written by Claude when switched on.
+    hour, minute = (int(part) for part in briefing.AT.split(":"))
+    scheduler.add_job(
+        _briefing,
+        "cron",
+        day_of_week="mon-fri",
+        hour=hour,
+        minute=minute,
+        args=[cfg, store],
+        id="briefing",
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=1800,
+    )
 
     # Pinned images: a warning before an update that breaks (M26, with update notes).
     hour, minute = (int(part) for part in pinned.CHECK_AT.split(":"))

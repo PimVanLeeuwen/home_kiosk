@@ -58,4 +58,24 @@ describe('AiSettings', () => {
 
     expect(await screen.findByText(/AI is not available right now/)).toBeInTheDocument()
   })
+
+  it('writes the morning digest now and says what was sent', async () => {
+    const withDigest = { ...AI, features: [{ id: 'briefing', label: 'Morning digest', on: true }] }
+    stubApi({ '/api/ai': withDigest, 'POST /api/ai/briefing/now': { line: 'A quiet night.' } })
+    render(<AiSettings />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Write one now' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Sent to Telegram: A quiet night.')
+  })
+
+  it('says why no digest was written', async () => {
+    const withDigest = { ...AI, features: [{ id: 'briefing', label: 'Morning digest', on: true }] }
+    stubApi({ '/api/ai': withDigest, 'POST /api/ai/briefing/now': failWith(409, { detail: 'The cap is reached.' }) })
+    render(<AiSettings />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Write one now' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('The cap is reached.')
+  })
 })

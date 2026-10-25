@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { ApiError, sendJson } from '../../lib/api'
-import type { AiStatus } from '../../lib/types'
+import type { AiStatus, Briefing } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { Meter } from '../home/Meter'
 import { Surface } from '../ui/Card'
 import { Loading, Unavailable } from '../ui/states'
 import { Switch } from '../ui/Switch'
+import { Button } from '../ui/Button'
 
 /** Settings, AI (plan.md M26): this month's spend against the cap, and a switch per feature. */
 export function AiSettings() {
   const { data, error, reload } = useApi<AiStatus>('/api/ai')
   const [saved, setSaved] = useState<AiStatus | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [digest, setDigest] = useState<{ ok: boolean; text: string } | null>(null)
+  const [writing, setWriting] = useState(false)
   const ai = saved ?? data
 
   async function toggle(id: string, on: boolean) {
@@ -21,6 +24,21 @@ export function AiSettings() {
     } catch (err) {
       setMessage(err instanceof ApiError ? err.message : 'Saving failed')
       reload()
+    }
+  }
+
+  /** The morning digest now, to try it or after a failed morning: it goes to Telegram too. */
+  async function writeDigest() {
+    setWriting(true)
+    setDigest(null)
+    try {
+      const made = await sendJson<Briefing>('POST', '/api/ai/briefing/now', {})
+      setDigest({ ok: true, text: `Sent to Telegram: ${made.line}` })
+      reload()
+    } catch (err) {
+      setDigest({ ok: false, text: err instanceof ApiError ? err.message : 'Writing it failed' })
+    } finally {
+      setWriting(false)
     }
   }
 
@@ -57,9 +75,23 @@ export function AiSettings() {
         ) : (
           <ul className="grid gap-3">
             {ai.features.map((f) => (
-              <li key={f.id} className="flex items-center justify-between gap-4">
-                <span className="font-medium">{f.label}</span>
-                <Switch checked={f.on} onChange={(on) => void toggle(f.id, on)} label={f.label} disabled={!ai.configured} />
+              <li key={f.id}>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="font-medium">{f.label}</span>
+                  <div className="flex items-center gap-3">
+                    {f.id === 'briefing' && (
+                      <Button size="sm" onClick={() => void writeDigest()} disabled={!f.on || !ai.configured || writing}>
+                        {writing ? 'Writing…' : 'Write one now'}
+                      </Button>
+                    )}
+                    <Switch checked={f.on} onChange={(on) => void toggle(f.id, on)} label={f.label} disabled={!ai.configured} />
+                  </div>
+                </div>
+                {f.id === 'briefing' && digest && (
+                  <p role={digest.ok ? 'status' : 'alert'} className={digest.ok ? 'mt-2 text-small text-up' : 'mt-2 text-small text-down'}>
+                    {digest.text}
+                  </p>
+                )}
               </li>
             ))}
           </ul>

@@ -212,3 +212,25 @@ test('Home folds ad blocking into its chip, and unfolds it when AdGuard stops an
   await expect(page.getByRole('button', { name: /^Ads blocked: Down/ })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Ad blocking' })).toContainText('AdGuard is not answering')
 })
+
+test('Home shows the morning digest until it is over', async ({ page }) => {
+  const now = new Date()
+  const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  const briefing = {
+    as_of: now.toISOString(), stale: false, date, until: new Date(now.getTime() + 3_600_000).toISOString(),
+    line: 'A quiet night. Train on time.', facts: ['Backup done 03:41', 'Sonarr updated', 'Train on time', 'Stand-up 09:30'],
+    paragraph: 'Good morning.',
+  }
+  await page.route('**/api/briefing', (route) => route.fulfill({ json: briefing }))
+  await page.goto('/')
+
+  const card = page.getByRole('region', { name: /^Briefing · / })
+  await expect(card).toContainText('A quiet night. Train on time.')
+  await expect(card.getByRole('listitem')).toHaveCount(4)
+
+  await page.unroute('**/api/briefing')
+  await page.route('**/api/briefing', (route) => route.fulfill({ json: { ...briefing, until: new Date(now.getTime() - 60_000).toISOString() } }))
+  await page.reload()
+  await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening|night)/ })).toBeVisible()
+  await expect(page.getByRole('region', { name: /^Briefing · / })).toHaveCount(0)
+})

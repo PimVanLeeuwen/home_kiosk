@@ -1,5 +1,5 @@
-import { dnsState, laundryState, todayState } from './homeStates'
-import type { CalendarEvent, DnsStats, Laundry, Machine, Today } from './types'
+import { briefingState, dnsState, laundryState, todayState } from './homeStates'
+import type { Briefing, CalendarEvent, DnsStats, Laundry, Machine, Today } from './types'
 
 const at = (h: number, m = 0) => new Date(2026, 9, 23, h, m)
 const event = (from: number, to: number): CalendarEvent => ({
@@ -46,5 +46,16 @@ describe('dnsState', () => {
   it('is a warning when AdGuard does not answer or blocking is paused', () => {
     expect(dnsState({ ...dns, answering: false })).toBe('warn')
     expect(dnsState({ ...dns, protection: false })).toBe('warn')
+  })
+})
+
+describe('briefingState', () => {
+  const briefing = { date: '2026-10-29', until: new Date(2026, 9, 29, 9, 0).toISOString() } as Briefing
+
+  it('shows the digest on its own day until 09:00', () => {
+    expect(briefingState(briefing, new Date(2026, 9, 29, 6, 31))).toBe('live')
+    expect(briefingState(briefing, new Date(2026, 9, 29, 9, 0))).toBe('hidden')
+    expect(briefingState(briefing, new Date(2026, 9, 30, 7, 0))).toBe('hidden')
+    expect(briefingState(undefined, new Date(2026, 9, 29, 7, 0))).toBe('hidden')
   })
 })

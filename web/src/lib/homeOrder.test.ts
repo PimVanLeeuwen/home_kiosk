@@ -69,4 +69,12 @@ describe('homeOrder', () => {
     expect(order.hero).toBe('today')
     expect(ids(order)).not.toContain('laundry')
   })
+
+  it('puts the morning digest right after the train, and never makes it the hero', () => {
+    const order = homeOrder({ briefing: 'live', train: 'live', today: 'live', weather: 'quiet' }, new Date(2026, 9, 29, 7, 30))
+
+    expect(order.hero).toBe('train')
+    expect(ids(order).slice(0, 2)).toEqual(['briefing', 'today'])
+    expect(homeOrder({ briefing: 'live', weather: 'quiet' }, new Date(2026, 9, 29, 7, 30)).hero).toBeNull()
+  })
 })

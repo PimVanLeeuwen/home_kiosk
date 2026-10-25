@@ -362,6 +362,14 @@ CATALOG: dict[str, Template] = {
          "failed": ("One line per failed container", [
              {"name": "bazarr", "error": "pull access denied"}])},
         {"updated": Block("watchtower_updated"), "failed": Block("watchtower_failed")}),
+    "briefing": _msg(
+        REPORTS, "Morning digest", "Weekdays at 06:30: the night and the day ahead (AI).",
+        "<b>Morning briefing · {day}</b>\n{paragraph}", "briefing", "info",
+        {"day": ("The weekday", "Thursday"),
+         "paragraph": ("The digest, written by Claude from the hub's facts",
+                       "Good morning. A quiet night: the backup finished at 03:41 and Sonarr "
+                       "was updated. Your train is on time from platform 4; dry until 16:00. "
+                       "First up: stand-up at 09:30.")}),
     "pinned_breaking": _msg(
         NAS, "Pinned image: breaking changes",
         "A newer release of an image pinned to its version needs care before updating (AI).",

@@ -122,6 +122,19 @@ export interface AppleDevices {
   rooms: { id: string; name: string; devices: AppleDevice[]; playing: ApplePlaying | null }[]
 }
 
+/** The morning digest (`/api/briefing`), written by Claude on weekdays at 06:30. */
+export interface Briefing {
+  as_of: string
+  stale: boolean
+  /** The local date it is for, YYYY-MM-DD. */
+  date: string
+  /** 09:00 that day: Home and the Now panel show it until then. */
+  until: string
+  line: string
+  facts: string[]
+  paragraph: string
+}
+
 /** Settings, AI (`/api/ai`): this month's spend against the cap and the feature switches. */
 export interface AiStatus {
   as_of: string

@@ -57,6 +57,8 @@ CATEGORIES = {
     "paperless": "Paperless",
     # The AI spend nearing its monthly cap (app/ai.py).
     "ai": "AI",
+    # The morning digest, weekdays at 06:30 (app/briefing.py).
+    "briefing": "Morning digest",
     "manual": "Sent from the hub",
 }
 

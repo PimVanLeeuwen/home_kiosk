@@ -22,6 +22,7 @@ from pydantic import BaseModel, HttpUrl
 from . import (
     ai,
     ai_api,
+    briefing,
     config,
     desk_api,
     desk_boards,
@@ -236,6 +237,12 @@ def pipelines_status() -> Any:
 def air_status() -> Any:
     """The living room's air from the Matter sensor (sources/air.py)."""
     return _serve(air.CACHE_KEY)
+
+
+@app.get("/api/briefing")
+def morning_briefing() -> Any:
+    """Today's morning digest (app/briefing.py); the panel and Home show it until `until`."""
+    return _serve(briefing.CACHE_KEY)
 
 
 @app.get("/api/dns")

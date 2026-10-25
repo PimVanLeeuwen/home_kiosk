@@ -10,7 +10,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from . import ai
+from . import ai, briefing
 from .security import same_origin_json
 
 router = APIRouter(prefix="/api/ai")
@@ -45,3 +45,13 @@ def put_features(changes: dict[str, bool], request: Request) -> dict[str, Any]:
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from None
     return status(request)
+
+
+@router.post("/briefing/now", dependencies=write)
+async def briefing_now(request: Request) -> dict[str, Any]:
+    """Write and send today's morning digest now: to try it, or after a failed morning."""
+    made = await briefing.run(request.app.state.config, request.app.state.store)
+    if made is None:
+        raise HTTPException(409, "No digest: AI is off, the morning digest is switched off, "
+                                 "the cap is reached, or Claude did not answer.")
+    return made.model_dump(mode="json")

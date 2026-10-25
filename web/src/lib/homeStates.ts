@@ -3,8 +3,8 @@ import type { CardState } from './homeOrder'
 import type { Playing } from './musicTypes'
 import { troubled } from './outside'
 import { focusOf, todayShows } from './today'
-import { trainShows } from './train'
-import type { AppleDevices, DnsStats, Laundry, Nas, OutsideServices, Service, Today, Train } from './types'
+import { localDate, trainShows } from './train'
+import type { AppleDevices, Briefing, DnsStats, Laundry, Nas, OutsideServices, Service, Today, Train } from './types'
 
 /** An event starting within this many minutes counts as live on Home. */
 export const SOON_MINUTES = 60
@@ -61,3 +61,8 @@ export function dnsState(dns: DnsStats | undefined): CardState {
   if (!dns) return 'quiet'
   return !dns.answering || !dns.protection ? 'warn' : 'quiet'
 }
+
+/** The morning digest on the day it was written, until 09:00 (the panel's Briefing screen too):
+ * live, so it leads the morning right after the train; never the hero. */
+export const briefingState = (briefing: Briefing | undefined, now: Date): CardState =>
+  briefing && briefing.date === localDate(now) && now < new Date(briefing.until) ? 'live' : 'hidden'

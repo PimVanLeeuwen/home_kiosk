@@ -1208,6 +1208,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   judged, Haiku answers BREAKING or NONE; BREAKING sends one warning (template "Pinned image:
   breaking changes", category updates) with what to do and the release's page; NONE is
   silent. Each newest release is judged once (`pinned_judged`). Today: Immich and Uptime Kuma.
+- Step 3a (2026-10-25): the morning digest in the hub (`collector/app/briefing.py`, switch
+  "Morning digest"). Weekdays at 06:30 the hub turns its cache into short facts (the backup,
+  storage and pools over 90%, disks, updates since about 16:30, open alerts, pinned images
+  behind, the weather now and today, the morning train, the first event's time and title
+  only; no portfolio) and asks Haiku once, with structured output, for three forms: a
+  paragraph, one line and four facts (cut to 70 and 30 characters). The paragraph goes to
+  Telegram (category "Morning digest", template "Morning digest", sent through quiet hours);
+  the rest is `/api/briefing`, shown until 09:00. On Home a Briefing card, live while shown,
+  so it leads the morning right after the train (never the hero). Settings, AI: "Write one
+  now" (`POST /api/ai/briefing/now`), which also sends it. `ai.ask` takes a JSON schema.
+  Next, step 3b: the Briefing screen on the Now panel.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26.

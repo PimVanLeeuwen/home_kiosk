@@ -19,6 +19,7 @@ Nothing here logs a prompt or an answer: they can hold the house's state.
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -57,7 +58,8 @@ PRICES = {
 
 # The features, with their switch in Settings. Each step of M26 adds its own.
 FEATURES: dict[str, str] = {
-    "update_notes": "Update notes",  # app/update_notes.py
+    "update_notes": "Update notes",  # app/update_notes.py, app/pinned.py
+    "briefing": "Morning digest",  # app/briefing.py
 }
 
 WARN_SHARE = 0.8
@@ -181,15 +183,18 @@ def _client(api_key: str) -> anthropic.AsyncAnthropic:
 
 async def ask(cfg: dict[str, Any], store: Store, *, feature: str, model: str, system: str,
               prompt: str, max_tokens: int = 1024, effort: str = "low",
+              schema: dict[str, Any] | None = None,
               now: datetime | None = None, client: ClientFactory | None = None,
               telegram: Any = None) -> str | None:
     """Claude's answer for a feature, or None (off, no key, at the cap, or a failure).
+    With a JSON `schema` the answer is JSON in that shape (structured output).
     `client`, `now` and `telegram` are for tests."""
     now = now or datetime.now(UTC)
     s = settings(cfg)
     if not s["enabled"] or not switches(store).get(feature):
         return None
-    key = answer_key(feature, model, system, prompt)
+    shape = json.dumps(schema, sort_keys=True) if schema else ""
+    key = answer_key(feature, model, system + shape, prompt)
     if (text := cached(store, key)) is not None:
         return text
     spent, _ = month_spend(store, cfg, now)
@@ -200,7 +205,8 @@ async def ask(cfg: dict[str, Any], store: Store, *, feature: str, model: str, sy
         response = await (client or _client)(s["api_key"]).messages.create(
             model=model, max_tokens=max_tokens, system=system,
             messages=[{"role": "user", "content": prompt}],
-            output_config={"effort": effort})
+            output_config={"effort": effort}
+            | ({"format": {"type": "json_schema", "schema": schema}} if schema else {}))
     except anthropic.RateLimitError:
         log.warning("AI %s: rate limited", feature)
         return None

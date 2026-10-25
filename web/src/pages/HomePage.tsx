@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { AirCard } from '../components/home/AirCard'
 import { AppleCard } from '../components/home/AppleCard'
 import { BackupCard } from '../components/home/BackupCard'
+import { BriefingCard } from '../components/home/BriefingCard'
 import { DnsCard } from '../components/home/DnsCard'
 import { CardSlot } from '../components/home/CardSlot'
 import { HeroFrame } from '../components/home/HeroFrame'
@@ -34,6 +35,7 @@ import {
 import {
   appleState,
   backupsState,
+  briefingState,
   laundryState,
   nasState,
   nowPlayingState,
@@ -50,6 +52,7 @@ import { trainStatus } from '../lib/train'
 import type {
   AppleDevices,
   BackupHistory,
+  Briefing,
   DnsStats,
   Laundry,
   Nas,
@@ -91,6 +94,7 @@ export function HomePage() {
   const outside = useApi<OutsideServices>('/api/outside-services', 60_000)
   const backups = useApi<BackupHistory>('/api/backups', 300_000)
   const dns = useApi<DnsStats>('/api/dns', 60_000)
+  const briefing = useApi<Briefing>('/api/briefing', 300_000)
   const music = useHomeNowPlaying()
   const wide = useMediaQuery('(min-width: 1024px)')
   const [open, setOpen] = useState<FoldedCardId | null>(null)
@@ -101,6 +105,7 @@ export function HomePage() {
   const attention = attentionItems(nas.data, all ?? [], now, sites.data?.sites)
 
   const states: Record<HomeCardId, CardState> = {
+    briefing: briefingState(briefing.data, now),
     train: trainState(train.data, now),
     nowPlaying: nowPlayingState(music.playing),
     today: todayState(today.data, now),
@@ -133,6 +138,7 @@ export function HomePage() {
   }, [])
 
   const cards: Record<HomeCardId, ReactNode> = {
+    briefing: <BriefingCard data={briefing.data} />,
     train: <TrainCard data={train.data} />,
     nowPlaying: <NowPlayingCard playing={music.playing} send={music.send} hero={order.hero === 'nowPlaying'} />,
     today: <TodayCard data={today.data} />,
