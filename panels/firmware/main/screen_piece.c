@@ -4,7 +4,10 @@
  *
  * The orbit clock (C) adds its bodies: the hour, the minute and the second going round the
  * hub's painted sun on its orbits, the second with a fading tail, ten steps a second while
- * it shows; small objects moved by their real position, nothing transformed. */
+ * it shows; small objects moved by their real position, nothing transformed.
+ *
+ * The countdown (K) sends sparks streaming out of the hub's painted tunnel: from its core,
+ * the day, towards you, faster and bigger as they come, 25 steps a second. */
 
 #include "screen_piece.h"
 
@@ -32,12 +35,24 @@ LV_FONT_DECLARE(instrument_time);
 #define ORBIT_MS 100
 static const int RADII[3] = {118, 196, 276};
 
+#define CORE_X 360    /* the tunnel's core, as app/paint_countdown.py paints it */
+#define CORE_Y 200
+#define SPARKS 13     /* each moves two areas a step: under LVGL's 32 */
+#define SPARK_MS 40
+#define SPARK_REACH 440
+
+typedef struct {
+    lv_obj_t *dot;
+    float angle, t, speed;
+} spark_t;
+
 typedef struct {
     int which;
     lv_obj_t *bodies[3], *tail[TAIL];
     uint32_t version;
     int minute;
     lv_obj_t *labels[PIECE_LABELS], *clock;
+    spark_t sparks[SPARKS];
     desk_piece_t shown;
 } piece_screen_t;
 
@@ -153,12 +168,59 @@ static void orbit(lv_timer_t *timer)
     }
 }
 
+static float chance(void) /* 0 to 1: a small generator of its own */
+{
+    static uint32_t seed = 2463534242u;
+    seed ^= seed << 13;
+    seed ^= seed >> 17;
+    seed ^= seed << 5;
+    return (seed & 0xffffff) / (float)0x1000000;
+}
+
+static void spark_start(spark_t *s, float t)
+{
+    s->angle = chance() * 2 * (float)M_PI;
+    s->speed = 0.006f + chance() * 0.008f;
+    s->t = t;
+}
+
+static void sparks(lv_timer_t *timer)
+{
+    piece_screen_t *p = lv_timer_get_user_data(timer);
+    if (lv_screen_active() != lv_obj_get_screen(p->sparks[0].dot)) {
+        return;
+    }
+    for (int i = 0; i < SPARKS; i++) {
+        spark_t *s = &p->sparks[i];
+        s->t += s->speed;
+        if (s->t >= 1) {
+            spark_start(s, 0);
+        }
+        /* Perspective: slow by the core, rushing past near you; the tunnel bends down. */
+        float r = s->t * s->t * SPARK_REACH;
+        int size = 2 + (int)(s->t * 5);
+        int x = CORE_X + (int)(r * cosf(s->angle));
+        int y = CORE_Y + (int)(r * sinf(s->angle) * 0.86f + s->t * s->t * 70);
+        lv_obj_set_size(s->dot, size, size);
+        lv_obj_set_pos(s->dot, x - size / 2, y - size / 2);
+        float fade = s->t < 0.15f ? s->t / 0.15f : s->t > 0.7f ? (1 - s->t) / 0.3f : 1;
+        lv_obj_set_style_bg_opa(s->dot, (lv_opa_t)(230 * fade), 0);
+    }
+}
+
 void screen_piece_create(lv_obj_t *screen, int which)
 {
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
     piece_screen_t *p = heap_caps_calloc(1, sizeof *p, MALLOC_CAP_SPIRAM);
     p->which = which;
     p->minute = -1;
+    if (which == PIECE_COUNTDOWN) { /* first, so the sparks pass under the words */
+        for (int i = 0; i < SPARKS; i++) {
+            p->sparks[i].dot = body(screen, 3, 0xfff1dc, 0);
+            spark_start(&p->sparks[i], (float)i / SPARKS);
+        }
+        lv_timer_create(sparks, SPARK_MS, p);
+    }
     for (int i = 0; i < PIECE_LABELS; i++) {
         p->labels[i] = ui_text(screen, &instrument_24, 0xffffff);
         lv_obj_add_flag(p->labels[i], LV_OBJ_FLAG_HIDDEN);

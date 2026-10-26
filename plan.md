@@ -1408,6 +1408,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Not done yet: the hub views of I, J, K and E (2026-10-13). Decided the same day: the week (J)
   and the radar (I) become part of Q, the Weather page (step 6); the countdown (K) and the
   photo (E) are Home cards, next.
+- K and J made more striking (2026-10-26, asked for before the hub views): K is a tunnel of
+  light, one glowing ring per day left (at most 60) in the calendar's colour, closing in on a
+  white-hot core, the day, with sparks streaming out of it on the panel; the number and the
+  words below. J is a landscape: each day its own sky (sun, clouds, slanting rain as likely
+  as forecast, snow, a bolt, banks of mist), blended into the next; the highs a ridge, warm or
+  cool by the day, with snow on the peaks of days at 3° or less; a misty range and the lows in
+  front, haze between them; today in a beam of light; the events as lanterns at the foot.
 - Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
   "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
   map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS

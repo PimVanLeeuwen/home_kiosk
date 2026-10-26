@@ -45,7 +45,7 @@ from . import (
 from .store import Store
 
 # Bumped when a painter changes, so every background is painted again.
-VERSION = 11
+VERSION = 14
 KEEP = 6  # per kind: what the panels may still ask for
 PATH = "/api/desk/background/"
 

@@ -114,3 +114,17 @@ def test_the_radar_only_while_rain_is_coming(store):
     assert screen["present"] and screen["home"] == [281.5, 312.0]
     assert "BUIENRADAR · 09:05" in [label["text"] for label in screen["labels"]]
     assert radar.to_pixel(52.96, 4.76) == (radar.X0 + 4.76 * radar.PX_PER_LON, radar.Y0)
+
+
+def test_every_weather_paints_in_the_week_and_the_tunnel_at_any_distance():
+    from app import paint_countdown, paint_week
+    codes = [0, 2, 3, 45, 61, 71, 95]  # sun, partly, cloud, fog, rain, snow, thunder
+    days = [{"high": 2 + 2 * i, "low": -2 + i, "code": c, "rain": 60, "events": ["#e6965a"]}
+            for i, c in enumerate(codes)]
+    assert [paint_week.sky_of(c) for c in codes] == ["sun", "partly", "cloud", "fog", "rain",
+                                                     "snow", "thunder"]
+    week = paint_week.paint_week({"days": days, "warmest": 14, "coldest": -2})
+    assert week.size == (720, 720)
+    for days_left in (0, 1, 19, 400):
+        tunnel = paint_countdown.paint_countdown({"days": days_left, "colour": "#8f80ff"})
+        assert tunnel.getpixel(paint_countdown.CORE)[0] > 240  # the day, white-hot

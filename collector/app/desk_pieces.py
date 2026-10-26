@@ -208,35 +208,45 @@ def countdown_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, A
     labels = [
         caps("Countdown", 36, 24, width=300),
         caps(day.strftime("%a %-d %b"), 684, 24, width=300, align="right"),
-        label(latin1(first["title"]), 360, 528, font="40", align="centre", lines=2),
+        label(latin1(first["title"]), 360, 586, font="40", align="centre"),
     ]
     if days == 0:
-        labels.append(label("Today", 360, 256, width=400, font="52", align="centre"))
+        labels.append(label("Today", 360, 470, width=400, font="52", align="centre"))
     else:
-        labels += [label(str(days), 360, 196, width=400, font="clock", align="centre"),
-                   label(f"day{'s' if days != 1 else ''} to", 360, 356, font="28",
+        labels += [label(str(days), 360, 404, width=400, font="clock", align="centre"),
+                   label(f"day{'s' if days != 1 else ''} to", 360, 544, font="28",
                          align="centre", colour="c9c6d6")]
     if len(ahead) > 1:
         then = ahead[1]
         left = (date.fromisoformat(then["date"]) - today).days
-        labels.append(label(f"Then {latin1(then['title'])} in {_days_word(left)}", 360, 650,
+        labels.append(label(f"Then {latin1(then['title'])} in {_days_word(left)}", 360, 646,
                             align="centre", colour="9a9fb8"))
     return {"kind": "countdown", "stale": bool(cached.get("stale")), "present": True,
             "days": days, "colour": first["colour"], "labels": labels}
 
 
-# The week view's columns and rows (paint_week draws the same).
+# The week view's columns and ridges (paint_week draws the same): the highs a ridge between
+# 250 and 420, the lows a range in front between 480 and 600.
 WEEK_LEFT, WEEK_COLUMN = 36, 648 / 7
-WEEK_TOP, WEEK_BOTTOM = 250, 470  # the warmest high and the coldest low
+HIGH_TOP, HIGH_BOTTOM = 250, 420
+LOW_TOP, LOW_BOTTOM = 480, 600
 
 
 def week_x(i: int) -> int:
     return round(WEEK_LEFT + WEEK_COLUMN * (i + 0.5))
 
 
-def week_y(temp: float, warmest: float, coldest: float) -> int:
-    span = max(4.0, warmest - coldest)
-    return round(WEEK_TOP + (warmest - temp) / span * (WEEK_BOTTOM - WEEK_TOP))
+def _share(temp: float, warmest: float, coldest: float) -> float:
+    """0 at the week's warmest, 1 at its coldest."""
+    return (warmest - temp) / max(4.0, warmest - coldest)
+
+
+def ridge_high(temp: float, warmest: float, coldest: float) -> int:
+    return round(HIGH_TOP + _share(temp, warmest, coldest) * (HIGH_BOTTOM - HIGH_TOP))
+
+
+def ridge_low(temp: float, warmest: float, coldest: float) -> int:
+    return round(LOW_TOP + _share(temp, warmest, coldest) * (LOW_BOTTOM - LOW_TOP))
 
 
 def week_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
@@ -254,18 +264,20 @@ def week_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
         x = week_x(i)
         name = "Today" if i == 0 else date.fromisoformat(d["date"]).strftime("%a")
         labels += [
-            caps(name, x, 84, width=90, align="centre", colour="ffffff" if i == 0 else "9a9fb8"),
-            label(f"{round(d['high'])}°", x, 196, width=90, font="28", align="centre"),
-            label(f"{round(d['low'])}°", x, week_y(d["low"], warmest, coldest) + 12, width=90,
-                  align="centre", colour="9a9fb8"),
-            label(f"{d['rain_max']}%" if (d.get("rain_max") or 0) >= 20 else "", x, 548,
+            caps(name, x, 76, width=90, align="centre", colour="ffffff"),
+            label(f"{round(d['high'])}°", x, ridge_high(d["high"], warmest, coldest) - 44,
+                  width=90, font="28", align="centre"),
+            label(f"{round(d['low'])}°", x, ridge_low(d["low"], warmest, coldest) + 14,
+                  width=90, align="centre", colour="c9c6d6"),
+            label(f"{d['rain_max']}%" if (d.get("rain_max") or 0) >= 20 else "", x, 640,
                   width=90, align="centre", colour="9cc7fa"),
         ]
     return {
         "kind": "week", "stale": bool((store.get_cache(forecast.CACHE_KEY) or {}).get("stale")),
         "present": True, "warmest": warmest, "coldest": coldest,
         "days": [{"high": round(d["high"], 1), "low": round(d["low"], 1), "code": d.get("code"),
-                  "events": colours.get(d["date"], [])} for d in days],
+                  "rain": d.get("rain_max") or 0, "events": colours.get(d["date"], [])}
+                 for d in days],
         "labels": labels,
     }
 
