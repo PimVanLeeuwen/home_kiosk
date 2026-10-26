@@ -78,3 +78,15 @@ describe('homeOrder', () => {
     expect(homeOrder({ briefing: 'live', weather: 'quiet' }, new Date(2026, 9, 29, 7, 30)).hero).toBeNull()
   })
 })
+
+describe('the photo of the day and the countdown', () => {
+  it('put the photo high in the wide column and the countdown calm in the narrow one', () => {
+    const states = { ...calm, briefing: 'live', photo: 'quiet', countdown: 'quiet' } as const
+    const morning = homeOrder(states, at(7))
+    expect(ids(morning).slice(0, 3)).toEqual(['briefing', 'photo', 'today'])
+    expect(morning.cards.find((c) => c.id === 'photo')?.column).toBe('wide')
+    expect(morning.cards.find((c) => c.id === 'countdown')?.column).toBe('narrow')
+    expect(ids(homeOrder({ ...calm, photo: 'quiet' }, at(13)))[0]).toBe('photo')
+    expect(ids(homeOrder({ ...calm, photo: 'hidden', countdown: 'hidden' }, at(13)))).not.toContain('photo')
+  })
+})

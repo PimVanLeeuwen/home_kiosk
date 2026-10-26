@@ -59,3 +59,25 @@ def test_reads_the_memories_ranks_the_day_and_keeps_the_picture(store):
 def test_off_without_a_key():
     assert photo.settings({"widgets": {"keys": {}}})["enabled"] is False
     assert photo.settings(CFG)["url"] == "http://nas.example:2283"
+
+
+def test_the_hub_serves_the_kept_picture_and_nothing_without_one(store):
+    from fastapi.testclient import TestClient
+
+    from app import main
+    main.app.state.store = store
+    client = TestClient(main.app)
+    photo.KEPT.asset, photo.KEPT.picture = None, None
+    assert client.get("/api/photo").status_code == 503
+    assert client.get("/api/photo/picture").status_code == 404
+    out = io.BytesIO()
+    Image.new("RGB", (8, 8), (40, 80, 120)).save(out, "WEBP")
+    store.put_cache(photo.CACHE_KEY, {"as_of": "x", "stale": False, "asset": "a1",
+                                      "taken": "2019-10-26", "years": 7, "people": ["Anna"]})
+    photo.KEPT.asset, photo.KEPT.picture = "a1", out.getvalue()
+    try:
+        assert client.get("/api/photo").json()["people"] == ["Anna"]
+        got = client.get("/api/photo/picture")
+        assert got.headers["content-type"] == "image/webp" and got.content == out.getvalue()
+    finally:
+        photo.KEPT.asset, photo.KEPT.picture = None, None

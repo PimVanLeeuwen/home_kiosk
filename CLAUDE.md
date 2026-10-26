@@ -229,7 +229,10 @@ python3 dashboard/serve.py
 - Panel firmware: internal RAM is scarce (ESP-Hosted's packet pools live there); keep large
   statics in PSRAM with `EXT_RAM_BSS_ATTR` and never copy a screen's whole state onto a task's
   stack (use the `desk_has_*` checks). Watch "internal RAM free" in the start-up log; a board that
-  boot-loops on `vApplicationGetIdleTaskMemory` has run out.
+  boot-loops on `vApplicationGetIdleTaskMemory` has run out. Plain `malloc` under 16 kB lands in
+  internal RAM: LVGL (`lvgl_memory.c`) and cJSON (hooks in `desk_start()`) allocate from PSRAM for
+  that reason. A board stuck on "The hub is not ready ... answered 200", with `H_SDIO_DRV: RX
+  buffer alloc failed` right after `clock set from the hub`, has run out there.
 - The panels' picture is rotated with the P4's PPA, and ESP-IDF v5.5.6's PPA driver can hang on
   it (display frozen, LVGL waiting in `ppa_do_scale_rotate_mirror`): keep the patched copy in
   `panels/firmware/components/esp_driver_ppa` until the IDF in use has Espressif's fix. After

@@ -1415,6 +1415,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   as forecast, snow, a bolt, banks of mist), blended into the next; the highs a ridge, warm or
   cool by the day, with snow on the peaks of days at 3° or less; a misty range and the lows in
   front, haze between them; today in a beam of light; the events as lanterns at the foot.
+- Home cards for K and E (2026-10-26): `/api/countdown` and `/api/photo` (with
+  `/api/photo/picture`, the preview the hub keeps in memory) serve what the panels show. The
+  photo of the day is a wide card, high in the calm order (after the briefing in the morning),
+  only on its own day; the countdown a calm narrow card at every part of the day while one is
+  ahead, a tunnel of rings with sparks as on the Now panel. The week and the radar wait for Q.
 - Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
   "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
   map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS

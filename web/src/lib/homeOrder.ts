@@ -12,6 +12,8 @@ export type HomeCardId =
   | 'today'
   | 'laundry'
   | 'apple'
+  | 'photo'
+  | 'countdown'
   | 'weather'
   | 'news'
   | 'air'
@@ -60,10 +62,10 @@ export function dayPart(hour: number): DayPart {
 
 /** The calm order per part of the day, wide and narrow columns interleaved. */
 const PART_ORDER: Record<DayPart, [HomeCardId, Column][]> = {
-  morning: [['briefing', 'wide'], ['today', 'wide'], ['weather', 'narrow'], ['news', 'wide'], ['portfolio', 'narrow'], ['air', 'wide']],
-  day: [['today', 'wide'], ['portfolio', 'narrow'], ['news', 'wide'], ['weather', 'narrow'], ['air', 'wide']],
-  evening: [['apple', 'wide'], ['weather', 'narrow'], ['today', 'wide'], ['air', 'narrow'], ['news', 'wide'], ['portfolio', 'narrow']],
-  night: [['today', 'wide'], ['weather', 'narrow'], ['news', 'wide'], ['air', 'narrow'], ['portfolio', 'narrow']],
+  morning: [['briefing', 'wide'], ['photo', 'wide'], ['today', 'wide'], ['weather', 'narrow'], ['countdown', 'narrow'], ['news', 'wide'], ['portfolio', 'narrow'], ['air', 'wide']],
+  day: [['photo', 'wide'], ['today', 'wide'], ['portfolio', 'narrow'], ['countdown', 'narrow'], ['news', 'wide'], ['weather', 'narrow'], ['air', 'wide']],
+  evening: [['photo', 'wide'], ['apple', 'wide'], ['weather', 'narrow'], ['countdown', 'narrow'], ['today', 'wide'], ['air', 'narrow'], ['news', 'wide'], ['portfolio', 'narrow']],
+  night: [['photo', 'wide'], ['today', 'wide'], ['weather', 'narrow'], ['countdown', 'narrow'], ['news', 'wide'], ['air', 'narrow'], ['portfolio', 'narrow']],
 }
 
 /** A card's column when its part of the day does not place it. */
@@ -74,6 +76,8 @@ const HOME_COLUMN: Record<HomeCardId, Column> = {
   today: 'wide',
   laundry: 'narrow',
   apple: 'wide',
+  photo: 'wide',
+  countdown: 'narrow',
   weather: 'narrow',
   news: 'wide',
   air: 'wide',

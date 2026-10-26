@@ -1,4 +1,4 @@
-import { briefingState, dnsState, laundryState, todayState } from './homeStates'
+import { briefingState, countdownState, dnsState, laundryState, photoState, todayState } from './homeStates'
 import type { Briefing, CalendarEvent, DnsStats, Laundry, Machine, Today } from './types'
 
 const at = (h: number, m = 0) => new Date(2026, 9, 23, h, m)
@@ -57,5 +57,27 @@ describe('briefingState', () => {
     expect(briefingState(briefing, new Date(2026, 9, 29, 9, 0))).toBe('hidden')
     expect(briefingState(briefing, new Date(2026, 9, 30, 7, 0))).toBe('hidden')
     expect(briefingState(undefined, new Date(2026, 9, 29, 7, 0))).toBe('hidden')
+  })
+})
+
+describe('countdownState and photoState', () => {
+  const countdowns = (date: string) => ({
+    as_of: at(7).toISOString(), stale: false, events: [{ title: 'Lisbon', date, colour: '#e6965a', calendar: 'Home' }],
+  })
+  const photo = (taken: string | null) => ({
+    as_of: at(6).toISOString(), stale: false, asset: taken ? 'a1' : null, taken, years: 7, people: [],
+  })
+
+  it('shows a countdown while it is ahead, today included', () => {
+    expect(countdownState(countdowns('2026-11-14'), at(9))).toBe('quiet')
+    expect(countdownState(countdowns('2026-10-23'), at(23, 30))).toBe('quiet')
+    expect(countdownState(countdowns('2026-10-22'), at(9))).toBe('hidden')
+    expect(countdownState(undefined, at(9))).toBe('hidden')
+  })
+
+  it("shows the photo on its own day only, never yesterday's", () => {
+    expect(photoState(photo('2019-10-23'), at(9))).toBe('quiet')
+    expect(photoState(photo('2019-10-22'), at(9))).toBe('hidden')
+    expect(photoState(photo(null), at(9))).toBe('hidden')
   })
 })

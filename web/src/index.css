@@ -146,6 +146,22 @@
       box-shadow: 0 0 22px 2px var(--glow);
     }
   }
+
+  /* A spark streaming out of the countdown's tunnel, faster as it comes; each sets its angle (--a) and delay. */
+  --animate-spark: spark 2.6s cubic-bezier(0.55, 0, 1, 0.45) infinite;
+  @keyframes spark {
+    from {
+      transform: rotate(var(--a)) translateX(4px) scale(0.4);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    to {
+      transform: rotate(var(--a)) translateX(var(--reach, 150px)) scale(1.5);
+      opacity: 0;
+    }
+  }
 }
 
 :root {

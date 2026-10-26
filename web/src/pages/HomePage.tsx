@@ -5,11 +5,13 @@ import { BackupCard } from '../components/home/BackupCard'
 import { BriefingCard } from '../components/home/BriefingCard'
 import { DnsCard } from '../components/home/DnsCard'
 import { CardSlot } from '../components/home/CardSlot'
+import { CountdownCard } from '../components/home/CountdownCard'
 import { HeroFrame } from '../components/home/HeroFrame'
 import { LaundryCard } from '../components/home/LaundryCard'
 import { NasCard } from '../components/home/NasCard'
 import { NewsCard } from '../components/home/NewsCard'
 import { NowPlayingCard } from '../components/home/NowPlayingCard'
+import { PhotoCard } from '../components/home/PhotoCard'
 import { PortfolioCard } from '../components/home/PortfolioCard'
 import { ServicesCard } from '../components/home/ServicesCard'
 import { OPENED_ID, StatusStrip } from '../components/home/StatusStrip'
@@ -36,16 +38,19 @@ import {
   appleState,
   backupsState,
   briefingState,
+  countdownState,
   laundryState,
   nasState,
   nowPlayingState,
   outsideState,
+  photoState,
   dnsState,
   servicesState,
   todayState,
   trainState,
 } from '../lib/homeStates'
 import { coverUrl } from '../lib/musicTypes'
+import type { Countdowns, PhotoOfTheDay } from '../lib/pieceTypes'
 import { PROBLEM_LIGHT, skyLights } from '../lib/sky'
 import { focusOf } from '../lib/today'
 import { trainStatus } from '../lib/train'
@@ -95,6 +100,8 @@ export function HomePage() {
   const backups = useApi<BackupHistory>('/api/backups', 300_000)
   const dns = useApi<DnsStats>('/api/dns', 60_000)
   const briefing = useApi<Briefing>('/api/briefing', 300_000)
+  const countdowns = useApi<Countdowns>('/api/countdown', 300_000)
+  const photo = useApi<PhotoOfTheDay>('/api/photo', 600_000)
   const music = useHomeNowPlaying()
   const wide = useMediaQuery('(min-width: 1024px)')
   const [open, setOpen] = useState<FoldedCardId | null>(null)
@@ -111,6 +118,8 @@ export function HomePage() {
     today: todayState(today.data, now),
     laundry: laundryState(laundry.data),
     apple: appleState(apple.data),
+    photo: photoState(photo.data, now),
+    countdown: countdownState(countdowns.data, now),
     weather: 'quiet',
     news: 'quiet',
     air: 'quiet',
@@ -144,6 +153,8 @@ export function HomePage() {
     today: <TodayCard data={today.data} />,
     laundry: <LaundryCard data={laundry.data} />,
     apple: <AppleCard data={apple.data} />,
+    photo: <PhotoCard data={photo.data} />,
+    countdown: <CountdownCard data={countdowns.data} now={now} />,
     weather: <WeatherCard />,
     news: <NewsCard />,
     air: <AirCard />,

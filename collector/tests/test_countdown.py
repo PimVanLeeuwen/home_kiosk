@@ -57,3 +57,15 @@ def test_the_screen_counts_the_days_and_names_the_next(store):
     assert "Today" in [label["text"] for label in on_the_day["labels"]]
     gone = desk_pieces.countdown_screen(store, ZONE, datetime(2027, 4, 1, 8, tzinfo=UTC))
     assert gone["present"] is False
+
+
+def test_the_hub_serves_the_countdowns(store):
+    from fastapi.testclient import TestClient
+
+    from app import main
+    main.app.state.store = store
+    client = TestClient(main.app)
+    assert client.get("/api/countdown").status_code == 503
+    store.put_cache(countdown.CACHE_KEY, {"as_of": "x", "stale": False, "events": [
+        {"title": "Lisbon", "date": "2026-11-14", "colour": "#e6965a", "calendar": "Home"}]})
+    assert client.get("/api/countdown").json()["events"][0]["title"] == "Lisbon"

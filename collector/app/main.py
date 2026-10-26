@@ -53,6 +53,7 @@ from .sources import (
     apple,
     apple_tv,
     container_stats,
+    countdown,
     exposure,
     feeds,
     github_mirror,
@@ -64,6 +65,7 @@ from .sources import (
     my_sites,
     ns,
     outside_services,
+    photo,
     pipelines,
     readeck,
     spotify,
@@ -277,6 +279,29 @@ def apple_artwork(room: str) -> Response:
 def calendar_today() -> Any:
     """Today's events from the calendars switched on in Settings."""
     return _serve(agenda.CACHE_KEY)
+
+
+@app.get("/api/countdown")
+def countdowns() -> Any:
+    """The next events marked "⏳" or "#countdown" in their title, nearest first (plan.md M27)."""
+    return _serve(countdown.CACHE_KEY)
+
+
+@app.get("/api/photo")
+def photo_of_the_day() -> Any:
+    """Today's "on this day" picture from Immich: when it was taken and who is in it."""
+    return _serve(photo.CACHE_KEY)
+
+
+@app.get("/api/photo/picture")
+def photo_picture() -> Response:
+    """The photo of the day itself, the preview the hub keeps in memory; nothing is fetched here."""
+    data = photo.KEPT.picture
+    if not data:
+        return JSONResponse(status_code=404, content={"detail": "No photo today."})
+    kind = "image/webp" if data[:4] == b"RIFF" and data[8:12] == b"WEBP" else "image/jpeg"
+    return Response(data, media_type=kind, headers={
+        "Cache-Control": "private, max-age=3600", "X-Content-Type-Options": "nosniff"})
 
 
 @app.get("/api/sites")

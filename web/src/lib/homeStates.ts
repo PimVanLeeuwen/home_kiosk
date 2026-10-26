@@ -1,6 +1,8 @@
 import { BACKUP_MAX_AGE_HOURS, POOL_FULL_PCT } from './attention'
+import { ahead } from './countdown'
 import type { CardState } from './homeOrder'
 import type { Playing } from './musicTypes'
+import type { Countdowns, PhotoOfTheDay } from './pieceTypes'
 import { troubled } from './outside'
 import { focusOf, todayShows } from './today'
 import { localDate, trainShows } from './train'
@@ -8,6 +10,17 @@ import type { AppleDevices, Briefing, DnsStats, Laundry, Nas, OutsideServices, S
 
 /** An event starting within this many minutes counts as live on Home. */
 export const SOON_MINUTES = 60
+
+/** A countdown is a calm card while one is still ahead. */
+export const countdownState = (countdowns: Countdowns | undefined, now: Date): CardState =>
+  ahead(countdowns?.events, now).length > 0 ? 'quiet' : 'hidden'
+
+/** The photo of the day shows on its own day only: yesterday's waits for this morning's read. */
+export function photoState(photo: PhotoOfTheDay | undefined, now: Date): CardState {
+  if (!photo?.asset || !photo.taken) return 'hidden'
+  const monthDay = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  return photo.taken.slice(5) === monthDay ? 'quiet' : 'hidden'
+}
 
 export const trainState = (train: Train | undefined, now: Date): CardState =>
   trainShows(train, now) ? 'live' : 'hidden'

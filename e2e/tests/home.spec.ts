@@ -234,3 +234,31 @@ test('Home shows the morning digest until it is over', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening|night)/ })).toBeVisible()
   await expect(page.getByRole('region', { name: /^Briefing · / })).toHaveCount(0)
 })
+
+test('Home shows the photo of the day and the nearest countdown', async ({ page }) => {
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const now = new Date()
+  const inDays = (n: number) => iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() + n))
+  const taken = new Date(now.getFullYear() - 7, now.getMonth(), now.getDate())
+  await page.route('**/api/countdown', (route) => route.fulfill({ json: {
+    as_of: now.toISOString(), stale: false, events: [
+      { title: 'Lisbon', date: inDays(19), colour: '#e6965a', calendar: 'Home' },
+      { title: "Anna's birthday", date: inDays(128), colour: '#6aa8f0', calendar: 'Family' },
+    ],
+  } }))
+  await page.route('**/api/photo', (route) => route.fulfill({ json: {
+    as_of: now.toISOString(), stale: false, asset: 'a1', taken: iso(taken), years: 7, people: ['Anna', 'Bob'],
+  } }))
+  // A tiny made-up picture: a 1 x 1 PNG.
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
+  await page.route('**/api/photo/picture*', (route) => route.fulfill({ body: png, contentType: 'image/png' }))
+  await page.goto('/')
+
+  const photo = page.getByRole('region', { name: 'Photo of the day' })
+  await expect(photo.getByText('7 years ago today')).toBeVisible()
+  await expect(photo).toContainText('Anna, Bob')
+  const countdown = page.getByRole('region', { name: 'Countdown' })
+  await expect(countdown).toContainText('19')
+  await expect(countdown).toContainText('Lisbon')
+  await expect(countdown).toContainText("Then Anna's birthday in 128 days")
+})
