@@ -1569,6 +1569,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   run). The Home card shows on a day with a run or a session: live with today's session until it
   is run, calm with the run after. Not yet: the streets under the route (step 5); easy pace at a
   heart rate (an insight, later).
+- Step 4 done 2026-10-26: the Now panel's run screens, as pieces after the countdown
+  (`app/desk_running.py`, painted by `paint_run`, `paint_runweek` and `paint_session`). When
+  (the owner's choice): A, the last run, on the day of a run and the day after; B, the week
+  against the plan, every turn while there is a plan or a run this week; C, the next session, on
+  the day before it and on the day until it is run. A: the distance in the clock's figures (the
+  unit placed from the font's own glyph widths), pace, time, heart rate and climb, the route as
+  light coloured by pace, and a light running the route on the panel (64 points of it in the
+  answer, a lap of six seconds with a short tail, then a pause). B: the plan as glass columns,
+  the runs poured in, each day's run in miniature above it. C: the session's name, distance and
+  time, its blocks lit from above in a glass floor, and the first three steps. Checked on a
+  board with made-up runs (PR screenshots never show a real route).
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28.

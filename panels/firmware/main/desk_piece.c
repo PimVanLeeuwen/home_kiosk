@@ -11,7 +11,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 
-static const char *NAMES[PIECES] = {"sky", "night", "year", "week", "radar", "countdown", "art", "photo", "orbit"};
+static const char *NAMES[PIECES] = {"sky",   "night", "year", "week",    "radar",  "countdown",
+                                     "art",   "photo", "orbit", "run", "runweek", "session"};
 static const char *FONTS[] = {"24", "28", "40", "52", "clock", "digits"};
 
 EXT_RAM_BSS_ATTR static desk_piece_t state[PIECES], next[PIECES];
@@ -79,6 +80,15 @@ bool desk_piece_parse(const cJSON *screen)
         {
             if (p->label_count < PIECE_LABELS) {
                 label(item, &p->labels[p->label_count++]);
+            }
+        }
+        cJSON_ArrayForEach(item, cJSON_GetObjectItem(screen, "path"))
+        {
+            const cJSON *x = cJSON_GetArrayItem(item, 0), *y = cJSON_GetArrayItem(item, 1);
+            if (p->path_count < PIECE_PATH && cJSON_IsNumber(x) && cJSON_IsNumber(y)) {
+                p->path[p->path_count][0] = (int16_t)x->valueint;
+                p->path[p->path_count][1] = (int16_t)y->valueint;
+                p->path_count++;
             }
         }
         const cJSON *clock = cJSON_GetObjectItem(screen, "clock");

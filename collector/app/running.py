@@ -75,6 +75,7 @@ def overview(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
             "done_m": sum(r["distance_m"] or 0 for r in ran),
             "routes": [one["route"] for r in reversed(ran)
                        if (one := runs.one(store, r["id"], MINI_POINTS)) and one["route"]],
+            "runs": [r["id"] for r in reversed(ran)],
         })
 
     def total(first: date, last: date) -> float:

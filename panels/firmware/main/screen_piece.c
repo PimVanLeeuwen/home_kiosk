@@ -7,7 +7,10 @@
  * it shows; small objects moved by their real position, nothing transformed.
  *
  * The countdown (K) sends sparks streaming out of the hub's painted tunnel: from its core,
- * the day, towards you, faster and bigger as they come, 25 steps a second. */
+ * the day, towards you, faster and bigger as they come, 25 steps a second.
+ *
+ * The last run (plan.md M28, A) has a light running its route, from the hub's `path`: a lap of
+ * six seconds with a short tail, then a breath, 25 steps a second. */
 
 #include "screen_piece.h"
 
@@ -46,6 +49,12 @@ typedef struct {
     float angle, t, speed;
 } spark_t;
 
+#define RUN_TAIL 5
+#define RUN_STEP_MS 40
+#define RUN_LAP_MS 6000
+#define RUN_PAUSE 0.25f /* a quarter of a lap at rest between laps */
+#define RUN_TAIL_GAP 0.012f
+
 typedef struct {
     int which;
     lv_obj_t *bodies[3], *tail[TAIL];
@@ -53,6 +62,8 @@ typedef struct {
     int minute;
     lv_obj_t *labels[PIECE_LABELS], *clock;
     spark_t sparks[SPARKS];
+    lv_obj_t *runner[RUN_TAIL + 1]; /* the light first, then its tail */
+    float lap;
     desk_piece_t shown;
 } piece_screen_t;
 
@@ -208,6 +219,42 @@ static void sparks(lv_timer_t *timer)
     }
 }
 
+/* The point `share` (0 to 1) of the way along the path, between its points. */
+static void along(const desk_piece_t *piece, float share, int *x, int *y)
+{
+    float at = share * (piece->path_count - 1);
+    int i = (int)at;
+    if (i >= piece->path_count - 1) {
+        i = piece->path_count - 2;
+    }
+    float f = at - i;
+    *x = (int)(piece->path[i][0] + f * (piece->path[i + 1][0] - piece->path[i][0]));
+    *y = (int)(piece->path[i][1] + f * (piece->path[i + 1][1] - piece->path[i][1]));
+}
+
+static void run_light(lv_timer_t *timer)
+{
+    piece_screen_t *p = lv_timer_get_user_data(timer);
+    if (lv_screen_active() != lv_obj_get_screen(p->runner[0])) {
+        return;
+    }
+    bool route = p->shown.path_count >= 2;
+    p->lap += (float)RUN_STEP_MS / RUN_LAP_MS;
+    if (p->lap > 1 + RUN_PAUSE) {
+        p->lap = 0;
+    }
+    for (int k = 0; k <= RUN_TAIL; k++) {
+        float share = p->lap - k * RUN_TAIL_GAP;
+        bool on = route && share >= 0 && share <= 1;
+        lv_obj_set_flag(p->runner[k], LV_OBJ_FLAG_HIDDEN, !on);
+        if (on) {
+            int x, y, size = lv_obj_get_width(p->runner[k]);
+            along(&p->shown, share, &x, &y);
+            lv_obj_set_pos(p->runner[k], x - size / 2, y - size / 2);
+        }
+    }
+}
+
 void screen_piece_create(lv_obj_t *screen, int which)
 {
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
@@ -220,6 +267,16 @@ void screen_piece_create(lv_obj_t *screen, int which)
             spark_start(&p->sparks[i], (float)i / SPARKS);
         }
         lv_timer_create(sparks, SPARK_MS, p);
+    }
+    if (which == PIECE_RUN) { /* under the words, as the sparks */
+        for (int k = RUN_TAIL; k >= 0; k--) {
+            p->runner[k] = k ? body(screen, 9 - k, 0xffd2a0, 0) : body(screen, 14, 0xfff4de, 200);
+            if (k) {
+                lv_obj_set_style_bg_opa(p->runner[k], (lv_opa_t)(220 - k * 36), 0);
+            }
+            lv_obj_add_flag(p->runner[k], LV_OBJ_FLAG_HIDDEN);
+        }
+        lv_timer_create(run_light, RUN_STEP_MS, p);
     }
     for (int i = 0; i < PIECE_LABELS; i++) {
         p->labels[i] = ui_text(screen, &instrument_24, 0xffffff);

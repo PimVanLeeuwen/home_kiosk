@@ -11,10 +11,12 @@
 
 enum {
     PIECE_SKY, PIECE_NIGHT, PIECE_YEAR, PIECE_WEEK, PIECE_RADAR, PIECE_COUNTDOWN, PIECE_ART, PIECE_PHOTO, PIECE_ORBIT,
+    PIECE_RUN, PIECE_RUNWEEK, PIECE_SESSION, /* plan.md M28: the last run, the week, the next session */
     PIECES
 };
 
 #define PIECE_LABELS 32 /* the week alone has 30 */
+#define PIECE_PATH 64   /* the last run's route, for the light that runs it */
 
 enum { PIECE_LEFT, PIECE_CENTRE, PIECE_RIGHT };
 
@@ -36,6 +38,8 @@ typedef struct {
     piece_label_t labels[PIECE_LABELS];
     bool has_clock;      /* the panel's own time, "17:44", at `clock` */
     piece_label_t clock;
+    int path_count;      /* points along a route, on the screen, in order */
+    int16_t path[PIECE_PATH][2];
 } desk_piece_t;
 
 /* The hub's name for a piece ("sky"). */

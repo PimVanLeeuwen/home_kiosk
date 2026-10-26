@@ -45,6 +45,7 @@ from .desk_pieces import (
     year_screen,
 )
 from .desk_pipelines import house_pipelines
+from .desk_running import run_screen, runweek_screen, session_screen
 from .desk_services import services_screen
 from .desk_sites import sites_screen
 from .desk_tailnet import tailnet_screen
@@ -129,7 +130,8 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 
 
 NOW = (clock_screen, sky_screen, night_screen, briefing_screen, train_screen, agenda_screen,
-       countdown_screen, day_screen, week_screen, radar_screen, year_screen, _headlines)
+       countdown_screen, run_screen, runweek_screen, session_screen, day_screen, week_screen,
+       radar_screen, year_screen, _headlines)
 HOME = (lights_screen, air_screen, laundry_screen, apple_screen, photo_screen, art_screen)
 # Decided 2026-10-22: NAS first and Backups before Alerts, as in the mockup.
 HOUSE = (nas_screen, orbit_screen, code_screen, sites_screen, services_screen, tailnet_screen,
@@ -144,6 +146,7 @@ ROTATES = {"now": True, "house": True, "test": True}
 # the pieces (plan.md M27) first, then the newest, the alerts last.
 ROOM = 8192
 DROP_FIRST = ("orbit", "art", "year", "night", "sky", "countdown", "week", "radar", "photo",
+              "runweek", "session", "run",
               "money", "media", "backups", "movers", "tailnet", "services", "sites", "code",
               "nas", "pipelines", "headlines", "agenda", "day", "apple", "laundry", "air")
 
