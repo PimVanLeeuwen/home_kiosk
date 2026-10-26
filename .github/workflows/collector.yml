@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      rebuild_firmware:
+        description: Build the panels' firmware even if panels/firmware did not change (after changing the PANEL_HUB_URL secret)
+        type: boolean
+        default: false
 
 jobs:
   lint:
@@ -68,7 +73,9 @@ jobs:
           cache-dependency-path: e2e/package-lock.json
 
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # Only the headless shell the specs run in, and no apt installs: GitHub's Ubuntu
+      # runners already have Chrome's libraries (--with-deps took about 9 minutes).
+      - run: npx playwright install --only-shell chromium
       - run: npx playwright test
 
       - uses: actions/upload-artifact@v7
@@ -102,9 +109,26 @@ jobs:
             echo "::error::Set the PANEL_HUB_URL secret (docs/operations.md, Desk panels)"; exit 1
           fi
           version=$(git rev-parse --short HEAD:panels/firmware)
+          mkdir -p panels/dist
+          # The firmware only changes with panels/firmware: when the published image already
+          # carries this version, take it from there instead of building again (about 5
+          # minutes). A changed PANEL_HUB_URL needs a manual run with rebuild_firmware.
+          if [ "${{ inputs.rebuild_firmware }}" != "true" ] \
+            && docker pull -q pimvanleeuwen/home-kiosk-dashboard:latest >/dev/null 2>&1; then
+            id=$(docker create pimvanleeuwen/home-kiosk-dashboard:latest)
+            docker cp "$id":/srv/panels/firmware.json panels/dist/ 2>/dev/null || true
+            docker cp "$id":/srv/panels/firmware.bin panels/dist/ 2>/dev/null || true
+            docker rm "$id" >/dev/null
+            if [ "$(jq -r .version panels/dist/firmware.json 2>/dev/null)" = "$version" ] \
+              && [ -s panels/dist/firmware.bin ]; then
+              echo "Firmware $version is already published: reused, not built"
+              cat panels/dist/firmware.json
+              exit 0
+            fi
+            rm -f panels/dist/firmware.json panels/dist/firmware.bin
+          fi
           docker run --rm -e PANEL_VERSION="$version" -v "$PWD/panels/firmware":/project -w /project \
             espressif/idf:v5.5.6 idf.py build
-          mkdir -p panels/dist
           cp panels/firmware/build/desk_panel.bin panels/dist/firmware.bin
           size=$(stat -c %s panels/dist/firmware.bin)
           printf '{"version": "%s", "size": %s}\n' "$version" "$size" > panels/dist/firmware.json

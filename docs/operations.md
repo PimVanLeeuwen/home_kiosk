@@ -96,6 +96,11 @@ address from the `PANEL_HUB_URL` GitHub secret, for example `http://<the hub's L
 the build fails without it) into the dashboard image, the hub serves it under `/panels/`, and a
 board with a different version installs it between 04:00 and 05:00 and restarts. A new firmware that cannot reach the hub
 within 5 minutes goes back to the previous one by itself.
+CI only builds the firmware when `panels/firmware` changed: otherwise it reuses the build in the
+published dashboard image (same version, git's hash of the folder). After changing the
+`PANEL_HUB_URL` secret, start the workflow by hand (Actions, collector, Run workflow) with
+"rebuild_firmware" ticked; the version stays the same, so flash the boards or wait for the next
+firmware change.
 
 ```bash
 # once: esptool for flashing; the Wi-Fi details in an untracked file

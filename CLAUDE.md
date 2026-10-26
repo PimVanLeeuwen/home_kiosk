@@ -254,6 +254,10 @@ python3 dashboard/serve.py
   `panels/firmware` with `CONFIG_PANEL_HUB_URL` pointing at a small pass-through hub on the Mac
   (firmware files come from Caddy on 8083, the API from 8000); afterwards `update.py` puts the
   hub's firmware back.
+- CI installs only Chromium's headless shell for e2e, without `--with-deps` (its apt installs
+  took about 9 minutes; the runners already have Chrome's libraries). If Chromium ever fails to
+  launch on a missing library after a runner image change, add `npx playwright install-deps
+  chromium` before the tests.
 - GitHub's "Re-run jobs" repeats a run on its original commit; after fixing a workflow, start a
   new run (Run workflow) instead.
 - UGREEN's desktop app runs "Sync Space", which is Syncthing (`syncspace_pro`): it opens TCP
