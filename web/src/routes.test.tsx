@@ -30,6 +30,7 @@ describe('routes', () => {
     expect(main.getAllByRole('link').map((link) => link.querySelector('span span')?.textContent)).toEqual([
       'Lights',
       'Music',
+      'Weather',
       'Saved',
       'NAS',
       'Docker',

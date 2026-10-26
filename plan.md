@@ -1446,6 +1446,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   yet), the newest saved article halfway through (90% read counts as done; else the newest not
   started) with how many minutes are left, and the group with the most unread news (on News it
   filters the list to that group's unread; on Saved it opens News there, `/news?group=<id>`).
+- Step 6, Q done 2026-10-26: a Weather page (`/weather`, in the navigation; the Home card links
+  to it): now (the Home card's ring and sun), today by the hour from Open-Meteo (the temperature
+  as a warm line, the night shaded from sunrise and sunset, the chance of rain as bars, a line
+  for now), the week as ranges on one scale with each day's sky and chance of rain (J in the
+  hub), and the rain radar while rain is coming (I in the hub: the panels' restyled map, wider,
+  `/api/radar/map`; words while dry or before the first frame). The weather routes moved to
+  `app/weather_api.py` (main.py had reached 500 lines).
 - Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
   "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
   map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS

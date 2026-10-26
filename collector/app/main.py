@@ -34,6 +34,7 @@ from . import (
     restore_request,
     scheduler,
     settings_api,
+    weather_api,
 )
 from .alerts import api as alerts_api
 from .alerts import bot as alert_bot
@@ -71,7 +72,6 @@ from .sources import (
     spotify,
     tailscale,
     ups,
-    weather,
 )
 from .sources import nas as nas_source
 from .sources import services as service_catalog
@@ -157,6 +157,7 @@ app.include_router(lights_api.router)
 app.include_router(documents_api.router)
 app.include_router(ai_api.router)
 app.include_router(music_api.router)
+app.include_router(weather_api.router)
 app.include_router(desk_api.router)
 app.include_router(alerts_api.router)
 app.include_router(news_api.router)
@@ -371,11 +372,6 @@ def backups() -> Any:
 @app.get("/api/exposure")
 def exposure_audit() -> Any:
     return _serve(exposure.CACHE_KEY)
-
-
-@app.get("/api/weather")
-def weather_now() -> Any:
-    return _serve(weather.CACHE_KEY)
 
 
 @app.get("/api/outside-services")

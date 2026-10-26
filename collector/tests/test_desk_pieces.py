@@ -128,3 +128,39 @@ def test_every_weather_paints_in_the_week_and_the_tunnel_at_any_distance():
     for days_left in (0, 1, 19, 400):
         tunnel = paint_countdown.paint_countdown({"days": days_left, "colour": "#8f80ff"})
         assert tunnel.getpixel(paint_countdown.CORE)[0] > 240  # the day, white-hot
+
+
+def test_the_weather_page_gets_the_forecast_and_the_radar_only_while_rain_comes(store):
+    import io
+
+    from fastapi.testclient import TestClient
+    from PIL import Image
+
+    from app import main, paint_radar
+    from app.sources import forecast, radar
+    main.app.state.store = store
+    client = TestClient(main.app)
+    assert client.get("/api/forecast").status_code == 503
+    store.put_cache(forecast.CACHE_KEY, {"as_of": "x", "stale": False, "days": []})
+    assert client.get("/api/forecast").json()["days"] == []
+
+    def png(size, colour):
+        out = io.BytesIO()
+        Image.new("RGBA", size, colour).save(out, "PNG")
+        return out.getvalue()
+
+    store.put_cache(radar.CACHE_KEY, {"as_of": "x", "stale": False, "stamp": "202610261005",
+                                      "wet": False, "home": [281.5, 312.0]})
+    radar.FRAMES.map = png((500, 512), (60, 160, 60, 255))
+    radar.FRAMES.rain = png((500, 512), (0, 0, 255, 90))
+    try:
+        assert client.get("/api/radar").json()["wet"] is False
+        assert client.get("/api/radar/map").status_code == 404  # dry: no radar
+        store.put_cache(radar.CACHE_KEY, store.get_cache(radar.CACHE_KEY) | {"wet": True})
+        got = client.get("/api/radar/map")
+        assert got.status_code == 200 and got.headers["content-type"] == "image/jpeg"
+        with Image.open(io.BytesIO(got.content)) as image:
+            assert image.size == paint_radar.WEB_SIZE
+    finally:
+        radar.FRAMES.map = radar.FRAMES.rain = None
+        paint_radar._web.update(key=None, jpeg=None)

@@ -9,13 +9,16 @@ import { Loading, StaleNote, Unavailable } from '../ui/states'
 
 const whole = (n: number) => Math.round(n)
 
-/** Outside right now: the temperature inside a ring of the next two hours of rain, and the sun's day. */
-export function WeatherCard() {
+/**
+ * Outside right now: the temperature inside a ring of the next two hours of rain, and the
+ * sun's day. On Home it links to the Weather page; on that page it is its "Now".
+ */
+export function WeatherCard({ onPage = false }: { onPage?: boolean }) {
   const { data: w, error } = useApi<Weather>('/api/weather', 300_000)
   const now = new Date()
 
   return (
-    <Card title="Weather">
+    <Card title={onPage ? 'Now' : 'Weather'} link={onPage ? undefined : { to: '/weather', label: 'Week and radar' }}>
       {!w && (error ? <Unavailable what="The weather" /> : <Loading />)}
       {w && (
         <>

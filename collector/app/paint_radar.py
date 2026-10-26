@@ -11,7 +11,7 @@ import math
 from datetime import datetime
 from typing import Any
 
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageDraw
 
 from . import paint
 from .paint import SIZE, SS, hex_colour, mix
@@ -46,7 +46,9 @@ def _restyle(clean: Image.Image) -> Image.Image:
     return paint.tint(out, paint.soften(border, 0.6), (96, 92, 128), 0.55)
 
 
-def paint_radar(data: dict[str, Any], store: Any = None) -> Image.Image | None:
+def _styled() -> Image.Image | None:
+    """Buienradar's map in the panels' colours with the latest rain over it, at its own size;
+    None until both are in."""
     frames = radar.FRAMES
     if frames.map is None or frames.rain is None:
         return None
@@ -60,7 +62,13 @@ def paint_radar(data: dict[str, Any], store: Any = None) -> Image.Image | None:
                                  Image.new("L", rain.size, 255)])
     glow = paint.soften(strength, 6).point(lambda v: v // 2)
     styled = Image.composite(Image.new("RGBA", rain.size, (90, 140, 255, 255)), styled, glow)
-    styled = Image.composite(colour.convert("RGBA"), styled, strength)
+    return Image.composite(colour.convert("RGBA"), styled, strength)
+
+
+def paint_radar(data: dict[str, Any], store: Any = None) -> Image.Image | None:
+    styled = _styled()
+    if styled is None:
+        return None
     # Round home, scaled up to the panel.
     hx, hy = data["home"]
     half = SPAN / 2
@@ -88,3 +96,34 @@ def paint_radar(data: dict[str, Any], store: Any = None) -> Image.Image | None:
         draw.rounded_rectangle((x1 * SS, (BARS_TOP + BARS_H - h) * SS, (x1 + step - 4) * SS,
                                 (BARS_TOP + BARS_H) * SS), radius=3 * SS, fill=(*c, 255))
     return paint.grain(paint.lay(base, layer), 43, 2)
+
+
+# The hub's Weather page (plan.md M27, Q): a wider view round home, 16 by 10.
+WEB_SPAN, WEB_SIZE = (320, 200), (960, 600)
+_web: dict[str, Any] = {"key": None, "jpeg": None}
+
+
+def web_picture(home: list[float], stamp: str | None) -> bytes | None:
+    """The radar for the Weather page as a JPEG: the restyled map and rain round home, home
+    marked; painted once per frame."""
+    key = (stamp, tuple(home))
+    if _web["key"] == key:
+        return _web["jpeg"]
+    styled = _styled()
+    if styled is None:
+        return None
+    hx, hy = home
+    w, h = WEB_SPAN
+    box = (round(hx - w / 2), round(hy - h / 2), round(hx + w / 2), round(hy + h / 2))
+    base = styled.crop(box).resize(WEB_SIZE, Image.Resampling.BICUBIC).convert("RGB")
+    layer = Image.new("RGBA", (WEB_SIZE[0] * SS, WEB_SIZE[1] * SS), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(layer)
+    cx, cy = WEB_SIZE[0] / 2, WEB_SIZE[1] / 2
+    paint.glow(base, cx, cy, 40, (255, 255, 255), 0.4)
+    paint.disc(draw, cx, cy, 7, (255, 255, 255, 255))
+    draw.ellipse(((cx - 15) * SS, (cy - 15) * SS, (cx + 15) * SS, (cy + 15) * SS),
+                 outline=(255, 255, 255, 150), width=2 * SS)
+    out = io.BytesIO()
+    paint.grain(paint.lay(base, layer), 43, 2).save(out, "JPEG", quality=86)
+    _web.update(key=key, jpeg=out.getvalue())
+    return _web["jpeg"]
