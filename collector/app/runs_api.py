@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response
+from pydantic import BaseModel, Field
 
 from . import paint_streets, running
 from .security import same_origin_json
@@ -65,19 +66,23 @@ def overview(request: Request) -> dict[str, Any]:
 
 @router.get("/streets")
 def streets_status(request: Request) -> dict[str, Any]:
-    """When the town's streets were fetched, and how many of each kind (Settings, Running)."""
-    return streets.status(request.app.state.store)
+    """The areas run in, home first, and whether each one's streets are in (Settings, Running)."""
+    store = request.app.state.store
+    return streets.status(store, runs.routes(store, streets.EVER))
+
+
+class StreetsAsk(BaseModel):
+    area: str = Field(max_length=40)
 
 
 @router.post("/streets", dependencies=[Depends(same_origin_json)])
-async def fetch_streets(request: Request) -> dict[str, Any]:
-    """Asks Overpass once for the streets round every run kept (plan.md M28, step 5)."""
+async def fetch_streets(request: Request, ask: StreetsAsk) -> dict[str, Any]:
+    """Asks Overpass once for the streets of one area run in (plan.md M28, step 5)."""
     store = request.app.state.store
-    points = [p for r in runs.routes(store, "1970-01-01T00:00:00+00:00") for p in r["route"]]
     try:
-        return await streets.fetch(store, points)
-    except ValueError as exc:
-        raise HTTPException(409, str(exc)) from None
+        return await streets.fetch(store, runs.routes(store, streets.EVER), ask.area)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from None
     except Exception as exc:
         log.warning("streets: Overpass failed: %s", type(exc).__name__)
         raise HTTPException(
@@ -95,10 +100,11 @@ def streets_picture(request: Request) -> Response:
     zone = ZoneInfo(request.app.state.config.get("timezone", "Europe/Amsterdam"))
     local = datetime.now(zone)
     since = datetime(local.year, 1, 1, tzinfo=zone).astimezone(UTC).isoformat()
-    year = runs.routes(store, since, points=2)
+    home = streets.at_home(store, since, points=2)
+    year = home["routes"]
     if not year:
         raise HTTPException(404, "No runs this year yet.")
-    key = (since, len(year), year[-1]["id"], streets.status(store)["fetched_at"])
+    key = (since, len(year), year[-1]["id"], (home["streets"] or {}).get("fetched_at"))
     if _picture["key"] != key:
         _picture.update(key=key, jpeg=paint_streets.web_jpeg(store, since))
     return Response(_picture["jpeg"], media_type="image/jpeg",

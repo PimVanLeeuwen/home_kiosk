@@ -11,6 +11,12 @@ describe('StreetsCard', () => {
     expect(card).toHaveTextContent('138 runs · 1.214 km')
     expect(screen.getByRole('img').getAttribute('src')).toContain('138-r1-2026-10-26')
     expect(screen.queryByRole('link', { name: /Settings/ })).not.toBeInTheDocument()
+    expect(card).not.toHaveTextContent('elsewhere')
+  })
+
+  it('counts the runs in other towns, which the map leaves out', () => {
+    render(<StreetsCard data={overview({ streets_at: '2026-10-26T15:00:00Z', runs_elsewhere: 2 })} />, { wrapper: MemoryRouter })
+    expect(screen.getByRole('region')).toHaveTextContent('138 runs · 1.214 km · 2 runs elsewhere, not on this map')
   })
 
   it('says where to fetch the streets before they are in, and goes when the picture fails', () => {

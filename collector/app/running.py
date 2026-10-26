@@ -90,6 +90,8 @@ def overview(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     if last:
         ran_on = days[last["id"]].isoformat()
         last["session"] = next((s["name"] for s in sessions if s["date"] == ran_on), None)
+    since = datetime(today.year, 1, 1, tzinfo=zone).astimezone(UTC).isoformat()
+    home = streets.at_home(store, since, points=2)
     return {
         "as_of": now.isoformat(),
         "stale": bool(plan.get("stale")),
@@ -111,6 +113,8 @@ def overview(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
         "today": {"ran": ran_today,
                   "session": next((s for s in sessions if s["date"] == today.isoformat()), None)},
         "race": plan.get("race"),
-        # When the town's streets were fetched (step 5); None until asked for in Settings.
-        "streets_at": streets.status(store)["fetched_at"],
+        # Your streets (step 5): when home's streets were fetched (None until asked for in
+        # Settings), and this year's runs outside the home area, which its map leaves out.
+        "streets_at": (home["streets"] or {}).get("fetched_at"),
+        "runs_elsewhere": home["elsewhere"],
     }

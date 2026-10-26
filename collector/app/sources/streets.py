@@ -1,7 +1,9 @@
-"""The town's streets under the runs (plan.md M28, step 5): fetched once, when asked in Settings,
-from the public Overpass API (OpenStreetMap), for a box round all the runs kept; then drawn from
-the hub's own copy. Decided 2026-10-26: the owner accepts that this one request tells Overpass's
-servers the area the runs are in; nothing else is sent, and nothing at all after it.
+"""The town's streets under the runs (plan.md M28, step 5): fetched from the public Overpass API
+(OpenStreetMap) when asked in Settings, one area at a time, then drawn from the hub's own copy.
+
+Runs are grouped into areas (runs within AREA_KM of each other); home is the area with the most
+runs. Decided 2026-10-26: the owner fetches home's streets, and those of any other area only if
+asked for that area; each request tells Overpass's servers that area, nothing else is sent.
 
 Kept: only the shapes, in three kinds (roads by size, water, parks), positions rounded to about a
 metre; no names or other tags.
@@ -10,12 +12,14 @@ metre; no names or other tags.
 from __future__ import annotations
 
 import json
+import math
 from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 
 from ..store import Store
+from . import runs
 
 URL = "https://overpass-api.de/api/interpreter"
 TIMEOUT_SECONDS = 180
@@ -28,13 +32,15 @@ MINOR = {"residential", "unclassified", "living_street", "service", "pedestrian"
 PATHS = {"footway", "path", "cycleway", "track", "steps", "bridleway"}
 
 TABLE = """
-CREATE TABLE IF NOT EXISTS street_map (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
+CREATE TABLE IF NOT EXISTS street_area (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     fetched_at TEXT NOT NULL,
     box TEXT NOT NULL,
     shapes TEXT NOT NULL
 )
 """
+AREA_KM = 15.0  # runs closer than this to an area's middle belong to it
+EVER = "1970-01-01T00:00:00+00:00"
 
 
 def box_round(points: list[list[float]]) -> tuple[float, float, float, float] | None:
@@ -96,33 +102,117 @@ def shapes(answer: dict[str, Any]) -> dict[str, list[list[list[float]]]]:
 def ensure_table(store: Store) -> None:
     with store.connect() as conn:
         conn.execute(TABLE)
+        # Before areas (2026-10-26) one box held every run: kept as home's, or whichever area
+        # it covers, until fetched again.
+        old = conn.execute("SELECT name FROM sqlite_master WHERE name = 'street_map'").fetchone()
+        if old:
+            conn.execute("INSERT INTO street_area (fetched_at, box, shapes) "
+                         "SELECT fetched_at, box, shapes FROM street_map")
+            conn.execute("DROP TABLE street_map")
 
 
-def kept(store: Store) -> dict[str, Any] | None:
+def _km(a: list[float], b: list[float]) -> float:
+    """Roughly, in kilometres: plenty for telling towns apart."""
+    dy = (a[0] - b[0]) * 111.2
+    dx = (a[1] - b[1]) * 111.2 * math.cos(math.radians((a[0] + b[0]) / 2))
+    return math.hypot(dx, dy)
+
+
+def middle(route: list[list[float]]) -> list[float]:
+    return [sum(p[0] for p in route) / len(route), sum(p[1] for p in route) / len(route)]
+
+
+def group(routes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Runs grouped by area, the area with the most runs first: {middle, runs (ids), points,
+    last (start)}. A run joins the first area whose middle is within AREA_KM of its own."""
+    areas: list[dict[str, Any]] = []
+    for run in routes:
+        if not run["route"]:
+            continue
+        here = middle(run["route"])
+        area = next((a for a in areas if _km(a["middle"], here) <= AREA_KM), None)
+        if area is None:
+            area = {"middle": here, "runs": [], "points": [], "last": run["start"]}
+            areas.append(area)
+        n = len(area["runs"])
+        area["middle"] = [(area["middle"][i] * n + here[i]) / (n + 1) for i in (0, 1)]
+        area["runs"].append(run["id"])
+        area["points"] += run["route"]
+        area["last"] = max(area["last"], run["start"])
+    return sorted(areas, key=lambda a: -len(a["runs"]))
+
+
+def _inside(box: list[float], point: list[float]) -> bool:
+    s, w, n, e = box
+    return s <= point[0] <= n and w <= point[1] <= e
+
+
+def _rows(store: Store) -> list[dict[str, Any]]:
     ensure_table(store)
     with store.connect() as conn:
-        row = conn.execute("SELECT * FROM street_map WHERE id = 1").fetchone()
+        rows = conn.execute("SELECT * FROM street_area ORDER BY id").fetchall()
+    return [{"id": r["id"], "fetched_at": r["fetched_at"], "box": json.loads(r["box"]),
+             "shapes": r["shapes"]} for r in rows]
+
+
+def kept_for(store: Store, point: list[float]) -> dict[str, Any] | None:
+    """The streets fetched for the area round `point`, or None: {fetched_at, box, shapes}."""
+    row = next((r for r in _rows(store) if _inside(r["box"], point)), None)
     if row is None:
         return None
-    return {"fetched_at": row["fetched_at"], "box": json.loads(row["box"]),
-            "shapes": json.loads(row["shapes"])}
+    return row | {"shapes": json.loads(row["shapes"])}
 
 
-def status(store: Store) -> dict[str, Any]:
-    """When they were fetched and how many of each kind, for Settings."""
-    found = kept(store)
-    if not found:
-        return {"fetched_at": None, "counts": {}}
-    return {"fetched_at": found["fetched_at"],
-            "counts": {k: len(v) for k, v in found["shapes"].items()}}
+def at_home(store: Store, since: str, points: int = 200) -> dict[str, Any]:
+    """The runs from `since` on in the home area (where most runs are, over all time), how many
+    ran elsewhere, and home's streets when fetched: {routes, elsewhere, streets}."""
+    areas = group(runs.routes(store, EVER, points=40))
+    home = set(areas[0]["runs"]) if areas else set()
+    year = runs.routes(store, since, points=points)
+    mine = [r for r in year if r["id"] in home]
+    return {"routes": mine, "elsewhere": len(year) - len(mine),
+            "streets": kept_for(store, areas[0]["middle"]) if areas else None}
 
 
-async def fetch(store: Store, points: list[list[float]], now: datetime | None = None,
+def direction(home: list[float], there: list[float]) -> str:
+    """"about 80 km north-east": how far and which way an area lies from home."""
+    dy = there[0] - home[0]
+    dx = (there[1] - home[1]) * math.cos(math.radians(home[0]))
+    names = ["east", "north-east", "north", "north-west", "west", "south-west", "south",
+             "south-east"]
+    way = names[round(math.degrees(math.atan2(dy, dx)) / 45) % 8]
+    return f"about {round(_km(home, there) / 5) * 5 or 5} km {way}"
+
+
+def status(store: Store, routes: list[dict[str, Any]]) -> dict[str, Any]:
+    """The areas run in, home first, each with its runs and whether its streets are in."""
+    areas = group(routes)
+    rows = _rows(store)
+    out = []
+    for i, area in enumerate(areas):
+        row = next((r for r in rows if _inside(r["box"], area["middle"])), None)
+        counts = {k: len(v) for k, v in json.loads(row["shapes"]).items()} if row else {}
+        out.append({"key": f"{area['middle'][0]:.3f},{area['middle'][1]:.3f}", "home": i == 0,
+                    "runs": len(area["runs"]), "last": area["last"],
+                    "where": "home" if i == 0 else direction(areas[0]["middle"], area["middle"]),
+                    "fetched_at": row["fetched_at"] if row else None, "counts": counts})
+    return {"areas": out}
+
+
+async def fetch(store: Store, routes: list[dict[str, Any]], key: str,
+                now: datetime | None = None,
                 transport: httpx.AsyncBaseTransport | None = None) -> dict[str, Any]:
-    """Asks Overpass once for the streets round `points` (the runs' routes) and keeps them."""
-    box = box_round(points)
-    if box is None:
-        raise ValueError("No routes yet: the streets are fetched round your runs.")
+    """Asks Overpass once for the streets of the area `key` names (its middle, "52.500,3.500")
+    and keeps them in place of any fetched for it before."""
+    areas = group(routes)
+    try:
+        lat, lon = (float(v) for v in key.split(","))
+    except ValueError:
+        raise LookupError("No such area.") from None
+    area = next((a for a in areas if _km(a["middle"], [lat, lon]) <= 1.0), None)
+    if area is None:
+        raise LookupError("No such area.")
+    box = box_round(area["points"])
     headers = {"User-Agent": "home-hub (personal, one request)"}
     async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS, transport=transport,
                                  headers=headers) as client:
@@ -131,7 +221,9 @@ async def fetch(store: Store, points: list[list[float]], now: datetime | None = 
     found = shapes(resp.json())
     ensure_table(store)
     with store.connect() as conn:
-        conn.execute("INSERT OR REPLACE INTO street_map (id, fetched_at, box, shapes) "
-                     "VALUES (1, ?, ?, ?)",
+        for row in _rows(store):
+            if _inside(row["box"], area["middle"]):
+                conn.execute("DELETE FROM street_area WHERE id = ?", (row["id"],))
+        conn.execute("INSERT INTO street_area (fetched_at, box, shapes) VALUES (?, ?, ?)",
                      ((now or datetime.now(UTC)).isoformat(), json.dumps(box), json.dumps(found)))
-    return status(store)
+    return status(store, routes)

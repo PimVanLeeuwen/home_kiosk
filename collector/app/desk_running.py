@@ -114,8 +114,9 @@ def run_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     picks = ([route[min(len(route) - 1, round(i * step))] for i in range(PATH_POINTS)]
              if route else [])
     path = [[round(x), round(y)] for x, y in project(picks, ROUTE_BOX)]
+    kept = streets.kept_for(store, streets.middle(route)) if route else None
     return {"kind": "run", "stale": False, "present": True, "id": last["id"], "path": path,
-            "streets_at": (streets.kept(store) or {}).get("fetched_at"), "labels": labels}
+            "streets_at": (kept or {}).get("fetched_at"), "labels": labels}
 
 
 def runweek_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
@@ -173,7 +174,8 @@ def streets_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any
     """D: the year's routes over the town, every turn while there are runs this year."""
     local = now.astimezone(zone)
     since = datetime(local.year, 1, 1, tzinfo=zone).astimezone(UTC).isoformat()
-    year, bounds = paint_streets.year_lines(store, since)
+    home, bounds = paint_streets.year_lines(store, since)
+    year = home["routes"]
     if not year or bounds is None:
         return absent("streets")
     newest = year[-1]
@@ -183,6 +185,10 @@ def streets_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any
     total = f"{totals['runs_this_year']} runs · {round(totals['year_m'] / 1000)} km"
     labels = [caps(f"Your streets · {local.year}", 36, 24, width=360),
               caps(total, 684, 24, width=320, align="right")]
+    if home["elsewhere"]:
+        away = home["elsewhere"]
+        labels.append(caps(f"+{away} {'run' if away == 1 else 'runs'} elsewhere", 684, 60,
+                           width=320, align="right", colour="9a9fb8"))
     path: list[list[int]] = []
     if today:
         frame = paint_streets.Frame(bounds, paint_streets.MAP_BOX)
@@ -191,5 +197,6 @@ def streets_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any
         picks = [route[min(len(route) - 1, round(i * step))] for i in range(PATH_POINTS)]
         path = [[round(x), round(y)] for x, y in (frame.xy(*p) for p in picks)]
     return {"kind": "streets", "stale": False, "present": True, "since": since,
-            "count": len(year), "newest": newest["id"], "today_run": today, "path": path,
-            "streets_at": (streets.kept(store) or {}).get("fetched_at"), "labels": labels}
+            "count": len(year), "newest": newest["id"], "elsewhere": home["elsewhere"],
+            "today_run": today, "path": path,
+            "streets_at": (home["streets"] or {}).get("fetched_at"), "labels": labels}

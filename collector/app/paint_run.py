@@ -2,7 +2,7 @@
 colour of its pace against the run's own range (cool blue easy, amber, white at its fastest),
 over a soft glow of the whole line; a ring where it started, a lit point where it finished.
 The panel lays the numbers on top and runs a light along the route (screen_piece.c), on the
-same box (app/desk_running.py). The streets under it come with step 5."""
+same box (app/desk_running.py), over the streets of the run's own area when they were fetched."""
 
 from __future__ import annotations
 
@@ -48,8 +48,8 @@ def paint_run(data: dict[str, Any], store: Any) -> Image.Image | None:
     base = paint.vertical(SIZE, [(0, (6, 6, 12)), (0.45, (10, 9, 20)), (1, (4, 4, 8))])
     paint.glow(base, 360, 520, 420, (60, 50, 110), 0.25, power=1.8)
     route = run["route"]
-    found = streets.kept(store)
-    if found and len(route) >= 2:
+    found = streets.kept_for(store, streets.middle(route)) if len(route) >= 2 else None
+    if found:
         # The town under the route, placed exactly as the route (and the panel's light) are.
         lats, lons = [p[0] for p in route], [p[1] for p in route]
         frame = paint_streets.Frame((min(lats), min(lons), max(lats), max(lons)), ROUTE_BOX,

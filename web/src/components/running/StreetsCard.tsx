@@ -4,14 +4,15 @@ import { km, type RunningOverview } from '../../lib/running'
 import { Surface } from '../ui/Card'
 
 /**
- * Your streets (plan.md M28, D): this year's runs over the town, the streets
- * run most glowing white-hot, painted by the hub over its own copy of the
- * town's OpenStreetMap streets.
+ * Your streets (plan.md M28, D): this year's runs in the home area over its
+ * town, the streets run most glowing white-hot, painted by the hub over its
+ * own copy of the town's OpenStreetMap streets. Runs elsewhere are counted.
  */
 export function StreetsCard({ data }: { data: RunningOverview }) {
   const [failed, setFailed] = useState(false)
   const t = data.totals
   if (!t.runs_this_year || failed) return null
+  const away = data.runs_elsewhere ?? 0
   const year = new Date().getFullYear()
   // A new picture with every run and after fetching the streets.
   const version = `${t.runs_this_year}-${data.last?.id ?? ''}-${data.streets_at ?? ''}`
@@ -19,7 +20,7 @@ export function StreetsCard({ data }: { data: RunningOverview }) {
     <Surface as="section" padding="none" aria-labelledby="your-streets" className="relative mt-3.5 lg:mt-5">
       <img
         src={`/api/runs/streets/picture?v=${encodeURIComponent(version)}`}
-        alt={`This year's runs over the town, the streets run most glowing brightest`}
+        alt={`This year's runs over the home town, the streets run most glowing brightest`}
         onError={() => setFailed(true)}
         className="block aspect-[5/3] w-full bg-[#05050a] object-cover"
       />
@@ -29,6 +30,7 @@ export function StreetsCard({ data }: { data: RunningOverview }) {
         </h2>
         <p className="text-caption text-white/70">
           {t.runs_this_year} {t.runs_this_year === 1 ? 'run' : 'runs'} · {km(t.year_m, 0)} km
+          {away > 0 && ` · ${away} ${away === 1 ? 'run' : 'runs'} elsewhere, not on this map`}
         </p>
         {!data.streets_at && (
           <p className="mt-1 text-caption text-white/70">

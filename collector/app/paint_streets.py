@@ -1,8 +1,8 @@
-"""D, your streets (plan.md M28, step 5): the town at night from its own OpenStreetMap shapes
-(app/sources/streets.py), streets as faint silver threads, the water dark with a sheen, the parks
-a deeper shade; over it every route of the year as light that adds up, so the streets run most
-glow from ember to white; today's run traced on top. The panel runs a light along today's route
-(screen_piece.c) and lays the words. `town` also draws A's streets (app/paint_run.py).
+"""D, your streets (plan.md M28, step 5): the home area at night from its own OpenStreetMap
+shapes (app/sources/streets.py), streets as faint silver threads, the water dark with a sheen, the
+parks a deeper shade; over it every route of the year there as light that adds up, so the streets
+run most glow from ember to white; today's run traced on top. The panel runs a light along
+today's route (screen_piece.c) and lays the words. `town` also draws A's streets (app/paint_run.py).
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from PIL import Image, ImageChops, ImageDraw
 
 from . import paint
 from .paint import SIZE, Colour
-from .sources import runs, streets
+from .sources import streets
 
 # The panel's picture: the map fills it; the words sit on the dark band at the top.
 MAP_BOX = (0, 150, 720, 720)
@@ -110,26 +110,29 @@ def inputs(screen: dict[str, Any], local: datetime) -> dict[str, Any] | None:
     if not screen.get("present"):
         return None
     return {"since": screen["since"], "count": screen["count"], "newest": screen["newest"],
-            "today": screen.get("today_run"), "streets": screen.get("streets_at")}
+            "elsewhere": screen.get("elsewhere", 0), "today": screen.get("today_run"),
+            "streets": screen.get("streets_at")}
 
 
-def year_lines(store: Any, since: str) -> tuple[list[dict[str, Any]], tuple | None]:
-    year = runs.routes(store, since)
-    return year, bounds_of([r["route"] for r in year])
+def year_lines(store: Any, since: str) -> tuple[dict[str, Any], tuple | None]:
+    """The home area's runs from `since` on (app/sources/streets.py, at_home) and their bounds:
+    a run in another town would squeeze home's map to a corner."""
+    home = streets.at_home(store, since)
+    return home, bounds_of([r["route"] for r in home["routes"]])
 
 
 def picture(store: Any, since: str, today: str | None, size: tuple[int, int],
             box: tuple[int, int, int, int]) -> Image.Image:
-    year, bounds = year_lines(store, since)
+    home, bounds = year_lines(store, since)
+    year = home["routes"]
     lines = [r["route"] for r in year]
-    bounds = bounds_of(lines)
     base = Image.new("RGB", size, (5, 5, 10))
     base = paint.tint(base, paint.vertical(size[1], [(0, (255,) * 3), (1, (0,) * 3)],
                                            width=size[0]).convert("L"), (12, 11, 22), 0.6)
     if bounds is None:
         return base
     frame = Frame(bounds, box)
-    found = streets.kept(store)
+    found = home["streets"]
     if found:
         base = town(base, found["shapes"], frame)
     base = glow_by(base, heat(size, lines, frame))

@@ -1590,6 +1590,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   run traced on top with the panel's light running it (`app/paint_streets.py`). A gets the
   streets under its route, placed exactly as the route and the light are. The Running page has a
   "Your streets" card, painted by the hub (`/api/runs/streets/picture`).
+- Areas, 2026-10-26: runs in another town would have pulled the one box away from both. Decided
+  the same day: home area, others on request. Runs are grouped by place (within 15 km); home is
+  the area with the most runs, over all time, and its streets are fetched as before. D and the
+  Running page's card show home's runs only, with "+N runs elsewhere"; Settings lists the other
+  areas found ("about 90 km north", runs, last run), each with its own fetch button; A shows a
+  run over its own area's streets when they have been fetched. Streets fetched before areas are
+  kept and serve whichever area they cover.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28.
