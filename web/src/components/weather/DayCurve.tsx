@@ -65,7 +65,7 @@ export function DayCurve({ day, now = null }: Props) {
 
   return (
     <figure className="m-0">
-      <svg viewBox={`0 0 ${W} ${RAIN_BOTTOM + 22}`} role="img" aria-label={daySummary(day)} className="block w-full overflow-visible">
+      <svg viewBox={`0 0 ${W} ${RAIN_BOTTOM + 22}`} role="img" aria-label={daySummary(day)} className="block w-full overflow-visible motion-safe:animate-reveal">
         <defs>
           <linearGradient id={`${id}fill`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#f2a65a" stopOpacity="0.32" />
@@ -102,6 +102,8 @@ export function DayCurve({ day, now = null }: Props) {
               rx="2"
               fill="#6aa8f0"
               opacity={0.35 + (h.rain_chance / 100) * 0.65}
+              className="origin-bottom [transform-box:fill-box] motion-safe:animate-grow"
+              style={{ animationDelay: `${300 + h.hour * 20}ms` }}
             />
           ) : null,
         )}

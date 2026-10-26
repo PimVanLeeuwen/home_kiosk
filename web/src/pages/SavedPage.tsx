@@ -40,6 +40,7 @@ function ProgressRing({ pct }: { pct: number }) {
         stroke="var(--color-accent-line)"
         strokeWidth="3"
         strokeLinecap="round"
+        className="motion-safe:animate-sweep"
         strokeDasharray={`${((c * pct) / 100).toFixed(1)} ${c.toFixed(1)}`}
         transform="rotate(-90 12 12)"
         style={{ filter: 'drop-shadow(0 0 3px var(--color-accent-line))' }}

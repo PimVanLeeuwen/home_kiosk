@@ -54,7 +54,17 @@ function Co2Ring({ ppm, level }: { ppm: number; level: Level }) {
         const [x1, y1] = point(a, R + 10)
         return <line key={t} x1={x0} y1={y0} x2={x1} y2={y1} stroke="var(--color-card)" strokeWidth="3" />
       })}
-      <path d={arc(START, Math.max(to, START + 0.5))} fill="none" stroke={colour} strokeWidth="13" strokeLinecap="round" style={{ filter: `drop-shadow(0 0 4px ${colour})` }} />
+      <path
+        d={arc(START, Math.max(to, START + 0.5))}
+        pathLength={1}
+        strokeDasharray="1 1"
+        fill="none"
+        stroke={colour}
+        strokeWidth="13"
+        strokeLinecap="round"
+        style={{ filter: `drop-shadow(0 0 4px ${colour})` }}
+        className="motion-safe:animate-sweep"
+      />
       <circle cx={hx} cy={hy} r="8.5" fill="#fff" />
       <text x="100" y="104" textAnchor="middle" fill="currentColor" fontSize="40" fontWeight="600" style={{ fontVariantNumeric: 'tabular-nums' }}>
         {ppm}
@@ -80,11 +90,11 @@ function Co2Curve({ history, level }: { history: Air['history']; level: Level })
   const { colour } = LEVEL[level]
   return (
     <figure className="mt-4">
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="block h-[84px] w-full" role="img" aria-label="CO₂ over the last 8 hours">
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="block h-[84px] w-full motion-safe:animate-reveal" role="img" aria-label="CO₂ over the last 8 hours">
         {[STUFFY_FROM, OPEN_FROM].map((t) => (
           <line key={t} x1="0" x2={w} y1={y(t)} y2={y(t)} stroke="rgb(255 255 255 / 0.1)" strokeDasharray="5 7" vectorEffect="non-scaling-stroke" />
         ))}
-        <path d={`${line} L ${w} ${h} L 0 ${h} Z`} fill={colour} fillOpacity="0.13" />
+        <path d={`${line} L ${w} ${h} L 0 ${h} Z`} fill={colour} fillOpacity="0.13" className="motion-safe:animate-fill-in" />
         <path d={line} fill="none" stroke={colour} strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
       </svg>
       <figcaption className="mt-1 flex justify-between text-label text-faint">

@@ -37,6 +37,7 @@ export function RingMeter({ pct, tone, label, caption }: Props) {
           stroke={color}
           strokeWidth="7"
           strokeLinecap="round"
+          className="motion-safe:animate-sweep"
           strokeDasharray={`${((C * value) / 100).toFixed(1)} ${C.toFixed(1)}`}
           transform="rotate(-90 50 50)"
           style={{ filter: `drop-shadow(0 0 4px ${color})` }}

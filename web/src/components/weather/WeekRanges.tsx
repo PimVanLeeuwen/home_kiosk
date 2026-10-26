@@ -39,7 +39,7 @@ export function WeekRanges({ days, today }: { days: ForecastDay[]; today: string
             <span aria-hidden="true" className="relative h-1.5 rounded-full bg-white/[0.06]">
               <span
                 data-range
-                className="absolute inset-y-0 rounded-full"
+                className="absolute inset-y-0 origin-left rounded-full motion-safe:animate-grow-x"
                 style={{
                   left: `${at(d.low) * 100}%`,
                   width: `${Math.max(4, (at(d.high) - at(d.low)) * 100)}%`,

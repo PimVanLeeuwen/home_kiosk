@@ -37,6 +37,7 @@ export function QuietRing({ start, end, enabled, now }: Props) {
           fill="none"
           stroke="var(--color-accent-line)"
           strokeWidth="8"
+          className="motion-safe:animate-sweep"
           strokeDasharray={`${((span / 24) * C).toFixed(2)} ${C.toFixed(2)}`}
           strokeDashoffset={(-(from / 24) * C).toFixed(2)}
           transform="rotate(-90 50 50)"

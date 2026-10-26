@@ -85,7 +85,7 @@ export function LineChart({ points, aLabel, bLabel, format, label, bleed }: Prop
         onPointerDown={onMove}
         onPointerLeave={() => setHover(null)}
       >
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none" role="img" aria-label={label} className="h-[200px] w-full md:h-[240px]">
+        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none" role="img" aria-label={label} className="h-[200px] w-full motion-safe:animate-reveal md:h-[240px]">
           <defs>
             <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor={colour} stopOpacity="0.3" />
@@ -95,7 +95,7 @@ export function LineChart({ points, aLabel, bLabel, format, label, bleed }: Prop
           {[0.25, 0.5, 0.75].map((f) => (
             <line key={f} x1="0" x2={WIDTH} y1={HEIGHT * f} y2={HEIGHT * f} stroke="rgb(255 255 255 / 0.04)" vectorEffect="non-scaling-stroke" />
           ))}
-          <path d={`${line} L${WIDTH} ${HEIGHT} L0 ${HEIGHT} Z`} fill={`url(#${gradient})`} />
+          <path d={`${line} L${WIDTH} ${HEIGHT} L0 ${HEIGHT} Z`} fill={`url(#${gradient})`} className="motion-safe:animate-fill-in" />
           {reference && (
             <path d={reference} fill="none" stroke="var(--color-muted)" strokeWidth="1.5" strokeDasharray="5 5" vectorEffect="non-scaling-stroke" />
           )}
@@ -122,8 +122,9 @@ export function LineChart({ points, aLabel, bLabel, format, label, bleed }: Prop
         {/* The period's high as a glowing dot; its amount sits in the date row below. */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{ left: `${topX}%`, top: `${topY}%`, backgroundColor: colour, boxShadow: `0 0 8px ${colour}` }}
+          className="pointer-events-none absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full motion-safe:animate-fill-in"
+          // It lights as the line drawing in reaches it.
+          style={{ left: `${topX}%`, top: `${topY}%`, backgroundColor: colour, boxShadow: `0 0 8px ${colour}`, animationDelay: `${Math.round(topX * 6)}ms` }}
         />
       </div>
       <div aria-hidden="true" className={cn('mt-1.5 flex justify-between text-label text-faint', bleed && 'pb-4')}>

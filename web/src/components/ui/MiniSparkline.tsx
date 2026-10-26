@@ -19,7 +19,7 @@ export function MiniSparkline({ values, label, tone = 'accent', min: low, floor 
     .join(' ')
   const color = TONE_COLOR[tone]
   return (
-    <svg role="img" aria-label={label} viewBox="0 0 60 20" preserveAspectRatio="none" className="block h-5 w-full overflow-visible">
+    <svg role="img" aria-label={label} viewBox="0 0 60 20" preserveAspectRatio="none" className="block h-5 w-full overflow-visible motion-safe:animate-reveal">
       <polyline
         points={points}
         fill="none"

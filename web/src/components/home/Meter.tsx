@@ -24,7 +24,7 @@ export function Meter({ label, value, pct, tone = 'ok' }: Props) {
         aria-valuemax={100}
         className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-raised"
       >
-        <div className={cn('h-full rounded-full', bar)} style={{ width: `${Math.min(100, Math.max(0, pct))}%` }} />
+        <div className={cn('h-full origin-left rounded-full motion-safe:animate-grow-x', bar)} style={{ width: `${Math.min(100, Math.max(0, pct))}%` }} />
       </div>
     </div>
   )

@@ -77,6 +77,9 @@ export function ArcGauge({ pct, alertAt, label, children, className }: Props) {
         {value > 0 && (
           <path
             d={arc(0, value / 100)}
+            pathLength={1}
+            strokeDasharray="1 1"
+            className="motion-safe:animate-sweep"
             stroke={`url(#${id}-arc)`}
             strokeWidth="6"
             fill="none"

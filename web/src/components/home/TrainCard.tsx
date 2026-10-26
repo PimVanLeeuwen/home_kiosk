@@ -24,6 +24,7 @@ function MinutesRing({ minutes, color, label }: { minutes: number; color: string
         stroke={color}
         strokeWidth="4.5"
         strokeLinecap="round"
+        className="motion-safe:animate-sweep"
         strokeDasharray={`${(C * filled).toFixed(1)} ${C.toFixed(1)}`}
         transform="rotate(-90 32 32)"
         style={{ filter: `drop-shadow(0 0 3px ${color})` }}

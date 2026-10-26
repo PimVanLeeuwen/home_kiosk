@@ -38,3 +38,20 @@ test('Portfolio shows the summary and opens a holding', async ({ page }) => {
   await page.getByRole('main').getByRole('link', { name: 'Portfolio' }).click()
   await expect(page).toHaveURL('/portfolio')
 })
+
+for (const reduced of [false, true]) {
+  test(`The chart ${reduced ? 'stays still with reduced motion' : 'draws in once on load'}`, async ({ browser }) => {
+    const context = await browser.newContext({ reducedMotion: reduced ? 'reduce' : 'no-preference', serviceWorkers: 'block' })
+    const page = await context.newPage()
+    await page.route('**/api/portfolio', (r) => r.fulfill({ json: PORTFOLIO }))
+    await page.route('**/api/portfolio/history?**', (r) => r.fulfill({ json: HISTORY }))
+    await page.route('**/api/indices', (r) => r.fulfill({ json: { as_of: PORTFOLIO.as_of, stale: false, indices: [] } }))
+    await page.goto('/portfolio')
+    await expect(page.getByRole('img', { name: /Portfolio value, 1Y/ })).toBeVisible()
+
+    const names = await page.evaluate(() => document.getAnimations().map((a) => (a as CSSAnimation).animationName))
+    if (reduced) expect(names.filter((n) => ['reveal', 'fill-in', 'sweep', 'grow', 'grow-x'].includes(n))).toEqual([])
+    else expect(names).toEqual(expect.arrayContaining(['reveal', 'sweep']))
+    await context.close()
+  })
+}

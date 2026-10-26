@@ -20,6 +20,7 @@ function Ring({ pct }: { pct: number }) {
         stroke="var(--color-accent-line)"
         strokeWidth="4"
         strokeLinecap="round"
+        className="motion-safe:animate-sweep"
         strokeDasharray={`${((c * pct) / 100).toFixed(1)} ${c.toFixed(1)}`}
         transform="rotate(-90 18 18)"
       />

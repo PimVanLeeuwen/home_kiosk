@@ -1453,6 +1453,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   hub), and the rain radar while rain is coming (I in the hub: the panels' restyled map, wider,
   `/api/radar/map`; words while dry or before the first frame). The weather routes moved to
   `app/weather_api.py` (main.py had reached 500 lines).
+- Step 6, R done 2026-10-26: motion on load in the hub, once when a chart first shows (a refresh
+  keeps it as it is) and never with reduced motion: lines are revealed left to right and their
+  fill follows (Portfolio, the NAS and Docker sparklines, Air, today's weather; a widening clip
+  on the <svg>, as the lines keep a non-scaling stroke that dashes do not follow), rings and
+  gauges sweep to their value (storage, CO2, Today, the train, laundry, alerts, allocation,
+  reading progress), bars grow from their base (bar strips, meters, the week's ranges, the
+  chance of rain). Shared keyframes in `web/src/index.css` (reveal, fill-in, sweep, grow,
+  grow-x). The site rings' mosaic stays still. That completes M27's hub pages, O to R.
 - Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
   "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
   map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS

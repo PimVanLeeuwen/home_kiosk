@@ -44,6 +44,7 @@ export function AllocationCard({ allocation }: { allocation: { label: string; pc
               fill="none"
               stroke={COLOURS[i % COLOURS.length]}
               strokeWidth="10"
+              className="motion-safe:animate-sweep"
               strokeDasharray={`${length.toFixed(2)} ${C.toFixed(2)}`}
               strokeDashoffset={(-starts[i]).toFixed(2)}
               transform="rotate(-90 50 50)"

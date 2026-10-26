@@ -69,6 +69,8 @@ export function BarStrip({ values, label, tone = 'up', marks = {}, start, end, m
               rx="2"
               fill={fill}
               filter={last ? `url(#${id}-lit)` : undefined}
+              className="origin-bottom [transform-box:fill-box] motion-safe:animate-grow"
+              style={{ animationDelay: `${Math.min(i * 14, 420)}ms` }}
             />
           )
         })}

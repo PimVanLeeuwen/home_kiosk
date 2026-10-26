@@ -147,6 +147,48 @@
     }
   }
 
+  /* Motion on load (plan.md M27, R): once, when a chart first shows; always with motion-safe:.
+     A chart's line is revealed left to right (on its <svg>: lines keep a non-scaling stroke,
+     which dashes do not follow), its fill follows; a ring's dash sweeps from nothing to its
+     value; bars grow from their base (origin-bottom or origin-left, transform-box fill-box). */
+  --animate-reveal: reveal 1.1s cubic-bezier(0.33, 1, 0.68, 1) both;
+  @keyframes reveal {
+    /* Beyond the box everywhere but the moving edge, so a glow outside it is never cut. */
+    from {
+      clip-path: inset(-50% 100% -50% -50%);
+    }
+    99% {
+      clip-path: inset(-50% 0 -50% -50%);
+    }
+    to {
+      clip-path: inset(-50% -50% -50% -50%);
+    }
+  }
+  --animate-fill-in: fill-in 0.9s ease-out 0.4s both;
+  @keyframes fill-in {
+    from {
+      opacity: 0;
+    }
+  }
+  --animate-sweep: sweep 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  @keyframes sweep {
+    from {
+      stroke-dasharray: 0 1000;
+    }
+  }
+  --animate-grow: grow 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  @keyframes grow {
+    from {
+      transform: scaleY(0);
+    }
+  }
+  --animate-grow-x: grow-x 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  @keyframes grow-x {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
   /* A light's pool on the Lights page's floor plan, breathing softly. */
   --animate-breathe: breathe 6s ease-in-out infinite;
   @keyframes breathe {

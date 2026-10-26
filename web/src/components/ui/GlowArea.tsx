@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import { TONE_COLOR, type Tone } from './tones'
+import { cn } from '../../lib/cn'
 
 interface Props {
   values: number[]
@@ -44,7 +45,7 @@ export function GlowArea({ values, label, tone = 'accent', color, height = 118, 
       viewBox={`0 0 ${W} ${H}`}
       preserveAspectRatio="none"
       height={height}
-      className={className ?? 'block w-full'}
+      className={cn(className ?? 'block w-full', 'motion-safe:animate-reveal')}
     >
       <defs>
         <linearGradient id={`${id}-fill`} x1="0" y1="0" x2="0" y2="1">
@@ -55,7 +56,7 @@ export function GlowArea({ values, label, tone = 'accent', color, height = 118, 
       {[1 / 3, 2 / 3].map((f) => (
         <line key={f} x1="0" x2={W} y1={H * f} y2={H * f} stroke="rgb(255 255 255 / 0.04)" vectorEffect="non-scaling-stroke" />
       ))}
-      <polygon points={`0,${H} ${pts} ${W},${H}`} fill={`url(#${id}-fill)`} />
+      <polygon points={`0,${H} ${pts} ${W},${H}`} fill={`url(#${id}-fill)`} className="motion-safe:animate-fill-in" />
       <polyline
         points={pts}
         fill="none"
