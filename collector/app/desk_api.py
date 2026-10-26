@@ -18,6 +18,7 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
 
 from . import (
     desk,
@@ -64,12 +65,15 @@ async def board(mac: str, request: Request,
     store = request.app.state.store
     visit = desk_boards.check_in(store, mac, firmware, key=desk_keys.presented(request))
     playing = await _music(request) if visit.panel == "home" else None
-    answer = desk.answer(request.app.state.config, store, visit.panel, board=mac, music=playing)
+    # Built off the event loop: a slow screen (it has happened: the run screens, 2026-10-26)
+    # must not stall the collector's other work, nor the other panels.
+    answer = await run_in_threadpool(desk.answer, request.app.state.config, store, visit.panel,
+                                     board=mac, music=playing)
     if visit.update:
         answer["update"] = True  # install the hub's firmware now (Settings, Update now)
     if visit.key:
         answer["key"] = visit.key  # its device key, until the board sends it back
-    return desk.fit(answer, room)
+    return await run_in_threadpool(desk.fit, answer, room)
 
 
 class Dismiss(BaseModel):
@@ -233,4 +237,5 @@ async def music_control(action: Literal["play", "pause", "next", "previous"], re
 @router.get("/{name}")
 async def panel(name: PanelName, request: Request) -> dict[str, Any]:
     playing = await _music(request) if name == "home" else None
-    return desk.answer(request.app.state.config, request.app.state.store, name, music=playing)
+    return await run_in_threadpool(desk.answer, request.app.state.config, request.app.state.store,
+                                   name, music=playing)

@@ -347,3 +347,33 @@ def test_a_board_says_how_much_it_can_read(store):
     client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "house"})
     assert client.get(f"/api/desk/board/{MAC}", params={"room": 32768}).status_code == 200
     assert client.get(f"/api/desk/board/{MAC}", params={"room": 10}).status_code == 422
+
+
+def test_a_slow_panel_answer_does_not_stall_the_collector(store, monkeypatch):
+    """The answer is built off the event loop: while one panel's screens take long, the rest
+    of the hub (here its health) still answers at once."""
+    import asyncio
+    import time
+
+    import httpx
+
+    def slow(*args, **kwargs):
+        time.sleep(0.6)
+        return {"name": None, "rotate": True, "screens": []}
+
+    board_client(store)  # the hub's store and config, as for the other board tests
+    monkeypatch.setattr(desk, "answer", slow)
+
+    async def both() -> tuple[float, float]:
+        transport = httpx.ASGITransport(app=main.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://hub") as client:
+            started = time.perf_counter()
+            board = asyncio.create_task(client.get("/api/desk/board/e8:f6:0a:e4:42:b0"))
+            await asyncio.sleep(0.1)
+            health = await client.get("/api/health")
+            health_at = time.perf_counter() - started
+            assert health.status_code == 200 and (await board).status_code == 200
+            return health_at, time.perf_counter() - started
+
+    health_at, board_at = asyncio.run(both())
+    assert health_at < 0.4 < board_at
