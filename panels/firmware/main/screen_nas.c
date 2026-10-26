@@ -167,7 +167,13 @@ static void tick(lv_timer_t *timer)
     lv_obj_set_style_text_color(pill_text, lv_color_hex(tone), 0);
     lv_obj_set_style_image_recolor(sky, lv_color_hex(shown.warn ? AMBER : VIOLET), 0);
 
-    draw_gauge(shown.used_pct, shown.limit_pct);
+    /* The gauge takes about 0.7 s to draw, on the LVGL task: only when it changes, not with
+     * every answer (the sparklines change every minute), or every screen stalls that long. */
+    static int drawn_used = -1, drawn_limit = -1;
+    if (shown.used_pct != drawn_used || shown.limit_pct != drawn_limit) {
+        drawn_used = shown.used_pct, drawn_limit = shown.limit_pct;
+        draw_gauge(shown.used_pct, shown.limit_pct);
+    }
     lv_label_set_text_fmt(percent, "%d", shown.used_pct);
     lv_label_set_text(size, shown.size);
     lv_label_set_text(runway, shown.runway);

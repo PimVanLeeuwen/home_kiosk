@@ -3,8 +3,10 @@
  * by the panel's own clock. One instance per piece, the same code for all of them.
  *
  * The orbit clock (C) adds its bodies: the hour, the minute and the second going round the
- * hub's painted sun on its orbits, the second with a fading tail, ten steps a second while
- * it shows; small objects moved by their real position, nothing transformed.
+ * hub's painted sun on its orbits, the second with a fading tail, 25 steps a second while
+ * it shows (at ten it jumped about 3 px a step on the outer orbit); small objects moved by
+ * their real position, nothing transformed. The hour and the minute, which move less than a
+ * pixel a second, are placed once a second.
  *
  * The countdown (K) sends sparks streaming out of the hub's painted tunnel: from its core,
  * the day, towards you, faster and bigger as they come, 25 steps a second.
@@ -36,7 +38,7 @@ LV_FONT_DECLARE(instrument_time);
 #define ORBIT_X 360   /* the sun, and the orbits' radii, as app/paint_orbit.py paints them */
 #define ORBIT_Y 360
 #define TAIL 5
-#define ORBIT_MS 100
+#define ORBIT_MS 40
 static const int RADII[3] = {118, 196, 276};
 
 #define CORE_X 360    /* the tunnel's core, as app/paint_countdown.py paints it */
@@ -61,6 +63,7 @@ typedef struct {
     lv_obj_t *bodies[3], *tail[TAIL];
     uint32_t version;
     int minute;
+    int orbit_second; /* the second the hour and the minute were last placed in */
     lv_obj_t *labels[PIECE_LABELS], *clock;
     spark_t sparks[SPARKS];
     lv_obj_t *runner[RUN_TAIL + 1]; /* the light first, then its tail */
@@ -172,8 +175,11 @@ static void orbit(lv_timer_t *timer)
     gmtime_r(&local, &t);
     float second = (t.tm_sec + tv.tv_usec / 1e6f) / 60, minute = (t.tm_min + second) / 60;
     float hour = (t.tm_hour % 12 + minute) / 12;
-    at_angle(p->bodies[0], RADII[0], hour);
-    at_angle(p->bodies[1], RADII[1], minute);
+    if (t.tm_sec != p->orbit_second) {
+        p->orbit_second = t.tm_sec;
+        at_angle(p->bodies[0], RADII[0], hour);
+        at_angle(p->bodies[1], RADII[1], minute);
+    }
     at_angle(p->bodies[2], RADII[2], second);
     for (int i = 0; i < TAIL; i++) {
         at_angle(p->tail[i], RADII[2], second - (i + 1) * 0.006f);
@@ -262,6 +268,7 @@ void screen_piece_create(lv_obj_t *screen, int which)
     piece_screen_t *p = heap_caps_calloc(1, sizeof *p, MALLOC_CAP_SPIRAM);
     p->which = which;
     p->minute = -1;
+    p->orbit_second = -1;
     if (which == PIECE_COUNTDOWN) { /* first, so the sparks pass under the words */
         for (int i = 0; i < SPARKS; i++) {
             p->sparks[i].dot = body(screen, 3, 0xfff1dc, 0);

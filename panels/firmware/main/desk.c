@@ -41,6 +41,19 @@
 #include "update.h"
 #include "sdkconfig.h"
 
+/* A screen's new data takes a new version only when something in it changed: every screen
+ * redraws on a new version, and all of them at once, every 30 s, held the LVGL task for most
+ * of a second (the orbit clock's second hand stopped). The states are zeroed before they are
+ * filled, so their bytes compare. */
+#define COMMIT(state, fresh)                                     \
+    do {                                                         \
+        (fresh).version = (state).version;                       \
+        if (memcmp(&(fresh), &(state), sizeof(fresh)) != 0) {    \
+            (fresh).version = (state).version + 1;               \
+            (state) = (fresh);                                   \
+        }                                                        \
+    } while (0)
+
 static const char *TAG = "desk";
 /* The hub's latest answer, in PSRAM: internal RAM is for the Wi-Fi buffers. */
 EXT_RAM_BSS_ATTR static desk_clock_t clock_state;
@@ -1064,58 +1077,32 @@ static void apply(const char *body)
     desk_piece_commit();
 
     xSemaphoreTake(lock, portMAX_DELAY);
-    next.version = clock_state.version + 1;
-    clock_state = next;
-    day.version = day_state.version + 1;
-    day_state = day;
-    playing.version = playing_state.version + 1;
-    playing_state = playing;
-    laundry.version = laundry_state.version + 1;
-    laundry_state = laundry;
-    air.version = air_state.version + 1;
-    air_state = air;
-    code.version = code_state.version + 1;
-    code_state = code;
-    briefing.version = briefing_state.version + 1;
-    briefing_state = briefing;
-    sites.version = sites_state.version + 1;
-    sites_state = sites;
-    services.version = services_state.version + 1;
-    services_state = services;
-    tailnet.version = tailnet_state.version + 1;
-    tailnet_state = tailnet;
-    alerts.version = alerts_state.version + 1;
-    alerts_state = alerts;
-    nas.version = nas_state.version + 1;
-    nas_state = nas;
-    backups.version = backups_state.version + 1;
-    backups_state = backups;
-    media.version = media_state.version + 1;
-    media_state = media;
-    money.version = money_state.version + 1;
-    money_state = money;
-    takeover.version = takeover_state.version + 1;
-    takeover_state = takeover;
-    movers.version = movers_state.version + 1;
-    movers_state = movers;
-    pipeline.version = pipeline_state.version + 1;
-    pipeline_state = pipeline;
-    pipes.version = pipelines_state.version + 1;
-    pipelines_state = pipes;
-    apple.version = apple_state.version + 1;
-    apple_state = apple;
-    music.version = music_state.version + 1;
-    music_state = music;
-    lights.version = lights_state.version + 1;
-    lights_state = lights;
-    news.version = headlines_state.version + 1;
-    headlines_state = news;
-    agenda.version = agenda_state.version + 1;
-    agenda_state = agenda;
-    train.version = train_state.version + 1;
-    train_state = train;
-    board.version = board_state.version + 1;
-    board_state = board;
+    COMMIT(clock_state, next);
+    COMMIT(day_state, day);
+    COMMIT(playing_state, playing);
+    COMMIT(laundry_state, laundry);
+    COMMIT(air_state, air);
+    COMMIT(code_state, code);
+    COMMIT(briefing_state, briefing);
+    COMMIT(sites_state, sites);
+    COMMIT(services_state, services);
+    COMMIT(tailnet_state, tailnet);
+    COMMIT(alerts_state, alerts);
+    COMMIT(nas_state, nas);
+    COMMIT(backups_state, backups);
+    COMMIT(media_state, media);
+    COMMIT(money_state, money);
+    COMMIT(takeover_state, takeover);
+    COMMIT(movers_state, movers);
+    COMMIT(pipeline_state, pipeline);
+    COMMIT(pipelines_state, pipes);
+    COMMIT(apple_state, apple);
+    COMMIT(music_state, music);
+    COMMIT(lights_state, lights);
+    COMMIT(headlines_state, news);
+    COMMIT(agenda_state, agenda);
+    COMMIT(train_state, train);
+    COMMIT(board_state, board);
     xSemaphoreGive(lock);
 }
 

@@ -105,9 +105,12 @@ bool desk_piece_parse(const cJSON *screen)
 void desk_piece_commit(void)
 {
     xSemaphoreTake(lock, portMAX_DELAY);
-    for (int i = 0; i < PIECES; i++) {
-        next[i].version = state[i].version + 1;
-        state[i] = next[i];
+    for (int i = 0; i < PIECES; i++) { /* a new version only for a changed piece (desk.c, COMMIT) */
+        next[i].version = state[i].version;
+        if (memcmp(&next[i], &state[i], sizeof next[i]) != 0) {
+            next[i].version = state[i].version + 1;
+            state[i] = next[i];
+        }
     }
     xSemaphoreGive(lock);
 }
