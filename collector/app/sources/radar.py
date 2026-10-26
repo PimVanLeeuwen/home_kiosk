@@ -1,16 +1,16 @@
 """The rain radar (plan.md M27, I): Buienradar's radar pictures of the Netherlands, read
-only while rain is expected within two hours (the weather's rain line), every 5 minutes;
-the map under them once a day. Public pictures, no key; nothing is sent but the request.
+only while rain is expected within two hours (the weather's rain line), every 5 minutes.
+Public pictures, no key; nothing is sent but the request.
 
-Kept in memory: the latest rain layer (see-through) and the map, with the frame's time
-from Buienradar's own file name. The Now panel's radar piece is painted from them
-(app/paint_radar.py), restyled in the panels' colours.
+Kept in memory: the latest rain layer (see-through), with the frame's time from Buienradar's
+own file name. The Now panel's radar piece is painted from it over the hub's own outline of
+the land (app/paint_radar.py); Buienradar's map is not fetched, as its rain is drawn in.
 """
 
 from __future__ import annotations
 
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -23,7 +23,6 @@ CACHE_KEY = "radar"
 URL = "https://image.buienradar.nl/2.0/image/single/RadarMapRainNL"
 SIZE = (500, 512)
 WET_MM = 0.1
-MAP_EVERY = timedelta(days=1)
 TIMEOUT_SECONDS = 20
 STAMP = re.compile(r"/(\d{12})__")  # 202610260705: the frame's time, UTC
 
@@ -47,8 +46,6 @@ class Frames:
     def __init__(self) -> None:
         self.rain: bytes | None = None
         self.stamp: str | None = None
-        self.map: bytes | None = None
-        self.map_at: datetime | None = None
 
 
 FRAMES = Frames()
@@ -59,8 +56,8 @@ def wet(store: Store) -> bool:
     return any((p.get("mm_per_hour") or 0) >= WET_MM for p in points)
 
 
-async def _fetch(client: httpx.AsyncClient, background: bool) -> tuple[str | None, bytes]:
-    params = {"height": SIZE[1], "width": SIZE[0], "renderBackground": str(background),
+async def _fetch(client: httpx.AsyncClient) -> tuple[str | None, bytes]:
+    params = {"height": SIZE[1], "width": SIZE[0], "renderBackground": "False",
               "renderBranding": "False", "renderText": "False"}
     resp = await client.get(URL, params=params)
     resp.raise_for_status()
@@ -77,9 +74,6 @@ async def collect(cfg: dict[str, Any], store: Store, now: datetime | None = None
         return Radar(as_of=now, stale=False, stamp=FRAMES.stamp, wet=False, home=home)
     async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS, follow_redirects=True,
                                  transport=transport) as client:
-        stamp, rain = await _fetch(client, background=False)
-        if FRAMES.map is None or FRAMES.map_at is None or now - FRAMES.map_at > MAP_EVERY:
-            _, FRAMES.map = await _fetch(client, background=True)
-            FRAMES.map_at = now
+        stamp, rain = await _fetch(client)
     FRAMES.rain, FRAMES.stamp = rain, stamp
     return Radar(as_of=now, stale=False, stamp=stamp, wet=True, home=home)

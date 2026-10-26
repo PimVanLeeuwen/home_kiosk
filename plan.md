@@ -1461,6 +1461,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   reading progress), bars grow from their base (bar strips, meters, the week's ranges, the
   chance of rain). Shared keyframes in `web/src/index.css` (reveal, fill-in, sweep, grow,
   grow-x). The site rings' mosaic stays still. That completes M27's hub pages, O to R.
+- Panel review, 2026-10-26 (the owner: the orbit clock lags, the radar is a bit ugly, the year
+  dial and the art of the day need a stunning overhaul). Orbit clock: 25 steps a second, and the
+  panels no longer redraw every screen on every answer (only changed data gets a new version;
+  the NAS gauge, 0.7 s to draw, stalled the panel every minute). Radar, chosen from three
+  mockups (contour, glow, dot grid): contour. The land is the hub's own outline (Natural
+  Earth's 1:10m land and lakes, public domain, clipped to Buienradar's picture and simplified to
+  about 100 m, `collector/app/radar_coast.json`), as Buienradar's map has the rain drawn in and
+  showed its pixels blown up; Buienradar's map is no longer fetched. The rain in four smooth
+  bands by its strength, each with a fine edge line, dashed rings at 10, 25 and 50 km; the same
+  on the Weather page. Next: the year dial (H), then the art of the day (F).
 - Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
   "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
   map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS

@@ -40,6 +40,8 @@ packages = ["app", "app.alerts", "app.news", "app.portfolio", "app.sources", "ap
 [tool.setuptools.package-data]
 # Signify's root certificates for the Hue Bridge (app/sources/hue.py).
 "app.sources" = ["*.pem"]
+# The rain radar's outline of the land (app/paint_radar.py).
+"app" = ["*.json"]
 
 [tool.ruff]
 line-length = 100

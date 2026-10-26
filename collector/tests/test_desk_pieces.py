@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import io
 from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
+
+from PIL import Image, ImageStat
 
 from app import desk_pieces
 from app.sources import weather
@@ -130,6 +133,45 @@ def test_every_weather_paints_in_the_week_and_the_tunnel_at_any_distance():
         assert tunnel.getpixel(paint_countdown.CORE)[0] > 240  # the day, white-hot
 
 
+def _rain_png(colour):
+    out = io.BytesIO()
+    Image.new("RGBA", (500, 512), colour).save(out, "PNG")
+    return out.getvalue()
+
+
+def test_the_radar_draws_its_own_outline_of_the_land():
+    from app import paint_radar
+    from app.sources import radar
+
+    def middle(lat, lon):  # what the outline has at a place, seen from right above it
+        mask = paint_radar._land(list(radar.to_pixel(lat, lon)), (20, 20), (21, 21))
+        return mask.getpixel((10, 10))
+
+    assert middle(52.09, 5.12) == 255  # Utrecht: land
+    assert middle(52.5, 3.5) == 0      # the North Sea
+    assert middle(52.85, 5.35) == 0    # the IJsselmeer: a lake, left out of the land
+
+
+def test_the_radar_shows_how_hard_it_rains():
+    from app import paint_radar
+    from app.sources import radar
+
+    light, heavy = (236, 237, 253, 162), (112, 130, 250, 165)  # Buienradar's palest and deepest
+    assert paint_radar._field(_rain_png(light)).getpixel((5, 5)) == 40
+    assert paint_radar._field(_rain_png(heavy)).getpixel((5, 5)) > 240
+    assert paint_radar._field(_rain_png((0, 0, 0, 0))).getpixel((5, 5)) == 0
+    home = list(radar.to_pixel(52.09, 5.12))
+    seen = {}
+    try:
+        for name, colour in (("light", light), ("heavy", heavy)):
+            radar.FRAMES.rain = _rain_png(colour)
+            picture = paint_radar.paint_radar({"stamp": "x", "home": home, "rain": []})
+            seen[name] = ImageStat.Stat(picture.convert("L").crop((200, 200, 300, 300))).mean[0]
+    finally:
+        radar.FRAMES.rain = None
+    assert picture.size == (720, 720) and seen["heavy"] > seen["light"] * 1.5
+
+
 def test_the_weather_page_gets_the_forecast_and_the_radar_only_while_rain_comes(store):
     import io
 
@@ -151,7 +193,6 @@ def test_the_weather_page_gets_the_forecast_and_the_radar_only_while_rain_comes(
 
     store.put_cache(radar.CACHE_KEY, {"as_of": "x", "stale": False, "stamp": "202610261005",
                                       "wet": False, "home": [281.5, 312.0]})
-    radar.FRAMES.map = png((500, 512), (60, 160, 60, 255))
     radar.FRAMES.rain = png((500, 512), (0, 0, 255, 90))
     try:
         assert client.get("/api/radar").json()["wet"] is False
@@ -162,5 +203,5 @@ def test_the_weather_page_gets_the_forecast_and_the_radar_only_while_rain_comes(
         with Image.open(io.BytesIO(got.content)) as image:
             assert image.size == paint_radar.WEB_SIZE
     finally:
-        radar.FRAMES.map = radar.FRAMES.rain = None
+        radar.FRAMES.rain = None
         paint_radar._web.update(key=None, jpeg=None)
