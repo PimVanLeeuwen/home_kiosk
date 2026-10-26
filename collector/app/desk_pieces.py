@@ -14,6 +14,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from . import paint_year
 from .desk_clock import _local, _phase, clock_screen, condition
 from .panel_text import latin1
 from .sources import countdown, forecast, photo, radar, weather
@@ -138,21 +139,23 @@ def night_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 
 
 def year_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
-    """H, the year: today's day of it, in the middle of the dial (paint_year)."""
+    """H, the year: Earth on its path round the sun at today (paint_year), the day's number
+    large below it; the panel breathes a halo round Earth (`path`, one point)."""
     local = now.astimezone(zone)
     days = 366 if local.year % 4 == 0 and (local.year % 100 or local.year % 400 == 0) else 365
     today = local.timetuple().tm_yday
     left = days - today
+    x, y = paint_year.earth(today, days)
     return {
         "kind": "year", "stale": False, "present": True,
-        "year": local.year, "today": today, "days": days,
+        "year": local.year, "today": today, "days": days, "path": [[round(x), round(y)]],
         "labels": [
             caps(f"The year · {local.year}", 36, 24, width=400),
             caps(local.strftime("%a %-d %b"), 684, 24, width=300, align="right"),
-            label(str(today), 360, 300, width=300, font="52", align="centre"),
-            label(f"of {days}", 360, 362, width=300, align="centre", colour="9a9fb8"),
-            label(f"{left} day{'s' if left != 1 else ''} left this year", 360, 650,
-                  font="28", align="centre", colour="e6e3ef"),
+            label(str(today), 36, 534, width=300, font="digits"),
+            label(f"of {days}", 40, 608, width=300, font="28", colour="9a9fb8"),
+            label(f"{left} day{'s' if left != 1 else ''} left this year", 684, 608,
+                  width=400, font="28", align="right", colour="e6e3ef"),
         ],
     }
 

@@ -73,6 +73,20 @@ def test_the_year_counts_its_days(store):
     assert (leap["today"], leap["days"]) == (366, 366)
 
 
+def test_the_year_is_earths_path_round_the_sun(store):
+    from app import paint_year
+
+    assert paint_year.earth(1, 365) == (paint_year.SUN[0], paint_year.SUN[1] + paint_year.RY)
+    x, y = paint_year.earth(92, 365)  # 2 April, a quarter on: at the right of the sun
+    assert x > paint_year.SUN[0] + paint_year.RX - 2 and abs(y - paint_year.SUN[1]) < 2
+    assert paint_year.season(0) == paint_year.season(1) != paint_year.season(0.45)
+    screen = desk_pieces.year_screen(store, ZONE, at(12).astimezone(UTC))
+    assert screen["path"] == [[round(v) for v in paint_year.earth(298, 365)]]
+    picture = paint_year.paint_year(paint_year.inputs(screen, at(12)))
+    ex, ey = screen["path"][0]
+    assert picture.size == (720, 720) and sum(picture.getpixel((ex, ey))) > 150  # Earth, lit
+
+
 def test_the_art_and_the_orbit_always_show(store):
     art = desk_pieces.art_screen(store, ZONE, at(9).astimezone(UTC))
     assert art["present"] and art["season"] == "autumn"

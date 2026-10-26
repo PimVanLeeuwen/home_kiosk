@@ -13,7 +13,10 @@
  *
  * The last run (plan.md M28, A), and your streets (D) on a run day, have a light running the
  * route, from the hub's `path`: a lap of six seconds with a short tail, then a breath, 25 steps
- * a second. */
+ * a second.
+ *
+ * The year (H) breathes a halo round Earth, at the hub's `path` (one point): in and out over
+ * four seconds, 25 steps a second; one small object, nothing transformed. */
 
 #include "screen_piece.h"
 
@@ -58,6 +61,10 @@ typedef struct {
 #define RUN_PAUSE 0.25f /* a quarter of a lap at rest between laps */
 #define RUN_TAIL_GAP 0.012f
 
+#define HALO 40          /* Earth is 34 across in app/paint_year.py: the halo rings it */
+#define HALO_MS 40
+#define HALO_BREATH_MS 4000
+
 typedef struct {
     int which;
     lv_obj_t *bodies[3], *tail[TAIL];
@@ -68,6 +75,8 @@ typedef struct {
     spark_t sparks[SPARKS];
     lv_obj_t *runner[RUN_TAIL + 1]; /* the light first, then its tail */
     float lap;
+    lv_obj_t *halo;
+    float breath;
     desk_piece_t shown;
 } piece_screen_t;
 
@@ -239,6 +248,27 @@ static void along(const desk_piece_t *piece, float share, int *x, int *y)
     *y = (int)(piece->path[i][1] + f * (piece->path[i + 1][1] - piece->path[i][1]));
 }
 
+static void halo(lv_timer_t *timer)
+{
+    piece_screen_t *p = lv_timer_get_user_data(timer);
+    if (lv_screen_active() != lv_obj_get_screen(p->halo)) {
+        return;
+    }
+    bool on = p->shown.path_count >= 1;
+    lv_obj_set_flag(p->halo, LV_OBJ_FLAG_HIDDEN, !on);
+    if (!on) {
+        return;
+    }
+    lv_obj_set_pos(p->halo, p->shown.path[0][0] - HALO / 2, p->shown.path[0][1] - HALO / 2);
+    p->breath += (float)HALO_MS / HALO_BREATH_MS;
+    if (p->breath >= 1) {
+        p->breath -= 1;
+    }
+    float in = 0.5f - 0.5f * cosf(2 * (float)M_PI * p->breath);
+    lv_obj_set_style_shadow_opa(p->halo, (lv_opa_t)(30 + 90 * in), 0);
+    lv_obj_set_style_border_opa(p->halo, (lv_opa_t)(30 + 90 * in), 0);
+}
+
 static void run_light(lv_timer_t *timer)
 {
     piece_screen_t *p = lv_timer_get_user_data(timer);
@@ -294,6 +324,18 @@ void screen_piece_create(lv_obj_t *screen, int which)
     lv_obj_add_flag(p->clock, LV_OBJ_FLAG_HIDDEN);
     lv_timer_t *timer = lv_timer_create(tick, 1000, p);
     tick(timer);
+    if (which == PIECE_YEAR) {
+        p->halo = ui_plain(screen);
+        lv_obj_set_size(p->halo, HALO, HALO);
+        lv_obj_set_style_radius(p->halo, LV_RADIUS_CIRCLE, 0);
+        lv_obj_set_style_bg_opa(p->halo, LV_OPA_TRANSP, 0);
+        lv_obj_set_style_border_color(p->halo, lv_color_hex(0xcfe0ff), 0);
+        lv_obj_set_style_border_width(p->halo, 2, 0);
+        lv_obj_set_style_shadow_color(p->halo, lv_color_hex(0x8fb4ff), 0);
+        lv_obj_set_style_shadow_width(p->halo, 26, 0);
+        lv_obj_add_flag(p->halo, LV_OBJ_FLAG_HIDDEN);
+        lv_timer_create(halo, HALO_MS, p);
+    }
     if (which == PIECE_ORBIT) {
         for (int i = 0; i < TAIL; i++) {
             p->tail[i] = body(screen, 8 - i, 0xe2dcff, 0);

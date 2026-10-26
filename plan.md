@@ -1470,7 +1470,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   about 100 m, `collector/app/radar_coast.json`), as Buienradar's map has the rain drawn in and
   showed its pixels blown up; Buienradar's map is no longer fetched. The rain in four smooth
   bands by its strength, each with a fine edge line, dashed rings at 10, 25 and 50 km; the same
-  on the Weather page. Next: the year dial (H), then the art of the day (F).
+  on the Weather page. Year (H), chosen from three mockups (orbit, daylight flower, the sun's
+  path): the orbit. Earth's path round a warm sun at a slant, a tick where each month starts,
+  the days gone as a glowing trail in the seasons' colours, Earth at today lit on its sun side;
+  the day's number large at the foot, the days left beside it; the panel breathes a halo round
+  Earth (four seconds, from the screen's one-point `path`). Next: the art of the day (F).
 - Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
   "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
   map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS
