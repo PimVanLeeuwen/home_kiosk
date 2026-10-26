@@ -93,7 +93,8 @@ export function RunningPage() {
                 </div>
                 <RouteArt
                   points={last.route}
-                  label={`The route of the last run, ${km(last.distance_m ?? 0)} km`}
+                  label={`The route of the last run, ${km(last.distance_m ?? 0)} km${last.streets_at ? ', over its streets' : ''}`}
+                  backdrop={last.streets_at ? `/api/runs/${encodeURIComponent(last.id)}/streets?v=${encodeURIComponent(last.streets_at)}` : undefined}
                   className="h-60 w-full lg:absolute lg:inset-x-0 lg:bottom-0 lg:h-[72%]"
                 />
               </Surface>

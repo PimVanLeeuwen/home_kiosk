@@ -1597,6 +1597,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   areas found ("about 90 km north", runs, last run), each with its own fetch button; A shows a
   run over its own area's streets when they have been fetched. Streets fetched before areas are
   kept and serve whichever area they cover.
+- The Running page's Last run card gets its area's streets under the route too (2026-10-26):
+  the hub paints them alone on transparent for the card's own box (`/api/runs/{id}/streets`,
+  `paint_streets.route_streets`), the card fades their edges; without them the route stands
+  alone as before.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28.

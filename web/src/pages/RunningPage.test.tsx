@@ -19,6 +19,7 @@ describe('RunningPage', () => {
     expect(last).toHaveTextContent('54:08')
     expect(last).toHaveTextContent('Runna: Long Run')
     expect(within(last).getByRole('img', { name: 'The route of the last run, 10,4 km' })).toBeInTheDocument()
+    expect(last.querySelector('image')).toBeNull() // no streets fetched for its area yet
     const week = screen.getByRole('region', { name: 'This week against the plan' })
     expect(within(week).getAllByRole('listitem')).toHaveLength(7)
     expect(within(week).getByRole('listitem', { name: /8,0 km planned \(Threshold Intervals\)/ })).toBeInTheDocument()
@@ -29,6 +30,16 @@ describe('RunningPage', () => {
     expect(bests).toHaveTextContent('23:41')
     expect(bests).toHaveTextContent('21,4 km')
     expect(screen.getByText('Rest day')).toBeInTheDocument()
+  })
+
+  it("lays the last run over its area's streets once they are fetched", async () => {
+    const base = overview()
+    stubApi({ '/api/runs/overview': overview({ last: { ...base.last!, streets_at: '2026-10-26T15:00:00Z' } }) })
+    renderRoute('/running')
+
+    const last = await screen.findByRole('region', { name: /Last run/ })
+    expect(within(last).getByRole('img', { name: 'The route of the last run, 10,4 km, over its streets' })).toBeInTheDocument()
+    expect(last.querySelector('image')?.getAttribute('href')).toBe(`/api/runs/${base.last!.id}/streets?v=2026-10-26T15%3A00%3A00Z`)
   })
 
   it('says where runs and the plan come from before there are any', async () => {

@@ -36,7 +36,8 @@ specific to that setup. The overview is in the [README](../README.md).
   runs. Each "Fetch the streets" sends one request to OpenStreetMap's public Overpass service
   for a box round that area's runs (it tells Overpass that area; nothing else is sent). Your
   streets (the Now panel and the Running page) show home's runs only and count the rest as
-  "elsewhere"; the last run gets its own area's streets once fetched. Fetch again after running
+  "elsewhere"; the last run (the Now panel and the Running page) gets its own area's streets
+  once fetched. Fetch again after running
   somewhere new. Until then the routes are drawn on their own.
 - Senders on the NAS post to `http://<nas>:8000/api/notify` with the `X-Notify-Key` header
   (`NOTIFY_KEY`); see the nas-docker README, *Alerts*.

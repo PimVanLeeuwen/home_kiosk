@@ -61,7 +61,10 @@ test("Home's streets are fetched in Settings and show under the year, with the r
     })
   })
   await page.route('**/api/runs/streets/picture*', (r) => r.fulfill({ body: PNG, contentType: 'image/png' }))
-  await page.route('**/api/runs/overview', (r) => r.fulfill({ json: { ...OVERVIEW, streets_at: fetched, runs_elsewhere: 2 } }))
+  await page.route('**/api/runs/r1/streets*', (r) => r.fulfill({ body: PNG, contentType: 'image/png' }))
+  await page.route('**/api/runs/overview', (r) =>
+    r.fulfill({ json: { ...OVERVIEW, last: { ...OVERVIEW.last, streets_at: fetched }, streets_at: fetched, runs_elsewhere: 2 } }),
+  )
 
   await page.goto('/settings/running')
   await expect(page.getByText('Elsewhere, about 90 km north')).toBeVisible()
@@ -73,4 +76,7 @@ test("Home's streets are fetched in Settings and show under the year, with the r
   const card = page.getByRole('region', { name: /Your streets/ })
   await expect(card).toContainText('90 runs · 900 km · 2 runs elsewhere')
   await expect(card.getByRole('img')).toBeVisible()
+  // The last run over its area's streets.
+  await expect(page.getByRole('img', { name: /The route of the last run, .* km, over its streets/ })).toBeVisible()
+  await expect(page.getByRole('region', { name: /Last run/ }).locator('image')).toHaveAttribute('href', /\/api\/runs\/r1\/streets\?v=/)
 })

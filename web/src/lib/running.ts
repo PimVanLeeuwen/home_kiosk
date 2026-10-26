@@ -49,6 +49,8 @@ export interface LastRun extends RunSummary {
   heart: [number, number][]
   /** Runna's session of that day, when there was one. */
   session: string | null
+  /** When its area's streets were fetched, for the map under the route; null until then. */
+  streets_at?: string | null
 }
 
 export interface WeekDay {

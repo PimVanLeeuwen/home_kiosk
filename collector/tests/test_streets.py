@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, date, datetime
+from io import BytesIO
 from urllib.parse import parse_qs
 from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from app import desk_running, main, paint_run, paint_streets, running
 from app.sources import runs, streets
@@ -172,3 +174,34 @@ def test_a_run_in_another_town_is_left_off_your_streets(store):
     assert view["runs_elsewhere"] == 1 and view["streets_at"]
     run = desk_running.run_screen(store, ZONE, now)
     assert run["id"] == "a1" and run["streets_at"] is None  # its town was not fetched
+
+
+def test_the_streets_under_the_last_runs_route_on_the_page(client, store):
+    now = datetime(2026, 10, 27, 18, tzinfo=UTC)
+    routes = keep(store, run_on(date(2026, 10, 20), "r0"), away(date(2026, 10, 27), "a1"))
+    assert client.get("/api/runs/r0/streets").status_code == 404  # nothing fetched yet
+    assert running.overview(store, ZONE, now)["last"]["streets_at"] is None
+    home, other = streets.status(store, routes)["areas"]
+    asyncio.run(streets.fetch(store, routes, other["key"], transport=answer()))
+
+    assert running.overview(store, ZONE, now)["last"]["streets_at"]
+    got = client.get("/api/runs/a1/streets")
+    assert got.status_code == 200 and got.headers["content-type"] == "image/webp"
+    picture = Image.open(BytesIO(got.content))
+    assert picture.size == (1280, 760) and picture.mode == "RGBA"
+    assert picture.getpixel((0, 0))[3] == 0  # transparent round the town
+    assert client.get("/api/runs/r0/streets").status_code == 404  # home's are not in
+    assert client.get("/api/runs/nope/streets").status_code == 404
+
+
+def test_the_route_streets_frame_matches_the_cards_projection():
+    """The card fits the route as web/src/lib/running.ts's `project` does: the route's corners
+    land on the box less its pad, centred, at twice the size."""
+    route = [[52.50, 3.50], [52.52, 3.53]]
+    w, h, pad = paint_streets.ROUTE_ART
+    s = paint_streets.ROUTE_ART_SCALE
+    frame = paint_streets.Frame((52.50, 3.50, 52.52, 3.53), (pad * s, pad * s, (w - pad) * s,
+                                                             (h - pad) * s), fit=True)
+    (x0, y0), (x1, y1) = frame.xy(*route[0]), frame.xy(*route[1])
+    assert y1 == pytest.approx(pad * s) and y0 == pytest.approx((h - pad) * s)  # height fills
+    assert (x0 + x1) / 2 == pytest.approx(w * s / 2)

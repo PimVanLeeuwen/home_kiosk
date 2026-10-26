@@ -55,16 +55,17 @@ def bounds_of(lines: list[list[list[float]]]) -> tuple[float, float, float, floa
     return min(lats) - pad_lat, min(lons) - pad_lon, max(lats) + pad_lat, max(lons) + pad_lon
 
 
-def town(base: Image.Image, shapes: dict[str, list], frame: Frame,
-         strength: float = 1.0) -> Image.Image:
-    """The town's shapes under the runs: parks, water, then the streets by size."""
-    size = base.size
+def town_layer(size: tuple[int, int], shapes: dict[str, list], frame: Frame,
+               strength: float = 1.0, thick: int = 1) -> Image.Image:
+    """The town's shapes on their own, on transparent: parks, water, then the streets by size.
+    `thick` widens the lines for a picture drawn at more than one pixel per point."""
 
     def lines(kind: str, width: int, value: int) -> Image.Image:
         mask = Image.new("L", size, 0)
         draw = ImageDraw.Draw(mask)
         for line in shapes.get(kind) or []:
-            draw.line([frame.xy(*p) for p in line], fill=value, width=width, joint="curve")
+            draw.line([frame.xy(*p) for p in line], fill=value, width=width * thick,
+                      joint="curve")
         return mask
 
     def areas(kind: str) -> Image.Image:
@@ -75,15 +76,30 @@ def town(base: Image.Image, shapes: dict[str, list], frame: Frame,
                 draw.polygon([frame.xy(*p) for p in line], fill=255)
         return mask
 
-    base = paint.tint(base, paint.soften(areas("park"), 1), (16, 24, 22), 0.9 * strength)
+    layer = Image.new("RGBA", size, (0, 0, 0, 0))
+
+    def lay(mask: Image.Image, colour: Colour, opacity: float) -> None:
+        nonlocal layer
+        top = Image.new("RGBA", size, (*colour, 255))
+        top.putalpha(mask.point(lambda v: round(v * opacity)))
+        layer = Image.alpha_composite(layer, top)
+
+    lay(paint.soften(areas("park"), thick), (16, 24, 22), 0.9 * strength)
     water = ImageChops.lighter(areas("water"), lines("water", 6, 255))
-    base = paint.tint(base, paint.soften(water, 1), (10, 16, 34), strength)
-    base = paint.tint(base, paint.soften(lines("water", 2, 120), 1), (60, 90, 150), 0.5 * strength)
+    lay(paint.soften(water, thick), (10, 16, 34), strength)
+    lay(paint.soften(lines("water", 2, 120), thick), (60, 90, 150), 0.5 * strength)
     for kind, width, value, colour in (("path", 1, 70, (120, 122, 140)),
                                        ("minor", 1, 120, (150, 152, 170)),
                                        ("major", 2, 160, (180, 180, 200))):
-        base = paint.tint(base, lines(kind, width, value), colour, 0.6 * strength)
-    return base
+        lay(lines(kind, width, value), colour, 0.6 * strength)
+    return layer
+
+
+def town(base: Image.Image, shapes: dict[str, list], frame: Frame,
+         strength: float = 1.0) -> Image.Image:
+    """The town's shapes under the runs."""
+    layer = town_layer(base.size, shapes, frame, strength)
+    return Image.alpha_composite(base.convert("RGBA"), layer).convert("RGB")
 
 
 def heat(size: tuple[int, int], routes: list[list[list[float]]], frame: Frame) -> Image.Image:
@@ -151,6 +167,25 @@ def paint_streets(data: dict[str, Any], store: Any) -> Image.Image:
     top = paint.vertical(SIZE, [(0, (235,) * 3), (0.2, (120,) * 3), (0.3, (0,) * 3),
                                 (1, (0,) * 3)]).convert("L")
     return paint.grain(paint.tint(base, top, (4, 4, 8)), 67, 3)
+
+
+# The Running page's Last run card draws its route in this box (web/src/components/running/
+# RouteArt.tsx: width, height and pad), fitted as `project` does; its streets match it.
+ROUTE_ART = (640, 380, 40)
+ROUTE_ART_SCALE = 2
+
+
+def route_streets(route: list[list[Any]], shapes: dict[str, list]) -> bytes:
+    """A run's area under the Last run card's route: the streets alone on transparent (WebP),
+    placed exactly where the card draws the route, twice as sharp."""
+    width, height, pad = ROUTE_ART
+    s = ROUTE_ART_SCALE
+    lats, lons = [p[0] for p in route], [p[1] for p in route]
+    frame = Frame((min(lats), min(lons), max(lats), max(lons)),
+                  (pad * s, pad * s, (width - pad) * s, (height - pad) * s), fit=True)
+    out = io.BytesIO()
+    town_layer((width * s, height * s), shapes, frame, thick=s).save(out, "WEBP", quality=82)
+    return out.getvalue()
 
 
 def web_jpeg(store: Any, since: str) -> bytes:

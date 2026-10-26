@@ -120,6 +120,25 @@ def training_plan(request: Request) -> Any:
     return payload
 
 
+_route_streets: dict[str, Any] = {"key": None, "webp": None}
+
+
+@router.get("/{run_id}/streets")
+def run_streets(run_id: str, request: Request) -> Response:
+    """The streets under a run's route on the Running page (its own area's, once fetched)."""
+    store = request.app.state.store
+    run = runs.one(store, run_id, running.LAST_POINTS)
+    route = run["route"] if run else []
+    kept = streets.kept_for(store, streets.middle(route)) if route else None
+    if kept is None:
+        raise HTTPException(404, "No streets fetched for this run's area.")
+    key = (run_id, kept["fetched_at"])
+    if _route_streets["key"] != key:
+        _route_streets.update(key=key, webp=paint_streets.route_streets(route, kept["shapes"]))
+    return Response(_route_streets["webp"], media_type="image/webp",
+                    headers={"Cache-Control": "private, max-age=86400"})
+
+
 @router.get("/{run_id}")
 def one(run_id: str, request: Request) -> dict[str, Any]:
     run = runs.one(request.app.state.store, run_id)
