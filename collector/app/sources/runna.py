@@ -48,6 +48,9 @@ class Session(BaseModel):
     estimate_s: int | None
     steps: list[str] = []    # the description's lines, warm-up to cool-down
     race: bool = False
+    # The session as blocks in order, the reps repeated: what the next session's shape is drawn
+    # from. {kind: easy | work | rest, metres, seconds, pace (seconds per km)}
+    blocks: list[dict[str, Any]] = []
 
 
 class Plan(Envelope):
@@ -90,6 +93,66 @@ def _steps(description: str) -> tuple[str | None, str | None, list[str]]:
     return kind, estimate, steps[:MAX_STEPS]
 
 
+PACE = re.compile(r"\bat (\d+):(\d\d)\s*/\s*(km|mi)\b", re.IGNORECASE)
+REST = re.compile(r"(\d+)\s*(s|sec|m|min)\b[^,]*\b(rest|recovery|jog)\b", re.IGNORECASE)
+REPS = re.compile(r"^(\d+)\s*reps? of:|^repeat the following (\d+)\s*x", re.IGNORECASE)
+EASY = re.compile(r"warm up|cool down|conversational|easy", re.IGNORECASE)
+MAX_BLOCKS = 60
+
+
+def _step_blocks(line: str) -> list[dict[str, Any]]:
+    """One step line as blocks: "0.5mi at 6:45/mi, 90s walking rest" is work then rest."""
+    out = []
+    for part in line.lstrip("• ").split(","):
+        part = part.strip()
+        rest = REST.search(part)
+        if rest and not DISTANCE.match(part):
+            seconds = int(rest.group(1)) * (60 if rest.group(2).lower().startswith("m") else 1)
+            out.append({"kind": "rest", "metres": None, "seconds": seconds, "pace": None})
+            continue
+        distance = DISTANCE.match(part)
+        if not distance:
+            continue
+        pace = PACE.search(part)
+        per_km = None
+        if pace:
+            per_km = int(pace.group(1)) * 60 + int(pace.group(2))
+            if pace.group(3).lower() == "mi":
+                per_km = round(per_km / 1.609344)
+        out.append({"kind": "easy" if EASY.search(part) and not pace else "work",
+                    "metres": metres(distance.group(0)), "seconds": None, "pace": per_km})
+    return out
+
+
+def blocks(description: str) -> list[dict[str, Any]]:
+    """Runna's steps as blocks, its two repeat forms unrolled: "3 reps of:" with the bullet
+    lines after it, and "Repeat the following 4x:" between lines of dashes."""
+    lines = [line.strip() for line in description.replace("\r", "").split("\n")][1:]
+    out: list[dict[str, Any]] = []
+    times, group, dashes = 0, [], 0
+    for line in lines + [""]:
+        if times and dashes == 0 and line and not line.startswith("•") and not set(line) <= {"-"}:
+            out += group * times  # a bullet group ends at the first other line
+            times, group = 0, []
+        if not line or line.startswith("📲"):
+            if times and dashes == 0 and group:
+                out += group * times
+                times, group = 0, []
+            continue
+        if set(line) <= {"-"}:
+            dashes += 1
+            if dashes == 2:
+                out += group * times
+                times, group, dashes = 0, [], 0
+            continue
+        found = REPS.match(line)
+        if found:
+            times, group = int(found.group(1) or found.group(2)), []
+            continue
+        (group if times else out).extend(_step_blocks(line))
+    return out[:MAX_BLOCKS]
+
+
 def parse(ics: str, tz: ZoneInfo) -> list[Session]:
     sessions = []
     for event in icalendar.Calendar.from_ical(ics).walk("VEVENT"):
@@ -101,7 +164,8 @@ def parse(ics: str, tz: ZoneInfo) -> list[Session]:
         local = begin.astimezone(tz) if timed and begin.tzinfo else begin
         day = local.date() if timed else begin
         summary = str(event.get("SUMMARY") or "")
-        kind, estimate, steps = _steps(str(event.get("DESCRIPTION") or ""))
+        description = str(event.get("DESCRIPTION") or "")
+        kind, estimate, steps = _steps(description)
         try:
             estimate_s = int(str(event.get("X-WORKOUT-ESTIMATED-DURATION")))
         except ValueError:
@@ -113,7 +177,8 @@ def parse(ics: str, tz: ZoneInfo) -> list[Session]:
             name=latin1(name), kind=latin1(kind) if kind else None,
             distance_m=metres(summary.split("•")[-1]) or metres(summary),
             estimate=estimate, estimate_s=estimate_s,
-            steps=[latin1(s) for s in steps], race=bool(RACE.search(name))))
+            steps=[latin1(s) for s in steps], race=bool(RACE.search(name)),
+            blocks=blocks(description)))
     return sorted(sessions, key=lambda s: (s.date, s.time or ""))
 
 

@@ -8,10 +8,13 @@ from __future__ import annotations
 import hmac
 import json
 import logging
+from datetime import UTC, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Request
 
+from . import running
 from .sources import runna, runs
 
 log = logging.getLogger(__name__)
@@ -49,6 +52,13 @@ async def receive(request: Request) -> dict[str, Any]:
 @router.get("")
 def latest(request: Request) -> dict[str, Any]:
     return {"runs": runs.latest(request.app.state.store)}
+
+
+@router.get("/overview")
+def overview(request: Request) -> dict[str, Any]:
+    """Runs and plan together for the Running page and the Home card (plan.md M28)."""
+    zone = ZoneInfo(request.app.state.config.get("timezone", "Europe/Amsterdam"))
+    return running.overview(request.app.state.store, zone, datetime.now(UTC))
 
 
 @router.get("/plan")

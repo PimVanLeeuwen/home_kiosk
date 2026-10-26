@@ -12,6 +12,7 @@ import { NasCard } from '../components/home/NasCard'
 import { NewsCard } from '../components/home/NewsCard'
 import { NowPlayingCard } from '../components/home/NowPlayingCard'
 import { PhotoCard } from '../components/home/PhotoCard'
+import { RunningCard } from '../components/home/RunningCard'
 import { PortfolioCard } from '../components/home/PortfolioCard'
 import { ServicesCard } from '../components/home/ServicesCard'
 import { OPENED_ID, StatusStrip } from '../components/home/StatusStrip'
@@ -44,6 +45,7 @@ import {
   nowPlayingState,
   outsideState,
   photoState,
+  runningState,
   dnsState,
   servicesState,
   todayState,
@@ -51,6 +53,7 @@ import {
 } from '../lib/homeStates'
 import { coverUrl } from '../lib/musicTypes'
 import type { Countdowns, PhotoOfTheDay } from '../lib/pieceTypes'
+import type { RunningOverview } from '../lib/running'
 import { PROBLEM_LIGHT, skyLights } from '../lib/sky'
 import { focusOf } from '../lib/today'
 import { trainStatus } from '../lib/train'
@@ -102,6 +105,7 @@ export function HomePage() {
   const briefing = useApi<Briefing>('/api/briefing', 300_000)
   const countdowns = useApi<Countdowns>('/api/countdown', 300_000)
   const photo = useApi<PhotoOfTheDay>('/api/photo', 600_000)
+  const running = useApi<RunningOverview>('/api/runs/overview', 300_000)
   const music = useHomeNowPlaying()
   const wide = useMediaQuery('(min-width: 1024px)')
   const [open, setOpen] = useState<FoldedCardId | null>(null)
@@ -120,6 +124,7 @@ export function HomePage() {
     apple: appleState(apple.data),
     photo: photoState(photo.data, now),
     countdown: countdownState(countdowns.data, now),
+    running: runningState(running.data),
     weather: 'quiet',
     news: 'quiet',
     air: 'quiet',
@@ -155,6 +160,7 @@ export function HomePage() {
     apple: <AppleCard data={apple.data} />,
     photo: <PhotoCard data={photo.data} />,
     countdown: <CountdownCard data={countdowns.data} now={now} />,
+    running: <RunningCard data={running.data} />,
     weather: <WeatherCard />,
     news: <NewsCard />,
     air: <AirCard />,

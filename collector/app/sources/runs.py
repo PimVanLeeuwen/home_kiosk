@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS run (
 """
 
 TO_METRES = {"m": 1.0, "km": 1000.0, "ft": 0.3048, "mi": 1609.344, "yd": 0.9144}
+# Best efforts: the fastest stretch of this length inside any run, worked out from its route.
+BESTS = {"5k": 5000.0, "10k": 10000.0, "half": 21097.5}
 
 
 def settings(cfg: dict[str, Any]) -> dict[str, Any]:
@@ -50,6 +52,11 @@ def settings(cfg: dict[str, Any]) -> dict[str, Any]:
 def ensure_tables(store: Store) -> None:
     with store.connect() as conn:
         conn.execute(TABLES)
+        # Columns added after the table first shipped (step 3).
+        have = {r["name"] for r in conn.execute("PRAGMA table_info(run)").fetchall()}
+        for name in BESTS:
+            if f"best_{name}_s" not in have:
+                conn.execute(f"ALTER TABLE run ADD COLUMN best_{name}_s REAL")
 
 
 def is_run(workout: dict[str, Any]) -> bool:
@@ -149,16 +156,17 @@ def receive(store: Store, body: dict[str, Any], now: datetime | None = None) -> 
             except (KeyError, TypeError, ValueError):
                 failed += 1
                 continue
+            bests = [best_effort(run["route"], metres) for metres in BESTS.values()]
             conn.execute(
                 "INSERT OR REPLACE INTO run (id, start, end, name, indoor, duration_s, distance_m, "
                 "elevation_up_m, elevation_down_m, energy_kcal, avg_hr, max_hr, temperature_c, "
-                "humidity, route, heart, received_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                "?, ?, ?, ?, ?)",
+                "humidity, route, heart, received_at, best_5k_s, best_10k_s, best_half_s) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (run["id"], run["start"], run["end"], run["name"], int(run["indoor"]),
                  run["duration_s"], run["distance_m"], run["elevation_up_m"],
                  run["elevation_down_m"], run["energy_kcal"], run["avg_hr"], run["max_hr"],
                  run["temperature_c"], run["humidity"], json.dumps(run["route"]),
-                 json.dumps(run["heart"]), received_at))
+                 json.dumps(run["heart"]), received_at, *bests))
             kept += 1
     return {"kept": kept, "skipped": skipped, "failed": failed}
 
@@ -192,6 +200,48 @@ def splits(route: list[list[float]]) -> list[dict[str, float]]:
     return out
 
 
+def best_effort(route: list[list[float]], metres: float) -> float | None:
+    """The fewest seconds any stretch of `metres` took along the route, or None when the route
+    is shorter. Two pointers over the distance run so far; a stretch a little longer than
+    `metres` is scaled down to it."""
+    if len(route) < 2:
+        return None
+    done = [0.0]
+    for a, b in zip(route, route[1:], strict=False):
+        done.append(done[-1] + _metres_between(a, b))
+    if done[-1] < metres:
+        return None
+    best = None
+    i = 0
+    for j in range(1, len(route)):
+        while done[j] - done[i + 1] >= metres:
+            i += 1
+        stretch = done[j] - done[i]
+        if stretch >= metres and route[j][3] > route[i][3]:
+            seconds = (route[j][3] - route[i][3]) * metres / stretch
+            best = seconds if best is None else min(best, seconds)
+    return round(best) if best is not None else None
+
+
+def paced(route: list[list[float]], most: int) -> list[list[float | None]]:
+    """At most `most` points of the route with the pace (seconds per km) since the point before:
+    [latitude, longitude, pace]; the first point has none."""
+    if not route:
+        return []
+    if len(route) <= most:
+        picks = list(range(len(route)))
+    else:
+        step = (len(route) - 1) / (most - 1)
+        picks = [round(i * step) for i in range(most)]
+    out: list[list[float | None]] = [[route[0][0], route[0][1], None]]
+    for before, now in zip(picks, picks[1:], strict=False):
+        metres = sum(_metres_between(route[k], route[k + 1]) for k in range(before, now))
+        seconds = route[now][3] - route[before][3]
+        pace = round(seconds / (metres / 1000)) if metres > 1 and seconds > 0 else None
+        out.append([route[now][0], route[now][1], pace])
+    return out
+
+
 def simplified(route: list[list[float]], most: int) -> list[list[float]]:
     """At most `most` points of the route, evenly spaced, the ends kept: [latitude, longitude]."""
     if len(route) <= most:
@@ -209,6 +259,7 @@ def _summary(row: Any) -> dict[str, Any]:
         "elevation_up_m": row["elevation_up_m"], "avg_hr": row["avg_hr"],
         "max_hr": row["max_hr"], "energy_kcal": row["energy_kcal"],
         "temperature_c": row["temperature_c"],
+        "bests": {name: row[f"best_{name}_s"] for name in BESTS},
     }
 
 
@@ -227,7 +278,16 @@ def one(store: Store, run_id: str, points: int = 400) -> dict[str, Any] | None:
         return None
     route = json.loads(row["route"])
     return _summary(row) | {
-        "route": simplified(route, points),
+        "route": paced(route, points),
         "splits": splits(route),
         "heart": json.loads(row["heart"]),
     }
+
+
+def since(store: Store, start: str) -> list[dict[str, Any]]:
+    """Every run from `start` (ISO, UTC) on, newest first, without routes."""
+    ensure_tables(store)
+    with store.connect() as conn:
+        rows = conn.execute("SELECT * FROM run WHERE start >= ? ORDER BY start DESC",
+                            (start,)).fetchall()
+    return [_summary(r) for r in rows]

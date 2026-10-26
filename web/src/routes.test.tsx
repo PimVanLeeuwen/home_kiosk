@@ -31,6 +31,7 @@ describe('routes', () => {
       'Lights',
       'Music',
       'Weather',
+      'Running',
       'Saved',
       'NAS',
       'Docker',

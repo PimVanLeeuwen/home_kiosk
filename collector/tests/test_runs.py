@@ -75,7 +75,10 @@ def test_only_runs_are_kept_once_each_with_metric_units(client, store):
     assert [s["km"] for s in run["splits"]] == [1, 2, 3, 4, 5, 6]
     assert all(abs(s["seconds"] - 330) <= 10 for s in run["splits"][:5])
     assert run["splits"][-1]["metres"] < 1000
-    assert len(run["route"]) <= 400 and run["route"][0] == [52.5, 3.5]
+    # The route with the pace since the point before; the first point has none.
+    assert len(run["route"]) <= 400 and run["route"][0] == [52.5, 3.5, None]
+    assert all(abs(p[2] - 330) <= 5 for p in run["route"][1:])
+    assert run["bests"]["5k"] == pytest.approx(1650, abs=10) and run["bests"]["10k"] is None
     assert client.get("/api/runs/w2").json()["indoor"] is True
     assert client.get("/api/runs/nope").status_code == 404
 
@@ -100,3 +103,26 @@ def test_simplified_keeps_the_ends():
     points = [[float(i), 0.0, 0.0, i, 0.0] for i in range(1001)]
     short = runs.simplified(points, 5)
     assert short == [[0.0, 0.0], [250.0, 0.0], [500.0, 0.0], [750.0, 0.0], [1000.0, 0.0]]
+
+
+def test_a_best_effort_is_the_fastest_stretch_inside_a_run():
+    # 2 km at 6:00/km, then 5 km at 4:30/km, then 1 km easy again.
+    points, t, lat = [], 0.0, 52.5
+    for km, pace in ((2, 360), (5, 270), (1, 360)):
+        for _ in range(km * 10):  # a point every 100 m
+            points.append([lat, 3.5, 0.0, t, 0.0])
+            lat += 100 / 111_195
+            t += pace / 10
+    points.append([lat, 3.5, 0.0, t, 0.0])
+    assert runs.best_effort(points, 5000) == pytest.approx(1350, abs=15)
+    assert runs.best_effort(points, 10000) is None
+    assert runs.best_effort([], 5000) is None
+
+
+def test_old_tables_get_the_best_effort_columns(store):
+    with store.connect() as conn:
+        conn.execute(runs.TABLES)
+    runs.ensure_tables(store)
+    with store.connect() as conn:
+        names = {r["name"] for r in conn.execute("PRAGMA table_info(run)").fetchall()}
+    assert {"best_5k_s", "best_10k_s", "best_half_s"} <= names

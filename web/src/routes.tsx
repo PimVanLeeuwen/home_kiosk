@@ -16,6 +16,7 @@ import { NotFoundPage } from './pages/NotFoundPage'
 import { PortfolioPage } from './pages/PortfolioPage'
 import { PageError } from './pages/PageError'
 import { ReposPage } from './pages/ReposPage'
+import { RunningPage } from './pages/RunningPage'
 import { SavedPage } from './pages/SavedPage'
 import { SectionPage } from './pages/SectionPage'
 import { ServicesPage } from './pages/ServicesPage'
@@ -29,6 +30,7 @@ const PAGES: Record<string, ReactElement> = {
   '/lights': <LightsPage />,
   '/music': <MusicPage />,
   '/weather': <WeatherPage />,
+  '/running': <RunningPage />,
   '/services': <ServicesPage />,
   '/settings': <SettingsPage />,
   '/repos': <ReposPage />,

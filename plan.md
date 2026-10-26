@@ -1557,6 +1557,19 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   failing feed is logged by its status only, never with the address httpx would put in its
   error.
 
+- Step 3 done 2026-10-26: a Running page (`/running`, in the navigation) and a Home card, from
+  `/api/runs/overview` (runs and plan together, also for the panel in step 4). The page: this
+  week against the plan, the last four weeks against the four before, the streak (weeks in a row
+  with 3 runs or more) and the year; the last run large, its route drawn on its own as light
+  coloured by pace against the run's own range, with distance, pace, time, heart rate, climb and
+  Runna's session of that day; the week as columns (the plan as glass, the runs poured in, each
+  run's route in miniature); the next session as its shape (Runna's steps as blocks, as wide as
+  they last and as tall as they are hard, the reps unrolled); the best efforts (the fastest 5
+  km, 10 km and half inside any run, worked out from the route when it arrives; the longest
+  run). The Home card shows on a day with a run or a session: live with today's session until it
+  is run, calm with the run after. Not yet: the streets under the route (step 5); easy pace at a
+  heart rate (an insight, later).
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28.
 

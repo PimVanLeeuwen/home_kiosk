@@ -3,6 +3,7 @@ import { ahead } from './countdown'
 import type { CardState } from './homeOrder'
 import type { Playing } from './musicTypes'
 import type { Countdowns, PhotoOfTheDay } from './pieceTypes'
+import type { RunningOverview } from './running'
 import { troubled } from './outside'
 import { focusOf, todayShows } from './today'
 import { localDate, trainShows } from './train'
@@ -20,6 +21,13 @@ export function photoState(photo: PhotoOfTheDay | undefined, now: Date): CardSta
   if (!photo?.asset || !photo.taken) return 'hidden'
   const monthDay = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   return photo.taken.slice(5) === monthDay ? 'quiet' : 'hidden'
+}
+
+/** Running shows on a day with a run or a session: live until the session is run, calm after. */
+export function runningState(running: RunningOverview | undefined): CardState {
+  if (!running) return 'hidden'
+  if (running.today.ran) return 'quiet'
+  return running.today.session ? 'live' : 'hidden'
 }
 
 export const trainState = (train: Train | undefined, now: Date): CardState =>
