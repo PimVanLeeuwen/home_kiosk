@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
+import { ReadNext } from '../components/news/ReadNext'
 import { SavedReader } from '../components/news/SavedReader'
 import { Pill } from '../components/ui/Pill'
 import { cn } from '../lib/cn'
@@ -160,7 +161,7 @@ export function SavedPage() {
               onDeleted={onDeleted}
             />
           ) : (
-            <p className="pt-24 text-center text-muted">Pick a bookmark to read it here.</p>
+            <ReadNext />
           )}
         </section>
       </div>

@@ -7,6 +7,7 @@ import { tileColour } from '../lib/monogram'
 import { FilterPill } from '../components/news/FilterPill'
 import { Headlines } from '../components/news/Headlines'
 import { NewsReader } from '../components/news/NewsReader'
+import { ReadNext } from '../components/news/ReadNext'
 import { sendJson } from '../lib/api'
 import { cn } from '../lib/cn'
 import { formatAgo, formatDay } from '../lib/format'
@@ -41,8 +42,9 @@ function byDay(articles: Article[]): [string, Article[]][] {
 export function NewsPage() {
   const [params] = useSearchParams()
   const selected = params.get('a')
-  const [group, setGroup] = useState<string | null>(null)
-  const [unreadOnly, setUnreadOnly] = useState(false)
+  // `?group=` opens News on one group's unread articles (Read next on Saved links here).
+  const [group, setGroup] = useState<string | null>(params.get('group'))
+  const [unreadOnly, setUnreadOnly] = useState(params.has('group'))
   const [search, setSearch] = useState('')
   const q = useDebounced(search.trim(), 300)
 
@@ -202,7 +204,16 @@ export function NewsPage() {
             onReadChange={onReadChange}
           />
         ) : (
-          <p className="pt-24 text-center text-muted">Pick an article to read it here.</p>
+          <ReadNext
+            isRead={(id) => {
+              const known = list.items.find((a) => a.id === id)
+              return known && isRead(known)
+            }}
+            onGroup={(id) => {
+              setGroup(id)
+              setUnreadOnly(true)
+            }}
+          />
         )}
       </section>
       </div>
