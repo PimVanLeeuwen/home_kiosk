@@ -125,16 +125,29 @@ def test_old_tables_get_the_best_effort_columns(store):
     runs.ensure_tables(store)
     with store.connect() as conn:
         names = {r["name"] for r in conn.execute("PRAGMA table_info(run)").fetchall()}
-    assert {"best_5k_s", "best_10k_s", "best_half_s"} <= names
+    assert {"best_5k_s", "best_10k_s", "best_half_s", "bests_checked", *runs.PLACE} <= names
 
 
 def test_runs_kept_before_best_efforts_get_them(store):
     runs.receive(store, {"data": {"workouts": [workout()]}})
     with store.connect() as conn:  # as step 1 kept it: no bests
-        conn.execute("UPDATE run SET best_5k_s = NULL, best_10k_s = NULL, best_half_s = NULL")
+        conn.execute("UPDATE run SET best_5k_s = NULL, best_10k_s = NULL, best_half_s = NULL, "
+                     "bests_checked = 0")
     listed = runs.since(store, "2000-01-01T00:00:00+00:00")
     assert listed[0]["bests"]["5k"] == pytest.approx(1650, abs=10)
     assert runs.fill_bests(store) == 0  # done once
+
+
+def test_a_run_whose_route_has_no_5_km_is_searched_once(store):
+    """The watch says 8 km, the route covers less (GPS cut short): no best, and no search of
+    its route again on every request (which kept the hub busy)."""
+    runs.receive(store, {"data": {"workouts": [workout(distance={"qty": 8, "units": "km"},
+                                                       route=route(km=3))]}})
+    with store.connect() as conn:  # kept before the check was stored
+        conn.execute("UPDATE run SET bests_checked = 0")
+    assert runs.fill_bests(store) == 1
+    assert runs.since(store, "2000-01-01T00:00:00+00:00")[0]["bests"]["5k"] is None
+    assert runs.fill_bests(store) == 0
 
 
 def test_the_drawn_pace_rides_over_gps_jitter():

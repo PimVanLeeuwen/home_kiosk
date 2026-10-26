@@ -16,7 +16,7 @@ from PIL import Image, ImageChops, ImageDraw
 
 from . import paint
 from .paint import SIZE, Colour
-from .sources import streets
+from .sources import runs, streets
 
 # The panel's picture: the map fills it; the words sit on the dark band at the top.
 MAP_BOX = (0, 150, 720, 720)
@@ -46,6 +46,7 @@ class Frame:
 
 
 def bounds_of(lines: list[list[list[float]]]) -> tuple[float, float, float, float] | None:
+    """Round the lines' points (or the corners of each run's bounds), with a margin."""
     points = [p for line in lines for p in line]
     if not points:
         return None
@@ -134,13 +135,14 @@ def year_lines(store: Any, since: str) -> tuple[dict[str, Any], tuple | None]:
     """The home area's runs from `since` on (app/sources/streets.py, at_home) and their bounds:
     a run in another town would squeeze home's map to a corner."""
     home = streets.at_home(store, since)
-    return home, bounds_of([r["route"] for r in home["routes"]])
+    corners = [[[r["box"][0], r["box"][1]], [r["box"][2], r["box"][3]]] for r in home["runs"]]
+    return home, bounds_of(corners)
 
 
 def picture(store: Any, since: str, today: str | None, size: tuple[int, int],
             box: tuple[int, int, int, int]) -> Image.Image:
     home, bounds = year_lines(store, since)
-    year = home["routes"]
+    year = runs.routes(store, since, ids={r["id"] for r in home["runs"]})
     lines = [r["route"] for r in year]
     base = Image.new("RGB", size, (5, 5, 10))
     base = paint.tint(base, paint.vertical(size[1], [(0, (255,) * 3), (1, (0,) * 3)],

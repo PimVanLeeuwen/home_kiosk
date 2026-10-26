@@ -54,7 +54,7 @@ def away(day: date, wid: str, north: float = 0.8) -> dict:
 
 def keep(store, *workouts):
     runs.receive(store, {"data": {"workouts": list(workouts)}})
-    return runs.routes(store, streets.EVER)
+    return runs.places(store, streets.EVER)
 
 
 def answer(sent=None):
@@ -70,17 +70,17 @@ def test_runs_are_grouped_by_area_with_home_where_most_are(store):
                   run_on(date(2026, 10, 3), "h2"))
     home, other = streets.group(routes)
     assert home["runs"] == ["h1", "h2"] and other["runs"] == ["a1"]
-    areas = streets.status(store, routes)["areas"]
+    areas = streets.status(store)["areas"]
     assert [a["home"] for a in areas] == [True, False] and areas[1]["runs"] == 1
     assert areas[1]["where"] == "about 90 km north" and areas[1]["fetched_at"] is None
 
 
 def test_fetched_per_area_and_kept_as_shapes_without_names(store):
-    routes = keep(store, away(date(2026, 10, 1), "a1"), run_on(date(2026, 10, 2), "h1"),
-                  run_on(date(2026, 10, 3), "h2"))
-    home, other = streets.status(store, routes)["areas"]
+    keep(store, away(date(2026, 10, 1), "a1"), run_on(date(2026, 10, 2), "h1"),
+         run_on(date(2026, 10, 3), "h2"))
+    home, other = streets.status(store)["areas"]
     sent: list[str] = []
-    status = asyncio.run(streets.fetch(store, routes, home["key"], transport=answer(sent)))
+    status = asyncio.run(streets.fetch(store, home["key"], transport=answer(sent)))
     got = status["areas"][0]
     assert got["counts"] == {"major": 1, "minor": 1, "path": 1, "water": 1, "park": 1}
     assert status["areas"][1]["fetched_at"] is None  # the other town is only fetched on request
@@ -90,13 +90,13 @@ def test_fetched_per_area_and_kept_as_shapes_without_names(store):
     assert "Somewhere" not in str(streets.kept_for(store, [52.52, 3.5]))
     assert streets.kept_for(store, [53.32, 3.5]) is None
 
-    asyncio.run(streets.fetch(store, routes, other["key"], transport=answer()))
-    asyncio.run(streets.fetch(store, routes, home["key"], transport=answer()))  # again: replaced
-    assert all(a["fetched_at"] for a in streets.status(store, routes)["areas"])
+    asyncio.run(streets.fetch(store, other["key"], transport=answer()))
+    asyncio.run(streets.fetch(store, home["key"], transport=answer()))  # again: replaced
+    assert all(a["fetched_at"] for a in streets.status(store)["areas"])
     with store.connect() as conn:
         assert conn.execute("SELECT COUNT(*) FROM street_area").fetchone()[0] == 2
     with pytest.raises(LookupError):
-        asyncio.run(streets.fetch(store, routes, "40.0,10.0"))
+        asyncio.run(streets.fetch(store, "40.0,10.0"))
 
 
 def test_streets_fetched_before_areas_are_kept(store):
@@ -105,8 +105,8 @@ def test_streets_fetched_before_areas_are_kept(store):
                      " shapes TEXT)")
         conn.execute("INSERT INTO street_map VALUES (1, '2026-10-26T15:00:00+00:00', "
                      "'[52.4, 3.4, 52.6, 3.6]', '{\"minor\": [[[52.5, 3.5], [52.51, 3.5]]]}')")
-    routes = keep(store, run_on(date(2026, 10, 2), "h1"))
-    assert streets.status(store, routes)["areas"][0]["counts"] == {"minor": 1}
+    keep(store, run_on(date(2026, 10, 2), "h1"))
+    assert streets.status(store)["areas"][0]["counts"] == {"minor": 1}
     with store.connect() as conn:
         assert not conn.execute("SELECT 1 FROM sqlite_master WHERE name = 'street_map'").fetchone()
 
@@ -138,8 +138,8 @@ def test_the_settings_routes(client, store, monkeypatch):
 def test_your_streets_on_the_panel_with_todays_run_and_on_the_page(client, store):
     now = datetime(2026, 10, 27, 18, tzinfo=UTC)
     assert not desk_running.streets_screen(store, ZONE, now)["present"]
-    routes = keep(store, run_on(date(2026, 10, 20), "r0"), run_on(date(2026, 10, 27), "r1"))
-    asyncio.run(streets.fetch(store, routes, streets.status(store, routes)["areas"][0]["key"],
+    keep(store, run_on(date(2026, 10, 20), "r0"), run_on(date(2026, 10, 27), "r1"))
+    asyncio.run(streets.fetch(store, streets.status(store)["areas"][0]["key"],
                               transport=answer()))
 
     screen = desk_running.streets_screen(store, ZONE, now)
@@ -160,9 +160,9 @@ def test_your_streets_on_the_panel_with_todays_run_and_on_the_page(client, store
 
 def test_a_run_in_another_town_is_left_off_your_streets(store):
     now = datetime(2026, 10, 27, 18, tzinfo=UTC)
-    routes = keep(store, run_on(date(2026, 10, 20), "r0"), run_on(date(2026, 10, 22), "r1"),
-                  away(date(2026, 10, 27), "a1"))
-    asyncio.run(streets.fetch(store, routes, streets.status(store, routes)["areas"][0]["key"],
+    keep(store, run_on(date(2026, 10, 20), "r0"), run_on(date(2026, 10, 22), "r1"),
+         away(date(2026, 10, 27), "a1"))
+    asyncio.run(streets.fetch(store, streets.status(store)["areas"][0]["key"],
                               transport=answer()))
 
     screen = desk_running.streets_screen(store, ZONE, now)
@@ -178,11 +178,11 @@ def test_a_run_in_another_town_is_left_off_your_streets(store):
 
 def test_the_streets_under_the_last_runs_route_on_the_page(client, store):
     now = datetime(2026, 10, 27, 18, tzinfo=UTC)
-    routes = keep(store, run_on(date(2026, 10, 20), "r0"), away(date(2026, 10, 27), "a1"))
+    keep(store, run_on(date(2026, 10, 20), "r0"), away(date(2026, 10, 27), "a1"))
     assert client.get("/api/runs/r0/streets").status_code == 404  # nothing fetched yet
     assert running.overview(store, ZONE, now)["last"]["streets_at"] is None
-    home, other = streets.status(store, routes)["areas"]
-    asyncio.run(streets.fetch(store, routes, other["key"], transport=answer()))
+    home, other = streets.status(store)["areas"]
+    asyncio.run(streets.fetch(store, other["key"], transport=answer()))
 
     assert running.overview(store, ZONE, now)["last"]["streets_at"]
     got = client.get("/api/runs/a1/streets")
@@ -205,3 +205,23 @@ def test_the_route_streets_frame_matches_the_cards_projection():
     (x0, y0), (x1, y1) = frame.xy(*route[0]), frame.xy(*route[1])
     assert y1 == pytest.approx(pad * s) and y0 == pytest.approx((h - pad) * s)  # height fills
     assert (x0 + x1) / 2 == pytest.approx(w * s / 2)
+
+
+def test_areas_and_counts_never_read_a_route(store, monkeypatch):
+    """Grouping runs by area happens on every panel request: it reads each run's stored middle
+    and bounds, never its route (which made the hub stall with a hundred runs)."""
+    keep(store, run_on(date(2026, 10, 20), "r0"), away(date(2026, 10, 21), "a1"))
+    with store.connect() as conn:  # a run kept before its place was stored
+        conn.execute("UPDATE run SET mid_lat = NULL, south = NULL WHERE id = 'r0'")
+    assert runs.fill_places(store) == 1 and runs.fill_places(store) == 0
+
+    def slow(*args, **kwargs):
+        raise AssertionError("read a route")
+
+    monkeypatch.setattr(runs, "routes", slow)
+    now = datetime(2026, 10, 25, 18, tzinfo=UTC)  # no run today: no path to draw
+    assert [a["runs"] for a in streets.status(store)["areas"]] == [1, 1]
+    home = streets.at_home(store, "2026-01-01T00:00:00+00:00")
+    assert len(home["runs"]) == 1 and home["elsewhere"] == 1
+    screen = desk_running.streets_screen(store, ZONE, now)
+    assert screen["present"] and screen["count"] == 1

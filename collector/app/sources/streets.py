@@ -122,22 +122,22 @@ def middle(route: list[list[float]]) -> list[float]:
     return [sum(p[0] for p in route) / len(route), sum(p[1] for p in route) / len(route)]
 
 
-def group(routes: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Runs grouped by area, the area with the most runs first: {middle, runs (ids), points,
-    last (start)}. A run joins the first area whose middle is within AREA_KM of its own."""
+def group(places: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Runs grouped by area (app/sources/runs.py, `places`), the area with the most runs first:
+    {middle, runs (ids), corners (of each run's bounds), last (start)}. A run joins the first
+    area whose middle is within AREA_KM of its own."""
     areas: list[dict[str, Any]] = []
-    for run in routes:
-        if not run["route"]:
-            continue
-        here = middle(run["route"])
+    for run in places:
+        here = run["middle"]
         area = next((a for a in areas if _km(a["middle"], here) <= AREA_KM), None)
         if area is None:
-            area = {"middle": here, "runs": [], "points": [], "last": run["start"]}
+            area = {"middle": here, "runs": [], "corners": [], "last": run["start"]}
             areas.append(area)
         n = len(area["runs"])
         area["middle"] = [(area["middle"][i] * n + here[i]) / (n + 1) for i in (0, 1)]
         area["runs"].append(run["id"])
-        area["points"] += run["route"]
+        s, w, n_, e = run["box"]
+        area["corners"] += [[s, w], [n_, e]]
         area["last"] = max(area["last"], run["start"])
     return sorted(areas, key=lambda a: -len(a["runs"]))
 
@@ -163,14 +163,15 @@ def kept_for(store: Store, point: list[float]) -> dict[str, Any] | None:
     return row | {"shapes": json.loads(row["shapes"])}
 
 
-def at_home(store: Store, since: str, points: int = 200) -> dict[str, Any]:
-    """The runs from `since` on in the home area (where most runs are, over all time), how many
-    ran elsewhere, and home's streets when fetched: {routes, elsewhere, streets}."""
-    areas = group(runs.routes(store, EVER, points=40))
+def at_home(store: Store, since: str) -> dict[str, Any]:
+    """The runs from `since` on in the home area (where most runs are, over all time), without
+    reading a route: {runs: [{id, start, middle, box}], elsewhere (how many ran elsewhere),
+    streets (home's, when fetched)}."""
+    areas = group(runs.places(store, EVER))
     home = set(areas[0]["runs"]) if areas else set()
-    year = runs.routes(store, since, points=points)
-    mine = [r for r in year if r["id"] in home]
-    return {"routes": mine, "elsewhere": len(year) - len(mine),
+    year = runs.places(store, since)
+    mine = [p for p in year if p["id"] in home]
+    return {"runs": mine, "elsewhere": len(year) - len(mine),
             "streets": kept_for(store, areas[0]["middle"]) if areas else None}
 
 
@@ -184,9 +185,9 @@ def direction(home: list[float], there: list[float]) -> str:
     return f"about {round(_km(home, there) / 5) * 5 or 5} km {way}"
 
 
-def status(store: Store, routes: list[dict[str, Any]]) -> dict[str, Any]:
+def status(store: Store) -> dict[str, Any]:
     """The areas run in, home first, each with its runs and whether its streets are in."""
-    areas = group(routes)
+    areas = group(runs.places(store, EVER))
     rows = _rows(store)
     out = []
     for i, area in enumerate(areas):
@@ -199,12 +200,12 @@ def status(store: Store, routes: list[dict[str, Any]]) -> dict[str, Any]:
     return {"areas": out}
 
 
-async def fetch(store: Store, routes: list[dict[str, Any]], key: str,
+async def fetch(store: Store, key: str,
                 now: datetime | None = None,
                 transport: httpx.AsyncBaseTransport | None = None) -> dict[str, Any]:
     """Asks Overpass once for the streets of the area `key` names (its middle, "52.500,3.500")
     and keeps them in place of any fetched for it before."""
-    areas = group(routes)
+    areas = group(runs.places(store, EVER))
     try:
         lat, lon = (float(v) for v in key.split(","))
     except ValueError:
@@ -212,7 +213,7 @@ async def fetch(store: Store, routes: list[dict[str, Any]], key: str,
     area = next((a for a in areas if _km(a["middle"], [lat, lon]) <= 1.0), None)
     if area is None:
         raise LookupError("No such area.")
-    box = box_round(area["points"])
+    box = box_round(area["corners"])
     headers = {"User-Agent": "home-hub (personal, one request)"}
     async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS, transport=transport,
                                  headers=headers) as client:
@@ -226,4 +227,4 @@ async def fetch(store: Store, routes: list[dict[str, Any]], key: str,
                 conn.execute("DELETE FROM street_area WHERE id = ?", (row["id"],))
         conn.execute("INSERT INTO street_area (fetched_at, box, shapes) VALUES (?, ?, ?)",
                      ((now or datetime.now(UTC)).isoformat(), json.dumps(box), json.dumps(found)))
-    return status(store, routes)
+    return status(store)

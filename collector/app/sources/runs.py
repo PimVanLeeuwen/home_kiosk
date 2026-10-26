@@ -57,6 +57,29 @@ def ensure_tables(store: Store) -> None:
         for name in BESTS:
             if f"best_{name}_s" not in have:
                 conn.execute(f"ALTER TABLE run ADD COLUMN best_{name}_s REAL")
+        # Where each run was (step 5): its middle and bounds, so grouping runs by area never
+        # reads their routes. Filled by `fill_places` for runs kept before.
+        for name in PLACE:
+            if name not in have:
+                conn.execute(f"ALTER TABLE run ADD COLUMN {name} REAL")
+        # Whether the best efforts were looked for: a run whose route has no 5 km in it (GPS
+        # cut short) keeps no best, and must not be searched again on every request.
+        if "bests_checked" not in have:
+            conn.execute("ALTER TABLE run ADD COLUMN bests_checked INTEGER NOT NULL DEFAULT 0")
+            conn.execute("UPDATE run SET bests_checked = 1 WHERE best_5k_s IS NOT NULL "
+                         "OR distance_m < 5000 OR route = '[]'")
+
+
+PLACE = ("mid_lat", "mid_lon", "south", "west", "north", "east")
+
+
+def place(route: list[list[Any]]) -> tuple[float | None, ...]:
+    """The route's middle (the mean of its points) and its bounds, or Nones without a route."""
+    if not route:
+        return (None,) * len(PLACE)
+    lats, lons = [p[0] for p in route], [p[1] for p in route]
+    return (round(sum(lats) / len(lats), 6), round(sum(lons) / len(lons), 6),
+            min(lats), min(lons), max(lats), max(lons))
 
 
 def is_run(workout: dict[str, Any]) -> bool:
@@ -160,13 +183,14 @@ def receive(store: Store, body: dict[str, Any], now: datetime | None = None) -> 
             conn.execute(
                 "INSERT OR REPLACE INTO run (id, start, end, name, indoor, duration_s, distance_m, "
                 "elevation_up_m, elevation_down_m, energy_kcal, avg_hr, max_hr, temperature_c, "
-                "humidity, route, heart, received_at, best_5k_s, best_10k_s, best_half_s) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "humidity, route, heart, received_at, best_5k_s, best_10k_s, best_half_s, "
+                f"{', '.join(PLACE)}, bests_checked) "
+                f"VALUES ({', '.join('?' * (20 + len(PLACE)))}, 1)",
                 (run["id"], run["start"], run["end"], run["name"], int(run["indoor"]),
                  run["duration_s"], run["distance_m"], run["elevation_up_m"],
                  run["elevation_down_m"], run["energy_kcal"], run["avg_hr"], run["max_hr"],
                  run["temperature_c"], run["humidity"], json.dumps(run["route"]),
-                 json.dumps(run["heart"]), received_at, *bests))
+                 json.dumps(run["heart"]), received_at, *bests, *place(run["route"])))
             kept += 1
     return {"kept": kept, "skipped": skipped, "failed": failed}
 
@@ -302,14 +326,37 @@ def fill_bests(store: Store) -> int:
     """Best efforts for runs kept before they were worked out (step 1 kept no bests): any run
     of 5 km or more with a route and no 5 km best yet. Returns how many were filled."""
     with store.connect() as conn:
-        rows = conn.execute("SELECT id, route FROM run WHERE best_5k_s IS NULL AND "
-                            "distance_m >= 5000 AND route != '[]'").fetchall()
+        rows = conn.execute("SELECT id, route FROM run WHERE bests_checked = 0").fetchall()
         for row in rows:
             route = json.loads(row["route"])
             bests = [best_effort(route, metres) for metres in BESTS.values()]
-            conn.execute("UPDATE run SET best_5k_s = ?, best_10k_s = ?, best_half_s = ? "
-                         "WHERE id = ?", (*bests, row["id"]))
+            conn.execute("UPDATE run SET best_5k_s = ?, best_10k_s = ?, best_half_s = ?, "
+                         "bests_checked = 1 WHERE id = ?", (*bests, row["id"]))
     return len(rows)
+
+
+def fill_places(store: Store) -> int:
+    """Middles and bounds for runs kept before they were stored (step 5). Returns how many."""
+    with store.connect() as conn:
+        rows = conn.execute("SELECT id, route FROM run WHERE mid_lat IS NULL AND "
+                            "route != '[]'").fetchall()
+        for row in rows:
+            conn.execute(f"UPDATE run SET {' = ?, '.join(PLACE)} = ? WHERE id = ?",
+                         (*place(json.loads(row["route"])), row["id"]))
+    return len(rows)
+
+
+def places(store: Store, start: str) -> list[dict[str, Any]]:
+    """Where every run with a route from `start` (ISO, UTC) on was, oldest first, without
+    reading a route: {id, start, middle: [lat, lon], box: [south, west, north, east]}."""
+    ensure_tables(store)
+    fill_places(store)
+    with store.connect() as conn:
+        rows = conn.execute("SELECT id, start, mid_lat, mid_lon, south, west, north, east "
+                            "FROM run WHERE start >= ? AND mid_lat IS NOT NULL ORDER BY start",
+                            (start,)).fetchall()
+    return [{"id": r["id"], "start": r["start"], "middle": [r["mid_lat"], r["mid_lon"]],
+             "box": [r["south"], r["west"], r["north"], r["east"]]} for r in rows]
 
 
 def since(store: Store, start: str) -> list[dict[str, Any]]:
@@ -322,12 +369,15 @@ def since(store: Store, start: str) -> list[dict[str, Any]]:
     return [_summary(r) for r in rows]
 
 
-def routes(store: Store, start: str, points: int = 200) -> list[dict[str, Any]]:
-    """The routes of every run from `start` (ISO, UTC) on, oldest first, thinned to `points`:
-    {id, start, route: [[latitude, longitude], ...]}."""
+def routes(store: Store, start: str, points: int = 200,
+           ids: set[str] | None = None) -> list[dict[str, Any]]:
+    """The routes of every run from `start` (ISO, UTC) on (only `ids`, when given), oldest
+    first, thinned to `points`: {id, start, route: [[latitude, longitude], ...]}. Reading routes
+    is slow with many runs: only for painting, never on every request."""
     ensure_tables(store)
     with store.connect() as conn:
         rows = conn.execute("SELECT id, start, route FROM run WHERE start >= ? AND route != '[]' "
                             "ORDER BY start", (start,)).fetchall()
     return [{"id": r["id"], "start": r["start"],
-             "route": simplified(json.loads(r["route"]), points)} for r in rows]
+             "route": simplified(json.loads(r["route"]), points)}
+            for r in rows if ids is None or r["id"] in ids]

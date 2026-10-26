@@ -94,7 +94,7 @@ def overview(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
         kept = streets.kept_for(store, streets.middle(last["route"])) if last["route"] else None
         last["streets_at"] = kept["fetched_at"] if kept else None
     since = datetime(today.year, 1, 1, tzinfo=zone).astimezone(UTC).isoformat()
-    home = streets.at_home(store, since, points=2)
+    home = streets.at_home(store, since)
     return {
         "as_of": now.isoformat(),
         "stale": bool(plan.get("stale")),

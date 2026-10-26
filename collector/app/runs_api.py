@@ -67,8 +67,7 @@ def overview(request: Request) -> dict[str, Any]:
 @router.get("/streets")
 def streets_status(request: Request) -> dict[str, Any]:
     """The areas run in, home first, and whether each one's streets are in (Settings, Running)."""
-    store = request.app.state.store
-    return streets.status(store, runs.routes(store, streets.EVER))
+    return streets.status(request.app.state.store)
 
 
 class StreetsAsk(BaseModel):
@@ -80,7 +79,7 @@ async def fetch_streets(request: Request, ask: StreetsAsk) -> dict[str, Any]:
     """Asks Overpass once for the streets of one area run in (plan.md M28, step 5)."""
     store = request.app.state.store
     try:
-        return await streets.fetch(store, runs.routes(store, streets.EVER), ask.area)
+        return await streets.fetch(store, ask.area)
     except LookupError as exc:
         raise HTTPException(404, str(exc)) from None
     except Exception as exc:
@@ -100,8 +99,8 @@ def streets_picture(request: Request) -> Response:
     zone = ZoneInfo(request.app.state.config.get("timezone", "Europe/Amsterdam"))
     local = datetime.now(zone)
     since = datetime(local.year, 1, 1, tzinfo=zone).astimezone(UTC).isoformat()
-    home = streets.at_home(store, since, points=2)
-    year = home["routes"]
+    home = streets.at_home(store, since)
+    year = home["runs"]
     if not year:
         raise HTTPException(404, "No runs this year yet.")
     key = (since, len(year), year[-1]["id"], (home["streets"] or {}).get("fetched_at"))

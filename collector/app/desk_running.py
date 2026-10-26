@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 from . import paint_streets, running
 from .desk_pieces import absent, caps, label
 from .panel_text import latin1
-from .sources import streets
+from .sources import runs, streets
 from .store import Store
 
 # A: where the route is drawn (the painter and the light share it).
@@ -175,7 +175,7 @@ def streets_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any
     local = now.astimezone(zone)
     since = datetime(local.year, 1, 1, tzinfo=zone).astimezone(UTC).isoformat()
     home, bounds = paint_streets.year_lines(store, since)
-    year = home["routes"]
+    year = home["runs"]
     if not year or bounds is None:
         return absent("streets")
     newest = year[-1]
@@ -192,7 +192,7 @@ def streets_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any
     path: list[list[int]] = []
     if today:
         frame = paint_streets.Frame(bounds, paint_streets.MAP_BOX)
-        route = newest["route"]
+        route = runs.routes(store, newest["start"], ids={today})[0]["route"]
         step = max(1, len(route) / PATH_POINTS)
         picks = [route[min(len(route) - 1, round(i * step))] for i in range(PATH_POINTS)]
         path = [[round(x), round(y)] for x, y in (frame.xy(*p) for p in picks)]
