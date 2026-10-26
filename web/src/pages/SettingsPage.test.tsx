@@ -243,6 +243,7 @@ describe('SettingsPage sections', () => {
       'News feeds',
       'Calendars',
       'Music',
+      'Lights',
       'Desk panels',
       'Messages',
       'AI',

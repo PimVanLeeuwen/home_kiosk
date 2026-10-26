@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Loading, PageUnavailable, StaleNote } from '../components/ui/states'
+import { FloorPlan } from '../components/lights/FloorPlan'
 import { LightTile, type Change } from '../components/lights/LightTile'
 import { PageHeader } from '../components/PageHeader'
 import { Pill } from '../components/ui/Pill'
@@ -7,6 +8,7 @@ import { ApiError, sendJson } from '../lib/api'
 import { cn } from '../lib/cn'
 import { formatAgo } from '../lib/format'
 import { applyIntent, HOLD_MS, pending, type Intent } from '../lib/lightIntent'
+import type { LightsPlan } from '../lib/lightsPlan'
 import type { Lights } from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { buttonClass } from '../components/ui/buttonStyles'
@@ -14,7 +16,7 @@ import { buttonClass } from '../components/ui/buttonStyles'
 /** While the page is open; the hub itself is kept live by the bridge's event stream. */
 const REFRESH_MS = 2_000
 
-/** The living room's lights through the Hue Bridge (plan.md M17). */
+/** The living room's lights through the Hue Bridge (plan.md M17), on its floor plan (M27, O). */
 export function LightsPage() {
   const { data, error, loading, reload } = useApi<Lights>('/api/lights', REFRESH_MS)
   // The bridge's answer to our own change, until the next poll is newer.
@@ -22,6 +24,8 @@ export function LightsPage() {
   // What was just asked per group, shown at once until the bridge reports it.
   const [intents, setIntents] = useState<Record<string, Intent>>({})
   const [failure, setFailure] = useState<string | null>(null)
+  const plan = useApi<LightsPlan>('/api/lights/plan')
+  const [picked, setPicked] = useState<string | null>(null)
 
   const reported = answer && (!data || answer.as_of >= data.as_of) ? answer : data
   const lights = reported && { ...reported, groups: reported.groups.map((g) => applyIntent(g, intents[g.id])) }
@@ -92,19 +96,36 @@ export function LightsPage() {
               {on ? 'All off' : 'All on'}
             </button>
           </div>
-          <div
-            className={cn('grid gap-3 md:grid-cols-2 md:gap-[18px]', lights.stale && 'opacity-60')}
-            aria-busy={Object.keys(intents).length > 0}
-          >
-            {lights.groups.map((group) => (
-              <LightTile
-                key={group.id}
-                group={group}
-                kelvins={lights.kelvins}
-                disabled={disabled}
-                onChange={(change: Change) => send('PUT', `/api/lights/${group.id}`, change, [group.id], change)}
-              />
-            ))}
+          <div className={cn('grid gap-3 md:gap-[18px]', plan.data && 'lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]', lights.stale && 'opacity-60')}>
+            {plan.data && (
+              <figure className="m-0 self-start overflow-hidden rounded-[18px] border border-glass-line">
+                <FloorPlan
+                  plan={plan.data}
+                  groups={lights.groups}
+                  selected={picked}
+                  onSelect={(id) => {
+                    setPicked((now) => (now === id ? null : id))
+                    document.getElementById(`lights-${id}`)?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' })
+                  }}
+                />
+                <figcaption className="sr-only">Pick a light to find its group.</figcaption>
+              </figure>
+            )}
+            <div
+              className={cn('grid content-start gap-3 md:gap-[18px]', plan.data ? 'md:grid-cols-2 lg:grid-cols-1' : 'md:grid-cols-2')}
+              aria-busy={Object.keys(intents).length > 0}
+            >
+              {lights.groups.map((group) => (
+                <LightTile
+                  key={group.id}
+                  group={group}
+                  kelvins={lights.kelvins}
+                  disabled={disabled}
+                  selected={picked === group.id}
+                  onChange={(change: Change) => send('PUT', `/api/lights/${group.id}`, change, [group.id], change)}
+                />
+              ))}
+            </div>
           </div>
           {failure && (
             <p role="alert" className="mt-3 text-small text-down">

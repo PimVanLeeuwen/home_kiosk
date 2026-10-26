@@ -284,3 +284,24 @@ def test_reads_the_event_stream():
         return [events async for events in bridge.events()]
 
     assert asyncio.run(read()) == [message]
+
+
+def test_the_floor_plan_starts_sensible_and_keeps_where_the_lights_are(client):
+    first = client.get("/api/lights/plan").json()
+    assert first["lights"] == {} and {p["kind"] for p in first["furniture"]} == {
+        "kitchen", "table", "sofa", "tv"}
+
+    placed = {"aspect": 1.5, "lights": {"l-1": {"x": 0.2, "y": 0.18}},
+              "furniture": [{"kind": "sofa", "x": 0.5, "y": 0.5, "w": 0.3, "h": 0.2}]}
+    assert client.put("/api/lights/plan", json=placed).json() == placed
+    assert client.get("/api/lights/plan").json() == placed
+
+    assert client.put("/api/lights/plan", json=placed | {"aspect": 9}).status_code == 422
+    assert client.put("/api/lights/plan", json=placed | {
+        "lights": {"l-1": {"x": 1.4, "y": 0}}}).status_code == 422
+    piano = {"kind": "piano", "x": 0.5, "y": 0.5, "w": 0.1, "h": 0.1}
+    assert client.put("/api/lights/plan", json=placed | {"furniture": [piano]}).status_code == 422
+    assert client.put("/api/lights/plan", json=placed | {
+        "lights": {"../x": {"x": 0, "y": 0}}}).status_code == 422
+    foreign = client.put("/api/lights/plan", json=placed, headers={"origin": "https://evil.example"})
+    assert foreign.status_code == 403

@@ -52,12 +52,15 @@ describe('palette', () => {
 
 describe('palette matching beyond the label', () => {
   it('needs the words typed, not scattered letters, in a description', () => {
-    const found = search(staticItems(), 'set', []).map((r) => r.item.label)
+    const results = search(staticItems(), 'set', [])
+    const found = results.map((r) => r.item.label)
 
     expect(found).toContain('Settings')
     expect(found).toContain('Desk panels')
     expect(found).not.toContain('Alerts')
-    expect(found).not.toContain('Lights')
+    // The Lights page does not match; its section in Settings does, by its group.
+    const lights = results.filter((r) => r.item.label === 'Lights').map((r) => r.item.id)
+    expect(lights).toEqual(['settings:lights'])
   })
 })
 

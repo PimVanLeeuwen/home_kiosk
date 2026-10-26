@@ -206,4 +206,21 @@ describe('LightsPage', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('The lights are not available right now')
   })
+
+  it('shows the room from above, and a tapped light finds its group', async () => {
+    stubApi({
+      '/api/lights': lights({ lampsOn: false }),
+      '/api/lights/plan': { aspect: 1.7, lights: { s1: { x: 0.2, y: 0.2 } }, furniture: [{ kind: 'sofa', x: 0.7, y: 0.7, w: 0.2, h: 0.2 }] },
+    })
+    renderRoute('/lights')
+
+    const plan = await screen.findByRole('group', { name: /The living room from above/ })
+    // Only lights that are on throw a pool.
+    expect(plan.querySelectorAll('[data-pool]')).toHaveLength(3)
+    expect(within(plan).getByText('SOFA')).toBeInTheDocument()
+    fireEvent.click(within(plan).getByRole('button', { name: 'Ceiling lamps, Plafondlamp Bank: off' }))
+
+    expect(screen.getByRole('region', { name: 'Ceiling lamps' })).toHaveAttribute('data-selected', 'true')
+    expect(within(plan).getByRole('button', { name: 'Ceiling lamps, Plafondlamp Tafel: off' })).toHaveAttribute('aria-pressed', 'true')
+  })
 })

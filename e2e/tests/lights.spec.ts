@@ -43,3 +43,31 @@ test('Lights switches the kitchen spots and picks a white', async ({ page, isMob
   await kitchen.getByRole('radio', { name: '2700 K' }).click()
   await expect.poll(() => sent).toEqual([{ on: false }, { kelvin: 2700 }])
 })
+
+test('The floor plan is placed in Settings and finds a group on the Lights page', async ({ page }) => {
+  let plan = { aspect: 1.7, lights: {}, furniture: [{ kind: 'sofa', x: 0.7, y: 0.7, w: 0.26, h: 0.2 }] }
+  const saved: unknown[] = []
+  await page.route('**/api/lights', (route) => route.fulfill({ json: lights(true) }))
+  await page.route('**/api/lights/plan', (route) => {
+    if (route.request().method() === 'PUT') {
+      plan = route.request().postDataJSON()
+      saved.push(plan)
+    }
+    return route.fulfill({ json: plan })
+  })
+
+  await page.goto('/settings/lights')
+  const editor = page.getByRole('group', { name: /The living room from above/ })
+  const bank = editor.getByRole('button', { name: /^Plafondlamp Bank:/ })
+  await bank.focus()
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('ArrowDown')
+  await page.getByRole('button', { name: 'Save the plan' }).click()
+  await expect(page.getByRole('status')).toContainText('Saved')
+  expect(saved).toHaveLength(1)
+
+  await page.goto('/lights')
+  const room = page.getByRole('group', { name: /The living room from above/ })
+  await room.getByRole('button', { name: 'Ceiling lamps, Plafondlamp Bank: on at 55%' }).click()
+  await expect(page.getByRole('region', { name: 'Ceiling lamps' })).toHaveAttribute('data-selected', 'true')
+})

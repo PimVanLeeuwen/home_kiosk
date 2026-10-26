@@ -1433,6 +1433,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   tile that plays has a light rim and an equaliser. The hub's Music page mirrors it: "Played
   lately" under the player on a wide screen (after the favourites on the phone), a tap plays
   one (`/api/music/recent/{i}/play`).
+- Step 6, O done 2026-10-26: the Lights page shows the living room from above beside the group
+  cards (above them on the phone): each light a pool in its own white and brightness, breathing
+  softly (still when reduced motion is asked for), only while it is on; off lights as dim dots.
+  A tap on a light selects its group: its lights ringed, its card outlined (the owner's choice:
+  nothing switches from the plan). Settings, Lights places it once: the room's width over its
+  depth, each light dragged where it hangs (or moved with the arrow keys), and kitchen, table,
+  sofa and TV outlines to show, drag and turn; kept as one setting (`/api/lights/plan`).
+  Unplaced lights wait in a row along the top wall.
 - Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
   "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
   map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS

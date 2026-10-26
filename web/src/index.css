@@ -147,6 +147,18 @@
     }
   }
 
+  /* A light's pool on the Lights page's floor plan, breathing softly. */
+  --animate-breathe: breathe 6s ease-in-out infinite;
+  @keyframes breathe {
+    0%,
+    100% {
+      transform: scale(0.96);
+    }
+    50% {
+      transform: scale(1.04);
+    }
+  }
+
   /* A spark streaming out of the countdown's tunnel, faster as it comes; each sets its angle (--a) and delay. */
   --animate-spark: spark 2.6s cubic-bezier(0.55, 0, 1, 0.45) infinite;
   @keyframes spark {

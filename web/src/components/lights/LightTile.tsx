@@ -12,6 +12,8 @@ interface Props {
   /** Off while the bridge cannot be reached, or a change is on its way. */
   disabled: boolean
   onChange: (change: Change) => void
+  /** Picked on the floor plan: outlined, so the tile that controls those lights is found. */
+  selected?: boolean
 }
 
 /** Sends a brightness once the slider has rested this long, not on every step. */
@@ -21,7 +23,7 @@ const SETTLE_MS = 300
  * One group of lights as a tile that glows in the white it has now: the top
  * switches it, the bar dims it, and ambiance spots get five whites.
  */
-export function LightTile({ group, kelvins, disabled, onChange }: Props) {
+export function LightTile({ group, kelvins, disabled, onChange, selected = false }: Props) {
   const [dragging, setDragging] = useState<number | null>(null)
   const timer = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(timer.current), [])
@@ -50,6 +52,7 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
     <section
       aria-labelledby={`lights-${group.id}`}
       data-on={group.on}
+      data-selected={selected || undefined}
       style={{ '--w': white, '--b': glow } as CSSProperties}
       className={cn(
         'relative overflow-hidden rounded-[18px] border px-5 pt-[18px] pb-4 transition-[background,box-shadow,border-color] duration-500',
@@ -57,6 +60,7 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
         group.on
           ? 'border-[color-mix(in_srgb,var(--w)_45%,transparent)] shadow-[0_0_calc(var(--b)*46px)_-8px_color-mix(in_srgb,var(--w)_70%,transparent)]'
           : 'border-glass-line',
+        selected && 'ring-2 ring-accent-line ring-offset-2 ring-offset-panel',
       )}
     >
       <button
