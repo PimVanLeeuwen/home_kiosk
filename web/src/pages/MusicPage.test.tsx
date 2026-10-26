@@ -164,4 +164,31 @@ describe('MusicPage', () => {
     expect(await screen.findByText('Your devices show again once Spotify lets the hub ask.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Play Discover Weekly' })).toBeDisabled()
   })
+
+  it('plays one of the playlists and albums played lately, and lights the one that plays', async () => {
+    const recent = [
+      { uri: 'spotify:album:a2', kind: 'album' as const, name: 'Low Tide', cover: 'c2', colour: '#aa5533' },
+      { uri: 'spotify:playlist:p9', kind: 'playlist' as const, name: 'Late Night', cover: null, colour: null },
+    ]
+    const fetchMock = stubApi({
+      '/api/music': music({ recent, playing: { ...PLAYING, context: 'spotify:playlist:p9' } }),
+      'POST /api/music/recent/0/play': { ok: true },
+    })
+    renderRoute('/music')
+
+    const lately = await screen.findByRole('region', { name: 'Played lately' })
+    expect(within(lately).getByRole('button', { name: 'Late Night: playing' })).toBeInTheDocument()
+    expect(within(lately).getByText('Album')).toBeInTheDocument()
+    fireEvent.click(within(lately).getByRole('button', { name: 'Play Low Tide' }))
+
+    await vi.waitFor(() => expect(sentBody(fetchMock, 'POST', '/api/music/recent/0/play')).toEqual({}))
+  })
+
+  it('says when nothing was played lately', async () => {
+    stubApi({ '/api/music': music({ recent: [] }) })
+    renderRoute('/music')
+
+    const lately = await screen.findByRole('region', { name: 'Played lately' })
+    expect(lately).toHaveTextContent('Nothing played lately')
+  })
 })

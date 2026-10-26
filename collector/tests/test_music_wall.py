@@ -88,3 +88,27 @@ def test_the_wall_shows_with_only_played_lately_and_hides_without_either():
     assert only_recent["present"] and only_recent["favourites"] == []
     assert only_recent["footer"] == "Last played: Undertow · tap a cover to play it"
     assert not desk_home.music_screen(wall_music(favourites=[], recent=[]))["present"]
+
+
+def test_the_music_page_plays_one_played_lately(store, cloud):  # noqa: F811
+    from fastapi.testclient import TestClient
+
+    from app import main
+    main.app.state.store, main.app.state.config = store, CFG
+    client = TestClient(main.app, headers={"origin": "http://testserver"})
+    connect(store)
+    music._PLAYLISTS.clear()
+    cloud.recent = [played(None, "Low Tide", "spotify:album:a2")]
+    cloud.player = {"is_playing": True, "item": track(), "context": {"uri": "spotify:album:a2"},
+                    "device": {"id": "iphone", "name": "iPhone", "type": "Smartphone",
+                               "is_active": True}}
+
+    answer = client.get("/api/music").json()
+    assert answer["recent"][0]["name"] == "Low Tide"
+    assert answer["playing"]["context"] == "spotify:album:a2"
+    assert client.post("/api/music/recent/0/play", json={}).json()["ok"] is True
+    assert plays(cloud)[-1][1] == {"context_uri": "spotify:album:a2"}
+    assert client.post("/api/music/recent/5/play", json={}).status_code == 404
+    foreign = client.post("/api/music/recent/0/play", json={},
+                          headers={"origin": "https://evil.example"})
+    assert foreign.status_code == 403

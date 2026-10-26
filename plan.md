@@ -1430,7 +1430,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   playlists or albums played (from one recently-played call; a playlist's name is looked up
   once, and one Spotify does not show this app, or a track from liked songs or an artist,
   counts as its album), each a tap to play from the start (`/api/desk/music/recent/{i}`); the
-  tile that plays has a light rim and an equaliser.
+  tile that plays has a light rim and an equaliser. The hub's Music page mirrors it: "Played
+  lately" under the player on a wide screen (after the favourites on the phone), a tap plays
+  one (`/api/music/recent/{i}/play`).
 - Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
   "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
   map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS

@@ -66,3 +66,25 @@ test('While Spotify pauses the hub, the Home card says so and its controls wait'
   await expect(card.getByText(/Spotify paused the hub until .*\d\d:\d\d/)).toBeVisible()
   await expect(card.getByRole('button', { name: 'Pause' })).toBeDisabled()
 })
+
+test('Music plays one of the playlists and albums played lately', async ({ page }) => {
+  let from: string | null = null
+  const recent = [
+    { uri: 'spotify:album:a2', kind: 'album', name: 'Low Tide', cover: null, colour: '#aa5533' },
+    { uri: 'spotify:playlist:p9', kind: 'playlist', name: 'Late Night', cover: null, colour: '#3a6bd6' },
+  ]
+  await page.route('**/api/music', (route) => {
+    const answer = music(from !== null)
+    return route.fulfill({ json: { ...answer, recent, playing: answer.playing && { ...answer.playing, context: from } } })
+  })
+  await page.route('**/api/music/recent/1/play', (route) => {
+    from = 'spotify:playlist:p9'
+    return route.fulfill({ json: { ok: true, device_id: 'atv', seconds: 1.1 } })
+  })
+  await page.goto('/music')
+
+  const lately = page.getByRole('region', { name: 'Played lately' })
+  await expect(lately.getByRole('button', { name: 'Play Low Tide' })).toBeVisible()
+  await lately.getByRole('button', { name: 'Play Late Night' }).click()
+  await expect(lately.getByRole('button', { name: 'Late Night: playing' })).toBeVisible()
+})

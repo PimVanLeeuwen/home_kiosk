@@ -26,6 +26,18 @@ export interface Playing extends MusicItem {
   state: 'playing' | 'paused'
   progress_ms: number
   device: MusicDevice | null
+  /** The playlist or album it plays from (a Spotify uri), when Spotify says. */
+  context?: string | null
+}
+
+/** One of the playlists or albums played lately (plan.md M27, M). */
+export interface RecentMusic {
+  /** Its Spotify uri: what plays matches it with `Playing.context`. */
+  uri: string
+  kind: 'playlist' | 'album'
+  name: string
+  cover: string | null
+  colour: string | null
 }
 
 export interface Favourite {
@@ -46,6 +58,8 @@ export interface Music {
   devices: MusicDevice[]
   favourites: Favourite[]
   last: MusicItem | null
+  /** The last four different playlists or albums played from, favourites left out. */
+  recent?: RecentMusic[]
   /** While Spotify makes the hub wait (a 429): until when, epoch seconds; the controls wait too. */
   paused_until?: number | null
 }

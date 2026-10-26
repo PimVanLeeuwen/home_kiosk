@@ -137,6 +137,17 @@ async def play_favourite(position: int, request: Request) -> dict[str, Any]:
     return {"ok": True, "device_id": device, "seconds": round(time.monotonic() - started, 1)}
 
 
+@router.post("/recent/{index}/play", dependencies=write)
+async def play_recent(index: int, request: Request) -> dict[str, Any]:
+    """Plays one of the playlists or albums played lately (`recent` in /api/music)."""
+    started = time.monotonic()
+    try:
+        device = await music.play_recent(_cfg(request), request.app.state.store, index)
+    except Exception as exc:
+        raise _failed(exc) from None
+    return {"ok": True, "device_id": device, "seconds": round(time.monotonic() - started, 1)}
+
+
 @router.get("/covers/{key}")
 async def cover(key: str, request: Request) -> Response:
     """Only covers seen in Spotify's answers, stored small; not an open proxy."""
