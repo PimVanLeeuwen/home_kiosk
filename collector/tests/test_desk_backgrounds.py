@@ -16,9 +16,11 @@ from app import (
     paint_apple,
     paint_art,
     paint_clock,
+    paint_code,
     paint_headlines,
     paint_house,
     paint_laundry,
+    paint_media,
 )
 
 LOCAL = datetime(2026, 10, 25, 17, 44, tzinfo=ZoneInfo("Europe/Amsterdam"))
@@ -241,3 +243,31 @@ def test_a_busy_picture_is_made_small_enough_for_the_panel():
         assert image.size == (720, 720)
     art = paint_art.paint_art({"day": 740000, "season": "autumn"})
     assert len(paint.jpeg(art)) <= paint.MAX_JPEG
+
+
+def test_code_is_a_city_with_todays_block_known_to_the_panel(store):
+    levels = [0, 1, 2, 3, 4, 2, 1] * 15 + [3, 1, 0]
+    point = paint_code.today_point(levels)
+    screen = {"kind": "code", "stale": False, "present": True, "levels": levels,
+              "city_today": list(point)}
+    key = attached(store, screen).rsplit("/", 1)[1]
+    with Image.open(io.BytesIO(desk_backgrounds.picture(store, key))) as image:
+        assert image.size == (720, 720)
+        assert image.getpixel(point)[0] > 200  # today's top, lit white
+    # A taller block today stands higher.
+    assert paint_code.today_point(levels[:-1] + [4])[1] < point[1]
+
+
+def test_media_takes_its_posters_colours_once_the_hub_has_the_poster(store, monkeypatch):
+    out = io.BytesIO()
+    Image.new("RGB", (160, 240), (40, 160, 220)).save(out, "JPEG")
+    screen = {"kind": "media", "stale": False, "present": True, "tone": "ok",
+              "downloads": [{"title": "A film", "poster": "/api/desk/poster/radarr/7"}]}
+    monkeypatch.setattr(paint_media.desk_media, "_posters", {})
+    assert "poster" not in paint_media.inputs(screen, LOCAL)  # House's light until it is in
+
+    paint_media.desk_media._posters["radarr/7"] = out.getvalue()
+    data = paint_media.inputs(screen, LOCAL)
+    assert data == {"poster": "radarr/7"}
+    r, g, b = paint_media.paint_media(data).getpixel((360, 120))
+    assert b > r  # the poster's blue over the top

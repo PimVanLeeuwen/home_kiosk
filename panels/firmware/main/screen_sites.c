@@ -4,7 +4,10 @@
  * down turns its tile red. Words from the hub (app/desk_sites.py).
  *
  * Each strip is painted into its own small canvas: 30 bars as LVGL shapes per tile
- * would be a few hundred in one layer, which stalls its task queue. */
+ * would be a few hundred in one layer, which stalls its task queue.
+ *
+ * Lifted (plan.md M27): each tile beats, a short line with one beat and a pulse running
+ * along it while the site is up (flat and red when it is down). */
 
 #include "screen_sites.h"
 
@@ -39,10 +42,25 @@ LV_IMAGE_DECLARE(glow_sky);
 #define TILE_DOWN 0x1f0c0d
 
 typedef struct {
-    lv_obj_t *box, *dot, *name, *left, *right, *strip;
+    lv_obj_t *box, *dot, *name, *left, *right, *strip, *trace, *beat;
+    bool beating;
 } tile_t;
 
-static lv_obj_t *sky, *title, *pill, *pill_text;
+/* The heartbeat (plan.md M27): one beat as a short line between the response time and the
+ * uptime, and a bright pulse running along it while the site is up. */
+#define TRACE_X 104
+#define TRACE_W 104
+#define TRACE_Y 74   /* its baseline, in the tile */
+#define TRACE_H 13   /* how far the beat reaches */
+#define BEAT_MS 40
+#define BEAT_STEP 0.022f
+static const float BEAT[][2] = {{0, 0},     {0.3f, 0},  {0.38f, -0.18f}, {0.44f, 0},   {0.5f, 0.25f},
+                                {0.56f, -1}, {0.62f, 0.4f}, {0.68f, 0},   {0.8f, -0.3f}, {0.9f, 0}, {1, 0}};
+#define BEAT_POINTS (sizeof BEAT / sizeof BEAT[0])
+
+static lv_obj_t *self, *sky, *title, *pill, *pill_text;
+static lv_point_precise_t trace_points[DESK_SITES][BEAT_POINTS];
+static float beat_at;
 static tile_t tiles[DESK_SITES];
 EXT_RAM_BSS_ATTR static desk_sites_t shown; /* off the LVGL task's small stack */
 
@@ -124,11 +142,45 @@ static void tick(lv_timer_t *timer)
         uint32_t worst = site->worst == 'd' ? RED : site->worst == 'b' ? AMBER : 0x8a8794;
         lv_obj_set_style_text_color(t->right, lv_color_hex(worst), 0);
         paint_strip(t->strip, site->days, down);
+        /* Up: the beat in green; down or unknown: a flat line, red or grey. */
+        t->beating = site->state != 'd' && site->state != '?';
+        for (size_t p = 0; p < BEAT_POINTS; p++) {
+            trace_points[i][p] = (lv_point_precise_t){TRACE_X + BEAT[p][0] * TRACE_W,
+                                                      TRACE_Y + (t->beating ? BEAT[p][1] * TRACE_H : 0)};
+        }
+        lv_line_set_points(t->trace, trace_points[i], BEAT_POINTS);
+        lv_obj_set_style_line_color(t->trace, lv_color_hex(down ? RED : t->beating ? GREEN : 0x6c6a78), 0);
+    }
+}
+
+/* The pulses, together along every beating tile's line, while the screen shows. */
+static void beat(lv_timer_t *timer)
+{
+    bool on = lv_screen_active() == self;
+    beat_at += BEAT_STEP;
+    if (beat_at > 1.4f) {
+        beat_at = 0; /* a short rest between beats */
+    }
+    float at = beat_at > 1 ? 1 : beat_at;
+    int seg = 0;
+    while (seg < (int)BEAT_POINTS - 2 && BEAT[seg + 1][0] < at) {
+        seg++;
+    }
+    float t0 = BEAT[seg][0], t1 = BEAT[seg + 1][0], f = t1 > t0 ? (at - t0) / (t1 - t0) : 0;
+    float y = BEAT[seg][1] + (BEAT[seg + 1][1] - BEAT[seg][1]) * f;
+    for (int i = 0; i < DESK_SITES; i++) {
+        tile_t *t = &tiles[i];
+        bool show = on && t->beating && i < shown.count && beat_at <= 1;
+        lv_obj_set_flag(t->beat, LV_OBJ_FLAG_HIDDEN, !show);
+        if (show) {
+            lv_obj_set_pos(t->beat, TRACE_X + (int)(at * TRACE_W) - 4, TRACE_Y + (int)(y * TRACE_H) - 4);
+        }
     }
 }
 
 void screen_sites_create(lv_obj_t *screen)
 {
+    self = screen;
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
     /* House's quiet violet from the top; red while a site is down. */
@@ -179,6 +231,19 @@ void screen_sites_create(lv_obj_t *screen)
         t->right = ui_text(t->box, &instrument_24, 0x8a8794);
         lv_obj_align(t->right, LV_ALIGN_TOP_RIGHT, -PAD, 62);
 
+        t->trace = lv_line_create(t->box);
+        lv_obj_set_style_line_width(t->trace, 2, 0);
+        lv_obj_set_style_line_rounded(t->trace, true, 0);
+        lv_obj_set_style_line_opa(t->trace, 200, 0);
+        t->beat = ui_plain(t->box);
+        lv_obj_set_size(t->beat, 8, 8);
+        lv_obj_set_style_radius(t->beat, LV_RADIUS_CIRCLE, 0);
+        lv_obj_set_style_bg_color(t->beat, lv_color_hex(0xe4fff1), 0);
+        lv_obj_set_style_bg_opa(t->beat, LV_OPA_COVER, 0);
+        lv_obj_set_style_shadow_width(t->beat, 14, 0);
+        lv_obj_set_style_shadow_color(t->beat, lv_color_hex(GREEN), 0);
+        lv_obj_set_style_shadow_opa(t->beat, 220, 0);
+        lv_obj_add_flag(t->beat, LV_OBJ_FLAG_HIDDEN);
         t->strip = lv_canvas_create(t->box);
         lv_canvas_set_draw_buf(t->strip, lv_draw_buf_create(STRIP_W, STRIP_H, LV_COLOR_FORMAT_ARGB8888, 0));
         lv_obj_set_pos(t->strip, PAD, TILE_H - PAD - STRIP_H);
@@ -186,6 +251,7 @@ void screen_sites_create(lv_obj_t *screen)
         memset(lv_canvas_get_draw_buf(t->strip)->data, 0, lv_canvas_get_draw_buf(t->strip)->header.stride * STRIP_H);
     }
 
+    lv_timer_create(beat, BEAT_MS, NULL);
     lv_timer_create(tick, 1000, NULL);
     tick(NULL);
 }

@@ -10,6 +10,7 @@ from datetime import date, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from . import paint_code
 from .store import Store
 
 WEEKDAYS = ["Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays", "Sundays"]
@@ -44,6 +45,7 @@ def code_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     if not days:
         return {"kind": "code", "stale": False, "present": False}
     counts = [d["count"] for d in days]
+    levels = [min(4, max(0, int(d.get("level", 0)))) for d in days]
     weeks = [sum(counts[i:i + 7]) for i in range(0, len(counts), 7)]
     top = max(weeks) or 1
     by_weekday = [sum(counts[i] for i in range(w, len(counts), 7)) for w in range(7)]
@@ -53,7 +55,9 @@ def code_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
         "present": True,
         "title": "CODE · 16 WEEKS",
         "right": f"{activity.get('total', sum(counts))} CONTRIBUTIONS",
-        "levels": [min(4, max(0, int(d.get("level", 0)))) for d in days],  # today last
+        "levels": levels,  # today last
+        # The top of today's block in the painted city (plan.md M27): the panel's glow there.
+        "city_today": list(paint_code.today_point(levels)),
         "months": _months(days),
         "weeks": [round(w / top * 1000) for w in weeks],
         "this_week": f"this week {weeks[-1]}",

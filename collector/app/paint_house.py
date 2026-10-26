@@ -50,7 +50,7 @@ SCREENS: dict[str, tuple[Callable[[dict[str, Any]], str], Spot]] = {
     "nas": (_nas, (360, 180, 330, 0.34)),
     "code": (lambda s: VIOLET, (360, 500, 420, 0.26)),
     "sites": (lambda s: RED if s.get("down") else GREEN, (360, 380, 460, 0.2)),
-    "services": (lambda s: _tone(s.get("tone")), (360, 330, 400, 0.28)),
+    "services": (lambda s: _tone(s.get("tone")), (360, 400, 420, 0.3)),  # the ring's centre
     "tailnet": (lambda s: AMBER if s.get("warn") else VIOLET, (360, 300, 380, 0.3)),
     # Violet: the chart's own colour depends on the period chosen on the panel.
     "money": (lambda s: VIOLET, (360, 430, 440, 0.24)),

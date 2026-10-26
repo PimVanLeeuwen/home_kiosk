@@ -3,7 +3,10 @@
  * glowing check, each on a dark tile with a glow in its brand colour; during an
  * incident the worst one becomes a card (what, how long, its last steps) with the
  * others small below. Words from the hub (app/desk_services.py); logos from
- * images/logos.c, a letter for a service without one. */
+ * images/logos.c, a letter for a service without one.
+ *
+ * Lifted (plan.md M27), as a constellation: a fine line from each service to the check,
+ * and light running inward along every line while the screen shows. */
 
 #include "screen_services.h"
 
@@ -36,13 +39,18 @@ LV_IMAGE_DECLARE(glow_round);
 #define RED 0xff6b6b
 #define VIOLET 0x8f80ff
 #define GREY 0x8a8794
+#define SPARK_MS 40     /* 25 steps a second */
+#define SPARK_STEP 0.016f /* 2.5 s from a service to the check */
 
 typedef struct {
     lv_obj_t *box, *logo, *letter;
 } tile_t;
 
 static lv_obj_t *sky, *title, *pill, *pill_text;
-static lv_obj_t *ring_view, *names[DESK_SERVICES];
+static lv_obj_t *ring_view, *names[DESK_SERVICES], *spokes[DESK_SERVICES], *sparks[DESK_SERVICES];
+static lv_point_precise_t spoke_points[DESK_SERVICES][2];
+static float spark_at[DESK_SERVICES];
+static lv_obj_t *self;
 static tile_t ring[DESK_SERVICES];
 static lv_obj_t *incident_view, *card, *card_name, *card_line, *card_title, *steps[DESK_SERVICE_STEPS],
     *step_dots[DESK_SERVICE_STEPS], *step_times[DESK_SERVICE_STEPS], *step_rows[DESK_SERVICE_STEPS], *others;
@@ -113,6 +121,37 @@ static void show_ring(void)
         tile_set(&ring[i], shown.services[i].key, shown.services[i].name, shown.services[i].state == 'u');
         lv_label_set_text(names[i], shown.services[i].name);
         lv_obj_set_pos(names[i], x - 100, y + BIG / 2 + 8);
+        /* Its line to the check, from the tile's edge to the disc's. */
+        float ux = cosf(angle), uy = sinf(angle);
+        spoke_points[i][0] = (lv_point_precise_t){CX + ux * (RADIUS - BIG / 2 - 6), CY + uy * (RADIUS - BIG / 2 - 6)};
+        spoke_points[i][1] = (lv_point_precise_t){CX + ux * 56, CY + uy * 56};
+        lv_line_set_points(spokes[i], spoke_points[i], 2);
+        spark_at[i] = (float)i / n;
+    }
+    for (int i = 0; i < DESK_SERVICES; i++) {
+        lv_obj_set_flag(spokes[i], LV_OBJ_FLAG_HIDDEN, i >= n);
+    }
+}
+
+/* The light running inward along each line, while all is well and the screen shows. */
+static void inward(lv_timer_t *timer)
+{
+    bool on = lv_screen_active() == self && !lv_obj_has_flag(ring_view, LV_OBJ_FLAG_HIDDEN);
+    for (int i = 0; i < DESK_SERVICES; i++) {
+        if (!on || i >= shown.count) {
+            lv_obj_add_flag(sparks[i], LV_OBJ_FLAG_HIDDEN);
+            continue;
+        }
+        spark_at[i] += SPARK_STEP;
+        if (spark_at[i] > 1) {
+            spark_at[i] -= 1;
+        }
+        float t = spark_at[i];
+        float x = spoke_points[i][0].x + (spoke_points[i][1].x - spoke_points[i][0].x) * t;
+        float y = spoke_points[i][0].y + (spoke_points[i][1].y - spoke_points[i][0].y) * t;
+        lv_obj_set_pos(sparks[i], (int32_t)x - 4, (int32_t)y - 4);
+        lv_obj_set_style_bg_opa(sparks[i], (lv_opa_t)(t < 0.15f ? t / 0.15f * 255 : t > 0.85f ? (1 - t) / 0.15f * 255 : 255), 0);
+        lv_obj_remove_flag(sparks[i], LV_OBJ_FLAG_HIDDEN);
     }
 }
 
@@ -193,6 +232,24 @@ static void create_ring(lv_obj_t *screen)
 {
     ring_view = ui_plain(screen);
     lv_obj_set_size(ring_view, 720, 720);
+
+    /* The constellation's lines, under the tiles, and the light that runs along them. */
+    for (int i = 0; i < DESK_SERVICES; i++) {
+        spokes[i] = lv_line_create(ring_view);
+        lv_obj_set_style_line_width(spokes[i], 2, 0);
+        lv_obj_set_style_line_color(spokes[i], lv_color_hex(GREEN), 0);
+        lv_obj_set_style_line_opa(spokes[i], 70, 0);
+        lv_obj_add_flag(spokes[i], LV_OBJ_FLAG_HIDDEN);
+        sparks[i] = ui_plain(ring_view);
+        lv_obj_set_size(sparks[i], 8, 8);
+        lv_obj_set_style_radius(sparks[i], LV_RADIUS_CIRCLE, 0);
+        lv_obj_set_style_bg_color(sparks[i], lv_color_hex(0xc8f5df), 0);
+        lv_obj_set_style_shadow_width(sparks[i], 14, 0);
+        lv_obj_set_style_shadow_color(sparks[i], lv_color_hex(GREEN), 0);
+        lv_obj_set_style_shadow_opa(sparks[i], 200, 0);
+        lv_obj_add_flag(sparks[i], LV_OBJ_FLAG_HIDDEN);
+    }
+    lv_timer_create(inward, SPARK_MS, NULL);
 
     /* The glowing check in the middle. */
     lv_obj_t *glow = lv_image_create(ring_view);
@@ -286,6 +343,7 @@ static void create_incident(lv_obj_t *screen)
 
 void screen_services_create(lv_obj_t *screen)
 {
+    self = screen;
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
     /* House's quiet violet from the top; the incident's colour during one. */

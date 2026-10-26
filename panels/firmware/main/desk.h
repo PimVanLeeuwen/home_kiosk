@@ -262,6 +262,7 @@ typedef struct {
     char this_week[24];      /* "this week 133" */
     char streak[24];         /* "9-day streak", or "" */
     char busiest[32];        /* "busiest on Tuesdays" */
+    int16_t city_x, city_y;  /* the top of today's block in the hub's painted city (plan.md M27) */
 } desk_code_t;
 
 /* The House panel's My sites screen: a tile per site, ready to draw (app/desk_sites.py). */

@@ -44,11 +44,12 @@ EXT_RAM_BSS_ATTR static stored_t stored[KINDS];
 EXT_RAM_BSS_ATTR static screen_t screens[KINDS];
 static int kinds, attached;
 
-#define DEPENDANTS 64
+#define DEPENDANTS 160 /* every glass tile and stepping-aside light on all screens */
 #define GLASS_OPA 175
+enum { ASIDE, GLASS, WITH };
 EXT_RAM_BSS_ATTR static struct {
     lv_obj_t *obj;
-    bool glass; /* else: steps aside */
+    int how;
 } dependants[DEPENDANTS];
 static int dependant_count;
 static SemaphoreHandle_t lock;
@@ -118,18 +119,29 @@ void backdrops_want(const char *kind, const char *path)
     xSemaphoreGive(lock);
 }
 
-void backdrops_aside(lv_obj_t *obj)
+static void depends(lv_obj_t *obj, int how)
 {
     if (dependant_count < DEPENDANTS) {
-        dependants[dependant_count].obj = obj, dependants[dependant_count++].glass = false;
+        dependants[dependant_count].obj = obj, dependants[dependant_count++].how = how;
     }
+    if (how == WITH) {
+        lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN); /* until a picture shows */
+    }
+}
+
+void backdrops_aside(lv_obj_t *obj)
+{
+    depends(obj, ASIDE);
 }
 
 void backdrops_glass(lv_obj_t *obj)
 {
-    if (dependant_count < DEPENDANTS) {
-        dependants[dependant_count].obj = obj, dependants[dependant_count++].glass = true;
-    }
+    depends(obj, GLASS);
+}
+
+void backdrops_with(lv_obj_t *obj)
+{
+    depends(obj, WITH);
 }
 
 /* The screen's own light and tiles, for whether it shows a painted background now. */
@@ -139,10 +151,10 @@ static void depend(lv_obj_t *screen, bool painted)
         if (lv_obj_get_screen(dependants[i].obj) != screen) {
             continue;
         }
-        if (dependants[i].glass) {
+        if (dependants[i].how == GLASS) {
             lv_obj_set_style_bg_opa(dependants[i].obj, painted ? GLASS_OPA : LV_OPA_COVER, 0);
         } else {
-            lv_obj_set_flag(dependants[i].obj, LV_OBJ_FLAG_HIDDEN, painted);
+            lv_obj_set_flag(dependants[i].obj, LV_OBJ_FLAG_HIDDEN, dependants[i].how == ASIDE ? painted : !painted);
         }
     }
 }
@@ -214,6 +226,12 @@ static void show(screen_t *s)
     depend(s->screen, true);
     s->buffer = b; /* its old buffer, if any, is free now */
     s->shown_version = version;
+}
+
+bool backdrops_painted(const lv_obj_t *screen)
+{
+    const screen_t *s = find(screen);
+    return s && s->buffer >= 0;
 }
 
 void backdrops_show(lv_obj_t *screen)

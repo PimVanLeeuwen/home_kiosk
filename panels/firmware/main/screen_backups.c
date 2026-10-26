@@ -6,7 +6,10 @@
  * night amber, a failed one red, the last one bright. Words from the hub
  * (app/desk_backups.py).
  *
- * The seal and the bars are drawn once per answer into canvases; only the light moves. */
+ * The seal and the bars are drawn once per answer into canvases; only the light moves.
+ *
+ * Lifted (plan.md M27): the seal's ring of dots turns slowly while the screen shows: a
+ * dozen small dots moved round, not the canvas turned (that would be redrawn each frame). */
 
 #include "screen_backups.h"
 
@@ -34,6 +37,8 @@ LV_IMAGE_DECLARE(glow_sky);
 #define BARS_TOP 420
 #define BARS_H 180
 #define LIGHT 12
+#define RING_DOTS 12  /* the seal's turning ring: few, so a frame changes few areas */
+#define RING_MS 100
 
 #define GREEN 0x5fd39c
 #define AMBER 0xf0bd5a
@@ -42,6 +47,8 @@ LV_IMAGE_DECLARE(glow_sky);
 
 static lv_obj_t *sky, *title, *pill, *pill_text, *seal, *time_label, *line, *restore, *box;
 static lv_obj_t *flow_line, *light, *bars, *count_label, *slow_label, *last_label;
+static lv_obj_t *self, *ring_dots[RING_DOTS];
+static float ring_turn;
 EXT_RAM_BSS_ATTR static desk_backups_t shown; /* off the LVGL task's small stack */
 
 static void circle(lv_layer_t *layer, int r, lv_color_t fill, lv_opa_t fill_opa, lv_color_t edge, int edge_w)
@@ -64,14 +71,8 @@ static void draw_seal(uint32_t colour, bool failed)
     lv_canvas_init_layer(seal, &layer);
     lv_color_t c = lv_color_hex(colour);
     circle(&layer, SEAL / 2 - 2, c, 30, c, 0);
-    for (int i = 0; i < 40; i++) {
-        lv_draw_arc_dsc_t dot;
-        lv_draw_arc_dsc_init(&dot);
-        dot.center.x = dot.center.y = SEAL / 2;
-        dot.radius = SEAL / 2 - 12, dot.width = 2;
-        dot.start_angle = i * 9, dot.end_angle = i * 9 + 3.5f;
-        dot.color = c, dot.opa = 120;
-        lv_draw_arc(&layer, &dot);
+    for (int i = 0; i < RING_DOTS; i++) { /* the turning ring takes its colour */
+        lv_obj_set_style_bg_color(ring_dots[i], c, 0);
     }
     circle(&layer, SEAL / 2 - 26, c, 40, c, 4);
     lv_draw_line_dsc_t mark;
@@ -90,6 +91,21 @@ static void draw_seal(uint32_t colour, bool failed)
     }
     lv_canvas_finish_layer(seal, &layer);
     lv_obj_invalidate(seal);
+}
+
+/* The ring of dots round the seal, a turn a minute, while this screen shows. */
+static void turn_ring(lv_timer_t *timer)
+{
+    if (lv_screen_active() != self) {
+        return;
+    }
+    ring_turn += 2 * (float)M_PI * RING_MS / 60000;
+    const int r = SEAL / 2 - 12;
+    for (int i = 0; i < RING_DOTS; i++) {
+        float a = ring_turn + 2 * (float)M_PI * i / RING_DOTS;
+        lv_obj_set_pos(ring_dots[i], LEFT + SEAL / 2 + (int)(r * cosf(a)) - 2,
+                       HERO_TOP + SEAL / 2 + (int)(r * sinf(a)) - 2);
+    }
 }
 
 /* One bar per night, by how long it took; the slowest night sets the scale. */
@@ -197,6 +213,7 @@ static lv_obj_t *chip(lv_obj_t *screen, const char *words)
 
 void screen_backups_create(lv_obj_t *screen)
 {
+    self = screen;
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
     sky = lv_image_create(screen);
@@ -227,6 +244,17 @@ void screen_backups_create(lv_obj_t *screen)
     lv_canvas_set_draw_buf(seal, lv_draw_buf_create(SEAL, SEAL, LV_COLOR_FORMAT_ARGB8888, 0));
     memset(lv_canvas_get_draw_buf(seal)->data, 0, lv_canvas_get_draw_buf(seal)->header.stride * SEAL);
     lv_obj_set_pos(seal, LEFT, HERO_TOP);
+    for (int i = 0; i < RING_DOTS; i++) {
+        ring_dots[i] = ui_plain(screen);
+        lv_obj_set_size(ring_dots[i], 5, 5);
+        lv_obj_set_style_radius(ring_dots[i], LV_RADIUS_CIRCLE, 0);
+        lv_obj_set_style_bg_opa(ring_dots[i], 170, 0);
+        lv_obj_set_style_bg_color(ring_dots[i], lv_color_hex(GREEN), 0);
+        float a = 2 * (float)M_PI * i / RING_DOTS;
+        lv_obj_set_pos(ring_dots[i], LEFT + SEAL / 2 + (int)((SEAL / 2 - 12) * cosf(a)) - 2,
+                       HERO_TOP + SEAL / 2 + (int)((SEAL / 2 - 12) * sinf(a)) - 2);
+    }
+    lv_timer_create(turn_ring, RING_MS, NULL);
     int text_x = LEFT + SEAL + 28, text_w = WIDTH - SEAL - 28;
     time_label = ui_text(screen, &instrument_time, 0xf1eff7);
     lv_obj_set_pos(time_label, text_x, HERO_TOP - 2);

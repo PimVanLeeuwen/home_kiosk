@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 #include "lvgl.h"
 
 /* Painted backgrounds (plan.md M27): the hub paints a screen's light and texture as a
@@ -18,6 +20,12 @@ void backdrops_attach(lv_obj_t *screen, const char *kind);
  * plainer light), or turns to glass (a tile the light should show through). */
 void backdrops_aside(lv_obj_t *obj);
 void backdrops_glass(lv_obj_t *obj);
+/* ... or shows only then (it belongs to the painted picture, as the Code city's glow). */
+void backdrops_with(lv_obj_t *obj);
+
+/* Whether `screen` shows a painted background now (for a screen that sets its own
+ * stepping-aside objects' visibility). */
+bool backdrops_painted(const lv_obj_t *screen);
 
 /* From screens.c, before it loads `screen`: decodes that screen's background. */
 void backdrops_show(lv_obj_t *screen);

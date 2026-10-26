@@ -1366,9 +1366,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   as its chart's colour follows the period chosen on the panel); the screen's own violet light
   steps aside and its tiles turn to glass (`backdrops_aside`, `backdrops_glass`). The running
   pipeline has light flowing along the lines into the jobs still to finish. W done too: a run
-  that passed leaves House after a minute, one that failed after 5. Not done, for the owner to
-  choose: the bigger rebuilds from the mockup (Code as a city, Sites as heartbeat lines,
-  Services as a constellation, Backups' turning seal).
+  that passed leaves House after a minute, one that failed after 5.
+- The House redesigns, done 2026-10-26 (the owner's choice, before the rest of step 4): Code as
+  a small isometric city painted by the hub (`app/paint_code.py`), the grid and bars stepping
+  aside and today's block breathing; Sites with a heartbeat line per tile and a pulse along it
+  (flat and red when down), the 30-day strips kept; Services as a constellation, a line from
+  each service to the check and light running inward (the incident card unchanged); Tailnet
+  with three particles flowing along each live link; Backups' ring of dots turning round the
+  seal (12 dots: a frame stays under LVGL's 32 changed areas); Media in its first download's
+  poster colours, once the hub has that poster. Dropped: the turning record on Now Playing
+  (a rotated picture every frame).
 - Step 4 placements (2026-10-25): C Orbit clock on House (it has no clock), F Art on Home,
   H The year on Now. A and the Clock: the Clock stays; the living sky shows by day and the
   night sky takes its place after dark on a clear night.

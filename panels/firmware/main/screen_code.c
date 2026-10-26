@@ -36,7 +36,7 @@ LV_IMAGE_DECLARE(glow_sky);
 /* GitHub's quartiles in the panels' violet, as on the hub's Code card. */
 static const uint32_t LEVELS[5] = {0x17161d, 0x2b2655, 0x4a4191, 0x8074d5, 0xc3b9ff};
 
-static lv_obj_t *canvas, *title, *right, *months[6], *bars[16], *this_week, *streak, *busiest;
+static lv_obj_t *canvas, *title, *right, *months[6], *bars[16], *this_week, *streak, *busiest, *today_glow, *today_ring;
 EXT_RAM_BSS_ATTR static desk_code_t shown; /* off the LVGL task's small stack */
 
 /* One pixel of the grid canvas (ARGB8888, stored blue first). */
@@ -75,6 +75,15 @@ static void draw_grid(void)
     lv_obj_invalidate(canvas);
 }
 
+/* 0 to 1000: the ring round today's block grows and fades (its real size, no transform). */
+static void breathe(void *ring, int32_t at)
+{
+    int32_t size = 18 + 52 * at / 1000;
+    lv_obj_set_size(ring, size, size);
+    lv_obj_set_pos(ring, shown.city_x - size / 2, shown.city_y - size / 2);
+    lv_obj_set_style_border_opa(ring, (lv_opa_t)(180 - at * 180 / 1000), 0);
+}
+
 static void tick(lv_timer_t *timer)
 {
     static uint32_t version;
@@ -88,15 +97,16 @@ static void tick(lv_timer_t *timer)
     }
     lv_label_set_text(title, shown.title);
     lv_label_set_text(right, shown.right);
+    bool city = backdrops_painted(lv_obj_get_screen(canvas)); /* the bars and months step aside */
     for (int m = 0; m < 6; m++) {
-        lv_obj_set_flag(months[m], LV_OBJ_FLAG_HIDDEN, m >= shown.month_count);
+        lv_obj_set_flag(months[m], LV_OBJ_FLAG_HIDDEN, city || m >= shown.month_count);
         if (m < shown.month_count) {
             lv_label_set_text(months[m], shown.months[m].name);
             lv_obj_set_pos(months[m], GRID_X + shown.months[m].week * STEP, GRID_Y - 40);
         }
     }
     for (int w = 0; w < 16; w++) {
-        lv_obj_set_flag(bars[w], LV_OBJ_FLAG_HIDDEN, w >= shown.week_count);
+        lv_obj_set_flag(bars[w], LV_OBJ_FLAG_HIDDEN, city || w >= shown.week_count);
         if (w >= shown.week_count) {
             continue;
         }
@@ -107,6 +117,7 @@ static void tick(lv_timer_t *timer)
         lv_obj_set_style_bg_color(bars[w], lv_color_hex(last ? 0xc3b9ff : 0x8f80ff), 0);
         lv_obj_set_style_bg_opa(bars[w], last ? LV_OPA_COVER : 90 + 165 * shown.weeks[w] / 1000, 0);
     }
+    lv_obj_set_pos(today_glow, shown.city_x - 9, shown.city_y - 9);
     lv_label_set_text(this_week, shown.this_week);
     lv_label_set_text(streak, shown.streak);
     lv_label_set_text(busiest, shown.busiest);
@@ -158,6 +169,41 @@ void screen_code_create(lv_obj_t *screen)
     lv_obj_t *per_week = ui_text(screen, &instrument_24, 0x8a8794);
     lv_label_set_text(per_week, "per week");
     lv_obj_set_pos(per_week, LEFT, BASE + 16);
+
+    /* Painted (plan.md M27): the hub draws the weeks as a city; the grid, the months and the
+     * bars step aside, and today's block breathes. */
+    backdrops_aside(canvas);
+    backdrops_aside(base);
+    backdrops_aside(per_week);
+    for (int m = 0; m < 6; m++) {
+        backdrops_aside(months[m]);
+    }
+    for (int w = 0; w < 16; w++) {
+        backdrops_aside(bars[w]);
+    }
+    today_ring = ui_plain(screen);
+    lv_obj_set_style_radius(today_ring, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_border_width(today_ring, 2, 0);
+    lv_obj_set_style_border_color(today_ring, lv_color_white(), 0);
+    backdrops_with(today_ring);
+    today_glow = ui_plain(screen);
+    lv_obj_set_size(today_glow, 18, 18);
+    lv_obj_set_style_radius(today_glow, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_color(today_glow, lv_color_white(), 0);
+    lv_obj_set_style_bg_opa(today_glow, 60, 0);
+    lv_obj_set_style_shadow_width(today_glow, 24, 0);
+    lv_obj_set_style_shadow_color(today_glow, lv_color_hex(0xd8d0ff), 0);
+    lv_obj_set_style_shadow_opa(today_glow, 200, 0);
+    backdrops_with(today_glow);
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+    lv_anim_set_var(&anim, today_ring);
+    lv_anim_set_exec_cb(&anim, breathe);
+    lv_anim_set_values(&anim, 0, 1000);
+    lv_anim_set_duration(&anim, 2200);
+    lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
+    lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_start(&anim);
     this_week = ui_text(screen, &instrument_24, 0x8a8794);
     lv_obj_align(this_week, LV_ALIGN_TOP_RIGHT, -LEFT, BASE + 16);
     streak = ui_text(screen, &instrument_28_bold, 0xffffff);

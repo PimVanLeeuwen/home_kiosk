@@ -34,6 +34,7 @@ LV_IMAGE_DECLARE(glow_sky);
 #define LIST_TOP 486
 #define ROW_H 40
 #define LIGHT 12
+#define PARTICLES 3 /* per live link: the traffic as a flow (plan.md M27) */
 
 #define GREEN 0x5fd39c
 #define VIOLET 0xb4a9ff
@@ -54,7 +55,7 @@ static struct {
 static struct {
     lv_obj_t *box, *dot, *name, *ip, *via;
 } rows[DESK_TAILNET_ROWS];
-static path_t paths[DESK_TAILNET_NODES];
+static path_t paths[DESK_TAILNET_NODES][PARTICLES];
 EXT_RAM_BSS_ATTR static desk_tailnet_t shown; /* off the LVGL task's small stack */
 
 static uint32_t kind_colour(char kind)
@@ -75,8 +76,9 @@ static uint32_t kind_colour(char kind)
 static void move_light(void *var, int32_t at)
 {
     path_t *path = var;
-    lv_obj_set_pos(path->light, path->x0 + (path->x1 - path->x0) * at / 1000 - LIGHT / 2,
-                   path->y0 + (path->y1 - path->y0) * at / 1000 - LIGHT / 2);
+    int32_t half = lv_obj_get_width(path->light) / 2;
+    lv_obj_set_pos(path->light, path->x0 + (path->x1 - path->x0) * at / 1000 - half,
+                   path->y0 + (path->y1 - path->y0) * at / 1000 - half);
     int32_t edge = at < 200 ? at : at > 800 ? 1000 - at : 200;
     lv_opa_t opa = (lv_opa_t)(edge * 255 / 200);
     lv_obj_set_style_bg_opa(path->light, opa, 0);
@@ -121,9 +123,10 @@ static void show_map(void)
     lv_canvas_init_layer(canvas, &layer);
     const int32_t cx = MAP_W / 2, cy = MAP_H * 48 / 100;
     for (int i = 0; i < DESK_TAILNET_NODES; i++) {
-        path_t *path = &paths[i];
-        lv_anim_delete(path, move_light);
-        lv_obj_add_flag(path->light, LV_OBJ_FLAG_HIDDEN);
+        for (int k = 0; k < PARTICLES; k++) {
+            lv_anim_delete(&paths[i][k], move_light);
+            lv_obj_add_flag(paths[i][k].light, LV_OBJ_FLAG_HIDDEN);
+        }
         bool here = i < shown.node_count;
         lv_obj_set_flag(nodes[i].tile, LV_OBJ_FLAG_HIDDEN, !here);
         lv_obj_set_flag(nodes[i].name, LV_OBJ_FLAG_HIDDEN, !here);
@@ -169,22 +172,23 @@ static void show_map(void)
         int32_t ny = node->y < 48 ? py - PEER / 2 - 6 - line_h : py + PEER / 2 + 6;
         lv_obj_set_pos(nodes[i].name, LEFT + nx, MAP_TOP + ny);
 
-        if (node->kind == 'd' || node->kind == 'r') {
+        /* Its traffic: particles evenly apart, flowing out along the line. */
+        for (int k = 0; k < PARTICLES && (node->kind == 'd' || node->kind == 'r'); k++) {
+            path_t *path = &paths[i][k];
             *path = (path_t){.light = path->light, .x0 = LEFT + x0, .y0 = MAP_TOP + y0,
                              .x1 = LEFT + x1, .y1 = MAP_TOP + y1};
             lv_obj_set_style_bg_color(path->light, lv_color_hex(colour), 0);
             lv_obj_set_style_shadow_color(path->light, lv_color_hex(colour), 0);
             lv_obj_remove_flag(path->light, LV_OBJ_FLAG_HIDDEN);
+            uint32_t ms = 2400 + (uint32_t)length * 3;
             lv_anim_t anim;
             lv_anim_init(&anim);
             lv_anim_set_var(&anim, path);
             lv_anim_set_exec_cb(&anim, move_light);
             lv_anim_set_values(&anim, 0, 1000);
-            lv_anim_set_duration(&anim, 1800 + (int)length * 2);
-            lv_anim_set_delay(&anim, i * 350);
-            lv_anim_set_repeat_delay(&anim, 900);
+            lv_anim_set_duration(&anim, ms);
+            lv_anim_set_delay(&anim, i * 200 + k * ms / PARTICLES);
             lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
-            lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
             lv_anim_start(&anim);
         }
     }
@@ -281,11 +285,13 @@ void screen_tailnet_create(lv_obj_t *screen)
     memset(lv_canvas_get_draw_buf(canvas)->data, 0, lv_canvas_get_draw_buf(canvas)->header.stride * MAP_H);
 
     for (int i = 0; i < DESK_TAILNET_NODES; i++) {
-        lv_obj_t *light = paths[i].light = ui_plain(screen);
-        lv_obj_set_size(light, LIGHT, LIGHT);
-        lv_obj_set_style_radius(light, LV_RADIUS_CIRCLE, 0);
-        lv_obj_set_style_shadow_width(light, 14, 0);
-        lv_obj_add_flag(light, LV_OBJ_FLAG_HIDDEN);
+        for (int k = 0; k < PARTICLES; k++) {
+            lv_obj_t *light = paths[i][k].light = ui_plain(screen);
+            lv_obj_set_size(light, LIGHT - 3 * k, LIGHT - 3 * k); /* the first a little larger */
+            lv_obj_set_style_radius(light, LV_RADIUS_CIRCLE, 0);
+            lv_obj_set_style_shadow_width(light, 14, 0);
+            lv_obj_add_flag(light, LV_OBJ_FLAG_HIDDEN);
+        }
 
         nodes[i].tile = tile(screen, PEER, 0x101015);
         lv_obj_add_flag(nodes[i].tile, LV_OBJ_FLAG_HIDDEN);

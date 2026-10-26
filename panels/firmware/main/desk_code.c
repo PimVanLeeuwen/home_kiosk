@@ -26,6 +26,9 @@ void desk_parse_code(const cJSON *screen, desk_code_t *code)
     text(code->this_week, sizeof code->this_week, FIELD("this_week"));
     text(code->streak, sizeof code->streak, FIELD("streak"));
     text(code->busiest, sizeof code->busiest, FIELD("busiest"));
+    const cJSON *city = FIELD("city_today");
+    code->city_x = (int16_t)(cJSON_IsNumber(cJSON_GetArrayItem(city, 0)) ? cJSON_GetArrayItem(city, 0)->valueint : 360);
+    code->city_y = (int16_t)(cJSON_IsNumber(cJSON_GetArrayItem(city, 1)) ? cJSON_GetArrayItem(city, 1)->valueint : 360);
     const cJSON *item;
     cJSON_ArrayForEach(item, FIELD("levels"))
     {

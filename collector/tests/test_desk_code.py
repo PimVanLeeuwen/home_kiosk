@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from app import desk, desk_code
+from app import desk, desk_code, paint_code
 
 ZONE = ZoneInfo("Europe/Amsterdam")
 NOW = datetime(2026, 10, 21, 12, 0, tzinfo=UTC)  # a Wednesday
@@ -43,6 +43,7 @@ def test_the_grid_runs_monday_first_up_to_today(store):
         f"{sum(COUNTS)} CONTRIBUTIONS",
     )
     assert len(s["levels"]) == 108 and s["levels"][-3:] == [2, 2, 0]
+    assert s["city_today"] == list(paint_code.today_point(s["levels"]))  # for the panel's glow
     assert s["months"] == [
         {"week": 0, "name": "Jul"},
         {"week": 4, "name": "Aug"},
