@@ -223,6 +223,9 @@ def best_effort(route: list[list[float]], metres: float) -> float | None:
     return round(best) if best is not None else None
 
 
+SMOOTH = 2  # stretches either side a drawn pace is taken over
+
+
 def paced(route: list[list[float]], most: int) -> list[list[float | None]]:
     """At most `most` points of the route with the pace (seconds per km) since the point before:
     [latitude, longitude, pace]; the first point has none."""
@@ -233,12 +236,23 @@ def paced(route: list[list[float]], most: int) -> list[list[float | None]]:
     else:
         step = (len(route) - 1) / (most - 1)
         picks = [round(i * step) for i in range(most)]
+    # The pace over a few stretches either side, so GPS jitter does not speckle the line.
+    done = [0.0]
+    for a, b in zip(route, route[1:], strict=False):
+        done.append(done[-1] + _metres_between(a, b))
     out: list[list[float | None]] = [[route[0][0], route[0][1], None]]
-    for before, now in zip(picks, picks[1:], strict=False):
-        metres = sum(_metres_between(route[k], route[k + 1]) for k in range(before, now))
-        seconds = route[now][3] - route[before][3]
+    for n in range(1, len(picks)):
+        # The same number of stretches everywhere: at the ends the window slides inwards.
+        lo, hi = n - SMOOTH, n + SMOOTH
+        if lo < 0:
+            lo, hi = 0, min(len(picks) - 1, hi - lo)
+        if hi > len(picks) - 1:
+            lo, hi = max(0, lo - (hi - len(picks) + 1)), len(picks) - 1
+        before, after = picks[lo], picks[hi]
+        metres = done[after] - done[before]
+        seconds = route[after][3] - route[before][3]
         pace = round(seconds / (metres / 1000)) if metres > 1 and seconds > 0 else None
-        out.append([route[now][0], route[now][1], pace])
+        out.append([route[picks[n]][0], route[picks[n]][1], pace])
     return out
 
 
@@ -284,9 +298,24 @@ def one(store: Store, run_id: str, points: int = 400) -> dict[str, Any] | None:
     }
 
 
+def fill_bests(store: Store) -> int:
+    """Best efforts for runs kept before they were worked out (step 1 kept no bests): any run
+    of 5 km or more with a route and no 5 km best yet. Returns how many were filled."""
+    with store.connect() as conn:
+        rows = conn.execute("SELECT id, route FROM run WHERE best_5k_s IS NULL AND "
+                            "distance_m >= 5000 AND route != '[]'").fetchall()
+        for row in rows:
+            route = json.loads(row["route"])
+            bests = [best_effort(route, metres) for metres in BESTS.values()]
+            conn.execute("UPDATE run SET best_5k_s = ?, best_10k_s = ?, best_half_s = ? "
+                         "WHERE id = ?", (*bests, row["id"]))
+    return len(rows)
+
+
 def since(store: Store, start: str) -> list[dict[str, Any]]:
     """Every run from `start` (ISO, UTC) on, newest first, without routes."""
     ensure_tables(store)
+    fill_bests(store)
     with store.connect() as conn:
         rows = conn.execute("SELECT * FROM run WHERE start >= ? ORDER BY start DESC",
                             (start,)).fetchall()
