@@ -97,7 +97,9 @@ test('News opens with the headlines: one story per group, saved to Readeck from 
 
   const headlines = page.getByRole('region', { name: 'Headlines' })
   await expect(headlines.getByRole('heading', { name: 'Kabinet presenteert plannen' })).toBeVisible()
-  await expect.poll(() => pictures.sort()).toEqual(['/api/news/headlines/h1/image/lead', '/api/news/headlines/h3/image/thumb'])
+  // Which pictures, not how often: the reading pane's "read next" shows the lead's picture too,
+  // and a 404 is not cached, so it may be asked for twice.
+  await expect.poll(() => [...new Set(pictures)].sort()).toEqual(['/api/news/headlines/h1/image/lead', '/api/news/headlines/h3/image/thumb'])
 
   await headlines.getByRole('button', { name: 'Save to Readeck: Story h3' }).click()
   await expect(headlines.getByRole('button', { name: 'Saved to Readeck: Story h3' })).toBeDisabled()
