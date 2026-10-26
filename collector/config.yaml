@@ -395,3 +395,6 @@ services:
 # workout metrics on). Only runs are kept, on the NAS.
 running:
   key: ${RUNS_KEY}
+  # Runna's plan (step 2): its Calendar Sync feed (Profile, Connected Apps & Devices, Connect
+  # Calendar); the address is a secret, so it lives in the NAS-only .env.
+  runna_feed: ${RUNNA_ICS_URL}

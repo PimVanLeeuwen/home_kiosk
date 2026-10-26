@@ -48,6 +48,7 @@ from .sources import (
     photo,
     pipelines,
     radar,
+    runna,
     spotlight,
     tailscale,
     ups,
@@ -316,6 +317,19 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             seconds=COUNTDOWN_INTERVAL_SECONDS,
             args=[store, countdown.CACHE_KEY, lambda: countdown.collect(cfg, store)],
             id="countdown",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
+
+    if runna.settings(cfg)["enabled"]:
+        # Runna's plan (plan.md M28): hourly is plenty for a training plan.
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=COUNTDOWN_INTERVAL_SECONDS,
+            args=[store, runna.CACHE_KEY, lambda: runna.collect(cfg, store)],
+            id="runna",
             next_run_time=None,
             max_instances=1,
             coalesce=True,

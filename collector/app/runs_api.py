@@ -12,7 +12,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
-from .sources import runs
+from .sources import runna, runs
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/runs")
@@ -49,6 +49,15 @@ async def receive(request: Request) -> dict[str, Any]:
 @router.get("")
 def latest(request: Request) -> dict[str, Any]:
     return {"runs": runs.latest(request.app.state.store)}
+
+
+@router.get("/plan")
+def training_plan(request: Request) -> Any:
+    """Runna's plan: the next sessions, this week's planned distance and the race."""
+    payload = request.app.state.store.get_cache(runna.CACHE_KEY)
+    if payload is None:
+        raise HTTPException(503, "Runna's plan is not read yet (RUNNA_ICS_URL).")
+    return payload
 
 
 @router.get("/{run_id}")

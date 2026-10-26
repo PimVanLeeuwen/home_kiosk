@@ -27,6 +27,10 @@ specific to that setup. The overview is in the [README](../README.md).
   Only runs are kept; a run sent again replaces itself. iOS decides when the automation runs and
   Health is locked with the phone, so a run can take some minutes to hours to arrive; opening the
   app sends it at once.
+- **Runna's plan** (M28) comes from its Calendar Sync: in Runna, Profile, Connected Apps &
+  Devices, Connect Calendar, copy the feed's address into `RUNNA_ICS_URL` in `.env` (a
+  `webcal://` address is fine) and keep `running.runna_feed` in the NAS's config. The hub reads
+  it hourly; the address is a secret and never shows in the logs or the hub's answers.
 - Senders on the NAS post to `http://<nas>:8000/api/notify` with the `X-Notify-Key` header
   (`NOTIFY_KEY`); see the nas-docker README, *Alerts*.
 

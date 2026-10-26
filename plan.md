@@ -1547,6 +1547,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   never logged. `/api/runs` lists the last runs, `/api/runs/{id}` gives one with the route
   thinned to 400 points, its splits per kilometre (worked out from the route) and its heart
   rate. Setup in docs/operations.md.
+- Step 2 done 2026-10-26: Runna's Calendar Sync feed (`running.runna_feed`, NAS-only
+  `RUNNA_ICS_URL`) is read hourly into the next nine weeks of sessions: each with its name,
+  kind, distance in metres, Runna's expected time and its steps (warm-up, reps, cool-down),
+  timed when the workout has a time of day; this week's planned distance per day; and the race
+  (a session named "Race" or "Marathon", not one of race pace). `/api/runs/plan` serves it.
+  Runna does not document its events: the format is the one seen in its feeds (`🏃 Threshold
+  Intervals • 8km`), to be checked against the owner's own feed. The address is a secret: a
+  failing feed is logged by its status only, never with the address httpx would put in its
+  error.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28.

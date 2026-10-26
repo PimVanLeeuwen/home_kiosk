@@ -164,6 +164,10 @@ python3 dashboard/serve.py
   and one or two moving LVGL objects. The photo of the day is picked locally (Immich's people
   first, text-like pictures left out), never by AI. A finished green pipeline leaves House after
   1 minute, a red one after 5. plan.md M27.
+- 2026-10-26: runs come from Apple Health through Health Auto Export Premium: the phone posts
+  workouts to `/api/runs/health` with `RUNS_KEY` (a write from outside the hub, checked by its key
+  instead of same-origin); only runs are kept, on the NAS, and routes never leave it or reach the
+  logs. They show on the Now panel. plan.md M28.
 
 ## Gotchas
 
