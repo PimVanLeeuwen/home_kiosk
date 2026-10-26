@@ -7,6 +7,7 @@
 #include "backdrops.h"
 #include "desk_briefing.h"
 #include "desk_code.h"
+#include "desk_piece.h"
 #include "desk_movers.h"
 #include "desk_services.h"
 #include "desk_sites.h"
@@ -855,6 +856,7 @@ static void apply(const char *body)
     next.utc_offset = cJSON_IsNumber(offset) ? offset->valueint : 0;
 
     const cJSON *screen;
+    desk_piece_begin();
     cJSON_ArrayForEach(screen, cJSON_GetObjectItem(root, "screens"))
     {
         const cJSON *kind = cJSON_GetObjectItem(screen, "kind");
@@ -862,6 +864,9 @@ static void apply(const char *body)
         const cJSON *background = cJSON_GetObjectItem(screen, "background");
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "clock") != 0) {
             backdrops_want(kind->valuestring, cJSON_IsString(background) ? background->valuestring : "");
+        }
+        if (desk_piece_parse(screen)) {
+            continue; /* a piece (plan.md M27): its words, for screen_piece.c */
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "playing") == 0) {
             parse_playing(screen, &playing);
@@ -1035,6 +1040,7 @@ static void apply(const char *body)
         }
     }
     cJSON_Delete(root);
+    desk_piece_commit();
 
     xSemaphoreTake(lock, portMAX_DELAY);
     next.version = clock_state.version + 1;

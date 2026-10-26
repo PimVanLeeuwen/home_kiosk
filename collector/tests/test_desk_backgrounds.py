@@ -11,8 +11,10 @@ from PIL import Image
 from app import (
     desk_backgrounds,
     main,
+    paint,
     paint_agenda,
     paint_apple,
+    paint_art,
     paint_clock,
     paint_headlines,
     paint_house,
@@ -227,3 +229,15 @@ def test_the_house_screens_are_lit_by_how_things_stand(store):
     with Image.open(io.BytesIO(desk_backgrounds.picture(
             store, attached(store, nas).rsplit("/", 1)[1]))) as image:
         assert image.size == (720, 720)
+
+
+def test_a_busy_picture_is_made_small_enough_for_the_panel():
+    import random
+    rng = random.Random(1)
+    noise = Image.frombytes("RGB", (720, 720), rng.randbytes(720 * 720 * 3))
+
+    # Pure noise never fits: it still comes back as a picture, at the lowest quality.
+    with Image.open(io.BytesIO(paint.jpeg(noise))) as image:
+        assert image.size == (720, 720)
+    art = paint_art.paint_art({"day": 740000, "season": "autumn"})
+    assert len(paint.jpeg(art)) <= paint.MAX_JPEG

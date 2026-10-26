@@ -50,4 +50,4 @@ def test_on_the_now_panel_right_after_the_clock(store):
     kinds = [s["kind"] for s in desk.answer({"timezone": "Europe/Amsterdam"}, store, "now",
                                             MORNING)["screens"]]
 
-    assert kinds[:3] == ["clock", "briefing", "train"]
+    assert kinds[:5] == ["clock", "sky", "night", "briefing", "train"]  # after the skies

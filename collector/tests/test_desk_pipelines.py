@@ -220,7 +220,8 @@ def test_the_idle_card_has_each_repos_last_result_and_bars(store):
 
 def test_before_any_pipeline_data_the_card_waits(store):
     out = desk.answer(CFG, store, "house", NOW)
-    screens = [{k: v for k, v in s.items() if k != "background"} for s in out["screens"]]
+    screens = [{k: v for k, v in s.items() if k != "background"} for s in out["screens"]
+               if s["kind"] != "orbit"]  # always shown: tested in test_desk_pieces
     assert screens == [{"kind": "pipelines", "stale": False, "present": False},
         {"kind": "nas", "stale": False, "present": False},
         {"kind": "code", "stale": False, "present": False},

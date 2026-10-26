@@ -117,5 +117,5 @@ def test_a_running_pipeline_takes_house_over_alone(store):
         s["kind"]
         for s in desk.answer({"timezone": "Europe/Amsterdam"}, store, "house", NOW)["screens"]
     ]
-    assert kinds == ["pipelines", "nas", "code", "sites", "services", "tailnet", "money",
+    assert kinds == ["pipelines", "nas", "orbit", "code", "sites", "services", "tailnet", "money",
                      "movers", "media", "backups", "alerts"]

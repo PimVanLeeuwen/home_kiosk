@@ -143,8 +143,16 @@ def soften(image: Image.Image, radius: float) -> Image.Image:
     return image.filter(ImageFilter.GaussianBlur(radius))
 
 
+MAX_JPEG = 150 * 1024  # under the panel's 160 kB (panels/firmware/main/backdrops.c)
+
+
 def jpeg(image: Image.Image, quality: int = 84) -> bytes:
-    """Baseline with 4:2:0 subsampling: what the ESP32-P4's JPEG decoder takes."""
-    out = io.BytesIO()
-    image.convert("RGB").save(out, "JPEG", quality=quality, progressive=False, subsampling="4:2:0")
-    return out.getvalue()
+    """Baseline with 4:2:0 subsampling, what the ESP32-P4's JPEG decoder takes; at a lower
+    quality when a busy picture (fine strokes, grain) would not fit the panel."""
+    while True:
+        out = io.BytesIO()
+        image.convert("RGB").save(out, "JPEG", quality=quality, progressive=False,
+                                  subsampling="4:2:0")
+        if out.tell() <= MAX_JPEG or quality <= 50:
+            return out.getvalue()
+        quality -= 8

@@ -20,7 +20,7 @@
 
 static const char *TAG = "backdrops";
 
-#define KINDS 32 /* every screen kind the hub may send, and the screens that show one */
+#define KINDS 40 /* every screen kind the hub may send, and the screens that show one */
 #define SIZE 720
 #define MAX_JPEG (160 * 1024)
 #define CHECK_MS 2000

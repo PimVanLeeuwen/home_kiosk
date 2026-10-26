@@ -24,17 +24,22 @@ from . import (
     paint_agenda,
     paint_air,
     paint_apple,
+    paint_art,
     paint_clock,
     paint_day,
     paint_headlines,
     paint_house,
     paint_laundry,
+    paint_night,
+    paint_orbit,
     paint_playing,
+    paint_sky,
+    paint_year,
 )
 from .store import Store
 
 # Bumped when a painter changes, so every background is painted again.
-VERSION = 5
+VERSION = 8
 KEEP = 6  # per kind: what the panels may still ask for
 PATH = "/api/desk/background/"
 
@@ -61,6 +66,11 @@ PAINTERS: dict[str, tuple[Inputs, Painter]] = {
     "apple": (paint_apple.inputs, paint_apple.paint_apple),
     "playing": (paint_playing.inputs, paint_playing.paint_playing),
     "laundry": (paint_laundry.inputs, paint_laundry.paint_laundry),
+    "sky": (paint_sky.inputs, paint_sky.paint_sky),
+    "night": (paint_night.inputs, paint_night.paint_night),
+    "year": (paint_year.inputs, paint_year.paint_year),
+    "art": (paint_art.inputs, paint_art.paint_art),
+    "orbit": (paint_orbit.inputs, paint_orbit.paint_orbit),
     **{kind: (paint_house.inputs_for(kind), paint_house.paint_house)
        for kind in paint_house.SCREENS},
 }

@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of running on the desk panels and in the hub (M28 in plan.md, 2026-10-25): the
+     chosen panel screens (A in three versions, B, C, D, H in two), a Running page, a Home card and
+     insights. Every street and route here is made up by the script below (a seeded town with a
+     river and a park, runs as walks through it): never put a real route or the real town in this
+     public repo. Panel screens are drawn at half their 720 x 720 size. Not served by the hub. -->
+<title>Home hub: running</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--canvas); color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+svg text { font-family: var(--f-body); }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 36px 28px 72px; }
+header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+header p { margin: 8px 0 0; color: var(--muted); max-width: 90ch; }
+h2 { font-size: 13px; font-weight: 600; color: var(--accent-fg); letter-spacing: .14em; text-transform: uppercase; margin: 56px 0 6px; }
+.sub { color: var(--muted); margin: 0 0 22px; max-width: 92ch; }
+.muted { color: var(--muted); } .faint { color: var(--faint); }
+
+/* panel screens */
+.ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 30px 24px; }
+.idea { display: grid; gap: 12px; align-content: start; }
+.bezel { width: 376px; height: 376px; padding: 8px; border-radius: 22px; background: linear-gradient(145deg, #26262b, #0f0f12); box-shadow: 0 22px 50px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.07); }
+.screen { position: relative; width: 360px; height: 360px; border-radius: 14px; overflow: hidden; background: #000; }
+.screen svg.bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.t { position: absolute; text-shadow: 0 1px 12px rgba(0,0,0,.9); }
+.k { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.55); font-weight: 600; }
+.big { font-size: 46px; font-weight: 600; line-height: 1; letter-spacing: -.02em; }
+.big small { font-size: 18px; font-weight: 500; color: rgba(255,255,255,.6); margin-left: 4px; letter-spacing: 0; }
+.stats { display: flex; gap: 18px; }
+.stats div { display: grid; }
+.stats b { font-size: 17px; font-weight: 600; }
+.stats span { font-size: 10.5px; color: rgba(255,255,255,.5); letter-spacing: .08em; text-transform: uppercase; }
+.copy h3 { margin: 0; font-size: 15.5px; font-weight: 600; display: flex; gap: 9px; align-items: center; }
+.copy p { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 54ch; }
+.copy .needs { color: var(--faint); font-size: 12px; }
+.l { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 6px; background: rgba(124,108,242,.2); color: var(--accent-fg); font-size: 12px; font-weight: 700; }
+.chosen { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; border-radius: 99px; padding: 1px 8px; color: var(--up); background: rgba(63,185,127,.13); }
+.group { margin: 34px 0 14px; font-size: 13px; font-weight: 600; color: var(--fg); display: flex; gap: 10px; align-items: baseline; }
+.group span { color: var(--faint); font-weight: 400; }
+
+/* hub */
+.hub { display: grid; grid-template-columns: 200px 1fr; border-radius: 18px; overflow: hidden; border: 1px solid var(--line-soft); background: #0b0c0e; }
+.side { padding: 22px 16px; border-right: 1px solid var(--line-soft); font-size: 13px; }
+.side b { display: block; font-size: 15px; } .side .h { color: var(--faint); font-size: 11.5px; margin-bottom: 18px; }
+.side .g { color: var(--faint); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; margin: 16px 0 6px; }
+.side .i { padding: 5px 9px; border-radius: 8px; color: var(--muted); }
+.side .i.on { background: rgba(124,108,242,.16); color: var(--fg); }
+.page { background: var(--panel); margin: 10px; border-radius: 14px; padding: 24px; display: grid; gap: 18px; min-width: 0; }
+.ph { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; }
+.ph h3 { margin: 0; font-size: 22px; font-weight: 600; } .ph p { margin: 2px 0 0; color: var(--faint); font-size: 12.5px; }
+.seg { display: inline-flex; background: var(--card); border: 1px solid var(--line-soft); border-radius: 9px; padding: 3px; font-size: 12.5px; }
+.seg span { padding: 3px 11px; border-radius: 6px; color: var(--muted); } .seg span.on { background: var(--raised); color: var(--fg); }
+.cols { display: grid; grid-template-columns: 1.55fr 1fr; gap: 18px; }
+.card { border-radius: 14px; border: 1px solid var(--line-soft); background: linear-gradient(180deg, rgba(255,255,255,.022), transparent 40%), var(--card); padding: 18px 20px; min-width: 0; position: relative; overflow: hidden; }
+.card h4 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.art { padding: 0; background: #000; }
+.art > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.art .over { position: relative; padding: 20px 22px; display: grid; gap: 8px; max-width: 320px; text-shadow: 0 1px 14px #000; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.tile { background: var(--card); border: 1px solid var(--line-soft); border-radius: 12px; padding: 12px 14px; }
+.tile span { display: block; color: var(--faint); font-size: 11.5px; } .tile b { font-size: 20px; font-weight: 600; } .tile i { font-style: normal; font-size: 12px; color: var(--up); margin-left: 6px; }
+.stack { display: grid; gap: 18px; align-content: start; }
+.pb { display: grid; grid-template-columns: 1fr auto auto; gap: 4px 14px; font-size: 13px; }
+.pb span:nth-child(3n+2) { font-weight: 600; } .pb span:nth-child(3n) { color: var(--faint); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.phone { width: 390px; border-radius: 40px; padding: 12px; background: #1a1a1d; margin: 0 auto; }
+.phone .in { border-radius: 30px; overflow: hidden; background: var(--panel); padding: 18px 16px 24px; display: grid; gap: 14px; }
+
+/* insights and sources */
+.ins { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.ins .card p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.ins .card .v { font-size: 26px; font-weight: 600; }
+.chat { background: #121318; border: 1px solid var(--line-soft); border-radius: 14px; padding: 16px; display: grid; gap: 10px; font-size: 13.5px; }
+.chat .me { justify-self: end; background: rgba(124,108,242,.22); padding: 8px 12px; border-radius: 12px 12px 4px 12px; max-width: 80%; }
+.chat .cl { background: var(--card); padding: 10px 13px; border-radius: 12px 12px 12px 4px; max-width: 92%; color: #d7d9de; }
+.chat .tool { font: 11px var(--f-mono); color: var(--faint); }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); font-weight: 600; padding: 0 12px 8px 0; }
+td { padding: 10px 12px 10px 0; border-top: 1px solid var(--line-soft); vertical-align: top; }
+.ok { color: var(--up); } .no { color: var(--down); } .meh { color: var(--warn); }
+@media (max-width: 900px) { .cols, .row2 { grid-template-columns: 1fr; } .hub { grid-template-columns: 1fr; } .side { display: none; } .tiles { grid-template-columns: repeat(2, 1fr); } .page { padding: 16px; } }
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Running on the desk and in the hub</h1>
+  <p>M28, second round (2026-10-25): A, B, C and D chosen, H redrawn to earn its place, E, F and G dropped. Runs come from the Apple Watch through Apple Health, the plan from Runna's calendar feed. The town, its river and every run on this page are made up; on the panel they are your own streets.</p>
+</header>
+
+<h2>01 · Panel screens</h2>
+<p class="sub">Drawn as the panel shows them, at half size. The hub paints the picture (streets, routes, light); the panel adds the numbers and one moving part.</p>
+
+<div class="group"><span class="l">A</span>Last run <span class="chosen">Chosen</span><span>A2 chosen; A1 and A3 kept for reference</span></div>
+<div class="ideas">
+  <div class="idea">
+    <div class="bezel"><div class="screen">
+      <svg class="bg" viewBox="0 0 360 360" id="sA1"></svg>
+      <div class="t" style="left:20px;top:18px"><div class="k">Last run · this morning 07:41</div></div>
+      <div class="t" style="left:20px;bottom:20px;display:grid;gap:10px">
+        <div class="big">10,4<small>km</small></div>
+        <div class="stats"><div><b>5:12</b><span>/km</span></div><div><b>54:08</b><span>time</span></div><div><b>148</b><span>bpm</span></div></div>
+      </div>
+      <div class="t" style="right:20px;bottom:24px;text-align:right"><div style="font-size:15px;font-weight:600;color:#ffd08a">4:51</div><div class="k" style="font-size:9px">fastest km</div></div>
+    </div></div>
+    <div class="copy"><h3><span class="l">A1</span>Neon</h3><p>The route alone on black, a line of light coloured by pace from cool blue to amber, the fastest stretch burning white. A dot per kilometre; a light runs the route once each turn.</p></div>
+  </div>
+  <div class="idea">
+    <div class="bezel"><div class="screen">
+      <svg class="bg" viewBox="0 0 360 360" id="sA2"></svg>
+      <div class="t" style="left:20px;top:18px"><div class="k">Last run · this morning 07:41</div></div>
+      <div class="t" style="left:20px;bottom:20px;display:grid;gap:10px">
+        <div class="big">10,4<small>km</small></div>
+        <div class="stats"><div><b>5:12</b><span>/km</span></div><div><b>54:08</b><span>time</span></div><div><b>148</b><span>bpm</span></div></div>
+      </div>
+    </div></div>
+    <div class="copy"><h3><span class="l">A2</span>Over your streets</h3><p>The same line laid over the town at night: streets as faint silver threads, the river dark with a sheen, the park a deeper shade. The route reads as a place, not a shape.</p><p class="needs">Streets from an OpenStreetMap extract of the town, kept on the NAS.</p></div>
+  </div>
+  <div class="idea">
+    <div class="bezel"><div class="screen">
+      <svg class="bg" viewBox="0 0 360 360" id="sA3"></svg>
+      <div class="t" style="left:20px;top:18px"><div class="k">Last run · this morning 07:41</div></div>
+      <div class="t" style="left:20px;bottom:20px;display:grid;gap:10px">
+        <div class="big">10,4<small>km</small></div>
+        <div class="stats"><div><b>5:12</b><span>/km</span></div><div><b>148</b><span>avg bpm</span></div><div><b>171</b><span>max</span></div></div>
+      </div>
+    </div></div>
+    <div class="copy"><h3><span class="l">A3</span>Heart-rate wall</h3><p>The route tipped back in space, a curtain of light rising from it as high as your heart rate, coloured by pace. The intervals stand up as bright towers; a flat town gets a skyline of effort.</p></div>
+  </div>
+</div>
+
+<div class="group"><span class="l">B</span>The week and <span class="l">C</span>next session <span class="chosen">Chosen</span></div>
+<div class="ideas">
+  <div class="idea">
+    <div class="bezel"><div class="screen">
+      <svg class="bg" viewBox="0 0 360 360" id="sB"></svg>
+      <div class="t" style="left:20px;top:18px"><div class="k">This week · plan week 9 of 14</div></div>
+      <div class="t" style="left:20px;top:42px"><div class="big">31,2<small>of 38 km</small></div></div>
+    </div></div>
+    <div class="copy"><h3><span class="l">B</span>The week</h3><p>Each day a column: Runna's plan as a glass outline, what you ran poured in as warm light, and above each run its own route in miniature. The ring fills to gold as the week does; today's slot breathes.</p><p class="needs">Runna's feed (planned), Apple Health (done).</p></div>
+  </div>
+  <div class="idea">
+    <div class="bezel"><div class="screen">
+      <svg class="bg" viewBox="0 0 360 360" id="sC"></svg>
+      <div class="t" style="left:20px;top:18px"><div class="k">Next session · tomorrow 07:00</div></div>
+      <div class="t" style="left:20px;top:42px;display:grid;gap:4px">
+        <div style="font-size:32px;font-weight:600;line-height:1.1">6 x 800 m</div>
+        <div style="color:rgba(255,255,255,.62);font-size:14px">Intervals · 9,5 km · about 52 min</div>
+      </div>
+      <div class="t" style="left:20px;bottom:18px;right:20px;display:flex;justify-content:space-between;font-size:11.5px;color:rgba(255,255,255,.6)">
+        <span>2 km easy</span><span style="color:#ffd08a">800 m at 4:15 · 90 s jog</span><span>1,5 km</span>
+      </div>
+    </div></div>
+    <div class="copy"><h3><span class="l">C</span>Next session</h3><p>The workout as its shape: each block as wide as it lasts and as tall as it is hard, glowing from blue to amber and mirrored in a glass floor. You feel the session before you read it.</p><p class="needs">Runna's feed: the steps come as text in the event.</p></div>
+  </div>
+</div>
+
+<div class="group"><span class="l">D</span>Your streets <span class="chosen">Chosen</span><span>redrawn</span></div>
+<div class="ideas">
+  <div class="idea">
+    <div class="bezel"><div class="screen">
+      <svg class="bg" viewBox="0 0 360 360" id="sD"></svg>
+      <div class="t" style="left:20px;top:18px"><div class="k">Your streets · 2026</div></div>
+      <div class="t" style="left:20px;bottom:20px;display:grid;gap:4px">
+        <div class="big">1.214<small>km</small></div>
+        <div style="color:rgba(255,255,255,.62);font-size:13px">138 runs · the river path 61 times</div>
+      </div>
+    </div></div>
+    <div class="copy"><h3><span class="l">D</span>Your streets</h3><p>A heat map of the year: every street you ran glows by how often, from a dim ember to white-hot, over the whole town drawn in faint silver with its river and park. The more you run, the more the town lights up. This morning's run is traced on top, with a light running it.</p></div>
+  </div>
+  <div class="idea" style="grid-column: span 2; align-content: center;">
+    <div class="copy" style="max-width:62ch">
+      <h3>Will it look like the real town?</h3>
+      <p>Yes. A run's line follows the GPS points the watch recorded, so the streets you run are drawn where they are. The routes alone show only the parts you run, brightest along your usual loops; with the town's own streets from OpenStreetMap drawn faintly underneath, the screen reads as the map of the town, lit where you go.</p>
+      <p>The hub paints it once a day (and after each run) from all the year's routes, zoomed to where you run, so the panel only shows a picture and moves one light.</p>
+      <p class="needs">The year's routes: once from Apple Health (Health Auto Export can send the history), then each new run. Kept on the NAS.</p>
+    </div>
+  </div>
+</div>
+
+<div class="group"><span class="l">H</span>The year <span>two new versions; take one or neither</span></div>
+<div class="ideas">
+  <div class="idea">
+    <div class="bezel"><div class="screen">
+      <svg class="bg" viewBox="0 0 360 360" id="sH1"></svg>
+      <div class="t" style="left:20px;top:18px"><div class="k">2026, week by week</div></div>
+      <div class="t" style="right:20px;top:14px;text-align:right"><div style="font-size:22px;font-weight:600">1.214 km</div><div class="k" style="font-size:9px">43 weeks</div></div>
+    </div></div>
+    <div class="copy"><h3><span class="l">H1</span>Ridgelines</h3><p>Every week of the year a line, each run a peak as high as it was long, stacked like a mountain range in starlight. The long runs make the summits; this week glows at the front.</p></div>
+  </div>
+  <div class="idea">
+    <div class="bezel"><div class="screen">
+      <svg class="bg" viewBox="0 0 360 360" id="sH2"></svg>
+      <div class="t" style="left:20px;top:18px"><div class="k">2026</div></div>
+      <div class="t" style="left:20px;bottom:20px"><div style="font-size:22px;font-weight:600">138 runs</div><div class="k" style="font-size:9px">from the centre, January</div></div>
+    </div></div>
+    <div class="copy"><h3><span class="l">H2</span>Galaxy</h3><p>The year as a spiral galaxy turning out from January: each run a star, as large as it was long and coloured by pace, along a faint arm of the days you rested. Today is the bright point at the edge.</p></div>
+  </div>
+</div>
+<p class="faint" style="margin-top:22px;font-size:12.5px">Dropped: E splits, F race countdown, G the year as a dial.</p>
+
+<h2>02 · The hub</h2>
+<p class="sub">A Running page and a Home card, mirroring the panel: the last run large (A2 here), the week, the next session, your streets and the year.</p>
+<div class="hub">
+  <div class="side"><b>Home hub</b><div class="h">the NAS</div>
+    <div class="i">Home</div><div class="i">Weather</div><div class="i on">Running</div>
+    <div class="g">Read</div><div class="i">News</div><div class="i">Saved</div>
+    <div class="g">Money</div><div class="i">Portfolio</div>
+    <div class="g">House</div><div class="i">Lights</div><div class="i">Music</div><div class="i">NAS</div>
+  </div>
+  <div class="page">
+    <div class="ph"><div><h3>Running</h3><p>Last run in 08:12 · plan from Runna, runs from Apple Health</p></div><div class="seg"><span class="on">Week</span><span>Month</span><span>Year</span></div></div>
+    <div class="tiles">
+      <div class="tile"><span>This week</span><b>31,2 km</b><i>of 38</i></div>
+      <div class="tile"><span>Last 4 weeks</span><b>132 km</b><i>+9%</i></div>
+      <div class="tile"><span>Easy pace at 140 bpm</span><b>5:38</b><i>-0:11</i></div>
+      <div class="tile"><span>Streak</span><b>6 weeks</b><i>3+ runs</i></div>
+    </div>
+    <div class="cols">
+      <div class="card art" style="min-height:380px"><svg viewBox="0 0 640 380" preserveAspectRatio="xMidYMid slice" id="hHero"></svg>
+        <div class="over"><div class="k">Last run · Sun 25 Oct, 07:41</div><div class="big" style="font-size:52px">10,4<small>km</small></div>
+          <div class="stats"><div><b>5:12</b><span>/km</span></div><div><b>54:08</b><span>time</span></div><div><b>148</b><span>bpm</span></div><div><b>12 m</b><span>climb</span></div></div>
+          <div style="color:var(--muted);font-size:13px;margin-top:6px">Runna: long run, 10 km easy. Done.</div></div>
+      </div>
+      <div class="stack">
+        <div class="card"><h4>This week against the plan</h4><svg viewBox="0 0 320 150" width="100%" id="hWeek"></svg></div>
+        <div class="card"><h4>Next: tomorrow, intervals</h4><svg viewBox="0 0 320 80" width="100%" id="hNext"></svg><div class="muted" style="font-size:12.5px;margin-top:6px">2 km easy · 6 x 800 m at 4:15 /km, 90 s jog · 1,5 km easy</div></div>
+        <div class="card"><h4>Personal bests</h4><div class="pb"><span>5 km</span><span>23:41</span><span>12 Sep</span><span>10 km</span><span>49:58</span><span>3 Oct</span><span>Half</span><span>1:49:12</span><span>2025</span><span>Longest</span><span>21,4 km</span><span>17 Oct</span></div></div>
+      </div>
+    </div>
+    <div class="cols" style="grid-template-columns:1.2fr 1fr">
+      <div class="card art" style="min-height:360px"><svg viewBox="0 0 600 360" preserveAspectRatio="xMidYMid slice" id="hStreets"></svg><div class="over" style="padding:16px 18px"><h4 style="margin:0;color:#fff">Your streets, 2026</h4><div class="faint" style="font-size:12px">138 runs · 1.214 km</div></div></div>
+      <div class="card art" style="min-height:360px"><svg viewBox="0 0 480 360" preserveAspectRatio="xMidYMid slice" id="hYear"></svg><div class="over" style="padding:16px 18px"><h4 style="margin:0;color:#fff">The year, week by week</h4><div class="faint" style="font-size:12px">each run a peak</div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="row2" style="margin-top:28px">
+  <div>
+    <h2 style="margin-top:0">Home card</h2>
+    <p class="sub">On Home on a day with a run or a session, like the train: after a run until the evening, before a session from 06:00.</p>
+    <div class="card" style="max-width:540px;display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center">
+      <svg viewBox="0 0 150 150" width="150" height="150" id="hCard" style="border-radius:12px"></svg>
+      <div><div class="k">Ran this morning</div><div style="font-size:30px;font-weight:600">10,4 km</div><div class="muted">5:12 /km · 54:08 · week 31 of 38 km</div><div class="faint" style="font-size:12.5px;margin-top:8px">Next: tomorrow, 6 x 800 m</div></div>
+    </div>
+  </div>
+  <div>
+    <h2 style="margin-top:0">Mobile</h2>
+    <div class="phone"><div class="in">
+      <div class="ph"><div><h3 style="font-size:20px">Running</h3><p>Last run in 08:12</p></div></div>
+      <div class="card art" style="min-height:300px"><svg viewBox="0 0 360 300" preserveAspectRatio="xMidYMid slice" id="hMob"></svg><div class="over" style="padding:16px"><div class="k">Last run</div><div class="big" style="font-size:40px">10,4<small>km</small></div><div class="stats"><div><b>5:12</b><span>/km</span></div><div><b>54:08</b><span>time</span></div></div></div></div>
+      <div class="tiles"><div class="tile"><span>This week</span><b>31,2</b><i>/ 38</i></div><div class="tile"><span>Streak</span><b>6 wk</b></div></div>
+      <div class="card art" style="min-height:240px"><svg viewBox="0 0 360 240" preserveAspectRatio="xMidYMid slice" id="hMobStreets"></svg><div class="over" style="padding:14px 16px"><h4 style="margin:0;color:#fff">Your streets</h4></div></div>
+    </div></div>
+  </div>
+</div>
+
+<h2>03 · Insights</h2>
+<p class="sub">In the hub: plain figures it works out itself from the Apple Health runs. Outside the hub: a conversation with Claude over your own data.</p>
+<div class="ins">
+  <div class="card"><h4>Load, this week against the four before</h4><div class="v">1,12</div><p>Within 0,8 to 1,3: building without a jump. Above 1,5 the card turns amber.</p></div>
+  <div class="card"><h4>Aerobic fitness</h4><div class="v">5:38 <span class="muted" style="font-size:15px">/km at 140 bpm</span></div><p>Easy pace at the same heart rate over 12 weeks: 11 seconds faster.</p></div>
+  <div class="card"><h4>Easy really easy?</h4><div class="v">74%</div><p>Share of this month's time below your easy heart rate. Runna's plans aim at about 80%.</p></div>
+  <div class="card"><h4>Long run share</h4><div class="v">34%</div><p>Of the week's distance. Over 40% for weeks in a row is worth watching.</p></div>
+</div>
+<div class="row2" style="margin-top:18px">
+  <div class="chat">
+    <div class="tool">Claude Code, on your Apple Health export</div>
+    <div class="me">Read export.zip and tell me where my pace falls off in long runs.</div>
+    <div class="tool">reading 138 workouts with routes and heart rate</div>
+    <div class="cl">In runs over 16 km your pace holds until about 75 minutes, then slows 12 to 18 s/km while heart rate climbs 8 bpm: a fuelling pattern more than fitness. Runs with a stop near 50 minutes (a gel, by the pause in the route) did not fade.</div>
+  </div>
+  <div class="chat">
+    <div class="tool">Later, with a Strava subscription: Strava's own connector in Claude</div>
+    <div class="me">How is my half marathon build going compared to last year's?</div>
+    <div class="cl">Nine weeks in with 412 km against 338 km last year, long runs 2 km longer, easy pace at 140 bpm down from 5:49 to 5:38. Three of the last four easy runs drifted into tempo: keep Tuesday truly easy.</div>
+  </div>
+</div>
+
+<h2>04 · Where the data comes from</h2>
+<p class="sub">As checked on 2026-10-25, for runs recorded on the Apple Watch.</p>
+<div class="card"><table>
+  <tr><th>Source</th><th>Gives</th><th>Cost</th><th>Catches</th></tr>
+  <tr><td><b>Apple Health</b> via Health Auto Export</td><td>Each run: route points with time and speed, heart rate over time, distance, elevation, cadence, temperature. The history once, then each new run, posted to the hub</td><td class="meh">Premium: $0.99 a month, $5.99 a year or $24.99 once</td><td>iOS picks the moment and cannot read Health while the phone is locked: a run arrives minutes to hours later (opening the app sends it). No splits (the hub works them out), no running power</td></tr>
+  <tr><td><b>Runna calendar feed</b> (ICS)</td><td>Upcoming sessions with their steps, completed ones, the race</td><td class="ok">In your Runna subscription</td><td>No route or pace; refresh times are the feed's</td></tr>
+  <tr><td><b>OpenStreetMap extract</b></td><td>The town's streets, river and parks for A2 and D</td><td class="ok">Free</td><td>Downloaded once, kept on the NAS; credit OpenStreetMap on the page</td></tr>
+  <tr><td><b>Strava API</b></td><td>Not used for now</td><td class="no">Needs a Strava subscription</td><td>7-day cache cap, no AI on its data</td></tr>
+</table></div>
+</div>
+
+<script>
+// Everything below is made up: a seeded town and walks through it.
+const NS = 'http://www.w3.org/2000/svg';
+let uid = 0;
+function rng(seed) { return () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }; }
+function el(p, tag, a) { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; }
+function txt(p, x, y, s, a) { const t = el(p, 'text', Object.assign({ x, y }, a)); t.textContent = s; return t; }
+function hex(s) { return [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)); }
+function ramp(stops, t) { t = Math.max(0, Math.min(1, t)); for (let i = 1; i < stops.length; i++) if (t <= stops[i][0]) { const [a, ca] = stops[i - 1], [b, cb] = stops[i], f = (t - a) / (b - a), x = hex(ca), y = hex(cb); return 'rgb(' + x.map((v, j) => Math.round(v + (y[j] - v) * f)).join(',') + ')'; } return stops[stops.length - 1][1]; }
+const pace = t => ramp([[0, '#3d7bff'], [.45, '#8f80ff'], [.8, '#ffb547'], [1, '#fff1d6']], t);
+const heat = t => ramp([[0, '#3a0d2e'], [.25, '#8c1f3f'], [.5, '#e5452f'], [.75, '#ffad45'], [1, '#fff6e0']], t);
+function blur(svg, sd) { const id = 'f' + (++uid), f = el(el(svg, 'defs', {}), 'filter', { id, x: '-50%', y: '-50%', width: '200%', height: '200%' }); el(f, 'feGaussianBlur', { stdDeviation: sd }); return `url(#${id})`; }
+function radial(svg, w, h, c, cx, cy, op, r) { const id = 'r' + (++uid), g = el(el(svg, 'defs', {}), 'radialGradient', { id, cx, cy, r: r || .7 }); el(g, 'stop', { offset: 0, 'stop-color': c, 'stop-opacity': op }); el(g, 'stop', { offset: 1, 'stop-color': c, 'stop-opacity': 0 }); el(svg, 'rect', { width: w, height: h, fill: `url(#${id})` }); }
+function stars(svg, w, h, n, seed) { const r = rng(seed); for (let i = 0; i < n; i++) el(svg, 'circle', { cx: r() * w, cy: r() * h, r: r() * .8 + .2, fill: '#fff', opacity: r() * .5 + .1 }); }
+function catmull(p, k) { const out = []; for (let i = 0; i < p.length - 1; i++) { const p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p2; for (let s = 0; s < k; s++) { const t = s / k, t2 = t * t, t3 = t2 * t; out.push([0, 1].map(j => .5 * (2 * p1[j] + (-p0[j] + p2[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t2 + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * t3))); } } out.push(p[p.length - 1]); return out; }
+const poly = p => 'M' + p.map(q => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' L');
+
+// The town, in 0..1: streets from near neighbours, a river with a few bridges, a park.
+const town = (() => {
+  const r = rng(42), pts = [];
+  for (let tries = 0; tries < 9000 && pts.length < 620; tries++) {
+    const p = [r() * 1.1 - .05, r() * 1.1 - .05], dc = Math.hypot(p[0] - .5, p[1] - .5), md = .022 + dc * .03;
+    if (pts.every(q => Math.hypot(q[0] - p[0], q[1] - p[1]) > md)) pts.push(p);
+  }
+  const river = []; for (let i = 0; i <= 60; i++) { const x = -0.1 + i / 60 * 1.2; river.push([x, .64 - .32 * x + .07 * Math.sin(x * 9) + .025 * Math.sin(x * 23)]); }
+  const riverY = x => { for (let i = 1; i < river.length; i++) if (river[i][0] >= x) { const a = river[i - 1], b = river[i], f = (x - a[0]) / (b[0] - a[0]); return a[1] + (b[1] - a[1]) * f; } return 0; };
+  const side = p => p[1] > riverY(p[0]);
+  const park = c => Math.hypot((c[0] - .3) / 1.4, c[1] - .42) < .1 || Math.hypot((c[0] - .74) / 1.2, c[1] - .2) < .07;
+  const edges = new Map(), adj = pts.map(() => []);
+  pts.forEach((p, i) => {
+    const near = pts.map((q, j) => [Math.hypot(q[0] - p[0], q[1] - p[1]), j]).filter(d => d[1] !== i).sort((a, b) => a[0] - b[0]).slice(0, 3);
+    for (const [d, j] of near) { if (d > .085) continue; const key = Math.min(i, j) + '-' + Math.max(i, j); if (edges.has(key)) continue;
+      if (side(p) !== side(pts[j]) && r() > .1) continue;
+      edges.set(key, [i, j]); adj[i].push(j); adj[j].push(i); }
+  });
+  let home = 0, best = 9; pts.forEach((p, i) => { const d = Math.hypot(p[0] - .46, p[1] - .52); if (d < best && adj[i].length > 1) { best = d; home = i; } });
+  return { pts, edges, adj, river, park, home };
+})();
+
+// A run: a walk with momentum from home, drawn to the river and the park, then the shortest way back.
+function run(seed, steps) {
+  const r = rng(seed), { pts, adj, home, river, park } = town, path = [home]; let cur = home, prev = -1, hd = r() * 6.28;
+  const nearRiver = p => river.some(q => Math.hypot(q[0] - p[0], q[1] - p[1]) < .03);
+  for (let s = 0; s < steps; s++) {
+    const opts = adj[cur].filter(j => j !== prev); if (!opts.length) break;
+    const w = opts.map(j => { const a = Math.atan2(pts[j][1] - pts[cur][1], pts[j][0] - pts[cur][0]); return Math.exp(2.2 * Math.cos(a - hd)) * (nearRiver(pts[j]) ? 3 : 1) * (park(pts[j]) ? 2.5 : 1); });
+    let x = r() * w.reduce((a, b) => a + b, 0), k = 0; while ((x -= w[k]) > 0) k++;
+    const nx = opts[Math.min(k, opts.length - 1)]; hd = Math.atan2(pts[nx][1] - pts[cur][1], pts[nx][0] - pts[cur][0]) + (r() - .5) * .5; prev = cur; cur = nx; path.push(cur);
+  }
+  const from = new Map([[cur, -1]]), q = [cur]; while (q.length) { const c = q.shift(); if (c === home) break; for (const j of adj[c]) if (!from.has(j)) { from.set(j, c); q.push(j); } }
+  const back = []; let c = home; while (c !== -1 && c !== undefined && c !== cur) { back.push(c); c = from.get(c); }
+  return path.concat(back.reverse().slice(0, -1)).concat([home]);
+}
+const runs = []; for (let k = 0; k < 138; k++) runs.push(run(1000 + k, k % 7 === 6 ? 26 : 8 + (k * 7) % 10));
+const lastRun = run(77, 26);
+const counts = new Map(); for (const p of runs) for (let i = 1; i < p.length; i++) { const a = Math.min(p[i - 1], p[i]), b = Math.max(p[i - 1], p[i]), key = a + '-' + b; counts.set(key, (counts.get(key) || 0) + 1); }
+const maxCount = Math.max(...counts.values());
+
+// Map 0..1 to a view, fitting a box of the town into a box of the screen.
+function fitTo(src, dst) { const s = Math.min(dst[2] / src[2], dst[3] / src[3]); return p => [dst[0] + (dst[2] - src[2] * s) / 2 + (p[0] - src[0]) * s, dst[1] + (dst[3] - src[3] * s) / 2 + (p[1] - src[1]) * s]; }
+function bbox(ids, pad) { const xs = ids.map(i => town.pts[i][0]), ys = ids.map(i => town.pts[i][1]), x0 = Math.min(...xs) - pad, y0 = Math.min(...ys) - pad; return [x0, y0, Math.max(...xs) + pad - x0, Math.max(...ys) + pad - y0]; }
+const coreIds = [...new Set([...counts.entries()].filter(e => e[1] >= 4).flatMap(e => e[0].split('-').map(Number)))];
+const usedIds = [...new Set([...counts.keys()].flatMap(k => k.split('-').map(Number)))];
+
+function drawTown(svg, tf, opt) {
+  const { pts, edges, river, park } = town, o = Object.assign({ street: .085, riverW: 14 }, opt);
+  const g = el(svg, 'g', {});
+  const pr = []; for (let i = 0; i < 40; i++) { const a = i / 40 * 6.28; pr.push(tf([.3 + .14 * Math.cos(a) * 1.4, .42 + .1 * Math.sin(a)])); }
+  el(g, 'path', { d: poly(pr) + 'Z', fill: '#1a3a2c', opacity: .35, filter: blur(svg, 6) });
+  const pr2 = []; for (let i = 0; i < 40; i++) { const a = i / 40 * 6.28; pr2.push(tf([.74 + .07 * Math.cos(a) * 1.2, .2 + .07 * Math.sin(a)])); }
+  el(g, 'path', { d: poly(pr2) + 'Z', fill: '#1a3a2c', opacity: .3, filter: blur(svg, 6) });
+  const rv = poly(river.map(tf));
+  el(g, 'path', { d: rv, stroke: '#0a1426', 'stroke-width': o.riverW, fill: 'none', 'stroke-linecap': 'round' });
+  el(g, 'path', { d: rv, stroke: '#4a78b8', 'stroke-width': o.riverW * .18, fill: 'none', opacity: .3, filter: blur(svg, 2) });
+  let d = ''; for (const [i, j] of edges.values()) { const a = tf(pts[i]), b = tf(pts[j]); d += `M${a[0].toFixed(1)},${a[1].toFixed(1)}L${b[0].toFixed(1)},${b[1].toFixed(1)}`; }
+  el(g, 'path', { d, stroke: '#b9c6dc', 'stroke-opacity': o.street, 'stroke-width': .8, fill: 'none' });
+}
+function drawHeat(svg, tf, scale) {
+  const { pts } = town, sorted = [...counts.entries()].sort((a, b) => a[1] - b[1]);
+  const glow = el(svg, 'g', { filter: blur(svg, 3.5 * scale), style: 'mix-blend-mode:screen' }), sharp = el(svg, 'g', { style: 'mix-blend-mode:screen' });
+  for (const [key, n] of sorted) { const [i, j] = key.split('-').map(Number), t = Math.log(1 + n) / Math.log(1 + maxCount), a = tf(pts[i]), b = tf(pts[j]), d = `M${a[0]},${a[1]}L${b[0]},${b[1]}`;
+    if (t > .35) el(glow, 'path', { d, stroke: heat(t), 'stroke-width': (2 + 5 * t) * scale, 'stroke-linecap': 'round', opacity: .55 * t });
+    el(sharp, 'path', { d, stroke: heat(t), 'stroke-width': (.7 + 1.8 * t * t) * scale, 'stroke-linecap': 'round', opacity: .55 + .45 * t }); }
+}
+// The last run as a smooth line of light, coloured by a made-up pace, with a light running it.
+function routeLine(svg, tf, w, opt) {
+  const o = Object.assign({ dot: true, kms: true, glow: 5 }, opt), raw = catmull(lastRun.map(i => tf(town.pts[i])), 6), N = raw.length;
+  const tt = i => Math.max(0, Math.min(1, .38 + .3 * Math.sin(i / N * 11 + .4) + .35 * Math.max(0, Math.sin(i / N * 3.1 - 1.2)) + (i / N) * .15));
+  const gl = el(svg, 'g', { filter: blur(svg, o.glow), opacity: .95 }), core = el(svg, 'g', {});
+  for (let i = 0; i < N - 1; i += 3) { const seg = raw.slice(i, i + 4), c = pace(tt(i));
+    el(gl, 'path', { d: poly(seg), stroke: c, 'stroke-width': w * 3.4, fill: 'none', 'stroke-linecap': 'round' });
+    el(core, 'path', { d: poly(seg), stroke: c, 'stroke-width': w, fill: 'none', 'stroke-linecap': 'round' }); }
+  el(core, 'path', { d: poly(raw), stroke: '#fff', 'stroke-width': w * .3, fill: 'none', opacity: .35 });
+  if (o.kms) { let acc = 0, km = 0; const len = raw.reduce((s, p, i) => s + (i ? Math.hypot(p[0] - raw[i - 1][0], p[1] - raw[i - 1][1]) : 0), 0);
+    raw.forEach((p, i) => { if (!i) return; acc += Math.hypot(p[0] - raw[i - 1][0], p[1] - raw[i - 1][1]); if (acc > (km + 1) * len / 10.4 && km < 10) { km++; el(svg, 'circle', { cx: p[0], cy: p[1], r: w * .75, fill: '#000', stroke: '#fff', 'stroke-width': w * .35, opacity: .9 }); } }); }
+  el(svg, 'circle', { cx: raw[0][0], cy: raw[0][1], r: w * 1.9, fill: '#fff' });
+  if (o.dot) { const id = 'p' + (++uid); el(svg, 'path', { id, d: poly(raw), fill: 'none' }); const g = el(svg, 'g', {});
+    el(g, 'circle', { r: w * 5, fill: '#fff', opacity: .3, filter: blur(svg, w * 1.6) }); el(g, 'circle', { r: w * 1.5, fill: '#fff' });
+    const am = el(g, 'animateMotion', { dur: '10s', repeatCount: 'indefinite' }); const mp = document.createElementNS(NS, 'mpath'); mp.setAttribute('href', '#' + id); am.appendChild(mp); }
+  return { raw, tt };
+}
+const runBox = bbox(lastRun, .02);
+
+// A1 neon
+(() => { const s = sA1; el(s, 'rect', { width: 360, height: 360, fill: '#010103' });
+  radial(s, 360, 360, '#4b3bd0', '.6', '.35', .35); radial(s, 360, 360, '#ff8a3a', '.75', '.6', .12, .4); stars(s, 360, 360, 40, 3);
+  routeLine(s, fitTo(runBox, [40, 46, 290, 190]), 2.6); })();
+// A2 over the streets
+(() => { const s = sA2; el(s, 'rect', { width: 360, height: 360, fill: '#04050a' });
+  const tf = fitTo(runBox, [40, 40, 290, 200]); drawTown(s, tf, { street: .11, riverW: 16 });
+  const sh = el(s, 'defs', {}), lg = el(sh, 'linearGradient', { id: 'a2f', x1: 0, y1: 0, x2: 0, y2: 1 }); el(lg, 'stop', { offset: .55, 'stop-color': '#000', 'stop-opacity': 0 }); el(lg, 'stop', { offset: 1, 'stop-color': '#000', 'stop-opacity': .92 });
+  routeLine(s, tf, 2.4); el(s, 'rect', { width: 360, height: 360, fill: 'url(#a2f)' }); })();
+// A3 heart-rate wall
+(() => { const s = sA3; el(s, 'rect', { width: 360, height: 360, fill: '#010104' });
+  radial(s, 360, 360, '#5a3bd8', '.5', '.3', .3); stars(s, 360, 200, 50, 9);
+  const flat = catmull(lastRun.map(i => town.pts[i]), 6), bx = runBox, cx = bx[0] + bx[2] / 2, cy = bx[1] + bx[3] / 2, sc = 270 / Math.max(bx[2], bx[3]), a = .55;
+  const proj = (p, h) => { const x = (p[0] - cx) * sc, y = (p[1] - cy) * sc, X = x * Math.cos(a) - y * Math.sin(a), Y = x * Math.sin(a) + y * Math.cos(a); return [180 + X, 176 + Y * .62 - h]; };
+  const N = flat.length, hr = i => 132 + 22 * Math.max(0, Math.sin(i / N * 11 + .4)) + 10 * (i / N) + 4 * Math.sin(i * .7), tt = i => Math.max(0, Math.min(1, .38 + .3 * Math.sin(i / N * 11 + .4) + .2 * (i / N)));
+  const H = i => (hr(i) - 118) * 1.15;
+  for (let gx = -6; gx <= 6; gx++) for (let gy = -6; gy <= 6; gy++) { const q = proj([cx + gx * 22 / sc, cy + gy * 22 / sc], 0); el(s, 'circle', { cx: q[0], cy: q[1], r: .7, fill: '#8f80ff', opacity: .25 }); }
+  const ground = flat.map(p => proj(p, 0)); el(s, 'path', { d: poly(ground), stroke: '#8f80ff', 'stroke-width': 4, fill: 'none', opacity: .25, filter: blur(s, 3) }); el(s, 'path', { d: poly(ground), stroke: '#b4aaff', 'stroke-width': 1, fill: 'none', opacity: .5 });
+  const order = [...Array(N - 1).keys()].sort((i, j) => ground[i][1] - ground[j][1]);
+  const wall = el(s, 'g', { style: 'mix-blend-mode:screen' });
+  for (const i of order) { const c = pace(tt(i)), id = 'w' + (++uid), lg = el(el(s, 'defs', {}), 'linearGradient', { id, x1: 0, y1: 0, x2: 0, y2: 1 });
+    el(lg, 'stop', { offset: 0, 'stop-color': c, 'stop-opacity': .75 }); el(lg, 'stop', { offset: 1, 'stop-color': c, 'stop-opacity': .02 });
+    const p0 = proj(flat[i], H(i)), p1 = proj(flat[i + 1], H(i + 1)), g0 = ground[i], g1 = ground[i + 1];
+    el(wall, 'path', { d: `M${p0}L${p1}L${g1}L${g0}Z`, fill: `url(#${id})` }); }
+  const top = flat.map((p, i) => proj(p, H(i))), gl = el(s, 'g', { filter: blur(s, 3) });
+  for (let i = 0; i < N - 1; i += 3) { const seg = top.slice(i, i + 4); el(gl, 'path', { d: poly(seg), stroke: pace(tt(i)), 'stroke-width': 5, fill: 'none' }); el(s, 'path', { d: poly(seg), stroke: pace(tt(i)), 'stroke-width': 1.6, fill: 'none', 'stroke-linecap': 'round' }); }
+  el(s, 'circle', { cx: ground[0][0], cy: ground[0][1], r: 3, fill: '#fff' }); })();
+
+// B the week
+function week(s, w, base, colW, gap, sc, showRing) {
+  const plan = [0, 8, 6, 0, 7, 7, 10], done = [0, 8.2, 6.1, 0, 6.5, 0, 10.4], today = 6, seeds = [0, 501, 502, 0, 503, 0, 77];
+  const gf = blur(s, 6);
+  plan.forEach((p, i) => { const x = 20 + i * (colW + gap), hgt = p * sc;
+    if (p) { el(s, 'rect', { x, y: base - hgt, width: colW, height: hgt, rx: 8, fill: 'rgba(255,255,255,.035)', stroke: 'rgba(255,255,255,.2)', 'stroke-dasharray': '3 3' }); }
+    if (done[i]) { const dh = done[i] * sc, id = 'wb' + (++uid), lg = el(el(s, 'defs', {}), 'linearGradient', { id, x1: 0, y1: 1, x2: 0, y2: 0 });
+      el(lg, 'stop', { offset: 0, 'stop-color': '#e5452f' }); el(lg, 'stop', { offset: .6, 'stop-color': '#ffad45' }); el(lg, 'stop', { offset: 1, 'stop-color': '#fff1d6' });
+      el(s, 'rect', { x: x - 2, y: base - dh, width: colW + 4, height: dh, rx: 9, fill: '#ff9a3a', opacity: .45, filter: gf });
+      el(s, 'rect', { x, y: base - dh, width: colW, height: dh, rx: 8, fill: `url(#${id})` });
+      const p2 = seeds[i] === 77 ? lastRun : run(seeds[i], 14), tf = fitTo(bbox(p2, .01), [x - 4, base - dh - colW - 12, colW + 8, colW + 4]);
+      el(s, 'path', { d: poly(catmull(p2.map(k => tf(town.pts[k])), 4)), stroke: '#ffd9a0', 'stroke-width': 1.1, fill: 'none', opacity: .9 }); }
+    if (!p) el(s, 'circle', { cx: x + colW / 2, cy: base - 4, r: 2.5, fill: 'rgba(255,255,255,.22)' });
+    txt(s, x + colW / 2, base + 22, 'MTWTFSS'[i], { 'text-anchor': 'middle', fill: i === today ? '#fff' : 'rgba(255,255,255,.42)', 'font-size': 12, 'font-weight': 600 });
+    if (i === today) { const r = el(s, 'rect', { x, y: base - p * sc, width: colW, height: p * sc, rx: 8, fill: '#ffad45', opacity: .1 }); el(r, 'animate', { attributeName: 'opacity', values: '.04;.2;.04', dur: '3s', repeatCount: 'indefinite' }); } });
+  if (showRing) { const cx = w - 58, cy = 66, r = 30, C = 2 * Math.PI * r, f = 31.2 / 38;
+    el(s, 'circle', { cx, cy, r, stroke: 'rgba(255,255,255,.1)', 'stroke-width': 6, fill: 'none' });
+    el(s, 'circle', { cx, cy, r, stroke: '#ffad45', 'stroke-width': 8, fill: 'none', 'stroke-dasharray': `${C * f} ${C}`, transform: `rotate(-90 ${cx} ${cy})`, filter: blur(s, 4), opacity: .6 });
+    el(s, 'circle', { cx, cy, r, stroke: '#ffb547', 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round', 'stroke-dasharray': `${C * f} ${C}`, transform: `rotate(-90 ${cx} ${cy})` });
+    txt(s, cx, cy + 5, '82%', { 'text-anchor': 'middle', fill: '#fff', 'font-size': 14, 'font-weight': 600 }); }
+}
+(() => { const s = sB; el(s, 'rect', { width: 360, height: 360, fill: '#030305' }); radial(s, 360, 360, '#ff8a3a', '.45', '1', .22, .6); week(s, 360, 300, 30, 15.5, 11, true); })();
+
+// C next session, mirrored in a glass floor
+function session(s, x0, w, y0, hmax, mirror) {
+  const blocks = [[2, .2]]; for (let i = 0; i < 6; i++) { blocks.push([.8, 1]); if (i < 5) blocks.push([.28, .1]); } blocks.push([1.5, .2]);
+  const total = blocks.reduce((a, b) => a + b[0], 0), gap = 3, gf = blur(s, 5); let x = x0;
+  blocks.forEach(([km, e]) => { const bw = km / total * (w - gap * (blocks.length - 1)), bh = 12 + e * hmax, c = pace(.15 + e * .75), id = 'sc' + (++uid), lg = el(el(s, 'defs', {}), 'linearGradient', { id, x1: 0, y1: 1, x2: 0, y2: 0 });
+    el(lg, 'stop', { offset: 0, 'stop-color': c, 'stop-opacity': .5 }); el(lg, 'stop', { offset: 1, 'stop-color': e > .5 ? '#fff1d6' : c });
+    if (e > .5) el(s, 'rect', { x: x - 1, y: y0 - bh, width: bw + 2, height: bh, rx: 4, fill: c, opacity: .5, filter: gf });
+    el(s, 'rect', { x, y: y0 - bh, width: bw, height: bh, rx: Math.min(4, bw / 2), fill: `url(#${id})` });
+    if (mirror) { const m = 'm' + (++uid), ml = el(el(s, 'defs', {}), 'linearGradient', { id: m, x1: 0, y1: 0, x2: 0, y2: 1 }); el(ml, 'stop', { offset: 0, 'stop-color': c, 'stop-opacity': .28 }); el(ml, 'stop', { offset: 1, 'stop-color': c, 'stop-opacity': 0 });
+      el(s, 'rect', { x, y: y0 + 3, width: bw, height: bh * .4, rx: Math.min(4, bw / 2), fill: `url(#${m})` }); }
+    x += bw + gap; });
+  el(s, 'line', { x1: x0, y1: y0 + 1.5, x2: x0 + w, y2: y0 + 1.5, stroke: 'rgba(255,255,255,.2)' });
+}
+(() => { const s = sC; el(s, 'rect', { width: 360, height: 360, fill: '#020205' }); radial(s, 360, 360, '#ff7a3a', '.6', '.75', .2, .55); radial(s, 360, 360, '#3d5bff', '.1', '.8', .16, .5); session(s, 20, 320, 262, 130, true); })();
+
+// D your streets
+function streets(s, w, h, dst, scale) { el(s, 'rect', { width: w, height: h, fill: '#030307' }); radial(s, w, h, '#ff6a2a', '.5', '.5', .08, .6);
+  const tf = fitTo(bbox(coreIds, .02), dst); drawTown(s, tf, { street: .07, riverW: 12 * scale }); drawHeat(s, tf, scale);
+  const id0 = 'e' + (++uid), eg = el(el(s, 'defs', {}), 'radialGradient', { id: id0, cx: .5, cy: .5, r: .6 }); el(eg, 'stop', { offset: .5, 'stop-color': '#030307', 'stop-opacity': 0 }); el(eg, 'stop', { offset: 1, 'stop-color': '#030307', 'stop-opacity': 1 });
+  el(s, 'rect', { width: w, height: h, fill: `url(#${id0})` });
+  const raw = catmull(lastRun.map(i => tf(town.pts[i])), 5); el(s, 'path', { d: poly(raw), stroke: '#fff', 'stroke-width': .9 * scale, fill: 'none', opacity: .75, 'stroke-dasharray': `${3 * scale} ${2 * scale}` });
+  const id = 'd' + (++uid); el(s, 'path', { id, d: poly(raw), fill: 'none' }); const g = el(s, 'g', {}); el(g, 'circle', { r: 7 * scale, fill: '#fff', opacity: .35, filter: blur(s, 3) }); el(g, 'circle', { r: 2 * scale, fill: '#fff' });
+  const am = el(g, 'animateMotion', { dur: '12s', repeatCount: 'indefinite' }); const mp = document.createElementNS(NS, 'mpath'); mp.setAttribute('href', '#' + id); am.appendChild(mp); }
+streets(sD, 360, 360, [10, 30, 340, 260], 1);
+
+// H1 ridgelines; H2 galaxy
+const year = (() => { const r = rng(11), days = []; for (let d = 0; d < 298; d++) { const wd = d % 7, p = r(); let km = 0;
+  if (d >= 203 && d < 213) km = 0; else if (wd === 6 && p < .9) km = 12 + r() * 9 + d / 60; else if ((wd === 1 || wd === 3) && p < .8) km = 6 + r() * 4; else if (wd === 4 && p < .4) km = 5 + r() * 3; days.push(km); } return days; })();
+function ridges(s, w, h, x0, x1, top, rowH, amp) {
+  const weeks = Math.ceil(year.length / 7), gf = blur(s, 2.5);
+  for (let wk = 0; wk < weeks; wk++) { const y = top + wk * rowH, pts = [], t = wk / (weeks - 1);
+    for (let x = x0; x <= x1; x += 2) { let v = 0; const fx = (x - x0) / (x1 - x0) * 7 - .5; for (let d = 0; d < 7; d++) { const km = year[wk * 7 + d] || 0; v += km * Math.exp(-((fx - d) ** 2) / .09); } pts.push([x, y - v * amp - Math.sin(x * .09 + wk) * .6]); }
+    const c = wk === weeks - 1 ? '#fff1d6' : ramp([[0, '#3b2f8f'], [.6, '#8f80ff'], [1, '#ffad45']], t);
+    el(s, 'path', { d: poly(pts) + `L${x1},${y + 2}L${x0},${y + 2}Z`, fill: '#020206' });
+    if (t > .7) el(s, 'path', { d: poly(pts), stroke: c, 'stroke-width': 3, fill: 'none', filter: gf, opacity: .7 });
+    el(s, 'path', { d: poly(pts), stroke: c, 'stroke-width': wk === weeks - 1 ? 1.6 : 1, fill: 'none', opacity: .45 + .55 * t }); }
+}
+(() => { const s = sH1; el(s, 'rect', { width: 360, height: 360, fill: '#020206' }); stars(s, 360, 120, 70, 21); radial(s, 360, 360, '#8f80ff', '.5', '1', .2, .6);
+  ridges(s, 360, 360, 22, 338, 96, 5.6, 2.1); })();
+function galaxy(s, cx, cy, R, sc) {
+  const n = year.length, turns = 2.6, gf = blur(s, 2.2 * sc);
+  const at = d => { const t = d / n, a = t * turns * 6.283 - 1.2, r = R * (.08 + .92 * Math.pow(t, .85)); return [cx + r * Math.cos(a), cy + r * Math.sin(a) * .82]; };
+  const arm = []; for (let d = 0; d < n; d += 1) arm.push(at(d)); el(s, 'path', { d: poly(arm), stroke: '#8f80ff', 'stroke-width': 6 * sc, fill: 'none', opacity: .08, filter: blur(s, 4 * sc) });
+  el(s, 'path', { d: poly(arm), stroke: '#b4aaff', 'stroke-width': .6 * sc, fill: 'none', opacity: .25 });
+  const dr = rng(8); for (let i = 0; i < 900; i++) { const d = dr() * n, p = at(d), g = () => (dr() + dr() + dr() - 1.5) * 16 * sc * (.4 + d / n); el(s, 'circle', { cx: p[0] + g(), cy: p[1] + g(), r: dr() * .7 * sc + .2, fill: dr() < .3 ? '#ffd9a0' : '#c9b8ff', opacity: dr() * .35 + .05 }); }
+  const r = rng(5); year.forEach((km, d) => { if (!km) { if (r() < .5) { const p = at(d); el(s, 'circle', { cx: p[0] + (r() - .5) * 6 * sc, cy: p[1] + (r() - .5) * 6 * sc, r: .5 * sc, fill: '#fff', opacity: .3 }); } return; }
+    const p = at(d), c = pace(.2 + r() * .7), rad = (1 + km / 6) * sc;
+    el(s, 'circle', { cx: p[0], cy: p[1], r: rad * 2.6, fill: c, opacity: .4, filter: gf }); el(s, 'circle', { cx: p[0], cy: p[1], r: rad, fill: km > 15 ? '#fff6e0' : c }); });
+  const e = at(n - 1), c = el(s, 'circle', { cx: e[0], cy: e[1], r: 4 * sc, fill: '#fff' }); el(c, 'animate', { attributeName: 'r', values: `${3 * sc};${6 * sc};${3 * sc}`, dur: '2.6s', repeatCount: 'indefinite' });
+  el(s, 'circle', { cx, cy, r: 10 * sc, fill: '#c9b8ff', opacity: .35, filter: blur(s, 6 * sc) });
+}
+(() => { const s = sH2; el(s, 'rect', { width: 360, height: 360, fill: '#010104' }); stars(s, 360, 360, 120, 31); radial(s, 360, 360, '#6d5ce8', '.5', '.48', .3, .5); galaxy(s, 184, 170, 150, 1); })();
+
+// Hub
+(() => { const s = hHero; el(s, 'rect', { width: 640, height: 380, fill: '#04050a' }); const tf = fitTo(runBox, [150, 150, 340, 210]); drawTown(s, tf, { street: .1, riverW: 18 });
+  const id = 'hf', lg = el(el(s, 'defs', {}), 'linearGradient', { id, x1: 0, y1: 0, x2: 1, y2: 0 }); el(lg, 'stop', { offset: .25, 'stop-color': '#04050a', 'stop-opacity': .95 }); el(lg, 'stop', { offset: .55, 'stop-color': '#04050a', 'stop-opacity': 0 });
+  el(s, 'rect', { width: 640, height: 380, fill: `url(#${id})` }); routeLine(s, tf, 3); })();
+(() => { const s = hWeek; week(s, 320, 120, 26, 16, 6.2, false); })();
+(() => { session(hNext, 0, 320, 72, 50, false); })();
+(() => { streets(hStreets, 600, 360, [20, 20, 560, 330], 1.2); })();
+(() => { const s = hYear; el(s, 'rect', { width: 480, height: 360, fill: '#020206' }); stars(s, 480, 120, 80, 41); radial(s, 480, 360, '#8f80ff', '.5', '1', .2, .6); ridges(s, 480, 360, 24, 456, 104, 5.6, 2.3); })();
+(() => { const s = hCard; el(s, 'rect', { width: 150, height: 150, fill: '#020205' }); radial(s, 150, 150, '#4b3bd0', '.5', '.4', .4); routeLine(s, fitTo(runBox, [14, 14, 122, 122]), 1.6, { dot: false, kms: false, glow: 3 }); })();
+(() => { const s = hMob; el(s, 'rect', { width: 360, height: 300, fill: '#04050a' }); const tf = fitTo(runBox, [150, 40, 200, 240]); drawTown(s, tf, { street: .1, riverW: 14 }); routeLine(s, tf, 2.4, { kms: false }); })();
+(() => { streets(hMobStreets, 360, 240, [10, 10, 340, 220], .9); })();
+</script>

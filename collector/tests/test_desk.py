@@ -30,7 +30,7 @@ def test_the_now_panel_gets_its_clock_and_the_hubs_time(store):
     answer = desk.answer(CFG, store, "now", NOW)
 
     assert answer["time"] == {"epoch": NOW.timestamp(), "utc_offset": 7200}
-    clock, briefing, train, calendar, day, news = answer["screens"]
+    clock, sky, night, briefing, train, calendar, day, year, news = answer["screens"]
     assert news == {"kind": "headlines", "stale": False, "present": False}
     assert calendar == {"kind": "agenda", "stale": False, "present": False}
     assert train == {"kind": "train", "stale": False, "present": False}
@@ -119,9 +119,11 @@ def test_the_route_and_its_panel_names(store):
 
     assert client.get("/api/desk/test").json()["screens"][0]["kind"] == "clock"
     home = [s["kind"] for s in client.get("/api/desk/home").json()["screens"]]
-    assert home == ["playing", "lights", "air", "laundry", "apple", "music"]
+    assert home == ["playing", "lights", "air", "laundry", "apple", "art", "music"]
     house = client.get("/api/desk/house").json()["screens"]
-    assert [{k: v for k, v in s.items() if k != "background"} for s in house] == [
+    # The orbit clock always shows, its words by the date: tested in test_desk_pieces.
+    assert [{k: v for k, v in s.items() if k != "background"} for s in house
+            if s["kind"] != "orbit"] == [
         {"kind": "pipelines", "stale": False, "present": False},
         {"kind": "nas", "stale": False, "present": False},
         {"kind": "code", "stale": False, "present": False},
@@ -172,10 +174,13 @@ def test_an_assigned_board_gets_its_panels_screens(store):
     answer = client.get(f"/api/desk/board/{MAC}").json()
     assert answer["name"] == "now"
     kinds = [s["kind"] for s in answer["screens"]]
-    assert kinds == ["clock", "briefing", "train", "agenda", "day", "headlines"]
+    assert kinds == ["clock", "sky", "night", "briefing", "train", "agenda", "day", "year",
+                     "headlines"]
 
 
-def test_a_panel_without_screens_says_so_on_its_board(store):
+def test_a_new_panel_without_data_shows_its_art_not_its_board(store):
+    """Since the pieces (plan.md M27) a panel always has something to show: the art on
+    Home, so the board's "Nothing to show yet" screen no longer comes up for it."""
     client = board_client(store)
     client.get(f"/api/desk/board/{MAC}")
     client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "home"})
@@ -183,10 +188,8 @@ def test_a_panel_without_screens_says_so_on_its_board(store):
     screens = client.get(f"/api/desk/board/{MAC}").json()["screens"]
 
     assert [s["kind"] for s in screens] == [
-        "playing", "lights", "air", "laundry", "apple", "music", "board"]
-    screen = screens[-1]
-    assert screen["title"] == "Home panel" and screen["hint"] == "Nothing to show yet."
-    assert screen["mac"] == MAC
+        "playing", "lights", "air", "laundry", "apple", "art", "music"]
+    assert [s["kind"] for s in screens if s["present"]] == ["art"]
 
 
 def test_a_panel_has_one_board(store):
@@ -282,18 +285,17 @@ def test_the_panels_dim_while_every_living_room_light_is_off(store):
     assert desk.answer(CFG, store, "now", NOW)["dim"] is False  # cannot tell: stay bright
 
 
-def test_a_panel_with_nothing_to_show_yet_shows_its_board_screen(store):
-    answer = desk.answer(CFG, store, "home", NOW, board=MAC)  # no lights read yet
-    kinds = [s["kind"] for s in answer["screens"]]
-    assert kinds == ["playing", "lights", "air", "laundry", "apple", "music", "board"]
-    assert answer["screens"][-1]["title"] == "Home panel"
+def test_an_unassigned_board_still_asks_which_panel_it_is(store):
+    answer = desk.answer(CFG, store, None, NOW, board=MAC)
+    assert [s["kind"] for s in answer["screens"]] == ["board"]
+    assert answer["screens"][0]["title"] == "Which panel is this?"
 
 
 PLAYING = {"as_of": NOW.timestamp(), "playing": {"title": "Song", "state": "playing"}}
 PAUSED = {"as_of": NOW.timestamp(), "playing": {"title": "Song", "state": "paused"}}
 
 
-ALL = ["playing", "lights", "air", "laundry", "apple", "music"]
+ALL = ["playing", "lights", "air", "laundry", "apple", "art", "music"]
 
 
 def home(store, music=None):

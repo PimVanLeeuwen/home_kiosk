@@ -1369,6 +1369,24 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   that passed leaves House after a minute, one that failed after 5. Not done, for the owner to
   choose: the bigger rebuilds from the mockup (Code as a city, Sites as heartbeat lines,
   Services as a constellation, Backups' turning seal).
+- Step 4 placements (2026-10-25): C Orbit clock on House (it has no clock), F Art on Home,
+  H The year on Now. A and the Clock: the Clock stays; the living sky shows by day and the
+  night sky takes its place after dark on a clear night.
+- Step 4, first part, done 2026-10-25: the pieces. A piece is a painted picture with words the
+  hub places (`app/desk_pieces.py`); one firmware screen shows any of them
+  (`screen_piece.c`, `desk_piece.c`), with the panel's own time where a piece asks for it.
+  Done: A the living sky (layered waves of light in the sky's colours, the sun low over them,
+  what the light does next), B the night sky (stars, the Milky Way, the constellation that is
+  up, the moon in its phase, the town's glow; only on a clear or partly clear night), H the
+  year (a dial of week-spokes, the days gone violet, today glowing), F the art of the day (a
+  flow field in the season's palette), C the orbit clock (the panel moves the hour, minute and
+  second round the painted sun, the second with a tail). The pieces drop first from an answer
+  too big for an old board. A painting over 150 kB is made again at a lower quality (the art
+  came out at 197 kB, over the panel's 160 kB). Still to come: K, J, I, then E.
+- Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
+  "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
+  map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS
+  with an `IMMICH_API_KEY` in its `.env` (the owner makes the key: memories, photos, people).
 - Not chosen: T a calendar week, U Paperless's new documents on Home or in the digest, V a live
   preview per panel in Settings, X picking each panel's screens in Settings.
 
@@ -1418,9 +1436,25 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   on the owner's own Apple Health or bulk export, by hand. In the hub only figures it computes
   itself (weekly load against the four weeks before, the long run's share, easy pace at the same
   heart rate over time, consistency), no AI on Strava data.
-- Open questions for the owner: which device records the runs (iPhone, Apple Watch, Garmin)?
-  Is a Strava subscription wanted (Runna and Strava are sold as a bundle since 2025)? Which
-  panel shows the runs, and which screens? Is a paid Health Auto Export acceptable?
+- Answers (2026-10-25): the runs are recorded on an Apple Watch, so Apple Health is the main
+  source and Runna's feed adds the plan. Strava's API is not used for now (maybe later, with the
+  Runna and Strava bundle, while Runna runs on). Screens: A (loved), B, C and D chosen, H only if
+  more stunning (two new versions in the mockup), not E, F, G. Chosen for A: A2, the route
+  over the town's streets (not A1 neon, not A3 heart-rate wall).
+- Health Auto Export, checked 2026-10-25: the REST automation needs Premium ($0.99 a month, $5.99
+  a year or $24.99 once; Basic, $2.99, has no automations). A workout carries the route points
+  (latitude, longitude, altitude, time, speed), heart rate over time, distance, elevation up and
+  down, cadence, energy, temperature and humidity. Not in it: splits (the hub works them out from
+  the route), running power and form, and Runna's session name (that comes from Runna's feed).
+  iOS decides when an automation runs and Health cannot be read while the phone is locked, so a
+  run arrives some minutes to hours after it ends (opening the app sends it at once). Runna's
+  watch app writes workouts and routes to Health once allowed in Health's settings.
+- D draws only the streets actually run, so it shows the real town (the parts run often
+  brightest); over the town's own streets from OpenStreetMap it reads as its map. The town is
+  never named in the repo; the mockup uses a made-up one.
+- A's moving light needs the route on the panel: about 64 simplified points (under 1 kB).
+- Open: which panel shows the runs; whether Health Auto Export Premium is bought (a new
+  dependency).
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28.

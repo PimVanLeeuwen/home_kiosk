@@ -49,6 +49,8 @@
 #include "screen_code.h"
 #include "screen_pipeline.h"
 #include "screen_pipelines.h"
+#include "screen_piece.h"
+#include "desk_piece.h"
 #include "screen_movers.h"
 #include "screen_nas.h"
 #include "screen_services.h"
@@ -70,8 +72,17 @@ LV_FONT_DECLARE(instrument_24);
 #define DIM_MS 250
 #define DARKEN 165 /* how much the dark layer takes away, of 255 */
 
-enum { CLOCK, BRIEFING, TRAIN, AGENDA, DAY, HEADLINES, PLAYING, LIGHTS, AIR, LAUNDRY, APPLE, MUSIC, PIPELINE, PIPELINES,
-       NAS, CODE, SITES, SERVICES, TAILNET, MONEY, MOVERS, MEDIA, BACKUPS, ALERTS, BOARD, START, COUNT };
+/* In the order they turn; the pieces (plan.md M27) where they belong among the others. */
+enum { CLOCK, SKY, NIGHT, BRIEFING, TRAIN, AGENDA, COUNTDOWN, DAY, WEEK, RADAR, YEAR, HEADLINES, PLAYING, LIGHTS,
+       AIR, LAUNDRY, APPLE, PHOTO, ART, MUSIC, PIPELINE, PIPELINES, NAS, ORBIT, CODE, SITES, SERVICES, TAILNET, MONEY,
+       MOVERS, MEDIA, BACKUPS, ALERTS, BOARD, START, COUNT };
+
+/* Each piece's screen, by its place in desk_piece.h. */
+static const int PIECE_SCREEN[PIECES] = {
+    [PIECE_SKY] = SKY,   [PIECE_NIGHT] = NIGHT, [PIECE_YEAR] = YEAR, [PIECE_WEEK] = WEEK,
+    [PIECE_RADAR] = RADAR, [PIECE_COUNTDOWN] = COUNTDOWN, [PIECE_ART] = ART, [PIECE_PHOTO] = PHOTO,
+    [PIECE_ORBIT] = ORBIT,
+};
 
 static lv_obj_t *screens[COUNT];
 static int current = START, coming = -1; /* coming: the screen being turned to */
@@ -139,6 +150,21 @@ static bool ready(int which)
         return desk_has_backups();
     case ALERTS:
         return desk_has_alerts();
+    case SKY:
+    case NIGHT:
+    case YEAR:
+    case WEEK:
+    case RADAR:
+    case COUNTDOWN:
+    case ART:
+    case PHOTO:
+    case ORBIT:
+        for (int p = 0; p < PIECES; p++) {
+            if (PIECE_SCREEN[p] == which) {
+                return desk_has_piece(p);
+            }
+        }
+        return false;
     default:
         return desk_board().listed;
     }
@@ -371,6 +397,11 @@ void screens_start(void)
     screens[BACKUPS] = lv_obj_create(NULL);
     screens[ALERTS] = lv_obj_create(NULL);
     screens[BOARD] = lv_obj_create(NULL);
+    for (int p = 0; p < PIECES; p++) {
+        screens[PIECE_SCREEN[p]] = lv_obj_create(NULL);
+        screen_piece_create(screens[PIECE_SCREEN[p]], p);
+        backdrops_attach(screens[PIECE_SCREEN[p]], desk_piece_name(p));
+    }
     screen_clock_create(screens[CLOCK]);
     screen_briefing_create(screens[BRIEFING]);
     screen_train_create(screens[TRAIN]);
