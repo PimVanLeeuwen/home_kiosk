@@ -1145,8 +1145,17 @@ static void desk_task(void *arg)
     }
 }
 
+/* The parsed answer in PSRAM. With the C library's malloc each small node went to internal RAM
+ * (ESP-IDF keeps allocations under 16 kB there): a big answer's tree took about 65 kB, held
+ * while apply() fetches pictures, and Wi-Fi and the downloads then failed (2026-10-26). */
+static void *json_malloc(size_t size)
+{
+    return heap_caps_malloc(size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+}
+
 void desk_start(void)
 {
+    cJSON_InitHooks(&(cJSON_Hooks){.malloc_fn = json_malloc, .free_fn = heap_caps_free});
     lock = xSemaphoreCreateMutex();
     load_key();
     xTaskCreate(desk_task, "desk", 8192, NULL, 4, &desk_task_handle);
