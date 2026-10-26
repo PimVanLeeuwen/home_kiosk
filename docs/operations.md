@@ -18,6 +18,15 @@ specific to that setup. The overview is in the [README](../README.md).
   `IMMICH_API_KEY` as Immich's service tile: the key must be allowed to read memories, assets
   and people (an admin key, or one with those permissions). Immich is reached on the
   `widgets.host` at port 2283; set `photo.immich_url` in the config only if it lives elsewhere.
+- **Runs** (plan.md M28) come from Apple Health through Health Auto Export (Premium, for its
+  REST automation). Put a long random `RUNS_KEY` in `.env` (`openssl rand -hex 24`) and the
+  `running:` block from `config.yaml` in the NAS's config. In the app, add an automation: type
+  REST API, URL `https://<nas>.<tailnet>.ts.net/api/runs/health` (the hub over Tailscale), header
+  `Authorization` with `Bearer <RUNS_KEY>`, data type Workouts, format JSON, export version 2,
+  Include Route Data and Include Workout Metrics on, date range Since Last Sync, Batch Requests on.
+  Only runs are kept; a run sent again replaces itself. iOS decides when the automation runs and
+  Health is locked with the phone, so a run can take some minutes to hours to arrive; opening the
+  app sends it at once.
 - Senders on the NAS post to `http://<nas>:8000/api/notify` with the `X-Notify-Key` header
   (`NOTIFY_KEY`); see the nas-docker README, *Alerts*.
 

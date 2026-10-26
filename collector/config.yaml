@@ -389,3 +389,9 @@ services:
       - { id: nas-docker-repo, name: nas-docker repo, description: GitHub, url: "https://github.com/PimVanLeeuwen/nas-docker", icon: github-light }
       - { id: trash-guides, name: TRaSH Guides, description: Arr quality profiles, url: "https://trash-guides.info", icon: trash-guides }
       - { id: hetzner-robot, name: Hetzner Robot, description: Backup storage box, url: "https://robot.hetzner.com", icon: hetzner }
+
+# Runs (M28): Health Auto Export on the phone posts workouts to /api/runs/health with
+# "Authorization: Bearer <RUNS_KEY>" (its REST automation: JSON, version 2, route data and
+# workout metrics on). Only runs are kept, on the NAS.
+running:
+  key: ${RUNS_KEY}

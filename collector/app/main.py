@@ -32,6 +32,7 @@ from . import (
     lights_api,
     music_api,
     restore_request,
+    runs_api,
     scheduler,
     settings_api,
     weather_api,
@@ -158,6 +159,7 @@ app.include_router(documents_api.router)
 app.include_router(ai_api.router)
 app.include_router(music_api.router)
 app.include_router(weather_api.router)
+app.include_router(runs_api.router)
 app.include_router(desk_api.router)
 app.include_router(alerts_api.router)
 app.include_router(news_api.router)

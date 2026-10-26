@@ -1531,8 +1531,22 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   brightest); over the town's own streets from OpenStreetMap it reads as its map. The town is
   never named in the repo; the mockup uses a made-up one.
 - A's moving light needs the route on the panel: about 64 simplified points (under 1 kB).
-- Open: which panel shows the runs; whether Health Auto Export Premium is bought (a new
-  dependency).
+- Decided 2026-10-26: Health Auto Export Premium is the runs source (the owner buys it), and the
+  runs show on the Now panel.
+- Steps (2026-10-26): 1 receiving runs (the phone posts workouts, the hub keeps the runs); 2
+  Runna's feed (next session, the planned week, the race date); 3 the hub's Running page and a
+  Home card; 4 the Now panel's screens A, B and C; 5 D, the year's streets over the town's own
+  streets from an OpenStreetMap extract on the NAS.
+- Step 1 done 2026-10-26: `POST /api/runs/health` takes Health Auto Export's JSON (version 2:
+  `{"data": {"workouts": [...]}}`) with the runs key as a bearer token (`running.key`, NAS-only
+  `RUNS_KEY`; the phone is not same-origin, so the key stands in for the same-origin check).
+  Only runs are kept ("run" in the workout's name), one row each by Health's id, so a run sent
+  again replaces itself; distances, elevations and temperatures are kept in metres and degrees
+  Celsius whatever the phone's units. The route (point by point: position, altitude, seconds
+  from the start, speed) and the heart rate by the minute stay in SQLite on the NAS and are
+  never logged. `/api/runs` lists the last runs, `/api/runs/{id}` gives one with the route
+  thinned to 400 points, its splits per kilometre (worked out from the route) and its heart
+  rate. Setup in docs/operations.md.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28.
