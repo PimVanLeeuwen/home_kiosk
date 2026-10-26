@@ -128,12 +128,13 @@ def run_streets(run_id: str, request: Request) -> Response:
     store = request.app.state.store
     run = runs.one(store, run_id, running.LAST_POINTS)
     route = run["route"] if run else []
-    kept = streets.kept_for(store, streets.middle(route)) if route else None
+    kept = streets.fetched_for(store, streets.middle(route)) if route else None
     if kept is None:
         raise HTTPException(404, "No streets fetched for this run's area.")
     key = (run_id, kept["fetched_at"])
     if _route_streets["key"] != key:
-        _route_streets.update(key=key, webp=paint_streets.route_streets(route, kept["shapes"]))
+        shapes = streets.shapes_of(store, kept["id"])
+        _route_streets.update(key=key, webp=paint_streets.route_streets(route, shapes))
     return Response(_route_streets["webp"], media_type="image/webp",
                     headers={"Cache-Control": "private, max-age=86400"})
 

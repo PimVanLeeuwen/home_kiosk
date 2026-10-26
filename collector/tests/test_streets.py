@@ -207,10 +207,13 @@ def test_the_route_streets_frame_matches_the_cards_projection():
     assert (x0 + x1) / 2 == pytest.approx(w * s / 2)
 
 
-def test_areas_and_counts_never_read_a_route(store, monkeypatch):
+def test_areas_and_counts_never_read_a_route_or_the_streets(store, monkeypatch):
     """Grouping runs by area happens on every panel request: it reads each run's stored middle
-    and bounds, never its route (which made the hub stall with a hundred runs)."""
+    and bounds, never its route, and only whether (and when) streets were fetched, never their
+    shapes (either made the hub stall: a hundred runs, a city's streets)."""
     keep(store, run_on(date(2026, 10, 20), "r0"), away(date(2026, 10, 21), "a1"))
+    asyncio.run(streets.fetch(store, streets.status(store)["areas"][0]["key"],
+                              transport=answer()))
     with store.connect() as conn:  # a run kept before its place was stored
         conn.execute("UPDATE run SET mid_lat = NULL, south = NULL WHERE id = 'r0'")
     assert runs.fill_places(store) == 1 and runs.fill_places(store) == 0
@@ -219,9 +222,23 @@ def test_areas_and_counts_never_read_a_route(store, monkeypatch):
         raise AssertionError("read a route")
 
     monkeypatch.setattr(runs, "routes", slow)
-    now = datetime(2026, 10, 25, 18, tzinfo=UTC)  # no run today: no path to draw
+    monkeypatch.setattr(streets, "shapes_of", slow)
+    now = datetime(2026, 10, 22, 18, tzinfo=UTC)  # the day after the last run: no path to draw
     assert [a["runs"] for a in streets.status(store)["areas"]] == [1, 1]
     home = streets.at_home(store, "2026-01-01T00:00:00+00:00")
     assert len(home["runs"]) == 1 and home["elsewhere"] == 1
     screen = desk_running.streets_screen(store, ZONE, now)
-    assert screen["present"] and screen["count"] == 1
+    assert screen["present"] and screen["count"] == 1 and screen["streets_at"]
+    assert running.overview(store, ZONE, now)["streets_at"]
+    assert desk_running.run_screen(store, ZONE, now)["present"]
+    assert streets.status(store)["areas"][0]["counts"]["minor"] == 1
+
+
+def test_streets_fetched_before_counts_were_kept_get_them(store):
+    keep(store, run_on(date(2026, 10, 2), "h1"))
+    asyncio.run(streets.fetch(store, streets.status(store)["areas"][0]["key"],
+                              transport=answer()))
+    with store.connect() as conn:
+        conn.execute("UPDATE street_area SET counts = NULL")
+    assert streets.status(store)["areas"][0]["counts"] == {
+        "major": 1, "minor": 1, "path": 1, "water": 1, "park": 1}

@@ -288,6 +288,10 @@ def simplified(route: list[list[float]], most: int) -> list[list[float]]:
     return [[route[round(i * step)][0], route[round(i * step)][1]] for i in range(most)]
 
 
+SUMMARY = ("id, start, name, indoor, duration_s, distance_m, elevation_up_m, energy_kcal, "
+           "avg_hr, max_hr, temperature_c, best_5k_s, best_10k_s, best_half_s")
+
+
 def _summary(row: Any) -> dict[str, Any]:
     distance = row["distance_m"]
     return {
@@ -364,7 +368,8 @@ def since(store: Store, start: str) -> list[dict[str, Any]]:
     ensure_tables(store)
     fill_bests(store)
     with store.connect() as conn:
-        rows = conn.execute("SELECT * FROM run WHERE start >= ? ORDER BY start DESC",
+        # Not `*`: the routes are most of each row, and this runs on every panel request.
+        rows = conn.execute(f"SELECT {SUMMARY} FROM run WHERE start >= ? ORDER BY start DESC",
                             (start,)).fetchall()
     return [_summary(r) for r in rows]
 

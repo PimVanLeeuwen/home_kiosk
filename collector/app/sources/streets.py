@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS street_area (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     fetched_at TEXT NOT NULL,
     box TEXT NOT NULL,
-    shapes TEXT NOT NULL
+    shapes TEXT NOT NULL,
+    counts TEXT
 )
 """
 AREA_KM = 15.0  # runs closer than this to an area's middle belong to it
@@ -102,6 +103,11 @@ def shapes(answer: dict[str, Any]) -> dict[str, list[list[list[float]]]]:
 def ensure_table(store: Store) -> None:
     with store.connect() as conn:
         conn.execute(TABLE)
+        # How many of each kind, beside the shapes: a city's shapes take about a second to read,
+        # and every panel request asks only whether (and when) an area's streets are in.
+        have = {r["name"] for r in conn.execute("PRAGMA table_info(street_area)").fetchall()}
+        if "counts" not in have:
+            conn.execute("ALTER TABLE street_area ADD COLUMN counts TEXT")
         # Before areas (2026-10-26) one box held every run: kept as home's, or whichever area
         # it covers, until fetched again.
         old = conn.execute("SELECT name FROM sqlite_master WHERE name = 'street_map'").fetchone()
@@ -109,6 +115,10 @@ def ensure_table(store: Store) -> None:
             conn.execute("INSERT INTO street_area (fetched_at, box, shapes) "
                          "SELECT fetched_at, box, shapes FROM street_map")
             conn.execute("DROP TABLE street_map")
+        for row in conn.execute("SELECT id, shapes FROM street_area "
+                                "WHERE counts IS NULL").fetchall():
+            conn.execute("UPDATE street_area SET counts = ? WHERE id = ?",
+                         (json.dumps(_counts(json.loads(row["shapes"]))), row["id"]))
 
 
 def _km(a: list[float], b: list[float]) -> float:
@@ -147,32 +157,50 @@ def _inside(box: list[float], point: list[float]) -> bool:
     return s <= point[0] <= n and w <= point[1] <= e
 
 
+def _counts(found: dict[str, list]) -> dict[str, int]:
+    return {kind: len(lines) for kind, lines in found.items()}
+
+
 def _rows(store: Store) -> list[dict[str, Any]]:
+    """The areas fetched, without their shapes: {id, fetched_at, box, counts}."""
     ensure_table(store)
     with store.connect() as conn:
-        rows = conn.execute("SELECT * FROM street_area ORDER BY id").fetchall()
+        rows = conn.execute("SELECT id, fetched_at, box, counts FROM street_area "
+                            "ORDER BY id").fetchall()
     return [{"id": r["id"], "fetched_at": r["fetched_at"], "box": json.loads(r["box"]),
-             "shapes": r["shapes"]} for r in rows]
+             "counts": json.loads(r["counts"])} for r in rows]
+
+
+def fetched_for(store: Store, point: list[float]) -> dict[str, Any] | None:
+    """Whether (and when) the streets round `point` were fetched, without reading them:
+    {id, fetched_at, box, counts}, or None. Cheap enough for every request."""
+    return next((r for r in _rows(store) if _inside(r["box"], point)), None)
+
+
+def shapes_of(store: Store, area_id: int) -> dict[str, list]:
+    """An area's shapes: slow for a city (about a second), so only for painting."""
+    with store.connect() as conn:
+        row = conn.execute("SELECT shapes FROM street_area WHERE id = ?", (area_id,)).fetchone()
+    return json.loads(row["shapes"]) if row else {}
 
 
 def kept_for(store: Store, point: list[float]) -> dict[str, Any] | None:
-    """The streets fetched for the area round `point`, or None: {fetched_at, box, shapes}."""
-    row = next((r for r in _rows(store) if _inside(r["box"], point)), None)
-    if row is None:
-        return None
-    return row | {"shapes": json.loads(row["shapes"])}
+    """The streets fetched for the area round `point`, with their shapes, or None: for
+    painting only (see `fetched_for`)."""
+    row = fetched_for(store, point)
+    return row | {"shapes": shapes_of(store, row["id"])} if row else None
 
 
 def at_home(store: Store, since: str) -> dict[str, Any]:
     """The runs from `since` on in the home area (where most runs are, over all time), without
     reading a route: {runs: [{id, start, middle, box}], elsewhere (how many ran elsewhere),
-    streets (home's, when fetched)}."""
+    streets (whether home's are fetched, `fetched_for`)}."""
     areas = group(runs.places(store, EVER))
     home = set(areas[0]["runs"]) if areas else set()
     year = runs.places(store, since)
     mine = [p for p in year if p["id"] in home]
     return {"runs": mine, "elsewhere": len(year) - len(mine),
-            "streets": kept_for(store, areas[0]["middle"]) if areas else None}
+            "streets": fetched_for(store, areas[0]["middle"]) if areas else None}
 
 
 def direction(home: list[float], there: list[float]) -> str:
@@ -192,7 +220,7 @@ def status(store: Store) -> dict[str, Any]:
     out = []
     for i, area in enumerate(areas):
         row = next((r for r in rows if _inside(r["box"], area["middle"])), None)
-        counts = {k: len(v) for k, v in json.loads(row["shapes"]).items()} if row else {}
+        counts = row["counts"] if row else {}
         out.append({"key": f"{area['middle'][0]:.3f},{area['middle'][1]:.3f}", "home": i == 0,
                     "runs": len(area["runs"]), "last": area["last"],
                     "where": "home" if i == 0 else direction(areas[0]["middle"], area["middle"]),
@@ -225,6 +253,8 @@ async def fetch(store: Store, key: str,
         for row in _rows(store):
             if _inside(row["box"], area["middle"]):
                 conn.execute("DELETE FROM street_area WHERE id = ?", (row["id"],))
-        conn.execute("INSERT INTO street_area (fetched_at, box, shapes) VALUES (?, ?, ?)",
-                     ((now or datetime.now(UTC)).isoformat(), json.dumps(box), json.dumps(found)))
+        conn.execute("INSERT INTO street_area (fetched_at, box, shapes, counts) "
+                     "VALUES (?, ?, ?, ?)", ((now or datetime.now(UTC)).isoformat(),
+                                             json.dumps(box), json.dumps(found),
+                                             json.dumps(_counts(found))))
     return status(store)

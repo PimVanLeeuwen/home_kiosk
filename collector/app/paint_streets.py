@@ -150,9 +150,8 @@ def picture(store: Any, since: str, today: str | None, size: tuple[int, int],
     if bounds is None:
         return base
     frame = Frame(bounds, box)
-    found = home["streets"]
-    if found:
-        base = town(base, found["shapes"], frame)
+    if home["streets"]:
+        base = town(base, streets.shapes_of(store, home["streets"]["id"]), frame)
     base = glow_by(base, heat(size, lines, frame))
     today_route = next((r["route"] for r in year if r["id"] == today), None)
     if today_route:

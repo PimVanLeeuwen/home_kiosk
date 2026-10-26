@@ -114,7 +114,7 @@ def run_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     picks = ([route[min(len(route) - 1, round(i * step))] for i in range(PATH_POINTS)]
              if route else [])
     path = [[round(x), round(y)] for x, y in project(picks, ROUTE_BOX)]
-    kept = streets.kept_for(store, streets.middle(route)) if route else None
+    kept = streets.fetched_for(store, streets.middle(route)) if route else None
     return {"kind": "run", "stale": False, "present": True, "id": last["id"], "path": path,
             "streets_at": (kept or {}).get("fetched_at"), "labels": labels}
 
