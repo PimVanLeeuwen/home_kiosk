@@ -77,7 +77,8 @@ def lights_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]
 
 COVER_KEY = re.compile(r"^[0-9a-f]{8,64}$")
 # Multiples of 16, for the decoder.
-COVER_SIZES = {"big": (288, 288), "tile": (320, 256), "thumb": (96, 96)}
+CoverSize = Literal["big", "tile", "wall", "thumb"]
+COVER_SIZES = {"big": (288, 288), "tile": (320, 256), "wall": (144, 144), "thumb": (96, 96)}
 _covers: OrderedDict[tuple[str, str], bytes] = OrderedDict()
 KEEP_COVERS = 16
 
@@ -111,21 +112,39 @@ def playing_screen(music: dict[str, Any] | None, now: datetime) -> dict[str, Any
 
 
 def music_screen(music: dict[str, Any] | None) -> dict[str, Any]:
-    """The favourites to start, while Spotify is connected and some are chosen."""
-    if not music or not music.get("connected") or not music.get("favourites"):
+    """The cover wall (plan.md M27, M): the favourites, then the playlists and albums played
+    lately, each a tap to play, over the colour of what plays (or played last)."""
+    favourites = (music or {}).get("favourites") or []
+    recent = (music or {}).get("recent") or []
+    if not music or not music.get("connected") or not (favourites or recent):
         return {"kind": "music", "stale": False, "present": False}
     playing = music.get("playing") or {}
     last = playing or music.get("last") or {}
     line = " · ".join(p for p in (last.get("title"), last.get("subtitle")) if p)
     heading = "Now playing" if playing else "Last played"
+    context = playing.get("context")
+    if playing.get("title"):
+        footer = f"{playing['title']} is playing · tap a cover to play it"
+    elif last.get("title"):
+        footer = f"Last played: {last['title']} · tap a cover to play it"
+    else:
+        footer = "Tap a cover to play it"
     return {
         "kind": "music", "stale": bool(music.get("stale")), "present": True,
         "device": _device_name(playing.get("device"), music.get("default_device") or ""),
         "favourites": [{"position": f["position"], "name": latin1(f["name"]),
                         "cover": _cover_path(f.get("cover"), "tile"),
                         "thumb": _cover_path(f.get("cover"), "thumb"),
-                        "colour": f.get("colour") or "#7c6cf2"}
-                       for f in music["favourites"][:4]],
+                        "wall": _cover_path(f.get("cover"), "wall"),
+                        "colour": f.get("colour") or "#7c6cf2",
+                        "playing": context == f"spotify:playlist:{f.get('id')}"}
+                       for f in favourites[:4]],
+        "recent": [{"name": latin1(r["name"]), "wall": _cover_path(r.get("cover"), "wall"),
+                    "colour": r.get("colour") or "#7c6cf2", "playing": context == r["uri"]}
+                   for r in recent[:4]],
+        # The wash behind the wall: the colour of what plays, or played last.
+        "colour": last.get("colour") or "#7c6cf2",
+        "footer": latin1(footer),
         # One line for the panels that still draw it; the list layout draws the parts.
         "last": latin1(f"{heading}: {line}") if line else "",
         "last_heading": heading if line else "",
@@ -135,7 +154,7 @@ def music_screen(music: dict[str, Any] | None) -> dict[str, Any]:
     }
 
 
-async def cover(store: Store, key: str, size: Literal["big", "tile", "thumb"]) -> bytes | None:
+async def cover(store: Store, key: str, size: CoverSize) -> bytes | None:
     """A stored Spotify cover as a baseline JPEG at the panel's size, or None."""
     if (key, size) in _covers:
         _covers.move_to_end((key, size))

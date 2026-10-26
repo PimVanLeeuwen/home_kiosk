@@ -1420,6 +1420,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   photo of the day is a wide card, high in the calm order (after the briefing in the morning),
   only on its own day; the countdown a calm narrow card at every part of the day while one is
   ahead, a tunnel of rings with sparks as on the Now panel. The week and the radar wait for Q.
+- Step 5 done 2026-10-26. L: the train's route is a line across the foot of the Now panel's
+  train screen, a dot per stop with its time above and its name below, where you board lit;
+  no moving train (it still leaves the panel when it departs, the owner's choice). The names
+  are measured: the ends keep their full name, the stops between take what is left; with more
+  than four stops the names take turns in two rows and "Centraal" is written "C.". The route
+  now fits beside a disruption notice too. M: Music is a wall of eight covers over a wash in the
+  colour of what plays (`app/paint_music.py`): the favourites, then the last four different
+  playlists or albums played (from one recently-played call; a playlist's name is looked up
+  once, and one Spotify does not show this app, or a track from liked songs or an artist,
+  counts as its album), each a tap to play from the start (`/api/desk/music/recent/{i}`); the
+  tile that plays has a light rim and an equaliser.
 - Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
   "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
   map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS

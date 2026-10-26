@@ -413,6 +413,7 @@ void screens_start(void)
     backdrops_attach(screens[AIR], "air");
     backdrops_attach(screens[APPLE], "apple");
     backdrops_attach(screens[PLAYING], "playing");
+    backdrops_attach(screens[MUSIC], "music");
     backdrops_attach(screens[LAUNDRY], "laundry");
     backdrops_attach(screens[NAS], "nas");
     backdrops_attach(screens[CODE], "code");

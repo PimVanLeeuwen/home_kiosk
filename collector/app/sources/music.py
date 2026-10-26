@@ -62,7 +62,8 @@ async def state(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
     """What plays, the devices, the favourites and, when nothing plays, what played last."""
     base = {"as_of": time.time(), "stale": False, "connected": spotify.connected(store),
             "default_device": spotify.settings(cfg)["default_label"],
-            "playing": None, "devices": [], "favourites": favourites(store), "last": None}
+            "playing": None, "devices": [], "favourites": favourites(store), "last": None,
+            "recent": []}
     if not base["connected"]:
         return base
     player = await CLIENT.cached(cfg, store, "player", "/me/player",
@@ -78,21 +79,75 @@ async def state(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
     if player and player.get("item"):
         base["playing"] = await _item(store, player["item"]) | {
             "state": "playing" if player.get("is_playing") else "paused",
+            # The playlist or album it plays from: the cover wall lights that tile.
+            "context": (player.get("context") or {}).get("uri"),
             "progress_ms": player.get("progress_ms") or 0,
             "device": _device(player["device"]) if player.get("device") else None,
         }
         device = base["playing"]["device"]
         if known and device and device["id"] == known:
             device["name"] = s["default_label"]
-    else:
-        recent = await CLIENT.cached(cfg, store, "recent", "/me/player/recently-played",
-                                     {"limit": 1})
-        items = (recent or {}).get("items") or []
-        if items and items[0].get("track"):
-            base["last"] = await _item(store, items[0]["track"])
+    recent = await CLIENT.cached(cfg, store, "recent", "/me/player/recently-played",
+                                 {"limit": 50})
+    items = (recent or {}).get("items") or []
+    if not base["playing"] and items and items[0].get("track"):
+        base["last"] = await _item(store, items[0]["track"])
+    base["recent"] = await recent_contexts(cfg, store, items, base["favourites"])
     for fav in base["favourites"]:
         fav["colour"] = await spotify.colour_of(store, fav["cover"], CLIENT.transport)
     return base
+
+
+# --- played lately ------------------------------------------------------------------
+
+RECENT = 4
+# A playlist's name and cover by its uri, looked up once; None for one Spotify does not
+# show this app (its own mixes) or failed to give, which then counts as the album its
+# track came from. A rate limit is tried again.
+_PLAYLISTS: dict[str, dict[str, Any] | None] = {}
+
+
+async def _playlist(cfg: dict[str, Any], store: Store, uri: str) -> dict[str, Any] | None:
+    if uri not in _PLAYLISTS:
+        try:
+            got = await CLIENT.call(cfg, store, "GET", f"/playlists/{uri.rsplit(':', 1)[-1]}",
+                                    {"fields": "name,images"})
+        except SpotifyError as exc:
+            if exc.status != 429:  # refused (or failed): its album stands in until a restart
+                _PLAYLISTS[uri] = None
+            return None
+        got = got or {}
+        _PLAYLISTS[uri] = {"name": got.get("name") or "",
+                           "cover": spotify.remember_cover(store, _cover_url(got.get("images")))}
+    return _PLAYLISTS[uri]
+
+
+async def recent_contexts(cfg: dict[str, Any], store: Store, items: list[dict[str, Any]],
+                          favs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The last four different playlists or albums played from, newest first, leaving out
+    the favourites: a track played from elsewhere (liked songs, an artist) counts as its
+    album."""
+    taken = {f"spotify:playlist:{f['id']}" for f in favs}
+    out: list[dict[str, Any]] = []
+    for item in items:
+        track = item.get("track") or {}
+        context = item.get("context") or {}
+        uri, kind, known = context.get("uri"), "playlist", None
+        if context.get("type") == "playlist" and uri:
+            known = await _playlist(cfg, store, uri)
+        if known is None:
+            album = track.get("album") or {}
+            uri, kind = album.get("uri"), "album"
+            known = {"name": album.get("name") or "",
+                     "cover": spotify.remember_cover(store, _cover_url(album.get("images")))}
+        if not uri or uri in taken:
+            continue
+        taken.add(uri)
+        out.append({"uri": uri, "kind": kind, **known,
+                    "colour": await spotify.colour_of(store, known["cover"], CLIENT.transport)})
+        if len(out) == RECENT:
+            break
+    return out
 
 
 # The last state Spotify gave, for when it fails or asks the hub to slow down;
@@ -255,6 +310,19 @@ async def target(cfg: dict[str, Any], store: Store,
         if found:
             return found
     raise SpotifyError(f"{label} did not show up in Spotify; is it on?", 504)
+
+
+async def play_recent(cfg: dict[str, Any], store: Store, index: int,
+                      sleep: Callable[[float], Awaitable[Any]] = asyncio.sleep) -> str:
+    """Plays one of the playlists or albums played lately, from the start."""
+    recent = (await latest(cfg, store)).get("recent") or []
+    if not 0 <= index < len(recent):
+        raise SpotifyError("No such recent music.", 404)
+    device = await target(cfg, store, sleep)
+    await CLIENT.call(cfg, store, "PUT", "/me/player/play", {"device_id": device},
+                      {"context_uri": recent[index]["uri"]})
+    CLIENT.changed()
+    return device
 
 
 async def play_favourite(cfg: dict[str, Any], store: Store, position: int,

@@ -160,11 +160,16 @@ def music_panel(panel, store, monkeypatch):
         calls.append(f"favourite {position}")
         return "d1"
 
+    async def play_recent(cfg, store, index):
+        calls.append(f"recent {index}")
+        return "d1"
+
     async def state(cfg, store):
         return MUSIC
 
     monkeypatch.setattr(music, "control", control)
     monkeypatch.setattr(music, "play_favourite", play_favourite)
+    monkeypatch.setattr(music, "play_recent", play_recent)
     monkeypatch.setattr(music, "state", state)
     return client, calls
 
@@ -175,7 +180,9 @@ def test_the_home_board_gets_its_music_and_can_play_with_its_key(music_panel):
     assert kinds == ["playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
     assert client.post("/api/desk/music/pause").json() == {"ok": True}
     assert client.post("/api/desk/music/favourite/2").json() == {"ok": True}
-    assert calls == ["pause", "favourite 2"]
+    assert client.post("/api/desk/music/recent/3").json() == {"ok": True}
+    assert calls == ["pause", "favourite 2", "recent 3"]
+    assert client.post("/api/desk/music/recent/4").status_code == 422
     assert client.post("/api/desk/music/louder").status_code == 422
     assert TestClient(main.app).post("/api/desk/music/pause").status_code == 401
 
@@ -190,6 +197,8 @@ def test_covers_are_small_jpegs_of_the_stored_ones(music_panel):
         assert image.size == (320, 256)
     with Image.open(io.BytesIO(client.get(f"/api/desk/cover/{COVER}/thumb").content)) as image:
         assert image.size == (96, 96)
+    with Image.open(io.BytesIO(client.get(f"/api/desk/cover/{COVER}/wall").content)) as image:
+        assert image.size == (144, 144)
     assert client.get("/api/desk/cover/ffffffffffffffff/big").status_code == 404
     assert client.get("/api/desk/cover/not-a-key/big").status_code == 404
 

@@ -21,8 +21,8 @@ action_result_t actions_saved(const char *article_id);
  * new lights screen, is shown at once. */
 bool actions_lights(const char *group, const char *body);
 
-/* Spotify from the Home panel: "play", "pause", "next", "previous", or
- * "favourite/2" to start a favourite. The panel asks the hub again soon after. */
+/* Spotify from the Home panel: "play", "pause", "next", "previous", "favourite/2" to start
+ * a favourite, or "recent/1" to play one of the playlists and albums played lately. The panel asks the hub again soon after. */
 bool actions_music(const char *what);
 
 /* Dismiss an error's takeover on every panel (the incident's key); the panel asks

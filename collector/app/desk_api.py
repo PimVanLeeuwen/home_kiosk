@@ -180,7 +180,7 @@ async def poster(source: Literal["sonarr", "radarr"], item_id: int, request: Req
 
 
 @router.get("/cover/{key}/{size}")
-async def cover(key: str, size: Literal["big", "tile", "thumb"], request: Request) -> Response:
+async def cover(key: str, size: desk_home.CoverSize, request: Request) -> Response:
     """A Spotify cover the hub stored, as a small JPEG for the Home panel."""
     if not desk_home.COVER_KEY.match(key):
         raise HTTPException(404, "No such cover.")
@@ -214,6 +214,13 @@ async def music_favourite(position: Annotated[int, Path(ge=0, le=spotify.FAVOURI
     """Starts a favourite from the Home panel (on the device that plays, else the
     living room's Apple TV, woken when needed)."""
     return await _spotify(request, lambda cfg, store: music.play_favourite(cfg, store, position))
+
+
+@router.post("/music/recent/{index}")
+async def music_recent(index: Annotated[int, Path(ge=0, lt=music.RECENT)], request: Request,
+                       board: Annotated[str, Depends(desk_keys.board_key)]) -> Any:
+    """Plays one of the playlists or albums played lately, from the Home panel's cover wall."""
+    return await _spotify(request, lambda cfg, store: music.play_recent(cfg, store, index))
 
 
 @router.post("/music/{action}")

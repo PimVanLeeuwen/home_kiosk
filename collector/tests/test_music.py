@@ -48,6 +48,8 @@ class FakeSpotify:
                            "images": [{"url": COVER, "width": 300}],
                            "owner": {"display_name": "Spotify"}},
                           {"id": "p2", "name": "Focus Flow", "images": [], "owner": {}}]
+        # Playlists one looks up by id (the cover wall's played lately); others answer 404.
+        self.lookups: dict[str, dict] = {}
         self.calls: list[tuple[str, str, dict, object]] = []
         self.refresh_refused = False
         self.expired_once = False
@@ -79,6 +81,9 @@ class FakeSpotify:
             return httpx.Response(200, json={"devices": self.devices})
         if path == "/v1/me/player/recently-played":
             return httpx.Response(200, json={"items": self.recent})
+        if path.startswith("/v1/playlists/"):
+            found = self.lookups.get(path.rsplit("/", 1)[-1])
+            return httpx.Response(200, json=found) if found else httpx.Response(404, json={})
         if path == "/v1/me/playlists":
             return httpx.Response(200, json={"items": self.playlists, "next": None})
         return self.write_answer

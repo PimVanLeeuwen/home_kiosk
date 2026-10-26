@@ -204,13 +204,16 @@ typedef struct {
 } desk_playing_t;
 
 #define DESK_FAVOURITES 4
+#define DESK_RECENT 4       /* the playlists and albums played lately, on the cover wall */
 #define PICTURE_PLAYING 3   /* picture slots: 0 to 2 the headlines, 3 the cover playing, */
 #define PICTURE_FAVOURITE 4 /* 4 to 7 the favourites, */
 #define PICTURE_LAST 8      /* 8 the cover of what played last, */
 #define PICTURE_POSTER 9    /* 9 and 10 the posters of the downloads on House, */
-#define PICTURE_CLOCK_SKY 11 /* 11 the Clock's painted background (plan.md M27) */
+#define PICTURE_CLOCK_SKY 11 /* 11 the Clock's painted background (plan.md M27), */
+#define PICTURE_RECENT 12   /* 12 to 15 the covers of what played lately */
 
-/* The Home panel's music: the favourites to start. */
+/* The Home panel's music (plan.md M27, M): a wall of covers, the favourites and what played
+ * lately, each a tap to play. */
 typedef struct {
     bool present;
     bool stale;
@@ -222,7 +225,16 @@ typedef struct {
         char name[48];
         bool has_cover;
         uint32_t colour;
+        bool playing;        /* what plays comes from it */
     } favourites[DESK_FAVOURITES];
+    int recent_count;
+    struct {
+        char name[48];
+        bool has_cover;
+        uint32_t colour;
+        bool playing;
+    } recent[DESK_RECENT];
+    char footer[128];        /* "Glass Harbour is playing · tap a cover to play it" */
     char last_heading[16];   /* "Last played", "Now playing", or "" */
     char last_title[96];
     char last_subtitle[96];  /* artist and album */
