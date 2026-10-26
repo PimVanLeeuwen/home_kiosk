@@ -14,7 +14,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from . import paint_year
+from . import paint_art, paint_year
 from .desk_clock import _local, _phase, clock_screen, condition
 from .panel_text import latin1
 from .sources import countdown, forecast, photo, radar, weather
@@ -165,17 +165,19 @@ SEASONS = {12: "winter", 1: "winter", 2: "winter", 3: "spring", 4: "spring", 5: 
 
 
 def art_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
-    """F, the art of the day: a new piece each morning, numbered by the day of the year."""
+    """F, the art of the day: a new landscape each morning (paint_art), numbered by the day of
+    the year and named by its light."""
     local = now.astimezone(zone)
     number = local.timetuple().tm_yday
     season = SEASONS[local.month]
+    day = local.date().toordinal()
     return {
         "kind": "art", "stale": False, "present": True,
-        "day": local.date().toordinal(), "season": season,
+        "day": day, "season": season,
         "labels": [
             caps("Art of the day", 36, 24, width=400),
             caps(f"No. {number}", 684, 24, width=300, align="right"),
-            label(f"Flow field, {season}", 36, 662, colour="c9c6d6"),
+            label(f"Ridges at {paint_art.light(day)}, {season}", 36, 662, colour="c9c6d6"),
         ],
     }
 

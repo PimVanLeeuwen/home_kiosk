@@ -1474,7 +1474,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   path): the orbit. Earth's path round a warm sun at a slant, a tick where each month starts,
   the days gone as a glowing trail in the seasons' colours, Earth at today lit on its sun side;
   the day's number large at the foot, the days left beside it; the panel breathes a halo round
-  Earth (four seconds, from the screen's one-point `path`). Next: the art of the day (F).
+  Earth (four seconds, from the screen's one-point `path`). Art of the day (F), chosen from three
+  mockups (landscape, harmonograph, Bauhaus; one style, not turns): a landscape. Six ridges
+  fading into mist under a sky in the season's palette, at dawn, dusk or night (with stars),
+  the sun or the moon low above the skyline; all of it seeded by the date, and the words name
+  it ("Ridges at dusk, autumn"). That completes the panel review.
 - Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
   "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
   map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS

@@ -87,6 +87,21 @@ def test_the_year_is_earths_path_round_the_sun(store):
     assert picture.size == (720, 720) and sum(picture.getpixel((ex, ey))) > 150  # Earth, lit
 
 
+def test_the_art_is_a_landscape_named_by_its_light(store):
+    from app import paint_art
+
+    lights = [paint_art.light(day) for day in range(739_000, 739_060)]
+    assert set(lights) == {"dawn", "dusk", "night"} and paint_art.light(739_001) == lights[1]
+    art = desk_pieces.art_screen(store, ZONE, at(9).astimezone(UTC))
+    words = [label["text"] for label in art["labels"]]
+    assert words[2] == f"Ridges at {paint_art.light(art['day'])}, autumn"
+    night = next(d for d in range(739_000, 739_060) if paint_art.light(d) == "night")
+    dusk = next(d for d in range(739_000, 739_060) if paint_art.light(d) == "dusk")
+    sky = {d: ImageStat.Stat(paint_art.paint_art({"day": d, "season": "autumn"})
+                             .convert("L").crop((0, 60, 720, 160))).mean[0] for d in (night, dusk)}
+    assert sky[night] < sky[dusk]
+
+
 def test_the_art_and_the_orbit_always_show(store):
     art = desk_pieces.art_screen(store, ZONE, at(9).astimezone(UTC))
     assert art["present"] and art["season"] == "autumn"
