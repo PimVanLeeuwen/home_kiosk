@@ -14,7 +14,7 @@ enum {
     PIECES
 };
 
-#define PIECE_LABELS 8
+#define PIECE_LABELS 32 /* the week alone has 30 */
 
 enum { PIECE_LEFT, PIECE_CENTRE, PIECE_RIGHT };
 

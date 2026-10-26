@@ -76,3 +76,41 @@ def test_the_art_and_the_orbit_always_show(store):
     assert [label["text"] for label in art["labels"]][1] == "NO. 298"
     orbit = desk_pieces.orbit_screen(store, ZONE, at(9).astimezone(UTC))
     assert orbit["present"] and orbit["clock"]["font"] == "28"
+
+
+def test_the_week_has_seven_columns_with_words_where_the_bars_are(store):
+    from datetime import date, timedelta
+
+    from app.sources import countdown, forecast
+    days = [{"date": (date(2026, 10, 26) + timedelta(days=i)).isoformat(), "high": 10 + i,
+             "low": 4 + i % 3, "sunrise": None, "sunset": None, "hours": [], "code": 61,
+             "rain_max": 30 if i == 0 else 10} for i in range(7)]
+    store.put_cache(forecast.CACHE_KEY, {"as_of": "x", "stale": False, "days": days})
+    store.put_cache(countdown.CACHE_KEY, {"as_of": "x", "stale": False, "events": [],
+                                          "per_day": {"2026-10-26": 2},
+                                          "per_day_colours": {"2026-10-26": ["#e6965a"]}})
+    screen = desk_pieces.week_screen(store, ZONE, at(9).astimezone(UTC))
+    texts = [label["text"] for label in screen["labels"]]
+    assert "TODAY" in texts and "TUE" in texts and "16°" in texts and "30%" in texts
+    assert len(screen["labels"]) == 30 and screen["days"][0]["events"] == ["#e6965a"]
+    store.put_cache(forecast.CACHE_KEY, {"as_of": "x", "stale": False, "days": days[:2]})
+    assert desk_pieces.week_screen(store, ZONE, at(9).astimezone(UTC))["present"] is False
+
+
+def test_the_radar_only_while_rain_is_coming(store):
+    from app.sources import radar
+    sky_store(store)
+    assert desk_pieces.radar_screen(store, ZONE, at(9).astimezone(UTC))["present"] is False
+    w = store.get_cache(weather.CACHE_KEY)
+    store.put_cache(weather.CACHE_KEY, w | {"rain": [{"at": "2026-10-26T09:05:00+01:00",
+                                                      "mm_per_hour": 1.2}]})
+    store.put_cache(radar.CACHE_KEY, {"as_of": "x", "stale": False, "stamp": "202610260805",
+                                      "wet": True, "home": [281.5, 312.0]})
+    radar.FRAMES.rain = b"rain"
+    try:
+        screen = desk_pieces.radar_screen(store, ZONE, at(9).astimezone(UTC))
+    finally:
+        radar.FRAMES.rain = None
+    assert screen["present"] and screen["home"] == [281.5, 312.0]
+    assert "BUIENRADAR · 09:05" in [label["text"] for label in screen["labels"]]
+    assert radar.to_pixel(52.96, 4.76) == (radar.X0 + 4.76 * radar.PX_PER_LON, radar.Y0)

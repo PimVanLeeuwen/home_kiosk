@@ -27,6 +27,7 @@ from .sources import (
     apple,
     backups,
     container_stats,
+    countdown,
     db_copy,
     docker,
     dumps,
@@ -44,7 +45,9 @@ from .sources import (
     nas,
     ns,
     outside_services,
+    photo,
     pipelines,
+    radar,
     spotlight,
     tailscale,
     ups,
@@ -78,6 +81,8 @@ PIPELINES_INTERVAL_SECONDS = 15  # a running pipeline moves fast; idle repos are
 DNS_INTERVAL_SECONDS = 60  # two local calls to AdGuard Home
 AIR_INTERVAL_SECONDS = 60  # one local WebSocket call; the Matter server keeps the sensor subscribed
 CALENDAR_INTERVAL_SECONDS = 300  # feeds at most every 15 min (agenda.FEED_EVERY)
+COUNTDOWN_INTERVAL_SECONDS = 3600
+RADAR_INTERVAL_SECONDS = 300  # Buienradar's frames come every 5 minutes
 MEDIA_INTERVAL_SECONDS = 60  # local calls to Sonarr and Radarr
 OVERVIEW_INTERVAL_SECONDS = 300  # watch stats and library counts move slowly
 TRAIN_INTERVAL_SECONDS = 120  # calls NS only between the watch start and departure
@@ -298,6 +303,46 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             seconds=CALENDAR_INTERVAL_SECONDS,
             args=[store, agenda.CACHE_KEY, lambda: agenda.collect(cfg, store)],
             id="calendar",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
+
+    if agenda.settings(cfg)["enabled"]:
+        # The countdowns (plan.md M27, K): a year ahead, so hourly is plenty.
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=COUNTDOWN_INTERVAL_SECONDS,
+            args=[store, countdown.CACHE_KEY, lambda: countdown.collect(cfg, store)],
+            id="countdown",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
+
+    if weather.settings(cfg)["enabled"]:
+        # The rain radar (plan.md M27, I): only fetched while rain is expected.
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=RADAR_INTERVAL_SECONDS,
+            args=[store, radar.CACHE_KEY, lambda: radar.collect(cfg, store)],
+            id="radar",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
+
+    if photo.settings(cfg)["enabled"]:
+        # The photo of the day (plan.md M27, E): each morning, and at start-up.
+        scheduler.add_job(
+            _run,
+            "cron",
+            hour=6,
+            minute=5,
+            args=[store, photo.CACHE_KEY, lambda: photo.collect(cfg, store)],
+            id="photo",
             next_run_time=None,
             max_instances=1,
             coalesce=True,

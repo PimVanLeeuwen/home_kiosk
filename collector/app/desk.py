@@ -33,7 +33,17 @@ from .desk_media import media_screen
 from .desk_money import money_screen
 from .desk_movers import movers_screen
 from .desk_nas import nas_screen
-from .desk_pieces import art_screen, night_screen, orbit_screen, sky_screen, year_screen
+from .desk_pieces import (
+    art_screen,
+    countdown_screen,
+    night_screen,
+    orbit_screen,
+    photo_screen,
+    radar_screen,
+    sky_screen,
+    week_screen,
+    year_screen,
+)
 from .desk_pipelines import house_pipelines
 from .desk_services import services_screen
 from .desk_sites import sites_screen
@@ -119,8 +129,8 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 
 
 NOW = (clock_screen, sky_screen, night_screen, briefing_screen, train_screen, agenda_screen,
-       day_screen, year_screen, _headlines)
-HOME = (lights_screen, air_screen, laundry_screen, apple_screen, art_screen)
+       countdown_screen, day_screen, week_screen, radar_screen, year_screen, _headlines)
+HOME = (lights_screen, air_screen, laundry_screen, apple_screen, photo_screen, art_screen)
 # Decided 2026-10-22: NAS first and Backups before Alerts, as in the mockup.
 HOUSE = (nas_screen, orbit_screen, code_screen, sites_screen, services_screen, tailnet_screen,
          money_screen, movers_screen, media_screen, backups_screen, alerts_screen)
@@ -133,9 +143,9 @@ ROTATES = {"now": True, "house": True, "test": True}
 # read 8 kB), and the screens left out first when an answer is too big for a board:
 # the pieces (plan.md M27) first, then the newest, the alerts last.
 ROOM = 8192
-DROP_FIRST = ("orbit", "art", "year", "night", "sky", "money", "media", "backups", "movers",
-              "tailnet", "services", "sites", "code", "nas", "pipelines", "headlines", "agenda",
-              "day", "apple", "laundry", "air")
+DROP_FIRST = ("orbit", "art", "year", "night", "sky", "countdown", "week", "radar", "photo",
+              "money", "media", "backups", "movers", "tailnet", "services", "sites", "code",
+              "nas", "pipelines", "headlines", "agenda", "day", "apple", "laundry", "air")
 
 
 def size(answer: dict[str, Any]) -> int:

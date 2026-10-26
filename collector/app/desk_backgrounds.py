@@ -27,6 +27,7 @@ from . import (
     paint_art,
     paint_clock,
     paint_code,
+    paint_countdown,
     paint_day,
     paint_headlines,
     paint_house,
@@ -34,8 +35,11 @@ from . import (
     paint_media,
     paint_night,
     paint_orbit,
+    paint_photo,
     paint_playing,
+    paint_radar,
     paint_sky,
+    paint_week,
     paint_year,
 )
 from .store import Store
@@ -75,6 +79,10 @@ PAINTERS: dict[str, tuple[Inputs, Painter]] = {
     "orbit": (paint_orbit.inputs, paint_orbit.paint_orbit),
     "code": (paint_code.inputs, paint_code.paint_code),
     "media": (paint_media.inputs, paint_media.paint_media),
+    "countdown": (paint_countdown.inputs, paint_countdown.paint_countdown),
+    "week": (paint_week.inputs, paint_week.paint_week),
+    "radar": (paint_radar.inputs, paint_radar.paint_radar),
+    "photo": (paint_photo.inputs, paint_photo.paint_photo),
     **{kind: (paint_house.inputs_for(kind), paint_house.paint_house)
        for kind in paint_house.SCREENS if kind not in ("code", "media")},
 }

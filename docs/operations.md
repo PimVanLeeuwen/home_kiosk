@@ -14,6 +14,10 @@ specific to that setup. The overview is in the [README](../README.md).
   container by `docker-compose.yml`: put it there before deploying, or the collector runs on the
   example (it logs which file it read). Feeds, services and alert settings are edited in the
   app afterwards; the file only seeds an empty database.
+- **The photo of the day** (Home panel, plan.md M27) reads Immich with the same
+  `IMMICH_API_KEY` as Immich's service tile: the key must be allowed to read memories, assets
+  and people (an admin key, or one with those permissions). Immich is reached on the
+  `widgets.host` at port 2283; set `photo.immich_url` in the config only if it lives elsewhere.
 - Senders on the NAS post to `http://<nas>:8000/api/notify` with the `X-Notify-Key` header
   (`NOTIFY_KEY`); see the nas-docker README, *Alerts*.
 

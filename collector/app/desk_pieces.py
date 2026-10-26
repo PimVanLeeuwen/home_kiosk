@@ -10,12 +10,13 @@ no #), lines (at most, cut with "..." after) and spacing (for the small capitals
 from __future__ import annotations
 
 import math
-from datetime import datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
 from .desk_clock import _local, _phase, clock_screen, condition
-from .sources import weather
+from .panel_text import latin1
+from .sources import countdown, forecast, photo, radar, weather
 from .store import Store
 
 GOLDEN = timedelta(hours=1)  # golden hour: the hour before sunset
@@ -187,4 +188,128 @@ def orbit_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
             caps(local.strftime("%a %-d %b"), 684, 24, width=300, align="right"),
         ],
         "clock": label("", 360, 662, width=300, font="28", align="centre", colour="c9c6d6"),
+    }
+
+
+def _days_word(n: int) -> str:
+    return f"{n} day{'s' if n != 1 else ''}"
+
+
+def countdown_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
+    """K, the countdown: the days to the nearest event marked "⏳" or "#countdown"."""
+    cached = store.get_cache(countdown.CACHE_KEY) or {}
+    today = now.astimezone(zone).date()
+    ahead = [e for e in cached.get("events") or [] if date.fromisoformat(e["date"]) >= today]
+    if not ahead:
+        return absent("countdown")
+    first = ahead[0]
+    day = date.fromisoformat(first["date"])
+    days = (day - today).days
+    labels = [
+        caps("Countdown", 36, 24, width=300),
+        caps(day.strftime("%a %-d %b"), 684, 24, width=300, align="right"),
+        label(latin1(first["title"]), 360, 528, font="40", align="centre", lines=2),
+    ]
+    if days == 0:
+        labels.append(label("Today", 360, 256, width=400, font="52", align="centre"))
+    else:
+        labels += [label(str(days), 360, 196, width=400, font="clock", align="centre"),
+                   label(f"day{'s' if days != 1 else ''} to", 360, 356, font="28",
+                         align="centre", colour="c9c6d6")]
+    if len(ahead) > 1:
+        then = ahead[1]
+        left = (date.fromisoformat(then["date"]) - today).days
+        labels.append(label(f"Then {latin1(then['title'])} in {_days_word(left)}", 360, 650,
+                            align="centre", colour="9a9fb8"))
+    return {"kind": "countdown", "stale": bool(cached.get("stale")), "present": True,
+            "days": days, "colour": first["colour"], "labels": labels}
+
+
+# The week view's columns and rows (paint_week draws the same).
+WEEK_LEFT, WEEK_COLUMN = 36, 648 / 7
+WEEK_TOP, WEEK_BOTTOM = 250, 470  # the warmest high and the coldest low
+
+
+def week_x(i: int) -> int:
+    return round(WEEK_LEFT + WEEK_COLUMN * (i + 0.5))
+
+
+def week_y(temp: float, warmest: float, coldest: float) -> int:
+    span = max(4.0, warmest - coldest)
+    return round(WEEK_TOP + (warmest - temp) / span * (WEEK_BOTTOM - WEEK_TOP))
+
+
+def week_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
+    """J, your week: seven days as columns, each from its low to its high, with its sky,
+    its chance of rain and a dot per event (the calendars' colours)."""
+    days = ((store.get_cache(forecast.CACHE_KEY) or {}).get("days") or [])[:7]
+    if len(days) < 7:
+        return absent("week")
+    week = store.get_cache(countdown.CACHE_KEY) or {}
+    colours = week.get("per_day_colours") or {}
+    warmest, coldest = max(d["high"] for d in days), min(d["low"] for d in days)
+    labels = [caps("Your week", 36, 24, width=300), caps("Open-Meteo", 684, 24, width=300,
+                                                         align="right", colour="6c6a78")]
+    for i, d in enumerate(days):
+        x = week_x(i)
+        name = "Today" if i == 0 else date.fromisoformat(d["date"]).strftime("%a")
+        labels += [
+            caps(name, x, 84, width=90, align="centre", colour="ffffff" if i == 0 else "9a9fb8"),
+            label(f"{round(d['high'])}°", x, 196, width=90, font="28", align="centre"),
+            label(f"{round(d['low'])}°", x, week_y(d["low"], warmest, coldest) + 12, width=90,
+                  align="centre", colour="9a9fb8"),
+            label(f"{d['rain_max']}%" if (d.get("rain_max") or 0) >= 20 else "", x, 548,
+                  width=90, align="centre", colour="9cc7fa"),
+        ]
+    return {
+        "kind": "week", "stale": bool((store.get_cache(forecast.CACHE_KEY) or {}).get("stale")),
+        "present": True, "warmest": warmest, "coldest": coldest,
+        "days": [{"high": round(d["high"], 1), "low": round(d["low"], 1), "code": d.get("code"),
+                  "events": colours.get(d["date"], [])} for d in days],
+        "labels": labels,
+    }
+
+
+def radar_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
+    """I, the rain radar: while rain is expected within two hours, Buienradar's radar round
+    home, the next two hours as bars and the Clock's rain line."""
+    cached = store.get_cache(radar.CACHE_KEY) or {}
+    if not radar.wet(store) or radar.FRAMES.rain is None or not cached.get("stamp"):
+        return absent("radar")
+    clock = clock_screen(store, zone, now)
+    frame = datetime.strptime(cached["stamp"], "%Y%m%d%H%M").replace(tzinfo=UTC)
+    labels = [
+        caps("Rain radar", 36, 24, width=300),
+        caps(f"Buienradar · {frame.astimezone(zone):%H:%M}", 684, 24, width=400, align="right"),
+        label(clock.get("rain_line") or "", 36, 556, font="28", colour="9cc0f0"),
+    ]
+    for i, text in enumerate((clock.get("rain_axis") or [])[:3]):
+        labels.append(label(text, [36, 360, 684][i], 670, width=200,
+                            align=["left", "centre", "right"][i], colour="9a9fb8"))
+    return {"kind": "radar", "stale": clock["stale"], "present": True,
+            "stamp": cached["stamp"], "home": cached.get("home") or [250, 256],
+            "rain": clock.get("rain") or [], "labels": labels}
+
+
+def photo_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
+    """E, the photo of the day: an "on this day" picture from Immich, on a frosted label
+    saying how long ago and who is in it."""
+    cached = store.get_cache(photo.CACHE_KEY) or {}
+    if not cached.get("asset") or photo.KEPT.picture is None:
+        return absent("photo")
+    if cached.get("taken", "")[5:] != now.astimezone(zone).date().isoformat()[5:]:
+        return absent("photo")  # yesterday's still, until this morning's is read
+    years = cached.get("years") or 0
+    taken = date.fromisoformat(cached["taken"])
+    people = cached.get("people") or []
+    line = taken.strftime("%-d %B %Y") + (f" · {', '.join(latin1(p) for p in people)}"
+                                         if people else "")
+    return {
+        "kind": "photo", "stale": bool(cached.get("stale")), "present": True,
+        "asset": cached["asset"],
+        "labels": [
+            label(f"{years} year{'s' if years != 1 else ''} ago today" if years else "Today",
+                  60, 584, width=600, font="40"),
+            label(line, 60, 636, width=600, colour="e6e3ef"),
+        ],
     }

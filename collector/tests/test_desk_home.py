@@ -138,7 +138,7 @@ def test_nothing_playing_leaves_the_favourites_and_what_played_last():
 def test_music_comes_first_and_last_on_home(store):
     kinds = [s["kind"] for s in desk.answer({"timezone": "Europe/Amsterdam"}, store, "home", NOW,
                                             music=MUSIC)["screens"]]
-    assert kinds == ["playing", "lights", "air", "laundry", "apple", "art", "music"]
+    assert kinds == ["playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
 
 
 @pytest.fixture
@@ -172,7 +172,7 @@ def music_panel(panel, store, monkeypatch):
 def test_the_home_board_gets_its_music_and_can_play_with_its_key(music_panel):
     client, calls = music_panel
     kinds = [s["kind"] for s in client.get(f"/api/desk/board/{MAC}").json()["screens"]]
-    assert kinds == ["playing", "lights", "air", "laundry", "apple", "art", "music"]
+    assert kinds == ["playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
     assert client.post("/api/desk/music/pause").json() == {"ok": True}
     assert client.post("/api/desk/music/favourite/2").json() == {"ok": True}
     assert calls == ["pause", "favourite 2"]

@@ -1,9 +1,10 @@
-"""Today's and tomorrow's weather by the hour, from Open-Meteo, for the Now
-panel's day view (plan.md M20).
+"""The weather by the hour for a week, from Open-Meteo: today and tomorrow for the Now
+panel's day view (plan.md M20), the whole week for the week view (plan.md M27, J).
 
     api.open-meteo.com/v1/forecast?latitude=..&longitude=..&hourly=temperature_2m,
         precipitation_probability&daily=temperature_2m_max,temperature_2m_min,
-        sunrise,sunset&timezone=Europe/Amsterdam&forecast_days=2
+        sunrise,sunset,weather_code,precipitation_probability_max&timezone=Europe/Amsterdam&
+        forecast_days=7
 
 Free, no key, open data (KNMI's and DWD's models for the Netherlands) under
 CC BY 4.0: the panel credits Open-Meteo. Only the coordinates of the weather
@@ -39,6 +40,8 @@ class Day(BaseModel):
     sunrise: str | None  # HH:MM, local
     sunset: str | None
     hours: list[Hour]
+    code: int | None = None       # WMO weather code: the day's sky (0 clear ... 95 thunder)
+    rain_max: int | None = None   # the day's highest chance of rain, percent
 
 
 class Forecast(Envelope):
@@ -47,6 +50,11 @@ class Forecast(Envelope):
 
 def _hhmm(value: str | None) -> str | None:
     return value[11:16] if value and len(value) >= 16 else None
+
+
+def _at(values: list[Any] | None, i: int) -> int | None:
+    value = values[i] if values and i < len(values) else None
+    return int(value) if value is not None else None
 
 
 def parse(answer: dict[str, Any]) -> list[Day]:
@@ -67,7 +75,9 @@ def parse(answer: dict[str, Any]) -> list[Day]:
         days.append(Day(date=date, high=high, low=low,
                         sunrise=_hhmm(daily.get("sunrise", [None] * (i + 1))[i]),
                         sunset=_hhmm(daily.get("sunset", [None] * (i + 1))[i]),
-                        hours=by_date.get(date, [])))
+                        hours=by_date.get(date, []),
+                        code=_at(daily.get("weather_code"), i),
+                        rain_max=_at(daily.get("precipitation_probability_max"), i)))
     return days
 
 
@@ -76,8 +86,9 @@ async def collect(cfg: dict[str, Any], transport: httpx.AsyncBaseTransport | Non
     w = weather.settings(cfg)
     params = {"latitude": w["lat"], "longitude": w["lon"],
               "hourly": "temperature_2m,precipitation_probability",
-              "daily": "temperature_2m_max,temperature_2m_min,sunrise,sunset",
-              "timezone": cfg.get("timezone", "UTC"), "forecast_days": 2}
+              "daily": "temperature_2m_max,temperature_2m_min,sunrise,sunset,weather_code,"
+                       "precipitation_probability_max",
+              "timezone": cfg.get("timezone", "UTC"), "forecast_days": 7}
     async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS, transport=transport) as http:
         resp = await http.get(URL, params=params)
         resp.raise_for_status()

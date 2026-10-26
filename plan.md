@@ -1390,6 +1390,24 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   second round the painted sun, the second with a tail). The pieces drop first from an answer
   too big for an old board. A painting over 150 kB is made again at a lower quality (the art
   came out at 197 kB, over the panel's 160 kB). Still to come: K, J, I, then E.
+- Step 4, second part, done 2026-10-26. K the countdown: `app/sources/countdown.py` reads the
+  shown calendars a year ahead hourly for "⏳" or "#countdown" in a title (and counts each of the
+  next seven days' events for J); the days left large in a ring of dots in the calendar's
+  colour, the next countdown below. J your week: the forecast now asks Open-Meteo for 7 days
+  with each day's sky and highest chance of rain (days 1 and 2 as before); seven columns from
+  low to high, a line through the highs, the sky as an icon, event dots, today on glass (pieces
+  take 32 labels since). I the rain radar: `app/sources/radar.py` fetches Buienradar's frame
+  every 5 minutes only while rain is coming, the map once a day; Buienradar's map restyled in
+  the panels' colours (its own bright green and navy did not fit), home placed by a fit on Den
+  Helder, Vlissingen and Groningen, the next two hours as bars. E the photo of the day:
+  `app/sources/photo.py` reads Immich's memories each morning, named people first, text-like
+  pictures left out (smart search ranks the day's pictures against "a screenshot, a receipt, a
+  document ..."; the most text-like third goes, and any picture without a camera); the picture
+  edge to edge with how long ago and who on frosted glass. Checked on a board with the real
+  week and radar; the countdown and the photo with made-up data (the Immich key is NAS-only).
+  Not done yet: the hub views of I, J, K and E (2026-10-13). Decided the same day: the week (J)
+  and the radar (I) become part of Q, the Weather page (step 6); the countdown (K) and the
+  photo (E) are Home cards, next.
 - Step 4 decisions (2026-10-26): K counts down to an event with a marker in its title ("⏳" or
   "#countdown", left out on the panel); I paints from Buienradar's own radar picture with its
   map, cropped round home (read-only, as the weather already is); E reads the Immich on the NAS
