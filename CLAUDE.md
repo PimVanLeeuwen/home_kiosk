@@ -246,6 +246,8 @@ python3 dashboard/serve.py
   frame, and whatever a moving object uncovers is redrawn. Grow shapes by their real size, keep
   them small, and draw big still lights once into a canvas (the takeover went from 6 to 30
   frames a second).
+- A new piece on the panels needs a `case` in `screens.c`'s presence switch beside the other
+  pieces, or its screen never joins the rotation (it falls through to the board's own screen check).
 - A change to a background painter (`app/paint_*.py`) must bump `desk_backgrounds.VERSION`, or
   the hub keeps serving the pictures it already painted.
 - Pillow's `Image.radial_gradient` reaches 181 halfway along an edge, not 255: scale by 181

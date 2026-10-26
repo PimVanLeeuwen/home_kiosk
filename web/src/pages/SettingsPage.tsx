@@ -8,6 +8,7 @@ import { FeedEditor } from '../components/settings/FeedEditor'
 import { LightsPlanEditor } from '../components/settings/LightsPlanEditor'
 import { MessageTemplates } from '../components/settings/MessageTemplates'
 import { MusicSettings } from '../components/settings/MusicSettings'
+import { RunningSettings } from '../components/settings/RunningSettings'
 import { ServiceCatalogEditor } from '../components/settings/ServiceCatalogEditor'
 import { SettingsNav, type SettingsNavItem } from '../components/settings/SettingsNav'
 import { SETTINGS_SECTIONS } from '../lib/settingsSections'
@@ -22,6 +23,7 @@ const ELEMENTS: Record<string, ReactElement> = {
   calendars: <CalendarsEditor />,
   music: <MusicSettings />,
   lights: <LightsPlanEditor />,
+  running: <RunningSettings />,
   'desk-panels': <DeskBoardsEditor />,
   messages: <MessageTemplates />,
   ai: <AiSettings />,

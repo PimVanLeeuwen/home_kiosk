@@ -12,10 +12,12 @@ from datetime import UTC, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import Response
 
-from . import running
-from .sources import runna, runs
+from . import paint_streets, running
+from .security import same_origin_json
+from .sources import runna, runs, streets
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/runs")
@@ -59,6 +61,48 @@ def overview(request: Request) -> dict[str, Any]:
     """Runs and plan together for the Running page and the Home card (plan.md M28)."""
     zone = ZoneInfo(request.app.state.config.get("timezone", "Europe/Amsterdam"))
     return running.overview(request.app.state.store, zone, datetime.now(UTC))
+
+
+@router.get("/streets")
+def streets_status(request: Request) -> dict[str, Any]:
+    """When the town's streets were fetched, and how many of each kind (Settings, Running)."""
+    return streets.status(request.app.state.store)
+
+
+@router.post("/streets", dependencies=[Depends(same_origin_json)])
+async def fetch_streets(request: Request) -> dict[str, Any]:
+    """Asks Overpass once for the streets round every run kept (plan.md M28, step 5)."""
+    store = request.app.state.store
+    points = [p for r in runs.routes(store, "1970-01-01T00:00:00+00:00") for p in r["route"]]
+    try:
+        return await streets.fetch(store, points)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from None
+    except Exception as exc:
+        log.warning("streets: Overpass failed: %s", type(exc).__name__)
+        raise HTTPException(
+            502, "OpenStreetMap's Overpass could not be reached; try again later.") from None
+
+
+_picture: dict[str, Any] = {"key": None, "jpeg": None}
+
+
+@router.get("/streets/picture")
+def streets_picture(request: Request) -> Response:
+    """Your streets for the Running page: this year's runs over the town, painted once per
+    change."""
+    store = request.app.state.store
+    zone = ZoneInfo(request.app.state.config.get("timezone", "Europe/Amsterdam"))
+    local = datetime.now(zone)
+    since = datetime(local.year, 1, 1, tzinfo=zone).astimezone(UTC).isoformat()
+    year = runs.routes(store, since, points=2)
+    if not year:
+        raise HTTPException(404, "No runs this year yet.")
+    key = (since, len(year), year[-1]["id"], streets.status(store)["fetched_at"])
+    if _picture["key"] != key:
+        _picture.update(key=key, jpeg=paint_streets.web_jpeg(store, since))
+    return Response(_picture["jpeg"], media_type="image/jpeg",
+                    headers={"Cache-Control": "private, max-age=300"})
 
 
 @router.get("/plan")

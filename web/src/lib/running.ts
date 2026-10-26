@@ -85,6 +85,8 @@ export interface RunningOverview {
   next: Session | null
   today: { ran: boolean; session: Session | null }
   race: Session | null
+  /** When the town's streets were fetched, for "Your streets"; null until asked for in Settings. */
+  streets_at?: string | null
 }
 
 /** "10,4" (km), with one decimal. */

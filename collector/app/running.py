@@ -9,7 +9,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from .sources import runna, runs
+from .sources import runna, runs, streets
 from .store import Store
 
 STREAK_RUNS = 3      # a week counts towards the streak with this many runs
@@ -111,4 +111,6 @@ def overview(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
         "today": {"ran": ran_today,
                   "session": next((s for s in sessions if s["date"] == today.isoformat()), None)},
         "race": plan.get("race"),
+        # When the town's streets were fetched (step 5); None until asked for in Settings.
+        "streets_at": streets.status(store)["fetched_at"],
     }

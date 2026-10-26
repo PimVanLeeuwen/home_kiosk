@@ -9,13 +9,14 @@ a plan or a run this week, C on the day before a session and on the day until it
 from __future__ import annotations
 
 import math
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from . import running
+from . import paint_streets, running
 from .desk_pieces import absent, caps, label
 from .panel_text import latin1
+from .sources import streets
 from .store import Store
 
 # A: where the route is drawn (the painter and the light share it).
@@ -114,7 +115,7 @@ def run_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
              if route else [])
     path = [[round(x), round(y)] for x, y in project(picks, ROUTE_BOX)]
     return {"kind": "run", "stale": False, "present": True, "id": last["id"], "path": path,
-            "labels": labels}
+            "streets_at": (streets.kept(store) or {}).get("fetched_at"), "labels": labels}
 
 
 def runweek_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
@@ -166,3 +167,29 @@ def session_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any
         labels.append(label(latin1(step), 36, 576 + i * 36, width=648, colour="9a9fb8"))
     return {"kind": "session", "stale": bool(view["stale"]), "present": True,
             "blocks": nxt.get("blocks", []), "labels": labels}
+
+
+def streets_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
+    """D: the year's routes over the town, every turn while there are runs this year."""
+    local = now.astimezone(zone)
+    since = datetime(local.year, 1, 1, tzinfo=zone).astimezone(UTC).isoformat()
+    year, bounds = paint_streets.year_lines(store, since)
+    if not year or bounds is None:
+        return absent("streets")
+    newest = year[-1]
+    today = (newest["id"] if datetime.fromisoformat(newest["start"]).astimezone(zone).date()
+             == local.date() else None)
+    totals = running.overview(store, zone, now)["totals"]
+    total = f"{totals['runs_this_year']} runs · {round(totals['year_m'] / 1000)} km"
+    labels = [caps(f"Your streets · {local.year}", 36, 24, width=360),
+              caps(total, 684, 24, width=320, align="right")]
+    path: list[list[int]] = []
+    if today:
+        frame = paint_streets.Frame(bounds, paint_streets.MAP_BOX)
+        route = newest["route"]
+        step = max(1, len(route) / PATH_POINTS)
+        picks = [route[min(len(route) - 1, round(i * step))] for i in range(PATH_POINTS)]
+        path = [[round(x), round(y)] for x, y in (frame.xy(*p) for p in picks)]
+    return {"kind": "streets", "stale": False, "present": True, "since": since,
+            "count": len(year), "newest": newest["id"], "today_run": today, "path": path,
+            "streets_at": (streets.kept(store) or {}).get("fetched_at"), "labels": labels}

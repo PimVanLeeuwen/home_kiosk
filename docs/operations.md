@@ -31,6 +31,10 @@ specific to that setup. The overview is in the [README](../README.md).
   Devices, Connect Calendar, copy the feed's address into `RUNNA_ICS_URL` in `.env` (a
   `webcal://` address is fine) and keep `running.runna_feed` in the NAS's config. The hub reads
   it hourly; the address is a secret and never shows in the logs or the hub's answers.
+- **Your streets** (M28): the town's streets under the runs are fetched once, from Settings,
+  Running, "Fetch the streets": one request to OpenStreetMap's public Overpass service for a box
+  round all the runs kept (it tells Overpass the area you run in; nothing else is sent). Fetch
+  them again only after running somewhere new. Until then the routes are drawn on their own.
 - Senders on the NAS post to `http://<nas>:8000/api/notify` with the `X-Notify-Key` header
   (`NOTIFY_KEY`); see the nas-docker README, *Alerts*.
 

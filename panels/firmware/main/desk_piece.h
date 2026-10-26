@@ -11,12 +11,12 @@
 
 enum {
     PIECE_SKY, PIECE_NIGHT, PIECE_YEAR, PIECE_WEEK, PIECE_RADAR, PIECE_COUNTDOWN, PIECE_ART, PIECE_PHOTO, PIECE_ORBIT,
-    PIECE_RUN, PIECE_RUNWEEK, PIECE_SESSION, /* plan.md M28: the last run, the week, the next session */
+    PIECE_RUN, PIECE_RUNWEEK, PIECE_SESSION, PIECE_STREETS, /* plan.md M28: A, B, C and D */
     PIECES
 };
 
 #define PIECE_LABELS 32 /* the week alone has 30 */
-#define PIECE_PATH 64   /* the last run's route, for the light that runs it */
+#define PIECE_PATH 64   /* a run's route, for the light that runs it (A, and D on a run day) */
 
 enum { PIECE_LEFT, PIECE_CENTRE, PIECE_RIGHT };
 

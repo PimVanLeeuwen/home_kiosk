@@ -1580,6 +1580,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the runs poured in, each day's run in miniature above it. C: the session's name, distance and
   time, its blocks lit from above in a glass floor, and the first three steps. Checked on a
   board with made-up runs (PR screenshots never show a real route).
+- Step 5 done 2026-10-26: your streets. Decided the same day: the hub fetches the town's streets
+  itself, once, when asked in Settings, Running (one request to OpenStreetMap's public Overpass
+  for a box round all the runs, with a margin, at most about 40 km across; the owner accepts
+  that it tells Overpass the area the runs are in), and D shows on the Now panel every turn
+  while there are runs this year, and on the Running page. Kept: only the shapes (roads by size,
+  water, parks), no names or tags (`app/sources/streets.py`). D: the town at night, every route
+  of the year added up as light so the streets run most glow from ember to white-hot, today's
+  run traced on top with the panel's light running it (`app/paint_streets.py`). A gets the
+  streets under its route, placed exactly as the route and the light are. The Running page has a
+  "Your streets" card, painted by the hub (`/api/runs/streets/picture`).
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28.

@@ -73,7 +73,7 @@ LV_FONT_DECLARE(instrument_24);
 #define DARKEN 165 /* how much the dark layer takes away, of 255 */
 
 /* In the order they turn; the pieces (plan.md M27) where they belong among the others. */
-enum { CLOCK, SKY, NIGHT, BRIEFING, TRAIN, AGENDA, COUNTDOWN, RUN, RUNWEEK, SESSION, DAY, WEEK, RADAR, YEAR, HEADLINES, PLAYING, LIGHTS,
+enum { CLOCK, SKY, NIGHT, BRIEFING, TRAIN, AGENDA, COUNTDOWN, RUN, RUNWEEK, SESSION, STREETS, DAY, WEEK, RADAR, YEAR, HEADLINES, PLAYING, LIGHTS,
        AIR, LAUNDRY, APPLE, PHOTO, ART, MUSIC, PIPELINE, PIPELINES, NAS, ORBIT, CODE, SITES, SERVICES, TAILNET, MONEY,
        MOVERS, MEDIA, BACKUPS, ALERTS, BOARD, START, COUNT };
 
@@ -82,6 +82,7 @@ static const int PIECE_SCREEN[PIECES] = {
     [PIECE_SKY] = SKY,   [PIECE_NIGHT] = NIGHT, [PIECE_YEAR] = YEAR, [PIECE_WEEK] = WEEK,
     [PIECE_RADAR] = RADAR, [PIECE_COUNTDOWN] = COUNTDOWN, [PIECE_ART] = ART, [PIECE_PHOTO] = PHOTO,
     [PIECE_ORBIT] = ORBIT, [PIECE_RUN] = RUN, [PIECE_RUNWEEK] = RUNWEEK, [PIECE_SESSION] = SESSION,
+    [PIECE_STREETS] = STREETS,
 };
 
 static lv_obj_t *screens[COUNT];
@@ -162,6 +163,7 @@ static bool ready(int which)
     case RUN:
     case RUNWEEK:
     case SESSION:
+    case STREETS:
         for (int p = 0; p < PIECES; p++) {
             if (PIECE_SCREEN[p] == which) {
                 return desk_has_piece(p);

@@ -11,10 +11,10 @@ from typing import Any
 
 from PIL import Image, ImageDraw
 
-from . import paint
+from . import paint, paint_streets
 from .desk_running import ROUTE_BOX, project
 from .paint import SIZE, SS, Colour, mix
-from .sources import runs
+from .sources import runs, streets
 
 COOL: Colour = (94, 140, 255)
 WARM: Colour = (255, 168, 92)
@@ -22,7 +22,9 @@ HOT: Colour = (255, 244, 222)
 
 
 def inputs(screen: dict[str, Any], local: datetime) -> dict[str, Any] | None:
-    return {"id": screen["id"]} if screen.get("present") else None
+    if not screen.get("present"):
+        return None
+    return {"id": screen["id"], "streets": screen.get("streets_at")}
 
 
 def pace_colour(pace: float | None, slowest: float, fastest: float) -> Colour:
@@ -46,6 +48,13 @@ def paint_run(data: dict[str, Any], store: Any) -> Image.Image | None:
     base = paint.vertical(SIZE, [(0, (6, 6, 12)), (0.45, (10, 9, 20)), (1, (4, 4, 8))])
     paint.glow(base, 360, 520, 420, (60, 50, 110), 0.25, power=1.8)
     route = run["route"]
+    found = streets.kept(store)
+    if found and len(route) >= 2:
+        # The town under the route, placed exactly as the route (and the panel's light) are.
+        lats, lons = [p[0] for p in route], [p[1] for p in route]
+        frame = paint_streets.Frame((min(lats), min(lons), max(lats), max(lons)), ROUTE_BOX,
+                                    fit=True)
+        base = paint_streets.town(base, found["shapes"], frame, strength=0.85)
     if len(route) >= 2:
         xy = project(route, ROUTE_BOX)
         slowest, fastest = pace_range(route)

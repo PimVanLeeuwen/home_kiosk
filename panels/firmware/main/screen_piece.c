@@ -9,8 +9,9 @@
  * The countdown (K) sends sparks streaming out of the hub's painted tunnel: from its core,
  * the day, towards you, faster and bigger as they come, 25 steps a second.
  *
- * The last run (plan.md M28, A) has a light running its route, from the hub's `path`: a lap of
- * six seconds with a short tail, then a breath, 25 steps a second. */
+ * The last run (plan.md M28, A), and your streets (D) on a run day, have a light running the
+ * route, from the hub's `path`: a lap of six seconds with a short tail, then a breath, 25 steps
+ * a second. */
 
 #include "screen_piece.h"
 
@@ -268,7 +269,7 @@ void screen_piece_create(lv_obj_t *screen, int which)
         }
         lv_timer_create(sparks, SPARK_MS, p);
     }
-    if (which == PIECE_RUN) { /* under the words, as the sparks */
+    if (which == PIECE_RUN || which == PIECE_STREETS) { /* under the words, as the sparks */
         for (int k = RUN_TAIL; k >= 0; k--) {
             p->runner[k] = k ? body(screen, 9 - k, 0xffd2a0, 0) : body(screen, 14, 0xfff4de, 200);
             if (k) {

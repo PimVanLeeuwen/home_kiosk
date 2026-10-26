@@ -1,6 +1,7 @@
 import { PageHeader } from '../components/PageHeader'
 import { RouteArt } from '../components/running/RouteArt'
 import { SessionShape } from '../components/running/SessionShape'
+import { StreetsCard } from '../components/running/StreetsCard'
 import { WeekColumns } from '../components/running/WeekColumns'
 import { Card, Surface } from '../components/ui/Card'
 import { Pill } from '../components/ui/Pill'
@@ -151,6 +152,7 @@ export function RunningPage() {
               </Card>
             </div>
           </div>
+          <StreetsCard data={data} />
           {data.stale && <StaleNote>Runna's plan is the last one read.</StaleNote>}
         </>
       )}

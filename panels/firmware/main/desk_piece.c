@@ -12,7 +12,8 @@
 #include "freertos/semphr.h"
 
 static const char *NAMES[PIECES] = {"sky",   "night", "year", "week",    "radar",  "countdown",
-                                     "art",   "photo", "orbit", "run", "runweek", "session"};
+                                     "art",   "photo", "orbit", "run", "runweek", "session",
+                                     "streets"};
 static const char *FONTS[] = {"24", "28", "40", "52", "clock", "digits"};
 
 EXT_RAM_BSS_ATTR static desk_piece_t state[PIECES], next[PIECES];

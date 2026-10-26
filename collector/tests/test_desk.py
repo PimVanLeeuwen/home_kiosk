@@ -30,10 +30,10 @@ def test_the_now_panel_gets_its_clock_and_the_hubs_time(store):
     answer = desk.answer(CFG, store, "now", NOW)
 
     assert answer["time"] == {"epoch": NOW.timestamp(), "utc_offset": 7200}
-    (clock, sky, night, briefing, train, calendar, countdown, run, runweek, session, day, week,
-     radar, year, news) = answer["screens"]
+    (clock, sky, night, briefing, train, calendar, countdown, run, runweek, session, streets, day,
+     week, radar, year, news) = answer["screens"]
     # No runs and no plan in this house: the run screens stay out of the rotation.
-    assert [s["present"] for s in (run, runweek, session)] == [False, False, False]
+    assert [s["present"] for s in (run, runweek, session, streets)] == [False] * 4
     assert news == {"kind": "headlines", "stale": False, "present": False}
     assert calendar == {"kind": "agenda", "stale": False, "present": False}
     assert train == {"kind": "train", "stale": False, "present": False}
@@ -178,7 +178,7 @@ def test_an_assigned_board_gets_its_panels_screens(store):
     assert answer["name"] == "now"
     kinds = [s["kind"] for s in answer["screens"]]
     assert kinds == ["clock", "sky", "night", "briefing", "train", "agenda", "countdown", "run",
-                     "runweek", "session", "day", "week", "radar", "year", "headlines"]
+                     "runweek", "session", "streets", "day", "week", "radar", "year", "headlines"]
 
 
 def test_a_new_panel_without_data_shows_its_art_not_its_board(store):

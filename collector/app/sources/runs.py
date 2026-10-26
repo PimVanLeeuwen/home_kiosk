@@ -320,3 +320,14 @@ def since(store: Store, start: str) -> list[dict[str, Any]]:
         rows = conn.execute("SELECT * FROM run WHERE start >= ? ORDER BY start DESC",
                             (start,)).fetchall()
     return [_summary(r) for r in rows]
+
+
+def routes(store: Store, start: str, points: int = 200) -> list[dict[str, Any]]:
+    """The routes of every run from `start` (ISO, UTC) on, oldest first, thinned to `points`:
+    {id, start, route: [[latitude, longitude], ...]}."""
+    ensure_tables(store)
+    with store.connect() as conn:
+        rows = conn.execute("SELECT id, start, route FROM run WHERE start >= ? AND route != '[]' "
+                            "ORDER BY start", (start,)).fetchall()
+    return [{"id": r["id"], "start": r["start"],
+             "route": simplified(json.loads(r["route"]), points)} for r in rows]

@@ -43,3 +43,23 @@ test('Running shows the last run and the next session, and Home has the card on 
   await expect(page.getByRole('region', { name: 'Next: today, Threshold Intervals' })).toBeVisible()
   await expect(page.getByText('Run today')).toBeVisible()
 })
+
+test('The streets are fetched once in Settings and show under the year on the Running page', async ({ page }) => {
+  let fetched: string | null = null
+  const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
+  await page.route('**/api/runs/streets', (r) => {
+    if (r.request().method() === 'POST') fetched = new Date().toISOString()
+    return r.fulfill({ json: { fetched_at: fetched, counts: fetched ? { major: 4, minor: 30, path: 10, water: 1, park: 2 } : {} } })
+  })
+  await page.route('**/api/runs/streets/picture*', (r) => r.fulfill({ body: PNG, contentType: 'image/png' }))
+  await page.route('**/api/runs/overview', (r) => r.fulfill({ json: { ...OVERVIEW, streets_at: fetched } }))
+
+  await page.goto('/settings/running')
+  await page.getByRole('button', { name: 'Fetch the streets' }).click()
+  await expect(page.getByText(/44 streets and paths, 1 waters, 2 parks/)).toBeVisible()
+
+  await page.goto('/running')
+  const card = page.getByRole('region', { name: /Your streets/ })
+  await expect(card).toContainText('90 runs · 900 km')
+  await expect(card.getByRole('img')).toBeVisible()
+})
