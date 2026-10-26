@@ -155,7 +155,9 @@ export function CommandPalette({ open, onClose }: Props) {
     <dialog
       ref={dialog}
       aria-label="Search the hub"
-      onClose={onClose}
+      // The browser sends `close` a moment after the dialog closes; one that arrives after it
+      // has opened again (a new tab kept this page in the background) is not a close.
+      onClose={() => dialog.current?.open || onClose()}
       // A click on the backdrop lands on the dialog itself.
       onClick={(e) => e.target === dialog.current && onClose()}
       className="m-auto mt-[10vh] w-[min(640px,calc(100%-2rem))] max-w-none overflow-hidden rounded-[16px] border border-line bg-card p-0 text-fg shadow-[0_24px_80px_rgb(0_0_0/0.55)] backdrop:bg-black/55 backdrop:backdrop-blur-sm open:motion-safe:animate-rise"

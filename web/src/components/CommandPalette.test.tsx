@@ -30,6 +30,19 @@ describe('CommandPalette', () => {
     expect(palette().open).toBe(false)
   })
 
+  it('stays open when a close from before it opened again arrives late', () => {
+    renderRoute('/')
+    openWithKeys()
+    openWithKeys()
+    openWithKeys()
+    expect(palette().open).toBe(true)
+
+    act(() => {
+      palette().dispatchEvent(new Event('close'))
+    })
+    expect(palette().open).toBe(true)
+  })
+
   it('opens from the sidebar and the phone’s search button', () => {
     renderRoute('/')
 
