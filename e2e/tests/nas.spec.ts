@@ -21,7 +21,7 @@ test('the NAS page shows live figures, pools and disks', async ({ page, isMobile
   await page.route('**/api/nas/history', (route) => route.fulfill({ json: HISTORY }))
   await page.goto('/')
 
-  // On the phone NAS sits under More (the tab bar is Home, News, Portfolio and Services).
+  // On the phone NAS sits under More (the tab bar is Home, News, Portfolio and Recipes).
   if (isMobile) {
     await page.locator('nav.fixed').getByRole('link', { name: 'More' }).click()
     await page.getByRole('main').getByRole('link', { name: /^NAS/ }).click()

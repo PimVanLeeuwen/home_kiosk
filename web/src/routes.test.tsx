@@ -36,6 +36,7 @@ describe('routes', () => {
       'NAS',
       'Docker',
       'Backups',
+      'Services',
       'Media',
       'Tailscale',
       'Repos',

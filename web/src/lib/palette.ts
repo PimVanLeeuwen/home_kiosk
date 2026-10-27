@@ -1,17 +1,19 @@
-import { Box, FileText, FolderGit2, LayoutGrid, Lightbulb, LightbulbOff, Pause, Play, SkipForward, type LucideIcon } from 'lucide-react'
+import { Box, CookingPot, FileText, FolderGit2, LayoutGrid, Lightbulb, LightbulbOff, Pause, Play, SkipForward, type LucideIcon } from 'lucide-react'
 import { fold, fuzzyScore } from './fuzzy'
 import { iconUrl } from './icons'
 import { serviceHref } from './links'
 import { NAV_ITEMS } from './navigation'
 import { SETTINGS_SECTIONS } from './settingsSections'
 import { formatDate } from './format'
+import { duration } from './recipes'
+import type { RecipeList } from './recipeTypes'
 import type { DockerOverview, DocumentSearch, Hosts, ReposResponse, ServicesResponse } from './types'
 
 /** Something the command palette can go to. */
 export interface PaletteItem {
   /** Stable across visits: recent choices are kept by it. */
   id: string
-  group: 'Actions' | 'Pages' | 'Settings' | 'Services' | 'Repos' | 'Containers' | 'Documents'
+  group: 'Actions' | 'Pages' | 'Settings' | 'Services' | 'Recipes' | 'Repos' | 'Containers' | 'Documents'
   label: string
   /** A short line beside the label. */
   hint?: string
@@ -135,6 +137,7 @@ export interface PaletteData {
   repos?: ReposResponse
   docker?: DockerOverview
   hosts?: Hosts
+  recipes?: RecipeList
 }
 
 /**
@@ -142,7 +145,7 @@ export interface PaletteData {
  * containers, whose logs open in Dozzle (its /show?name= page finds the newest
  * container of that name). Containers only when Dozzle is in the catalog.
  */
-export function dataItems({ services, repos, docker, hosts }: PaletteData, pageHost: string): PaletteItem[] {
+export function dataItems({ services, repos, docker, hosts, recipes }: PaletteData, pageHost: string): PaletteItem[] {
   const all = services?.groups.flatMap((g) => g.services) ?? []
   const serviceRows = all
     .filter((s) => s.url || s.port)
@@ -189,7 +192,20 @@ export function dataItems({ services, repos, docker, hosts }: PaletteData, pageH
         }),
       )
     : []
-  return [...serviceRows, ...repoRows, ...containerRows]
+  const recipeRows = (recipes?.recipes ?? []).map((r): PaletteItem => {
+    const time = (r.times.prep_min ?? 0) + (r.times.cook_min ?? 0)
+    return {
+      id: `recipe:${r.id}`,
+      group: 'Recipes',
+      label: r.title,
+      hint: ['Recipe', time > 0 && duration(time), r.needs_review && 'needs review'].filter(Boolean).join(' · '),
+      keywords: ['recipe recept', ...r.tags].join(' '),
+      icon: CookingPot,
+      to: `/recipes/${encodeURIComponent(r.id)}`,
+      searchOnly: true,
+    }
+  })
+  return [...serviceRows, ...recipeRows, ...repoRows, ...containerRows]
 }
 
 /** Typed letters before the palette asks Paperless, and the pause in typing it waits for. */

@@ -15,6 +15,7 @@ import { NewsPage } from './pages/NewsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PortfolioPage } from './pages/PortfolioPage'
 import { PageError } from './pages/PageError'
+import { RecipesPage } from './pages/RecipesPage'
 import { ReposPage } from './pages/ReposPage'
 import { RunningPage } from './pages/RunningPage'
 import { SavedPage } from './pages/SavedPage'
@@ -43,6 +44,7 @@ const PAGES: Record<string, ReactElement> = {
   '/portfolio': <PortfolioPage />,
   '/tailscale': <TailscalePage />,
   '/media': <MediaPage />,
+  '/recipes': <RecipesPage />,
 }
 
 export const BUILT_ROUTES = Object.keys(PAGES)

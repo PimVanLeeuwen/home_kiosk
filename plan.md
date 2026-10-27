@@ -1776,9 +1776,19 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   are stored here already (step 4 adds uploads): a WebP lead at most 900 px wide and a 240 px
   square in `recipe_photo`, served at `/api/recipes/{id}/photo/{lead|thumb}`, with a `photo`
   stamp in the list and the recipe for the address.
-- Step 3 (web): the Recipes list, phone first: photo cards, a search field on titles, tag chips
-  as filters, a "Needs review" badge and filter, Paste JSON and Copy all. The tab bar and
-  sidebar change; the command palette lists recipes.
+- Step 3 (done 2026-10-27, `web/src/pages/RecipesPage.tsx`, `components/recipes/`): the
+  Recipes list, phone first. A row per recipe on the phone (a 88 px square photo, or the first
+  letter on a dark tile), photo cards four across on a wide screen; prep time in violet and cook
+  time in amber (`--color-cook`); tags and a "Needs review" pill. A title search (every word,
+  accents ignored) and chips: All, each tag by how often it is used, and "Needs review" while any
+  are left. Paste JSON and Copy all as buttons on a wide screen, in a menu on the phone. Paste
+  JSON is a sheet (a dialog on a wide screen): the hub checks the JSON a moment after typing
+  stops and shows its faults by path, or per recipe new, unchanged or what it replaces with the
+  changes; Save sends it with `replace`, as the summary is the yes. Copy all copies `/export`
+  through a ClipboardItem promise (Safari only copies inside the tap), with `writeText` and the
+  old `execCommand` for plain http. Recipes is the fourth tab on the phone (Services moved to
+  More) and has a Kitchen group in the sidebar; the command palette finds recipes by title or
+  tag. The cards open `/recipes/{id}`, which step 4 builds.
 - Step 4 (web): the recipe page: photo, servings stepper (amounts scale, shown as ½ and ¼ and
   rounded grams), "To get" and "Check" lists, the phases with the prep to cook line, Copy JSON,
   Paste JSON (replace), add or change the photo (resized in the browser and sent as JSON, so the

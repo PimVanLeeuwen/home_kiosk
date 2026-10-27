@@ -26,7 +26,7 @@ interface Props {
 /** How long a done action's line stays before the palette closes. */
 const CLOSE_AFTER_MS = 900
 
-const SOURCES = { services: '/api/services', repos: '/api/repos', docker: '/api/docker', hosts: '/api/hosts' } as const
+const SOURCES = { services: '/api/services', recipes: '/api/recipes', repos: '/api/repos', docker: '/api/docker', hosts: '/api/hosts' } as const
 
 /**
  * The palette's data, asked for each time it opens (not on every page load). A

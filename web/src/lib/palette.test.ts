@@ -84,6 +84,16 @@ const DATA: PaletteData = {
 }
 
 describe('palette data rows', () => {
+  it('opens a recipe in the hub, with its total time', async () => {
+    const { RECIPES } = await import('../test/recipeFixtures')
+    const rows = dataItems({ recipes: RECIPES }, 'nas').filter((r) => r.group === 'Recipes')
+
+    expect(rows.map((r) => r.label)).toEqual(['Crème brûlée', 'Kip shoarma uit de oven', 'Dal met spinazie'])
+    expect(rows[0]).toMatchObject({ to: '/recipes/cr%C3%A8me-brulee', hint: 'Recipe · 4 h 40 min', searchOnly: true })
+    expect(rows[2].hint).toBe('Recipe · 15 min · needs review')
+    expect(search(rows, 'vega', []).map((r) => r.item.label)).toEqual(['Dal met spinazie'])
+  })
+
   it('links services as their tiles do, external links as they are', () => {
     const rows = dataItems(DATA, '192.168.1.10')
     const jellyfin = rows.find((r) => r.id === 'service:jellyfin')!

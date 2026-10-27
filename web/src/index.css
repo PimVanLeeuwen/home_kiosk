@@ -41,6 +41,8 @@
   --color-data-mint: #7fe0b0;
   --color-data-lavender: #c3b9ff;
   --color-data-amber: #f0bd5a;
+  /* Recipes: cook phases and the heat (prep phases are accent-fg). */
+  --color-cook: #f0a35a;
 
   /*
    * The type scale: every text size in the hub is one of these (text-label,
