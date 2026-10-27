@@ -22,6 +22,7 @@ from pydantic import BaseModel
 
 from . import ai
 from .alerts import core, rules, templates
+from .portfolio import notes as market_notes
 from .portfolio import report
 from .portfolio.moves import day_move
 from .store import Store
@@ -187,10 +188,12 @@ def house(cfg: dict[str, Any], store: Store, now: datetime) -> list[Item]:
     return out
 
 
-def markets(cfg: dict[str, Any], store: Store, now: datetime) -> dict[str, Any]:
+def markets(cfg: dict[str, Any], store: Store, now: datetime,
+            notes: dict[str, str] | None = None) -> dict[str, Any]:
     """The Markets section (M29 step 3), from the hub's own portfolio data and
     never sent to Claude: the last session's move with amounts, the best and
-    worst holding, the indices, and every holding for the folded table."""
+    worst holding, the indices, why the big movers moved (`notes`, by ticker,
+    step 4), and every holding for the folded table."""
     portfolio = store.get_cache("portfolio") or {}
     holdings = sorted(portfolio.get("holdings") or [],
                       key=lambda h: h.get("day_pct") or 0.0, reverse=True)
@@ -214,6 +217,7 @@ def markets(cfg: dict[str, Any], store: Store, now: datetime) -> dict[str, Any]:
     if indices:
         lines.append(("Indices", ", ".join(f"{q['label']} {report._pct(q['day_pct'])}"
                                            for q in indices)))
+    lines += list((notes or {}).items())
     return {
         "markets": "Markets · last session",
         "market_lines": [{"label": label, "text": text} for label, text in lines],
@@ -281,6 +285,15 @@ def overnight(held: list[dict[str, Any]], shown: frozenset[str] = frozenset()) -
         for m in named[:core.DIGEST_LIMIT]]}
 
 
+async def _notes(cfg: dict[str, Any], store: Store, now: datetime,
+                 claude: ai.ClientFactory | None) -> dict[str, str]:
+    portfolio = store.get_cache("portfolio") or {}
+    if portfolio.get("total_value") is None:
+        return {}
+    return await market_notes.notes(cfg, store, portfolio, store.get_cache("indices"), now,
+                                    claude)
+
+
 async def run(cfg: dict[str, Any], store: Store, now: datetime | None = None,
               claude: ai.ClientFactory | None = None, telegram: Any = None) -> Briefing | None:
     """Make today's briefing, keep it for the panel and Home, and send it to Telegram.
@@ -305,7 +318,8 @@ async def run(cfg: dict[str, Any], store: Store, now: datetime | None = None,
     shown = frozenset(text for _, text in the_house)
     sent = templates.message(store, "briefing", {
         "day": f"{local:%A}", "paragraph": briefing.paragraph} | sections
-        | markets(cfg, store, now) | overnight(held, shown))
+        | markets(cfg, store, now, await _notes(cfg, store, now, claude))
+        | overnight(held, shown))
     # 06:30 is still quiet hours; the digest is wanted then, like the train.
     logged = await core.notify(store, cfg, source="briefing", category="briefing",
                                severity="info", title=sent.title, body=sent.body,

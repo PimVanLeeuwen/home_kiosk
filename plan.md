@@ -1660,9 +1660,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the section is left out. Templates now take `<blockquote>` and `<blockquote expandable>`;
   an empty quote line drops out, and a section left out leaves one blank line, not two. The
   Settings preview shows quotes open.
-- Step 4: market notes (switch "Market notes"): Claude gets the tickers, their % moves and the
-  headlines that name them, and writes a short why for each big mover (threshold open), in the
-  briefing's Markets section and in the 08:30 and 18:30 Portfolio reports.
+- Step 4 (done 2026-10-27, `app/portfolio/notes.py`, switch "Market notes", off until switched
+  on): why the big movers moved. Decided the same day: the two holdings that moved most in the
+  last session, each by more than 1% either way. Haiku gets their ticker, Ghostfolio's name and
+  move in % (never amounts), the indices' moves and every feed's headlines of the last 24 hours
+  (at most 120, title and first line), and matches them itself (a ticker or company name alone
+  misses "chipmaker" or Dutch headlines). One sentence per mover, from those only, or "No news
+  in your feeds explains it." In the briefing's Markets section after the indices ("NVDA ·
+  ..."), and under the table in the 08:30 and 18:30 Portfolio reports (template "Portfolio
+  report: market note"). Each run asks again, as the headlines change; a few cents a month.
 - Step 5: top news: the top three grouped stories from the `stories` cache, each with its
   sentence, a link and its number of sources; no new AI call.
 - Step 6: Telegram buttons under the briefing through the bot (callback queries): "Full

@@ -292,7 +292,7 @@ CATALOG: dict[str, Template] = {
     "portfolio_report": _msg(
         REPORTS, "Portfolio report", "The weekday morning and evening report.",
         "<b>{title}</b> · {when}\n<b>{total}</b>  {change} ({change_pct}) today\n"
-        "<pre>{holdings}\n\n{indices}</pre>\n{stale_note}",
+        "<pre>{holdings}\n\n{indices}</pre>\n{notes}\n{stale_note}",
         "portfolio", "info",
         {"title": ("Morning report or Evening report", "Morning report"),
          "when": ("Date and time", "Mon 05 Oct, 08:30"), "total": ("Total value", "€ 9.119"),
@@ -304,9 +304,19 @@ CATALOG: dict[str, Template] = {
          "indices": ("One row per index, in the same table", [
              {"label": "S&P 500", "pct": "+0,52%"},
              {"label": "AEX    ", "pct": "+0,31%"}]),
+         "notes": ("Why the big movers moved, one line each (AI, Market notes)", [
+             {"symbol": "VWRL", "note": "Rose with world markets as US inflation came in "
+                                        "lower than expected."}]),
          "stale_note": ("Only when Ghostfolio is not answering", [])},
         {"holdings": Block("portfolio_holding"), "indices": Block("portfolio_index"),
-         "stale_note": Block("portfolio_stale")}),
+         "notes": Block("portfolio_note"), "stale_note": Block("portfolio_stale")}),
+    "portfolio_note": _line(
+        REPORTS, "Portfolio report: market note",
+        "Why a big mover moved (more than 1%, at most two), from the news feeds (AI).",
+        "<i>{symbol}</i> · {note}", "portfolio_report",
+        {"symbol": ("Ticker", "VWRL"),
+         "note": ("Claude's sentence",
+                  "Rose with world markets as US inflation came in lower than expected.")}),
     "portfolio_holding": _line(
         REPORTS, "Portfolio report: holding row",
         "One table row per holding, best first. The values are padded to line up.",

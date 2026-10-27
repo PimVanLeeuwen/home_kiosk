@@ -21,6 +21,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from ..alerts import core, templates
 from ..store import Store
+from . import notes as market_notes
 from .moves import day_move
 
 log = logging.getLogger(__name__)
@@ -77,8 +78,10 @@ def _table(holdings: list[dict[str, Any]], indices: list[dict[str, Any]]) -> tup
 
 
 def build(portfolio: dict[str, Any], indices: dict[str, Any] | None, cfg: dict[str, Any],
-          now: datetime, store: Store | None = None) -> tuple[str, str]:
-    """The report as (title, Telegram HTML), worded by the saved templates."""
+          now: datetime, store: Store | None = None,
+          notes: dict[str, str] | None = None) -> tuple[str, str]:
+    """The report as (title, Telegram HTML), worded by the saved templates; `notes`
+    says why the big movers moved, by ticker (M29, notes.py)."""
     local = core.local(now, cfg)
     title = "Morning report" if local.hour < 12 else "Evening report"
     rows, index_rows = _table(portfolio.get("holdings") or [],
@@ -94,6 +97,7 @@ def build(portfolio: dict[str, Any], indices: dict[str, Any] | None, cfg: dict[s
         "change_pct": _pct(pct),
         "holdings": rows,
         "indices": index_rows,
+        "notes": [{"symbol": symbol, "note": note} for symbol, note in (notes or {}).items()],
         "stale_note": [{"as_of": core.local(as_of, cfg).strftime("%a %H:%M")}] if stale else [],
     }
     return title, templates.render(store, "portfolio_report", values)
@@ -115,7 +119,9 @@ async def send(store: Store, cfg: dict[str, Any], now: datetime | None = None,
                        chat=core.routing(store).get("portfolio", "portfolio"),
                        status="failed", error="No portfolio data yet")
         return
-    title, text = build(portfolio, store.get_cache("indices"), cfg, now, store)
+    indices = store.get_cache("indices")
+    notes = await market_notes.notes(cfg, store, portfolio, indices, now)
+    title, text = build(portfolio, indices, cfg, now, store, notes)
     body = plain(text).split("\n", 1)[-1].strip()  # the title line is logged separately
     await core.notify(store, cfg, source="hub", category="portfolio", severity="info",
                       title=title, body=body, formatted=text, now=now, telegram=telegram)

@@ -72,6 +72,7 @@ FEATURES: dict[str, str] = {
     "briefing": "Morning digest",  # app/briefing.py
     "headlines": "Grouped headlines",  # app/news/stories.py
     "explainer": "Alert explainer",  # app/explainer.py
+    "market_notes": "Market notes",  # app/portfolio/notes.py
 }
 
 WARN_SHARE = 0.8

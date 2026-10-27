@@ -12,6 +12,8 @@ from fastapi.testclient import TestClient
 from app import ai, briefing, main, scheduler
 from app.alerts import core, rules, templates
 from app.alerts.telegram import Telegram
+from app.news import store as news
+from app.portfolio import notes as market_notes
 
 CFG = {
     "timezone": "Europe/Amsterdam",
@@ -387,3 +389,26 @@ def test_one_holding_has_no_best_or_worst(house):
     lines = briefing.markets(CFG, house, NOW)["market_lines"]
 
     assert [line["label"] for line in lines] == ["Portfolio"]
+
+
+class TwoAnswers(FakeClaude):
+    """The briefing's answer, or the market notes' when asked for those."""
+
+    async def create(self, **kwargs):
+        if kwargs["system"] == market_notes.SYSTEM:
+            self.answer = {"notes": [{"symbol": "NVDA", "note": "Rose on chip export news."}]}
+        else:
+            self.answer = ANSWER
+        return await super().create(**kwargs)
+
+
+def test_market_notes_join_the_markets_section(house):
+    news.ensure_tables(house)
+    ai.set_switches(house, {"market_notes": True})
+    sent = Sent()
+
+    asyncio.run(briefing.run(CFG, house, NOW, TwoAnswers(), sent.client()))
+
+    (text,) = sent.texts
+    assert ("<i>Indices</i> · S&amp;P 500 +0,52%, AEX +0,31%\n"
+            "<i>NVDA</i> · Rose on chip export news.\n<blockquote expandable>") in text
