@@ -1,7 +1,8 @@
 """Editable message templates: the wording of every message the hub sends.
 
 A template is Telegram text with `{placeholders}` and a few HTML tags (<b>,
-<i>, <u>, <s>, <code>, <pre>). Placeholder values are escaped; everything else in the
+<i>, <u>, <s>, <code>, <pre>, and <blockquote> or <blockquote expandable>, which
+Telegram shows folded until tapped). Placeholder values are escaped; everything else in the
 template is escaped too, except those tags. A block placeholder (holdings,
 volumes, ...) repeats a line template of its own, joined by a separator.
 
@@ -24,16 +25,19 @@ from . import core
 SETTING = "templates"
 MAX_TEXT = 2000
 MAX_MESSAGE = 4096  # Telegram's limit
-TAGS = ("b", "i", "u", "s", "code", "pre")
+TAGS = ("b", "i", "u", "s", "code", "pre", "blockquote")
 
 PLACEHOLDER = re.compile(r"\{([a-z_]+)\}")
-_ESCAPED_TAG = re.compile(r"&lt;(/?)(" + "|".join(TAGS) + r")&gt;")
-_TAG = re.compile(r"<(/?)([a-z]+)>")
+_ESCAPED_TAG = re.compile(r"&lt;(/?)(" + "|".join(TAGS) + r")( expandable)?&gt;")
+_TAG = re.compile(r"<(/?)([a-z]+)( expandable)?>")
 # Telegram refuses a message with formatting inside a <pre> block.
 _TAG_IN_PRE = re.compile(r"<pre>(?:(?!</pre>).)*<(?!/pre>)", re.S)
-# A line left with nothing but inline tags, such as "<i></i>" for a missing note;
-# never <pre>, which spans lines.
-_EMPTY_LINE = re.compile(r"(?:</?(?:b|i|u|s|code)>|\s)*")
+# ... and code, a <pre> or another quote inside a quote (bold and the like are fine).
+_BLOCK_IN_QUOTE = re.compile(
+    r"<blockquote[^>]*>(?:(?!</blockquote>).)*<(?:code|pre|blockquote)\b", re.S)
+# A line left with nothing but inline tags, such as "<i></i>" for a missing note,
+# or an empty quote; never <pre>, which spans lines.
+_EMPTY_LINE = re.compile(r"(?:</?(?:b|i|u|s|code)>|<blockquote(?: expandable)?></blockquote>|\s)*")
 # Blank lines left at the edges of a <pre> block by an empty block placeholder.
 _PRE_EDGES = re.compile(r"<pre>\s+|\s+</pre>")
 # Placeholders that were renamed or dropped, for texts saved before.
@@ -366,6 +370,7 @@ CATALOG: dict[str, Template] = {
         REPORTS, "Morning digest",
         "Weekdays at 06:30: the night and the day ahead, opened by Claude (AI).",
         "<b>Morning briefing · {day}</b>\n{paragraph}\n\n<b>Your day</b>\n{your_day}\n\n"
+        "<b>{markets}</b>\n{market_lines}\n<blockquote expandable>{holdings}</blockquote>\n\n"
         "<b>House</b>\n{house}\n\n<b>{overnight}</b>\n{held}",
         "briefing", "info",
         {"day": ("The weekday", "Thursday"),
@@ -384,13 +389,31 @@ CATALOG: dict[str, Template] = {
              {"label": "Backup", "text": "finished at 03:41"},
              {"label": "Disks", "text": "all healthy"},
              {"label": "Updated", "text": "sonarr"}]),
+         "markets": ("The Markets heading; empty without portfolio data",
+                     "Markets · last session"),
+         "market_lines": ("The portfolio's move, the best and worst holding, the indices", [
+             {"label": "Portfolio", "text": "€ 9.119, +€ 84,20 (+0,93%)"},
+             {"label": "Best", "text": "NVDA +2,10% (+€ 30,10)"},
+             {"label": "Worst", "text": "VWRL −0,40% (−€ 4,10)"},
+             {"label": "Indices", "text": "S&P 500 +0,52%, AEX +0,31%"}]),
+         "holdings": ("Every holding, folded until tapped", [
+             {"symbol": "NVDA", "pct": "+2,10%", "change": "+€ 30,10"},
+             {"symbol": "VWRL", "pct": "−0,40%", "change": "−€ 4,10"}]),
          "overnight": ("What quiet hours held, counted; empty after a quiet night. With it "
                        "here, no \"While you slept\" follows at 07:00",
                        "Overnight · 1 warning, 3 OK"),
          "held": ("One line per held warning or error", [
              {"level": "WARNING", "title": "volume2 is 91% full"}])},
-        {"your_day": Block("briefing_item"), "house": Block("briefing_item"),
+        {"your_day": Block("briefing_item"), "market_lines": Block("briefing_item"),
+         "holdings": Block("briefing_holding"), "house": Block("briefing_item"),
          "held": Block("briefing_held")}),
+    "briefing_holding": _line(
+        REPORTS, "Morning digest: holding",
+        "One line per holding in the folded Markets table, best first. Telegram allows no "
+        "<code> or <pre> in a quote, so the columns do not line up.",
+        "<b>{symbol}</b> {pct} · {change}", "briefing",
+        {"symbol": ("Ticker", "NVDA"), "pct": ("The last session in %", "+2,10%"),
+         "change": ("The last session in euro", "+€ 30,10")}),
     "briefing_item": _line(
         REPORTS, "Morning digest: section line",
         "One line in Your day and House: a short label and what it says.",
@@ -497,7 +520,7 @@ def reset(store: Store, template_id: str) -> None:
 
 
 def _escape_template(text: str) -> str:
-    return _ESCAPED_TAG.sub(r"<\1\2>", html.escape(text, quote=False))
+    return _ESCAPED_TAG.sub(r"<\1\2\3>", html.escape(text, quote=False))
 
 
 def _render(store: Store | None, template_id: str, values: dict[str, Any],
@@ -537,7 +560,9 @@ def render(store: Store | None, template_id: str, values: dict[str, Any],
     level = core.LEVEL.get(severity or template.severity, "")
     text = _render(store, template_id, {"level": level} | values, drafts)
     text = _PRE_EDGES.sub(lambda m: m.group(0).strip(), text)
-    return re.sub(r"\n?<pre></pre>", "", text).strip()
+    text = re.sub(r"\n?<(pre|blockquote(?: expandable)?)></(pre|blockquote)>", "", text)
+    # A whole section left out leaves its blank lines on both sides: keep one.
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
 def plain(text: str) -> str:
@@ -592,8 +617,8 @@ def check(template_id: str, text: str) -> None:
         names = ", ".join("{" + n + "}" for n in unknown)
         raise TemplateError(f"Unknown placeholder: {names}.")
     stack: list[str] = []
-    for closing, tag in _TAG.findall(text):
-        if tag not in TAGS:
+    for closing, tag, expandable in _TAG.findall(text):
+        if tag not in TAGS or (expandable and (closing or tag != "blockquote")):
             raise TemplateError(f"<{tag}> is not allowed; use {', '.join(f'<{t}>' for t in TAGS)}.")
         if not closing:
             stack.append(tag)
@@ -604,5 +629,7 @@ def check(template_id: str, text: str) -> None:
     rendered = sample(template_id, {template_id: text}).html
     if _TAG_IN_PRE.search(rendered):
         raise TemplateError("Telegram allows no other tags inside <pre>.")
+    if _BLOCK_IN_QUOTE.search(rendered):
+        raise TemplateError("Telegram allows no <code>, <pre> or quote inside <blockquote>.")
     if len(rendered) > MAX_MESSAGE:
         raise TemplateError("With the sample values this is longer than Telegram allows.")

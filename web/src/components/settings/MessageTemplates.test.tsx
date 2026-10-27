@@ -167,6 +167,19 @@ describe('TelegramText', () => {
     expect(container.querySelector('script')).toBeNull()
   })
 
+  it('renders an expandable quote open, as a quote', () => {
+    const { container } = render(<TelegramText html={'<b>Markets</b>\n<blockquote expandable><b>NVDA</b> +2,10%</blockquote>'} />)
+    const quote = container.querySelector('blockquote')
+    expect(quote?.textContent).toBe('NVDA +2,10%')
+    expect(quote?.querySelector('strong')?.textContent).toBe('NVDA')
+    expect(container.textContent).not.toContain('expandable')
+  })
+
+  it('adds no empty line after a quote, which is a block already', () => {
+    const { container } = render(<TelegramText html={'<blockquote>a</blockquote>\n\n<b>House</b>'} />)
+    expect(container.textContent).toBe('a\nHouse')
+  })
+
   it('renders a pre block as a monospace table that keeps its spacing', () => {
     const { container } = render(<TelegramText html={'<b>Report</b>\n<pre>VWRL  +1,12%\nAEX   −0,40%</pre>'} />)
     const pre = container.querySelector('pre')

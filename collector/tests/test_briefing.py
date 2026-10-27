@@ -34,6 +34,14 @@ MESSAGE = (
     "<i>09:30</i> · Stand-up\n"
     "<i>14:00</i> · Dentist\n"
     "<i>Weather</i> · 8 °C now, Half bewolkt; 7 to 12 °C today; rain likely from 16:00\n\n"
+    "<b>Markets · last session</b>\n"
+    "<i>Portfolio</i> · € 9.119, +€ 31,00 (+0,34%)\n"
+    "<i>Best</i> · NVDA +2,10% (+€ 30,10)\n"
+    "<i>Worst</i> · VWRL −0,40% (−€ 4,10)\n"
+    "<i>Indices</i> · S&amp;P 500 +0,52%, AEX +0,31%\n"
+    "<blockquote expandable><b>NVDA</b> +2,10% · +€ 30,10\n"
+    "<b>ASML</b> +0,50% · +€ 5,00\n"
+    "<b>VWRL</b> −0,40% · −€ 4,10</blockquote>\n\n"
     "<b>House</b>\n"
     "<i>Backup</i> · finished at 03:41\n"
     "<i>Storage</i> · 71% used; volume2 is 93% full\n"
@@ -101,7 +109,13 @@ def house(store):
     store.put_cache("calendar", {"date": "2026-10-29", "all_day": [], "events": [
         {"title": "Stand-up", "start": "2026-10-29T08:30:00+00:00"},
         {"title": "Dentist", "start": "2026-10-29T13:00:00+00:00"}]})
-    store.put_cache("portfolio", {"total_value": 123456.78})
+    store.put_cache("portfolio", {
+        "as_of": "2026-10-29T05:15:00+00:00", "total_value": 9119.0, "holdings": [
+            {"symbol": "NVDA", "day_pct": 2.1, "day_abs": 30.1},
+            {"symbol": "VWRL", "day_pct": -0.4, "day_abs": -4.1},
+            {"symbol": "ASML", "day_pct": 0.5, "day_abs": 5.0}]})
+    store.put_cache("indices", {"indices": [{"label": "S&P 500", "day_pct": 0.52},
+                                            {"label": "AEX", "day_pct": 0.31}]})
     return store
 
 
@@ -118,7 +132,7 @@ def test_the_facts_come_from_the_cache_and_only_the_first_event(house):
         "Updated: sonarr",
         "Pinned: immich at v3.3.1, newest v3.4.0",
     ]
-    assert not any("Dentist" in f or "123456" in f for f in lines)
+    assert not any("Dentist" in f or "9.119" in f or "NVDA" in f for f in lines)
 
 
 def test_the_message_has_the_whole_agenda(house):
@@ -202,6 +216,9 @@ def test_asks_sonnet_once_for_all_three_forms(house):
     assert call["output_config"]["format"] == {"type": "json_schema", "schema": briefing.SCHEMA}
     assert call["messages"][0]["content"].startswith("Thursday 29 October 2026, 06:30.")
     assert "- Train: 07:16 to Beta, on time, platform 4" in call["messages"][0]["content"]
+    # Markets are the hub's own: no amounts or tickers go to Claude.
+    assert "9.119" not in call["messages"][0]["content"]
+    assert "NVDA" not in call["messages"][0]["content"]
 
 
 def test_long_answers_are_cut_to_fit_the_panel(house):
@@ -341,3 +358,32 @@ def test_many_warnings_are_cut_with_a_note():
     assert values["overnight"] == (f"Overnight · {core.DIGEST_LIMIT + 2} warnings "
                                    f"(the first {core.DIGEST_LIMIT} here, all on the Alerts page)")
     assert len(values["held"]) == core.DIGEST_LIMIT
+
+
+def test_without_portfolio_data_there_is_no_markets_section(house):
+    house.put_cache("portfolio", {})
+    sent = Sent()
+
+    asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), sent.client()))
+
+    (text,) = sent.texts
+    assert "Markets" not in text and "blockquote" not in text
+    assert "16:00\n\n<b>House</b>" in text
+
+
+def test_old_figures_say_when_they_are_from(house):
+    house.put_cache("portfolio", house.get_cache("portfolio") | {"stale": True})
+
+    (portfolio, *_) = briefing.markets(CFG, house, NOW)["market_lines"]
+
+    assert portfolio["text"] == "€ 9.119, +€ 31,00 (+0,34%); figures from Thu 06:15"
+
+
+def test_one_holding_has_no_best_or_worst(house):
+    house.put_cache("portfolio", {"total_value": 100.0, "holdings": [
+        {"symbol": "NVDA", "day_pct": 1.0, "day_abs": 1.0}]})
+    house.put_cache("indices", {})
+
+    lines = briefing.markets(CFG, house, NOW)["market_lines"]
+
+    assert [line["label"] for line in lines] == ["Portfolio"]

@@ -111,12 +111,25 @@ def test_a_line_inside_pre_may_not_add_tags():
     ("<b>{monitor}</i>", "</i> does not close an open <i>."),
     ('<a>{monitor}</a>', "<a> is not allowed"),
     ("<pre><b>{monitor}</b></pre>", "no other tags inside <pre>."),
+    ("<blockquote><code>{monitor}</code></blockquote>", "no <code>, <pre> or quote inside"),
+    ("<b expandable>{monitor}</b>", "<b> is not allowed"),
     ("x" * 2001, "under 2000 characters"),
 ])
 def test_check_rejects_broken_templates(text, error):
     with pytest.raises(templates.TemplateError, match=error.replace("{", r"\{").replace(
             "}", r"\}").replace("(", r"\(").replace(")", r"\)").replace(".", r"\.")):
         templates.check("kuma", text)
+
+
+def test_a_quote_may_be_folded_and_drops_out_when_empty():
+    templates.check("kuma", "<b>{monitor}</b>\n<blockquote expandable>{state}</blockquote>")
+    drafts = {"kuma": "{monitor}\n\n<blockquote expandable>{state}</blockquote>\n\nEnd"}
+
+    assert templates.render(None, "kuma", {"monitor": "Jellyfin", "state": "is down"},
+                            drafts=drafts) == (
+        "Jellyfin\n\n<blockquote expandable>is down</blockquote>\n\nEnd")
+    assert templates.render(None, "kuma", {"monitor": "Jellyfin"},
+                            drafts=drafts) == "Jellyfin\n\nEnd"
 
 
 def test_every_default_is_valid_and_every_line_has_a_message():

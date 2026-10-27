@@ -1650,9 +1650,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   disruption that read "Tomorrow's trains on Utrecht-Arnhem, ..., Frankfurt" was an evening
   alert's title (NS's title names every stretch of the works; the route matching was right),
   so the train comes only from the morning's own check.
-- Step 3: Markets, built by the hub without AI: the total and yesterday's move, best and worst
-  holding, the indices, the full table in an expandable block. Open: whether the NAS alerts
-  chat may show euro amounts, or percentages only.
+- Step 3 (done 2026-10-27, `briefing.markets`): Markets, built by the hub without AI, after
+  Your day: the total with the last session's move (the same sum of the holdings' moves as the
+  Portfolio report), best and worst holding with their move in % and euros, the indices, and
+  every holding in a quote folded until tapped (`<blockquote expandable>`, template "Morning
+  digest: holding"). Decided the same day: amounts are fine in the NAS alerts chat (only the
+  owner is in it). Telegram allows no `<code>` or `<pre>` inside a quote, so the folded table
+  does not line up in columns. Old figures get "figures from Mon 18:30"; without portfolio data
+  the section is left out. Templates now take `<blockquote>` and `<blockquote expandable>`;
+  an empty quote line drops out, and a section left out leaves one blank line, not two. The
+  Settings preview shows quotes open.
 - Step 4: market notes (switch "Market notes"): Claude gets the tickers, their % moves and the
   headlines that name them, and writes a short why for each big mover (threshold open), in the
   briefing's Markets section and in the 08:30 and 18:30 Portfolio reports.

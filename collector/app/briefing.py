@@ -22,6 +22,8 @@ from pydantic import BaseModel
 
 from . import ai
 from .alerts import core, rules, templates
+from .portfolio import report
+from .portfolio.moves import day_move
 from .store import Store
 
 log = logging.getLogger(__name__)
@@ -185,6 +187,41 @@ def house(cfg: dict[str, Any], store: Store, now: datetime) -> list[Item]:
     return out
 
 
+def markets(cfg: dict[str, Any], store: Store, now: datetime) -> dict[str, Any]:
+    """The Markets section (M29 step 3), from the hub's own portfolio data and
+    never sent to Claude: the last session's move with amounts, the best and
+    worst holding, the indices, and every holding for the folded table."""
+    portfolio = store.get_cache("portfolio") or {}
+    holdings = sorted(portfolio.get("holdings") or [],
+                      key=lambda h: h.get("day_pct") or 0.0, reverse=True)
+    if portfolio.get("total_value") is None:
+        return {"markets": None, "market_lines": [], "holdings": []}
+    change, pct = day_move(portfolio)
+    total = (f"{report._money(portfolio['total_value'])}, "
+             f"{report._money(change, signed=True)} ({report._pct(pct)})")
+    as_of = datetime.fromisoformat(portfolio["as_of"]) if portfolio.get("as_of") else None
+    if as_of and (portfolio.get("stale") or now - as_of > report.FRESH):
+        total += f"; figures from {core.local(as_of, cfg):%a %H:%M}"
+    lines: list[Item] = [("Portfolio", total)]
+
+    def move(h: dict[str, Any]) -> str:
+        return (f"{h['symbol']} {report._pct(h.get('day_pct') or 0.0)} "
+                f"({report._money(h.get('day_abs') or 0.0, signed=True)})")
+
+    if len(holdings) > 1:
+        lines += [("Best", move(holdings[0])), ("Worst", move(holdings[-1]))]
+    indices = (store.get_cache("indices") or {}).get("indices") or []
+    if indices:
+        lines.append(("Indices", ", ".join(f"{q['label']} {report._pct(q['day_pct'])}"
+                                           for q in indices)))
+    return {
+        "markets": "Markets · last session",
+        "market_lines": [{"label": label, "text": text} for label, text in lines],
+        "holdings": [{"symbol": h["symbol"], "pct": report._pct(h.get("day_pct") or 0.0),
+                      "change": report._money(h.get("day_abs") or 0.0, signed=True)}
+                     for h in holdings]}
+
+
 def facts(cfg: dict[str, Any], store: Store, now: datetime) -> list[str]:
     """What Claude is told: the message's own items, with only the first event."""
     return [f"{label}: {text}"
@@ -268,7 +305,7 @@ async def run(cfg: dict[str, Any], store: Store, now: datetime | None = None,
     shown = frozenset(text for _, text in the_house)
     sent = templates.message(store, "briefing", {
         "day": f"{local:%A}", "paragraph": briefing.paragraph} | sections
-        | overnight(held, shown))
+        | markets(cfg, store, now) | overnight(held, shown))
     # 06:30 is still quiet hours; the digest is wanted then, like the train.
     logged = await core.notify(store, cfg, source="briefing", category="briefing",
                                severity="info", title=sent.title, body=sent.body,
