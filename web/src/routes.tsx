@@ -4,6 +4,7 @@ import { Layout } from './components/Layout'
 import { NAV_ITEMS, MORE_ROUTE } from './lib/navigation'
 import { AlertsPage } from './pages/AlertsPage'
 import { BackupsPage } from './pages/BackupsPage'
+import { CookPage } from './pages/CookPage'
 import { DockerPage } from './pages/DockerPage'
 import { HomePage } from './pages/HomePage'
 import { LightsPage } from './pages/LightsPage'
@@ -64,6 +65,7 @@ export const routes: RouteObject[] = [
           })),
           { path: '/settings/:section', element: <SettingsPage /> },
           { path: '/recipes/:id', element: <RecipePage /> },
+          { path: '/recipes/:id/cook', element: <CookPage /> },
           { path: MORE_ROUTE, element: <MorePage /> },
           { path: '*', element: <NotFoundPage /> },
         ],

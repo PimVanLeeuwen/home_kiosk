@@ -1804,9 +1804,21 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   list with a note. A recipe that needs review has a "Not in phases yet" banner with Copy with
   prompt (the format's guide, a request to rework it into phases, and the JSON) and Paste JSON.
   Cook mode (step 5) gets its button then.
-- Step 5 (web): cook mode: the screen kept awake (Wake Lock), one phase at a time, each step
-  with its ingredients and a big tick; ticked prep folds away so only what is left shows; ticks
-  kept on the phone (localStorage) for the day, so a reload or a locked phone loses nothing.
+- Step 5 (done 2026-10-27, `web/src/pages/CookPage.tsx`, `components/recipes/CookParts.tsx`,
+  `lib/cookProgress.ts`): cook mode at `/recipes/{id}/cook?persons=n`, opened with Cook (a
+  button on a wide screen, a sticky "Cook · screen stays on" above the tab bar on the phone). It
+  covers the whole hub, tab bar included (rendered into the body: the page area's view-transition
+  name makes it a stacking context no z-index gets out of). The screen is kept on with the Wake
+  Lock API, asked again whenever the page comes back ("Screen on", or "Screen may sleep"). One
+  phase at a time, "Prep 1 of 3" in violet and "Cook 1 of 2" in amber, with a bar per phase
+  filled as far as its steps are ticked. Each step is a card with large text, the amounts for the
+  persons, and a big tick; the first open step is lit, later ones dimmed; a ticked step folds to
+  one struck-through line, and a tap unticks it. Next phase and Previous phase; between the last
+  prep phase and the first cook phase the "All prepped" pause lists the prep phases (steps left
+  unticked in amber) and the first cook step, with Start cooking (a new amber `heat` button) and
+  Back to prep. Done and Close (or Escape) return to the recipe with its persons. The ticks and
+  the place are kept per recipe in localStorage for the day and the recipe's version; another
+  day or a new paste starts over, and other days are dropped when saving.
 - Step 6 (nas-docker, after every recipe is checked): retire Tandoor. A last `pg_dump` and the
   export zip kept in `/volume3/backups/tandoor-final`; the stack removed (not with Dockge's
   Delete); `db_recipes` out of `host-jobs/dump-databases.sh`; README, OVERVIEW, RECOVERY and
@@ -2008,6 +2020,11 @@ M29, M30.
   settings and report template; its report also carries `.Restarted` and a `.Changelog` per
   update).
 - Recipes (discussed 2026-10-23): decided 2026-10-27 as M30, a Recipes section in the hub.
+- Recipes as PDF (asked 2026-10-27, for later): the owner wants a PDF export at some point. To
+  decide then: one recipe, a selection, or the whole collection as a cookbook (with a contents
+  page); and how: a print stylesheet so the browser's own Save as PDF does it (no new
+  dependency, also prints on paper), or a PDF made in the hub (a new dependency such as
+  WeasyPrint, asked first). The phases, To get and Check would carry over; photos optional.
 - Ask the hub in Telegram (`/ask`, discussed 2026-10-23): dropped; the owner asks Claude Code.
 - cloudflared stays (2026-10-23): the household's second Obsidian user syncs LiveSync through it.
 

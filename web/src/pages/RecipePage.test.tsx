@@ -50,6 +50,8 @@ describe('RecipePage', () => {
     expect(screen.getByRole('status', { name: 'Persons' })).toHaveTextContent('4')
     expect(screen.getByRole('region', { name: 'To get' })).toHaveTextContent('kippendijen1 kg')
     expect(screen.getByRole('region', { name: 'Marinade, prep' })).toHaveTextContent('½ tl kaneel')
+    const cookLinks = within(screen.getByRole('main')).getAllByRole('link', { name: /^Cook/ })
+    expect(cookLinks.map((l) => l.getAttribute('href'))).toEqual(['/recipes/kip-shoarma/cook?persons=4', '/recipes/kip-shoarma/cook?persons=4'])
     for (let i = 0; i < 3; i++) fireEvent.click(screen.getByRole('button', { name: 'Fewer persons' }))
     expect(screen.getByRole('button', { name: 'Fewer persons' })).toBeDisabled()
     expect(screen.getByRole('region', { name: 'To get' })).toHaveTextContent('kippendijen250 g')

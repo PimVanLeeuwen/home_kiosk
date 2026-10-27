@@ -1,6 +1,6 @@
 import { cn } from '../../lib/cn'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger'
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'heat'
 export type ButtonSize = 'md' | 'sm'
 
 const BASE =
@@ -12,6 +12,8 @@ const VARIANT: Record<ButtonVariant, string> = {
   // Everything else; raised like the inputs it usually sits beside.
   secondary: 'border-line bg-raised text-fg hover:border-faint',
   danger: 'border-down/60 bg-raised text-down hover:border-down',
+  // Recipes: the one step that puts the heat on (Start cooking, Cook).
+  heat: 'border-cook bg-cook text-canvas shadow-[0_0_14px_-4px_var(--color-cook)] hover:brightness-110',
 }
 
 /** `md` is as tall as an input, so a button beside a field lines up; `sm` sits under a list. */

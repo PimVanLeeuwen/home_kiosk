@@ -1,11 +1,12 @@
-import { ArrowLeft, Camera, ClipboardPaste, Copy, Trash2, Undo2 } from 'lucide-react'
+import { ArrowLeft, Camera, ClipboardPaste, Copy, Sun, Trash2, Undo2 } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
 import { ActionMenu } from '../components/recipes/ActionMenu'
 import { PasteDialog } from '../components/recipes/PasteDialog'
 import { Facts, IngredientLists, Phases } from '../components/recipes/RecipeParts'
 import { Button } from '../components/ui/Button'
+import { buttonClass } from '../components/ui/buttonStyles'
 import { Surface } from '../components/ui/Card'
 import { Loading, PageUnavailable } from '../components/ui/states'
 import { ApiError, getJson, sendJson } from '../lib/api'
@@ -63,13 +64,16 @@ function BackLink() {
 function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }) {
   const { recipe } = detail
   const navigate = useNavigate()
-  const [servings, setServings] = useState(recipe.servings)
+  // Back from cook mode with the persons it was cooked for.
+  const asked = Number(useSearchParams()[0].get('persons'))
+  const [servings, setServings] = useState(asked >= 1 && asked <= 50 ? Math.round(asked) : recipe.servings)
   const [pasting, setPasting] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState<{ ok: boolean; text: string }>()
   const fileInput = useRef<HTMLInputElement>(null)
   const factor = servings / recipe.servings
+  const cookPath = `/recipes/${encodeURIComponent(recipe.id)}/cook${servings !== recipe.servings ? `?persons=${servings}` : ''}`
 
   async function act(work: () => Promise<string | void>, failed: string) {
     setBusy(true)
@@ -141,6 +145,12 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
             </Button>
           </span>
           <ActionMenu label="Recipe actions" actions={actions} />
+          <span className="hidden md:block">
+            <Link to={cookPath} viewTransition className={buttonClass('primary')}>
+              <Sun aria-hidden="true" className="size-4" />
+              Cook
+            </Link>
+          </span>
         </div>
       </div>
       <input
@@ -244,6 +254,14 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
               </a>
             </p>
           )}
+        </div>
+        {/* On the phone the way into cook mode stays in thumb reach all the way down the page. Sticky
+            counts the page area's bottom padding (room for the tab bar), so 0 sits just above the bar. */}
+        <div className="sticky bottom-0 z-10 order-5 md:hidden">
+          <Link to={cookPath} viewTransition className={cn(buttonClass('primary'), 'h-12 w-full text-title shadow-[0_8px_30px_rgb(0_0_0/0.5)]')}>
+            <Sun aria-hidden="true" className="size-5" />
+            Cook · screen stays on
+          </Link>
         </div>
       </div>
     </>
