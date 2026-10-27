@@ -64,6 +64,10 @@ that file in place of `data/collector.db`, and start it again.
 
 ## Recipes: the one-time Tandoor import
 
+Done on 2026-10-27, through Paste JSON on the Recipes list with the photos added per recipe;
+Tandoor is gone since (its last dump and export: `/volume3/backups/tandoor-final`). Kept for
+reference, should an export ever need importing again.
+
 Tandoor's recipes come into the hub once, from Tandoor's own export (Settings, Export, format
 Default: a zip with one zip per recipe), plus optionally a JSON file with reworked versions
 (one recipe, a list, or Copy all's JSON; matched by `id`, used instead of the plain conversion).

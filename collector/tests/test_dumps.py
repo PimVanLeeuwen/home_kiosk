@@ -51,6 +51,20 @@ def test_each_database_shows_its_newest_attempt_and_last_success(tmp_path, store
     assert (hub.name, hub.label, hub.kind, hub.ok) == ("hub", "Home hub", "sqlite", None)
 
 
+def test_a_database_taken_out_of_the_job_is_no_longer_listed(tmp_path, store):
+    path = write_runs(
+        tmp_path,
+        run_line(7, ghostfolio=None, tandoor=None),
+        run_line(8, ghostfolio=None),
+    )
+
+    payload = dumps.read(path, store)
+
+    assert [d.name for d in payload.databases] == ["ghostfolio", "hub"]
+    # Its old runs still count in the history.
+    assert [(r.ok, r.failed) for r in payload.runs] == [(True, 0), (True, 0)]
+
+
 def test_no_run_file_yet_leaves_only_the_hub_copy(tmp_path, store):
     payload = dumps.read(str(tmp_path / "missing.jsonl"), store)
 

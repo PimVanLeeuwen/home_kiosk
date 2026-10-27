@@ -660,7 +660,7 @@ class DatabaseCopy(Envelope):
 
 
 class DumpedDatabase(BaseModel):
-    name: str  # ghostfolio, tandoor, tracearr, hub
+    name: str  # ghostfolio, tracearr, paperless, hub
     label: str
     kind: Literal["pg_dump", "sqlite"]
     ok: bool | None  # the newest attempt; None when there is none yet

@@ -378,7 +378,6 @@ services:
       - { id: dockge, name: Dockge, description: Stack manager, port: 5001, container: dockge, icon: dockge }
   - group: Apps
     items:
-      - { id: tandoor, name: Tandoor, description: Recipes, port: 8090, container: tandoor, icon: tandoor-recipes }
       - { id: couchdb, name: CouchDB, description: Obsidian LiveSync, port: 5984, path: /_utils, container: couchdb, icon: couchdb }
       - { id: ghostfolio, name: Ghostfolio, description: Portfolio, port: 3333, container: ghostfolio, icon: ghostfolio }
       - { id: readeck, name: Readeck, description: Read later, port: 8084, container: readeck, icon: readeck }

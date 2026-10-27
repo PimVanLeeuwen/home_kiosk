@@ -1819,11 +1819,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Back to prep. Done and Close (or Escape) return to the recipe with its persons. The ticks and
   the place are kept per recipe in localStorage for the day and the recipe's version; another
   day or a new paste starts over, and other days are dropped when saving.
-- Step 6 (nas-docker, after every recipe is checked): retire Tandoor. A last `pg_dump` and the
-  export zip kept in `/volume3/backups/tandoor-final`; the stack removed (not with Dockge's
-  Delete); `db_recipes` out of `host-jobs/dump-databases.sh`; README, OVERVIEW, RECOVERY and
-  the emergency pages updated; its Tailscale serve port, Uptime Kuma monitor and the hub's
-  catalog entry (`config.yaml`, and on the NAS) removed.
+- Step 6 (done 2026-10-27, nas-docker and the hub): Tandoor retired, once all ten recipes were
+  in the hub with their photos (pasted through Paste JSON, photos added per recipe, instead of
+  the import command). nas-docker: the stack's compose file and `.env.example` gone, Tandoor out
+  of `host-jobs/dump-databases.sh` and of `tailscale/serve.json` (port 18090), and out of
+  README, OVERVIEW, RECOVERY and the emergency pages; README and RECOVERY say where its last
+  dump, the export zip and the old folder are kept (`/volume3/backups/tandoor-final`). The hub:
+  the Backups page and the dump alert now list only the databases the newest dump run did, so
+  a database taken out of the job drops out instead of raising "No good dump" every night
+  after (`sources/dumps.summarise`); the example catalog entry and two stale notes gone. On the
+  NAS, by the owner: keep the dump and export, stop the stack, pull, move the old folder,
+  restart `tailscale`, and remove the Uptime Kuma monitor and the Tandoor tile. M30 is complete.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

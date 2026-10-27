@@ -76,10 +76,10 @@ def read_restore_checks(path: str) -> list[RestoreCheck]:
 
 
 def summarise(runs: list[dict[str, Any]]) -> list[DumpedDatabase]:
-    """Per database: its newest attempt and the last time it succeeded."""
-    names: list[str] = []
-    for run in runs:
-        names += [d["name"] for d in run["dumps"] if d["name"] not in names]
+    """Per database: its newest attempt and the last time it succeeded. Only the databases the
+    newest run dumped: the job writes an entry for every one it tries, so one that is missing
+    there was taken out of the job (Tandoor, 2026-10-27) and must not turn into an alert."""
+    names = [d["name"] for d in runs[0]["dumps"]] if runs else []
     databases = []
     for name in sorted(names):
         attempts = [(run["finished"], d) for run in runs for d in run["dumps"] if d["name"] == name]

@@ -1,8 +1,8 @@
 """Exposure audit: what of the house can be reached from the internet.
 
-Tandoor and CouchDB are public through a Cloudflare tunnel, which connects
-outward from the NAS, so the router needs no open port and nothing else may
-answer. Every 6 hours the collector asks Cloudflare, with a read-only API token
+A few services (CouchDB, Jellyfin, Uptime Kuma) are public through a Cloudflare
+tunnel, which connects outward from the NAS, so the router needs no open port and
+nothing else may answer. Every 6 hours the collector asks Cloudflare, with a read-only API token
 (Zone DNS Read, Account Cloudflare Tunnel Read), for the zone's DNS records and
 every tunnel's public hostnames, and requests each of those hostnames over
 HTTPS. The requests go out through Cloudflare, so they see what an outsider
