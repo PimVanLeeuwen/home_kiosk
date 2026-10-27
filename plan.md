@@ -1638,10 +1638,18 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   (off, the cap, no answer, a failed send, weekends), or with a saved template that has no
   `{overnight}`, the 07:00 digest is as before; messages held between 06:30 and 07:00 still
   go in a small 07:00 digest.
-- Step 2: the hub builds the sections, Claude writes the opening. Your day (the train, today's
-  agenda, the weather and when it rains), House (backup, storage, disks, updates, open
-  warnings); a bold opening of one or two sentences from Sonnet. Train disruptions only when
-  they touch the own stretch, and the evening's "tomorrow" warnings reworded for the morning.
+- Step 2 (done 2026-10-27, `app/briefing.py`): the hub builds the sections, Claude writes the
+  opening. Your day: the train (on time, late and when it leaves, a changed platform, skipped
+  stops, or cancelled with the next direct train) and works or disruptions on its route in
+  NS's own words, every event today (all-day ones first), the weather. House: open alerts
+  first, then the backup, storage with pools over 90%, disks, updates since about 16:30,
+  pinned images behind. Each a line "label · text" (template "Morning digest: section line").
+  Sonnet (`ai.BRIEFING_MODEL`) gets the same lines as facts, with only the first event, and
+  writes an opening of one or two sentences (at most 280 characters, kept as `paragraph` in
+  `/api/briefing`), the panel's line and four facts. Train alerts stay out of House: the
+  disruption that read "Tomorrow's trains on Utrecht-Arnhem, ..., Frankfurt" was an evening
+  alert's title (NS's title names every stretch of the works; the route matching was right),
+  so the train comes only from the morning's own check.
 - Step 3: Markets, built by the hub without AI: the total and yesterday's move, best and worst
   holding, the indices, the full table in an expandable block. Open: whether the NAS alerts
   chat may show euro amounts, or percentages only.

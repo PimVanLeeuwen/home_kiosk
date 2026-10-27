@@ -33,9 +33,11 @@ from .store import Store
 
 log = logging.getLogger(__name__)
 
-# The plan's choice (M26): Haiku for the scheduled features, Sonnet for the alert explainer.
+# The plan's choice (M26): Haiku for the scheduled features, Sonnet for the alert explainer
+# and, since M29, the morning briefing's opening (one call a day, the writing shows).
 SCHEDULED_MODEL = "claude-haiku-5-5"
 EXPLAINER_MODEL = "claude-sonnet-5-5"
+BRIEFING_MODEL = "claude-sonnet-5-5"
 
 
 @dataclass(frozen=True)

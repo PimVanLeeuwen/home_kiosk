@@ -363,20 +363,40 @@ CATALOG: dict[str, Template] = {
              {"name": "bazarr", "error": "pull access denied"}])},
         {"updated": Block("watchtower_updated"), "failed": Block("watchtower_failed")}),
     "briefing": _msg(
-        REPORTS, "Morning digest", "Weekdays at 06:30: the night and the day ahead (AI).",
-        "<b>Morning briefing · {day}</b>\n{paragraph}\n\n<b>{overnight}</b>\n{held}",
+        REPORTS, "Morning digest",
+        "Weekdays at 06:30: the night and the day ahead, opened by Claude (AI).",
+        "<b>Morning briefing · {day}</b>\n{paragraph}\n\n<b>Your day</b>\n{your_day}\n\n"
+        "<b>House</b>\n{house}\n\n<b>{overnight}</b>\n{held}",
         "briefing", "info",
         {"day": ("The weekday", "Thursday"),
-         "paragraph": ("The digest, written by Claude from the hub's facts",
-                       "Good morning. A quiet night: the backup finished at 03:41 and Sonarr "
-                       "was updated. Your train is on time from platform 4; dry until 16:00. "
-                       "First up: stand-up at 09:30."),
+         "paragraph": ("Claude's opening: what matters most today",
+                       "Works on your route mean fewer trains, so allow extra time; dry "
+                       "until 16:00."),
+         "your_day": ("The train, today's agenda and the weather, one line each", [
+             {"label": "Train", "text": "07:16 to Rotterdam Centraal, on time, platform 4"},
+             {"label": "Works", "text": "on your route: Door werkzaamheden rijden er minder "
+                                        "treinen. Dit duurt tot ongeveer 10:00 uur."},
+             {"label": "09:30", "text": "Stand-up"},
+             {"label": "Weather", "text": "8 °C now, Half bewolkt; 7 to 12 °C today; rain "
+                                          "likely from 16:00"}]),
+         "house": ("Open alerts, the backup, storage, disks and updates, one line each", [
+             {"label": "WARNING", "text": "volume2 is 91% full"},
+             {"label": "Backup", "text": "finished at 03:41"},
+             {"label": "Disks", "text": "all healthy"},
+             {"label": "Updated", "text": "sonarr"}]),
          "overnight": ("What quiet hours held, counted; empty after a quiet night. With it "
                        "here, no \"While you slept\" follows at 07:00",
                        "Overnight · 1 warning, 3 OK"),
          "held": ("One line per held warning or error", [
              {"level": "WARNING", "title": "volume2 is 91% full"}])},
-        {"held": Block("briefing_held")}),
+        {"your_day": Block("briefing_item"), "house": Block("briefing_item"),
+         "held": Block("briefing_held")}),
+    "briefing_item": _line(
+        REPORTS, "Morning digest: section line",
+        "One line in Your day and House: a short label and what it says.",
+        "<i>{label}</i> · {text}", "briefing",
+        {"label": ("Train, Works, 09:30, Weather, Backup, WARNING, ...", "Backup"),
+         "text": ("What it says", "finished at 03:41")}),
     "briefing_held": _line(
         REPORTS, "Morning digest: overnight line",
         "One line per warning or error held in quiet hours; the rest are only counted.",

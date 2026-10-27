@@ -1,14 +1,14 @@
-"""Morning digest (plan.md M26, step 3): the night and the day ahead, in a few lines.
+"""Morning digest (plan.md M26 step 3, M29): the night and the day ahead.
 
-Weekdays at 06:30 the hub gathers its own state from the cache (the backup,
-updates since last evening, disks and storage, open alerts, the weather, the
-train, the first event, pinned images behind) as short facts and asks Haiku for
-one answer in three forms (structured output): a paragraph for Telegram, one
-line and four facts for the Now panel's Briefing screen and Home's card. It
-shows there until 09:00.
+Weekdays at 06:30 the hub turns its cache into labelled items in two sections,
+your day (the train and works on its route, today's agenda, the weather) and
+the house (open alerts, the backup, storage, disks, updates since last evening,
+pinned images behind). Telegram gets them as they are, under an opening Sonnet
+writes (structured output), which also gives one line and four facts for the
+Now panel's Briefing screen and Home's card. It shows there until 09:00.
 
-Data sent (plan.md M26): the house's own state, the first event's time and
-title only, no other calendar titles and no portfolio amounts.
+Data sent (plan.md M26, M29): the same items, but of the agenda only the first
+event's time and title; no other calendar titles and no portfolio amounts.
 """
 
 from __future__ import annotations
@@ -30,31 +30,38 @@ FEATURE = "briefing"
 CACHE_KEY = "briefing"
 AT = "06:30"  # local, weekdays
 UNTIL = "09:00"  # local: the panel and Home stop showing it
+OPENING_MAX = 280
 LINE_MAX = 70
 FACT_MAX = 30
 UPDATES_SINCE = timedelta(hours=14)  # from about 16:30 the day before
 
 SYSTEM = (
-    "You write the morning briefing for a household's home server, from facts the server "
-    "gathered. Give three forms of the same briefing. `paragraph`: two to four short "
-    "sentences for a chat message, warm and plain, starting with \"Good morning.\"; mention "
-    "only what is in the facts, problems first, and skip what is unknown. `line`: one short "
-    f"sentence of at most {LINE_MAX} characters, the gist. `facts`: exactly four facts of at "
-    f"most {FACT_MAX} characters each, the most useful first (a problem, the backup, the "
-    "train, the first event, the weather). No markdown, no emoji. Write times as 24-hour "
-    "HH:MM."
+    "You write the opening of a household's morning briefing, from facts its home server "
+    "gathered. The message lists every fact under your opening, so do not repeat them all. "
+    "Give three forms. `opening`: one or two short sentences, at most "
+    f"{OPENING_MAX} characters, on what matters most today: a problem first (the train late "
+    "or cancelled, works on its route, a failed backup, an open warning and what it means), "
+    "otherwise the train and when it rains; a quiet morning may simply say so. Do not start "
+    "with a greeting. `line`: one short sentence of at most "
+    f"{LINE_MAX} characters, the gist. `facts`: exactly four facts of at most {FACT_MAX} "
+    "characters each, the most useful first (a problem, the backup, the train, the first "
+    "event, the weather). Mention only what is in the facts and skip what is unknown. Plain "
+    "and warm, no markdown, no emoji. Write times as 24-hour HH:MM."
 )
 
 SCHEMA = {
     "type": "object",
     "properties": {
-        "paragraph": {"type": "string"},
+        "opening": {"type": "string"},
         "line": {"type": "string"},
         "facts": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["paragraph", "line", "facts"],
+    "required": ["opening", "line", "facts"],
     "additionalProperties": False,
 }
+
+# One line of a section: a short label and its text, e.g. ("Backup", "finished at 03:41").
+Item = tuple[str, str]
 
 
 class Briefing(BaseModel):
@@ -64,7 +71,7 @@ class Briefing(BaseModel):
     until: datetime  # 09:00 local that day: shown until then
     line: str
     facts: list[str]
-    paragraph: str
+    paragraph: str  # Claude's opening (a whole paragraph before M29)
 
 
 def _hhmm(value: Any, cfg: dict[str, Any]) -> str | None:
@@ -73,68 +80,115 @@ def _hhmm(value: Any, cfg: dict[str, Any]) -> str | None:
     return core.local(datetime.fromisoformat(str(value)), cfg).strftime("%H:%M")
 
 
-def facts(cfg: dict[str, Any], store: Store, now: datetime) -> list[str]:
-    """The house's state as short plain facts; only what the cache knows."""
-    out: list[str] = []
+def _train(cfg: dict[str, Any], store: Store, today: str) -> list[Item]:
+    """This morning's train and works or disruptions on its route. Only the
+    morning's own check: an evening "tomorrow" alert never reaches the briefing."""
+    train = store.get_cache("train") or {}
+    run = train.get("train")
+    if train.get("date") != today or train.get("mode") != "morning":
+        return []
+    where = train.get("route", "").split(" to ")[-1]
+    head = f"{train.get('departure')} to {where}"
+    out: list[Item] = []
+    if run is None or run.get("status") in ("cancelled", "not_found"):
+        gone = "is CANCELLED" if run and run["status"] == "cancelled" else "is not in NS's planner"
+        out.append(("Train", f"{head} {gone}"))
+        out.append(("Instead", rules._next_text(train.get("next_direct")).rstrip(".")))
+    else:
+        planned, actual = run.get("planned_track"), run.get("actual_track")
+        state = (f"{run.get('delay_minutes', 0)} min late, leaves "
+                 f"{_hhmm(run.get('actual_departure'), cfg) or train.get('departure')}"
+                 if run["status"] == "late" else "on time")
+        track = actual or planned
+        where_from = (f", platform {track}" if track else "") + (
+            f" (not {planned})" if planned and actual and planned != actual else "")
+        out.append(("Train", f"{head}, {state}{where_from}"))
+        skipped = [stop["name"] for stop in (run.get("stops") or [])[1:] if stop.get("cancelled")]
+        if skipped:
+            out.append(("Skips", ", ".join(skipped)))
+    for item in train.get("disruptions") or []:
+        label = "Works" if item.get("kind") == "MAINTENANCE" else "Disruption"
+        text = " ".join(t for t in (item.get("text") or item.get("title"), item.get("until"))
+                        if t)
+        out.append((label, f"on your route: {text}"))
+    return out
+
+
+def _agenda(cfg: dict[str, Any], store: Store, today: str, full: bool) -> list[Item]:
+    """Today's events; with `full` False only the first one (what Claude may see)."""
+    calendar = store.get_cache("calendar") or {}
+    if calendar.get("date") != today:
+        return []
+    timed = [e for e in calendar.get("events") or [] if e.get("start")]
+    if not full:
+        if timed:
+            return [("First event", f"{_hhmm(timed[0]['start'], cfg)} {timed[0]['title']}")]
+        return [] if calendar.get("all_day") else [("Agenda", "no events today")]
+    out: list[Item] = [("All day", e["title"]) for e in calendar.get("all_day") or []]
+    out += [(_hhmm(e["start"], cfg) or "", e["title"]) for e in timed]
+    return out or [("Agenda", "no events today")]
+
+
+def _weather(cfg: dict[str, Any], store: Store, now: datetime, today: str) -> list[Item]:
+    parts = []
+    weather = store.get_cache("weather") or {}
+    if weather.get("temperature") is not None:
+        parts.append(f"{weather['temperature']:.0f} °C now"
+                     + (f", {weather['description']}" if weather.get("description") else ""))
+    day = next((d for d in (store.get_cache("forecast") or {}).get("days") or []
+                if d.get("date") == today), None)
+    if day:
+        parts.append(f"{day['low']:.0f} to {day['high']:.0f} °C today")
+        wet = [h["hour"] for h in day.get("hours") or []
+               if h["hour"] >= core.local(now, cfg).hour and h["rain_chance"] >= 50]
+        parts.append(f"rain likely from {wet[0]:02d}:00" if wet
+                     else "dry (rain chance under 50%)")
+    return [("Weather", "; ".join(parts))] if parts else []
+
+
+def your_day(cfg: dict[str, Any], store: Store, now: datetime, full: bool = True) -> list[Item]:
     today = core.local(now, cfg).date().isoformat()
+    return (_train(cfg, store, today) + _agenda(cfg, store, today, full)
+            + _weather(cfg, store, now, today))
+
+
+def house(cfg: dict[str, Any], store: Store, now: datetime) -> list[Item]:
+    """The house's state, open problems first. Train alerts are left out: your day
+    has the train from this morning's own check."""
+    out: list[Item] = []
+    opened = sorted((i for i in rules.open_incidents(store).values() if i["rule"] != "train"),
+                    key=lambda i: (i["severity"] != "error", i["opened_at"]))
+    out += [(core.LEVEL.get(i["severity"], "Open"), i["title"]) for i in opened]
 
     nas = store.get_cache("nas") or {}
     backup = nas.get("backup") or {}
     if backup.get("status") in ("ok", "fail", "warn"):
         word = {"ok": "finished", "fail": "FAILED", "warn": "needs a look"}[backup["status"]]
         at = _hhmm(backup.get("at"), cfg)
-        out.append(f"Backup to Hetzner: {word}" + (f" at {at}" if at else ""))
+        out.append(("Backup", word + (f" at {at}" if at else "")))
     storage = nas.get("storage") or {}
     if storage.get("used_pct") is not None:
-        out.append(f"Storage: {round(storage['used_pct'])}% used")
-    for pool in storage.get("pools") or []:
-        if pool.get("used_pct", 0) >= 90:
-            out.append(f"Pool {pool['name']} is {round(pool['used_pct'])}% full")
+        full = [f"{p['name']} is {round(p['used_pct'])}% full"
+                for p in storage.get("pools") or [] if p.get("used_pct", 0) >= 90]
+        out.append(("Storage", "; ".join([f"{round(storage['used_pct'])}% used", *full])))
     bad = [d["name"] for d in nas.get("disks") or [] if d.get("smart") in ("warn", "fail")]
-    out.append(f"Disks with SMART warnings: {', '.join(bad)}" if bad else "Disks: all healthy")
+    out.append(("Disks", f"SMART warnings on {', '.join(bad)}" if bad else "all healthy"))
 
     since = (now - UPDATES_SINCE).isoformat()
     updated = sorted({r["name"] for r in store.container_updates(100) if r["ts"] >= since})
     if updated:
-        out.append(f"Updated overnight: {', '.join(updated)}")
-
-    for incident in rules.open_incidents(store).values():
-        out.append(f"Open {incident['severity']}: {incident['title']}")
-
-    behind = [p for p in (store.get_cache("pinned") or {}).get("pins") or [] if p.get("behind")]
-    for p in behind:
-        out.append(f"Pinned {p['repo'].split('/')[-1]} at {p['current']}, newest {p['latest']}")
-
-    weather = store.get_cache("weather") or {}
-    if weather.get("temperature") is not None:
-        out.append(f"Now outside: {weather['temperature']:.0f} °C"
-                   + (f", {weather['description']}" if weather.get("description") else ""))
-    day = next((d for d in (store.get_cache("forecast") or {}).get("days") or []
-                if d.get("date") == today), None)
-    if day:
-        out.append(f"Today: {day['low']:.0f} to {day['high']:.0f} °C")
-        wet = [h["hour"] for h in day.get("hours") or []
-               if h["hour"] >= core.local(now, cfg).hour and h["rain_chance"] >= 50]
-        out.append(f"Rain likely from {wet[0]:02d}:00" if wet
-                   else "Dry today (rain chance under 50%)")
-
-    train = store.get_cache("train") or {}
-    run = train.get("train") or {}
-    if train.get("date") == today and train.get("mode") == "morning" and run:
-        track = run.get("actual_track") or run.get("planned_track")
-        state = {"on_time": "on time", "late": f"{run.get('delay_minutes', 0)} min late",
-                 "cancelled": "CANCELLED", "not_found": "not in the planner"}[run["status"]]
-        out.append(f"Train {train.get('departure')} to {train.get('route', '').split(' to ')[-1]}: "
-                   f"{state}" + (f", platform {track}" if track else ""))
-
-    calendar = store.get_cache("calendar") or {}
-    if calendar.get("date") == today:
-        first = next((e for e in calendar.get("events") or [] if e.get("start")), None)
-        if first:
-            out.append(f"First event: {_hhmm(first['start'], cfg)} {first['title']}")
-        elif not calendar.get("all_day"):
-            out.append("No events today")
+        out.append(("Updated", ", ".join(updated)))
+    for p in (store.get_cache("pinned") or {}).get("pins") or []:
+        if p.get("behind"):
+            out.append(("Pinned", f"{p['repo'].split('/')[-1]} at {p['current']}, "
+                                  f"newest {p['latest']}"))
     return out
+
+
+def facts(cfg: dict[str, Any], store: Store, now: datetime) -> list[str]:
+    """What Claude is told: the message's own items, with only the first event."""
+    return [f"{label}: {text}"
+            for label, text in your_day(cfg, store, now, full=False) + house(cfg, store, now)]
 
 
 def _until(now: datetime, cfg: dict[str, Any]) -> datetime:
@@ -149,7 +203,7 @@ async def make(cfg: dict[str, Any], store: Store, now: datetime | None = None,
     local = core.local(now, cfg)
     lines = facts(cfg, store, now)
     prompt = f"{local:%A %d %B %Y}, {local:%H:%M}.\n\nFacts:\n" + "\n".join(f"- {f}" for f in lines)
-    answer = await ai.ask(cfg, store, feature=FEATURE, model=ai.SCHEDULED_MODEL, system=SYSTEM,
+    answer = await ai.ask(cfg, store, feature=FEATURE, model=ai.BRIEFING_MODEL, system=SYSTEM,
                           prompt=prompt, max_tokens=2048, schema=SCHEMA, now=now, client=claude)
     if answer is None:
         return None
@@ -162,7 +216,7 @@ async def make(cfg: dict[str, Any], store: Store, now: datetime | None = None,
         as_of=now, date=local.date().isoformat(), until=_until(now, cfg),
         line=str(data["line"]).strip()[:LINE_MAX],
         facts=[str(f).strip()[:FACT_MAX] for f in data["facts"] if str(f).strip()][:4],
-        paragraph=str(data["paragraph"]).strip())
+        paragraph=str(data["opening"]).strip()[:OPENING_MAX])
 
 
 # Held messages by severity, most serious first, as counted in the overnight line.
@@ -170,9 +224,10 @@ _COUNTED = (("error", "error", "errors"), ("warning", "warning", "warnings"),
             ("info", "info", "info"), ("ok", "OK", "OK"))
 
 
-def overnight(held: list[dict[str, Any]]) -> dict[str, Any]:
+def overnight(held: list[dict[str, Any]], shown: frozenset[str] = frozenset()) -> dict[str, Any]:
     """The overnight section's values: a count by severity, and a line for each
-    warning or error (the OK and info ones are only counted)."""
+    warning or error (the OK and info ones are only counted). One still open is
+    already in House (`shown`, by title), so it is only counted here."""
     if not held:
         return {"overnight": None, "held": []}
     counts = []
@@ -180,7 +235,7 @@ def overnight(held: list[dict[str, Any]]) -> dict[str, Any]:
         n = sum(1 for m in held if m["severity"] == severity)
         if n:
             counts.append(f"{n} {one if n == 1 else many}")
-    named = [m for m in held if m["severity"] in ("error", "warning")]
+    named = [m for m in held if m["severity"] in ("error", "warning") and m["title"] not in shown]
     title = "Overnight · " + ", ".join(counts)
     if len(named) > core.DIGEST_LIMIT:
         title += f" (the first {core.DIGEST_LIMIT} here, all on the Alerts page)"
@@ -206,8 +261,14 @@ async def run(cfg: dict[str, Any], store: Store, now: datetime | None = None,
     held: list[dict[str, Any]] = []
     if "{overnight}" in templates.text_of(store, "briefing"):
         held = core.held(store, core.routing(store).get("briefing", "nas"))
+    the_house = house(cfg, store, now)
+    sections = {name: [{"label": label, "text": text} for label, text in items]
+                for name, items in (("your_day", your_day(cfg, store, now)),
+                                    ("house", the_house))}
+    shown = frozenset(text for _, text in the_house)
     sent = templates.message(store, "briefing", {
-        "day": f"{local:%A}", "paragraph": briefing.paragraph} | overnight(held))
+        "day": f"{local:%A}", "paragraph": briefing.paragraph} | sections
+        | overnight(held, shown))
     # 06:30 is still quiet hours; the digest is wanted then, like the train.
     logged = await core.notify(store, cfg, source="briefing", category="briefing",
                                severity="info", title=sent.title, body=sent.body,

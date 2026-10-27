@@ -20,12 +20,26 @@ CFG = {
 }
 NOW = datetime(2026, 10, 29, 5, 30, tzinfo=UTC)  # Thursday 06:30 in Amsterdam
 ANSWER = {
-    "paragraph": "Good morning. A quiet night: the backup finished at 03:41 and Sonarr was "
-                 "updated. Your train is on time from platform 4.",
+    "opening": "Your train is on time from platform 4; rain from 16:00, so take a coat.",
     "line": "A quiet night. Train on time, dry until 16:00.",
     "facts": ["Backup done 03:41", "Sonarr updated", "Train on time, platform 4",
               "Stand-up 09:30", "A fifth fact that is cut"],
 }
+
+# The message for the `house` fixture, without an overnight section.
+MESSAGE = (
+    f"<b>Morning briefing · Thursday</b>\n{ANSWER['opening']}\n\n"
+    "<b>Your day</b>\n"
+    "<i>Train</i> · 07:16 to Beta, on time, platform 4\n"
+    "<i>09:30</i> · Stand-up\n"
+    "<i>14:00</i> · Dentist\n"
+    "<i>Weather</i> · 8 °C now, Half bewolkt; 7 to 12 °C today; rain likely from 16:00\n\n"
+    "<b>House</b>\n"
+    "<i>Backup</i> · finished at 03:41\n"
+    "<i>Storage</i> · 71% used; volume2 is 93% full\n"
+    "<i>Disks</i> · all healthy\n"
+    "<i>Updated</i> · sonarr\n"
+    "<i>Pinned</i> · immich at v3.3.1, newest v3.4.0")
 
 
 class FakeClaude:
@@ -95,19 +109,21 @@ def test_the_facts_come_from_the_cache_and_only_the_first_event(house):
     lines = briefing.facts(CFG, house, NOW)
 
     assert lines == [
-        "Backup to Hetzner: finished at 03:41",
-        "Storage: 71% used",
-        "Pool volume2 is 93% full",
-        "Disks: all healthy",
-        "Updated overnight: sonarr",
-        "Pinned immich at v3.3.1, newest v3.4.0",
-        "Now outside: 8 °C, Half bewolkt",
-        "Today: 7 to 12 °C",
-        "Rain likely from 16:00",
-        "Train 07:16 to Beta: on time, platform 4",
+        "Train: 07:16 to Beta, on time, platform 4",
         "First event: 09:30 Stand-up",
+        "Weather: 8 °C now, Half bewolkt; 7 to 12 °C today; rain likely from 16:00",
+        "Backup: finished at 03:41",
+        "Storage: 71% used; volume2 is 93% full",
+        "Disks: all healthy",
+        "Updated: sonarr",
+        "Pinned: immich at v3.3.1, newest v3.4.0",
     ]
     assert not any("Dentist" in f or "123456" in f for f in lines)
+
+
+def test_the_message_has_the_whole_agenda(house):
+    assert briefing.your_day(CFG, house, NOW)[1:3] == [("09:30", "Stand-up"),
+                                                       ("14:00", "Dentist")]
 
 
 def test_an_empty_house_still_gives_facts(store):
@@ -116,7 +132,62 @@ def test_an_empty_house_still_gives_facts(store):
     assert briefing.facts(CFG, store, NOW) == ["Disks: all healthy"]
 
 
-def test_asks_haiku_once_for_all_three_forms(house):
+def open_incident(store, key, rule, severity, title):
+    with store.connect() as conn:
+        conn.execute("INSERT INTO alert_incident (key, rule, severity, title, opened_at, "
+                     "last_seen_at) VALUES (?, ?, ?, ?, ?, ?)",
+                     (key, rule, severity, title, NOW.isoformat(), NOW.isoformat()))
+
+
+def test_open_alerts_lead_the_house_but_train_alerts_stay_out(house):
+    open_incident(house, "train:x", "train", "warning", "Tomorrow, on your route: A - B; C - D")
+    open_incident(house, "outside:transip", "outside", "warning", "TransIP: incident")
+
+    assert briefing.house(CFG, house, NOW)[0] == ("WARNING", "TransIP: incident")
+    assert not any("Tomorrow" in f for f in briefing.facts(CFG, house, NOW))
+
+
+def test_works_on_the_route_in_ns_words(house):
+    train = house.get_cache("train")
+    house.put_cache("train", train | {"disruptions": [{
+        "id": "1", "kind": "MAINTENANCE", "title": "Utrecht - Arnhem; Amsterdam - Köln.",
+        "text": "Door werkzaamheden rijden er minder treinen.",
+        "until": "Dit duurt tot ongeveer 10:00 uur."}]})
+
+    assert briefing.your_day(CFG, house, NOW)[1] == (
+        "Works", "on your route: Door werkzaamheden rijden er minder treinen. "
+                 "Dit duurt tot ongeveer 10:00 uur.")
+
+
+def test_a_late_or_moved_train(house):
+    train = house.get_cache("train")
+    house.put_cache("train", train | {"train": {
+        "status": "late", "delay_minutes": 6, "actual_departure": "2026-10-29T06:22:00+00:00",
+        "planned_track": "4", "actual_track": "6",
+        "stops": [{"name": "Alpha"}, {"name": "Gamma", "cancelled": True}]}})
+
+    assert briefing.your_day(CFG, house, NOW)[:2] == [
+        ("Train", "07:16 to Beta, 6 min late, leaves 07:22, platform 6 (not 4)"),
+        ("Skips", "Gamma")]
+
+
+def test_a_cancelled_train_names_the_next_one(house):
+    train = house.get_cache("train")
+    house.put_cache("train", train | {"train": {"status": "cancelled"}, "next_direct": {
+        "planned_departure": "2026-10-29T07:46:00+01:00", "planned_track": "6", "stops": []}})
+
+    assert briefing.your_day(CFG, house, NOW)[:2] == [
+        ("Train", "07:16 to Beta is CANCELLED"),
+        ("Instead", "Next direct train: 07:46 from platform 6")]
+
+
+def test_an_evening_check_is_not_this_morning(house):
+    house.put_cache("train", house.get_cache("train") | {"mode": "evening"})
+
+    assert briefing.your_day(CFG, house, NOW)[0] == ("09:30", "Stand-up")
+
+
+def test_asks_sonnet_once_for_all_three_forms(house):
     claude = FakeClaude()
 
     made = asyncio.run(briefing.make(CFG, house, NOW, claude))
@@ -127,17 +198,18 @@ def test_asks_haiku_once_for_all_three_forms(house):
     assert made.date == "2026-10-29"
     assert made.until == datetime(2026, 10, 29, 9, 0, tzinfo=made.until.tzinfo)
     call = claude.calls[0]
-    assert call["model"] == "claude-haiku-5-5"
+    assert call["model"] == "claude-sonnet-5-5"
     assert call["output_config"]["format"] == {"type": "json_schema", "schema": briefing.SCHEMA}
     assert call["messages"][0]["content"].startswith("Thursday 29 October 2026, 06:30.")
-    assert "- Train 07:16 to Beta: on time, platform 4" in call["messages"][0]["content"]
+    assert "- Train: 07:16 to Beta, on time, platform 4" in call["messages"][0]["content"]
 
 
 def test_long_answers_are_cut_to_fit_the_panel(house):
-    long = ANSWER | {"line": "x" * 200, "facts": ["y" * 80] * 4}
+    long = ANSWER | {"opening": "z" * 400, "line": "x" * 200, "facts": ["y" * 80] * 4}
 
     made = asyncio.run(briefing.make(CFG, house, NOW, FakeClaude(long)))
 
+    assert len(made.paragraph) == briefing.OPENING_MAX
     assert len(made.line) == briefing.LINE_MAX
     assert all(len(f) == briefing.FACT_MAX for f in made.facts)
 
@@ -147,7 +219,7 @@ def test_sends_it_in_quiet_hours_and_keeps_it_for_the_panel(house):
 
     asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), sent.client()))
 
-    assert sent.texts == [f"<b>Morning briefing · Thursday</b>\n{ANSWER['paragraph']}"]
+    assert sent.texts == [MESSAGE]
     kept = house.get_cache(briefing.CACHE_KEY)
     assert kept["line"] == ANSWER["line"] and len(kept["facts"]) == 4
 
@@ -199,8 +271,7 @@ def test_takes_over_what_quiet_hours_held(house):
     asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), sent.client()))
 
     assert sent.texts == [
-        f"<b>Morning briefing · Thursday</b>\n{ANSWER['paragraph']}\n\n"
-        "<b>Overnight · 1 warning, 1 info, 2 OK</b>\nWARNING · volume2 is 91% full"]
+        f"{MESSAGE}\n\n<b>Overnight · 1 warning, 1 info, 2 OK</b>\nWARNING · volume2 is 91% full"]
     # Nothing is left for "While you slept" at 07:00.
     assert core.held(house) == []
     assert asyncio.run(core.send_digests(house, CFG, SEVEN, sent.client())) == 0
@@ -212,7 +283,7 @@ def test_a_quiet_night_adds_no_overnight_section(house):
 
     asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), sent.client()))
 
-    assert sent.texts == [f"<b>Morning briefing · Thursday</b>\n{ANSWER['paragraph']}"]
+    assert sent.texts == [MESSAGE]
 
 
 def test_another_chat_keeps_its_own_digest(house):
@@ -246,8 +317,20 @@ def test_a_template_without_overnight_leaves_the_digest(house):
 
     asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), sent.client()))
 
-    assert sent.texts == [f"<b>Briefing Thursday</b>\n{ANSWER['paragraph']}"]
+    assert sent.texts == [f"<b>Briefing Thursday</b>\n{ANSWER['opening']}"]
     assert len(core.held(house)) == 1
+
+
+def test_a_warning_still_open_is_only_counted_overnight(house):
+    hold(house, "warning", "volume2 is 91% full")
+    open_incident(house, "disk_space:volume2", "disk_space", "warning", "volume2 is 91% full")
+    sent = Sent()
+
+    asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), sent.client()))
+
+    (text,) = sent.texts
+    assert "<i>WARNING</i> · volume2 is 91% full" in text
+    assert text.endswith("<b>Overnight · 1 warning</b>")
 
 
 def test_many_warnings_are_cut_with_a_note():
