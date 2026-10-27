@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from typing import Any, Literal
 
 from ..store import Store
+from . import photos
 from .schema import Recipe
 
 TABLES = """
@@ -31,7 +32,7 @@ Saved = Literal["added", "replaced", "unchanged"]
 
 def ensure_tables(store: Store) -> None:
     with store.connect() as conn:
-        conn.executescript(TABLES)
+        conn.executescript(TABLES + photos.TABLES)
 
 
 def _now(now: datetime | None) -> str:
@@ -45,12 +46,14 @@ def summaries(store: Store) -> list[dict[str, Any]]:
             "SELECT id, title, needs_review, body, updated_at FROM recipe "
             "ORDER BY title COLLATE NOCASE"
         ).fetchall()
+    pictures = photos.stamps(store)
     out = []
     for row in rows:
         body = json.loads(row["body"])
         out.append({"id": row["id"], "title": row["title"], "tags": body.get("tags", []),
                     "times": body.get("times", {}), "servings": body.get("servings"),
-                    "needs_review": bool(row["needs_review"]), "updated_at": row["updated_at"]})
+                    "needs_review": bool(row["needs_review"]), "updated_at": row["updated_at"],
+                    "photo": pictures.get(row["id"])})
     return out
 
 
@@ -61,7 +64,7 @@ def get(store: Store, recipe_id: str) -> dict[str, Any] | None:
         return None
     return {"recipe": json.loads(row["body"]), "needs_review": bool(row["needs_review"]),
             "created_at": row["created_at"], "updated_at": row["updated_at"],
-            "previous_at": row["previous_at"]}
+            "previous_at": row["previous_at"], "photo": photos.stamps(store).get(recipe_id)}
 
 
 def bodies(store: Store, ids: list[str] | None = None) -> dict[str, dict[str, Any]]:
@@ -113,5 +116,6 @@ def undo(store: Store, recipe_id: str, now: datetime | None = None) -> bool:
 
 
 def delete(store: Store, recipe_id: str) -> bool:
+    photos.delete(store, recipe_id)  # SQLite only cascades with foreign keys switched on
     with store.connect() as conn:
         return conn.execute("DELETE FROM recipe WHERE id = ?", (recipe_id,)).rowcount > 0

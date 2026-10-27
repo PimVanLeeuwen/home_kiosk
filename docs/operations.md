@@ -62,6 +62,24 @@ At 02:45 the collector writes a consistent copy of its own database (`VACUUM INT
 `data/backup/collector.db`, which the 03:00 run takes along. To restore: stop the collector, put
 that file in place of `data/collector.db`, and start it again.
 
+## Recipes: the one-time Tandoor import
+
+Tandoor's recipes come into the hub once, from Tandoor's own export (Settings, Export, format
+Default: a zip with one zip per recipe), plus optionally a JSON file with reworked versions
+(one recipe, a list, or Copy all's JSON; matched by `id`, used instead of the plain conversion).
+Without that file each recipe comes in as one cook phase, marked "Needs review".
+
+```bash
+docker cp export.zip home-kiosk-collector:/tmp/
+docker cp recipes-phased.json home-kiosk-collector:/tmp/
+docker exec home-kiosk-collector python -m app.recipes.tandoor /tmp/export.zip --phased /tmp/recipes-phased.json --dry-run
+docker exec home-kiosk-collector python -m app.recipes.tandoor /tmp/export.zip --phased /tmp/recipes-phased.json
+docker exec home-kiosk-collector rm /tmp/export.zip /tmp/recipes-phased.json
+```
+
+`--dry-run` prints the recipes and saves nothing. Recipes already in the hub are skipped unless
+`--replace` is given. Any fault in any recipe imports nothing.
+
 ## Install on a phone or laptop
 
 The hub is an installable app (a web app manifest and a service worker): it opens full screen

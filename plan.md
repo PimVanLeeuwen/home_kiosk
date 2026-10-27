@@ -1763,13 +1763,19 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   nothing, and replacing needs `replace` after the check was shown), `PUT /api/recipes/{id}`
   (replaces only that recipe), `POST /api/recipes/{id}/undo` and `DELETE /api/recipes/{id}`.
   Writes behind `same_origin_json`. The photo flag in the list comes with the photos (step 4).
-- Step 2 (collector): the one-time Tandoor import, run by hand on the NAS
-  (`docker exec home-kiosk-collector python -m app.recipes.tandoor <export.zip>`), so the hub
-  needs no large upload endpoint. Tandoor's default export is a zip of zips, each with a
-  `recipe.json` and an image (check against the real export first). Each Tandoor step becomes a
-  phase as it is (kind `cook`, its name or "Stap n"), its ingredients with `pantry: false`,
-  keywords become tags, plus servings, the source URL and the photo; every recipe is marked
-  needs review. The owner then pastes each into Claude and pastes the phased version back.
+- Step 2 (done 2026-10-27, `app/recipes/tandoor.py`, `photos.py`): the one-time Tandoor
+  import, run by hand on the NAS (`python -m app.recipes.tandoor <export.zip>`, see
+  docs/operations.md), so the hub needs no large upload endpoint. Tandoor's export (ten
+  recipes) is a zip of zips, each with `recipe.json` and an image; its steps have no names. So
+  each recipe converts to one cook phase "Bereiding", marked needs review: units tidied
+  ("theelepel" to "tl", "teentjes" to "teen"), an amount of 0 is "naar smaak", keywords become
+  tags, working and waiting time become prep and cook time, and foods in Tandoor's spice, oil and
+  sauce categories are guessed as pantry (decided 2026-10-27). `--phased <file>` takes reworked
+  versions by id instead: Claude Code phased all ten the same day from the export (prep first,
+  Tandoor's texts kept, steps moved or split), for the owner to check before the import. Photos
+  are stored here already (step 4 adds uploads): a WebP lead at most 900 px wide and a 240 px
+  square in `recipe_photo`, served at `/api/recipes/{id}/photo/{lead|thumb}`, with a `photo`
+  stamp in the list and the recipe for the address.
 - Step 3 (web): the Recipes list, phone first: photo cards, a search field on titles, tag chips
   as filters, a "Needs review" badge and filter, Paste JSON and Copy all. The tab bar and
   sidebar change; the command palette lists recipes.

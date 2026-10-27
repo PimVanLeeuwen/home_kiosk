@@ -9,10 +9,11 @@ from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
+from fastapi.responses import Response
 from pydantic import BaseModel, ValidationError
 
 from ..security import same_origin_json
-from . import schema, store
+from . import photos, schema, store
 from .changes import changes
 
 router = APIRouter(prefix="/api/recipes")
@@ -131,6 +132,17 @@ def recipe(request: Request, recipe_id: str) -> dict[str, Any]:
     if found is None:
         raise HTTPException(404, "No such recipe.")
     return found
+
+
+@router.get("/{recipe_id}/photo/{size}")
+def photo(request: Request, recipe_id: str, size: photos.Size) -> Response:
+    """The page adds the photo's `photo` stamp to the address, so a new photo is a new address
+    and the browser may keep each one."""
+    found = photos.get(request.app.state.store, recipe_id, size)
+    if found is None:
+        raise HTTPException(404, "No photo.")
+    return Response(found[0], media_type="image/webp",
+                    headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 
 @router.put("/{recipe_id}", dependencies=[*write, Depends(_small_enough)])
