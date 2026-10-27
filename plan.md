@@ -1620,8 +1620,43 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   `paint_streets.route_streets`), the card fades their edges; without them the route stands
   alone as before.
 
+**M29. A better morning briefing** (added 2026-10-27)
+- Why: the 06:30 digest is one dense paragraph, and at 07:00 "While you slept" repeats what it
+  already said. Its facts are a flat list of strings, so Claude repeated an evening "tomorrow"
+  disruption warning for the whole corridor (Amsterdam-Köln, Frankfurt) as if it were today's.
+- Decided 2026-10-27: the hub builds the message in sections with exact figures (your day,
+  house, markets, news, overnight); Claude writes only a short opening, plus the panel's line
+  and four facts, on Sonnet (about $0.30 a month). The briefing takes over the overnight digest
+  on the days it goes out. Claude may now see tickers and % moves for market notes; never
+  amounts, and no calendar titles beyond the first event (the hub lists the agenda itself in
+  Telegram). Telegram HTML: bold section headers, expandable blocks for the long parts; no
+  emoji (2026-10-08).
+- Step 1 (done 2026-10-27, `app/briefing.py`): fold "While you slept" into the briefing. At
+  06:30 the briefing takes the messages held for its chat: an "Overnight" line counting them by
+  severity, and one line per warning or error (template "Morning digest: overnight line"), and
+  marks them digested once it is sent, so nothing more goes out at 07:00. Without a briefing
+  (off, the cap, no answer, a failed send, weekends), or with a saved template that has no
+  `{overnight}`, the 07:00 digest is as before; messages held between 06:30 and 07:00 still
+  go in a small 07:00 digest.
+- Step 2: the hub builds the sections, Claude writes the opening. Your day (the train, today's
+  agenda, the weather and when it rains), House (backup, storage, disks, updates, open
+  warnings); a bold opening of one or two sentences from Sonnet. Train disruptions only when
+  they touch the own stretch, and the evening's "tomorrow" warnings reworded for the morning.
+- Step 3: Markets, built by the hub without AI: the total and yesterday's move, best and worst
+  holding, the indices, the full table in an expandable block. Open: whether the NAS alerts
+  chat may show euro amounts, or percentages only.
+- Step 4: market notes (switch "Market notes"): Claude gets the tickers, their % moves and the
+  headlines that name them, and writes a short why for each big mover (threshold open), in the
+  briefing's Markets section and in the 08:30 and 18:30 Portfolio reports.
+- Step 5: top news: the top three grouped stories from the `stories` cache, each with its
+  sentence, a link and its number of sources; no new AI call.
+- Step 6: Telegram buttons under the briefing through the bot (callback queries): "Full
+  portfolio" and "Status" first. "Explain this warning" would widen the alert explainer past
+  container alerts (2026-10-25) and needs its own decision.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
-M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28.
+M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
+M29.
 
 ## 4. Open items
 

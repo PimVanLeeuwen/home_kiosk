@@ -234,11 +234,8 @@ async def send_digests(
     now = now or datetime.now(UTC)
     if in_quiet_hours(local(now, cfg), quiet_hours(store)):
         return 0
-    with store.connect() as conn:
-        held = [dict(r) for r in conn.execute(
-            "SELECT * FROM alert_message WHERE status = 'held' ORDER BY ts")]
     by_chat: dict[str, list[dict[str, Any]]] = {}
-    for message in held:
+    for message in held(store):
         by_chat.setdefault(message["chat"], []).append(message)
 
     sent = 0
@@ -258,13 +255,29 @@ async def send_digests(
             # Stay held: the next run tries again.
             log.warning("digest for %s failed: %s", chat_key, type(exc).__name__)
             continue
-        with store.connect() as conn:
-            conn.executemany(
-                "UPDATE alert_message SET status = 'digested', sent_at = ? WHERE id = ?",
-                [(now.isoformat(), m["id"]) for m in messages],
-            )
+        mark_digested(store, [m["id"] for m in messages], now)
         sent += 1
     return sent
+
+
+def held(store: Store, chat: str | None = None) -> list[dict[str, Any]]:
+    """Messages held in quiet hours and not yet digested, oldest first; for one
+    chat when given."""
+    query = "SELECT * FROM alert_message WHERE status = 'held'"
+    args: tuple[str, ...] = ()
+    if chat:
+        query, args = query + " AND chat = ?", (chat,)
+    with store.connect() as conn:
+        return [dict(r) for r in conn.execute(query + " ORDER BY ts, id", args)]
+
+
+def mark_digested(store: Store, ids: list[int], now: datetime) -> None:
+    """Held messages that went out in a summary (the digest or the morning briefing)."""
+    with store.connect() as conn:
+        conn.executemany(
+            "UPDATE alert_message SET status = 'digested', sent_at = ? WHERE id = ?",
+            [(now.isoformat(), i) for i in ids],
+        )
 
 
 def messages(store: Store, limit: int = 100, category: str | None = None) -> list[AlertMessage]:

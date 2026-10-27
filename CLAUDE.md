@@ -168,6 +168,10 @@ python3 dashboard/serve.py
   workouts to `/api/runs/health` with `RUNS_KEY` (a write from outside the hub, checked by its key
   instead of same-origin); only runs are kept, on the NAS, and routes never leave it or reach the
   logs. They show on the Now panel. plan.md M28.
+- 2026-10-27: the morning briefing is built by the hub in sections (your day, house, markets,
+  news, overnight) with Claude writing only the opening, on Sonnet; it takes over the overnight
+  digest on the days it goes out; Claude may see tickers and % moves for market notes, never
+  amounts or calendar titles beyond the first event. plan.md M29.
 
 ## Gotchas
 

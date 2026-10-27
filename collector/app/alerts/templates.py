@@ -364,12 +364,25 @@ CATALOG: dict[str, Template] = {
         {"updated": Block("watchtower_updated"), "failed": Block("watchtower_failed")}),
     "briefing": _msg(
         REPORTS, "Morning digest", "Weekdays at 06:30: the night and the day ahead (AI).",
-        "<b>Morning briefing · {day}</b>\n{paragraph}", "briefing", "info",
+        "<b>Morning briefing · {day}</b>\n{paragraph}\n\n<b>{overnight}</b>\n{held}",
+        "briefing", "info",
         {"day": ("The weekday", "Thursday"),
          "paragraph": ("The digest, written by Claude from the hub's facts",
                        "Good morning. A quiet night: the backup finished at 03:41 and Sonarr "
                        "was updated. Your train is on time from platform 4; dry until 16:00. "
-                       "First up: stand-up at 09:30.")}),
+                       "First up: stand-up at 09:30."),
+         "overnight": ("What quiet hours held, counted; empty after a quiet night. With it "
+                       "here, no \"While you slept\" follows at 07:00",
+                       "Overnight · 1 warning, 3 OK"),
+         "held": ("One line per held warning or error", [
+             {"level": "WARNING", "title": "volume2 is 91% full"}])},
+        {"held": Block("briefing_held")}),
+    "briefing_held": _line(
+        REPORTS, "Morning digest: overnight line",
+        "One line per warning or error held in quiet hours; the rest are only counted.",
+        "{level} · {title}", "briefing",
+        {"level": ("WARNING or ERROR", "WARNING"),
+         "title": ("The message's first line", "volume2 is 91% full")}),
     "explainer": _msg(
         RULES, "Alert explainer",
         "A minute after a container alert: the likely cause and what to try first (AI), as a "

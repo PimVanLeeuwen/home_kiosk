@@ -165,20 +165,53 @@ async def make(cfg: dict[str, Any], store: Store, now: datetime | None = None,
         paragraph=str(data["paragraph"]).strip())
 
 
+# Held messages by severity, most serious first, as counted in the overnight line.
+_COUNTED = (("error", "error", "errors"), ("warning", "warning", "warnings"),
+            ("info", "info", "info"), ("ok", "OK", "OK"))
+
+
+def overnight(held: list[dict[str, Any]]) -> dict[str, Any]:
+    """The overnight section's values: a count by severity, and a line for each
+    warning or error (the OK and info ones are only counted)."""
+    if not held:
+        return {"overnight": None, "held": []}
+    counts = []
+    for severity, one, many in _COUNTED:
+        n = sum(1 for m in held if m["severity"] == severity)
+        if n:
+            counts.append(f"{n} {one if n == 1 else many}")
+    named = [m for m in held if m["severity"] in ("error", "warning")]
+    title = "Overnight · " + ", ".join(counts)
+    if len(named) > core.DIGEST_LIMIT:
+        title += f" (the first {core.DIGEST_LIMIT} here, all on the Alerts page)"
+    return {"overnight": title, "held": [
+        {"level": core.LEVEL[m["severity"]], "title": m["title"]}
+        for m in named[:core.DIGEST_LIMIT]]}
+
+
 async def run(cfg: dict[str, Any], store: Store, now: datetime | None = None,
               claude: ai.ClientFactory | None = None, telegram: Any = None) -> Briefing | None:
     """Make today's briefing, keep it for the panel and Home, and send it to Telegram.
-    Nothing happens without an answer: yesterday's stays and is no longer shown."""
+    Nothing happens without an answer: yesterday's stays and is no longer shown.
+
+    It takes over what quiet hours held for its chat (M29): those messages are
+    counted in it and marked digested, so no "While you slept" repeats them at
+    07:00. A template without {overnight} leaves them to that digest."""
     now = now or datetime.now(UTC)
     briefing = await make(cfg, store, now, claude)
     if briefing is None:
         return None
     store.put_cache(CACHE_KEY, briefing.model_dump(mode="json"))
     local = core.local(now, cfg)
+    held: list[dict[str, Any]] = []
+    if "{overnight}" in templates.text_of(store, "briefing"):
+        held = core.held(store, core.routing(store).get("briefing", "nas"))
     sent = templates.message(store, "briefing", {
-        "day": f"{local:%A}", "paragraph": briefing.paragraph})
+        "day": f"{local:%A}", "paragraph": briefing.paragraph} | overnight(held))
     # 06:30 is still quiet hours; the digest is wanted then, like the train.
-    await core.notify(store, cfg, source="briefing", category="briefing", severity="info",
-                      title=sent.title, body=sent.body, formatted=sent.html, bypass_quiet=True,
-                      now=now, telegram=telegram)
+    logged = await core.notify(store, cfg, source="briefing", category="briefing",
+                               severity="info", title=sent.title, body=sent.body,
+                               formatted=sent.html, bypass_quiet=True, now=now, telegram=telegram)
+    if logged.status == "sent" and held:
+        core.mark_digested(store, [m["id"] for m in held], now)
     return briefing

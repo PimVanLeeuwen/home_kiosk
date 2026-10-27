@@ -10,7 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import ai, briefing, main, scheduler
-from app.alerts import core, rules
+from app.alerts import core, rules, templates
 from app.alerts.telegram import Telegram
 
 CFG = {
@@ -178,3 +178,83 @@ def test_write_one_now_from_settings(house, monkeypatch):
     ai.set_switches(house, {"briefing": False})
     assert client.post("/api/ai/briefing/now", json={}, headers=origin).status_code == 409
     assert client.get("/api/briefing").status_code == 503
+
+
+NIGHT = datetime(2026, 10, 29, 1, 0, tzinfo=UTC)  # 02:00 in Amsterdam: quiet hours
+SEVEN = datetime(2026, 10, 29, 6, 0, tzinfo=UTC)  # 07:00: the digest's turn
+
+
+def hold(store, severity, title, chat=None):
+    return asyncio.run(core.notify(store, CFG, source="test", category="rules",
+                                   severity=severity, title=title, chat=chat, now=NIGHT))
+
+
+def test_takes_over_what_quiet_hours_held(house):
+    sent = Sent()
+    hold(house, "ok", "NAS backup done")
+    hold(house, "warning", "volume2 is 91% full")
+    hold(house, "info", "3 images updated")
+    hold(house, "ok", "Resolved: sonarr down")
+
+    asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), sent.client()))
+
+    assert sent.texts == [
+        f"<b>Morning briefing · Thursday</b>\n{ANSWER['paragraph']}\n\n"
+        "<b>Overnight · 1 warning, 1 info, 2 OK</b>\nWARNING · volume2 is 91% full"]
+    # Nothing is left for "While you slept" at 07:00.
+    assert core.held(house) == []
+    assert asyncio.run(core.send_digests(house, CFG, SEVEN, sent.client())) == 0
+    assert len(sent.texts) == 1
+
+
+def test_a_quiet_night_adds_no_overnight_section(house):
+    sent = Sent()
+
+    asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), sent.client()))
+
+    assert sent.texts == [f"<b>Morning briefing · Thursday</b>\n{ANSWER['paragraph']}"]
+
+
+def test_another_chat_keeps_its_own_digest(house):
+    cfg = CFG | {"telegram": {"token": "t", "chats": {"nas": {"id": "-1"},
+                                                      "portfolio": {"id": "-2"}}}}
+    hold(house, "info", "Portfolio moved 3%", chat="portfolio")
+    sent = Sent()
+
+    asyncio.run(briefing.run(cfg, house, NOW, FakeClaude(), sent.client()))
+
+    assert [m["title"] for m in core.held(house)] == ["Portfolio moved 3%"]
+    assert asyncio.run(core.send_digests(house, cfg, SEVEN, sent.client())) == 1
+
+
+def test_a_briefing_that_fails_to_send_leaves_the_digest(house):
+    hold(house, "warning", "volume2 is 91% full")
+
+    def refuse(request):
+        return httpx.Response(500, json={"ok": False})
+
+    asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(),
+                             Telegram("t", transport=httpx.MockTransport(refuse))))
+
+    assert [m["title"] for m in core.held(house)] == ["volume2 is 91% full"]
+
+
+def test_a_template_without_overnight_leaves_the_digest(house):
+    templates.save(house, "briefing", "<b>Briefing {day}</b>\n{paragraph}")
+    hold(house, "warning", "volume2 is 91% full")
+    sent = Sent()
+
+    asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), sent.client()))
+
+    assert sent.texts == [f"<b>Briefing Thursday</b>\n{ANSWER['paragraph']}"]
+    assert len(core.held(house)) == 1
+
+
+def test_many_warnings_are_cut_with_a_note():
+    held = [{"severity": "warning", "title": f"w{i}"} for i in range(core.DIGEST_LIMIT + 2)]
+
+    values = briefing.overnight(held)
+
+    assert values["overnight"] == (f"Overnight · {core.DIGEST_LIMIT + 2} warnings "
+                                   f"(the first {core.DIGEST_LIMIT} here, all on the Alerts page)")
+    assert len(values["held"]) == core.DIGEST_LIMIT
