@@ -175,6 +175,10 @@ python3 dashboard/serve.py
 - 2026-10-27: an "Explain warnings" button under the morning briefing, shown while alerts are
   open and the Alert explainer is on; a tap has Sonnet explain every open alert (not only
   containers) as a reply to the briefing. plan.md M29.
+- 2026-10-27: Tandoor is replaced by a Recipes section in the hub; recipes are JSON in SQLite,
+  edited only by pasting JSON (mostly written with Claude), in named prep and cook phases with
+  prep first, ingredients flagged pantry or to get; no meal plans, shopping lists, timers or
+  in-hub AI. plan.md M30.
 
 ## Gotchas
 
@@ -201,6 +205,11 @@ python3 dashboard/serve.py
   browser offline, so unroute before testing offline behaviour.
 - Web tests run in UTC on CI: build expected clock times from local dates
   (`new Date(2026, 9, 6, 10, 2)`), never from `...Z` strings.
+- The page area (`<main>` in `Layout.tsx`) has a `view-transition-name`, which makes it a
+  stacking context: nothing inside it gets above the tab bar, whatever its z-index. A
+  full-screen layer (cook mode) renders into `document.body` with `createPortal`.
+- On the phone a `sticky bottom-*` item inside the page area also counts its bottom padding
+  (`pb-28`, room for the tab bar): `bottom-0` already sits just above the tab bar.
 - Collector tests run in UTC on CI too: run `TZ=UTC pytest` before pushing anything with clock
   times, and read a time without an offset as the configured zone, never the machine's.
 - The collector image only builds for linux/amd64 (as CI does): pyatv's miniaudio has no Linux
