@@ -470,6 +470,30 @@ CATALOG: dict[str, Template] = {
              {"n": 1, "step": "Free space on volume2 (the downloads folder is the largest)."},
              {"n": 2, "step": "Then restart tracearr-db; tracearr follows by itself."}])},
         {"steps": Block("explainer_step")}),
+    "explained": _msg(
+        RULES, "Warnings explained",
+        "The reply to the briefing's \"Explain warnings\" button: each open alert, what it "
+        "means and what to try (AI).",
+        "<b>Open alerts, explained</b>\n\n{alerts}", "rules", "info",
+        {"alerts": ("One block per open alert", [
+            {"title": "TransIP: incident", "cause": "TransIP reports an outage on its side; "
+             "your sites and mail there may answer slowly or not at all.",
+             "todo": "Nothing to do here; it should pass when TransIP fixes it."},
+            {"title": "volume2 is 91% full", "cause": "The downloads pool is nearly full, "
+             "which will stop new downloads and can break the containers writing there.",
+             "todo": "Clear finished downloads or move media to volume1."}])},
+        {"alerts": Block("explained_alert", joiner="\n\n")}),
+    "explained_alert": _line(
+        RULES, "Warnings explained: alert", "One open alert: its title, what it means, what "
+        "to try.", "<b>{title}</b>\n{cause}\n<i>Try</i> · {todo}", "explained",
+        {"title": ("The alert's first line", "volume2 is 91% full"),
+         "cause": ("What it means and its likely cause (AI)",
+                   "The downloads pool is nearly full."),
+         "todo": ("What to try first (AI)", "Clear finished downloads.")}),
+    "explained_none": _msg(
+        RULES, "Warnings explained: nothing open",
+        "The reply to \"Explain warnings\" when every alert has resolved since the briefing.",
+        "Nothing is open any more.", "rules", "info", {}),
     "explainer_step": _line(
         RULES, "Alert explainer: step", "One line per thing to try first.",
         "{n}. {step}", "explainer",

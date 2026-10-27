@@ -23,7 +23,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from . import ai
+from . import ai, explain_open
 from .alerts import core, rules, templates
 from .portfolio import notes as market_notes
 from .portfolio import report
@@ -163,10 +163,8 @@ def your_day(cfg: dict[str, Any], store: Store, now: datetime, full: bool = True
 def house(cfg: dict[str, Any], store: Store, now: datetime) -> list[Item]:
     """The house's state, open problems first. Train alerts are left out: your day
     has the train from this morning's own check."""
-    out: list[Item] = []
-    opened = sorted((i for i in rules.open_incidents(store).values() if i["rule"] != "train"),
-                    key=lambda i: (i["severity"] != "error", i["opened_at"]))
-    out += [(core.LEVEL.get(i["severity"], "Open"), i["title"]) for i in opened]
+    out: list[Item] = [(core.LEVEL.get(i["severity"], "Open"), i["title"])
+                       for i in explain_open.open_alerts(store)]
 
     nas = store.get_cache("nas") or {}
     backup = nas.get("backup") or {}
@@ -354,7 +352,8 @@ async def run(cfg: dict[str, Any], store: Store, now: datetime | None = None,
     # 06:30 is still quiet hours; the digest is wanted then, like the train.
     logged = await core.notify(store, cfg, source="briefing", category="briefing",
                                severity="info", title=sent.title, body=sent.body,
-                               formatted=sent.html, bypass_quiet=True, now=now, telegram=telegram)
+                               formatted=sent.html, bypass_quiet=True, now=now, telegram=telegram,
+                               buttons=explain_open.buttons(cfg, store))
     if logged.status == "sent" and held:
         core.mark_digested(store, [m["id"] for m in held], now)
     return briefing

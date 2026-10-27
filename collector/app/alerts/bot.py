@@ -1,5 +1,6 @@
-"""The Telegram bot: /status, /backup and /portfolio, answered in the two
-configured chats only.
+"""The Telegram bot: /status, /backup and /portfolio, and the morning
+briefing's "Explain warnings" button (M29), answered in the two configured
+chats only.
 
 Long polling (getUpdates) from inside the collector, so no public webhook is
 needed. The update offset is saved, so a restart does not answer old commands
@@ -14,6 +15,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
+from .. import explain_open
 from ..portfolio.moves import day_move
 from ..store import Store
 from . import core, rules
@@ -149,11 +151,45 @@ def parse_command(text: str, bot_name: str | None) -> str | None:
     return name.lower()
 
 
+async def handle_button(
+    store: Store, cfg: dict[str, Any], callback: dict[str, Any], telegram: Telegram,
+) -> bool:
+    """A tap on a button under one of the hub's messages, from an allowed chat.
+    Returns whether it replied."""
+    message = callback.get("message") or {}
+    chat_id = str((message.get("chat") or {}).get("id", ""))
+    allowed = {c["id"]: key for key, c in core.chats(cfg).items() if c["id"]}
+    if chat_id not in allowed or callback.get("data") != explain_open.CALLBACK:
+        return False
+    try:
+        # At once, so the button stops spinning while Claude thinks.
+        await telegram.call("answerCallbackQuery", {"callback_query_id": callback["id"],
+                                                    "text": "Asking Claude..."})
+    except Exception as exc:
+        log.warning("bot: answering the button failed: %s", type(exc).__name__)
+    now = datetime.now(UTC)
+    sender = (callback.get("from") or {}).get("first_name") or "someone"
+    sent = await explain_open.explain(cfg, store, allowed[chat_id], message["message_id"],
+                                      now=now, telegram=telegram)
+    if sent is None:
+        await core.notify(store, cfg, source="bot", category="bot", severity="info",
+                          title="Claude did not answer", body="The alerts are on the Alerts page.",
+                          chat=allowed[chat_id], bypass_quiet=True,
+                          reply_to=message["message_id"], now=now, telegram=telegram)
+    core.log_entry(store, now, source="bot", category="bot", severity="info",
+                   title=f"Explain warnings from {sender}", body="", chat=allowed[chat_id],
+                   status="sent", sent_at=now.isoformat())
+    return True
+
+
 async def handle_update(
     store: Store, cfg: dict[str, Any], update: dict[str, Any], telegram: Telegram,
     bot_name: str | None,
 ) -> bool:
-    """Answer one update if it is a command from an allowed chat. Returns whether it replied."""
+    """Answer one update if it is a command (or a button) from an allowed chat.
+    Returns whether it replied."""
+    if update.get("callback_query"):
+        return await handle_button(store, cfg, update["callback_query"], telegram)
     message = update.get("message") or {}
     chat_id = str((message.get("chat") or {}).get("id", ""))
     allowed = {c["id"]: key for key, c in core.chats(cfg).items() if c["id"]}
@@ -200,7 +236,8 @@ async def run(store: Store, cfg: dict[str, Any], telegram: Telegram | None = Non
         try:
             updates = await telegram.call(
                 "getUpdates",
-                {"offset": offset, "timeout": POLL_SECONDS, "allowed_updates": ["message"]},
+                {"offset": offset, "timeout": POLL_SECONDS,
+                 "allowed_updates": ["message", "callback_query"]},
                 timeout=POLL_SECONDS + 10,
             )
             backoff = 5

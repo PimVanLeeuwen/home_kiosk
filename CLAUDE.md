@@ -172,6 +172,9 @@ python3 dashboard/serve.py
   news, overnight) with Claude writing only the opening, on Sonnet; it takes over the overnight
   digest on the days it goes out; Claude may see tickers and % moves for market notes, never
   amounts or calendar titles beyond the first event. plan.md M29.
+- 2026-10-27: an "Explain warnings" button under the morning briefing, shown while alerts are
+  open and the Alert explainer is on; a tap has Sonnet explain every open alert (not only
+  containers) as a reply to the briefing. plan.md M29.
 
 ## Gotchas
 

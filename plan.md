@@ -1676,9 +1676,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   one; no new AI call. Headlines older than 12 hours are left out, and only http(s) addresses
   are linked. Templates now take `<a href="{placeholder}">`: the address always comes from the
   hub (a typed one is refused), with quotes escaped inside it; link previews stay off.
-- Step 6: Telegram buttons under the briefing through the bot (callback queries): "Full
-  portfolio" and "Status" first. "Explain this warning" would widen the alert explainer past
-  container alerts (2026-10-25) and needs its own decision.
+- Step 6 (done 2026-10-27, `app/explain_open.py`, bot callback queries): one button under the
+  briefing, "Explain warnings". Decided the same day: only that button (no Full portfolio,
+  Status or Backup), and it widens the alert explainer past container alerts (2026-10-25). It
+  shows only when House lists open warnings or errors and the "Alert explainer" switch is on.
+  A tap is answered at once ("Asking Claude..."); Sonnet (with its server-side fallback) gets
+  each open alert's title and text (redacted like the container logs), how long it has been
+  open and the NAS's storage and memory, and the bot replies to the briefing with what each
+  means and what to try (templates "Warnings explained", "... alert", "... nothing open"). A
+  second tap on the same alerts is answered from the cache. Only taps from the two chats count;
+  the bot now also asks Telegram for `callback_query` updates. M29 is complete.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

@@ -454,3 +454,21 @@ def test_old_headlines_are_left_out(house):
                                   "grouped": True, "items": [headline(1)]})
 
     assert briefing.news(house, NOW) == {"news": None, "stories": []}
+
+
+def test_open_alerts_put_an_explain_button_under_it(house):
+    payloads = []
+
+    def handler(request):
+        payloads.append(json.loads(request.content))
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 5}})
+
+    telegram = Telegram("t", transport=httpx.MockTransport(handler))
+    ai.set_switches(house, {"explainer": True})
+    asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), telegram))
+    open_incident(house, "outside:transip", "outside", "warning", "TransIP: incident")
+    asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), telegram))
+
+    assert "reply_markup" not in payloads[0]
+    assert payloads[1]["reply_markup"] == {"inline_keyboard": [[
+        {"text": "Explain warnings", "callback_data": "explain_open"}]]}

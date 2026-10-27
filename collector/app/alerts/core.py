@@ -191,10 +191,12 @@ async def notify(
     telegram: Telegram | None = None,
     formatted: str | None = None,
     reply_to: int | None = None,
+    buttons: list[dict[str, str]] | None = None,
 ) -> AlertMessage:
     """Route (or use `chat`), hold for quiet hours or send, and log one message.
     `formatted` is ready-made Telegram HTML to send instead of title and body;
-    `reply_to` a sent message's Telegram id to answer (the alert explainer)."""
+    `reply_to` a sent message's Telegram id to answer (the alert explainer);
+    `buttons` a row of buttons under it, answered by the bot (bot.py)."""
     now = now or datetime.now(UTC)
     chat_key = chat or routing(store).get(category, "nas")
     fields = {"source": source, "category": category, "severity": severity,
@@ -214,8 +216,12 @@ async def notify(
             raise ValueError(f"No chat id set for {chat_key}")
         client = telegram or Telegram((cfg.get("telegram") or {}).get("token", ""))
         text = formatted or format_html(severity, title, body)
-        result = await (client.send(chat_id, text, reply_to=reply_to) if reply_to is not None
-                        else client.send(chat_id, text))
+        extra: dict[str, Any] = {}
+        if reply_to is not None:
+            extra["reply_to"] = reply_to
+        if buttons:
+            extra["buttons"] = buttons
+        result = await client.send(chat_id, text, **extra)
     except Exception as exc:
         reason = str(exc) if isinstance(exc, ValueError) else describe(exc)
         log.warning("telegram send for %s failed: %s", source, type(exc).__name__)

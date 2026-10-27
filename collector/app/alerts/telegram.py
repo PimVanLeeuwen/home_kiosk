@@ -58,9 +58,11 @@ class Telegram:
         return body.get("result")
 
     async def send(self, chat_id: str | int, html: str, silent: bool = False,
-                   reply_to: int | None = None) -> Any:
+                   reply_to: int | None = None,
+                   buttons: list[dict[str, str]] | None = None) -> Any:
         """Sends a message, as a reply to `reply_to` when given (and still sent if that
-        message is gone); returns Telegram's message, with its `message_id`."""
+        message is gone), with `buttons` in one row under it (text and callback_data,
+        answered by the bot); returns Telegram's message, with its `message_id`."""
         if len(html) > MAX_LENGTH:
             html = html[: MAX_LENGTH - 1] + "…"
         payload: dict[str, Any] = {
@@ -73,4 +75,6 @@ class Telegram:
         if reply_to is not None:
             payload["reply_parameters"] = {"message_id": reply_to,
                                            "allow_sending_without_reply": True}
+        if buttons:
+            payload["reply_markup"] = {"inline_keyboard": [buttons]}
         return await self.call("sendMessage", payload)
