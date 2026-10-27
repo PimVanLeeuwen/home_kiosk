@@ -1,10 +1,12 @@
 """Editable message templates: the wording of every message the hub sends.
 
 A template is Telegram text with `{placeholders}` and a few HTML tags (<b>,
-<i>, <u>, <s>, <code>, <pre>, and <blockquote> or <blockquote expandable>, which
-Telegram shows folded until tapped). Placeholder values are escaped; everything else in the
-template is escaped too, except those tags. A block placeholder (holdings,
-volumes, ...) repeats a line template of its own, joined by a separator.
+<i>, <u>, <s>, <code>, <pre>, <blockquote> or <blockquote expandable>, which
+Telegram shows folded until tapped, and <a href="{placeholder}">: a link's
+address only ever comes from the hub's own values). Placeholder values are
+escaped; everything else in the template is escaped too, except those tags. A
+block placeholder (holdings, volumes, ...) repeats a line template of its own,
+joined by a separator.
 
 Only your changes are stored (setting "templates", {id: text}); without one
 the built-in text applies, which gives exactly the messages from before this
@@ -25,11 +27,13 @@ from . import core
 SETTING = "templates"
 MAX_TEXT = 2000
 MAX_MESSAGE = 4096  # Telegram's limit
-TAGS = ("b", "i", "u", "s", "code", "pre", "blockquote")
+TAGS = ("b", "i", "u", "s", "code", "pre", "blockquote", "a")
+# The only attributes: a folded quote, and a link whose address is a placeholder.
+_ATTR = r'( expandable| href="\{[a-z_]+\}")?'
 
 PLACEHOLDER = re.compile(r"\{([a-z_]+)\}")
-_ESCAPED_TAG = re.compile(r"&lt;(/?)(" + "|".join(TAGS) + r")( expandable)?&gt;")
-_TAG = re.compile(r"<(/?)([a-z]+)( expandable)?>")
+_ESCAPED_TAG = re.compile(r"&lt;(/?)(" + "|".join(TAGS) + r")" + _ATTR + r"&gt;")
+_TAG = re.compile(r"<(/?)([a-z]+)" + _ATTR + r">")
 # Telegram refuses a message with formatting inside a <pre> block.
 _TAG_IN_PRE = re.compile(r"<pre>(?:(?!</pre>).)*<(?!/pre>)", re.S)
 # ... and code, a <pre> or another quote inside a quote (bold and the like are fine).
@@ -381,6 +385,7 @@ CATALOG: dict[str, Template] = {
         "Weekdays at 06:30: the night and the day ahead, opened by Claude (AI).",
         "<b>Morning briefing · {day}</b>\n{paragraph}\n\n<b>Your day</b>\n{your_day}\n\n"
         "<b>{markets}</b>\n{market_lines}\n<blockquote expandable>{holdings}</blockquote>\n\n"
+        "<b>{news}</b>\n{stories}\n\n"
         "<b>House</b>\n{house}\n\n<b>{overnight}</b>\n{held}",
         "briefing", "info",
         {"day": ("The weekday", "Thursday"),
@@ -409,6 +414,11 @@ CATALOG: dict[str, Template] = {
          "holdings": ("Every holding, folded until tapped", [
              {"symbol": "NVDA", "pct": "+2,10%", "change": "+€ 30,10"},
              {"symbol": "VWRL", "pct": "−0,40%", "change": "−€ 4,10"}]),
+         "news": ("The News heading; empty without recent headlines", "News · top stories"),
+         "stories": ("The first three stories, linked, as on the News page", [
+             {"url": "https://nos.nl/artikel/1", "title": "Kabinet presenteert begroting",
+              "sources": "NOS and 2 more",
+              "story": "Het kabinet verlaagt de belasting voor middeninkomens."}]),
          "overnight": ("What quiet hours held, counted; empty after a quiet night. With it "
                        "here, no \"While you slept\" follows at 07:00",
                        "Overnight · 1 warning, 3 OK"),
@@ -416,7 +426,17 @@ CATALOG: dict[str, Template] = {
              {"level": "WARNING", "title": "volume2 is 91% full"}])},
         {"your_day": Block("briefing_item"), "market_lines": Block("briefing_item"),
          "holdings": Block("briefing_holding"), "house": Block("briefing_item"),
-         "held": Block("briefing_held")}),
+         "stories": Block("briefing_story"), "held": Block("briefing_held")}),
+    "briefing_story": _line(
+        REPORTS, "Morning digest: story",
+        "One of the top stories: its linked title and sources, then Claude's sentence when "
+        "more than one feed has it.",
+        '<b>·</b> <a href="{url}">{title}</a> · {sources}\n<i>{story}</i>', "briefing",
+        {"url": ("The lead article's address (only for the link)", "https://nos.nl/artikel/1"),
+         "title": ("The lead article's title", "Kabinet presenteert begroting"),
+         "sources": ("Its feed, and how many others have it", "NOS and 2 more"),
+         "story": ("Claude's sentence on the story (Grouped headlines), or empty",
+                   "Het kabinet verlaagt de belasting voor middeninkomens.")}),
     "briefing_holding": _line(
         REPORTS, "Morning digest: holding",
         "One line per holding in the folded Markets table, best first. Telegram allows no "
@@ -553,7 +573,10 @@ def _render(store: Store | None, template_id: str, values: dict[str, Any],
                 return block.joiner.join(_render(store, block.template, item, drafts)
                                          for item in items)
             value = values.get(name)
-            return "" if value is None else html.escape(str(value), quote=False)
+            text = "" if value is None else html.escape(str(value), quote=False)
+            # In a link's href="..." a quote would end the address.
+            in_href = match.string[:match.start()].endswith('href="')
+            return text.replace('"', "&quot;") if in_href else text
 
         rendered = PLACEHOLDER.sub(fill, line)
         if had_placeholder and _EMPTY_LINE.fullmatch(rendered):
@@ -626,10 +649,17 @@ def check(template_id: str, text: str) -> None:
     if unknown:
         names = ", ".join("{" + n + "}" for n in unknown)
         raise TemplateError(f"Unknown placeholder: {names}.")
+    for link in re.findall(r"<a\b[^>]*>", text):
+        if not _TAG.fullmatch(link):
+            raise TemplateError('A link needs its address from a placeholder: <a href="{url}">.')
     stack: list[str] = []
-    for closing, tag, expandable in _TAG.findall(text):
-        if tag not in TAGS or (expandable and (closing or tag != "blockquote")):
+    for closing, tag, attr in _TAG.findall(text):
+        wanted = {"blockquote": " expandable", "a": " href"}.get(tag)
+        if tag not in TAGS or (attr and (closing or wanted is None
+                                         or not attr.startswith(wanted))):
             raise TemplateError(f"<{tag}> is not allowed; use {', '.join(f'<{t}>' for t in TAGS)}.")
+        if tag == "a" and not closing and not attr:
+            raise TemplateError('A link needs its address from a placeholder: <a href="{url}">.')
         if not closing:
             stack.append(tag)
         elif not stack or stack.pop() != tag:

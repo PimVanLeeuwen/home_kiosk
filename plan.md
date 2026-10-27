@@ -1669,8 +1669,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   in your feeds explains it." In the briefing's Markets section after the indices ("NVDA ·
   ..."), and under the table in the 08:30 and 18:30 Portfolio reports (template "Portfolio
   report: market note"). Each run asks again, as the headlines change; a few cents a month.
-- Step 5: top news: the top three grouped stories from the `stories` cache, each with its
-  sentence, a link and its number of sources; no new AI call.
+- Step 5 (done 2026-10-27, `briefing.news`): top news, after Markets: the first three stories
+  of the hub's `headlines` cache, as News and Home show them ("top stories" when Grouped
+  headlines is on, else "latest", the newest per group), each a linked title with its feed
+  and how many others have it ("NOS and 2 more"), and Claude's sentence under it when there is
+  one; no new AI call. Headlines older than 12 hours are left out, and only http(s) addresses
+  are linked. Templates now take `<a href="{placeholder}">`: the address always comes from the
+  hub (a typed one is refused), with quotes escaped inside it; link previews stay off.
 - Step 6: Telegram buttons under the briefing through the bot (callback queries): "Full
   portfolio" and "Status" first. "Explain this warning" would widen the alert explainer past
   container alerts (2026-10-25) and needs its own decision.

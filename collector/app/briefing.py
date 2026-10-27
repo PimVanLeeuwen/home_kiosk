@@ -7,6 +7,9 @@ pinned images behind). Telegram gets them as they are, under an opening Sonnet
 writes (structured output), which also gives one line and four facts for the
 Now panel's Briefing screen and Home's card. It shows there until 09:00.
 
+Markets (the portfolio, with notes on the big movers) and News (the top
+stories as the hub already has them) are added by the hub, after your day.
+
 Data sent (plan.md M26, M29): the same items, but of the agenda only the first
 event's time and title; no other calendar titles and no portfolio amounts.
 """
@@ -37,6 +40,8 @@ OPENING_MAX = 280
 LINE_MAX = 70
 FACT_MAX = 30
 UPDATES_SINCE = timedelta(hours=14)  # from about 16:30 the day before
+STORIES = 3
+NEWS_FRESH = timedelta(hours=12)  # the night's last headlines, from about 23:00, still count
 
 SYSTEM = (
     "You write the opening of a household's morning briefing, from facts its home server "
@@ -226,6 +231,32 @@ def markets(cfg: dict[str, Any], store: Store, now: datetime,
                      for h in holdings]}
 
 
+def _sources(lead: str, others: list[dict[str, Any]]) -> str:
+    if not others:
+        return lead
+    if len(others) == 1:
+        return f"{lead} and {others[0]['source']}"
+    return f"{lead} and {len(others)} more"
+
+
+def news(store: Store, now: datetime) -> dict[str, Any]:
+    """The News section (M29 step 5): the first stories the hub already shows on
+    News and Home (grouped by Claude when that is on, else the newest per group),
+    each linked, with its sources and Claude's sentence. No new AI call."""
+    headlines = store.get_cache("headlines") or {}
+    as_of = headlines.get("as_of")
+    if not as_of or now - datetime.fromisoformat(as_of) > NEWS_FRESH:
+        return {"news": None, "stories": []}
+    picked = [h for h in headlines.get("items") or []
+              if str(h.get("url", "")).startswith(("https://", "http://"))][:STORIES]
+    return {
+        "news": ("News · top stories" if headlines.get("grouped") else "News · latest")
+        if picked else None,
+        "stories": [{"url": h["url"], "title": h["title"],
+                     "sources": _sources(h["source"], h.get("sources") or []),
+                     "story": h.get("story")} for h in picked]}
+
+
 def facts(cfg: dict[str, Any], store: Store, now: datetime) -> list[str]:
     """What Claude is told: the message's own items, with only the first event."""
     return [f"{label}: {text}"
@@ -318,7 +349,7 @@ async def run(cfg: dict[str, Any], store: Store, now: datetime | None = None,
     shown = frozenset(text for _, text in the_house)
     sent = templates.message(store, "briefing", {
         "day": f"{local:%A}", "paragraph": briefing.paragraph} | sections
-        | markets(cfg, store, now, await _notes(cfg, store, now, claude))
+        | markets(cfg, store, now, await _notes(cfg, store, now, claude)) | news(store, now)
         | overnight(held, shown))
     # 06:30 is still quiet hours; the digest is wanted then, like the train.
     logged = await core.notify(store, cfg, source="briefing", category="briefing",

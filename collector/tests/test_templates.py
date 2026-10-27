@@ -109,7 +109,10 @@ def test_a_line_inside_pre_may_not_add_tags():
     ("{monitor} {nope}", "Unknown placeholder: {nope}."),
     ("<b>{monitor}", "<b> is never closed."),
     ("<b>{monitor}</i>", "</i> does not close an open <i>."),
-    ('<a>{monitor}</a>', "<a> is not allowed"),
+    ("<a>{monitor}</a>", "A link needs its address from a placeholder"),
+    ('<a href="https://example.org">{monitor}</a>', "A link needs its address from a placeholder"),
+    ('<b href="{monitor}">x</b>', "<b> is not allowed"),
+    ("<x>{monitor}</x>", "<x> is not allowed"),
     ("<pre><b>{monitor}</b></pre>", "no other tags inside <pre>."),
     ("<blockquote><code>{monitor}</code></blockquote>", "no <code>, <pre> or quote inside"),
     ("<b expandable>{monitor}</b>", "<b> is not allowed"),
@@ -130,6 +133,17 @@ def test_a_quote_may_be_folded_and_drops_out_when_empty():
         "Jellyfin\n\n<blockquote expandable>is down</blockquote>\n\nEnd")
     assert templates.render(None, "kuma", {"monitor": "Jellyfin"},
                             drafts=drafts) == "Jellyfin\n\nEnd"
+
+
+def test_a_link_takes_its_address_from_a_placeholder_and_escapes_it():
+    drafts = {"kuma": '<a href="{monitor}">{state}</a>'}
+    templates.check("kuma", drafts["kuma"])
+
+    text = templates.render(None, "kuma", {"monitor": 'https://x.org/?a=1&b="2"',
+                                           "state": 'says "hi" & <bye>'}, drafts=drafts)
+
+    assert text == ('<a href="https://x.org/?a=1&amp;b=&quot;2&quot;">'
+                    'says "hi" &amp; &lt;bye&gt;</a>')
 
 
 def test_every_default_is_valid_and_every_line_has_a_message():

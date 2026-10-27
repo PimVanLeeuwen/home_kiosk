@@ -412,3 +412,45 @@ def test_market_notes_join_the_markets_section(house):
     (text,) = sent.texts
     assert ("<i>Indices</i> · S&amp;P 500 +0,52%, AEX +0,31%\n"
             "<i>NVDA</i> · Rose on chip export news.\n<blockquote expandable>") in text
+
+
+def headline(n, url=None, story=None, sources=()):
+    return {"id": f"a{n}", "title": f"Story {n} & more", "source": "NOS",
+            "url": url or f"https://nos.nl/{n}", "story": story,
+            "sources": [{"id": f"s{i}", "source": s, "url": "https://x.org"}
+                        for i, s in enumerate(sources)]}
+
+
+def test_the_top_stories_join_as_news(house):
+    house.put_cache("headlines", {"as_of": (NOW - timedelta(hours=7)).isoformat(),
+                                  "grouped": True, "items": [
+        headline(1, story="Het kabinet verlaagt de belasting.", sources=("NU.nl", "RTL")),
+        headline(2, url="javascript:alert(1)"),
+        headline(3, sources=("NU.nl",)),
+        headline(4),
+        headline(5)]})
+    sent = Sent()
+
+    asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), sent.client()))
+
+    (text,) = sent.texts
+    assert ("<b>News · top stories</b>\n"
+            '<b>·</b> <a href="https://nos.nl/1">Story 1 &amp; more</a> · NOS and 2 more\n'
+            "<i>Het kabinet verlaagt de belasting.</i>\n"
+            '<b>·</b> <a href="https://nos.nl/3">Story 3 &amp; more</a> · NOS and NU.nl\n'
+            '<b>·</b> <a href="https://nos.nl/4">Story 4 &amp; more</a> · NOS\n\n'
+            "<b>House</b>") in text
+    assert "javascript" not in text and "Story 5" not in text
+
+
+def test_ungrouped_headlines_are_the_latest(house):
+    house.put_cache("headlines", {"as_of": NOW.isoformat(), "items": [headline(1)]})
+
+    assert briefing.news(house, NOW)["news"] == "News · latest"
+
+
+def test_old_headlines_are_left_out(house):
+    house.put_cache("headlines", {"as_of": (NOW - timedelta(hours=13)).isoformat(),
+                                  "grouped": True, "items": [headline(1)]})
+
+    assert briefing.news(house, NOW) == {"news": None, "stories": []}

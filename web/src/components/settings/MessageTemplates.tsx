@@ -146,7 +146,7 @@ function Editor({ template, parentLabel, onSaved, onClose }: EditorProps) {
             ))}
           </ul>
           <p className="mt-2 text-caption text-faint">
-            Allowed tags: {'<b> <i> <u> <s> <code> <pre> <blockquote>'}, and {'<blockquote expandable>'} for a quote folded until tapped; Telegram allows no other tags inside {'<pre>'}, and no {'<code>'} or {'<pre>'} inside a quote. A line that only has an empty placeholder is left out.
+            Allowed tags: {'<b> <i> <u> <s> <code> <pre> <blockquote>'}, {'<blockquote expandable>'} for a quote folded until tapped, and {'<a href="{url}">'} with the address from a placeholder; Telegram allows no other tags inside {'<pre>'}, and no {'<code>'} or {'<pre>'} inside a quote. A line that only has an empty placeholder is left out.
           </p>
         </div>
       </div>

@@ -175,6 +175,17 @@ describe('TelegramText', () => {
     expect(container.textContent).not.toContain('expandable')
   })
 
+  it('renders a link to a web address, and none to anything else', () => {
+    const { container } = render(
+      <TelegramText html={'<a href="https://nos.nl/a?x=1&amp;y=2">Kabinet</a> <a href="javascript:alert(1)">Bad</a>'} />,
+    )
+    const [good, bad] = container.querySelectorAll('a')
+    expect(good).toHaveAttribute('href', 'https://nos.nl/a?x=1&y=2')
+    expect(good).toHaveAttribute('rel', 'noreferrer')
+    expect(good).toHaveTextContent('Kabinet')
+    expect(bad).not.toHaveAttribute('href')
+  })
+
   it('adds no empty line after a quote, which is a block already', () => {
     const { container } = render(<TelegramText html={'<blockquote>a</blockquote>\n\n<b>House</b>'} />)
     expect(container.textContent).toBe('a\nHouse')
