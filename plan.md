@@ -1687,9 +1687,108 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   second tap on the same alerts is answered from the cache. Only taps from the two chats count;
   the bot now also asks Telegram for `callback_query` updates. M29 is complete.
 
+**M30. Recipes** (added 2026-10-27; replaces Tandoor; mockup `docs/hub-recipes-mockup.html`)
+- Why: Tandoor's interface does not suit the owner, on the phone least of all, and it has a lot
+  the owner never uses (meal plans, shopping lists). Recipes are mostly written and changed with
+  Claude, so the recipe as JSON is the real interface, and the hub only has to show and cook
+  from it well. Replaces the Open item "Recipes" (2026-10-23): no Mealie or KitchenOwl.
+- Decided 2026-10-27:
+  - In the hub: a Recipes section in `web/`, the recipes in the collector's SQLite (so the
+    nightly copy covers them). Only the owner uses it. Recipes are in Dutch; the interface stays
+    English. No meal plans, no shopping list, no timers (the oven has its own), no panel screen,
+    no AI in the hub for it: Claude is reached by copy and paste.
+  - JSON only for editing: per recipe Copy JSON and Paste JSON (replace), a Paste JSON on the
+    list that adds one recipe or an array, and Copy all, which puts the schema and every recipe
+    as one compact block on the clipboard, for inspiration in a Claude chat. The hub checks
+    pasted JSON against the schema and lists the errors by path; nothing is saved until it is
+    valid.
+  - Phases: each recipe has its own named phases ("Marinade", "Groente snijden", "Oven"), each
+    `prep` or `cook`, and every prep phase comes before the first cook phase (the schema
+    refuses otherwise). The recipe page draws a clear line between them: all prepped, now start
+    the oven or the pan.
+  - Ingredients sit with the step that uses them, and each says `pantry: true` (just check:
+    spices, oil, salt) or false (to get). The page sums them per recipe into two lists, "To get"
+    and "Check".
+  - Photos: Tandoor's images come along, and a photo can be added from the phone; stored as
+    small WebP like the headline pictures (Pillow, 900 px and a 240 px square).
+  - Extras: scale servings, tags with filters. Not now: search by ingredient, a cooked log.
+  - Navigation: Recipes gets a phone tab in place of Services (Services moves to More), and a
+    new "Kitchen" group in the sidebar.
+  - Tandoor stays until every recipe is in the hub and checked; then its stack goes.
+- Schema `hub-recipe/1` (draft, to settle in step 1):
+  ```json
+  {
+    "schema": "hub-recipe/1",
+    "id": "kip-shoarma-uit-de-oven",
+    "title": "Kip shoarma uit de oven",
+    "intro": "Een korte zin over het gerecht.",
+    "servings": 2,
+    "tags": ["oven", "doordeweeks"],
+    "source": null,
+    "times": { "prep_min": 25, "cook_min": 30 },
+    "phases": [
+      { "name": "Marinade", "kind": "prep", "steps": [
+        { "text": "Meng yoghurt, knoflook en de specerijen en schep de kip erdoor.",
+          "ingredients": [
+            { "name": "kippendijen", "amount": 500, "unit": "g", "note": "in reepjes", "pantry": false },
+            { "name": "komijn", "amount": 1, "unit": "tl", "pantry": true } ] } ] },
+      { "name": "Oven", "kind": "cook", "steps": [
+        { "text": "Oven op 200 °C; kip 25 minuten in de oven.", "ingredients": [] } ] }
+    ],
+    "notes": null
+  }
+  ```
+  `id` is a slug: pasting a recipe with an existing `id` replaces it (after a confirm), a new
+  one adds it. `amount: null` is "naar smaak" and never scales; numbers inside a step's text do
+  not scale either. Units are free text with the Dutch ones known for display (g, kg, ml, l,
+  el, tl, snuf, teen, stuk). Photos are not in the JSON. A recipe imported from Tandoor carries
+  `"needs_review": true` until a pasted version drops it.
+- Step 0 (approved 2026-10-27): mockup `docs/hub-recipes-mockup.html` (list, recipe page, cook
+  mode with an "All prepped" pause before the first cook phase, JSON in and out, a Tandoor
+  import to review, the laptop layout). Approved as drawn: violet for prep and amber for cook, a
+  letter tile for a recipe without a photo, the Check list always open, and a Next phase button
+  in cook mode with the "All prepped" pause only before the first cook phase. Dark first like the hub, large type in cook mode,
+  controls within thumb reach at the bottom.
+- Step 1 (done 2026-10-27, `app/recipes/`): the schema as strict Pydantic models
+  (`schema.py`: unknown fields and text where a number belongs are refused, tags lower-cased
+  and without "#", the source only http(s), every prep phase before the first cook phase), and
+  every fault as a path with a plain message ("phases[2]: "Saus" is a prep phase after a cook
+  phase. Move it before "Oven"."). A `recipe` table (id, title, needs_review, the canonical
+  JSON, created and updated, and the version before the last replace for one undo). Endpoints:
+  `GET /api/recipes` (summaries by title with tags and times, tag counts, how many need
+  review), `GET /api/recipes/{id}`, `GET /api/recipes/schema` and `/export` (Copy all: a short
+  guide to how the owner cooks, the JSON schema and every recipe), `POST /api/recipes/check`
+  (a paste's faults, or per recipe new, same, or a list of changes such as "kaneel: ¼ tl
+  instead of ½ tl"), `POST /api/recipes/import` (one recipe, a list or Copy all's JSON; all or
+  nothing, and replacing needs `replace` after the check was shown), `PUT /api/recipes/{id}`
+  (replaces only that recipe), `POST /api/recipes/{id}/undo` and `DELETE /api/recipes/{id}`.
+  Writes behind `same_origin_json`. The photo flag in the list comes with the photos (step 4).
+- Step 2 (collector): the one-time Tandoor import, run by hand on the NAS
+  (`docker exec home-kiosk-collector python -m app.recipes.tandoor <export.zip>`), so the hub
+  needs no large upload endpoint. Tandoor's default export is a zip of zips, each with a
+  `recipe.json` and an image (check against the real export first). Each Tandoor step becomes a
+  phase as it is (kind `cook`, its name or "Stap n"), its ingredients with `pantry: false`,
+  keywords become tags, plus servings, the source URL and the photo; every recipe is marked
+  needs review. The owner then pastes each into Claude and pastes the phased version back.
+- Step 3 (web): the Recipes list, phone first: photo cards, a search field on titles, tag chips
+  as filters, a "Needs review" badge and filter, Paste JSON and Copy all. The tab bar and
+  sidebar change; the command palette lists recipes.
+- Step 4 (web): the recipe page: photo, servings stepper (amounts scale, shown as ½ and ¼ and
+  rounded grams), "To get" and "Check" lists, the phases with the prep to cook line, Copy JSON,
+  Paste JSON (replace), add or change the photo (resized in the browser and sent as JSON, so the
+  write guard stays as it is), delete.
+- Step 5 (web): cook mode: the screen kept awake (Wake Lock), one phase at a time, each step
+  with its ingredients and a big tick; ticked prep folds away so only what is left shows; ticks
+  kept on the phone (localStorage) for the day, so a reload or a locked phone loses nothing.
+- Step 6 (nas-docker, after every recipe is checked): retire Tandoor. A last `pg_dump` and the
+  export zip kept in `/volume3/backups/tandoor-final`; the stack removed (not with Dockge's
+  Delete); `db_recipes` out of `host-jobs/dump-databases.sh`; README, OVERVIEW, RECOVERY and
+  the emergency pages updated; its Tailscale serve port, Uptime Kuma monitor and the hub's
+  catalog entry (`config.yaml`, and on the NAS) removed.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
-M29.
+M29, M30.
 
 ## 4. Open items
 
@@ -1881,11 +1980,7 @@ M29.
   2026-10-23:** nas-docker runs the maintained fork `nickfedor/watchtower` (same `WATCHTOWER_*`
   settings and report template; its report also carries `.Restarted` and a `.Changelog` per
   update).
-- Recipes (discussed 2026-10-23, not decided): Tandoor's interface does not suit the owner,
-  while the recipes in it are kept. Options: Mealie (the most polished, one container, imports a
-  Tandoor export; meal plans and shopping lists do not carry over), KitchenOwl (the best phone
-  app, weaker on recipes), or a Recipes page in the hub on Tandoor's API (cook mode, scaling, a
-  "Tonight" panel screen). Suggested: try Mealie with a Tandoor export first.
+- Recipes (discussed 2026-10-23): decided 2026-10-27 as M30, a Recipes section in the hub.
 - Ask the hub in Telegram (`/ask`, discussed 2026-10-23): dropped; the owner asks Claude Code.
 - cloudflared stays (2026-10-23): the household's second Obsidian user syncs LiveSync through it.
 

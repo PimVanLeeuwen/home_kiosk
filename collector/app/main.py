@@ -47,6 +47,8 @@ from .news import headlines
 from .news import store as news_store
 from .portfolio import api as portfolio_api
 from .portfolio import degiro_import
+from .recipes import api as recipes_api
+from .recipes import store as recipes_store
 from .security import same_origin_json
 from .sources import (
     adguard,
@@ -113,6 +115,7 @@ async def lifespan(app: FastAPI):
     air.ensure_tables(app.state.store)
     ai.ensure_tables(app.state.store)
     spotify.ensure_tables(app.state.store)
+    recipes_store.ensure_tables(app.state.store)
     # A favourite can wake the living room Apple TV and open Spotify on it.
     music.wake = apple_tv.wake_spotify
     if news_store.seed(app.state.store, app.state.config):
@@ -164,6 +167,7 @@ app.include_router(desk_api.router)
 app.include_router(alerts_api.router)
 app.include_router(news_api.router)
 app.include_router(portfolio_api.router)
+app.include_router(recipes_api.router)
 
 
 def _serve(key: str) -> Any:
