@@ -90,3 +90,67 @@ test('Copy all puts every recipe and the format on the clipboard', async ({ page
   await expect(page.getByText(/Copied 1 recipe and the format/)).toBeVisible()
   expect(JSON.parse(await page.evaluate(() => navigator.clipboard.readText()))).toEqual(exported)
 })
+
+const ingredient = (name: string, amount: number | null, unit = '', pantry = false) => ({ name, amount, unit, note: null, pantry })
+const DETAIL = {
+  recipe: {
+    schema: 'hub-recipe/1', id: 'kip-shoarma', title: 'Kip shoarma uit de oven', intro: 'Met knoflooksaus.', servings: 2,
+    tags: ['oven'], source: null, times: { prep_min: 20, cook_min: 30 }, notes: null,
+    phases: [
+      { name: 'Marinade', kind: 'prep', steps: [{ text: 'Snijd de kip.', ingredients: [ingredient('kippendijen', 500, 'g'), ingredient('komijn', 1, 'tl', true)] }] },
+      { name: 'Oven', kind: 'cook', steps: [{ text: 'Oven op 220 °C, 25 minuten.', ingredients: [] }] },
+    ],
+  },
+  needs_review: false, created_at: '2026-10-27T18:00:00+00:00', updated_at: '2026-10-27T18:00:00+00:00', previous_at: null,
+  photo: '2026-10-27T18:00:00+00:00',
+}
+
+test('a recipe shows what to get and check, scales, and puts the heat after the prep', async ({ page }) => {
+  await stub(page)
+  await page.route('**/api/recipes/kip-shoarma', (r) => r.fulfill({ json: DETAIL }))
+  await page.goto('/recipes')
+  await page.getByRole('list', { name: 'Recipes' }).getByRole('link', { name: /Kip shoarma/ }).click()
+
+  await expect(page).toHaveTitle('Kip shoarma uit de oven · Home hub')
+  await expect(page.getByRole('region', { name: 'To get' })).toContainText('500 g')
+  await expect(page.getByRole('region', { name: 'Check' })).toContainText('komijn')
+  await expect(page.getByRole('separator', { name: 'All prepped, now the heat' })).toBeVisible()
+  await page.getByRole('button', { name: 'More persons' }).click()
+  await page.getByRole('button', { name: 'More persons' }).click()
+  await expect(page.getByRole('region', { name: 'To get' })).toContainText('1 kg')
+})
+
+test('a photo from the device is shrunk in the browser and sent as JSON', async ({ page }) => {
+  let sent: { data: string } | null = null
+  await page.route('**/api/recipes/kip-shoarma', (r) => r.fulfill({ json: DETAIL }))
+  await page.route('**/api/recipes/kip-shoarma/photo/*', (r) => r.fulfill({ body: PNG, contentType: 'image/png' }))
+  await page.route('**/api/recipes/kip-shoarma/photo', (r) => {
+    sent = r.request().postDataJSON()
+    r.fulfill({ json: DETAIL })
+  })
+  await page.goto('/recipes/kip-shoarma')
+
+  await page.getByLabel('Photo').setInputFiles({ name: 'pan.png', mimeType: 'image/png', buffer: PNG })
+  await expect(page.getByText('The photo is in.')).toBeVisible()
+  expect(sent!.data).toMatch(/^data:image\/jpeg;base64,/)
+})
+
+test('deleting a recipe asks once more, then goes back to the list', async ({ page }) => {
+  await stub(page)
+  let deleted = false
+  await page.route('**/api/recipes/kip-shoarma', (r) => {
+    if (r.request().method() === 'DELETE') {
+      deleted = true
+      return r.fulfill({ json: { deleted: 'kip-shoarma' } })
+    }
+    return r.fulfill({ json: DETAIL })
+  })
+  await page.goto('/recipes/kip-shoarma')
+
+  await page.getByRole('button', { name: 'Recipe actions' }).click()
+  await page.getByRole('menuitem', { name: /Delete recipe/ }).click()
+  await page.getByRole('alert').getByRole('button', { name: 'Delete for good' }).click()
+  await expect(page).toHaveURL('/recipes')
+  await expect(page.getByText('Deleted "Kip shoarma uit de oven".')).toBeVisible()
+  expect(deleted).toBe(true)
+})

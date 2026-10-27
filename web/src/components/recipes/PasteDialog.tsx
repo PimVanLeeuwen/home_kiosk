@@ -2,7 +2,8 @@ import { X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { ApiError, sendJson } from '../../lib/api'
 import { cn } from '../../lib/cn'
-import type { PasteCheck, PasteSaved } from '../../lib/recipeTypes'
+import { plural } from '../../lib/recipes'
+import type { PasteCheck, PasteSaved, RecipeDetail } from '../../lib/recipeTypes'
 import { Button } from '../ui/Button'
 import { iconButtonClass } from '../ui/buttonStyles'
 
@@ -12,7 +13,25 @@ export const CHECK_DELAY_MS = 400
 interface Props {
   open: boolean
   onClose: () => void
-  onSaved: (saved: PasteSaved['saved']) => void
+  /** Called with a line saying what was saved. */
+  onSaved: (note: string) => void
+  /** On a recipe's page: the paste replaces this recipe only. */
+  target?: { id: string; title: string }
+}
+
+/** "Added 2 recipes, replaced 1." after a paste on the list. */
+function savedNote(saved: PasteSaved['saved']): string {
+  const added = saved.filter((s) => s.result === 'added').length
+  const replaced = saved.filter((s) => s.result === 'replaced').length
+  const parts = [added && `added ${plural(added, 'recipe')}`, replaced && `replaced ${plural(replaced, 'recipe')}`].filter(Boolean)
+  const line = parts.join(', ') || 'nothing changed'
+  return `${line.charAt(0).toUpperCase()}${line.slice(1)}.`
+}
+
+/** The one recipe in a paste, also when it came as a list or in Copy all's JSON. */
+function single(data: unknown): unknown {
+  const list = (data as { recipes?: unknown })?.recipes ?? data
+  return Array.isArray(list) && list.length === 1 ? list[0] : data
 }
 
 type Checked = { text: string; data: unknown; check: PasteCheck } | { text: string; syntax: string }
@@ -24,7 +43,7 @@ const MARK_TONE = { added: 'text-up', changed: 'text-warn', removed: 'text-down'
  * Paste JSON on the list (plan.md M30): one recipe, a list, or Copy all's JSON. The hub checks
  * it as you paste and says what it would do; nothing is saved before Save.
  */
-export function PasteDialog({ open, onClose, onSaved }: Props) {
+export function PasteDialog({ open, onClose, onSaved, target }: Props) {
   const dialog = useRef<HTMLDialogElement>(null)
   const [text, setText] = useState('')
   const [checked, setChecked] = useState<Checked>()
@@ -67,7 +86,14 @@ export function PasteDialog({ open, onClose, onSaved }: Props) {
 
   const current = checked && checked.text === text ? checked : undefined
   const check = current && 'check' in current ? current.check : undefined
-  const changing = check?.ok ? check.recipes.filter((r) => r.result !== 'same') : []
+  // On a recipe's page the paste has to be that recipe: its id, and only it.
+  const elsewhere =
+    target && check?.ok && (check.recipes.length !== 1 || check.recipes[0].id !== target.id)
+      ? check.recipes.length === 1
+        ? `This JSON is for "${check.recipes[0].title}" (${check.recipes[0].id}), not this recipe (${target.id}). Paste it on the list instead.`
+        : `This JSON has ${check.recipes.length} recipes; here it can only replace this one. Paste it on the list instead.`
+      : undefined
+  const changing = check?.ok && !elsewhere ? check.recipes.filter((r) => r.result !== 'same') : []
   const replacing = changing.filter((r) => r.result === 'replace').length
   const adding = changing.length - replacing
 
@@ -76,9 +102,14 @@ export function PasteDialog({ open, onClose, onSaved }: Props) {
     setSaving(true)
     setError(undefined)
     try {
-      // The summary of what it replaces is on screen, so this is the yes the hub asks for.
-      const answer = await sendJson<PasteSaved>('POST', '/api/recipes/import', { data: current.data, replace: true })
-      onSaved(answer.saved)
+      if (target) {
+        const answer = await sendJson<RecipeDetail & { result: string }>('PUT', `/api/recipes/${encodeURIComponent(target.id)}`, single(current.data))
+        onSaved(answer.result === 'unchanged' ? 'Nothing changed.' : 'Replaced. Undo is in the menu.')
+      } else {
+        // The summary of what it replaces is on screen, so this is the yes the hub asks for.
+        const answer = await sendJson<PasteSaved>('POST', '/api/recipes/import', { data: current.data, replace: true })
+        onSaved(savedNote(answer.saved))
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'The hub did not answer.')
     } finally {
@@ -107,7 +138,9 @@ export function PasteDialog({ open, onClose, onSaved }: Props) {
           </button>
         </div>
         <label className="flex flex-col gap-2">
-          <span className="text-small text-muted">One recipe, a list of recipes, or Copy all&apos;s JSON, as Claude wrote it.</span>
+          <span className="text-small text-muted">
+            {target ? `A new version of "${target.title}", as Claude wrote it.` : "One recipe, a list of recipes, or Copy all's JSON, as Claude wrote it."}
+          </span>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -129,7 +162,8 @@ export function PasteDialog({ open, onClose, onSaved }: Props) {
             lines={check.problems}
           />
         )}
-        {check?.ok && (
+        {elsewhere && <Problems title="Not this recipe" lines={[{ path: '', message: elsewhere }]} />}
+        {check?.ok && !elsewhere && (
           <ul aria-label="What this does" className="flex flex-col gap-3">
             {check.recipes.map((r) => (
               <li key={r.id} className="rounded-[12px] border border-line-soft bg-raised/60 px-4 py-3">

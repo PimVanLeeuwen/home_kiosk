@@ -53,3 +53,50 @@ export interface RecipeExport {
   json_schema: unknown
   recipes: unknown[]
 }
+
+export interface Ingredient {
+  name: string
+  /** Null is "naar smaak", and never scales. */
+  amount: number | null
+  unit: string
+  note: string | null
+  /** True: only check it is there (spices, oil); false: get it. */
+  pantry: boolean
+}
+
+export interface Step {
+  text: string
+  ingredients: Ingredient[]
+}
+
+export interface Phase {
+  name: string
+  kind: 'prep' | 'cook'
+  steps: Step[]
+}
+
+/** A recipe in the format hub-recipe/1. */
+export interface Recipe {
+  schema: 'hub-recipe/1'
+  id: string
+  title: string
+  intro: string | null
+  servings: number
+  tags: string[]
+  source: string | null
+  times: RecipeTimes
+  phases: Phase[]
+  notes: string | null
+  needs_review?: boolean
+}
+
+/** GET /api/recipes/{id}. */
+export interface RecipeDetail {
+  recipe: Recipe
+  needs_review: boolean
+  created_at: string
+  updated_at: string
+  /** When the version before the last replace was saved; null when there is nothing to undo. */
+  previous_at: string | null
+  photo: string | null
+}

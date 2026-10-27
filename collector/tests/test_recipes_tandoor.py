@@ -142,3 +142,22 @@ def test_the_photo_is_served_and_goes_with_its_recipe(db):
     assert client.get(f"/api/recipes/{rid}/photo/huge").status_code == 422
     client.delete(f"/api/recipes/{rid}")
     assert photos.stamps(db) == {}
+
+
+def test_a_photo_from_the_phone_replaces_the_old_one(db):
+    import base64
+    tandoor.run(db, export((tandoor_recipe(), picture())))
+    main.app.state.store = db
+    main.app.state.config = {}
+    client = TestClient(main.app)
+    rid = "kip-shoarma-uit-de-oven"
+    before = photos.get(db, rid, "lead")
+    data = "data:image/jpeg;base64," + base64.b64encode(picture(600, 900)).decode()
+    answer = client.put(f"/api/recipes/{rid}/photo", json={"data": data})
+    assert answer.status_code == 200 and answer.json()["photo"]
+    assert photos.get(db, rid, "lead")[0] != before[0]
+    assert Image.open(io.BytesIO(photos.get(db, rid, "lead")[0])).size == (600, 900)
+    svg = base64.b64encode(b"<svg/>").decode()
+    bad = client.put(f"/api/recipes/{rid}/photo", json={"data": svg})
+    assert bad.status_code == 422
+    assert client.put("/api/recipes/nope/photo", json={"data": data}).status_code == 404

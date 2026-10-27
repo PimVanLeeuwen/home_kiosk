@@ -1789,10 +1789,21 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   old `execCommand` for plain http. Recipes is the fourth tab on the phone (Services moved to
   More) and has a Kitchen group in the sidebar; the command palette finds recipes by title or
   tag. The cards open `/recipes/{id}`, which step 4 builds.
-- Step 4 (web): the recipe page: photo, servings stepper (amounts scale, shown as ½ and ¼ and
-  rounded grams), "To get" and "Check" lists, the phases with the prep to cook line, Copy JSON,
-  Paste JSON (replace), add or change the photo (resized in the browser and sent as JSON, so the
-  write guard stays as it is), delete.
+- Step 4 (done 2026-10-27, `web/src/pages/RecipePage.tsx`, `components/recipes/RecipeParts.tsx`):
+  the recipe page at `/recipes/{id}`. On the phone: photo, tags, title and intro, then prep and
+  cook time and the persons stepper, "To get" (a list with amounts) and "Check" (the pantry as
+  dashed chips), then the phases with the "All prepped, now the heat" line before the first cook
+  phase. On a wide screen the photo, facts and ingredients sit in a column on the left, beside
+  the title and the phases. Amounts scale with the persons: grams and millilitres rounded (to 5
+  from 50 up) and kilos and litres from 1000, the rest as ½, ¼, ⅓ where close; "naar smaak"
+  never scales, and an amount wins over "naar smaak" in the sums. The menu (Copy JSON also as a
+  button on a wide screen): Copy JSON, Paste JSON (through `PUT`, refused for another recipe's
+  JSON; a list of one or Copy all's JSON of one is accepted), Undo last paste (only while there
+  is one), Add or Change photo (resized in the browser to 1800 px and sent as JSON to
+  `PUT /api/recipes/{id}/photo`), and Delete, which asks once more in place and returns to the
+  list with a note. A recipe that needs review has a "Not in phases yet" banner with Copy with
+  prompt (the format's guide, a request to rework it into phases, and the JSON) and Paste JSON.
+  Cook mode (step 5) gets its button then.
 - Step 5 (web): cook mode: the screen kept awake (Wake Lock), one phase at a time, each step
   with its ingredients and a big tick; ticked prep folds away so only what is left shows; ticks
   kept on the phone (localStorage) for the day, so a reload or a locked phone loses nothing.

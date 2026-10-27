@@ -15,6 +15,7 @@ import { NewsPage } from './pages/NewsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PortfolioPage } from './pages/PortfolioPage'
 import { PageError } from './pages/PageError'
+import { RecipePage } from './pages/RecipePage'
 import { RecipesPage } from './pages/RecipesPage'
 import { ReposPage } from './pages/ReposPage'
 import { RunningPage } from './pages/RunningPage'
@@ -62,6 +63,7 @@ export const routes: RouteObject[] = [
             element: PAGES[item.to] ?? <SectionPage item={item} />,
           })),
           { path: '/settings/:section', element: <SettingsPage /> },
+          { path: '/recipes/:id', element: <RecipePage /> },
           { path: MORE_ROUTE, element: <MorePage /> },
           { path: '*', element: <NotFoundPage /> },
         ],

@@ -4,6 +4,8 @@ first (`/check`: its faults, or what it would change), then saved all or nothing
 
 from __future__ import annotations
 
+import base64
+import binascii
 from collections import Counter
 from datetime import UTC, datetime
 from typing import Annotated, Any
@@ -143,6 +145,24 @@ def photo(request: Request, recipe_id: str, size: photos.Size) -> Response:
         raise HTTPException(404, "No photo.")
     return Response(found[0], media_type="image/webp",
                     headers={"Cache-Control": "public, max-age=31536000, immutable"})
+
+
+class PhotoUpload(BaseModel):
+    data: str  # the picture as base64, resized in the browser
+
+
+@router.put("/{recipe_id}/photo", dependencies=[*write, Depends(_small_enough)])
+def put_photo(request: Request, recipe_id: str, upload: PhotoUpload) -> dict[str, Any]:
+    """A photo from the phone; sent as JSON, so the write guard stays as it is everywhere."""
+    db = request.app.state.store
+    if store.get(db, recipe_id) is None:
+        raise HTTPException(404, "No such recipe.")
+    try:
+        raw = base64.b64decode(upload.data.split(",", 1)[-1], validate=True)
+        photos.put(db, recipe_id, raw)
+    except (binascii.Error, ValueError):
+        raise HTTPException(422, "That is not a photo the hub can read.") from None
+    return store.get(db, recipe_id) or {}
 
 
 @router.put("/{recipe_id}", dependencies=[*write, Depends(_small_enough)])

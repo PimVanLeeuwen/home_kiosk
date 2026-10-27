@@ -1,19 +1,20 @@
-import { ClipboardPaste, Copy, Ellipsis } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { ClipboardPaste, Copy } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
 import { FilterPill } from '../components/news/FilterPill'
+import { ActionMenu } from '../components/recipes/ActionMenu'
 import { PasteDialog } from '../components/recipes/PasteDialog'
 import { RecipeCard } from '../components/recipes/RecipeCard'
 import { Button } from '../components/ui/Button'
-import { iconButtonClass } from '../components/ui/buttonStyles'
 import { Surface } from '../components/ui/Card'
 import { SearchField } from '../components/ui/SearchField'
 import { Loading, PageUnavailable, StaleNote } from '../components/ui/states'
 import { getJson } from '../lib/api'
 import { copyText } from '../lib/clipboard'
 import { cn } from '../lib/cn'
-import { filterRecipes, kilobytes, type RecipeFilter } from '../lib/recipes'
-import type { PasteSaved, RecipeExport, RecipeList } from '../lib/recipeTypes'
+import { filterRecipes, kilobytes, plural, type RecipeFilter } from '../lib/recipes'
+import type { RecipeExport, RecipeList } from '../lib/recipeTypes'
 import { useApi } from '../lib/useApi'
 
 const ALL: RecipeFilter = { kind: 'all' }
@@ -21,37 +22,8 @@ const ALL: RecipeFilter = { kind: 'all' }
 const same = (a: RecipeFilter, b: RecipeFilter) =>
   a.kind === b.kind && (a.kind !== 'tag' || (b.kind === 'tag' && a.tag === b.tag))
 
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
-
-/** "Added 2 recipes, replaced 1." after a paste. */
-function savedNote(saved: PasteSaved['saved']): string {
-  const added = saved.filter((s) => s.result === 'added').length
-  const replaced = saved.filter((s) => s.result === 'replaced').length
-  const parts = [added && `added ${plural(added, 'recipe')}`, replaced && `replaced ${plural(replaced, 'recipe')}`].filter(Boolean)
-  const line = parts.join(', ') || 'nothing changed'
-  return `${line.charAt(0).toUpperCase()}${line.slice(1)}.`
-}
-
 /** Paste JSON and Copy all: buttons on a wide screen, a menu on the phone (as in the mockup). */
 function Actions({ onPaste, onCopyAll }: { onPaste: () => void; onCopyAll: () => void }) {
-  const [open, setOpen] = useState(false)
-  const menu = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!open) return
-    const away = (e: PointerEvent) => menu.current?.contains(e.target as Node) || setOpen(false)
-    const escape = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    document.addEventListener('pointerdown', away)
-    document.addEventListener('keydown', escape)
-    return () => {
-      document.removeEventListener('pointerdown', away)
-      document.removeEventListener('keydown', escape)
-    }
-  }, [open])
-  const choose = (act: () => void) => () => {
-    setOpen(false)
-    act()
-  }
-  const item = 'flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-left hover:bg-raised'
   return (
     <>
       <div className="hidden gap-2.5 md:flex">
@@ -64,36 +36,14 @@ function Actions({ onPaste, onCopyAll }: { onPaste: () => void; onCopyAll: () =>
           Copy all
         </Button>
       </div>
-      <div ref={menu} className="relative md:hidden">
-        <button
-          type="button"
-          aria-label="Recipe actions"
-          aria-haspopup="menu"
-          aria-expanded={open}
-          onClick={() => setOpen((o) => !o)}
-          className={cn(iconButtonClass, 'size-10 rounded-[12px] border border-line-soft bg-card')}
-        >
-          <Ellipsis aria-hidden="true" className="size-5" />
-        </button>
-        {open && (
-          <div role="menu" className="absolute top-12 right-0 z-20 flex w-64 flex-col gap-1 rounded-[14px] border border-line bg-card p-1.5 shadow-[0_18px_50px_rgb(0_0_0/0.5)]">
-            <button type="button" role="menuitem" className={item} onClick={choose(onPaste)}>
-              <ClipboardPaste aria-hidden="true" className="size-4 text-accent-fg" />
-              <span>
-                <span className="block font-medium">Paste JSON</span>
-                <span className="block text-caption text-faint">Add one recipe or many</span>
-              </span>
-            </button>
-            <button type="button" role="menuitem" className={item} onClick={choose(onCopyAll)}>
-              <Copy aria-hidden="true" className="size-4 text-accent-fg" />
-              <span>
-                <span className="block font-medium">Copy all</span>
-                <span className="block text-caption text-faint">Every recipe and the format, for Claude</span>
-              </span>
-            </button>
-          </div>
-        )}
-      </div>
+      <ActionMenu
+        label="Recipe actions"
+        className="md:hidden"
+        actions={[
+          { label: 'Paste JSON', hint: 'Add one recipe or many', icon: ClipboardPaste, onSelect: onPaste },
+          { label: 'Copy all', hint: 'Every recipe and the format, for Claude', icon: Copy, onSelect: onCopyAll },
+        ]}
+      />
     </>
   )
 }
@@ -104,7 +54,9 @@ export function RecipesPage() {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<RecipeFilter>(ALL)
   const [pasting, setPasting] = useState(false)
-  const [notice, setNotice] = useState<{ ok: boolean; text: string }>()
+  // A recipe page that deleted its recipe says so here.
+  const said = (useLocation().state as { notice?: string } | null)?.notice
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | undefined>(said ? { ok: true, text: said } : undefined)
 
   const shown = useMemo(() => filterRecipes(data?.recipes ?? [], query, filter), [data, query, filter])
 
@@ -124,9 +76,9 @@ export function RecipesPage() {
     }
   }
 
-  function saved(rows: PasteSaved['saved']) {
+  function saved(note: string) {
     setPasting(false)
-    setNotice({ ok: true, text: savedNote(rows) })
+    setNotice({ ok: true, text: note })
     reload()
   }
 
