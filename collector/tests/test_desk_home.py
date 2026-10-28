@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import io
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -133,6 +133,17 @@ def test_nothing_playing_leaves_the_favourites_and_what_played_last():
     assert (never["last"], never["last_heading"], never["last_title"]) == ("", "", "")
     assert desk_home.music_screen(None)["present"] is False
     assert desk_home.music_screen(quiet | {"connected": False})["present"] is False
+
+
+def test_a_stale_answer_lets_go_once_its_track_has_ended():
+    # 177 s were left of the track when Spotify last answered.
+    stale = MUSIC | {"stale": True}
+    assert desk_home.playing_screen(stale, NOW + timedelta(seconds=170))["present"] is True
+    assert desk_home.playing_screen(stale, NOW + timedelta(seconds=180))["present"] is False
+    # A fresh answer, or a paused one, says what it says.
+    assert desk_home.playing_screen(MUSIC, NOW + timedelta(hours=5))["present"] is True
+    paused = stale | {"playing": MUSIC["playing"] | {"state": "paused"}}
+    assert desk_home.playing_screen(paused, NOW + timedelta(hours=5))["present"] is True
 
 
 def test_music_comes_first_and_last_on_home(store):

@@ -91,10 +91,19 @@ def _device_name(device: dict[str, Any] | None, fallback: str) -> str:
     return latin1((device or {}).get("name") or fallback)
 
 
+def _played_out(music: dict[str, Any], playing: dict[str, Any], now: datetime) -> bool:
+    """A last answer, kept while Spotify fails or pauses the hub, that said "playing"
+    for a track that has ended since: what plays now is unknown, so Home lets go."""
+    if not music.get("stale") or playing.get("state") != "playing":
+        return False
+    left_ms = (playing.get("duration_ms") or 0) - (playing.get("progress_ms") or 0)
+    return (music.get("as_of") or 0) + max(left_ms, 0) / 1000 < now.timestamp()
+
+
 def playing_screen(music: dict[str, Any] | None, now: datetime) -> dict[str, Any]:
     """Now Playing: shown first on the Home panel while something plays or is paused."""
     playing = (music or {}).get("playing")
-    if not playing:
+    if not playing or _played_out(music, playing, now):
         return {"kind": "playing", "stale": False, "present": False}
     return {
         "kind": "playing", "stale": bool(music.get("stale")), "present": True,

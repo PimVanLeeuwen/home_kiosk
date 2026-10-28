@@ -319,6 +319,14 @@ def test_home_stays_on_now_playing_while_music_plays(store):
     assert home(store, PLAYING) == (ALL, False)
 
 
+def test_home_turns_again_when_a_stale_song_has_ended(store):
+    # Spotify paused the hub an hour ago, on a song that has long ended.
+    store.put_cache("lights", lights(True, False))
+    stale = {"as_of": NOW.timestamp() - 3600, "stale": True, "playing": {
+        "title": "Song", "state": "playing", "progress_ms": 0, "duration_ms": 180000}}
+    assert home(store, stale) == (ALL, True)
+
+
 def test_home_shows_only_the_lights_while_they_are_all_off(store):
     store.put_cache("lights", lights(False, False))
     assert home(store) == (["lights"], False)
