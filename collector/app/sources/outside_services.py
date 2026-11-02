@@ -7,8 +7,10 @@ Three kinds of page:
                  and scheduled maintenance
     hetzner      status.hetzner.com has no API; its page carries the systems and
                  incidents as JSON in the __NEXT_DATA__ script tag
-    transnoc     TransIP's TransNOC is plain HTML that says "Al onze diensten zijn
-                 beschikbaar." when all is well; anything else counts as a problem
+    transnoc     TransIP's TransNOC is plain HTML with an all-clear sentence when all
+                 is well ("Alle diensten zijn online // All services are online" since
+                 October 2026, "Al onze diensten zijn beschikbaar." before); anything
+                 else counts as a problem
 
 Only the components named in config.yaml count: Cloudflare's headline status is
 almost always "Partial System Outage" for some far-away colo. Planned maintenance
@@ -185,8 +187,17 @@ def parse_hetzner(html: str, watched: list[str], skip_titles: list[str], url: st
 # --- TransNOC --------------------------------------------------------------------
 
 
-def parse_transnoc(html: str, ok_text: str, url: str) -> tuple[str, list[OutsideIncident]]:
-    if ok_text.lower() in " ".join(html.split()).lower():
+# TransNOC's all-clear sentences, old and new: its wording changed in October 2026 and
+# a changed sentence reads as a problem until it is known here (or set as `ok_text`).
+TRANSNOC_OK = ("Alle diensten zijn online", "All services are online",
+               "Al onze diensten zijn beschikbaar")
+
+
+def parse_transnoc(html: str, ok_text: str | None, url: str
+                   ) -> tuple[str, list[OutsideIncident]]:
+    """All clear when the page has one of the known sentences, or the configured one."""
+    page = " ".join(html.split()).lower()
+    if any(text.lower() in page for text in (*TRANSNOC_OK, ok_text or "") if text):
         return "ok", []
     return "degraded", [OutsideIncident(
         title="TransNOC reports a problem", impact="degraded", status="open", url=url)]
@@ -208,8 +219,7 @@ async def _check(client: httpx.AsyncClient, svc: dict[str, Any], now: datetime
         return parse_hetzner(resp.text, svc.get("systems") or [],
                              svc.get("skip_titles") or [], url, now)
     if kind == "transnoc":
-        return parse_transnoc(resp.text, svc.get("ok_text", "Al onze diensten zijn beschikbaar"),
-                              url)
+        return parse_transnoc(resp.text, svc.get("ok_text"), url)
     raise PageError(f"unknown kind {kind}")
 
 

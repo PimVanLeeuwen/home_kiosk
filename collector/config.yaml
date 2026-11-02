@@ -248,7 +248,7 @@ outside_services:
     name: TransIP
     kind: transnoc
     url: https://www.transnoc.nl
-    ok_text: Al onze diensten zijn beschikbaar
+    ok_text: Alle diensten zijn online
   - key: proton
     name: Proton
     url: https://status.proton.me

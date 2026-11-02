@@ -158,6 +158,23 @@ def test_transnoc_is_fine_only_with_its_all_clear_sentence():
     assert (state, incident.url) == ("degraded", "https://tn")
 
 
+def test_transnoc_knows_its_new_wording_whatever_the_config_says():
+    # The page since October 2026; the NAS's config still names the old sentence.
+    page = ('<div class="status">Alle diensten zijn online // All services are online</div>'
+            "<p>Claim je gewenste domeinnaam.</p>")
+
+    assert outside.parse_transnoc(page, "Al onze diensten zijn beschikbaar", "https://tn") == (
+        "ok", [])
+    assert outside.parse_transnoc(page, None, "https://tn") == ("ok", [])
+
+
+def test_transnoc_takes_a_new_sentence_from_the_config():
+    page = "<p>Everything is fine today</p>"
+
+    assert outside.parse_transnoc(page, "everything is fine", "https://tn")[0] == "ok"
+    assert outside.parse_transnoc(page, None, "https://tn")[0] == "degraded"
+
+
 CFG = {"outside_services": [
     {"key": "cloudflare", "name": "Cloudflare", "url": "https://cf.test",
      "components": WATCHED},
