@@ -857,6 +857,37 @@ export interface AlertMessage {
   ntfy_id?: string | null
 }
 
+/** Where a message page leads: a hub page, or a service from the catalog with a path in it. */
+export type MessageLink =
+  | { label: string; page: string; hint: string }
+  | { label: string; service: string; path: string; hint: string }
+
+/** A message's own page (/api/alerts/messages/{id}, M31): what a tap on a notification opens, for 7 days. */
+export type MessagePage =
+  | { id: number; ts: string; expired: true }
+  | (Omit<AlertMessage, 'status'> & {
+      status: AlertMessage['status'] | 'sending'
+      expired: false
+      expires_at: string
+      /** A rule's incident key, e.g. "down:sonarr"; null for other messages. */
+      incident: string | null
+      /** Telegram HTML, rendered with TelegramText. */
+      html: string
+      /** A rule's incident: still open, or resolved since. */
+      state: { open: boolean; opened_at: string; resolved_at: string | null } | null
+      /** The same incident's or source's messages in the last 7 days, newest first, this one included. */
+      earlier: { id: number; ts: string; severity: Severity; title: string }[]
+      links: MessageLink[]
+      explanation: MessageExplanation | null
+      can_explain: boolean
+    })
+
+export interface MessageExplanation {
+  cause: string
+  todo: string
+  asked_at: string
+}
+
 /** An editable message wording (Settings → Messages, /api/alerts/templates). */
 export interface MessageTemplate {
   id: string

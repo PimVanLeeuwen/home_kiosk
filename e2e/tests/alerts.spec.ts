@@ -55,3 +55,27 @@ test('Alerts shows ntfy delivery and switches it off', async ({ page }) => {
   await delivery.getByRole('button', { name: 'Save' }).click()
   await expect.poll(() => saved.map((body) => body.ntfy)).toEqual([false])
 })
+
+test('a message opens on its own page and is explained there', async ({ page }) => {
+  const now = Date.now()
+  const ago = (min: number) => new Date(now - min * 60_000).toISOString()
+  await page.route('**/api/alerts/messages/7', (r) => r.fulfill({ json: {
+    id: 7, ts: ago(30), source: 'rule.container_health', category: 'rules', severity: 'error', title: 'sonarr is down',
+    body: 'Exit code 137.', chat: 'nas', status: 'sent', error: null, sent_at: ago(30), channel: 'ntfy', ntfy_id: 'n1',
+    incident: 'down:sonarr', expired: false, expires_at: new Date(now + 7 * 86_400_000).toISOString(),
+    html: '<b>ERROR</b> · <b>sonarr is down</b>\nExit code <code>137</code>.',
+    state: { open: true, opened_at: ago(32), resolved_at: null },
+    earlier: [{ id: 7, ts: ago(30), severity: 'error', title: 'sonarr is down' }, { id: 3, ts: ago(3000), severity: 'ok', title: 'Resolved: sonarr is down' }],
+    links: [{ label: 'Docker page', page: '/docker', hint: '' }], explanation: null, can_explain: true,
+  } }))
+  await page.route('**/api/alerts/messages/7/explain', (r) => r.fulfill({ json: { cause: 'Killed for memory.', todo: 'Start it again.', asked_at: ago(0) } }))
+  await page.goto('/alerts/7')
+
+  await expect(page.getByRole('heading', { name: 'sonarr is down' })).toBeVisible()
+  await expect(page.getByText('Still open')).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Earlier' })).toContainText('Resolved: sonarr is down')
+  await page.getByRole('button', { name: 'Explain' }).click()
+  await expect(page.getByRole('region', { name: 'Explained' })).toContainText('Killed for memory.')
+  await page.getByRole('link', { name: 'Alerts', exact: true }).first().click()
+  await expect(page).toHaveURL(/\/alerts$/)
+})

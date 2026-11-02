@@ -1,27 +1,16 @@
 import { Send } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router'
 import { ApiError, sendJson } from '../../lib/api'
 import { cn } from '../../lib/cn'
 import { formatWhen } from '../../lib/format'
 import type { AlertMessage, AlertSettings } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
+import { sourceLabel } from '../../lib/alertSources'
 import { Card } from '../ui/Card'
 import { SeverityPill } from './SeverityPill'
 import { buttonClass } from '../ui/buttonStyles'
 import { inputClass } from '../ui/fieldStyles'
-
-const SOURCE_LABEL: Record<string, string> = {
-  backup: 'Backup',
-  watchtower: 'Watchtower',
-  'uptime-kuma': 'Uptime Kuma',
-  hub: 'Hub',
-  bot: 'Bot',
-}
-
-function sourceLabel(source: string): string {
-  if (source.startsWith('rule.')) return 'Hub rule'
-  return SOURCE_LABEL[source] ?? source
-}
 
 function delivery(m: AlertMessage, chatLabel: string): { text: string; className: string; mark: string; markClass: string } {
   switch (m.status) {
@@ -41,6 +30,9 @@ function delivery(m: AlertMessage, chatLabel: string): { text: string; className
   }
 }
 
+/** A message has its own page for 7 days (M31). */
+const PAGE_DAYS = 7
+
 /** The dot on the timeline, in the severity's colour. */
 const DOT: Record<AlertMessage['severity'], string> = {
   error: 'bg-down shadow-[0_0_7px_var(--color-down)]',
@@ -51,6 +43,8 @@ const DOT: Record<AlertMessage['severity'], string> = {
 
 export function MessageLog({ settings }: { settings: AlertSettings }) {
   const [category, setCategory] = useState<string | null>(null)
+  // Once, when the log opens: which messages still have their page.
+  const [openedAt] = useState(() => Date.now())
   const path = `/api/alerts/messages?limit=100${category ? `&category=${category}` : ''}`
   const log = useApi<AlertMessage[]>(path, 30_000)
   const chats = Object.fromEntries(settings.chats.map((c) => [c.key, c.label]))
@@ -161,7 +155,15 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
                 </span>
                 <SeverityPill severity={m.severity} />
               </p>
-              <p className="mt-1 font-semibold">{m.title}</p>
+              <p className="mt-1 font-semibold">
+                {openedAt - new Date(m.ts).getTime() < PAGE_DAYS * 86_400_000 ? (
+                  <Link to={`/alerts/${m.id}`} viewTransition className="hover:text-accent-fg hover:underline">
+                    {m.title}
+                  </Link>
+                ) : (
+                  m.title
+                )}
+              </p>
               {m.body && <p className="mt-0.5 text-small whitespace-pre-line text-muted">{m.body}</p>}
               <p className="mt-1 flex items-center gap-1.5 text-caption">
                 <span aria-hidden="true" className={d.markClass}>

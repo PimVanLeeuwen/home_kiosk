@@ -2,6 +2,7 @@ import type { ReactElement } from 'react'
 import type { RouteObject } from 'react-router'
 import { Layout } from './components/Layout'
 import { NAV_ITEMS, MORE_ROUTE } from './lib/navigation'
+import { AlertMessagePage } from './pages/AlertMessagePage'
 import { AlertsPage } from './pages/AlertsPage'
 import { BackupsPage } from './pages/BackupsPage'
 import { CookPage } from './pages/CookPage'
@@ -64,6 +65,7 @@ export const routes: RouteObject[] = [
             element: PAGES[item.to] ?? <SectionPage item={item} />,
           })),
           { path: '/settings/:section', element: <SettingsPage /> },
+          { path: '/alerts/:id', element: <AlertMessagePage /> },
           { path: '/recipes/:id', element: <RecipePage /> },
           { path: '/recipes/:id/cook', element: <CookPage /> },
           { path: MORE_ROUTE, element: <MorePage /> },

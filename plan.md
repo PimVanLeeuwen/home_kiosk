@@ -1900,12 +1900,22 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   (ntfy)", "Sent silently ...", or which chat Telegram used and why. The template editor shows
   the phone's banner (title without the level, the dot, four lines) under the Telegram preview
   while ntfy is on. Tested against a real ntfy v2.37.0.
-- Step 3 (`web/`, `app/alerts/api.py`): the message page `/alerts/{id}`. `GET
-  /api/alerts/messages/{id}` (the message, its state, related messages, links; `expired` after 7
-  days) and `POST /api/alerts/messages/{id}/explain` (`same_origin_json`; the alert explainer for
-  any message, answered from the cache when asked again). Built from `components/ui`, with
-  loading, error, expired and stale states; Playwright desktop and mobile. A mockup first
-  (`docs/hub-alert-page-mockup.html`).
+- Step 3 (done 2026-11-02, `app/alerts/page.py`, `web/src/pages/AlertMessagePage.tsx`; mockup
+  `docs/hub-alert-page-mockup.html`): the message page `/alerts/{id}`. `notify()` logs a message
+  before sending it (status `sending`), so the tap leads to its page; the log keeps the
+  message's Telegram HTML and, for a rule, its incident key (both the opening and the Resolved
+  message). `GET /api/alerts/messages/{id}`: the message, its incident's state (open since, or
+  resolved at and after how long), the same incident's or else the same source's messages of
+  the last 7 days, links onward (a container's logs in Dozzle and the Docker page, the NAS,
+  Backups, Portfolio and Ghostfolio, Uptime Kuma, ...; services are resolved in the browser from
+  the catalog), and the kept explanation; after 7 days only `expired`, and 404 for no such
+  message. `POST /api/alerts/messages/{id}/explain` (`same_origin_json`): decided the same day,
+  for warnings and errors only, with the Alert explainer on; Sonnet gets what "Explain warnings"
+  gets for one alert, and the answer is kept with the message (409 with the reason otherwise).
+  The page: the meta line, the title, the state strip (refreshed every 30 s), the full message,
+  Explain or the kept explanation, the links, Earlier, and how it was delivered and until when it
+  stays; on a wide screen in two columns. The message log links each title to its page for 7
+  days, and names every sender (Briefing, Pinned images, GitHub mirror, ...).
 - Step 4 (`app/paint_notify.py`): the pictures, one kind per step (briefing, Portfolio report,
   figure alerts), after a mockup of the three. JPEG (the type iOS shows most reliably in a
   notification), painted once per message and shown full size on its page. To settle when

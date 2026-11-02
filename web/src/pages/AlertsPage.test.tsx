@@ -255,6 +255,20 @@ describe('AlertsPage', () => {
     expect(within(delivery).getByText('Which chat gets what when ntfy fails')).toBeInTheDocument()
   })
 
+  it('links a message to its own page for 7 days', async () => {
+    setup({
+      '/api/alerts/messages?limit=100': [
+        msg(9, { title: 'Fresh one', ts: new Date().toISOString() }),
+        msg(8, { title: 'Old one', ts: new Date(Date.now() - 8 * 86_400_000).toISOString() }),
+      ],
+    })
+    renderRoute('/alerts')
+
+    const log = await screen.findByRole('region', { name: 'Messages' })
+    expect(await within(log).findByRole('link', { name: 'Fresh one' })).toHaveAttribute('href', '/alerts/9')
+    expect(within(log).getByText('Old one').closest('a')).toBeNull()
+  })
+
   it('switches ntfy off', async () => {
     const on = { ...SETTINGS, ntfy: { configured: true, enabled: true } }
     const fetchMock = setup({ '/api/alerts/settings': on, 'PUT /api/alerts/settings': on })

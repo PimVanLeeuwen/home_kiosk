@@ -621,7 +621,7 @@ async def apply(
                                       category=RULE_CATEGORY.get(rule, "rules"),
                                       severity=problem.severity, title=sent.title, body=sent.body,
                                       formatted=sent.html, now=now, telegram=telegram,
-                                      bypass_quiet=rule in BYPASS_QUIET)
+                                      bypass_quiet=rule in BYPASS_QUIET, incident=key)
             # A container alert that went out gets Claude's likely cause a minute later (M26).
             explainer.later(cfg, store, problem, alert, telegram)
             changed.append(key)
@@ -638,7 +638,8 @@ async def apply(
                      "duration": _duration(incident["opened_at"], now)}, "ok")
                 await core.notify(store, cfg, source=f"rule.{rule}", category="rules",
                                   severity="ok", title=done.title, body=done.body,
-                                  formatted=done.html, now=now, telegram=telegram)
+                                  formatted=done.html, now=now, telegram=telegram,
+                                  incident=key)
             changed.append(key)
     return changed
 

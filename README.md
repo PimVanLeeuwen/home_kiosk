@@ -25,7 +25,7 @@ Tailscale only, with no login and nothing exposed to the internet.
 | Music | Spotify: what plays, the controls, my devices and favourites, and waking the living room Apple TV to play there |
 | Tailscale | The tailnet as a map around the NAS and every device on it: MagicDNS name, addresses, direct, relay or idle, exit node, last seen, and tailscaled's own health warnings (read-only, from the NAS's tailscaled) |
 | Repos | GitHub repos: mine, Hubble and GEWIS, with the backup status of each mirrored repo and when each token expires |
-| Alerts | Every message the hub sends and where it went (ntfy or Telegram), ntfy on or off, quiet hours, routing for Telegram, and the hub's own alert rules |
+| Alerts | Every message the hub sends and where it went (ntfy or Telegram), ntfy on or off, quiet hours, routing for Telegram, and the hub's own alert rules. Each message has its own page for 7 days (`/alerts/<id>`, where a tap on a notification leads): the full text, whether the problem is still open, an explanation on request, links onward and earlier messages |
 | Settings | One page per section (`/settings/<section>`): service catalog, news feeds, which calendars show, Spotify and its favourites, which board is which desk panel, and the wording of every message (folded by group; templates with a live preview, the phone's ntfy banner beside it, and a test send) |
 
 The hub is also the household's one sender of alerts (backup reports, container updates, uptime,

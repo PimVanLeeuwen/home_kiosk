@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .. import update_notes
 from ..security import same_origin_json
-from . import core, formats, rules, templates
+from . import core, formats, page, rules, templates
 
 log = logging.getLogger(__name__)
 
@@ -140,6 +140,25 @@ async def notify_kuma(payload: dict[str, Any], request: Request) -> core.AlertMe
 @router.get("/alerts/messages")
 def list_messages(request: Request, limit: int = 100, category: str | None = None) -> Any:
     return core.messages(request.app.state.store, min(max(limit, 1), 500), category)
+
+
+@router.get("/alerts/messages/{message_id}")
+def message_page(message_id: int, request: Request) -> dict[str, Any]:
+    """A message's own page (M31): what a tap on a notification opens, for 7 days."""
+    found = page.page(request.app.state.config, request.app.state.store, message_id)
+    if found is None:
+        raise HTTPException(404, "No such message.")
+    return found
+
+
+@router.post("/alerts/messages/{message_id}/explain", dependencies=write)
+async def explain_message(message_id: int, request: Request) -> dict[str, Any]:
+    """Claude's likely cause and first step for a warning or error, kept with it."""
+    try:
+        return await page.explain(request.app.state.config, request.app.state.store, message_id,
+                                  claude=getattr(request.app.state, "claude_test", None))
+    except page.ExplainError as exc:
+        raise HTTPException(409, str(exc)) from None
 
 
 class QuietHours(BaseModel):

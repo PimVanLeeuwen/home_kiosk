@@ -31,3 +31,9 @@ export function phoneBanner(html: string, category: string | null): PhoneBanner 
   const severity = level ? LEVELS[level[1]] : null
   return message ? { severity, title, message } : { severity, title: category ?? title, message: title }
 }
+
+/** A message's HTML without its first line, the title the page already shows; '' when nothing follows it. */
+export function bodyHtml(html: string): string {
+  const cut = html.indexOf('\n')
+  return cut === -1 ? '' : html.slice(cut + 1).trim()
+}

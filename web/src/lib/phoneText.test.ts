@@ -1,4 +1,4 @@
-import { phoneBanner, plainText } from './phoneText'
+import { bodyHtml, phoneBanner, plainText } from './phoneText'
 
 describe('plainText', () => {
   it('drops tags, reads entities and keeps a table as lines', () => {
@@ -27,5 +27,12 @@ describe('phoneBanner', () => {
 
   it('has no dot without a level word', () => {
     expect(phoneBanner('<b>Portfolio</b>\n+1.2% today', 'Portfolio').severity).toBeNull()
+  })
+})
+
+describe('bodyHtml', () => {
+  it('leaves out the title line', () => {
+    expect(bodyHtml('<b>ERROR</b> · <b>sonarr is down</b>\nExit code <code>137</code>.')).toBe('Exit code <code>137</code>.')
+    expect(bodyHtml('<b>OK</b> · <b>Backup OK</b>')).toBe('')
   })
 })

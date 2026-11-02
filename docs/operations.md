@@ -48,7 +48,8 @@ specific to that setup. The overview is in the [README](../README.md).
   Time Sensitive; in quiet hours the rest arrives silently instead of being held, and the morning
   briefing still sums up the night. Replies in Telegram (the bot, the explainers) stay there.
   Settings, Alerts has the switch to go back to Telegram only. A tap on a notification opens the
-  hub's Alerts page: put `hub.url` (the hub's Tailscale address) in the NAS's config for that.
+  message's own page in the hub (`/alerts/<id>`, for 7 days): put `hub.url` (the hub's Tailscale
+  address) in the NAS's config for that.
 
 ## Deploying
 

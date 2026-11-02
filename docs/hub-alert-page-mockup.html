@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of the message page (M31 step 3 in plan.md, 2026-11-02): what a tap on an ntfy
+     notification opens, /alerts/{id}, for 7 days. The messages are made up and the pictures are
+     drawn placeholders (step 4 paints the real ones). Not served by the hub. -->
+<title>Home hub: the message page</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --panel: #101114; --card: #15161a; --raised: #1b1c21;
+  --line: #24262c; --line-soft: #1c1e23;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff;
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--canvas); color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 36px 28px 72px; }
+header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+header p { margin: 8px 0 0; color: var(--muted); max-width: 92ch; }
+h2 { font-size: 13px; font-weight: 600; color: var(--accent-fg); letter-spacing: .14em; text-transform: uppercase; margin: 56px 0 6px; }
+.sub { color: var(--muted); margin: 0 0 22px; max-width: 92ch; }
+.ico { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.mono { font-family: var(--f-mono); font-size: .92em; }
+
+/* phones */
+.phones { display: grid; grid-template-columns: repeat(auto-fill, minmax(390px, 1fr)); gap: 34px 24px; }
+.shot { display: grid; gap: 12px; align-content: start; justify-items: center; }
+.phone { width: 390px; border-radius: 44px; padding: 11px; background: linear-gradient(145deg, #2a2a2f, #121215); box-shadow: 0 24px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.07); }
+.scr { position: relative; height: 800px; border-radius: 34px; overflow: hidden; background: var(--panel); }
+.scroll { position: absolute; inset: 0; overflow: hidden; padding: 54px 18px 96px; display: grid; gap: 14px; align-content: start; grid-auto-rows: max-content; }
+.status { position: absolute; top: 0; inset-inline: 0; height: 44px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; font-size: 14px; font-weight: 600; z-index: 3; }
+.tabs { position: absolute; bottom: 0; inset-inline: 0; display: flex; padding: 10px 8px 26px; border-top: 1px solid var(--line); background: rgba(8,9,10,.9); z-index: 3; }
+.tabs span { flex: 1; text-align: center; font-size: 10.5px; color: var(--faint); }
+.tabs span.on { color: var(--accent-fg); }
+.caption { max-width: 390px; }
+.caption h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.caption p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+/* the lock screen */
+.lock { background: radial-gradient(circle at 50% 0%, #2a2547, #0b0b10 70%); }
+.lock .time { position: absolute; top: 92px; inset-inline: 0; text-align: center; font-size: 76px; font-weight: 300; letter-spacing: -.02em; }
+.lock .date { position: absolute; top: 72px; inset-inline: 0; text-align: center; font-size: 17px; color: rgba(255,255,255,.75); }
+.ban { position: absolute; inset-inline: 12px; border-radius: 20px; padding: 11px 13px; background: rgba(40,40,46,.72); backdrop-filter: blur(20px); display: grid; grid-template-columns: 34px 1fr 54px; gap: 10px; align-items: start; }
+.ban .app { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(145deg, #3b8f5e, #2a6b46); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.ban b { display: block; font-size: 14px; }
+.ban p { margin: 1px 0 0; font-size: 13.5px; color: rgba(255,255,255,.82); line-height: 1.3; }
+.ban small { display: block; font-size: 11.5px; color: rgba(255,255,255,.55); margin-bottom: 2px; }
+.ban .thumb { width: 54px; height: 54px; border-radius: 8px; overflow: hidden; }
+.tap { position: absolute; inset-inline: 0; text-align: center; color: rgba(255,255,255,.55); font-size: 12.5px; }
+
+/* the page */
+.back { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13.5px; }
+.top { display: grid; gap: 7px; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--faint); font-size: 12px; }
+.src { border: 1px solid var(--line); background: var(--raised); border-radius: 6px; padding: 0 6px; font-size: 10.5px; font-weight: 600; color: var(--muted); }
+.sev { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; padding: 1px 7px; border-radius: 99px; }
+.sev.error { color: var(--down); background: rgba(229,100,106,.13); }
+.sev.warning { color: var(--warn); background: rgba(224,162,59,.13); }
+.sev.info { color: var(--accent-fg); background: rgba(124,108,242,.16); }
+.sev.ok { color: var(--up); background: rgba(63,185,127,.13); }
+h4.title { margin: 0; font-size: 24px; line-height: 1.15; font-weight: 600; letter-spacing: -.01em; }
+.card { background: var(--card); border: 1px solid var(--line-soft); border-radius: 16px; padding: 14px 15px; }
+.card h5 { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+.text { white-space: pre-line; color: var(--fg); font-size: 14px; }
+.text .q { display: block; border-left: 2px solid var(--line); padding-left: 10px; color: var(--muted); margin: 6px 0; }
+.state { display: flex; align-items: center; gap: 11px; border-radius: 14px; padding: 11px 13px; }
+.state .dot { width: 10px; height: 10px; border-radius: 99px; flex: none; }
+.state b { display: block; font-size: 14px; }
+.state span { font-size: 12.5px; color: var(--muted); }
+.state.open { background: rgba(229,100,106,.09); border: 1px solid rgba(229,100,106,.28); }
+.state.open .dot { background: var(--down); box-shadow: 0 0 10px var(--down); }
+.state.openw { background: rgba(224,162,59,.08); border: 1px solid rgba(224,162,59,.26); }
+.state.openw .dot { background: var(--warn); box-shadow: 0 0 10px var(--warn); }
+.state.done { background: rgba(63,185,127,.08); border: 1px solid rgba(63,185,127,.25); }
+.state.done .dot { background: var(--up); }
+.pic { border-radius: 16px; overflow: hidden; border: 1px solid var(--line-soft); }
+.pic svg { display: block; width: 100%; height: auto; aspect-ratio: 360 / 200; }
+.links { display: grid; gap: 8px; }
+.link { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border-radius: 13px; background: var(--card); border: 1px solid var(--line-soft); font-weight: 500; }
+.link small { margin-left: auto; color: var(--faint); font-weight: 400; font-size: 12px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 16px; border-radius: 12px; font-weight: 600; font-size: 14px; background: var(--accent); color: #fff; }
+.btn.ghost { background: var(--raised); border: 1px solid var(--line); color: var(--fg); }
+.explain p { margin: 0; font-size: 13.5px; }
+.explain p + p { margin-top: 8px; }
+.explain .lbl { color: var(--accent-fg); font-weight: 600; font-size: 12px; letter-spacing: .04em; }
+.explain .by { margin-top: 10px; font-size: 11.5px; color: var(--faint); }
+.rel { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 1px solid var(--line); display: grid; gap: 10px; }
+.rel li { position: relative; font-size: 13px; }
+.rel li::before { content: ''; position: absolute; left: -18.5px; top: 6px; width: 7px; height: 7px; border-radius: 99px; background: var(--faint); }
+.rel li.e::before { background: var(--down); } .rel li.w::before { background: var(--warn); } .rel li.o::before { background: var(--up); }
+.rel li.here { color: var(--accent-fg); }
+.rel small { display: block; color: var(--faint); font-size: 11.5px; }
+.foot { color: var(--faint); font-size: 12px; display: grid; gap: 3px; }
+.empty { display: grid; justify-items: center; text-align: center; gap: 10px; padding-top: 140px; }
+.empty .ring { width: 76px; height: 76px; border-radius: 99px; border: 1px solid var(--line); display: grid; place-items: center; color: var(--faint); }
+
+/* desktop */
+.desk { border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: var(--panel); display: grid; grid-template-columns: 220px 1fr; min-height: 760px; }
+.side { background: var(--canvas); padding: 22px 16px; color: var(--muted); font-size: 13.5px; display: grid; gap: 9px; align-content: start; }
+.side b { color: var(--fg); margin-bottom: 10px; }
+.side .on { color: var(--fg); background: var(--raised); border-radius: 9px; padding: 5px 8px; margin-inline: -8px; }
+.main { padding: 32px 40px; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, 1fr); gap: 22px; align-content: start; }
+.main .top { grid-column: 1 / -1; }
+.col { display: grid; gap: 14px; align-content: start; grid-auto-rows: max-content; }
+</style>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+  <symbol id="i-logs" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h13"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/></symbol>
+  <symbol id="i-disk" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h.01M11 15h6"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4zM10 21h4"/></symbol>
+  <!-- a drawn placeholder for the painted picture (step 4): disk usage over a week -->
+  <symbol id="pic-disk" viewBox="0 0 360 200">
+    <defs><linearGradient id="g1" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e0a23b" stop-opacity=".45"/><stop offset="1" stop-color="#e0a23b" stop-opacity="0"/></linearGradient>
+    <radialGradient id="glow" cx=".85" cy=".1" r=".9"><stop offset="0" stop-color="#3a2b14"/><stop offset="1" stop-color="#121216"/></radialGradient></defs>
+    <rect width="360" height="200" fill="url(#glow)"/>
+    <text x="20" y="38" fill="#9a9ea7" font-size="12" font-family="Instrument Sans" letter-spacing="1.5">VOLUME2</text>
+    <text x="20" y="80" fill="#ecedef" font-size="40" font-weight="600" font-family="Instrument Sans">91%</text>
+    <text x="104" y="80" fill="#9a9ea7" font-size="14" font-family="Instrument Sans">500 GB left</text>
+    <line x1="20" x2="340" y1="118" y2="118" stroke="#e5646a" stroke-dasharray="3 4" stroke-opacity=".6"/>
+    <text x="340" y="112" fill="#e5646a" font-size="10" text-anchor="end" font-family="Instrument Sans">90%</text>
+    <path d="M20 168 L66 160 L112 156 L158 149 L204 140 L250 131 L296 122 L340 113 L340 190 L20 190Z" fill="url(#g1)"/>
+    <path d="M20 168 L66 160 L112 156 L158 149 L204 140 L250 131 L296 122 L340 113" fill="none" stroke="#e0a23b" stroke-width="2.4"/>
+    <circle cx="340" cy="113" r="4" fill="#e0a23b"/>
+  </symbol>
+  <!-- the briefing card placeholder -->
+  <symbol id="pic-brief" viewBox="0 0 360 200">
+    <defs><radialGradient id="glow2" cx=".2" cy="0" r="1"><stop offset="0" stop-color="#2b2547"/><stop offset="1" stop-color="#111115"/></radialGradient></defs>
+    <rect width="360" height="200" fill="url(#glow2)"/>
+    <text x="20" y="38" fill="#b4aaff" font-size="12" font-family="Instrument Sans" letter-spacing="1.5">MONDAY 2 NOVEMBER</text>
+    <text x="20" y="78" fill="#ecedef" font-size="30" font-weight="600" font-family="Instrument Sans">07:16 on time</text>
+    <text x="20" y="102" fill="#9a9ea7" font-size="14" font-family="Instrument Sans">Platform 5 · 9° and dry until noon</text>
+    <rect x="20" y="128" width="98" height="50" rx="10" fill="#1b1c21"/><text x="32" y="150" fill="#9a9ea7" font-size="11" font-family="Instrument Sans">Portfolio</text><text x="32" y="168" fill="#3fb97f" font-size="15" font-weight="600" font-family="Instrument Sans">+0.8%</text>
+    <rect x="130" y="128" width="98" height="50" rx="10" fill="#1b1c21"/><text x="142" y="150" fill="#9a9ea7" font-size="11" font-family="Instrument Sans">Today</text><text x="142" y="168" fill="#ecedef" font-size="15" font-weight="600" font-family="Instrument Sans">3 events</text>
+    <rect x="240" y="128" width="98" height="50" rx="10" fill="#1b1c21"/><text x="252" y="150" fill="#9a9ea7" font-size="11" font-family="Instrument Sans">House</text><text x="252" y="168" fill="#e0a23b" font-size="15" font-weight="600" font-family="Instrument Sans">1 warning</text>
+  </symbol>
+</svg>
+
+<div class="wrap">
+<header>
+  <h1>The message page</h1>
+  <p>What a tap on a notification opens: <span class="mono">/alerts/{id}</span>, the message's own page in the hub, for 7 days. The full message as Telegram would show it (bold, quotes, links), its picture (step 4), whether the problem is still open, an explanation on request, the way onward, and what came before. The same page opens from the message log on the Alerts page.</p>
+</header>
+
+<h2>On the phone</h2>
+<p class="sub">From the banner to the page. The banner is ntfy's (title with the dot, four lines, the thumbnail); everything else is the hub's.</p>
+<div class="phones">
+
+  <div class="shot">
+    <div class="phone"><div class="scr lock">
+      <div class="status"><span>14:03</span><span>●●● 82%</span></div>
+      <div class="date">Monday 2 November</div>
+      <div class="time">14:03</div>
+      <div class="ban" style="top: 300px">
+        <div class="app">n</div>
+        <div><small>HUB-RULES · now</small><b>🔴 sonarr is down</b><p>The container stopped 2 minutes ago and did not come back. Its last log line: exit code 137.</p></div>
+        <div></div>
+      </div>
+      <div class="ban" style="top: 420px">
+        <div class="app">n</div>
+        <div><small>HUB-RULES · 2h ago</small><b>🟠 volume2 is 91% full</b><p>500 GB left; grows about 4 GB a week.</p></div>
+        <div class="thumb"><svg viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" width="54" height="54"><use href="#pic-disk"/></svg></div>
+      </div>
+      <div class="tap" style="top: 540px">a tap opens the message's page in the hub</div>
+    </div></div>
+    <div class="caption"><h3>1. The banners</h3><p>Plain text and the dot from ntfy; a painted thumbnail where the message has a figure (step 4). A tap goes to <span class="mono">/alerts/{id}</span>.</p></div>
+  </div>
+
+  <div class="shot">
+    <div class="phone"><div class="scr">
+      <div class="status"><span>14:04</span><span>●●● 82%</span></div>
+      <div class="scroll">
+        <div class="back"><svg class="ico"><use href="#i-back"/></svg>Alerts</div>
+        <div class="top">
+          <div class="meta"><span>today 14:02</span><span class="src">Hub rule</span><span class="sev error">ERROR</span></div>
+          <h4 class="title">sonarr is down</h4>
+        </div>
+        <div class="state open"><span class="dot"></span><div><b>Still open</b><span>for 2 minutes, checked 14:04</span></div></div>
+        <div class="card"><div class="text">The container stopped 2 minutes ago and did not come back. Its last log line: <span class="mono">exit code 137</span>.</div></div>
+        <div class="card explain">
+          <h5>Explained</h5>
+          <p><span class="lbl">Likely cause</span><br>Exit code 137 means the container was killed, usually for running out of memory; the NAS had 0.4 GB free at the time.</p>
+          <p><span class="lbl">Try first</span><br>Start it again from Docker and watch its memory; if it climbs, give it a memory limit.</p>
+          <div class="by">Claude Sonnet · asked 14:04 · kept with this message</div>
+        </div>
+        <div class="links">
+          <div class="link"><svg class="ico"><use href="#i-logs"/></svg>Logs in Dozzle<small>sonarr</small><svg class="ico" style="color:var(--faint)"><use href="#i-out"/></svg></div>
+          <div class="link"><svg class="ico"><use href="#i-box"/></svg>Docker page</div>
+        </div>
+      </div>
+      <div class="tabs"><span>Home</span><span>News</span><span>Portfolio</span><span>Recipes</span><span class="on">More</span></div>
+    </div></div>
+    <div class="caption"><h3>2. An error, still open, explained</h3><p>Severity and source as in the log; a state strip that is live while the page is open; the explanation stays with the message once asked; links to the container's logs and the hub's Docker page.</p></div>
+  </div>
+
+  <div class="shot">
+    <div class="phone"><div class="scr">
+      <div class="status"><span>14:05</span><span>●●● 82%</span></div>
+      <div class="scroll">
+        <div class="back"><svg class="ico"><use href="#i-back"/></svg>Alerts</div>
+        <div class="top">
+          <div class="meta"><span>today 11:24</span><span class="src">Hub rule</span><span class="sev warning">WARNING</span></div>
+          <h4 class="title">volume2 is 91% full</h4>
+        </div>
+        <div class="pic"><svg viewBox="0 0 360 200"><use href="#pic-disk"/></svg></div>
+        <div class="state openw"><span class="dot"></span><div><b>Still open</b><span>for 2 h 41 min</span></div></div>
+        <div class="card"><div class="text">500 GB left; grows about 4 GB a week.</div></div>
+        <button class="btn ghost"><svg class="ico"><use href="#i-spark"/></svg>Explain</button>
+        <div class="links">
+          <div class="link"><svg class="ico"><use href="#i-disk"/></svg>NAS page<small>storage</small></div>
+        </div>
+        <div class="card">
+          <h5>Earlier</h5>
+          <ul class="rel">
+            <li class="w here">volume2 is 91% full<small>today 11:24 · this message</small></li>
+            <li class="o">Resolved: volume2 is 90% full<small>Thu 29 Oct 03:10 · after 5 h</small></li>
+            <li class="w">volume2 is 90% full<small>Wed 28 Oct 22:04</small></li>
+          </ul>
+        </div>
+      </div>
+      <div class="tabs"><span>Home</span><span>News</span><span>Portfolio</span><span>Recipes</span><span class="on">More</span></div>
+    </div></div>
+    <div class="caption"><h3>3. A warning with a figure</h3><p>The painted picture full width (step 4). Explain is a button until asked. "Earlier": this rule's or source's messages in the last 7 days, each opening its own page.</p></div>
+  </div>
+
+  <div class="shot">
+    <div class="phone"><div class="scr">
+      <div class="status"><span>16:50</span><span>●●● 71%</span></div>
+      <div class="scroll">
+        <div class="back"><svg class="ico"><use href="#i-back"/></svg>Alerts</div>
+        <div class="top">
+          <div class="meta"><span>today 11:24</span><span class="src">Hub rule</span><span class="sev warning">WARNING</span></div>
+          <h4 class="title">volume2 is 91% full</h4>
+        </div>
+        <div class="state done"><span class="dot"></span><div><b>Resolved at 16:40</b><span>after 5 h 16 min</span></div></div>
+        <div class="card"><div class="text">500 GB left; grows about 4 GB a week.</div></div>
+        <div class="card explain">
+          <h5>Explained</h5>
+          <p><span class="lbl">Likely cause</span><br>The weekly growth is steady, so this is the photo and media library filling up, not a runaway log.</p>
+          <p><span class="lbl">Try first</span><br>Look at what grew most this month on the NAS page; nothing urgent below 95%.</p>
+          <div class="by">Claude Sonnet · asked 11:31 · kept with this message</div>
+        </div>
+        <div class="links"><div class="link"><svg class="ico"><use href="#i-disk"/></svg>NAS page<small>storage</small></div></div>
+        <div class="foot"><span>Sent to your phone (ntfy) at 11:24</span><span>This page stays until Mon 9 Nov</span></div>
+      </div>
+      <div class="tabs"><span>Home</span><span>News</span><span>Portfolio</span><span>Recipes</span><span class="on">More</span></div>
+    </div></div>
+    <div class="caption"><h3>4. Resolved since</h3><p>The strip turns green with when and how long. At the foot: how it was delivered and until when the page stays.</p></div>
+  </div>
+
+  <div class="shot">
+    <div class="phone"><div class="scr">
+      <div class="status"><span>06:41</span><span>●●● 98%</span></div>
+      <div class="scroll">
+        <div class="back"><svg class="ico"><use href="#i-back"/></svg>Alerts</div>
+        <div class="top">
+          <div class="meta"><span>today 06:30</span><span class="src">Briefing</span><span class="sev info">INFO</span></div>
+          <h4 class="title">Good morning, Monday 2 November</h4>
+        </div>
+        <div class="pic"><svg viewBox="0 0 360 200"><use href="#pic-brief"/></svg></div>
+        <div class="card"><div class="text">A calm start: the train runs on time and the house had a quiet night, apart from volume2.
+<b>Your day</b>
+Train · 07:16 on time, platform 5
+Calendar · 09:30 Standup, and 2 more
+<b>Markets</b>
+Total · +0.8% (+€214)<span class="q">NVDA +3.1% · ASML -0.4% · ADYEN +1.2% …</span><b>Overnight · 1 warning, 2 OK</b>
+WARNING · volume2 is 91% full</div></div>
+        <div class="links"><div class="link"><svg class="ico"><use href="#i-bell"/></svg>Home</div></div>
+      </div>
+      <div class="tabs"><span>Home</span><span>News</span><span>Portfolio</span><span>Recipes</span><span class="on">More</span></div>
+    </div></div>
+    <div class="caption"><h3>5. The briefing (or any report)</h3><p>The whole message with its formatting, which the banner can't show: bold section heads, the folded holdings as a quote. No state and no Explain: it is not a problem.</p></div>
+  </div>
+
+  <div class="shot">
+    <div class="phone"><div class="scr">
+      <div class="status"><span>09:12</span><span>●●● 64%</span></div>
+      <div class="scroll">
+        <div class="back"><svg class="ico"><use href="#i-back"/></svg>Alerts</div>
+        <div class="empty">
+          <div class="ring"><svg class="ico" style="width:28px;height:28px"><use href="#i-bell"/></svg></div>
+          <b style="font-size:17px">This message has expired</b>
+          <span style="color:var(--muted);max-width:30ch">Message pages stay 7 days. It is still in the log on the Alerts page.</span>
+          <button class="btn">Open Alerts</button>
+        </div>
+      </div>
+      <div class="tabs"><span>Home</span><span>News</span><span>Portfolio</span><span>Recipes</span><span class="on">More</span></div>
+    </div></div>
+    <div class="caption"><h3>6. After 7 days</h3><p>An old notification still opens something useful. A message that never existed gets the same page with "No such message".</p></div>
+  </div>
+</div>
+
+<h2>On the laptop</h2>
+<p class="sub">Two columns: the message and its picture on the left; state, explanation, links and earlier messages on the right.</p>
+<div class="desk">
+  <div class="side"><b>Home hub</b><span>Home</span><span>Lights</span><span>News</span><span>Portfolio</span><span>NAS</span><span>Docker</span><span class="on">Alerts</span><span>Settings</span></div>
+  <div class="main">
+    <div class="top">
+      <div class="back"><svg class="ico"><use href="#i-back"/></svg>Alerts</div>
+      <div class="meta" style="margin-top:10px"><span>today 11:24</span><span class="src">Hub rule</span><span class="sev warning">WARNING</span></div>
+      <h4 class="title" style="font-size:30px">volume2 is 91% full</h4>
+    </div>
+    <div class="col">
+      <div class="pic"><svg viewBox="0 0 360 200"><use href="#pic-disk"/></svg></div>
+      <div class="card"><div class="text">500 GB left; grows about 4 GB a week.</div></div>
+      <div class="foot"><span>Sent to your phone (ntfy) at 11:24</span><span>This page stays until Mon 9 Nov</span></div>
+    </div>
+    <div class="col">
+      <div class="state openw"><span class="dot"></span><div><b>Still open</b><span>for 2 h 41 min</span></div></div>
+      <div class="card explain">
+        <h5>Explained</h5>
+        <p><span class="lbl">Likely cause</span><br>The weekly growth is steady, so this is the photo and media library filling up, not a runaway log.</p>
+        <p><span class="lbl">Try first</span><br>Look at what grew most this month on the NAS page; nothing urgent below 95%.</p>
+        <div class="by">Claude Sonnet · asked 11:31 · kept with this message</div>
+      </div>
+      <div class="links"><div class="link"><svg class="ico"><use href="#i-disk"/></svg>NAS page<small>storage</small></div></div>
+      <div class="card">
+        <h5>Earlier</h5>
+        <ul class="rel">
+          <li class="w here">volume2 is 91% full<small>today 11:24 · this message</small></li>
+          <li class="o">Resolved: volume2 is 90% full<small>Thu 29 Oct 03:10 · after 5 h</small></li>
+          <li class="w">volume2 is 90% full<small>Wed 28 Oct 22:04</small></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</body>
+</html>

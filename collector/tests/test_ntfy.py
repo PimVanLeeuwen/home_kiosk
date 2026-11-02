@@ -116,14 +116,15 @@ def test_failures_become_a_short_reason(exc, reason):
 # --- sending -----------------------------------------------------------------------
 
 
-def test_a_message_goes_to_its_category_topic_with_a_dot_and_the_alerts_page(alert_store):
+def test_a_message_goes_to_its_category_topic_with_a_dot_and_its_page(alert_store):
     fake, telegram = FakeNtfy(), FakeTelegram()
 
     message = notify(alert_store, fake, telegram)
 
     assert fake.published == [{
         "topic": "hub-backup", "title": "Backup slow", "message": "Volume 3 took 4 hours.",
-        "priority": 3, "tags": ["orange_circle"], "click": "https://hub.example.ts.net/alerts",
+        "priority": 3, "tags": ["orange_circle"],
+        "click": f"https://hub.example.ts.net/alerts/{message.id}",
     }]
     assert fake.headers[0]["authorization"] == f"Bearer {NTFY_TOKEN}"
     assert telegram.sent == []
@@ -224,6 +225,8 @@ def test_with_ntfy_off_messages_go_to_telegram(alert_store):
 
 
 def test_the_tap_needs_a_web_address():
+    assert core.click_url({"hub": {"url": "https://hub.example.ts.net"}}, 12) == (
+        "https://hub.example.ts.net/alerts/12")
     assert core.click_url({"hub": {"url": "https://hub.example.ts.net"}}) == (
         "https://hub.example.ts.net/alerts")
     assert core.click_url({"hub": {"url": "javascript:alert(1)"}}) is None

@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS alert_message (
     title    TEXT NOT NULL,
     body     TEXT NOT NULL DEFAULT '',
     chat     TEXT NOT NULL,
-    -- sent, quiet (sent silently in quiet hours, ntfy), held (quiet hours,
-    -- Telegram), digested, failed
+    -- sending (only while it goes out), sent, quiet (sent silently in quiet
+    -- hours, ntfy), held (quiet hours, Telegram), digested, failed
     status   TEXT NOT NULL,
     error    TEXT,
     sent_at  TEXT
@@ -87,12 +87,15 @@ class AlertMessage(BaseModel):
     title: str
     body: str
     chat: str
-    status: Literal["sent", "quiet", "held", "digested", "failed"]
+    status: Literal["sending", "sent", "quiet", "held", "digested", "failed"]
     error: str | None
     sent_at: datetime | None
     telegram_id: int | None = None  # Telegram's id for the sent message
     channel: Literal["ntfy", "telegram"] | None = None  # None: held or failed
     ntfy_id: str | None = None
+    # For the message's page (M31): the Telegram HTML, and a rule's incident key.
+    html: str | None = None
+    incident: str | None = None
 
 
 def ensure_tables(store: Store) -> None:
@@ -108,6 +111,11 @@ def ensure_tables(store: Store) -> None:
             conn.execute("UPDATE alert_message SET channel = 'telegram' "
                          "WHERE status IN ('sent', 'digested')")
             conn.execute("ALTER TABLE alert_message ADD COLUMN ntfy_id TEXT")
+        if "html" not in columns:
+            # Added for the message's page (M31 step 3).
+            conn.execute("ALTER TABLE alert_message ADD COLUMN html TEXT")
+            conn.execute("ALTER TABLE alert_message ADD COLUMN incident TEXT")
+            conn.execute("ALTER TABLE alert_message ADD COLUMN explanation TEXT")
 
 
 # --- settings -------------------------------------------------------------------
@@ -150,10 +158,13 @@ def ntfy_on(store: Store, cfg: dict[str, Any]) -> bool:
     return ntfy_configured(cfg) and ntfy_enabled(store)
 
 
-def click_url(cfg: dict[str, Any]) -> str | None:
-    """Where a tap on a notification leads: the hub's Alerts page (`hub.url`)."""
+def click_url(cfg: dict[str, Any], message_id: int | None = None) -> str | None:
+    """Where a tap on a notification leads: the message's own page in the hub
+    (`hub.url`), or the Alerts page without an id."""
     url = str((cfg.get("hub") or {}).get("url") or "").strip().rstrip("/")
-    return f"{url}/alerts" if url.startswith(("https://", "http://")) else None
+    if not url.startswith(("https://", "http://")):
+        return None
+    return f"{url}/alerts/{message_id}" if message_id is not None else f"{url}/alerts"
 
 
 def priority(severity: str, category: str, quiet: bool, bypass_quiet: bool) -> int:
@@ -214,14 +225,28 @@ def log_entry(store: Store, now: datetime, **fields: Any) -> AlertMessage:
     with store.connect() as conn:
         cur = conn.execute(
             "INSERT INTO alert_message (ts, source, category, severity, title, body, chat, "
-            "status, error, sent_at, telegram_id, channel, ntfy_id) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "status, error, sent_at, telegram_id, channel, ntfy_id, html, incident) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (now.isoformat(), fields["source"], fields["category"], fields["severity"],
              fields["title"], fields.get("body", ""), fields["chat"], fields["status"],
              fields.get("error"), fields.get("sent_at"), fields.get("telegram_id"),
-             fields.get("channel"), fields.get("ntfy_id")),
+             fields.get("channel"), fields.get("ntfy_id"), fields.get("html"),
+             fields.get("incident")),
         )
         row = conn.execute("SELECT * FROM alert_message WHERE id = ?", (cur.lastrowid,)).fetchone()
+    return AlertMessage.model_validate(dict(row))
+
+
+_FINAL = ("status", "error", "sent_at", "telegram_id", "channel", "ntfy_id")
+
+
+def finish_entry(store: Store, message_id: int, **fields: Any) -> AlertMessage:
+    """Settle a logged message: what happened to it (`_FINAL` fields only)."""
+    names = [k for k in _FINAL if k in fields]
+    with store.connect() as conn:
+        conn.execute(f"UPDATE alert_message SET {', '.join(f'{k} = ?' for k in names)} "
+                     "WHERE id = ?", (*(fields[k] for k in names), message_id))
+        row = conn.execute("SELECT * FROM alert_message WHERE id = ?", (message_id,)).fetchone()
     return AlertMessage.model_validate(dict(row))
 
 
@@ -242,17 +267,21 @@ async def notify(
     reply_to: int | None = None,
     buttons: list[dict[str, str]] | None = None,
     ntfy: Ntfy | None = None,
+    incident: str | None = None,
 ) -> AlertMessage:
     """Route (or use `chat`), then send through ntfy, or through Telegram (held in
     quiet hours) when ntfy is off or fails, and log one message.
     `formatted` is ready-made Telegram HTML to send instead of title and body;
     `reply_to` a sent message's Telegram id to answer (the alert explainer), which
     keeps it on Telegram; `buttons` a row of buttons under it, answered by the bot
-    (bot.py), shown on Telegram only."""
+    (bot.py), shown on Telegram only; `incident` a rule's incident key, for the
+    message's page. The message is logged first, so a tap can lead to its page."""
     now = now or datetime.now(UTC)
     chat_key = chat or routing(store).get(category, "nas")
-    fields = {"source": source, "category": category, "severity": severity,
-              "title": title, "body": body, "chat": chat_key}
+    html_text = formatted or format_html(severity, title, body)
+    entry = log_entry(store, now, source=source, category=category, severity=severity,
+                      title=title, body=body, chat=chat_key, status="sending", html=html_text,
+                      incident=incident)
     quiet = in_quiet_hours(local(now, cfg), quiet_hours(store))
 
     ntfy_failed = None
@@ -270,25 +299,26 @@ async def notify(
                 ntfy_api.topic(category),
                 title if message else CATEGORIES.get(category, category),
                 message or title, priority=level,
-                tags=[ntfy_api.DOT.get(severity, "white_circle")], click=click_url(cfg))
+                tags=[ntfy_api.DOT.get(severity, "white_circle")],
+                click=click_url(cfg, entry.id))
         except Exception as exc:
             ntfy_failed = ntfy_api.describe(exc)
             log.warning("ntfy publish for %s failed: %s", source, type(exc).__name__)
         else:
             status = "quiet" if level == ntfy_api.QUIET and category != "briefing" else "sent"
-            return log_entry(store, now, **fields, status=status, sent_at=now.isoformat(),
-                             channel="ntfy", ntfy_id=str(answer.get("id")))
+            return finish_entry(store, entry.id, status=status, sent_at=now.isoformat(),
+                                channel="ntfy", ntfy_id=str(answer.get("id")))
 
     note = f"ntfy failed: {ntfy_failed}" if ntfy_failed else None
     if not bypass_quiet and severity != "error" and quiet:
-        return log_entry(store, now, **fields, status="held", error=note)
+        return finish_entry(store, entry.id, status="held", error=note)
 
     chat_id = chats(cfg).get(chat_key, {}).get("id")
     try:
         if not chat_id:
             raise ValueError(f"No chat id set for {chat_key}")
         client = telegram or Telegram((cfg.get("telegram") or {}).get("token", ""))
-        text = formatted or format_html(severity, title, body)
+        text = html_text
         extra: dict[str, Any] = {}
         if reply_to is not None:
             extra["reply_to"] = reply_to
@@ -300,10 +330,10 @@ async def notify(
         log.warning("telegram send for %s failed: %s", source, type(exc).__name__)
         if ntfy_failed:
             reason = f"ntfy: {ntfy_failed}; Telegram: {reason}"[:300]
-        return log_entry(store, now, **fields, status="failed", error=reason)
+        return finish_entry(store, entry.id, status="failed", error=reason)
     message_id = result.get("message_id") if isinstance(result, dict) else None
-    return log_entry(store, now, **fields, status="sent", sent_at=now.isoformat(),
-                     telegram_id=message_id, channel="telegram", error=note)
+    return finish_entry(store, entry.id, status="sent", sent_at=now.isoformat(),
+                        telegram_id=message_id, channel="telegram", error=note)
 
 
 async def send_digests(
