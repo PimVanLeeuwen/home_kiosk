@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 
 from app import ai, briefing, main, scheduler
 from app.alerts import core, rules, templates
+from app.alerts.ntfy import Ntfy
 from app.alerts.telegram import Telegram
 from app.news import store as news
 from app.portfolio import notes as market_notes
@@ -295,6 +296,23 @@ def test_takes_over_what_quiet_hours_held(house):
     assert core.held(house) == []
     assert asyncio.run(core.send_digests(house, CFG, SEVEN, sent.client())) == 0
     assert len(sent.texts) == 1
+
+
+def test_counts_what_ntfy_delivered_silently_with_what_was_held(house):
+    ntfy = Ntfy("http://ntfy.test", "tk_x", transport=httpx.MockTransport(
+        lambda request: httpx.Response(200, json={"id": "n1"})))
+    asyncio.run(core.notify(house, CFG, source="test", category="rules", severity="warning",
+                            title="volume2 is 91% full", now=NIGHT, ntfy=ntfy))
+    hold(house, "ok", "NAS backup done")
+    sent = Sent()
+
+    asyncio.run(briefing.run(CFG, house, NOW, FakeClaude(), sent.client()))
+
+    assert sent.texts == [
+        f"{MESSAGE}\n\n<b>Overnight · 1 warning, 1 OK</b>\nWARNING · volume2 is 91% full"]
+    # The silent one stays as it was sent; only the held one is digested.
+    status = {m.title: m.status for m in core.messages(house)}
+    assert (status["NAS backup done"], status["volume2 is 91% full"]) == ("digested", "quiet")
 
 
 def test_a_quiet_night_adds_no_overnight_section(house):

@@ -353,6 +353,11 @@ ntfy:
   url: http://host.docker.internal:8090
   token: ${NTFY_TOKEN}
 
+# The hub's own address on the phone, where a tap on a notification leads (the
+# Alerts page).
+hub:
+  url: https://dev-minotaur.tail1234.ts.net
+
 # Home hub service catalog. Only seeds the database on the first start; after
 # that the catalog is edited in the app and this list is ignored. Links are
 # built in the browser as <scheme>://<LAN or Tailscale host>:<port><path>.

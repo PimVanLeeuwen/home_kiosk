@@ -234,6 +234,53 @@ describe('AlertsPage', () => {
     )
   })
 
+  it('says where each message went through ntfy, and when Telegram took over', async () => {
+    setup({
+      '/api/alerts/settings': { ...SETTINGS, ntfy: { configured: true, enabled: true } },
+      '/api/alerts/messages?limit=100': [
+        msg(6, { title: 'Disk warm', channel: 'ntfy', ntfy_id: 'a1' }),
+        msg(5, { title: 'Overnight note', status: 'quiet', channel: 'ntfy', ntfy_id: 'a2' }),
+        msg(4, { title: 'Fell back', channel: 'telegram', error: 'ntfy failed: ntfy not reachable' }),
+      ],
+    })
+    renderRoute('/alerts')
+
+    const log = await screen.findByRole('region', { name: 'Messages' })
+    expect(await within(log).findByText('Sent to your phone (ntfy)')).toBeInTheDocument()
+    expect(within(log).getByText('Sent silently to your phone (ntfy, quiet hours)')).toBeInTheDocument()
+    const fallback = within(log).getByText('Sent to NAS alerts on Telegram; ntfy failed: ntfy not reachable')
+    expect(fallback).toHaveClass('text-warn')
+    const delivery = screen.getByRole('region', { name: 'Delivery' })
+    expect(within(delivery).getByText(/the rest arrives silently/)).toBeInTheDocument()
+    expect(within(delivery).getByText('Which chat gets what when ntfy fails')).toBeInTheDocument()
+  })
+
+  it('switches ntfy off', async () => {
+    const on = { ...SETTINGS, ntfy: { configured: true, enabled: true } }
+    const fetchMock = setup({ '/api/alerts/settings': on, 'PUT /api/alerts/settings': on })
+    renderRoute('/alerts')
+
+    const delivery = await screen.findByRole('region', { name: 'Delivery' })
+    const toggle = within(delivery).getByRole('switch', { name: 'Send through ntfy' })
+    expect(toggle).toHaveAttribute('aria-checked', 'true')
+    fireEvent.click(toggle)
+    expect(within(delivery).getByText('Off: everything goes to Telegram.')).toBeInTheDocument()
+    fireEvent.click(within(delivery).getByRole('button', { name: 'Save' }))
+
+    await vi.waitFor(() => expect(sentBody(fetchMock, 'PUT', '/api/alerts/settings')).toMatchObject({ ntfy: false }))
+  })
+
+  it('cannot switch ntfy on without a token', async () => {
+    setup({ '/api/alerts/settings': { ...SETTINGS, ntfy: { configured: false, enabled: true } } })
+    renderRoute('/alerts')
+
+    const delivery = await screen.findByRole('region', { name: 'Delivery' })
+    const toggle = within(delivery).getByRole('switch', { name: 'Send through ntfy' })
+    expect(toggle).toBeDisabled()
+    expect(toggle).toHaveAttribute('aria-checked', 'false')
+    expect(within(delivery).getByText(/No ntfy token on the hub \(NTFY_TOKEN\)/)).toBeInTheDocument()
+  })
+
   it('says what is missing from the setup', async () => {
     setup({ '/api/alerts/settings': { ...SETTINGS, token_set: false, chats: [{ key: 'nas', label: 'NAS alerts', configured: false }] } })
     renderRoute('/alerts')

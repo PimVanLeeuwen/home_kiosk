@@ -41,6 +41,14 @@ specific to that setup. The overview is in the [README](../README.md).
   somewhere new. Until then the routes are drawn on their own.
 - Senders on the NAS post to `http://<nas>:8000/api/notify` with the `X-Notify-Key` header
   (`NOTIFY_KEY`); see the nas-docker README, *Alerts*.
+- **ntfy** (plan.md M31): the hub sends every message to the NAS's own ntfy (the stack in
+  nas-docker, README *ntfy*), one topic per category (`hub-backup`, `hub-rules`, ...), as soon as
+  `NTFY_TOKEN` is in `.env` and the `ntfy:` block from `config.yaml` is in the NAS's config.
+  Telegram then only gets a message when ntfy fails, and the Alerts page says why. Errors arrive
+  Time Sensitive; in quiet hours the rest arrives silently instead of being held, and the morning
+  briefing still sums up the night. Replies in Telegram (the bot, the explainers) stay there.
+  Settings, Alerts has the switch to go back to Telegram only. A tap on a notification opens the
+  hub's Alerts page: put `hub.url` (the hub's Tailscale address) in the NAS's config for that.
 
 ## Deploying
 

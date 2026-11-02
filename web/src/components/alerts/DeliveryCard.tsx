@@ -12,18 +12,26 @@ interface Props {
   onSaved: (settings: AlertSettings) => void
 }
 
-/** Quiet hours and which chat each category goes to. */
+/** ntfy or Telegram, quiet hours, and which chat each category goes to. */
 export function DeliveryCard({ settings, onSaved }: Props) {
   const [quiet, setQuiet] = useState<QuietHours>(settings.quiet)
   const [routing, setRouting] = useState<Record<string, string>>(settings.routing)
+  const [ntfy, setNtfy] = useState(settings.ntfy?.enabled ?? true)
   const [message, setMessage] = useState<{ ok: boolean; text: string }>()
+  const ntfyConfigured = settings.ntfy?.configured ?? false
+  const ntfyOn = ntfyConfigured && ntfy
   const dirty =
     JSON.stringify(quiet) !== JSON.stringify(settings.quiet) ||
-    JSON.stringify(routing) !== JSON.stringify(settings.routing)
+    JSON.stringify(routing) !== JSON.stringify(settings.routing) ||
+    (ntfyConfigured && ntfy !== settings.ntfy?.enabled)
 
   async function save() {
     try {
-      const saved = await sendJson<AlertSettings>('PUT', '/api/alerts/settings', { routing, quiet })
+      const saved = await sendJson<AlertSettings>('PUT', '/api/alerts/settings', {
+        routing,
+        quiet,
+        ...(ntfyConfigured ? { ntfy } : {}),
+      })
       onSaved(saved)
       setMessage({ ok: true, text: 'Saved' })
     } catch (err) {
@@ -33,6 +41,20 @@ export function DeliveryCard({ settings, onSaved }: Props) {
 
   return (
     <Card title="Delivery">
+      <div className="mb-5 flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">Send through ntfy</p>
+          <p className="mt-0.5 text-caption text-faint">
+            {!ntfyConfigured
+              ? 'No ntfy token on the hub (NTFY_TOKEN), so everything goes to Telegram.'
+              : ntfy
+                ? 'To the ntfy app on your phone, one topic per category. Telegram only gets a message when ntfy fails.'
+                : 'Off: everything goes to Telegram.'}
+          </p>
+        </div>
+        <Switch checked={ntfyOn} onChange={setNtfy} label="Send through ntfy" disabled={!ntfyConfigured} />
+      </div>
+
       <div className="flex items-center gap-4">
         <QuietRing start={quiet.start} end={quiet.end} enabled={quiet.enabled} now={new Date()} />
         <div className="min-w-0 flex-1">
@@ -50,11 +72,15 @@ export function DeliveryCard({ settings, onSaved }: Props) {
               <input type="time" value={quiet.end} onChange={(e) => setQuiet({ ...quiet, end: e.target.value })} className={inlineInputClass} />
             </label>
           </div>
-          <p className="mt-1.5 text-caption text-faint">Errors still go out; the rest arrives as one digest when quiet hours end.</p>
+          <p className="mt-1.5 text-caption text-faint">
+            {ntfyOn
+              ? 'Errors still sound; the rest arrives silently, and the morning briefing sums up the night.'
+              : 'Errors still go out; the rest arrives as one digest when quiet hours end.'}
+          </p>
         </div>
       </div>
 
-      <p className="mt-5 mb-1.5 font-medium">Which chat gets what</p>
+      <p className="mt-5 mb-1.5 font-medium">{ntfyOn ? 'Which chat gets what when ntfy fails' : 'Which chat gets what'}</p>
       <ul className="space-y-1.5 text-small">
         {Object.entries(settings.categories).map(([key, label]) => (
           <li key={key} className="flex items-center justify-between gap-3">

@@ -53,6 +53,26 @@ const editor = () => screen.getByRole('form', { name: 'Edit Disk space' })
 const textarea = () => within(editor()).getByRole('textbox', { name: 'Message text' })
 
 describe('MessageTemplates', () => {
+  it('shows the phone banner beside the Telegram preview while ntfy is on', async () => {
+    await setup({ '/api/alerts/settings': { ntfy: { configured: true, enabled: true } } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Disk space' }))
+
+    const phone = await within(editor()).findByRole('figure', { name: 'On your phone' })
+    expect(phone).toHaveTextContent('Hub alert rules')
+    expect(phone).toHaveTextContent('volume2 is full')
+    expect(phone).not.toHaveTextContent('WARNING')
+  })
+
+  it('shows no phone banner while ntfy is off', async () => {
+    await setup({ '/api/alerts/settings': { ntfy: { configured: true, enabled: false } } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Disk space' }))
+
+    expect(within(editor()).getByRole('figure', { name: 'Preview' })).toBeInTheDocument()
+    expect(within(editor()).queryByRole('figure', { name: 'On your phone' })).toBeNull()
+  })
+
   it('folds each group, showing how many messages it holds and how many are changed', async () => {
     stubApi({ '/api/alerts/templates': LIST })
     render(

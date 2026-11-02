@@ -1,8 +1,13 @@
 """Alert routing, quiet hours, the morning digest, and the message log.
 
 Every message the hub sends, or holds, is logged in `alert_message`; the
-Alerts page reads that log. Settings (routing per category, quiet hours) live
-in `alert_setting`, edited in the app.
+Alerts page reads that log. Settings (routing per category, quiet hours, ntfy
+on or off) live in `alert_setting`, edited in the app.
+
+With an ntfy token set and ntfy switched on (M31), messages go to the NAS's
+ntfy, one topic per category, and Telegram only gets them when ntfy fails.
+Quiet hours then deliver silently instead of holding; replies to a Telegram
+message (the bot, the explainers) stay on Telegram.
 """
 
 from __future__ import annotations
@@ -17,6 +22,8 @@ from zoneinfo import ZoneInfo
 from pydantic import BaseModel
 
 from ..store import Store
+from . import ntfy as ntfy_api
+from .ntfy import Ntfy
 from .telegram import Telegram, describe
 
 log = logging.getLogger(__name__)
@@ -31,7 +38,8 @@ CREATE TABLE IF NOT EXISTS alert_message (
     title    TEXT NOT NULL,
     body     TEXT NOT NULL DEFAULT '',
     chat     TEXT NOT NULL,
-    -- sent, held (quiet hours), digested, failed
+    -- sent, quiet (sent silently in quiet hours, ntfy), held (quiet hours,
+    -- Telegram), digested, failed
     status   TEXT NOT NULL,
     error    TEXT,
     sent_at  TEXT
@@ -79,10 +87,12 @@ class AlertMessage(BaseModel):
     title: str
     body: str
     chat: str
-    status: Literal["sent", "held", "digested", "failed"]
+    status: Literal["sent", "quiet", "held", "digested", "failed"]
     error: str | None
     sent_at: datetime | None
     telegram_id: int | None = None  # Telegram's id for the sent message
+    channel: Literal["ntfy", "telegram"] | None = None  # None: held or failed
+    ntfy_id: str | None = None
 
 
 def ensure_tables(store: Store) -> None:
@@ -92,6 +102,12 @@ def ensure_tables(store: Store) -> None:
         if "telegram_id" not in columns:
             # Added for the alert explainer (M26), which replies to the alert's message.
             conn.execute("ALTER TABLE alert_message ADD COLUMN telegram_id INTEGER")
+        if "channel" not in columns:
+            # Added for ntfy (M31); older rows all went to Telegram.
+            conn.execute("ALTER TABLE alert_message ADD COLUMN channel TEXT")
+            conn.execute("UPDATE alert_message SET channel = 'telegram' "
+                         "WHERE status IN ('sent', 'digested')")
+            conn.execute("ALTER TABLE alert_message ADD COLUMN ntfy_id TEXT")
 
 
 # --- settings -------------------------------------------------------------------
@@ -118,6 +134,37 @@ def routing(store: Store) -> dict[str, str]:
 
 def quiet_hours(store: Store) -> dict[str, Any]:
     return DEFAULT_QUIET | get_setting(store, "quiet", {})
+
+
+def ntfy_configured(cfg: dict[str, Any]) -> bool:
+    ntfy = cfg.get("ntfy") or {}
+    return bool(str(ntfy.get("url") or "").strip() and str(ntfy.get("token") or "").strip())
+
+
+def ntfy_enabled(store: Store) -> bool:
+    """The switch in Settings, Alerts; on until switched off."""
+    return bool(get_setting(store, "ntfy", True))
+
+
+def ntfy_on(store: Store, cfg: dict[str, Any]) -> bool:
+    return ntfy_configured(cfg) and ntfy_enabled(store)
+
+
+def click_url(cfg: dict[str, Any]) -> str | None:
+    """Where a tap on a notification leads: the hub's Alerts page (`hub.url`)."""
+    url = str((cfg.get("hub") or {}).get("url") or "").strip().rstrip("/")
+    return f"{url}/alerts" if url.startswith(("https://", "http://")) else None
+
+
+def priority(severity: str, category: str, quiet: bool, bypass_quiet: bool) -> int:
+    """Errors are Time Sensitive; in quiet hours the rest arrives silently, except
+    what is sent through them on purpose (the train, a typed message). The
+    morning briefing is quiet too: it comes at 06:30."""
+    if severity == "error":
+        return ntfy_api.URGENT
+    if quiet and (not bypass_quiet or category == "briefing"):
+        return ntfy_api.QUIET
+    return ntfy_api.NORMAL
 
 
 def chats(cfg: dict[str, Any]) -> dict[str, dict[str, str]]:
@@ -167,10 +214,12 @@ def log_entry(store: Store, now: datetime, **fields: Any) -> AlertMessage:
     with store.connect() as conn:
         cur = conn.execute(
             "INSERT INTO alert_message (ts, source, category, severity, title, body, chat, "
-            "status, error, sent_at, telegram_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "status, error, sent_at, telegram_id, channel, ntfy_id) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (now.isoformat(), fields["source"], fields["category"], fields["severity"],
              fields["title"], fields.get("body", ""), fields["chat"], fields["status"],
-             fields.get("error"), fields.get("sent_at"), fields.get("telegram_id")),
+             fields.get("error"), fields.get("sent_at"), fields.get("telegram_id"),
+             fields.get("channel"), fields.get("ntfy_id")),
         )
         row = conn.execute("SELECT * FROM alert_message WHERE id = ?", (cur.lastrowid,)).fetchone()
     return AlertMessage.model_validate(dict(row))
@@ -192,23 +241,47 @@ async def notify(
     formatted: str | None = None,
     reply_to: int | None = None,
     buttons: list[dict[str, str]] | None = None,
+    ntfy: Ntfy | None = None,
 ) -> AlertMessage:
-    """Route (or use `chat`), hold for quiet hours or send, and log one message.
+    """Route (or use `chat`), then send through ntfy, or through Telegram (held in
+    quiet hours) when ntfy is off or fails, and log one message.
     `formatted` is ready-made Telegram HTML to send instead of title and body;
-    `reply_to` a sent message's Telegram id to answer (the alert explainer);
-    `buttons` a row of buttons under it, answered by the bot (bot.py)."""
+    `reply_to` a sent message's Telegram id to answer (the alert explainer), which
+    keeps it on Telegram; `buttons` a row of buttons under it, answered by the bot
+    (bot.py), shown on Telegram only."""
     now = now or datetime.now(UTC)
     chat_key = chat or routing(store).get(category, "nas")
     fields = {"source": source, "category": category, "severity": severity,
               "title": title, "body": body, "chat": chat_key}
+    quiet = in_quiet_hours(local(now, cfg), quiet_hours(store))
 
-    held = (
-        not bypass_quiet
-        and severity != "error"
-        and in_quiet_hours(local(now, cfg), quiet_hours(store))
-    )
-    if held:
-        return log_entry(store, now, **fields, status="held")
+    ntfy_failed = None
+    if reply_to is None and (ntfy is not None or ntfy_on(store, cfg)):
+        level = priority(severity, category, quiet, bypass_quiet)
+        try:
+            publisher = ntfy or Ntfy(**{k: str((cfg.get("ntfy") or {}).get(k) or "")
+                                        for k in ("url", "token")})
+            # The template's first line is the title, so the text is what follows.
+            message = (ntfy_api.plain(formatted).partition("\n")[2].strip() if formatted
+                       else body.strip())
+            # ntfy wants a message: a title alone goes as the message, under the
+            # category's name.
+            answer = await publisher.publish(
+                ntfy_api.topic(category),
+                title if message else CATEGORIES.get(category, category),
+                message or title, priority=level,
+                tags=[ntfy_api.DOT.get(severity, "white_circle")], click=click_url(cfg))
+        except Exception as exc:
+            ntfy_failed = ntfy_api.describe(exc)
+            log.warning("ntfy publish for %s failed: %s", source, type(exc).__name__)
+        else:
+            status = "quiet" if level == ntfy_api.QUIET and category != "briefing" else "sent"
+            return log_entry(store, now, **fields, status=status, sent_at=now.isoformat(),
+                             channel="ntfy", ntfy_id=str(answer.get("id")))
+
+    note = f"ntfy failed: {ntfy_failed}" if ntfy_failed else None
+    if not bypass_quiet and severity != "error" and quiet:
+        return log_entry(store, now, **fields, status="held", error=note)
 
     chat_id = chats(cfg).get(chat_key, {}).get("id")
     try:
@@ -225,10 +298,12 @@ async def notify(
     except Exception as exc:
         reason = str(exc) if isinstance(exc, ValueError) else describe(exc)
         log.warning("telegram send for %s failed: %s", source, type(exc).__name__)
+        if ntfy_failed:
+            reason = f"ntfy: {ntfy_failed}; Telegram: {reason}"[:300]
         return log_entry(store, now, **fields, status="failed", error=reason)
     message_id = result.get("message_id") if isinstance(result, dict) else None
     return log_entry(store, now, **fields, status="sent", sent_at=now.isoformat(),
-                     telegram_id=message_id)
+                     telegram_id=message_id, channel="telegram", error=note)
 
 
 async def send_digests(
@@ -273,6 +348,17 @@ def held(store: Store, chat: str | None = None) -> list[dict[str, Any]]:
     args: tuple[str, ...] = ()
     if chat:
         query, args = query + " AND chat = ?", (chat,)
+    with store.connect() as conn:
+        return [dict(r) for r in conn.execute(query + " ORDER BY ts, id", args)]
+
+
+def quiet_since(store: Store, since: datetime, chat: str | None = None) -> list[dict[str, Any]]:
+    """Messages ntfy delivered silently in quiet hours since `since`, oldest first;
+    for one chat (the routing) when given. The briefing summarises them (M31)."""
+    query = "SELECT * FROM alert_message WHERE status = 'quiet' AND ts >= ?"
+    args: tuple[str, ...] = (since.isoformat(),)
+    if chat:
+        query, args = query + " AND chat = ?", (*args, chat)
     with store.connect() as conn:
         return [dict(r) for r in conn.execute(query + " ORDER BY ts, id", args)]
 

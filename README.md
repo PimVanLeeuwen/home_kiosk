@@ -3,7 +3,7 @@
 My household's own dashboard: a website for the laptop and the phone, and three small touch
 panels on my desk, all served by my NAS. It shows the state of the house and the things I keep an
 eye on (the NAS and its backups, my portfolio, the news, the media stack, my train, the lights and
-the music) and sends the household's Telegram alerts. It is reachable on the LAN and over
+the music) and sends the household's alerts to my phone (ntfy, with Telegram as the fallback). It is reachable on the LAN and over
 Tailscale only, with no login and nothing exposed to the internet.
 
 > **A personal project.** This is built for one household: my NAS, my devices, my accounts and my
@@ -25,11 +25,13 @@ Tailscale only, with no login and nothing exposed to the internet.
 | Music | Spotify: what plays, the controls, my devices and favourites, and waking the living room Apple TV to play there |
 | Tailscale | The tailnet as a map around the NAS and every device on it: MagicDNS name, addresses, direct, relay or idle, exit node, last seen, and tailscaled's own health warnings (read-only, from the NAS's tailscaled) |
 | Repos | GitHub repos: mine, Hubble and GEWIS, with the backup status of each mirrored repo and when each token expires |
-| Alerts | Every Telegram message the hub sends, routing, quiet hours and the hub's own alert rules |
-| Settings | One page per section (`/settings/<section>`): service catalog, news feeds, which calendars show, Spotify and its favourites, which board is which desk panel, and the wording of every Telegram message (folded by group; templates with a live preview and a test send) |
+| Alerts | Every message the hub sends and where it went (ntfy or Telegram), ntfy on or off, quiet hours, routing for Telegram, and the hub's own alert rules |
+| Settings | One page per section (`/settings/<section>`): service catalog, news feeds, which calendars show, Spotify and its favourites, which board is which desk panel, and the wording of every message (folded by group; templates with a live preview, the phone's ntfy banner beside it, and a test send) |
 
-The hub is also the household's one Telegram sender (backup reports, container updates, uptime,
-its own alert rules and a weekday portfolio report), and the bot answers a few commands. Every
+The hub is also the household's one sender of alerts (backup reports, container updates, uptime,
+its own alert rules and a weekday portfolio report): to the ntfy app on my phone through the NAS's
+own ntfy, one topic per category, and to Telegram only when ntfy fails. The Telegram bot answers a
+few commands. Every
 night it mirrors my GitHub repos into the NAS backups and makes a copy of its own database.
 
 The **desk panels** are three 4" ESP32-P4 touch screens (Now, Home and House) that show the

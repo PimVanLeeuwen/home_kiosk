@@ -26,9 +26,14 @@ function sourceLabel(source: string): string {
 function delivery(m: AlertMessage, chatLabel: string): { text: string; className: string; mark: string; markClass: string } {
   switch (m.status) {
     case 'sent':
+      if (m.channel === 'ntfy') return { text: 'Sent to your phone (ntfy)', className: 'text-faint', mark: '✓', markClass: 'text-up' }
+      // Telegram took it because ntfy failed (the reason is in `error`).
+      if (m.error) return { text: `Sent to ${chatLabel} on Telegram; ${m.error}`, className: 'text-warn', mark: '✓', markClass: 'text-warn' }
       return { text: `Sent to ${chatLabel}`, className: 'text-faint', mark: '✓', markClass: 'text-up' }
+    case 'quiet':
+      return { text: 'Sent silently to your phone (ntfy, quiet hours)', className: 'text-faint', mark: '✓', markClass: 'text-up' }
     case 'held':
-      return { text: 'Held for the morning digest', className: 'text-warn', mark: '◷', markClass: 'text-warn' }
+      return { text: m.error ? `Held for the morning digest; ${m.error}` : 'Held for the morning digest', className: 'text-warn', mark: '◷', markClass: 'text-warn' }
     case 'digested':
       return { text: 'Sent in the morning digest', className: 'text-faint', mark: '✓', markClass: 'text-up' }
     default:
@@ -141,7 +146,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
       </div>
 
       {log.data && log.data.length === 0 && (
-        <p className="py-4 text-muted">No messages yet. Everything the hub sends to Telegram shows up here.</p>
+        <p className="py-4 text-muted">No messages yet. Everything the hub sends shows up here.</p>
       )}
       <ul className="ml-1.5 border-l border-line pl-4">
         {(log.data ?? []).map((m) => {

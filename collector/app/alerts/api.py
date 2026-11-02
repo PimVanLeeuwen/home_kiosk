@@ -158,6 +158,8 @@ class QuietHours(BaseModel):
 class AlertSettings(BaseModel):
     routing: dict[str, str]
     quiet: QuietHours
+    # ntfy on or off (M31); left as it is when not given.
+    ntfy: bool | None = None
 
 
 def _settings(request: Request) -> dict[str, Any]:
@@ -171,6 +173,7 @@ def _settings(request: Request) -> dict[str, Any]:
             for key, chat in core.chats(cfg).items()
         ],
         "token_set": bool(((cfg.get("telegram") or {}).get("token") or "").strip()),
+        "ntfy": {"configured": core.ntfy_configured(cfg), "enabled": core.ntfy_enabled(store)},
         "notify_key_set": bool(((cfg.get("telegram") or {}).get("notify_key") or "").strip()),
     }
 
@@ -191,6 +194,8 @@ def put_settings(body: AlertSettings, request: Request) -> dict[str, Any]:
     store = request.app.state.store
     core.put_setting(store, "routing", body.routing)
     core.put_setting(store, "quiet", body.quiet.model_dump())
+    if body.ntfy is not None:
+        core.put_setting(store, "ntfy", body.ntfy)
     return _settings(request)
 
 

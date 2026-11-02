@@ -42,6 +42,7 @@ FACT_MAX = 30
 UPDATES_SINCE = timedelta(hours=14)  # from about 16:30 the day before
 STORIES = 3
 NEWS_FRESH = timedelta(hours=12)  # the night's last headlines, from about 23:00, still count
+QUIET_LOOKBACK = timedelta(hours=12)  # what ntfy delivered silently since 18:30, i.e. the night
 
 SYSTEM = (
     "You write the opening of a household's morning briefing, from facts its home server "
@@ -330,7 +331,8 @@ async def run(cfg: dict[str, Any], store: Store, now: datetime | None = None,
 
     It takes over what quiet hours held for its chat (M29): those messages are
     counted in it and marked digested, so no "While you slept" repeats them at
-    07:00. A template without {overnight} leaves them to that digest."""
+    07:00. A template without {overnight} leaves them to that digest. What ntfy
+    delivered silently overnight (M31) is counted too; it stays as it is."""
     now = now or datetime.now(UTC)
     briefing = await make(cfg, store, now, claude)
     if briefing is None:
@@ -338,8 +340,11 @@ async def run(cfg: dict[str, Any], store: Store, now: datetime | None = None,
     store.put_cache(CACHE_KEY, briefing.model_dump(mode="json"))
     local = core.local(now, cfg)
     held: list[dict[str, Any]] = []
+    quietly: list[dict[str, Any]] = []
     if "{overnight}" in templates.text_of(store, "briefing"):
-        held = core.held(store, core.routing(store).get("briefing", "nas"))
+        chat = core.routing(store).get("briefing", "nas")
+        held = core.held(store, chat)
+        quietly = core.quiet_since(store, now - QUIET_LOOKBACK, chat)
     the_house = house(cfg, store, now)
     sections = {name: [{"label": label, "text": text} for label, text in items]
                 for name, items in (("your_day", your_day(cfg, store, now)),
@@ -348,7 +353,7 @@ async def run(cfg: dict[str, Any], store: Store, now: datetime | None = None,
     sent = templates.message(store, "briefing", {
         "day": f"{local:%A}", "paragraph": briefing.paragraph} | sections
         | markets(cfg, store, now, await _notes(cfg, store, now, claude)) | news(store, now)
-        | overnight(held, shown))
+        | overnight(sorted(held + quietly, key=lambda m: (m["ts"], m["id"])), shown))
     # 06:30 is still quiet hours; the digest is wanted then, like the train.
     logged = await core.notify(store, cfg, source="briefing", category="briefing",
                                severity="info", title=sent.title, body=sent.body,

@@ -29,3 +29,29 @@ test('Alerts lists messages and sends one', async ({ page }) => {
   await form.getByRole('button', { name: 'Send' }).click()
   await expect.poll(() => sent).toEqual([{ chat: 'nas', text: 'Hello' }])
 })
+
+test('Alerts shows ntfy delivery and switches it off', async ({ page }) => {
+  const saved: Record<string, unknown>[] = []
+  const settings = { ...SETTINGS, ntfy: { configured: true, enabled: true } }
+  await page.route('**/api/alerts/settings', (r) => {
+    if (r.request().method() === 'PUT') saved.push(r.request().postDataJSON())
+    return r.fulfill({ json: settings })
+  })
+  await page.route('**/api/alerts/rules', (r) => r.fulfill({ json: { rules: {}, labels: {} } }))
+  await page.route('**/api/alerts/incidents', (r) => r.fulfill({ json: [] }))
+  await page.route('**/api/alerts/messages**', (r) => r.fulfill({ json: [
+    { id: 2, ts: new Date().toISOString(), source: 'rule.disk_space', category: 'rules', severity: 'warning', title: 'volume2 is 91% full', body: '500 GB left', chat: 'nas', status: 'sent', error: null, sent_at: null, channel: 'ntfy', ntfy_id: 'a1' },
+    { id: 1, ts: new Date().toISOString(), source: 'backup', category: 'backup', severity: 'ok', title: 'NAS backup OK', body: '', chat: 'nas', status: 'sent', error: 'ntfy failed: ntfy not reachable', sent_at: null, channel: 'telegram' },
+  ] }))
+  await page.goto('/alerts')
+
+  const log = page.getByRole('region', { name: 'Messages' })
+  await expect(log).toContainText('Sent to your phone (ntfy)')
+  await expect(log).toContainText('Sent to NAS alerts on Telegram; ntfy failed: ntfy not reachable')
+  const delivery = page.getByRole('region', { name: 'Delivery' })
+  const toggle = delivery.getByRole('switch', { name: 'Send through ntfy' })
+  await expect(toggle).toHaveAttribute('aria-checked', 'true')
+  await toggle.click()
+  await delivery.getByRole('button', { name: 'Save' }).click()
+  await expect.poll(() => saved.map((body) => body.ntfy)).toEqual([false])
+})

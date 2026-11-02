@@ -3,9 +3,10 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { ApiError, sendJson } from '../../lib/api'
 import { cn } from '../../lib/cn'
-import type { AlertMessage, MessageTemplate } from '../../lib/types'
+import type { AlertMessage, AlertSettings, MessageTemplate } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { buttonClass, iconButtonClass, inputClass, primaryButtonClass } from './fields'
+import { PhonePreview } from './PhonePreview'
 import { TelegramText } from './TelegramText'
 import { Loading, Unavailable } from '../ui/states'
 import { Surface } from '../ui/Card'
@@ -29,11 +30,15 @@ function Bubble({ html, label }: { html: string; label: string }) {
 interface EditorProps {
   template: MessageTemplate
   parentLabel: string | undefined
+  /** The category name the message goes out under, its parent's for a line template. */
+  category: string | null
+  /** Messages go through ntfy: also show the phone's banner. */
+  ntfy: boolean
   onSaved: (next: MessageTemplate) => void
   onClose: () => void
 }
 
-function Editor({ template, parentLabel, onSaved, onClose }: EditorProps) {
+function Editor({ template, parentLabel, category, ntfy, onSaved, onClose }: EditorProps) {
   const [text, setText] = useState(template.text)
   const [preview, setPreview] = useState({ html: template.preview, error: null as string | null })
   const [busy, setBusy] = useState(false)
@@ -156,6 +161,12 @@ function Editor({ template, parentLabel, onSaved, onClose }: EditorProps) {
           Preview with sample values{parentLabel ? `, inside the ${parentLabel}` : ''}
         </p>
         <Bubble html={preview.html} label="Preview" />
+        {ntfy && (
+          <>
+            <p className="text-caption text-muted">On your phone (ntfy, plain text)</p>
+            <PhonePreview html={preview.html} category={category} />
+          </>
+        )}
         {preview.error && (
           <p role="alert" className="text-small text-down">
             {preview.error}
@@ -192,6 +203,8 @@ function Editor({ template, parentLabel, onSaved, onClose }: EditorProps) {
 /** The wording of every message the hub sends, grouped as in the hub. */
 export function MessageTemplates() {
   const api = useApi<MessageTemplate[]>(ENDPOINT)
+  const delivery = useApi<AlertSettings>('/api/alerts/settings')
+  const ntfy = !!(delivery.data?.ntfy?.configured && delivery.data.ntfy.enabled)
   const [local, setLocal] = useState<MessageTemplate[]>()
   const [editing, setEditing] = useState<string | null>(null)
   const [open, setOpen] = useState<ReadonlySet<string>>(new Set())
@@ -211,7 +224,7 @@ export function MessageTemplates() {
   return (
     <div className="space-y-4">
       <p className="text-muted">
-        How the Telegram messages are worded. Who gets what, quiet hours and the rules themselves are on the{' '}
+        How the messages are worded{ntfy ? ': in Telegram, and as plain text through ntfy' : ' in Telegram'}. Who gets what, quiet hours and the rules themselves are on the{' '}
         <Link to="/alerts" className="text-accent-fg hover:underline">
           Alerts page
         </Link>
@@ -272,6 +285,8 @@ export function MessageTemplates() {
                       <Editor
                         template={t}
                         parentLabel={t.parent ? labelOf(t.parent) : undefined}
+                        category={t.category ?? items.find((p) => p.id === t.parent)?.category ?? null}
+                        ntfy={ntfy}
                         onSaved={replace}
                         onClose={() => setEditing(null)}
                       />

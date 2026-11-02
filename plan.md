@@ -1881,15 +1881,25 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   (through `tailscale/serve.json`). An Uptime Kuma monitor on `/v1/health`. On the iPhone: the
   ntfy app, the server added with the `phone` user, one subscription per topic. The hub gets
   `ntfy: {url, token: ${NTFY_TOKEN}}` in `config.yaml` (the example) and `.env.example`.
-- Step 2 (`app/alerts/ntfy.py`, `app/alerts/core.py`): the sender. A small client like
-  `telegram.py` (the token never logged, failures reduced to a short reason), the HTML to plain
-  text conversion (tags dropped, links as their text, a `<pre>` table or folded quote replaced by
-  a line pointing to the page, at most 4,000 bytes, as ntfy turns longer messages into a file),
-  and `notify()` sending to ntfy first with topic, priority, dot and click URL, then Telegram on
-  failure. The log gets `channel` (ntfy or telegram) and `ntfy_id`; the Alerts page shows the
-  channel. The Settings preview shows the ntfy version beside the Telegram one. Watchtower,
-  backup.sh, Uptime Kuma (through the hub) and the rules all go through `notify()`, so they move
-  together. Needs the hub's own address for the click URL: `hub.url` in `config.local.yaml`.
+- Step 2 (done 2026-11-02, `app/alerts/ntfy.py`, `app/alerts/core.py`): the sender. A small
+  client like `telegram.py` (JSON publishing, the token only in a header and never logged,
+  failures reduced to a short reason), and `notify()` sending to ntfy first: topic
+  `hub-<category>`, the dot, the priority, and a tap to the hub's Alerts page (`hub.url`) until
+  the message page exists. The text is the template's plain text without its title line (tags
+  dropped, links as their text, at most 4,000 bytes); decided the same day: tables and folded
+  quotes stay as plain lines until the pictures replace them. A title alone goes as the text
+  under the category's name. Telegram gets a message only when ntfy fails, and the log says
+  why; replies to a Telegram message (the bot, the explainers) stay on Telegram, and the alert
+  explainer skips messages that went through ntfy. Decided the same day: ntfy is on as soon as
+  `NTFY_TOKEN` and the `ntfy:` block are set, with a switch in Settings, Alerts (Delivery) to go
+  back to Telegram only. Priorities: errors 4; in quiet hours 2 and the new status `quiet`
+  instead of held, except what is sent through quiet hours on purpose (the train, a typed message,
+  a template test: 3); the briefing comes at 2. Decided the same day: the briefing's Overnight
+  section also counts what ntfy delivered silently in the 12 hours before it. The log gets
+  `channel` and `ntfy_id` (older rows: telegram), and the message log says "Sent to your phone
+  (ntfy)", "Sent silently ...", or which chat Telegram used and why. The template editor shows
+  the phone's banner (title without the level, the dot, four lines) under the Telegram preview
+  while ntfy is on. Tested against a real ntfy v2.37.0.
 - Step 3 (`web/`, `app/alerts/api.py`): the message page `/alerts/{id}`. `GET
   /api/alerts/messages/{id}` (the message, its state, related messages, links; `expired` after 7
   days) and `POST /api/alerts/messages/{id}/explain` (`same_origin_json`; the alert explainer for

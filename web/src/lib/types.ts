@@ -847,9 +847,14 @@ export interface AlertMessage {
   title: string
   body: string
   chat: string
-  status: 'sent' | 'held' | 'digested' | 'failed'
+  /** quiet: delivered silently by ntfy in quiet hours; held: waiting for Telegram's digest. */
+  status: 'sent' | 'quiet' | 'held' | 'digested' | 'failed'
+  /** On a sent message: why ntfy was passed over, when Telegram took it. */
   error: string | null
   sent_at: string | null
+  /** null while held, or when it failed. Older entries may lack it. */
+  channel?: 'ntfy' | 'telegram' | null
+  ntfy_id?: string | null
 }
 
 /** An editable message wording (Settings → Messages, /api/alerts/templates). */
@@ -883,6 +888,8 @@ export interface AlertSettings {
   chats: { key: string; label: string; configured: boolean }[]
   token_set: boolean
   notify_key_set: boolean
+  /** The NAS's ntfy (M31): a token is set, and the switch is on. */
+  ntfy?: { configured: boolean; enabled: boolean }
 }
 
 export interface RuleSettings {
