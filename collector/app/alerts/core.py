@@ -15,12 +15,15 @@ from __future__ import annotations
 import html
 import json
 import logging
-from datetime import UTC, datetime, time
+from collections.abc import Callable
+from datetime import UTC, datetime, time, timedelta
 from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
+from PIL import Image
 from pydantic import BaseModel
 
+from .. import paint_notify
 from ..store import Store
 from . import ntfy as ntfy_api
 from .ntfy import Ntfy
@@ -45,6 +48,13 @@ CREATE TABLE IF NOT EXISTS alert_message (
     sent_at  TEXT
 );
 CREATE INDEX IF NOT EXISTS alert_message_ts ON alert_message (ts);
+
+-- A message's picture (M31 step 4), for its page; kept as long as the page.
+CREATE TABLE IF NOT EXISTS alert_picture (
+    message_id INTEGER PRIMARY KEY,
+    ts         TEXT NOT NULL,
+    jpeg       BLOB NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS alert_setting (
     key   TEXT PRIMARY KEY,
@@ -76,6 +86,8 @@ DEFAULT_QUIET = {"enabled": True, "start": "23:00", "end": "07:00"}
 LEVEL = {"error": "ERROR", "warning": "WARNING", "ok": "OK", "info": "INFO"}
 
 DIGEST_LIMIT = 20
+# A message's page and its picture stay this long (M31).
+PAGE_DAYS = 7
 
 
 class AlertMessage(BaseModel):
@@ -268,6 +280,7 @@ async def notify(
     buttons: list[dict[str, str]] | None = None,
     ntfy: Ntfy | None = None,
     incident: str | None = None,
+    picture: Callable[[], Image.Image | None] | None = None,
 ) -> AlertMessage:
     """Route (or use `chat`), then send through ntfy, or through Telegram (held in
     quiet hours) when ntfy is off or fails, and log one message.
@@ -275,7 +288,9 @@ async def notify(
     `reply_to` a sent message's Telegram id to answer (the alert explainer), which
     keeps it on Telegram; `buttons` a row of buttons under it, answered by the bot
     (bot.py), shown on Telegram only; `incident` a rule's incident key, for the
-    message's page. The message is logged first, so a tap can lead to its page."""
+    message's page; `picture` paints the message's picture (M31 step 4), sent with it
+    through ntfy and kept for its page; a picture that fails is left out. The message
+    is logged first, so a tap can lead to its page."""
     now = now or datetime.now(UTC)
     chat_key = chat or routing(store).get(category, "nas")
     html_text = formatted or format_html(severity, title, body)
@@ -283,6 +298,7 @@ async def notify(
                       title=title, body=body, chat=chat_key, status="sending", html=html_text,
                       incident=incident)
     quiet = in_quiet_hours(local(now, cfg), quiet_hours(store))
+    jpeg = _picture(store, entry.id, now, picture) if picture else None
 
     ntfy_failed = None
     if reply_to is None and (ntfy is not None or ntfy_on(store, cfg)):
@@ -300,7 +316,7 @@ async def notify(
                 title if message else CATEGORIES.get(category, category),
                 message or title, priority=level,
                 tags=[ntfy_api.DOT.get(severity, "white_circle")],
-                click=click_url(cfg, entry.id))
+                click=click_url(cfg, entry.id), picture=jpeg)
         except Exception as exc:
             ntfy_failed = ntfy_api.describe(exc)
             log.warning("ntfy publish for %s failed: %s", source, type(exc).__name__)
@@ -380,6 +396,33 @@ def held(store: Store, chat: str | None = None) -> list[dict[str, Any]]:
         query, args = query + " AND chat = ?", (chat,)
     with store.connect() as conn:
         return [dict(r) for r in conn.execute(query + " ORDER BY ts, id", args)]
+
+
+def _picture(store: Store, message_id: int, now: datetime,
+             paint: Callable[[], Image.Image | None]) -> bytes | None:
+    """Paint, keep and return a message's picture as JPEG; None when there is none or
+    painting failed (the message goes without). Pictures older than a page are dropped."""
+    try:
+        image = paint()
+        if image is None:
+            return None
+        data = paint_notify.jpeg(image)
+    except Exception as exc:
+        log.warning("picture for message %s failed: %s", message_id, type(exc).__name__)
+        return None
+    with store.connect() as conn:
+        conn.execute("DELETE FROM alert_picture WHERE ts < ?",
+                     ((now - timedelta(days=PAGE_DAYS + 1)).isoformat(),))
+        conn.execute("INSERT OR REPLACE INTO alert_picture (message_id, ts, jpeg) VALUES (?, ?, ?)",
+                     (message_id, now.isoformat(), data))
+    return data
+
+
+def picture(store: Store, message_id: int) -> bytes | None:
+    with store.connect() as conn:
+        row = conn.execute("SELECT jpeg FROM alert_picture WHERE message_id = ?",
+                           (message_id,)).fetchone()
+    return bytes(row["jpeg"]) if row else None
 
 
 def quiet_since(store: Store, since: datetime, chat: str | None = None) -> list[dict[str, Any]]:

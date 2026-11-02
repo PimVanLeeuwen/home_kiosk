@@ -53,6 +53,14 @@ describe('AlertMessagePage', () => {
     expect(within(earlier).getByRole('link', { name: 'Resolved: sonarr is down' })).toHaveAttribute('href', '/alerts/3')
     expect(within(earlier).getByText(/this message/)).toBeInTheDocument()
     expect(screen.getAllByText(/Sent to your phone \(ntfy\)/).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('img', { name: 'The picture sent with this message' })).toBeNull()
+  })
+
+  it('shows the picture sent with the message', async () => {
+    setup({ ...PAGE, picture: true })
+    renderRoute('/alerts/7')
+
+    expect(await screen.findByRole('img', { name: 'The picture sent with this message' })).toHaveAttribute('src', '/api/alerts/messages/7/picture')
   })
 
   it('says when a problem was resolved', async () => {

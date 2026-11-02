@@ -7,7 +7,7 @@ import logging
 import re
 from typing import Annotated, Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .. import update_notes
@@ -149,6 +149,16 @@ def message_page(message_id: int, request: Request) -> dict[str, Any]:
     if found is None:
         raise HTTPException(404, "No such message.")
     return found
+
+
+@router.get("/alerts/messages/{message_id}/picture")
+def message_picture(message_id: int, request: Request) -> Response:
+    """The picture sent with a message (M31 step 4), while its page lasts."""
+    data = page.picture(request.app.state.store, message_id)
+    if data is None:
+        raise HTTPException(404, "No picture for this message.")
+    return Response(data, media_type="image/jpeg",
+                    headers={"Cache-Control": "private, max-age=604800, immutable"})
 
 
 @router.post("/alerts/messages/{message_id}/explain", dependencies=write)

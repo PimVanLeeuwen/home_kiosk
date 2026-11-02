@@ -16,7 +16,7 @@ from typing import Any
 
 from .. import explainer
 from ..store import Store
-from . import core, templates
+from . import core, pictures, templates
 
 log = logging.getLogger(__name__)
 
@@ -596,6 +596,7 @@ async def apply(
     """Open incidents for new problems and resolve the ones that are gone, for
     every rule that could judge (not None). Returns the keys that changed."""
     open_now = open_incidents(store)
+    settings = rule_settings(store)
     changed: list[str] = []
     for rule, problems in judged.items():
         if problems is None:
@@ -621,7 +622,9 @@ async def apply(
                                       category=RULE_CATEGORY.get(rule, "rules"),
                                       severity=problem.severity, title=sent.title, body=sent.body,
                                       formatted=sent.html, now=now, telegram=telegram,
-                                      bypass_quiet=rule in BYPASS_QUIET, incident=key)
+                                      bypass_quiet=rule in BYPASS_QUIET, incident=key,
+                                      picture=pictures.for_problem(cfg, store, problem,
+                                                                   settings[rule], now))
             # A container alert that went out gets Claude's likely cause a minute later (M26).
             explainer.later(cfg, store, problem, alert, telegram)
             changed.append(key)

@@ -880,6 +880,8 @@ export type MessagePage =
       links: MessageLink[]
       explanation: MessageExplanation | null
       can_explain: boolean
+      /** A picture was sent with it (M31 step 4): /api/alerts/messages/{id}/picture. */
+      picture?: boolean
     })
 
 export interface MessageExplanation {

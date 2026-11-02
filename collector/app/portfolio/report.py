@@ -18,7 +18,9 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from apscheduler.triggers.cron import CronTrigger
+from PIL import Image
 
+from .. import paint_notify
 from ..alerts import core, templates
 from ..store import Store
 from . import notes as market_notes
@@ -103,6 +105,17 @@ def build(portfolio: dict[str, Any], indices: dict[str, Any] | None, cfg: dict[s
     return title, templates.render(store, "portfolio_report", values)
 
 
+def picture(portfolio: dict[str, Any], indices: dict[str, Any] | None, cfg: dict[str, Any],
+            now: datetime) -> Image.Image:
+    """The report as a picture (M31 step 4): the day and every holding in %, no amounts."""
+    local = core.local(now, cfg)
+    title = "Morning report" if local.hour < 12 else "Evening report"
+    holdings = [(h["symbol"], h.get("day_pct") or 0.0) for h in portfolio.get("holdings") or []]
+    index_rows = [(q["label"], q["day_pct"]) for q in (indices or {}).get("indices") or []]
+    return paint_notify.report(title, f"{local:%a %-d %b}", day_move(portfolio)[1], holdings,
+                               index_rows)
+
+
 def plain(text: str) -> str:
     """The HTML report as text, for the message log on the Alerts page."""
     return html.unescape(re.sub(r"<[^>]+>", "", text))
@@ -124,4 +137,5 @@ async def send(store: Store, cfg: dict[str, Any], now: datetime | None = None,
     title, text = build(portfolio, indices, cfg, now, store, notes)
     body = plain(text).split("\n", 1)[-1].strip()  # the title line is logged separately
     await core.notify(store, cfg, source="hub", category="portfolio", severity="info",
-                      title=title, body=body, formatted=text, now=now, telegram=telegram)
+                      title=title, body=body, formatted=text, now=now, telegram=telegram,
+                      picture=lambda: picture(portfolio, indices, cfg, now))

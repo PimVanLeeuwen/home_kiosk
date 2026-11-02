@@ -21,9 +21,10 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from PIL import Image
 from pydantic import BaseModel
 
-from . import ai, explain_open
+from . import ai, explain_open, paint_notify
 from .alerts import core, rules, templates
 from .portfolio import notes as market_notes
 from .portfolio import report
@@ -290,6 +291,62 @@ async def make(cfg: dict[str, Any], store: Store, now: datetime | None = None,
         paragraph=str(data["opening"]).strip()[:OPENING_MAX])
 
 
+def _plural(n: int, one: str, many: str) -> str:
+    return f"{n} {one if n == 1 else many}"
+
+
+def card(cfg: dict[str, Any], store: Store, now: datetime) -> Image.Image:
+    """The briefing as a picture (M31 step 4): this morning's train as the headline (the
+    weather without one), and tiles for the portfolio, the day and the house. Only counts
+    and %: no event titles, no amounts."""
+    local = core.local(now, cfg)
+    today = local.date().isoformat()
+    weather = store.get_cache("weather") or {}
+    temp = f"{weather['temperature']:.0f} °C" if weather.get("temperature") is not None else ""
+    day = next((d for d in (store.get_cache("forecast") or {}).get("days") or []
+                if d.get("date") == today), None)
+    wet = [h["hour"] for h in (day or {}).get("hours") or []
+           if h["hour"] >= local.hour and h["rain_chance"] >= 50]
+    rain = (f"rain from {wet[0]:02d}:00" if wet else "dry today") if day else ""
+    tone = "info"
+    train = store.get_cache("train") or {}
+    run = train.get("train")
+    if train.get("date") == today and train.get("mode") == "morning":
+        departure = train.get("departure") or ""
+        if run is None or run.get("status") in ("cancelled", "not_found"):
+            headline, tone = f"{departure} cancelled", "error"
+        elif run["status"] == "late":
+            headline, tone = f"{departure} {run.get('delay_minutes', 0)} min late", "warning"
+        else:
+            headline = f"{departure} on time"
+        track = (run or {}).get("actual_track") or (run or {}).get("planned_track")
+        detail = " · ".join(t for t in (f"Platform {track}" if track else "",
+                                        ", ".join(t for t in (temp, rain) if t)) if t)
+    else:
+        headline = temp or "Good morning"
+        detail = (weather.get("description") or "").capitalize() + (
+            f", {rain}" if rain and weather.get("description") else rain)
+    tiles = []
+    portfolio = store.get_cache("portfolio")
+    if portfolio and portfolio.get("holdings"):
+        pct = day_move(portfolio)[1]
+        tiles.append(paint_notify.Tile("Portfolio", report._pct(pct),
+                                       "ok" if pct >= 0 else "error"))
+    calendar = store.get_cache("calendar") or {}
+    if calendar.get("date") == today:
+        n = len(calendar.get("events") or []) + len(calendar.get("all_day") or [])
+        tiles.append(paint_notify.Tile("Today",
+                                       _plural(n, "event", "events") if n else "no events"))
+    alerts = explain_open.open_alerts(store)
+    errors = sum(1 for a in alerts if a["severity"] == "error")
+    warnings = len(alerts) - errors
+    tiles.append(paint_notify.Tile("House", _plural(errors, "error", "errors") if errors
+                                   else _plural(warnings, "warning", "warnings") if warnings
+                                   else "all quiet",
+                                   "error" if errors else "warning" if warnings else "ok"))
+    return paint_notify.briefing(f"{local:%A %-d %B}", headline, detail, tiles, tone)
+
+
 # Held messages by severity, most serious first, as counted in the overnight line.
 _COUNTED = (("error", "error", "errors"), ("warning", "warning", "warnings"),
             ("info", "info", "info"), ("ok", "OK", "OK"))
@@ -358,7 +415,8 @@ async def run(cfg: dict[str, Any], store: Store, now: datetime | None = None,
     logged = await core.notify(store, cfg, source="briefing", category="briefing",
                                severity="info", title=sent.title, body=sent.body,
                                formatted=sent.html, bypass_quiet=True, now=now, telegram=telegram,
-                               buttons=explain_open.buttons(cfg, store))
+                               buttons=explain_open.buttons(cfg, store),
+                               picture=lambda: card(cfg, store, now))
     if logged.status == "sent" and held:
         core.mark_digested(store, [m["id"] for m in held], now)
     return briefing

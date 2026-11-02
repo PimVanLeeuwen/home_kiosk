@@ -66,13 +66,18 @@ test('a message opens on its own page and is explained there', async ({ page }) 
     html: '<b>ERROR</b> · <b>sonarr is down</b>\nExit code <code>137</code>.',
     state: { open: true, opened_at: ago(32), resolved_at: null },
     earlier: [{ id: 7, ts: ago(30), severity: 'error', title: 'sonarr is down' }, { id: 3, ts: ago(3000), severity: 'ok', title: 'Resolved: sonarr is down' }],
-    links: [{ label: 'Docker page', page: '/docker', hint: '' }], explanation: null, can_explain: true,
+    links: [{ label: 'Docker page', page: '/docker', hint: '' }], explanation: null, can_explain: true, picture: true,
   } }))
+  // A tiny JPEG stands in for the painted picture.
+  await page.route('**/api/alerts/messages/7/picture', (r) => r.fulfill({ contentType: 'image/jpeg', body: Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAACAAMDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDbooor5A9w/9k=', 'base64') }))
   await page.route('**/api/alerts/messages/7/explain', (r) => r.fulfill({ json: { cause: 'Killed for memory.', todo: 'Start it again.', asked_at: ago(0) } }))
   await page.goto('/alerts/7')
 
   await expect(page.getByRole('heading', { name: 'sonarr is down' })).toBeVisible()
   await expect(page.getByText('Still open')).toBeVisible()
+  const picture = page.getByRole('img', { name: 'The picture sent with this message' })
+  await expect(picture).toBeVisible()
+  await expect.poll(() => picture.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(3)
   await expect(page.getByRole('region', { name: 'Earlier' })).toContainText('Resolved: sonarr is down')
   await page.getByRole('button', { name: 'Explain' }).click()
   await expect(page.getByRole('region', { name: 'Explained' })).toContainText('Killed for memory.')

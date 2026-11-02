@@ -92,6 +92,15 @@ function Message({ message }: { message: Shown }) {
       <PageHeader title={message.title} />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,1fr)] lg:gap-6">
         <div className="grid content-start gap-4">
+          {message.picture && (
+            <img
+              src={`/api/alerts/messages/${message.id}/picture`}
+              alt="The picture sent with this message"
+              width={1200}
+              height={800}
+              className="aspect-[3/2] w-full rounded-[14px] border border-line-soft bg-card object-cover"
+            />
+          )}
           {message.state && <StateStrip state={message.state} severity={message.severity} now={now} />}
           {bodyHtml(message.html) && (
             <Surface className="text-body leading-relaxed break-words whitespace-pre-wrap">

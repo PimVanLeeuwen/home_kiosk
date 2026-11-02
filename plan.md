@@ -1916,12 +1916,24 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Explain or the kept explanation, the links, Earlier, and how it was delivered and until when it
   stays; on a wide screen in two columns. The message log links each title to its page for 7
   days, and names every sender (Briefing, Pinned images, GitHub mirror, ...).
-- Step 4 (`app/paint_notify.py`): the pictures, one kind per step (briefing, Portfolio report,
-  figure alerts), after a mockup of the three. JPEG (the type iOS shows most reliably in a
-  notification), painted once per message and shown full size on its page. To settle when
-  building: upload the picture to ntfy as the attachment (it then lives there for the same 7
-  days, and the phone fetches it with its ntfy login) or link it from the hub (the ntfy app sends
-  its `phone` login to any attachment address, so the hub would receive it).
+- Step 4 (done 2026-11-02, `app/paint_notify.py`, `app/alerts/pictures.py`): the pictures.
+  Decided the same day: real samples painted by the painter instead of an HTML mockup, approved
+  before wiring; pictures go to ntfy as an upload (ntfy keeps them 7 days and the phone fetches
+  them with its own login), and the hub keeps its own copy for the message's page
+  (`alert_picture`, dropped after 8 days; `GET /api/alerts/messages/{id}/picture`). 1200 x 800
+  JPEG (80 to 95 kB), dark, lit in the message's colour, Instrument Sans (copied from the panels
+  into the collector with its OFL); the one figure that matters sits in the middle square,
+  which iOS keeps for the banner's thumbnail. Percentages only, never amounts: a lock screen is
+  seen by anyone nearby. Disk space: the pool's % and space left over its last 30 days (the
+  daily `storage_sample`) against the limit; storage box: a gauge with the limit (no history);
+  portfolio move: the day's % and the four biggest movers as bars; Portfolio report: the day
+  and every holding (at most 8) as bars, the indices below; morning briefing: this morning's
+  train as the headline (the weather without one), and tiles for the portfolio's %, how many
+  events today and the house's open alerts. `notify(picture=...)` paints once when sending; a
+  picture that fails is logged and the message goes without. With a picture, ntfy gets the
+  message as a PUT with its title and text as RFC 2047 encoded words (ntfy decodes them); tried
+  against ntfy v2.37.0 with UTF-8, line breaks and 2.8 kB of text. Telegram, as the fallback,
+  gets no pictures. The message page shows the picture at the top of the message.
 - Step 5 (nas-docker, docs): Uptime Kuma's direct line to ntfy, its Telegram notification left
   only where the fallback needs it; `docs/operations.md` (ntfy, the tokens, setting up the
   phone), README, and CLAUDE.md's decisions log.

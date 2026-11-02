@@ -7,6 +7,7 @@ errors are reduced to a short reason without the request.
 
 from __future__ import annotations
 
+import base64
 import html
 import re
 from typing import Any
@@ -68,6 +69,14 @@ def topic(category: str) -> str:
     return f"{TOPIC_PREFIX}{category}"
 
 
+def header(value: str) -> str:
+    """A header value ntfy reads back as UTF-8 with its line breaks: plain ASCII as it
+    is, anything else as one RFC 2047 encoded word (ntfy decodes those)."""
+    if value.isascii() and "\n" not in value and "\r" not in value:
+        return value
+    return f"=?utf-8?b?{base64.b64encode(value.encode()).decode()}?="
+
+
 class Ntfy:
     def __init__(self, url: str, token: str,
                  transport: httpx.AsyncBaseTransport | None = None) -> None:
@@ -80,19 +89,31 @@ class Ntfy:
         self._transport = transport
 
     async def publish(self, topic: str, title: str, message: str, priority: int = NORMAL,
-                      tags: list[str] | None = None, click: str | None = None) -> dict[str, Any]:
-        """Publishes one message as JSON (UTF-8 safe, unlike headers); returns ntfy's
-        answer, with the message's `id`."""
-        payload: dict[str, Any] = {"topic": topic, "title": title, "message": clip(message),
-                                   "priority": priority}
-        if tags:
-            payload["tags"] = tags
-        if click:
-            payload["click"] = click
+                      tags: list[str] | None = None, click: str | None = None,
+                      picture: bytes | None = None) -> dict[str, Any]:
+        """Publishes one message and returns ntfy's answer, with the message's `id`.
+        Without a picture as JSON; with one (a JPEG) as an upload that ntfy keeps as
+        the message's attachment, its fields in headers."""
+        auth = {"Authorization": f"Bearer {self._token}"}
         async with httpx.AsyncClient(transport=self._transport,
                                      timeout=TIMEOUT_SECONDS) as client:
-            resp = await client.post(self._url, json=payload,
-                                     headers={"Authorization": f"Bearer {self._token}"})
+            if picture is None:
+                payload: dict[str, Any] = {"topic": topic, "title": title,
+                                           "message": clip(message), "priority": priority}
+                if tags:
+                    payload["tags"] = tags
+                if click:
+                    payload["click"] = click
+                resp = await client.post(self._url, json=payload, headers=auth)
+            else:
+                headers = auth | {"Title": header(title), "Message": header(clip(message)),
+                                  "Priority": str(priority), "Filename": "picture.jpg",
+                                  "Content-Type": "image/jpeg"}
+                if tags:
+                    headers["Tags"] = ",".join(tags)
+                if click:
+                    headers["Click"] = click
+                resp = await client.put(f"{self._url}/{topic}", content=picture, headers=headers)
             resp.raise_for_status()
             body = resp.json()
         if not isinstance(body, dict) or not body.get("id"):

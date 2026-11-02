@@ -20,7 +20,7 @@ from . import core, rules
 
 log = logging.getLogger(__name__)
 
-KEEP = timedelta(days=7)
+KEEP = timedelta(days=core.PAGE_DAYS)
 EARLIER_LIMIT = 10
 EXPLAINED = ("warning", "error")
 
@@ -142,7 +142,16 @@ def page(cfg: dict[str, Any], store: Store, message_id: int,
         "links": links(row),
         "explanation": _explanation(row),
         "can_explain": can_explain(cfg, store, row),
+        "picture": core.picture(store, message_id) is not None,
     }
+
+
+def picture(store: Store, message_id: int, now: datetime | None = None) -> bytes | None:
+    """The message's picture while its page lasts."""
+    row = _row(store, message_id)
+    if row is None or _expired(row, now or datetime.now(UTC)):
+        return None
+    return core.picture(store, message_id)
 
 
 class ExplainError(Exception):
