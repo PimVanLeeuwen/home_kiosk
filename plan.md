@@ -1831,9 +1831,86 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   NAS, by the owner: keep the dump and export, stop the stack, pull, move the old folder,
   restart `tailscale`, and remove the Uptime Kuma monitor and the Tandoor tile. M30 is complete.
 
+**M31. Notifications through ntfy** (added 2026-11-02)
+- Why: Telegram is the household's chat app, so the hub's messages sit between personal chats,
+  and its banner can't be made to look like the hub's. Telegram's servers also read every
+  message (bot chats are not end-to-end encrypted). A native iOS app was weighed and kept for
+  later: its gains over ntfy (an avatar per sender, a custom long-press view, the text readable
+  with the NAS down) don't justify the upkeep before ntfy has been tried.
+- What ntfy's iOS app (1.7.0, read from its source 2026-11-02) does with the banner: the title
+  with emoji tags in front, the body as plain text (no markdown on iOS), an image thumbnail
+  (big on long-press), one stack per topic, priority 1 and 2 quiet, 3 normal, 4 Time Sensitive,
+  5 Critical, and a click URL. Not on iOS: markdown, an icon per message, updating a sent
+  message. The NAS's ntfy sends ntfy.sh only the message id and a hash of the topic; the phone
+  then fetches the text from the NAS, so with the NAS out of reach the banner says "New message".
+- Decided 2026-11-02:
+  - ntfy carries everything; Telegram only gets a message when sending to ntfy fails (no answer
+    or an error), then as today (HTML, held in quiet hours, the 07:00 digest). The bot keeps
+    running for that. A switch in Settings, Alerts turns ntfy off again.
+  - One topic per category (`hub-backup`, `hub-updates`, ..., `hub-briefing`), so one stack per
+    category on the phone. The `routing` to the two chats stays for the Telegram fallback.
+  - Instant delivery through ntfy.sh (`upstream-base-url`): only the id and the topic hash leave.
+  - Priorities: errors 4 (Time Sensitive, not Critical), everything else 3, and 2 (quiet, no
+    sound) between 23:00 and 07:00 instead of being held. No 07:00 digest for ntfy; the morning
+    briefing at 06:30 arrives quietly.
+  - One colour dot per severity in front of the title (ntfy tags `red_circle`,
+    `orange_circle`, `green_circle`, `white_circle`), in place of the bold ERROR, WARNING, OK,
+    INFO. No other emoji; Telegram keeps the bold word (2026-10-08).
+  - The message texts stay one template each (M11); the hub turns the HTML into plain text
+    for ntfy. Tables and long parts move into a picture and onto the message's page.
+  - Pictures painted by the hub as the banner thumbnail from the start: the morning briefing,
+    the Portfolio report and alerts with a figure (disk and pool usage and the like).
+  - No interaction on ntfy: no action buttons, no explainer reply, no "Explain warnings". The
+    explanation moves to the message's page.
+  - A tap opens the message's own hub page, `/alerts/{id}`, for 7 days: the full message, its
+    picture, whether the problem is still open or since when it is resolved, earlier messages of
+    the same rule or source, an Explain button (when the Alert explainer is on) and links onward
+    (Dozzle for a container, Scrutiny for a disk, Ghostfolio for the portfolio, ...). After 7
+    days the page says the message has expired and links to the Alerts page; the message stays
+    in the log.
+  - ntfy in its own stack in nas-docker, published on Tailscale only, so it keeps running while
+    the hub stack restarts. Uptime Kuma's direct line (hub down, backup heartbeat) moves from
+    Telegram to ntfy, through Uptime Kuma's own ntfy notifier. Accepted: with the whole NAS down,
+    nothing arrives.
+- Step 1 (nas-docker, the owner on the NAS): the ntfy stack. `binwiederhier/ntfy` pinned to an
+  exact version (v2.36.0 on 2026-11-02; look again when building), with a GitHub source label so
+  the pinned-images check covers it. A persistent `cache-file`, `cache-duration` and
+  `attachment-expiry-duration` of 7 days, `auth-file` with `auth-default-access: deny-all`, a
+  `hub` user that may only write `hub-*` and a `phone` user that may only read them, each with a
+  token, `upstream-base-url: https://ntfy.sh`, and `base-url` the Tailscale HTTPS address
+  (through `tailscale/serve.json`). An Uptime Kuma monitor on `/v1/health`. On the iPhone: the
+  ntfy app, the server added with the `phone` user, one subscription per topic. The hub gets
+  `ntfy: {url, token: ${NTFY_TOKEN}}` in `config.yaml` (the example) and `.env.example`.
+- Step 2 (`app/alerts/ntfy.py`, `app/alerts/core.py`): the sender. A small client like
+  `telegram.py` (the token never logged, failures reduced to a short reason), the HTML to plain
+  text conversion (tags dropped, links as their text, a `<pre>` table or folded quote replaced by
+  a line pointing to the page, at most 4,000 bytes, as ntfy turns longer messages into a file),
+  and `notify()` sending to ntfy first with topic, priority, dot and click URL, then Telegram on
+  failure. The log gets `channel` (ntfy or telegram) and `ntfy_id`; the Alerts page shows the
+  channel. The Settings preview shows the ntfy version beside the Telegram one. Watchtower,
+  backup.sh, Uptime Kuma (through the hub) and the rules all go through `notify()`, so they move
+  together. Needs the hub's own address for the click URL: `hub.url` in `config.local.yaml`.
+- Step 3 (`web/`, `app/alerts/api.py`): the message page `/alerts/{id}`. `GET
+  /api/alerts/messages/{id}` (the message, its state, related messages, links; `expired` after 7
+  days) and `POST /api/alerts/messages/{id}/explain` (`same_origin_json`; the alert explainer for
+  any message, answered from the cache when asked again). Built from `components/ui`, with
+  loading, error, expired and stale states; Playwright desktop and mobile. A mockup first
+  (`docs/hub-alert-page-mockup.html`).
+- Step 4 (`app/paint_notify.py`): the pictures, one kind per step (briefing, Portfolio report,
+  figure alerts), after a mockup of the three. JPEG (the type iOS shows most reliably in a
+  notification), painted once per message and shown full size on its page. To settle when
+  building: upload the picture to ntfy as the attachment (it then lives there for the same 7
+  days, and the phone fetches it with its ntfy login) or link it from the hub (the ntfy app sends
+  its `phone` login to any attachment address, so the hub would receive it).
+- Step 5 (nas-docker, docs): Uptime Kuma's direct line to ntfy, its Telegram notification left
+  only where the fallback needs it; `docs/operations.md` (ntfy, the tokens, setting up the
+  phone), README, and CLAUDE.md's decisions log.
+- Not in M31: a native iOS app (looked at again if ntfy's banner falls short), removing
+  Telegram, ntfy for anyone but the owner.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
-M29, M30.
+M29, M30, M31.
 
 ## 4. Open items
 
