@@ -346,6 +346,13 @@ telegram:
     nas: { id: "${TELEGRAM_CHAT_NAS}", label: NAS alerts }
     portfolio: { id: "${TELEGRAM_CHAT_PORTFOLIO}", label: Portfolio }
 
+# ntfy (plan.md M31): the NAS's own ntfy, the stack in nas-docker. The hub publishes
+# to one topic per alert category (hub-backup, hub-updates, ...) with its write-only
+# token; the iPhone's ntfy app reads them.
+ntfy:
+  url: http://host.docker.internal:8090
+  token: ${NTFY_TOKEN}
+
 # Home hub service catalog. Only seeds the database on the first start; after
 # that the catalog is edited in the app and this list is ignored. Links are
 # built in the browser as <scheme>://<LAN or Tailscale host>:<port><path>.

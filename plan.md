@@ -1873,8 +1873,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
     Telegram to ntfy, through Uptime Kuma's own ntfy notifier. Accepted: with the whole NAS down,
     nothing arrives.
 - Step 1 (nas-docker, the owner on the NAS): the ntfy stack. `binwiederhier/ntfy` pinned to an
-  exact version (v2.36.0 on 2026-11-02; look again when building), with a GitHub source label so
-  the pinned-images check covers it. A persistent `cache-file`, `cache-duration` and
+  exact version (v2.37.0, released 2026-11-02), whose image has the GitHub source label, so the
+  pinned-images check covers it. It runs as 1000 and serves no web app. A persistent `cache-file`, `cache-duration` and
   `attachment-expiry-duration` of 7 days, `auth-file` with `auth-default-access: deny-all`, a
   `hub` user that may only write `hub-*` and a `phone` user that may only read them, each with a
   token, `upstream-base-url: https://ntfy.sh`, and `base-url` the Tailscale HTTPS address
