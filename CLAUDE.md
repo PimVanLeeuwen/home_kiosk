@@ -19,7 +19,8 @@ stack on the Ugreen NAS. Global rules (git owner-only, no em dashes, ask don't a
 - **Secrets are NAS-only** in `.env` (template: `.env.example`). Never in `config.yaml`, code or
   commits.
 - **Read-only towards other services**, except the deliberate writes: Readeck (save, archive,
-  delete, read progress), Telegram messages, DEGIRO imports into Ghostfolio after you confirm
+  delete, read progress), Telegram messages (the fallback), ntfy messages and their pictures
+  (the NAS's own ntfy), DEGIRO imports into Ghostfolio after you confirm
   them, the living room's Hue lights (switch, dim, white), Spotify playback (play, pause, skip,
   volume, move, start a favourite) and waking the living room Apple TV to open Spotify. Planned
   (M17, M20): the Hue plugs, and saving a headline to Readeck from a panel. Planned (M23):
@@ -179,6 +180,13 @@ python3 dashboard/serve.py
   edited only by pasting JSON (mostly written with Claude), in named prep and cook phases with
   prep first, ingredients flagged pantry or to get; no meal plans, shopping lists, timers or
   in-hub AI. plan.md M30.
+- 2026-11-02: notifications go to the NAS's own ntfy (own stack in nas-docker, Tailscale only,
+  instant delivery through ntfy.sh with only ids leaving), one topic per category; Telegram only
+  when ntfy fails; quiet hours deliver silently instead of holding, and the briefing still sums
+  up the night; a colour dot per severity on ntfy (Telegram keeps the bold word); a tap opens the
+  message's own hub page for 7 days, with its state, an explanation on request (warnings and
+  errors) and links onward; disk, storage box, portfolio move, the Portfolio report and the
+  briefing carry a painted picture in percentages only; no native iOS app for now. plan.md M31.
 
 ## Gotchas
 
@@ -294,3 +302,9 @@ python3 dashboard/serve.py
 - The collector's real config is `collector/config.local.yaml` (gitignored; on the NAS
   `/volume1/docker/home_kiosk/config.yaml`). `config.yaml` is a public example: never put
   household values (addresses, places, the train, hostnames) in it.
+- `core.notify()` logs a message before sending it (status `sending`), so its ntfy tap can lead
+  to `/alerts/{id}`; replies to a Telegram message (`reply_to`) always stay on Telegram.
+  Notification pictures (`app/paint_notify.py`) keep the figure that matters in the middle
+  square, as iOS crops the banner's thumbnail to it; a message with a picture goes to ntfy as a
+  PUT upload with its title and text as RFC 2047 encoded headers (`ntfy.header()`), since a JSON
+  publish cannot carry a file.
