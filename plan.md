@@ -36,7 +36,8 @@ repo in `~/Pictures/pr-screenshots/home_kiosk/2026-09-30-mockups/`.
 | Music | Spotify Web API with the owner's Premium account; any device on the account (M18). |
 | Service logins | Sonarr, Radarr, Prowlarr: "Disabled for Local Addresses" plus "Trust CGNAT IP Addresses" (covers Tailscale). Apps with real accounts rely on long-lived sessions plus a password manager. No SSO for now. |
 | Bookmarks | External links live in the service catalog (a `url` instead of a port), editable in Settings; homepage's three bookmarks were migrated. |
-| Telegram | The hub owns the bot token (NAS-only `.env`). Two chats, as today: **NAS alerts** and **Portfolio**. The bot only accepts commands from those chats. |
+| Telegram | The hub owns the bot token (NAS-only `.env`). Two chats, as today: **NAS alerts** and **Portfolio**. The bot only accepts commands from those chats. Since 2026-11-02 (M31) only the fallback when ntfy fails. |
+| Notifications | The NAS's own ntfy (nas-docker), one topic per category, read by the ntfy app on the owner's iPhone; instant delivery through ntfy.sh with only message ids leaving; a tap opens the message's page in the hub for 7 days (M31). |
 
 ## 2. Architecture
 
@@ -1934,9 +1935,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   message as a PUT with its title and text as RFC 2047 encoded words (ntfy decodes them); tried
   against ntfy v2.37.0 with UTF-8, line breaks and 2.8 kB of text. Telegram, as the fallback,
   gets no pictures. The message page shows the picture at the top of the message.
-- Step 5 (nas-docker, docs): Uptime Kuma's direct line to ntfy, its Telegram notification left
-  only where the fallback needs it; `docs/operations.md` (ntfy, the tokens, setting up the
-  phone), README, and CLAUDE.md's decisions log.
+- Step 5 (done 2026-11-02, nas-docker, docs): Uptime Kuma's direct line moves to ntfy, with
+  a user of its own that may only publish to `hub-uptime` (decided the same day, instead of the
+  hub's token); its Telegram notification is removed once ntfy's Test reaches the phone (the
+  owner, in Kuma's UI). nas-docker: README (ntfy, the Kuma notification's fields, Alerts),
+  RECOVERY (ntfy in the start order, Kuma's direct line), OVERVIEW, the emergency sheets (the
+  ntfy app after a lost phone; Telegram as the fallback) and the comments that said Telegram;
+  its CLAUDE.md has the gotcha that ntfy will not start while an access rule names a user its
+  `.env` lacks. Here: `docs/operations.md` and README. M31 is complete.
 - Not in M31: a native iOS app (looked at again if ntfy's banner falls short), removing
   Telegram, ntfy for anyone but the owner.
 
