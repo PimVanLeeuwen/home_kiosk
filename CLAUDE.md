@@ -194,6 +194,12 @@ python3 dashboard/serve.py
   the Door panel is one calm today view (clock, both calendars, birthdays for 7 days, weather to
   go out), no train and no ERROR takeover; birthdays from iCloud Contacts over CardDAV,
   read-only. plan.md M32.
+- 2026-11-04: reminders set in the hub replace the calendar on the Door panel (once, every N
+  days or weeks, weekly on chosen days, monthly on a day or the last day, yearly); each picks
+  its ntfy message (none, at its time or 08:00, an hour before, the evening before at 20:00) on
+  `hub-reminders`, to the owner only; ticked off only in the hub; a Reminders page and a Home
+  card; the Door layout leads with a rain countdown over five-minute bars, then today's
+  reminders beside the birthdays. plan.md M32.
 
 ## Gotchas
 
