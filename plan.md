@@ -2010,6 +2010,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   more than two hours late (the hub was down). The Reminders page (Today with ticks, the form,
   every reminder with its next day) and a Reminders card on Home, shown on a day with some and
   live while one is open.
+- Built 2026-11-04 (step 4, not yet seen on a board): the hub's `door` screen
+  (`app/desk_door.py`) and its painted background (`app/paint_door.py`: the violet corner by
+  the part of the day, blue behind the rain while it comes, rose on a birthday); the Door panel
+  no longer rotates. The panel (`screen_door.c`, `desk_door.c`) words the rain on its own clock
+  from the spell's start and end, labels only those two under the bars (and "Now" and "+2 h"
+  where they do not touch them), shows up to five open reminders and four birthdays.
 - To settle while building: the shell's fit on the real charger and socket.
 - After M32: look critically at which screens the two desk panels still need (for example the
   year's days gone, made for three panels' worth of rotation).

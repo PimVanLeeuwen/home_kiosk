@@ -43,6 +43,7 @@
 #include "screen_briefing.h"
 #include "screen_clock.h"
 #include "screen_day.h"
+#include "screen_door.h"
 #include "screen_headlines.h"
 #include "screen_apple.h"
 #include "screen_air.h"
@@ -75,7 +76,7 @@ LV_FONT_DECLARE(instrument_24);
 /* In the order they turn; the pieces (plan.md M27) where they belong among the others. */
 enum { CLOCK, SKY, NIGHT, BRIEFING, TRAIN, AGENDA, COUNTDOWN, RUN, RUNWEEK, SESSION, STREETS, DAY, WEEK, RADAR, YEAR, HEADLINES, PLAYING, LIGHTS,
        AIR, LAUNDRY, APPLE, PHOTO, ART, MUSIC, PIPELINE, PIPELINES, NAS, ORBIT, CODE, SITES, SERVICES, TAILNET, MONEY,
-       MOVERS, MEDIA, BACKUPS, ALERTS, BOARD, START, COUNT };
+       MOVERS, MEDIA, BACKUPS, ALERTS, DOOR, BOARD, START, COUNT };
 
 /* Each piece's screen, by its place in desk_piece.h. */
 static const int PIECE_SCREEN[PIECES] = {
@@ -151,6 +152,8 @@ static bool ready(int which)
         return desk_has_backups();
     case ALERTS:
         return desk_has_alerts();
+    case DOOR:
+        return desk_has_door();
     case SKY:
     case NIGHT:
     case YEAR:
@@ -401,6 +404,7 @@ void screens_start(void)
     screens[MEDIA] = lv_obj_create(NULL);
     screens[BACKUPS] = lv_obj_create(NULL);
     screens[ALERTS] = lv_obj_create(NULL);
+    screens[DOOR] = lv_obj_create(NULL);
     screens[BOARD] = lv_obj_create(NULL);
     for (int p = 0; p < PIECES; p++) {
         screens[PIECE_SCREEN[p]] = lv_obj_create(NULL);
@@ -451,6 +455,8 @@ void screens_start(void)
     screen_media_create(screens[MEDIA]);
     screen_backups_create(screens[BACKUPS]);
     screen_alerts_create(screens[ALERTS]);
+    screen_door_create(screens[DOOR]);
+    backdrops_attach(screens[DOOR], "door");
     screen_board_create(screens[BOARD]);
     screen_start_create(screens[START]);
     for (int i = 0; i < COUNT; i++) {

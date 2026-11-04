@@ -124,8 +124,9 @@ def test_the_route_and_its_panel_names(store):
     client = TestClient(main.app)
 
     assert client.get("/api/desk/test").json()["screens"][0]["kind"] == "clock"
-    door = [s["kind"] for s in client.get("/api/desk/door").json()["screens"]]
-    assert door == ["clock", "agenda"]
+    door = client.get("/api/desk/door").json()
+    assert ([s["kind"] for s in door["screens"]], door["rotate"], door["takeover"]) == (
+        ["door"], False, None)
     house = client.get("/api/desk/house").json()["screens"]
     # The orbit clock always shows, its words by the date: tested in test_desk_pieces.
     assert [{k: v for k, v in s.items() if k != "background"} for s in house[:-len(HOME_KINDS)]
@@ -187,7 +188,7 @@ def test_an_assigned_board_gets_its_panels_screens(store):
                      "runweek", "session", "streets", "day", "week", "radar", "year", "headlines"]
 
 
-def test_a_new_panel_without_data_shows_its_clock_not_its_board(store):
+def test_a_new_panel_without_data_shows_its_today_view_not_its_board(store):
     """The Door panel always has something to show: its clock, so the board's
     "Nothing to show yet" screen does not come up for it."""
     client = board_client(store)
@@ -196,8 +197,7 @@ def test_a_new_panel_without_data_shows_its_clock_not_its_board(store):
 
     screens = client.get(f"/api/desk/board/{MAC}").json()["screens"]
 
-    assert [s["kind"] for s in screens] == ["clock", "agenda"]
-    assert [s["kind"] for s in screens if s.get("present", True)] == ["clock"]
+    assert [(s["kind"], s["present"]) for s in screens] == [("door", True)]
 
 
 def test_a_board_on_the_home_panel_becomes_the_door_panel(store):

@@ -254,6 +254,45 @@ typedef struct {
     char as_of[40];          /* "written by Claude at 06:30" */
 } desk_briefing_t;
 
+#define DESK_DOOR_RAIN 30
+#define DESK_DOOR_REMINDERS 5
+#define DESK_DOOR_BIRTHDAYS 4
+
+/* The Door panel's today view (app/desk_door.py, plan.md M32): the date, the temperature,
+ * the rain over the next two hours, today's open reminders, the coming week's birthdays and
+ * the wind. The panel draws the clock and words the rain from the spell's times. */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char date[32];           /* "Wednesday 4 November" */
+    bool has_temperature;
+    int temperature;
+    char description[48];    /* "Light rain" */
+    char tonight[16];        /* "Tonight 4°", or "" */
+    int rain_count;
+    float rain[DESK_DOOR_RAIN]; /* mm an hour, one per rain_step seconds from rain_from */
+    int64_t rain_from;
+    int rain_step;
+    bool wet;                /* rain within the two hours */
+    int64_t wet_from;        /* when it starts; 0: it rains now */
+    int64_t wet_until;       /* when it is dry again; 0: not within the two hours */
+    char wind[32];           /* "Wind 4 Bft from SW" */
+    int reminder_count;
+    struct {
+        char title[72];
+        char at[6];          /* "07:30", or "" for the whole day */
+    } reminders[DESK_DOOR_REMINDERS];
+    int more_reminders;
+    int birthday_count;
+    struct {
+        char name[40];
+        char when[12];       /* "today", "tomorrow", "Fri" */
+        int turns;           /* 0 when the year is not known */
+        bool today;
+    } birthdays[DESK_DOOR_BIRTHDAYS];
+} desk_door_t;
+
 /* The House panel's Code screen: 16 weeks of contributions, Monday first, and per week. */
 #define DESK_CODE_DAYS 112
 typedef struct {
@@ -701,6 +740,9 @@ desk_code_t desk_code(void);
 bool desk_has_briefing(void);
 uint32_t desk_briefing_version(void);
 desk_briefing_t desk_briefing(void);
+bool desk_has_door(void);
+uint32_t desk_door_version(void);
+void desk_door_copy(desk_door_t *into);
 bool desk_has_sites(void);
 uint32_t desk_sites_version(void);
 void desk_sites_copy(desk_sites_t *into);

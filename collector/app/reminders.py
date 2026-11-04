@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import calendar
 import json
+import weakref
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Annotated, Any, Literal
 from zoneinfo import ZoneInfo
@@ -146,9 +147,16 @@ def notify_at(r: Draft, day: date, zone: ZoneInfo) -> datetime | None:
 # --- the store ------------------------------------------------------------------------
 
 
+_ready: weakref.WeakSet[Store] = weakref.WeakSet()
+
+
 def ensure_tables(store: Store) -> None:
+    """At start-up, and on first use by the Door panel's answer."""
+    if store in _ready:
+        return
     with store.connect() as conn:
         conn.executescript(TABLES)
+    _ready.add(store)
 
 
 def _stamp(now: datetime | None) -> str:

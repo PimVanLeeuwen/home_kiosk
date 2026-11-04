@@ -20,6 +20,7 @@ from .desk_backups import backups_screen
 from .desk_briefing import briefing_screen
 from .desk_clock import clock_screen
 from .desk_code import code_screen
+from .desk_door import door_screen
 from .desk_headlines import headlines_screen
 from .desk_home import (
     air_screen,
@@ -138,11 +139,11 @@ HOUSE = (nas_screen, orbit_screen, code_screen, sites_screen, services_screen, t
 # The Home panel's screens, on House since its board went to the door (plan.md M32), after
 # House's own; Now Playing goes before them and the favourites after (they need `music`).
 HOME = (lights_screen, air_screen, laundry_screen, apple_screen, photo_screen, art_screen)
-# The Door panel until its today view is built (plan.md M32, step 3).
-DOOR = (clock_screen, agenda_screen)
+# The Door panel: one calm today view (plan.md M32).
+DOOR = (door_screen,)
 SCREENS = {"now": NOW, "house": (*HOUSE, *HOME), "door": DOOR, "test": NOW}
 # Panels that turn through their screens on their own; House decides per answer (house_rules).
-ROTATES = {"now": True, "door": True, "test": True}
+ROTATES = {"now": True, "door": False, "test": True}
 # The Door panel stays calm: an open error takes over only the desk panels (plan.md M32).
 TAKEOVER = {"now", "house", "test"}
 
