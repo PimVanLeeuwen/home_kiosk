@@ -1,11 +1,11 @@
 """The Home panel's screens (plan.md M16 to M18, M20), as ready-to-draw values:
-what plays (first, while music plays), the living room's lights, the laundry
-while a machine runs or is done, the Apple devices, and the music favourites. The Home panel does
-not rotate: it is swiped, and goes back to its first screen after a minute
-without a touch.
+what plays, the living room's lights, the laundry while a machine runs or is
+done, the Apple devices, and the music favourites. Since 2026-11-03 they turn on
+the House panel (plan.md M32), whose board shows only the lights while they are
+all off.
 
 The music screens come from the hub's Spotify state (app/sources/music.py),
-read when a Home board asks; their covers go to the panel as small JPEGs made
+read when the House board asks; their covers go to the panel as small JPEGs made
 from the covers the hub stored (`cover`), never fetched for the panel itself.
 """
 
@@ -101,7 +101,7 @@ def _played_out(music: dict[str, Any], playing: dict[str, Any], now: datetime) -
 
 
 def playing_screen(music: dict[str, Any] | None, now: datetime) -> dict[str, Any]:
-    """Now Playing: shown first on the Home panel while something plays or is paused."""
+    """Now Playing: shown on the House panel while something plays or is paused."""
     playing = (music or {}).get("playing")
     if not playing or _played_out(music, playing, now):
         return {"kind": "playing", "stale": False, "present": False}

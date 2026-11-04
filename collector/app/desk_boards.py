@@ -20,13 +20,13 @@ from pydantic import BaseModel
 from . import desk_keys
 from .store import Store
 
-Panel = Literal["now", "home", "house", "test"]
+Panel = Literal["now", "house", "door", "test"]
 MAC = re.compile(r"^[0-9a-f]{2}(:[0-9a-f]{2}){5}$")
 
 TABLES = """
 CREATE TABLE IF NOT EXISTS desk_board (
     mac        TEXT PRIMARY KEY,  -- e8:f6:0a:e4:42:b0
-    panel      TEXT,              -- now, home, house, test; NULL until assigned
+    panel      TEXT,              -- now, house, door, test; NULL until assigned
     first_seen TEXT NOT NULL,
     last_seen  TEXT NOT NULL,
     firmware   TEXT NOT NULL DEFAULT '',
@@ -53,6 +53,8 @@ def ensure_tables(store: Store) -> None:
         if "update_requested" not in columns:  # added after the table shipped
             conn.execute("ALTER TABLE desk_board"
                          " ADD COLUMN update_requested INTEGER NOT NULL DEFAULT 0")
+        # The Home panel's board went to the door (plan.md M32); its screens are on House.
+        conn.execute("UPDATE desk_board SET panel = 'door' WHERE panel = 'home'")
         assigned = [r["mac"] for r in conn.execute(
             "SELECT mac FROM desk_board WHERE panel IS NOT NULL")]
     # Boards given a panel before there were keys get one now.

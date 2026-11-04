@@ -1946,9 +1946,43 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Not in M31: a native iOS app (looked at again if ntfy's banner falls short), removing
   Telegram, ntfy for anyone but the owner.
 
+**M32. Door panel** (added 2026-11-03)
+- Why: a panel by the front door for the owner and partner, a look at the day just before
+  leaving. No fourth board: one of the three desk panels moves there. The board hangs from the
+  socket by the door on a USB-C charger plug in a printed shell (a remix of the "Modular IoT
+  Wall-Plug (EU+USA) Case" on Printables, made to hold the 86.5 mm board), USB-C at the bottom.
+- Decided 2026-11-03:
+  - The Home board becomes the Door panel; Home's screens (lights, air, laundry, Apple devices,
+    photo, art, Now Playing, music) join House at the desk. Now stays as it is. House and Home
+    together answer about 15 kB, inside the boards' 32 kB.
+  - House's order when several things want the screen: an ERROR takeover, then a running
+    pipeline (alone), then, with every living room light off, only the light controls (as Home
+    did); otherwise it turns through all its screens. Now Playing no longer holds the panel
+    while music plays: it is one screen in the rotation (replaces the 2026-10-21 rule).
+  - The Door panel shows one calm today view and does not rotate: the clock, today's events from
+    the shown calendars (both partners' ones), birthdays today and in the next 7 days, and the
+    weather to go out (rain in the next two hours, the temperature now and tonight, wind
+    strength and direction for cycling, from Open-Meteo). No train: its ntfy message and the
+    hub's page are enough.
+  - No ERROR takeover on the Door panel (narrows the 2026-10-22 rule to the two desk panels).
+  - Birthdays from iCloud Contacts over CardDAV (`contacts.icloud.com`), read-only, with the
+    app-specific password already in `.env`. iCloud's Birthdays calendar is made from Contacts
+    on the devices and is not served over CalDAV, so the calendar source cannot see it. Only the
+    owner's contacts, unless the partner shares hers. Names are personal data: served to the hub
+    and the panel, never logged. The hub mirrors the panel with a Birthdays card on Home.
+  - The picture turned 180° on the Door board: a per-board "Upside down" switch in Settings,
+    Desk panels. The hub sends it with the board's answer; the board keeps it in NVS and
+    restarts to apply it, as the LVGL adapter only takes its rotation at start-up (270° instead
+    of 90°, touch turned to match). Every board keeps running the same firmware.
+- Steps, each with its tests and commit: (1) the merged House rules and the `door` panel in the
+  hub; (2) birthdays over CardDAV and the hub card; (3) the Door screen on the panel, with its
+  painted background; (4) the Upside down switch.
+- To settle while building: whether the Door panel dims with the living room lights like the
+  desk panels; the shell's fit on the real charger and socket.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
-M29, M30, M31.
+M29, M30, M31, M32.
 
 ## 4. Open items
 

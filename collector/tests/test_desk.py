@@ -115,17 +115,20 @@ def test_no_forecast_yet_is_a_stale_day(store):
     assert (day["present"], day["stale"]) == (False, True)
 
 
+HOME_KINDS = ["playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
+
+
 def test_the_route_and_its_panel_names(store):
     main.app.state.store = store
     main.app.state.config = CFG
     client = TestClient(main.app)
 
     assert client.get("/api/desk/test").json()["screens"][0]["kind"] == "clock"
-    home = [s["kind"] for s in client.get("/api/desk/home").json()["screens"]]
-    assert home == ["playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
+    door = [s["kind"] for s in client.get("/api/desk/door").json()["screens"]]
+    assert door == ["clock", "agenda"]
     house = client.get("/api/desk/house").json()["screens"]
     # The orbit clock always shows, its words by the date: tested in test_desk_pieces.
-    assert [{k: v for k, v in s.items() if k != "background"} for s in house
+    assert [{k: v for k, v in s.items() if k != "background"} for s in house[:-len(HOME_KINDS)]
             if s["kind"] != "orbit"] == [
         {"kind": "pipelines", "stale": False, "present": False},
         {"kind": "nas", "stale": False, "present": False},
@@ -140,7 +143,10 @@ def test_the_route_and_its_panel_names(store):
         {"kind": "alerts", "stale": False, "present": True, "title": "ALERTS",
          "status": "NONE OPEN", "tone": "ok",
          "quiet": ANY}]  # no data yet
-    assert client.get("/api/desk/home").json()["rotate"] is True  # nothing plays, lights unknown
+    # Home's screens follow House's own since its board went to the door (plan.md M32).
+    assert [s["kind"] for s in house[-len(HOME_KINDS):]] == HOME_KINDS
+    assert client.get("/api/desk/house").json()["rotate"] is True  # lights unknown
+    assert client.get("/api/desk/home").status_code == 422
     assert client.get("/api/desk/kitchen").status_code == 422
 
 
@@ -181,18 +187,32 @@ def test_an_assigned_board_gets_its_panels_screens(store):
                      "runweek", "session", "streets", "day", "week", "radar", "year", "headlines"]
 
 
-def test_a_new_panel_without_data_shows_its_art_not_its_board(store):
-    """Since the pieces (plan.md M27) a panel always has something to show: the art on
-    Home, so the board's "Nothing to show yet" screen no longer comes up for it."""
+def test_a_new_panel_without_data_shows_its_clock_not_its_board(store):
+    """The Door panel always has something to show: its clock, so the board's
+    "Nothing to show yet" screen does not come up for it."""
     client = board_client(store)
     client.get(f"/api/desk/board/{MAC}")
-    client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "home"})
+    client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "door"})
 
     screens = client.get(f"/api/desk/board/{MAC}").json()["screens"]
 
-    assert [s["kind"] for s in screens] == [
-        "playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
-    assert [s["kind"] for s in screens if s["present"]] == ["art"]
+    assert [s["kind"] for s in screens] == ["clock", "agenda"]
+    assert [s["kind"] for s in screens if s.get("present", True)] == ["clock"]
+
+
+def test_a_board_on_the_home_panel_becomes_the_door_panel(store):
+    """The Home panel's board went to the door (plan.md M32): the hub moves it there
+    when it starts, and the board keeps its key."""
+    client = board_client(store)
+    client.get(f"/api/desk/board/{MAC}")
+    client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "now"})
+    with store.connect() as conn:
+        conn.execute("UPDATE desk_board SET panel = 'home' WHERE mac = ?", (MAC,))
+
+    desk_boards.ensure_tables(store)
+
+    [board] = desk_boards.boards(store)
+    assert (board.panel, board.key) == ("door", "pending")
 
 
 def test_a_panel_has_one_board(store):
@@ -200,11 +220,11 @@ def test_a_panel_has_one_board(store):
     other = "e8:f6:0a:e4:42:c8"
     client.get(f"/api/desk/board/{MAC}")
     client.get(f"/api/desk/board/{other}")
-    client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "home"})
+    client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "door"})
 
-    boards = client.put(f"/api/settings/desk-boards/{other}", json={"panel": "home"}).json()
+    boards = client.put(f"/api/settings/desk-boards/{other}", json={"panel": "door"}).json()
 
-    assert {b["mac"]: b["panel"] for b in boards} == {MAC: None, other: "home"}
+    assert {b["mac"]: b["panel"] for b in boards} == {MAC: None, other: "door"}
     boards = client.put(f"/api/settings/desk-boards/{other}", json={"panel": None}).json()
     assert {b["mac"]: b["panel"] for b in boards} == {MAC: None, other: None}
 
@@ -283,7 +303,7 @@ def test_the_panels_dim_while_every_living_room_light_is_off(store):
     store.put_cache("lights", lights(True, False))
     assert desk.answer(CFG, store, "now", NOW)["dim"] is False
     store.put_cache("lights", lights(False, False))
-    assert desk.answer(CFG, store, "home", NOW)["dim"] is True
+    assert desk.answer(CFG, store, "house", NOW)["dim"] is True
     store.put_cache("lights", lights(False, False, stale=True))
     assert desk.answer(CFG, store, "now", NOW)["dim"] is False  # cannot tell: stay bright
 
@@ -298,39 +318,30 @@ PLAYING = {"as_of": NOW.timestamp(), "playing": {"title": "Song", "state": "play
 PAUSED = {"as_of": NOW.timestamp(), "playing": {"title": "Song", "state": "paused"}}
 
 
-ALL = ["playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
-
-
-def home(store, music=None):
-    out = desk.answer(CFG, store, "home", NOW, music=music)
+def house(store, music=None):
+    out = desk.answer(CFG, store, "house", NOW, music=music)
     return [s["kind"] for s in out["screens"]], out["rotate"]
 
 
-def test_home_rotates_while_nothing_plays_and_a_light_is_on(store):
+def test_house_turns_through_home_screens_while_a_light_is_on(store):
     store.put_cache("lights", lights(True, False))
-    assert home(store) == (ALL, True)
-    assert home(store, PAUSED)[1] is True  # a paused song turns along with the rest
+    kinds, rotate = house(store)
+    assert (kinds[-len(HOME_KINDS):], rotate) == (HOME_KINDS, True)
+    assert "pipelines" in kinds and "alerts" in kinds
 
 
-def test_home_stays_on_now_playing_while_music_plays(store):
+def test_music_no_longer_holds_house_on_now_playing(store):
+    """Decided 2026-11-03 (plan.md M32): Now Playing is one screen in the rotation."""
     store.put_cache("lights", lights(True, False))
-    assert home(store, PLAYING) == (ALL, False)
-    store.put_cache("lights", lights(False, False))  # music wins over the lights being off
-    assert home(store, PLAYING) == (ALL, False)
+    kinds, rotate = house(store, PLAYING)
+    assert (kinds[-len(HOME_KINDS):], rotate) == (HOME_KINDS, True)
+    assert house(store, PAUSED)[1] is True
 
 
-def test_home_turns_again_when_a_stale_song_has_ended(store):
-    # Spotify paused the hub an hour ago, on a song that has long ended.
-    store.put_cache("lights", lights(True, False))
-    stale = {"as_of": NOW.timestamp() - 3600, "stale": True, "playing": {
-        "title": "Song", "state": "playing", "progress_ms": 0, "duration_ms": 180000}}
-    assert home(store, stale) == (ALL, True)
-
-
-def test_home_shows_only_the_lights_while_they_are_all_off(store):
+def test_house_shows_only_the_lights_while_they_are_all_off(store):
     store.put_cache("lights", lights(False, False))
-    assert home(store) == (["lights"], False)
-    assert home(store, PAUSED) == (["lights"], False)
+    assert house(store) == (["lights"], False)
+    assert house(store, PLAYING) == (["lights"], False)  # the lights win over music now
 
 
 def test_the_other_panels_keep_turning(store):

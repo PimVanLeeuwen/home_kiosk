@@ -13,8 +13,8 @@ type Choice = DeskPanel | 'none'
 const CHOICES: [Choice, string][] = [
   ['none', 'None'],
   ['now', 'Now'],
-  ['home', 'Home'],
   ['house', 'House'],
+  ['door', 'Door'],
   ['test', 'Test'],
 ]
 

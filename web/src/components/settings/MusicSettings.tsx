@@ -42,7 +42,7 @@ function Favourites({ current, onSaved }: { current: Favourite[]; onSaved: () =>
   return (
     <div className="border-t border-line-soft py-3">
       <p className="mb-2.5 text-caption text-faint">
-        Up to four favourites for the Music page and the Home panel, in the order you tick them ({picked.length} of {MAX}).
+        Up to four favourites for the Music page and the House panel, in the order you tick them ({picked.length} of {MAX}).
       </p>
       <ul aria-label="Your playlists" className="grid max-h-[360px] gap-1 overflow-y-auto">
         {lists.data.map((p) => {

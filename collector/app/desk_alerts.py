@@ -4,9 +4,9 @@ and errors count, as info messages need nobody.
 
 The Alerts screen shows the worst open alert large, with the others below; when none
 is open, All quiet with how long nothing has needed you and this week's days. An open
-error also takes over all three panels until it is dismissed on one of them
+error also takes over the desk panels until it is dismissed on one of them
 (decided 2026-10-22: once for all panels, until the incident resolves; also in quiet
-hours). Ready to draw.
+hours; since 2026-11-03 not the Door panel, plan.md M32). Ready to draw.
 """
 
 from __future__ import annotations
@@ -104,7 +104,7 @@ def alerts_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]
 
 
 def takeover(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any] | None:
-    """The newest open error nobody dismissed yet, for all three panels; else None."""
+    """The newest open error nobody dismissed yet, for the desk panels; else None."""
     errors = [r for r in rules.open_incidents(store).values()
               if r["severity"] == "error" and not r.get("dismissed_at")]
     if not errors:

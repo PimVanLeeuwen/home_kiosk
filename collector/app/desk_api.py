@@ -38,11 +38,11 @@ ARTICLE = re.compile(r"^[0-9a-f]{16}$")
 BACKGROUND = ARTICLE  # the same shape: 16 hex digits
 
 # The three panels, and "test" for a board on the bench (it shows the Now panel's screens).
-PanelName = Literal["now", "home", "house", "test"]
+PanelName = Literal["now", "house", "door", "test"]
 
 
 async def _music(request: Request) -> dict[str, Any] | None:
-    """The hub's Spotify state for the Home panel, the last good one (stale) while
+    """The hub's Spotify state for the House panel, the last good one (stale) while
     Spotify fails; None when there is none (the panel then shows its other screens)."""
     cfg = request.app.state.config
     if not spotify.settings(cfg)["enabled"]:
@@ -64,7 +64,7 @@ async def board(mac: str, request: Request,
         raise HTTPException(422, "A board is asked for by its MAC address, like e8:f6:0a:e4:42:b0.")
     store = request.app.state.store
     visit = desk_boards.check_in(store, mac, firmware, key=desk_keys.presented(request))
-    playing = await _music(request) if visit.panel == "home" else None
+    playing = await _music(request) if visit.panel == "house" else None
     # Built off the event loop: a slow screen (it has happened: the run screens, 2026-10-26)
     # must not stall the collector's other work, nor the other panels.
     answer = await run_in_threadpool(desk.answer, request.app.state.config, store, visit.panel,
@@ -83,7 +83,7 @@ class Dismiss(BaseModel):
 @router.post("/alerts/dismiss")
 def alerts_dismiss(body: Dismiss, request: Request,
                    board: Annotated[str, Depends(desk_keys.board_key)]) -> dict[str, bool]:
-    """Dismisses an error's takeover on all three panels until it resolves."""
+    """Dismisses an error's takeover on the desk panels until it resolves."""
     if not desk_alerts.dismiss(request.app.state.store, body.key, datetime.now(UTC)):
         raise HTTPException(404, "That alert is no longer open.")
     return {"ok": True}
@@ -185,7 +185,7 @@ async def poster(source: Literal["sonarr", "radarr"], item_id: int, request: Req
 
 @router.get("/cover/{key}/{size}")
 async def cover(key: str, size: desk_home.CoverSize, request: Request) -> Response:
-    """A Spotify cover the hub stored, as a small JPEG for the Home panel."""
+    """A Spotify cover the hub stored, as a small JPEG for the House panel."""
     if not desk_home.COVER_KEY.match(key):
         raise HTTPException(404, "No such cover.")
     try:
@@ -215,7 +215,7 @@ async def _spotify(request: Request, act) -> dict[str, bool]:
 async def music_favourite(position: Annotated[int, Path(ge=0, le=spotify.FAVOURITES)],
                           request: Request,
                           board: Annotated[str, Depends(desk_keys.board_key)]) -> Any:
-    """Starts a favourite from the Home panel (on the device that plays, else the
+    """Starts a favourite from the House panel (on the device that plays, else the
     living room's Apple TV, woken when needed)."""
     return await _spotify(request, lambda cfg, store: music.play_favourite(cfg, store, position))
 
@@ -223,19 +223,19 @@ async def music_favourite(position: Annotated[int, Path(ge=0, le=spotify.FAVOURI
 @router.post("/music/recent/{index}")
 async def music_recent(index: Annotated[int, Path(ge=0, lt=music.RECENT)], request: Request,
                        board: Annotated[str, Depends(desk_keys.board_key)]) -> Any:
-    """Plays one of the playlists or albums played lately, from the Home panel's cover wall."""
+    """Plays one of the playlists or albums played lately, from the House panel's cover wall."""
     return await _spotify(request, lambda cfg, store: music.play_recent(cfg, store, index))
 
 
 @router.post("/music/{action}")
 async def music_control(action: Literal["play", "pause", "next", "previous"], request: Request,
                         board: Annotated[str, Depends(desk_keys.board_key)]) -> Any:
-    """Play, pause or skip from the Home panel."""
+    """Play, pause or skip from the House panel."""
     return await _spotify(request, lambda cfg, store: music.control(cfg, store, action))
 
 
 @router.get("/{name}")
 async def panel(name: PanelName, request: Request) -> dict[str, Any]:
-    playing = await _music(request) if name == "home" else None
+    playing = await _music(request) if name == "house" else None
     return await run_in_threadpool(desk.answer, request.app.state.config, request.app.state.store,
                                    name, music=playing)

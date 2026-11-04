@@ -57,7 +57,7 @@ def panel(store):
     desk_boards.ensure_tables(store)
     browser = TestClient(main.app, headers={"origin": "http://testserver"})
     browser.get(f"/api/desk/board/{MAC}")
-    browser.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "home"})
+    browser.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "house"})
     key = browser.get(f"/api/desk/board/{MAC}").json()["key"]
     yield TestClient(main.app, headers={"authorization": f"Bearer {key}"}), bridge
     del main.app.state.hue_bridge
@@ -146,10 +146,10 @@ def test_a_stale_answer_lets_go_once_its_track_has_ended():
     assert desk_home.playing_screen(paused, NOW + timedelta(hours=5))["present"] is True
 
 
-def test_music_comes_first_and_last_on_home(store):
-    kinds = [s["kind"] for s in desk.answer({"timezone": "Europe/Amsterdam"}, store, "home", NOW,
+def test_music_comes_first_and_last_of_home_screens_on_house(store):
+    kinds = [s["kind"] for s in desk.answer({"timezone": "Europe/Amsterdam"}, store, "house", NOW,
                                             music=MUSIC)["screens"]]
-    assert kinds == ["playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
+    assert kinds[-8:] == ["playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
 
 
 @pytest.fixture
@@ -185,10 +185,10 @@ def music_panel(panel, store, monkeypatch):
     return client, calls
 
 
-def test_the_home_board_gets_its_music_and_can_play_with_its_key(music_panel):
+def test_the_house_board_gets_its_music_and_can_play_with_its_key(music_panel):
     client, calls = music_panel
     kinds = [s["kind"] for s in client.get(f"/api/desk/board/{MAC}").json()["screens"]]
-    assert kinds == ["playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
+    assert kinds[-8:] == ["playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
     assert client.post("/api/desk/music/pause").json() == {"ok": True}
     assert client.post("/api/desk/music/favourite/2").json() == {"ok": True}
     assert client.post("/api/desk/music/recent/3").json() == {"ok": True}

@@ -218,9 +218,24 @@ def test_the_idle_card_has_each_repos_last_result_and_bars(store):
     assert second["line"] == "main · no runs yet" and second["bars"] == []
 
 
+def test_a_running_pipeline_wins_over_the_lights_being_off(store):
+    """House shows only the lights while they are all off, but a running pipeline
+    still takes it over (plan.md M32)."""
+    store.put_cache("lights", {"as_of": NOW.isoformat(), "stale": False, "groups": [
+        {"id": "kitchen", "name": "Kitchen spots", "kind": "ambiance", "on": False,
+         "brightness": 80, "kelvin": 3000,
+         "lights": [{"id": "l1", "name": "L1", "on": False, "brightness": 80, "kelvin": 3000,
+                     "reachable": True}]}]})
+    [screen], rotate = house(store, repo(run=a_run()))
+    assert (screen["kind"], rotate) == ("pipeline", False)
+    screens, rotate = house(store, repo())
+    assert ([s["kind"] for s in screens], rotate) == (["lights"], False)
+
+
 def test_before_any_pipeline_data_the_card_waits(store):
     out = desk.answer(CFG, store, "house", NOW)
-    screens = [{k: v for k, v in s.items() if k != "background"} for s in out["screens"]
+    # Home's screens follow (plan.md M32): tested in test_desk.
+    screens = [{k: v for k, v in s.items() if k != "background"} for s in out["screens"][:-8]
                if s["kind"] != "orbit"]  # always shown: tested in test_desk_pieces
     assert screens == [{"kind": "pipelines", "stale": False, "present": False},
         {"kind": "nas", "stale": False, "present": False},

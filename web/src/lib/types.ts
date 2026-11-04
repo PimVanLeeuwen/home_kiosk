@@ -249,7 +249,7 @@ export interface CalendarInfo {
   shown: boolean
 }
 
-export type DeskPanel = 'now' | 'home' | 'house' | 'test'
+export type DeskPanel = 'now' | 'house' | 'door' | 'test'
 
 /** A desk panel board that has asked the hub (Settings → Desk panels). */
 export interface DeskBoard {

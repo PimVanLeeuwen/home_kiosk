@@ -132,13 +132,19 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 NOW = (clock_screen, sky_screen, night_screen, briefing_screen, train_screen, agenda_screen,
        countdown_screen, run_screen, runweek_screen, session_screen, streets_screen, day_screen,
        week_screen, radar_screen, year_screen, _headlines)
-HOME = (lights_screen, air_screen, laundry_screen, apple_screen, photo_screen, art_screen)
 # Decided 2026-10-22: NAS first and Backups before Alerts, as in the mockup.
 HOUSE = (nas_screen, orbit_screen, code_screen, sites_screen, services_screen, tailnet_screen,
          money_screen, movers_screen, media_screen, backups_screen, alerts_screen)
-SCREENS = {"now": NOW, "home": HOME, "house": HOUSE, "test": NOW}
-# Panels that turn through their screens on their own; Home decides per answer (home_rules).
-ROTATES = {"now": True, "house": True, "test": True}
+# The Home panel's screens, on House since its board went to the door (plan.md M32), after
+# House's own; Now Playing goes before them and the favourites after (they need `music`).
+HOME = (lights_screen, air_screen, laundry_screen, apple_screen, photo_screen, art_screen)
+# The Door panel until its today view is built (plan.md M32, step 3).
+DOOR = (clock_screen, agenda_screen)
+SCREENS = {"now": NOW, "house": (*HOUSE, *HOME), "door": DOOR, "test": NOW}
+# Panels that turn through their screens on their own; House decides per answer (house_rules).
+ROTATES = {"now": True, "door": True, "test": True}
+# The Door panel stays calm: an open error takes over only the desk panels (plan.md M32).
+TAKEOVER = {"now", "house", "test"}
 
 
 # What a board reads of an answer when it does not say (the firmware before 2026-10-23
@@ -190,14 +196,10 @@ def dim(store: Store) -> bool:
 Screens = list[dict[str, Any]]
 
 
-def home_rules(screens: Screens, lights_off: bool) -> tuple[Screens, bool]:
-    """Home's screens and whether it rotates (the owner's wish, 2026-10-21): while music
-    plays it stays on Now Playing (swiped, back there after a quiet minute), even with
-    the lights off; with nothing playing and every light off it shows only the light
-    controls; otherwise it turns through its screens like the other panels."""
-    playing = next((s for s in screens if s["kind"] == "playing"), {})
-    if playing.get("present") and playing.get("playing"):
-        return screens, False
+def house_rules(screens: Screens, lights_off: bool) -> tuple[Screens, bool]:
+    """House's screens and whether it rotates, when no pipeline takes it over (decided
+    2026-11-03, plan.md M32): with every light off it shows only the light controls;
+    otherwise it turns through all its screens. Music no longer holds it on Now Playing."""
     if lights_off:
         return [s for s in screens if s["kind"] == "lights"], False
     return screens, True
@@ -208,22 +210,24 @@ def answer(cfg: dict[str, Any], store: Store, name: str | None,
            music: dict[str, Any] | None = None) -> dict[str, Any]:
     """The screens of panel `name`. A board (asking by its MAC) without a panel
     gets the screen that asks to assign it; one whose panel has no screens yet,
-    a screen that says so. The Home panel's music screens need `music`."""
+    a screen that says so. House's music screens need `music`."""
     zone = ZoneInfo(cfg.get("timezone", "UTC"))
     now = now or datetime.now(UTC)
     screens = [make(store, zone, now) for make in SCREENS[name]] if name else []
     rotate = ROTATES.get(name or "", True)
     lights_off = dim(store)
-    if name == "home":
-        # What plays comes first; the favourites last (`music`: the hub's Spotify state).
-        screens = [playing_screen(music, now), *screens, music_screen(music)]
-        screens, rotate = home_rules(screens, lights_off)
     if name == "house":
-        # A running pipeline takes House over, alone (plan.md M21); otherwise its idle
-        # card turns along with House's other screens.
+        # Home's screens: what plays first, the favourites last (`music`: the hub's Spotify
+        # state). A running pipeline takes House over, alone (plan.md M21); otherwise its
+        # idle card turns along with the other screens.
+        own = len(HOUSE)
+        screens = [*screens[:own], playing_screen(music, now), *screens[own:],
+                   music_screen(music)]
         shown, rotate = house_pipelines(store, zone, now)
-        taking_over = any(s["kind"] == "pipeline" for s in shown)
-        screens = shown if taking_over else [*shown, *screens]
+        if any(s["kind"] == "pipeline" for s in shown):
+            screens = shown
+        else:
+            screens, rotate = house_rules([*shown, *screens], lights_off)
     if board and name is None:
         screens = [board_screen(board, *UNASSIGNED)]
     elif board and not any(s.get("present", True) for s in screens):
@@ -243,5 +247,5 @@ def answer(cfg: dict[str, Any], store: Store, name: str | None,
         "dim": lights_off,
         "rotate": rotate,
         # An open error takes over every panel until dismissed on one (plan.md M16).
-        "takeover": takeover(store, zone, now) if name else None,
+        "takeover": takeover(store, zone, now) if name in TAKEOVER else None,
     }

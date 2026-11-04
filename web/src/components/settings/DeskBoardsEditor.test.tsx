@@ -109,7 +109,7 @@ describe('DeskBoardsEditor', () => {
     stubApi({ '/api/settings/desk-boards': BOARDS, [`PUT ${URL_C8}`]: failWith(404, { detail: 'No such board.' }) })
     render(<DeskBoardsEditor now={NOW} />)
 
-    fireEvent.click(within(await screen.findByRole('radiogroup', { name: 'Panel for e8:f6:0a:e4:42:c8' })).getByRole('radio', { name: 'Home' }))
+    fireEvent.click(within(await screen.findByRole('radiogroup', { name: 'Panel for e8:f6:0a:e4:42:c8' })).getByRole('radio', { name: 'Door' }))
 
     expect(within(await screen.findByRole('alert')).getByText(/No such board/)).toBeInTheDocument()
   })

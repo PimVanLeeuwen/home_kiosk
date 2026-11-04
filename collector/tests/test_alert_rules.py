@@ -528,16 +528,16 @@ def test_a_desk_panel_quiet_for_ten_minutes_is_a_warning():
 
 def test_a_quiet_desk_panel_warns_once_and_resolves_when_it_asks_again(rule_store):
     desk_boards.check_in(rule_store, BOARD, "f4da96d", NOW - timedelta(minutes=10))
-    desk_boards.assign(rule_store, BOARD, "home")
+    desk_boards.assign(rule_store, BOARD, "door")
     assert run_check(rule_store) == [
-        "<b>WARNING</b> · <b>The Home panel is quiet</b>\nBoard e8:f6:0a:e4:42:b0 has not asked "
+        "<b>WARNING</b> · <b>The Door panel is quiet</b>\nBoard e8:f6:0a:e4:42:b0 has not asked "
         "the hub for 10 min: off, out of Wi-Fi reach, or stuck."]
     assert run_check(rule_store, NOW + timedelta(minutes=5)) == []
 
     back = NOW + timedelta(minutes=15)
     desk_boards.check_in(rule_store, BOARD, "f4da96d", back)
     assert run_check(rule_store, back) == [
-        "<b>OK</b> · <b>Resolved: The Home panel is quiet</b>\nafter 15 min"]
+        "<b>OK</b> · <b>Resolved: The Door panel is quiet</b>\nafter 15 min"]
 
 
 def dns_payload(failing_since=None, failing="dns"):

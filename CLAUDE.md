@@ -187,6 +187,13 @@ python3 dashboard/serve.py
   message's own hub page for 7 days, with its state, an explanation on request (warnings and
   errors) and links onward; disk, storage box, portfolio move, the Portfolio report and the
   briefing carry a painted picture in percentages only; no native iOS app for now. plan.md M31.
+- 2026-11-03: the Home board becomes a Door panel by the front door, hung from the socket on a
+  USB-C charger in a printed shell, its picture turned 180° by a per-board switch; Home's screens
+  join House, which yields to an ERROR, then a running pipeline, then the light controls alone
+  while every light is off, and no longer holds on Now Playing (replaces 2026-10-21's music rule);
+  the Door panel is one calm today view (clock, both calendars, birthdays for 7 days, weather to
+  go out), no train and no ERROR takeover; birthdays from iCloud Contacts over CardDAV,
+  read-only. plan.md M32.
 
 ## Gotchas
 

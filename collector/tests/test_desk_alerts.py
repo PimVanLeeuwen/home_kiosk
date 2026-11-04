@@ -56,10 +56,11 @@ def test_the_worst_open_alert_large_and_the_others_below(store):
     assert "quiet" not in s
 
 
-def test_an_open_error_takes_over_every_panel(store):
+def test_an_open_error_takes_over_the_desk_panels_not_the_door(store):
     incident(store, "backup", severity="error", title="Backup failed: Files",
              opened="2026-10-21T01:41:00+00:00", body="rclone stopped with exit code 1.")
-    for name in ("now", "home", "house"):
+    assert desk.answer(CFG, store, "door", NOW)["takeover"] is None  # plan.md M32
+    for name in ("now", "house"):
         assert desk.answer(CFG, store, name, NOW)["takeover"] == {
             "key": "backup", "title": "Backup failed: Files",
             "body": "rclone stopped with exit code 1.", "since": "Wed 03:41"}

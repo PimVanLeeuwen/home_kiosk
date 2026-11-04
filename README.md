@@ -35,9 +35,9 @@ big portfolio moves, the Portfolio report and the morning briefing come with a p
 the hub (percentages only). The Telegram bot answers a few commands. Every
 night it mirrors my GitHub repos into the NAS backups and makes a copy of its own database.
 
-The **desk panels** are three 4" ESP32-P4 touch screens (Now, Home and House) that show the
-hub's cards: the time and weather, my train, the calendar, headlines, now playing, the living
-room's lights, the NAS and the portfolio. The old 720×1280 desk carousel still lives at `/kiosk/`.
+The **desk panels** are three 4" ESP32-P4 touch screens that show the hub's cards: Now and
+House on the desk (the time and weather, my train, the calendar, headlines, now playing, the
+living room's lights, the NAS and the portfolio) and Door by the front door (the day ahead). The old 720×1280 desk carousel still lives at `/kiosk/`.
 
 ## How it fits together
 
