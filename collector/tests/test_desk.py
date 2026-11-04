@@ -30,10 +30,10 @@ def test_the_now_panel_gets_its_clock_and_the_hubs_time(store):
     answer = desk.answer(CFG, store, "now", NOW)
 
     assert answer["time"] == {"epoch": NOW.timestamp(), "utc_offset": 7200}
-    (clock, sky, night, briefing, train, calendar, countdown, run, runweek, session, streets, day,
-     week, radar, year, news) = answer["screens"]
+    (clock, night, briefing, train, calendar, countdown, run, runweek, streets, day,
+     radar, news) = answer["screens"]
     # No runs and no plan in this house: the run screens stay out of the rotation.
-    assert [s["present"] for s in (run, runweek, session, streets)] == [False] * 4
+    assert [s["present"] for s in (run, runweek, streets)] == [False] * 3
     assert news == {"kind": "headlines", "stale": False, "present": False}
     assert calendar == {"kind": "agenda", "stale": False, "present": False}
     assert train == {"kind": "train", "stale": False, "present": False}
@@ -115,7 +115,7 @@ def test_no_forecast_yet_is_a_stale_day(store):
     assert (day["present"], day["stale"]) == (False, True)
 
 
-HOME_KINDS = ["playing", "lights", "air", "laundry", "apple", "photo", "art", "music"]
+HOME_KINDS = ["playing", "lights", "air", "laundry", "apple", "photo", "music"]
 
 
 def test_the_route_and_its_panel_names(store):
@@ -128,9 +128,8 @@ def test_the_route_and_its_panel_names(store):
     assert ([s["kind"] for s in door["screens"]], door["rotate"], door["takeover"]) == (
         ["door"], False, None)
     house = client.get("/api/desk/house").json()["screens"]
-    # The orbit clock always shows, its words by the date: tested in test_desk_pieces.
-    assert [{k: v for k, v in s.items() if k != "background"} for s in house[:-len(HOME_KINDS)]
-            if s["kind"] != "orbit"] == [
+    assert [{k: v for k, v in s.items() if k != "background"}
+            for s in house[:-len(HOME_KINDS)]] == [
         {"kind": "pipelines", "stale": False, "present": False},
         {"kind": "nas", "stale": False, "present": False},
         {"kind": "code", "stale": False, "present": False},
@@ -139,7 +138,6 @@ def test_the_route_and_its_panel_names(store):
         {"kind": "tailnet", "stale": False, "present": False},
         {"kind": "money", "stale": False, "present": False},
         {"kind": "movers", "stale": False, "present": False},
-        {"kind": "media", "stale": False, "present": False},
         {"kind": "backups", "stale": False, "present": False},
         {"kind": "alerts", "stale": False, "present": True, "title": "ALERTS",
          "status": "NONE OPEN", "tone": "ok",
@@ -184,8 +182,8 @@ def test_an_assigned_board_gets_its_panels_screens(store):
     answer = client.get(f"/api/desk/board/{MAC}").json()
     assert answer["name"] == "now"
     kinds = [s["kind"] for s in answer["screens"]]
-    assert kinds == ["clock", "sky", "night", "briefing", "train", "agenda", "countdown", "run",
-                     "runweek", "session", "streets", "day", "week", "radar", "year", "headlines"]
+    assert kinds == ["clock", "night", "briefing", "train", "agenda", "countdown", "run",
+                     "runweek", "streets", "day", "radar", "headlines"]
 
 
 def test_a_new_panel_without_data_shows_its_today_view_not_its_board(store):
@@ -353,7 +351,7 @@ def test_the_other_panels_keep_turning(store):
 def test_an_answer_too_big_for_a_board_leaves_screens_out(store):
     big = {"name": "house", "screens": [
         {"kind": kind, "stale": False, "present": True, "words": "x" * 1700}
-        for kind in ("pipelines", "nas", "code", "media", "backups", "alerts")]}
+        for kind in ("pipelines", "nas", "code", "movers", "backups", "alerts")]}
     fitted = desk.fit(dict(big), 8192)
     assert [s["kind"] for s in fitted["screens"]] == ["pipelines", "nas", "code", "alerts"]
     assert desk.size(fitted) <= 8192 - 64

@@ -10,18 +10,14 @@ no #), lines (at most, cut with "..." after) and spacing (for the small capitals
 from __future__ import annotations
 
 import math
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from . import paint_art, paint_year
 from .desk_clock import _local, _phase, clock_screen, condition
 from .panel_text import latin1
-from .sources import countdown, forecast, photo, radar, weather
+from .sources import countdown, photo, radar, weather
 from .store import Store
-
-GOLDEN = timedelta(hours=1)  # golden hour: the hour before sunset
-DARK = timedelta(minutes=40)  # after sunset: dusk until then (as the Clock's twilight)
 
 
 def label(text: str, x: int, y: int, *, width: int = 648, font: str = "24",
@@ -48,47 +44,6 @@ def _sun(store: Store, zone: ZoneInfo, now: datetime) -> tuple[datetime | None, 
         return None, None
     day = dict(year=local.year, month=local.month, day=local.day)
     return rise.replace(**day), down.replace(**day)
-
-
-def next_light(local: datetime, rise: datetime | None, down: datetime | None) -> str:
-    """What the light does next: "Golden hour from 17:26", "Sunset 18:26", "Dark from 19:06"."""
-    if rise is None or down is None:
-        return ""
-    if local < rise:
-        return f"Sunrise {rise:%H:%M}"
-    if local < down - GOLDEN:
-        return f"Golden hour from {down - GOLDEN:%H:%M}"
-    if local < down:
-        return f"Sunset {down:%H:%M}"
-    if local < down + DARK:
-        return f"Dark from {down + DARK:%H:%M}"
-    return f"Sunrise {rise + timedelta(days=1):%H:%M}"
-
-
-def sky_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
-    """A, the living sky: by day, at dawn and at dusk; the night sky takes over after dark."""
-    clock = clock_screen(store, zone, now)
-    local = now.astimezone(zone)
-    rise, down = _sun(store, zone, now)
-    sky = clock.get("horizon") or {}
-    if not sky or _phase(local, rise, down) == "night":
-        return absent("sky")
-    words = clock.get("description") or ""
-    temperature = clock.get("temperature")
-    weather_line = " · ".join(p for p in (f"{temperature}°" if temperature is not None else "",
-                                          words) if p)
-    return {
-        "kind": "sky", "stale": clock["stale"], "present": True,
-        "horizon": sky, "phase": _phase(local, rise, down),
-        "labels": [
-            caps(local.strftime("%a %-d %b"), 36, 24, width=320),
-            caps(clock.get("place") or "", 684, 24, width=320, align="right"),
-            label(next_light(local, rise, down), 360, 566, font="28", align="centre",
-                  colour="ffffff"),
-            label(weather_line, 360, 618, align="centre", colour="c9c6d6"),
-        ],
-        "clock": label("", 360, 150, font="clock", align="centre", colour="ffffff"),
-    }
 
 
 # Constellations as the night sky draws them (paint_night): which one is up, by season.
@@ -138,64 +93,6 @@ def night_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     }
 
 
-def year_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
-    """H, the year: Earth on its path round the sun at today (paint_year), the day's number
-    large below it; the panel breathes a halo round Earth (`path`, one point)."""
-    local = now.astimezone(zone)
-    days = 366 if local.year % 4 == 0 and (local.year % 100 or local.year % 400 == 0) else 365
-    today = local.timetuple().tm_yday
-    left = days - today
-    x, y = paint_year.earth(today, days)
-    return {
-        "kind": "year", "stale": False, "present": True,
-        "year": local.year, "today": today, "days": days, "path": [[round(x), round(y)]],
-        "labels": [
-            caps(f"The year · {local.year}", 36, 24, width=400),
-            caps(local.strftime("%a %-d %b"), 684, 24, width=300, align="right"),
-            label(str(today), 36, 534, width=300, font="digits"),
-            label(f"of {days}", 40, 608, width=300, font="28", colour="9a9fb8"),
-            label(f"{left} day{'s' if left != 1 else ''} left this year", 684, 608,
-                  width=400, font="28", align="right", colour="e6e3ef"),
-        ],
-    }
-
-
-SEASONS = {12: "winter", 1: "winter", 2: "winter", 3: "spring", 4: "spring", 5: "spring",
-           6: "summer", 7: "summer", 8: "summer", 9: "autumn", 10: "autumn", 11: "autumn"}
-
-
-def art_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
-    """F, the art of the day: a new landscape each morning (paint_art), numbered by the day of
-    the year and named by its light."""
-    local = now.astimezone(zone)
-    number = local.timetuple().tm_yday
-    season = SEASONS[local.month]
-    day = local.date().toordinal()
-    return {
-        "kind": "art", "stale": False, "present": True,
-        "day": day, "season": season,
-        "labels": [
-            caps("Art of the day", 36, 24, width=400),
-            caps(f"No. {number}", 684, 24, width=300, align="right"),
-            label(f"Ridges at {paint_art.light(day)}, {season}", 36, 662, colour="c9c6d6"),
-        ],
-    }
-
-
-def orbit_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
-    """C, the orbit clock (House): the panel moves the hour, the minute and the second
-    round the sun (panels/firmware/main/screen_piece.c); the hub paints the sky."""
-    local = now.astimezone(zone)
-    return {
-        "kind": "orbit", "stale": False, "present": True,
-        "labels": [
-            caps("Orbit", 36, 24, width=300),
-            caps(local.strftime("%a %-d %b"), 684, 24, width=300, align="right"),
-        ],
-        "clock": label("", 360, 662, width=300, font="28", align="centre", colour="c9c6d6"),
-    }
-
-
 def _days_word(n: int) -> str:
     return f"{n} day{'s' if n != 1 else ''}"
 
@@ -230,63 +127,7 @@ def countdown_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, A
             "days": days, "colour": first["colour"], "labels": labels}
 
 
-# The week view's columns and ridges (paint_week draws the same): the highs a ridge between
 # 250 and 420, the lows a range in front between 480 and 600.
-WEEK_LEFT, WEEK_COLUMN = 36, 648 / 7
-HIGH_TOP, HIGH_BOTTOM = 250, 420
-LOW_TOP, LOW_BOTTOM = 480, 600
-
-
-def week_x(i: int) -> int:
-    return round(WEEK_LEFT + WEEK_COLUMN * (i + 0.5))
-
-
-def _share(temp: float, warmest: float, coldest: float) -> float:
-    """0 at the week's warmest, 1 at its coldest."""
-    return (warmest - temp) / max(4.0, warmest - coldest)
-
-
-def ridge_high(temp: float, warmest: float, coldest: float) -> int:
-    return round(HIGH_TOP + _share(temp, warmest, coldest) * (HIGH_BOTTOM - HIGH_TOP))
-
-
-def ridge_low(temp: float, warmest: float, coldest: float) -> int:
-    return round(LOW_TOP + _share(temp, warmest, coldest) * (LOW_BOTTOM - LOW_TOP))
-
-
-def week_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
-    """J, your week: seven days as columns, each from its low to its high, with its sky,
-    its chance of rain and a dot per event (the calendars' colours)."""
-    days = ((store.get_cache(forecast.CACHE_KEY) or {}).get("days") or [])[:7]
-    if len(days) < 7:
-        return absent("week")
-    week = store.get_cache(countdown.CACHE_KEY) or {}
-    colours = week.get("per_day_colours") or {}
-    warmest, coldest = max(d["high"] for d in days), min(d["low"] for d in days)
-    labels = [caps("Your week", 36, 24, width=300), caps("Open-Meteo", 684, 24, width=300,
-                                                         align="right", colour="6c6a78")]
-    for i, d in enumerate(days):
-        x = week_x(i)
-        name = "Today" if i == 0 else date.fromisoformat(d["date"]).strftime("%a")
-        labels += [
-            caps(name, x, 76, width=90, align="centre", colour="ffffff"),
-            label(f"{round(d['high'])}°", x, ridge_high(d["high"], warmest, coldest) - 44,
-                  width=90, font="28", align="centre"),
-            label(f"{round(d['low'])}°", x, ridge_low(d["low"], warmest, coldest) + 14,
-                  width=90, align="centre", colour="c9c6d6"),
-            label(f"{d['rain_max']}%" if (d.get("rain_max") or 0) >= 20 else "", x, 640,
-                  width=90, align="centre", colour="9cc7fa"),
-        ]
-    return {
-        "kind": "week", "stale": bool((store.get_cache(forecast.CACHE_KEY) or {}).get("stale")),
-        "present": True, "warmest": warmest, "coldest": coldest,
-        "days": [{"high": round(d["high"], 1), "low": round(d["low"], 1), "code": d.get("code"),
-                  "rain": d.get("rain_max") or 0, "events": colours.get(d["date"], [])}
-                 for d in days],
-        "labels": labels,
-    }
-
-
 def radar_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     """I, the rain radar: while rain is expected within two hours, Buienradar's radar round
     home, the next two hours as bars and the Clock's rain line."""

@@ -23,36 +23,17 @@ def sky_store(store, description="Licht bewolkt"):
     return store
 
 
-def kinds_present(store, now):
-    return [s["kind"] for s in (desk_pieces.sky_screen(store, ZONE, now),
-                                desk_pieces.night_screen(store, ZONE, now)) if s["present"]]
+def night(store, now):
+    return desk_pieces.night_screen(store, ZONE, now)["present"]
 
 
-def test_the_living_sky_by_day_the_night_sky_after_dark_when_clear(store):
+def test_the_night_sky_after_dark_when_clear(store):
     sky_store(store)
-    assert kinds_present(store, at(12).astimezone(UTC)) == ["sky"]
-    assert kinds_present(store, at(17, 30).astimezone(UTC)) == ["sky"]  # dusk
-    assert kinds_present(store, at(23).astimezone(UTC)) == ["night"]
+    assert not night(store, at(12).astimezone(UTC))
+    assert not night(store, at(17, 30).astimezone(UTC))  # dusk
+    assert night(store, at(23).astimezone(UTC))
     sky_store(store, "Zwaar bewolkt")
-    assert kinds_present(store, at(23).astimezone(UTC)) == []  # the Clock alone then
-
-
-def test_what_the_light_does_next():
-    rise, down = at(7, 20), at(17, 24)
-    assert desk_pieces.next_light(at(6), rise, down) == "Sunrise 07:20"
-    assert desk_pieces.next_light(at(12), rise, down) == "Golden hour from 16:24"
-    assert desk_pieces.next_light(at(16, 40), rise, down) == "Sunset 17:24"
-    assert desk_pieces.next_light(at(17, 40), rise, down) == "Dark from 18:04"
-    assert desk_pieces.next_light(at(22), rise, down) == "Sunrise 07:20"
-    assert desk_pieces.next_light(at(12), None, None) == ""
-
-
-def test_the_sky_carries_its_words_and_the_time(store):
-    sky_store(store)
-    screen = desk_pieces.sky_screen(store, ZONE, at(12).astimezone(UTC))
-    texts = [label["text"] for label in screen["labels"]]
-    assert texts == ["SUN 25 OCT", "TESTDORP", "Golden hour from 16:24", "12° · A few clouds"]
-    assert screen["clock"]["font"] == "clock" and screen["horizon"]["top"]
+    assert not night(store, at(23).astimezone(UTC))  # the Clock alone then
 
 
 def test_the_moon_and_the_constellation_in_words():
@@ -62,71 +43,6 @@ def test_the_moon_and_the_constellation_in_words():
     assert desk_pieces.constellation(datetime(2026, 12, 1, 22)) == "Orion"
     assert desk_pieces.constellation(datetime(2026, 4, 1, 22)) == "the Big Dipper"
     assert desk_pieces.constellation(datetime(2026, 8, 1, 22)) == "Cassiopeia"
-
-
-def test_the_year_counts_its_days(store):
-    screen = desk_pieces.year_screen(store, ZONE, at(12).astimezone(UTC))
-    assert (screen["today"], screen["days"]) == (298, 365)
-    texts = [label["text"] for label in screen["labels"]]
-    assert "298" in texts and "of 365" in texts and "67 days left this year" in texts
-    leap = desk_pieces.year_screen(store, ZONE, datetime(2028, 12, 31, 12, tzinfo=UTC))
-    assert (leap["today"], leap["days"]) == (366, 366)
-
-
-def test_the_year_is_earths_path_round_the_sun(store):
-    from app import paint_year
-
-    assert paint_year.earth(1, 365) == (paint_year.SUN[0], paint_year.SUN[1] + paint_year.RY)
-    x, y = paint_year.earth(92, 365)  # 2 April, a quarter on: at the right of the sun
-    assert x > paint_year.SUN[0] + paint_year.RX - 2 and abs(y - paint_year.SUN[1]) < 2
-    assert paint_year.season(0) == paint_year.season(1) != paint_year.season(0.45)
-    screen = desk_pieces.year_screen(store, ZONE, at(12).astimezone(UTC))
-    assert screen["path"] == [[round(v) for v in paint_year.earth(298, 365)]]
-    picture = paint_year.paint_year(paint_year.inputs(screen, at(12)))
-    ex, ey = screen["path"][0]
-    assert picture.size == (720, 720) and sum(picture.getpixel((ex, ey))) > 150  # Earth, lit
-
-
-def test_the_art_is_a_landscape_named_by_its_light(store):
-    from app import paint_art
-
-    lights = [paint_art.light(day) for day in range(739_000, 739_060)]
-    assert set(lights) == {"dawn", "dusk", "night"} and paint_art.light(739_001) == lights[1]
-    art = desk_pieces.art_screen(store, ZONE, at(9).astimezone(UTC))
-    words = [label["text"] for label in art["labels"]]
-    assert words[2] == f"Ridges at {paint_art.light(art['day'])}, autumn"
-    night = next(d for d in range(739_000, 739_060) if paint_art.light(d) == "night")
-    dusk = next(d for d in range(739_000, 739_060) if paint_art.light(d) == "dusk")
-    sky = {d: ImageStat.Stat(paint_art.paint_art({"day": d, "season": "autumn"})
-                             .convert("L").crop((0, 60, 720, 160))).mean[0] for d in (night, dusk)}
-    assert sky[night] < sky[dusk]
-
-
-def test_the_art_and_the_orbit_always_show(store):
-    art = desk_pieces.art_screen(store, ZONE, at(9).astimezone(UTC))
-    assert art["present"] and art["season"] == "autumn"
-    assert [label["text"] for label in art["labels"]][1] == "NO. 298"
-    orbit = desk_pieces.orbit_screen(store, ZONE, at(9).astimezone(UTC))
-    assert orbit["present"] and orbit["clock"]["font"] == "28"
-
-
-def test_the_week_has_seven_columns_with_words_where_the_bars_are(store):
-    from datetime import date, timedelta
-
-    from app.sources import countdown, forecast
-    days = [{"date": (date(2026, 10, 26) + timedelta(days=i)).isoformat(), "high": 10 + i,
-             "low": 4 + i % 3, "sunrise": None, "sunset": None, "hours": [], "code": 61,
-             "rain_max": 30 if i == 0 else 10} for i in range(7)]
-    store.put_cache(forecast.CACHE_KEY, {"as_of": "x", "stale": False, "days": days})
-    store.put_cache(countdown.CACHE_KEY, {"as_of": "x", "stale": False, "events": [],
-                                          "per_day": {"2026-10-26": 2},
-                                          "per_day_colours": {"2026-10-26": ["#e6965a"]}})
-    screen = desk_pieces.week_screen(store, ZONE, at(9).astimezone(UTC))
-    texts = [label["text"] for label in screen["labels"]]
-    assert "TODAY" in texts and "TUE" in texts and "16°" in texts and "30%" in texts
-    assert len(screen["labels"]) == 30 and screen["days"][0]["events"] == ["#e6965a"]
-    store.put_cache(forecast.CACHE_KEY, {"as_of": "x", "stale": False, "days": days[:2]})
-    assert desk_pieces.week_screen(store, ZONE, at(9).astimezone(UTC))["present"] is False
 
 
 def test_the_radar_only_while_rain_is_coming(store):
@@ -148,15 +64,8 @@ def test_the_radar_only_while_rain_is_coming(store):
     assert radar.to_pixel(52.96, 4.76) == (radar.X0 + 4.76 * radar.PX_PER_LON, radar.Y0)
 
 
-def test_every_weather_paints_in_the_week_and_the_tunnel_at_any_distance():
-    from app import paint_countdown, paint_week
-    codes = [0, 2, 3, 45, 61, 71, 95]  # sun, partly, cloud, fog, rain, snow, thunder
-    days = [{"high": 2 + 2 * i, "low": -2 + i, "code": c, "rain": 60, "events": ["#e6965a"]}
-            for i, c in enumerate(codes)]
-    assert [paint_week.sky_of(c) for c in codes] == ["sun", "partly", "cloud", "fog", "rain",
-                                                     "snow", "thunder"]
-    week = paint_week.paint_week({"days": days, "warmest": 14, "coldest": -2})
-    assert week.size == (720, 720)
+def test_the_tunnel_paints_at_any_distance():
+    from app import paint_countdown
     for days_left in (0, 1, 19, 400):
         tunnel = paint_countdown.paint_countdown({"days": days_left, "colour": "#8f80ff"})
         assert tunnel.getpixel(paint_countdown.CORE)[0] > 240  # the day, white-hot

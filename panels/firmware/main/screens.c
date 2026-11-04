@@ -59,7 +59,6 @@
 #include "screen_tailnet.h"
 #include "screen_laundry.h"
 #include "screen_lights.h"
-#include "screen_media.h"
 #include "screen_money.h"
 #include "screen_music.h"
 #include "screen_playing.h"
@@ -74,16 +73,14 @@ LV_FONT_DECLARE(instrument_24);
 #define DARKEN 165 /* how much the dark layer takes away, of 255 */
 
 /* In the order they turn; the pieces (plan.md M27) where they belong among the others. */
-enum { CLOCK, SKY, NIGHT, BRIEFING, TRAIN, AGENDA, COUNTDOWN, RUN, RUNWEEK, SESSION, STREETS, DAY, WEEK, RADAR, YEAR, HEADLINES, PLAYING, LIGHTS,
-       AIR, LAUNDRY, APPLE, PHOTO, ART, MUSIC, PIPELINE, PIPELINES, NAS, ORBIT, CODE, SITES, SERVICES, TAILNET, MONEY,
-       MOVERS, MEDIA, BACKUPS, ALERTS, DOOR, BOARD, START, COUNT };
+enum { CLOCK, NIGHT, BRIEFING, TRAIN, AGENDA, COUNTDOWN, RUN, RUNWEEK, STREETS, DAY, RADAR, HEADLINES, PLAYING, LIGHTS,
+       AIR, LAUNDRY, APPLE, PHOTO, MUSIC, PIPELINE, PIPELINES, NAS, CODE, SITES, SERVICES, TAILNET, MONEY,
+       MOVERS, BACKUPS, ALERTS, DOOR, BOARD, START, COUNT };
 
 /* Each piece's screen, by its place in desk_piece.h. */
 static const int PIECE_SCREEN[PIECES] = {
-    [PIECE_SKY] = SKY,   [PIECE_NIGHT] = NIGHT, [PIECE_YEAR] = YEAR, [PIECE_WEEK] = WEEK,
-    [PIECE_RADAR] = RADAR, [PIECE_COUNTDOWN] = COUNTDOWN, [PIECE_ART] = ART, [PIECE_PHOTO] = PHOTO,
-    [PIECE_ORBIT] = ORBIT, [PIECE_RUN] = RUN, [PIECE_RUNWEEK] = RUNWEEK, [PIECE_SESSION] = SESSION,
-    [PIECE_STREETS] = STREETS,
+    [PIECE_NIGHT] = NIGHT, [PIECE_RADAR] = RADAR, [PIECE_COUNTDOWN] = COUNTDOWN, [PIECE_PHOTO] = PHOTO,
+    [PIECE_RUN] = RUN, [PIECE_RUNWEEK] = RUNWEEK, [PIECE_STREETS] = STREETS,
 };
 
 static lv_obj_t *screens[COUNT];
@@ -146,26 +143,18 @@ static bool ready(int which)
         return desk_has_money();
     case MOVERS:
         return desk_has_movers();
-    case MEDIA:
-        return desk_has_media();
     case BACKUPS:
         return desk_has_backups();
     case ALERTS:
         return desk_has_alerts();
     case DOOR:
         return desk_has_door();
-    case SKY:
     case NIGHT:
-    case YEAR:
-    case WEEK:
     case RADAR:
     case COUNTDOWN:
-    case ART:
     case PHOTO:
-    case ORBIT:
     case RUN:
     case RUNWEEK:
-    case SESSION:
     case STREETS:
         for (int p = 0; p < PIECES; p++) {
             if (PIECE_SCREEN[p] == which) {
@@ -401,7 +390,6 @@ void screens_start(void)
     screens[TAILNET] = lv_obj_create(NULL);
     screens[MONEY] = lv_obj_create(NULL);
     screens[MOVERS] = lv_obj_create(NULL);
-    screens[MEDIA] = lv_obj_create(NULL);
     screens[BACKUPS] = lv_obj_create(NULL);
     screens[ALERTS] = lv_obj_create(NULL);
     screens[DOOR] = lv_obj_create(NULL);
@@ -431,7 +419,6 @@ void screens_start(void)
     backdrops_attach(screens[TAILNET], "tailnet");
     backdrops_attach(screens[MONEY], "money");
     backdrops_attach(screens[MOVERS], "movers");
-    backdrops_attach(screens[MEDIA], "media");
     backdrops_attach(screens[BACKUPS], "backups");
     backdrops_attach(screens[ALERTS], "alerts");
     backdrops_attach(screens[PIPELINES], "pipelines");
@@ -452,7 +439,6 @@ void screens_start(void)
     screen_tailnet_create(screens[TAILNET]);
     screen_money_create(screens[MONEY]);
     screen_movers_create(screens[MOVERS]);
-    screen_media_create(screens[MEDIA]);
     screen_backups_create(screens[BACKUPS]);
     screen_alerts_create(screens[ALERTS]);
     screen_door_create(screens[DOOR]);

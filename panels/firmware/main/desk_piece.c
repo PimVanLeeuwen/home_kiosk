@@ -11,8 +11,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 
-static const char *NAMES[PIECES] = {"sky",   "night", "year", "week",    "radar",  "countdown",
-                                     "art",   "photo", "orbit", "run", "runweek", "session",
+static const char *NAMES[PIECES] = {"night", "radar", "countdown", "photo", "run", "runweek",
                                      "streets"};
 static const char *FONTS[] = {"24", "28", "40", "52", "clock", "digits"};
 

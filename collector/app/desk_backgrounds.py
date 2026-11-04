@@ -24,7 +24,6 @@ from . import (
     paint_agenda,
     paint_air,
     paint_apple,
-    paint_art,
     paint_clock,
     paint_code,
     paint_countdown,
@@ -33,25 +32,19 @@ from . import (
     paint_headlines,
     paint_house,
     paint_laundry,
-    paint_media,
     paint_music,
     paint_night,
-    paint_orbit,
     paint_photo,
     paint_playing,
     paint_radar,
     paint_run,
     paint_runweek,
-    paint_session,
-    paint_sky,
     paint_streets,
-    paint_week,
-    paint_year,
 )
 from .store import Store
 
 # Bumped when a painter changes, so every background is painted again.
-VERSION = 23
+VERSION = 24
 KEEP = 6  # per kind: what the panels may still ask for
 PATH = "/api/desk/background/"
 
@@ -81,22 +74,15 @@ PAINTERS: dict[str, tuple[Inputs, Painter]] = {
     "music": (paint_music.inputs, paint_music.paint_music),
     "run": (paint_run.inputs, paint_run.paint_run),
     "runweek": (paint_runweek.inputs, paint_runweek.paint_runweek),
-    "session": (paint_session.inputs, paint_session.paint_session),
     "streets": (paint_streets.inputs, paint_streets.paint_streets),
     "laundry": (paint_laundry.inputs, paint_laundry.paint_laundry),
-    "sky": (paint_sky.inputs, paint_sky.paint_sky),
     "night": (paint_night.inputs, paint_night.paint_night),
-    "year": (paint_year.inputs, paint_year.paint_year),
-    "art": (paint_art.inputs, paint_art.paint_art),
-    "orbit": (paint_orbit.inputs, paint_orbit.paint_orbit),
     "code": (paint_code.inputs, paint_code.paint_code),
-    "media": (paint_media.inputs, paint_media.paint_media),
     "countdown": (paint_countdown.inputs, paint_countdown.paint_countdown),
-    "week": (paint_week.inputs, paint_week.paint_week),
     "radar": (paint_radar.inputs, paint_radar.paint_radar),
     "photo": (paint_photo.inputs, paint_photo.paint_photo),
     **{kind: (paint_house.inputs_for(kind), paint_house.paint_house)
-       for kind in paint_house.SCREENS if kind not in ("code", "media")},
+       for kind in paint_house.SCREENS if kind != "code"},
 }
 
 

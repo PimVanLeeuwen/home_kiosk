@@ -2024,8 +2024,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   90° and x. Checked by eye and with taps logged in both corners. M32 is built; the screen
   review (below) is next.
 - To settle while building: the shell's fit on the real charger and socket.
-- After M32: look critically at which screens the two desk panels still need (for example the
-  year's days gone, made for three panels' worth of rotation).
+- Decided 2026-11-04 (the screen review after the merge): off the desk panels, their code
+  deleted: on Now the sky (the Clock paints the same horizon), the year, your week and the
+  running session; on House the orbit clock, the art of the day and Media. The hub's own pages
+  keep the week (Weather) and the session (Running). Now turns through about 7 screens a round
+  and House about 14, at 15 s each. The panels' picture slots 9 and 10 (Media's posters) are
+  free.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

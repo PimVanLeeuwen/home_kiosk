@@ -30,23 +30,17 @@ from .desk_home import (
     music_screen,
     playing_screen,
 )
-from .desk_media import media_screen
 from .desk_money import money_screen
 from .desk_movers import movers_screen
 from .desk_nas import nas_screen
 from .desk_pieces import (
-    art_screen,
     countdown_screen,
     night_screen,
-    orbit_screen,
     photo_screen,
     radar_screen,
-    sky_screen,
-    week_screen,
-    year_screen,
 )
 from .desk_pipelines import house_pipelines
-from .desk_running import run_screen, runweek_screen, session_screen, streets_screen
+from .desk_running import run_screen, runweek_screen, streets_screen
 from .desk_services import services_screen
 from .desk_sites import sites_screen
 from .desk_tailnet import tailnet_screen
@@ -130,15 +124,17 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     return headlines_screen(store, now)
 
 
-NOW = (clock_screen, sky_screen, night_screen, briefing_screen, train_screen, agenda_screen,
-       countdown_screen, run_screen, runweek_screen, session_screen, streets_screen, day_screen,
-       week_screen, radar_screen, year_screen, _headlines)
+# Decided 2026-11-04 (plan.md M32): the sky, the week, the year and the session are gone.
+NOW = (clock_screen, night_screen, briefing_screen, train_screen, agenda_screen,
+       countdown_screen, run_screen, runweek_screen, streets_screen, day_screen,
+       radar_screen, _headlines)
 # Decided 2026-10-22: NAS first and Backups before Alerts, as in the mockup.
-HOUSE = (nas_screen, orbit_screen, code_screen, sites_screen, services_screen, tailnet_screen,
-         money_screen, movers_screen, media_screen, backups_screen, alerts_screen)
+# Decided 2026-11-04 (plan.md M32): the orbit clock and Media are gone.
+HOUSE = (nas_screen, code_screen, sites_screen, services_screen, tailnet_screen,
+         money_screen, movers_screen, backups_screen, alerts_screen)
 # The Home panel's screens, on House since its board went to the door (plan.md M32), after
 # House's own; Now Playing goes before them and the favourites after (they need `music`).
-HOME = (lights_screen, air_screen, laundry_screen, apple_screen, photo_screen, art_screen)
+HOME = (lights_screen, air_screen, laundry_screen, apple_screen, photo_screen)
 # The Door panel: one calm today view (plan.md M32).
 DOOR = (door_screen,)
 SCREENS = {"now": NOW, "house": (*HOUSE, *HOME), "door": DOOR, "test": NOW}
@@ -152,9 +148,8 @@ TAKEOVER = {"now", "house", "test"}
 # read 8 kB), and the screens left out first when an answer is too big for a board:
 # the pieces (plan.md M27) first, then the newest, the alerts last.
 ROOM = 8192
-DROP_FIRST = ("orbit", "art", "year", "night", "sky", "countdown", "week", "radar", "photo",
-              "streets", "runweek", "session", "run",
-              "money", "media", "backups", "movers", "tailnet", "services", "sites", "code",
+DROP_FIRST = ("night", "countdown", "radar", "photo", "streets", "runweek", "run",
+              "money", "backups", "movers", "tailnet", "services", "sites", "code",
               "nas", "pipelines", "headlines", "agenda", "day", "apple", "laundry", "air")
 
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 from zoneinfo import ZoneInfo
 
-from app import desk_running, paint_run, paint_runweek, paint_session
+from app import desk_running, paint_run, paint_runweek
 from app.sources import runna, runs
 from tests.test_runna import FEED
 from tests.test_running import run_on
@@ -59,23 +59,3 @@ def test_the_week_with_a_plan_or_a_run_this_week(store):
     assert picture.size == (720, 720)
 
 
-def test_the_next_session_the_day_before_and_on_the_day(store):
-    plan(store)
-    # Monday evening: tomorrow's Threshold Intervals.
-    screen = desk_running.session_screen(store, ZONE, at(26))
-    texts = [label["text"] for label in screen["labels"]]
-    assert screen["present"] and "NEXT RUN · TOMORROW" in texts
-    assert "Threshold Intervals" in texts and "8,0 km · 45m - 50m" in texts
-    assert [b["kind"] for b in screen["blocks"]][:2] == ["easy", "rest"]
-    assert paint_session.paint_session(paint_session.inputs(screen, at(26))).size == (720, 720)
-    # Wednesday evening: Thursday's run is tomorrow. Sunday's is not there on Friday (two days
-    # ahead), and is on Saturday.
-    assert desk_running.session_screen(store, ZONE, at(28))["present"]
-    plan(store, date(2026, 10, 30))
-    friday = desk_running.session_screen(store, ZONE, datetime(2026, 10, 30, 8, tzinfo=UTC))
-    saturday = desk_running.session_screen(store, ZONE, datetime(2026, 10, 31, 8, tzinfo=UTC))
-    assert not friday["present"]
-    assert "Race Pace Intervals" in [lb["text"] for lb in saturday["labels"]]
-    plan(store, date(2026, 11, 2))
-    later = desk_running.session_screen(store, ZONE, datetime(2026, 11, 2, 8, tzinfo=UTC))
-    assert not later["present"]  # the next one (the race) is weeks away

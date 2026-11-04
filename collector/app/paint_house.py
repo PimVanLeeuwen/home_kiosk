@@ -55,7 +55,6 @@ SCREENS: dict[str, tuple[Callable[[dict[str, Any]], str], Spot]] = {
     # Violet: the chart's own colour depends on the period chosen on the panel.
     "money": (lambda s: VIOLET, (360, 430, 440, 0.24)),
     "movers": (lambda s: GREEN if s.get("total_up", True) else RED, (360, 380, 480, 0.2)),
-    "media": (lambda s: VIOLET if s.get("tone") in (None, "ok") else AMBER, (180, 200, 360, 0.26)),
     "backups": (_backups, (120, 150, 330, 0.34)),
     "alerts": (lambda s: _tone(s.get("tone")), (130, 180, 400, 0.32)),
     "pipelines": (lambda s: VIOLET, (360, 330, 400, 0.24)),

@@ -235,8 +235,7 @@ def test_a_running_pipeline_wins_over_the_lights_being_off(store):
 def test_before_any_pipeline_data_the_card_waits(store):
     out = desk.answer(CFG, store, "house", NOW)
     # Home's screens follow (plan.md M32): tested in test_desk.
-    screens = [{k: v for k, v in s.items() if k != "background"} for s in out["screens"][:-8]
-               if s["kind"] != "orbit"]  # always shown: tested in test_desk_pieces
+    screens = [{k: v for k, v in s.items() if k != "background"} for s in out["screens"][:-7]]
     assert screens == [{"kind": "pipelines", "stale": False, "present": False},
         {"kind": "nas", "stale": False, "present": False},
         {"kind": "code", "stale": False, "present": False},
@@ -245,7 +244,6 @@ def test_before_any_pipeline_data_the_card_waits(store):
         {"kind": "tailnet", "stale": False, "present": False},
         {"kind": "money", "stale": False, "present": False},
         {"kind": "movers", "stale": False, "present": False},
-        {"kind": "media", "stale": False, "present": False},
         {"kind": "backups", "stale": False, "present": False},
         {"kind": "alerts", "stale": False, "present": True, "title": "ALERTS",
          "status": "NONE OPEN", "tone": "ok",

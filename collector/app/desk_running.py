@@ -24,8 +24,6 @@ ROUTE_BOX = (60, 320, 660, 690)
 PATH_POINTS = 64
 # B: the week's columns.
 WEEK_LEFT, WEEK_WIDTH, WEEK_TOP, WEEK_BOTTOM = 36, 648, 250, 600
-# C: the session's blocks.
-BLOCKS_BOX = (36, 300, 684, 520)
 
 # The clock font's advance per glyph, in pixels (panels/firmware/main/fonts/instrument_clock.c,
 # adv_w / 16), so the unit can follow a number set in it.
@@ -147,27 +145,6 @@ def runweek_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any
                                       "runs": d["runs"][:1], "today": d["date"] == today}
                                      for d in view["week"]],
             "labels": labels}
-
-
-def session_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
-    """C: the next session, on the day before it and on the day until it is run."""
-    view = running.overview(store, zone, now)
-    nxt = view["next"]
-    local = now.astimezone(zone)
-    if not nxt or nxt["date"] > (local.date() + timedelta(days=1)).isoformat():
-        return absent("session")
-    when = _when(nxt["date"], local) + (f", {nxt['time']}" if nxt.get("time") else "")
-    facts = " · ".join(x for x in (f"{km(nxt['distance_m'])} km" if nxt.get("distance_m") else None,
-                                   nxt.get("estimate")) if x)
-    labels = [
-        caps(f"Next run · {when}", 36, 24, width=648),
-        label(latin1(nxt["name"]), 36, 64, width=648, font="52", lines=2),
-        label(latin1(facts), 36, 200, width=648, font="28", colour="c9c6d6"),
-    ]
-    for i, step in enumerate(nxt.get("steps", [])[:3]):
-        labels.append(label(latin1(step), 36, 576 + i * 36, width=648, colour="9a9fb8"))
-    return {"kind": "session", "stale": bool(view["stale"]), "present": True,
-            "blocks": nxt.get("blocks", []), "labels": labels}
 
 
 def streets_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:

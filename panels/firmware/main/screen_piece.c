@@ -2,21 +2,12 @@
  * and places the words; this lays them out, and keeps the time where the piece asks for it
  * by the panel's own clock. One instance per piece, the same code for all of them.
  *
- * The orbit clock (C) adds its bodies: the hour, the minute and the second going round the
- * hub's painted sun on its orbits, the second with a fading tail, 25 steps a second while
- * it shows (at ten it jumped about 3 px a step on the outer orbit); small objects moved by
- * their real position, nothing transformed. The hour and the minute, which move less than a
- * pixel a second, are placed once a second.
- *
  * The countdown (K) sends sparks streaming out of the hub's painted tunnel: from its core,
  * the day, towards you, faster and bigger as they come, 25 steps a second.
  *
  * The last run (plan.md M28, A), and your streets (D) on a run day, have a light running the
  * route, from the hub's `path`: a lap of six seconds with a short tail, then a breath, 25 steps
- * a second.
- *
- * The year (H) breathes a halo round Earth, at the hub's `path` (one point): in and out over
- * four seconds, 25 steps a second; one small object, nothing transformed. */
+ * a second. */
 
 #include "screen_piece.h"
 
@@ -38,12 +29,6 @@ LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_clock);
 LV_FONT_DECLARE(instrument_time);
 
-#define ORBIT_X 360   /* the sun, and the orbits' radii, as app/paint_orbit.py paints them */
-#define ORBIT_Y 360
-#define TAIL 5
-#define ORBIT_MS 40
-static const int RADII[3] = {118, 196, 276};
-
 #define CORE_X 360    /* the tunnel's core, as app/paint_countdown.py paints it */
 #define CORE_Y 200
 #define SPARKS 13     /* each moves two areas a step: under LVGL's 32 */
@@ -61,22 +46,14 @@ typedef struct {
 #define RUN_PAUSE 0.25f /* a quarter of a lap at rest between laps */
 #define RUN_TAIL_GAP 0.012f
 
-#define HALO 40          /* Earth is 34 across in app/paint_year.py: the halo rings it */
-#define HALO_MS 40
-#define HALO_BREATH_MS 4000
-
 typedef struct {
     int which;
-    lv_obj_t *bodies[3], *tail[TAIL];
     uint32_t version;
     int minute;
-    int orbit_second; /* the second the hour and the minute were last placed in */
     lv_obj_t *labels[PIECE_LABELS], *clock;
     spark_t sparks[SPARKS];
     lv_obj_t *runner[RUN_TAIL + 1]; /* the light first, then its tail */
     float lap;
-    lv_obj_t *halo;
-    float breath;
     desk_piece_t shown;
 } piece_screen_t;
 
@@ -164,37 +141,6 @@ static lv_obj_t *body(lv_obj_t *screen, int size, uint32_t colour, lv_opa_t glow
     return b;
 }
 
-static void at_angle(lv_obj_t *b, int radius, float turn) /* turn: 0 to 1 from the top, clockwise */
-{
-    float a = turn * 2 * (float)M_PI - (float)M_PI / 2;
-    int size = lv_obj_get_width(b);
-    lv_obj_set_pos(b, ORBIT_X + (int)(radius * cosf(a)) - size / 2, ORBIT_Y + (int)(radius * sinf(a)) - size / 2);
-}
-
-static void orbit(lv_timer_t *timer)
-{
-    piece_screen_t *p = lv_timer_get_user_data(timer);
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    if (lv_screen_active() != lv_obj_get_screen(p->bodies[0]) || tv.tv_sec < 1700000000) {
-        return;
-    }
-    time_t local = tv.tv_sec + desk_clock().utc_offset;
-    struct tm t;
-    gmtime_r(&local, &t);
-    float second = (t.tm_sec + tv.tv_usec / 1e6f) / 60, minute = (t.tm_min + second) / 60;
-    float hour = (t.tm_hour % 12 + minute) / 12;
-    if (t.tm_sec != p->orbit_second) {
-        p->orbit_second = t.tm_sec;
-        at_angle(p->bodies[0], RADII[0], hour);
-        at_angle(p->bodies[1], RADII[1], minute);
-    }
-    at_angle(p->bodies[2], RADII[2], second);
-    for (int i = 0; i < TAIL; i++) {
-        at_angle(p->tail[i], RADII[2], second - (i + 1) * 0.006f);
-    }
-}
-
 static float chance(void) /* 0 to 1: a small generator of its own */
 {
     static uint32_t seed = 2463534242u;
@@ -248,27 +194,6 @@ static void along(const desk_piece_t *piece, float share, int *x, int *y)
     *y = (int)(piece->path[i][1] + f * (piece->path[i + 1][1] - piece->path[i][1]));
 }
 
-static void halo(lv_timer_t *timer)
-{
-    piece_screen_t *p = lv_timer_get_user_data(timer);
-    if (lv_screen_active() != lv_obj_get_screen(p->halo)) {
-        return;
-    }
-    bool on = p->shown.path_count >= 1;
-    lv_obj_set_flag(p->halo, LV_OBJ_FLAG_HIDDEN, !on);
-    if (!on) {
-        return;
-    }
-    lv_obj_set_pos(p->halo, p->shown.path[0][0] - HALO / 2, p->shown.path[0][1] - HALO / 2);
-    p->breath += (float)HALO_MS / HALO_BREATH_MS;
-    if (p->breath >= 1) {
-        p->breath -= 1;
-    }
-    float in = 0.5f - 0.5f * cosf(2 * (float)M_PI * p->breath);
-    lv_obj_set_style_shadow_opa(p->halo, (lv_opa_t)(30 + 90 * in), 0);
-    lv_obj_set_style_border_opa(p->halo, (lv_opa_t)(30 + 90 * in), 0);
-}
-
 static void run_light(lv_timer_t *timer)
 {
     piece_screen_t *p = lv_timer_get_user_data(timer);
@@ -298,7 +223,6 @@ void screen_piece_create(lv_obj_t *screen, int which)
     piece_screen_t *p = heap_caps_calloc(1, sizeof *p, MALLOC_CAP_SPIRAM);
     p->which = which;
     p->minute = -1;
-    p->orbit_second = -1;
     if (which == PIECE_COUNTDOWN) { /* first, so the sparks pass under the words */
         for (int i = 0; i < SPARKS; i++) {
             p->sparks[i].dot = body(screen, 3, 0xfff1dc, 0);
@@ -324,26 +248,4 @@ void screen_piece_create(lv_obj_t *screen, int which)
     lv_obj_add_flag(p->clock, LV_OBJ_FLAG_HIDDEN);
     lv_timer_t *timer = lv_timer_create(tick, 1000, p);
     tick(timer);
-    if (which == PIECE_YEAR) {
-        p->halo = ui_plain(screen);
-        lv_obj_set_size(p->halo, HALO, HALO);
-        lv_obj_set_style_radius(p->halo, LV_RADIUS_CIRCLE, 0);
-        lv_obj_set_style_bg_opa(p->halo, LV_OPA_TRANSP, 0);
-        lv_obj_set_style_border_color(p->halo, lv_color_hex(0xcfe0ff), 0);
-        lv_obj_set_style_border_width(p->halo, 2, 0);
-        lv_obj_set_style_shadow_color(p->halo, lv_color_hex(0x8fb4ff), 0);
-        lv_obj_set_style_shadow_width(p->halo, 26, 0);
-        lv_obj_add_flag(p->halo, LV_OBJ_FLAG_HIDDEN);
-        lv_timer_create(halo, HALO_MS, p);
-    }
-    if (which == PIECE_ORBIT) {
-        for (int i = 0; i < TAIL; i++) {
-            p->tail[i] = body(screen, 8 - i, 0xe2dcff, 0);
-            lv_obj_set_style_bg_opa(p->tail[i], (lv_opa_t)(150 - i * 28), 0);
-        }
-        p->bodies[0] = body(screen, 30, 0xffb86b, 140);
-        p->bodies[1] = body(screen, 20, 0xc3b9ff, 120);
-        p->bodies[2] = body(screen, 11, 0xffffff, 160);
-        lv_timer_create(orbit, ORBIT_MS, p);
-    }
 }

@@ -9,13 +9,15 @@
  * (its background) with a few words laid on it, as the hub places them, and the time where
  * the hub asks for it. One firmware screen (screen_piece.c) shows any of them. */
 
+/* The sky, the year, the week, the art, the orbit clock and the session went on 2026-11-04
+ * (plan.md M32). */
 enum {
-    PIECE_SKY, PIECE_NIGHT, PIECE_YEAR, PIECE_WEEK, PIECE_RADAR, PIECE_COUNTDOWN, PIECE_ART, PIECE_PHOTO, PIECE_ORBIT,
-    PIECE_RUN, PIECE_RUNWEEK, PIECE_SESSION, PIECE_STREETS, /* plan.md M28: A, B, C and D */
+    PIECE_NIGHT, PIECE_RADAR, PIECE_COUNTDOWN, PIECE_PHOTO,
+    PIECE_RUN, PIECE_RUNWEEK, PIECE_STREETS, /* plan.md M28: A, B and D */
     PIECES
 };
 
-#define PIECE_LABELS 32 /* the week alone has 30 */
+#define PIECE_LABELS 32
 #define PIECE_PATH 64   /* a run's route, for the light that runs it (A, and D on a run day) */
 
 enum { PIECE_LEFT, PIECE_CENTRE, PIECE_RIGHT };
