@@ -28,7 +28,8 @@ describe('RecipePage', () => {
     setup()
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Kip shoarma uit de oven' })).toBeInTheDocument()
-    expect(document.title).toBe('Kip shoarma uit de oven · Home hub')
+    // Set in an effect after the heading renders: wait for it (it raced on CI, 2026-11-04).
+    await waitFor(() => expect(document.title).toBe('Kip shoarma uit de oven · Home hub'))
     const get = screen.getByRole('region', { name: 'To get' })
     expect(get).toHaveTextContent('Griekse yoghurt3 el + 150 g')
     expect(get).not.toHaveTextContent('komijn')

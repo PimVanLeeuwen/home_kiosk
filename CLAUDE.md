@@ -200,6 +200,9 @@ python3 dashboard/serve.py
   `hub-reminders`, to the owner only; ticked off only in the hub; a Reminders page and a Home
   card; the Door layout leads with a rain countdown over five-minute bars, then today's
   reminders beside the birthdays. plan.md M32.
+- 2026-11-04: with two desk panels, the sky, the year, your week and the running session leave
+  Now, and the orbit clock, the art of the day and Media leave House, code included; the hub's
+  pages keep the week and the session. plan.md M32.
 
 ## Gotchas
 
