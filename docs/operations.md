@@ -188,6 +188,12 @@ Every board runs the same build and asks the hub by its MAC address (the one esp
 written on its back). A new board shows "Which panel is this?" with its MAC; choose its panel in
 the hub under Settings, Desk panels.
 
+A board that hangs with its USB-C port at the bottom (the Door panel, plan.md M32) gets
+"Upside down" in the same place: the hub tells the board with its next answer, and the board
+keeps it in its storage and restarts once to turn its picture (and its touch) 180°. A
+screenshot with `shot.py` shows the picture before it is turned, so it looks the same either
+way.
+
 The boards have an ESP32-P4 **v1.3**: the firmware is built for revisions below 3.0, and a build
 for v3.x chips does not boot on them (nor the other way round). Wi-Fi goes through the ESP32-C6,
 which keeps its factory ESP-Hosted image (0.0.0): the firmware keeps ESP-Hosted's packet buffers

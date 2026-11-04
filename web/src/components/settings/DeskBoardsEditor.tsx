@@ -5,6 +5,7 @@ import { formatAgo } from '../../lib/format'
 import type { DeskBoard, DeskPanel, PanelFirmware } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { Segmented } from '../ui/Segmented'
+import { Switch } from '../ui/Switch'
 import { Loading, Unavailable } from '../ui/states'
 import { Surface } from '../ui/Card'
 
@@ -99,6 +100,15 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
                         Revoke key
                       </button>
                     )}
+                  </span>
+                  <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-caption text-muted">
+                    <Switch
+                      checked={b.upside_down}
+                      onChange={(upside_down) => send('PUT', b, { upside_down }, '/upside-down')}
+                      label={`Upside down: ${b.mac}`}
+                    />
+                    <span className="whitespace-nowrap">Upside down</span>
+                    <span className="basis-full pl-[42px] text-faint sm:basis-auto sm:pl-0">(USB-C at the bottom; it restarts to turn)</span>
                   </span>
                   {behind &&
                     (b.update_requested ? (

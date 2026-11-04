@@ -2010,12 +2010,19 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   more than two hours late (the hub was down). The Reminders page (Today with ticks, the form,
   every reminder with its next day) and a Reminders card on Home, shown on a day with some and
   live while one is open.
-- Built 2026-11-04 (step 4, not yet seen on a board): the hub's `door` screen
+- Built 2026-11-04 (step 4, tried on the Door board through a pass-through hub): the hub's `door` screen
   (`app/desk_door.py`) and its painted background (`app/paint_door.py`: the violet corner by
   the part of the day, blue behind the rain while it comes, rose on a birthday); the Door panel
   no longer rotates. The panel (`screen_door.c`, `desk_door.c`) words the rain on its own clock
   from the spell's start and end, labels only those two under the bars (and "Now" and "+2 h"
-  where they do not touch them), shows up to five open reminders and four birthdays.
+  where they do not touch them), shows up to five open reminders and four birthdays. Rain
+  points that have passed are left out (Buienradar's answer starts a few minutes back).
+- Built 2026-11-04 (step 5, tried on the Door board): the per-board Upside down switch in
+  Settings, Desk panels (`desk_board.upside_down`, `PUT /api/settings/desk-boards/<mac>/upside-down`);
+  every board answer carries `upside_down`; the board keeps it in NVS (`flip`), restarts once
+  when it changes, and starts with the LVGL adapter at 270° and touch mirrored in y instead of
+  90° and x. Checked by eye and with taps logged in both corners. M32 is built; the screen
+  review (below) is next.
 - To settle while building: the shell's fit on the real charger and socket.
 - After M32: look critically at which screens the two desk panels still need (for example the
   year's days gone, made for three panels' worth of rotation).

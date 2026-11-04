@@ -7,8 +7,8 @@ const NOW = new Date(2026, 9, 19, 15, 0)
 const at = (minutesAgo: number) => new Date(NOW.getTime() - minutesAgo * 60_000).toISOString()
 
 const BOARDS: DeskBoard[] = [
-  { mac: 'e8:f6:0a:e4:42:b0', panel: 'now', first_seen: at(600), last_seen: at(0.5), firmware: 'a1b2c3d', update_requested: false, key: 'active' },
-  { mac: 'e8:f6:0a:e4:42:c8', panel: null, first_seen: at(300), last_seen: at(45), firmware: '', update_requested: false, key: 'none' },
+  { mac: 'e8:f6:0a:e4:42:b0', panel: 'now', first_seen: at(600), last_seen: at(0.5), firmware: 'a1b2c3d', update_requested: false, upside_down: false, key: 'active' },
+  { mac: 'e8:f6:0a:e4:42:c8', panel: null, first_seen: at(300), last_seen: at(45), firmware: '', update_requested: false, upside_down: false, key: 'none' },
 ]
 const URL_B0 = '/api/settings/desk-boards/e8%3Af6%3A0a%3Ae4%3A42%3Ab0'
 const URL_C8 = '/api/settings/desk-boards/e8%3Af6%3A0a%3Ae4%3A42%3Ac8'
@@ -123,5 +123,19 @@ describe('DeskBoardsEditor', () => {
     stubApi({ '/api/settings/desk-boards': failWith(500, { detail: 'boom' }) })
     render(<DeskBoardsEditor now={NOW} />)
     expect(await screen.findByText(/not available right now/)).toBeInTheDocument()
+  })
+
+  it('turns a board upside down', async () => {
+    const fetchMock = stubApi({
+      '/api/settings/desk-boards': BOARDS,
+      [`PUT ${URL_C8}/upside-down`]: [BOARDS[0], { ...BOARDS[1], upside_down: true }],
+    })
+    render(<DeskBoardsEditor now={NOW} />)
+
+    const flip = await screen.findByRole('switch', { name: 'Upside down: e8:f6:0a:e4:42:c8' })
+    expect(flip).toHaveAttribute('aria-checked', 'false')
+    fireEvent.click(flip)
+    await vi.waitFor(() => expect(flip).toHaveAttribute('aria-checked', 'true'))
+    expect(sentBody(fetchMock, 'PUT', `${URL_C8}/upside-down`)).toEqual({ upside_down: true })
   })
 })

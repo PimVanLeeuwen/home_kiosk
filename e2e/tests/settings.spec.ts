@@ -115,7 +115,7 @@ test('switches a calendar off in Settings', async ({ page }) => {
 
 test('assigns a desk panel board in Settings', async ({ page }) => {
   const seen = new Date(Date.now() - 20_000).toISOString()
-  const board = { mac: 'e8:f6:0a:e4:42:b0', panel: null, first_seen: seen, last_seen: seen, firmware: 'a1b2c3d', update_requested: false, key: 'active' }
+  const board = { mac: 'e8:f6:0a:e4:42:b0', panel: null, first_seen: seen, last_seen: seen, firmware: 'a1b2c3d', update_requested: false, upside_down: false, key: 'active' }
   let assigned: unknown
   await page.route('**/api/settings/desk-boards', (route) => route.fulfill({ json: [board] }))
   await page.route('**/api/settings/desk-boards/*', (route) => {
@@ -162,7 +162,7 @@ test('moves between Settings sections, and old anchors still land on theirs', as
 
 test('asks a desk panel board to update now', async ({ page }) => {
   const seen = new Date(Date.now() - 20_000).toISOString()
-  const board = { mac: 'e8:f6:0a:e4:42:c8', panel: 'door', first_seen: seen, last_seen: seen, firmware: 'a1b2c3d', update_requested: false, key: 'active' }
+  const board = { mac: 'e8:f6:0a:e4:42:c8', panel: 'door', first_seen: seen, last_seen: seen, firmware: 'a1b2c3d', update_requested: false, upside_down: false, key: 'active' }
   let asked = false
   await page.route('**/api/settings/desk-boards', (route) => route.fulfill({ json: [board] }))
   await page.route('**/panels/firmware.json', (route) => route.fulfill({ json: { version: '2ca91f6', size: 1720928 } }))
@@ -187,4 +187,22 @@ test('Settings shows the AI spend against its cap', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'AI', level: 2 })).toBeVisible()
   await expect(page.getByText('0.42 of 5.00 · 31 calls')).toBeVisible()
   await expect(page.getByRole('meter', { name: 'Spent this month' })).toBeVisible()
+})
+
+test('turns a desk panel board upside down', async ({ page }) => {
+  const seen = new Date(Date.now() - 20_000).toISOString()
+  const board = { mac: 'e8:f6:0a:e4:42:c8', panel: 'door', first_seen: seen, last_seen: seen, firmware: 'a1b2c3d', update_requested: false, upside_down: false, key: 'active' }
+  let sent: unknown
+  await page.route('**/api/settings/desk-boards', (route) => route.fulfill({ json: [board] }))
+  await page.route('**/api/settings/desk-boards/*/upside-down', (route) => {
+    sent = route.request().postDataJSON()
+    return route.fulfill({ json: [{ ...board, upside_down: true }] })
+  })
+
+  await page.goto('/settings#desk-panels')
+  const flip = page.getByRole('switch', { name: 'Upside down: e8:f6:0a:e4:42:c8' })
+  await flip.click()
+
+  await expect(flip).toHaveAttribute('aria-checked', 'true')
+  expect(sent).toEqual({ upside_down: true })
 })

@@ -33,12 +33,15 @@ void app_main(void)
     }
 
     /* Turned a quarter to the right, so the USB ports sit at the top in the
-     * printed cases; touch follows: mirrored across, then x and y swapped. */
+     * printed cases; touch follows: mirrored across, then x and y swapped. Upside down
+     * (the Door panel, USB at the bottom: plan.md M32) it is turned three quarters,
+     * touch mirrored the other way. */
+    bool flip = desk_upside_down();
     bsp_display_cfg_t display = {
         .lv_adapter_cfg = ESP_LV_ADAPTER_DEFAULT_CONFIG(),
-        .rotation = ESP_LV_ADAPTER_ROTATE_90,
+        .rotation = flip ? ESP_LV_ADAPTER_ROTATE_270 : ESP_LV_ADAPTER_ROTATE_90,
         .tear_avoid_mode = ESP_LV_ADAPTER_TEAR_AVOID_MODE_TRIPLE_PARTIAL,
-        .touch_flags = {.swap_xy = 1, .mirror_x = 1},
+        .touch_flags = {.swap_xy = 1, .mirror_x = !flip, .mirror_y = flip},
     };
     ESP_ERROR_CHECK(bsp_display_start_with_config(&display) != NULL ? ESP_OK : ESP_FAIL);
     ESP_ERROR_CHECK(bsp_display_backlight_on());

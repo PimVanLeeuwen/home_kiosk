@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS desk_board (
     first_seen TEXT NOT NULL,
     last_seen  TEXT NOT NULL,
     firmware   TEXT NOT NULL DEFAULT '',
-    update_requested INTEGER NOT NULL DEFAULT 0
+    update_requested INTEGER NOT NULL DEFAULT 0,
+    upside_down INTEGER NOT NULL DEFAULT 0  -- the picture turned 180°: the Door panel (M32)
 );
 """
 
@@ -42,6 +43,7 @@ class Board(BaseModel):
     last_seen: datetime
     firmware: str
     update_requested: bool = False
+    upside_down: bool = False  # the picture turned 180° (plan.md M32)
     key: desk_keys.KeyState = "none"  # its device key (app/desk_keys.py)
 
 
@@ -53,6 +55,9 @@ def ensure_tables(store: Store) -> None:
         if "update_requested" not in columns:  # added after the table shipped
             conn.execute("ALTER TABLE desk_board"
                          " ADD COLUMN update_requested INTEGER NOT NULL DEFAULT 0")
+        if "upside_down" not in columns:  # added for the Door panel (plan.md M32)
+            conn.execute("ALTER TABLE desk_board"
+                         " ADD COLUMN upside_down INTEGER NOT NULL DEFAULT 0")
         # The Home panel's board went to the door (plan.md M32); its screens are on House.
         conn.execute("UPDATE desk_board SET panel = 'door' WHERE panel = 'home'")
         assigned = [r["mac"] for r in conn.execute(
@@ -66,6 +71,7 @@ def ensure_tables(store: Store) -> None:
 class Visit(BaseModel):
     panel: Panel | None
     update: bool  # install the hub's firmware now
+    upside_down: bool = False  # show the picture turned 180°
     key: str | None = None  # its new device key, until it shows it has it
 
 
@@ -80,11 +86,12 @@ def check_in(store: Store, mac: str, firmware: str, now: datetime | None = None,
             " ON CONFLICT (mac) DO UPDATE SET last_seen = excluded.last_seen,"
             " firmware = excluded.firmware",
             (mac, at, at, firmware[:40]))
-        row = conn.execute("SELECT panel, update_requested FROM desk_board WHERE mac = ?",
-                           (mac,)).fetchone()
+        row = conn.execute("SELECT panel, update_requested, upside_down FROM desk_board"
+                           " WHERE mac = ?", (mac,)).fetchone()
         if row["update_requested"]:
             conn.execute("UPDATE desk_board SET update_requested = 0 WHERE mac = ?", (mac,))
     return Visit(panel=row["panel"], update=bool(row["update_requested"]),
+                 upside_down=bool(row["upside_down"]),
                  key=desk_keys.hand_over(store, mac, key) if row["panel"] else None)
 
 
@@ -120,6 +127,13 @@ def forget(store: Store, mac: str) -> None:
     with store.connect() as conn:
         conn.execute("DELETE FROM desk_board WHERE mac = ?", (mac,))
     desk_keys.revoke(store, mac)
+
+
+def set_upside_down(store: Store, mac: str, upside_down: bool) -> None:
+    """The board turns its picture with its next visit (it restarts to do so)."""
+    with store.connect() as conn:
+        conn.execute("UPDATE desk_board SET upside_down = ? WHERE mac = ?",
+                     (int(upside_down), mac))
 
 
 def request_update(store: Store, mac: str) -> None:

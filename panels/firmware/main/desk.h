@@ -709,6 +709,8 @@ typedef struct {
 
 /* Asks the hub every 30 s once Wi-Fi is up; sets the system clock from it. */
 void desk_start(void);
+/* Whether this board shows its picture upside down (kept in its storage, NVS "desk"). */
+bool desk_upside_down(void);
 desk_clock_t desk_clock(void);
 desk_day_t desk_day(void);
 desk_board_t desk_board(void);

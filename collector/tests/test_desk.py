@@ -396,3 +396,35 @@ def test_a_slow_panel_answer_does_not_stall_the_collector(store, monkeypatch):
 
     health_at, board_at = asyncio.run(both())
     assert health_at < 0.4 < board_at
+
+
+def test_a_board_can_be_turned_upside_down_and_back(store):
+    """The Door panel's picture turned 180° (plan.md M32): every answer says so, so a board
+    turned back in Settings turns back too."""
+    client = board_client(store)
+    assert client.get(f"/api/desk/board/{MAC}").json()["upside_down"] is False
+    client.put(f"/api/settings/desk-boards/{MAC}", json={"panel": "door"})
+
+    boards = client.put(f"/api/settings/desk-boards/{MAC}/upside-down",
+                        json={"upside_down": True}).json()
+    assert boards[0]["upside_down"] is True
+    assert client.get(f"/api/desk/board/{MAC}").json()["upside_down"] is True
+    client.put(f"/api/settings/desk-boards/{MAC}/upside-down", json={"upside_down": False})
+    assert client.get(f"/api/desk/board/{MAC}").json()["upside_down"] is False
+
+    assert client.put("/api/settings/desk-boards/e8:f6:0a:e4:42:ff/upside-down",
+                      json={"upside_down": True}).status_code == 404
+    assert client.put(f"/api/settings/desk-boards/{MAC}/upside-down",
+                      json={"upside_down": "yes please"}).status_code == 422
+
+
+def test_a_board_table_from_before_gets_the_upside_down_column(store):
+    with store.connect() as conn:
+        conn.execute("CREATE TABLE desk_board (mac TEXT PRIMARY KEY, panel TEXT,"
+                     " first_seen TEXT NOT NULL, last_seen TEXT NOT NULL,"
+                     " firmware TEXT NOT NULL DEFAULT '')")
+        conn.execute("INSERT INTO desk_board VALUES (?, 'house', ?, ?, 'abc')",
+                     (MAC, NOW.isoformat(), NOW.isoformat()))
+    desk_boards.ensure_tables(store)
+    [board] = desk_boards.boards(store)
+    assert (board.panel, board.upside_down, board.update_requested) == ("house", False, False)

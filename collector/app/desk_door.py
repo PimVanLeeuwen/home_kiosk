@@ -39,9 +39,13 @@ def _tonight(store: Store, local: datetime) -> int | None:
     return round(min(temps)) if temps else None
 
 
-def rain(points: list[dict[str, Any]]) -> dict[str, Any]:
+def rain(points: list[dict[str, Any]], now: datetime) -> dict[str, Any]:
     """The bars and the first spell: when it starts (0: it rains now) and when it is dry
-    again (0: not within the two hours), as seconds since 1970."""
+    again (0: not within the two hours), as seconds since 1970. Points that have passed
+    are left out: Buienradar's answer is up to a few minutes old when it is read, and the
+    hub reads it every few minutes."""
+    points = [p for p in points
+              if datetime.fromisoformat(p["at"]) > now - timedelta(seconds=RAIN_STEP)]
     if not points:
         return {"rain": [], "rain_from": 0, "wet_from": 0, "wet_until": 0, "wet": False}
     at = [round(datetime.fromisoformat(p["at"]).timestamp()) for p in points]
@@ -92,7 +96,7 @@ def door_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
         "temperature": round(temperature) if temperature is not None else None,
         "description": words,
         "tonight": f"Tonight {tonight}°" if tonight is not None else "",
-        **rain(w.get("rain") or []),
+        **rain(w.get("rain") or [], now),
         "rain_step": RAIN_STEP,
         "wind": _wind(w),
         "reminders": [{"title": latin1(r["title"]), "at": r["at"] or ""}

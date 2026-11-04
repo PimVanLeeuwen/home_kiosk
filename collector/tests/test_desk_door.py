@@ -23,15 +23,25 @@ def stamp(minutes: int) -> int:
 
 
 def test_the_rain_spell_starts_and_ends_on_its_points():
-    soon = desk_door.rain(points(0, 0, 0, 0.4, 1.2, 0.5, 0, 0))
+    rain = lambda p: desk_door.rain(p, NOW)  # noqa: E731
+    soon = rain(points(0, 0, 0, 0.4, 1.2, 0.5, 0, 0))
     assert (soon["wet"], soon["wet_from"], soon["wet_until"]) == (True, stamp(15), stamp(30))
-    now = desk_door.rain(points(0.3, 0.2, 0, 0))
+    now = rain(points(0.3, 0.2, 0, 0))
     assert (now["wet_from"], now["wet_until"]) == (0, stamp(10))  # it rains now
-    on = desk_door.rain(points(0, 0.3, 0.2))
+    on = rain(points(0, 0.3, 0.2))
     assert (on["wet_from"], on["wet_until"]) == (stamp(5), 0)  # not dry within two hours
-    dry = desk_door.rain(points(0, 0, 0))
+    dry = rain(points(0, 0, 0))
     assert (dry["wet"], dry["wet_from"], dry["wet_until"], dry["rain"]) == (False, 0, 0, [0, 0, 0])
-    assert desk_door.rain([])["rain"] == []
+    assert rain([])["rain"] == []
+
+
+def test_rain_that_has_already_fallen_is_left_out():
+    """Buienradar's answer starts up to minutes ago: the shower of 20 minutes ago is over."""
+    old = desk_door.rain(points(1.0, 1.0, 1.0, 0, 0, 0, 0.6, 0, start=NOW - timedelta(minutes=20)),
+                         NOW)
+    assert (old["rain_from"], old["wet_from"], old["wet_until"]) == (stamp(0), stamp(10),
+                                                                     stamp(15))
+    assert old["rain"] == [0, 0, 0.6, 0]
 
 
 def setup(store):

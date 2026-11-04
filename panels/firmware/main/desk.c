@@ -31,6 +31,7 @@
 #include "cJSON.h"
 #include "esp_app_desc.h"
 #include "esp_mac.h"
+#include "esp_system.h"
 #include "esp_http_client.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
@@ -606,6 +607,37 @@ static void keep_key(const char *handed)
     ESP_LOGI(TAG, "device key received and kept");
 }
 
+bool desk_upside_down(void)
+{
+    nvs_handle_t nvs;
+    uint8_t flip = 0;
+    if (nvs_open("desk", NVS_READONLY, &nvs) == ESP_OK) {
+        nvs_get_u8(nvs, "flip", &flip);
+        nvs_close(nvs);
+    }
+    return flip != 0;
+}
+
+/* The hub's "upside_down" (Settings, Desk panels, plan.md M32): the LVGL adapter takes its
+ * turn only at start-up, so a change is kept and the board restarts to apply it. An
+ * answer without it (a hub from before) changes nothing. */
+static void take_upside_down(const cJSON *wanted)
+{
+    if (!cJSON_IsBool(wanted) || cJSON_IsTrue(wanted) == desk_upside_down()) {
+        return;
+    }
+    nvs_handle_t nvs;
+    if (nvs_open("desk", NVS_READWRITE, &nvs) != ESP_OK) {
+        return;
+    }
+    bool kept = nvs_set_u8(nvs, "flip", cJSON_IsTrue(wanted) ? 1 : 0) == ESP_OK && nvs_commit(nvs) == ESP_OK;
+    nvs_close(nvs);
+    if (kept) { /* only then: a restart that would not keep it would come back here */
+        ESP_LOGI(TAG, "turning the picture %s: restarting", cJSON_IsTrue(wanted) ? "upside down" : "back");
+        esp_restart();
+    }
+}
+
 static void load_key(void)
 {
     nvs_handle_t nvs;
@@ -827,6 +859,7 @@ static void apply(const char *body)
     if (cJSON_IsString(handed) && handed->valuestring[0]) {
         keep_key(handed->valuestring);
     }
+    take_upside_down(cJSON_GetObjectItem(root, "upside_down"));
     if (cJSON_IsTrue(cJSON_GetObjectItem(root, "update"))) {
         ESP_LOGI(TAG, "the hub asks to update now");
         update_now(); /* Settings, Desk panels: Update now */

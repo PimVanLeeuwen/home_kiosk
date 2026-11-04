@@ -257,6 +257,18 @@ def assign_desk_board(mac: str, body: BoardPanel, request: Request) -> list[desk
     return desk_boards.boards(store)
 
 
+class UpsideDown(BaseModel):
+    upside_down: bool
+
+
+@router.put("/desk-boards/{mac}/upside-down", dependencies=write)
+def turn_desk_board(mac: str, body: UpsideDown, request: Request) -> list[desk_boards.Board]:
+    """Turns the board's picture 180° (or back) with its next visit: it restarts to do so."""
+    store = _store(request)
+    desk_boards.set_upside_down(store, _known_board(store, mac), body.upside_down)
+    return desk_boards.boards(store)
+
+
 @router.post("/desk-boards/{mac}/update", dependencies=write)
 def update_desk_board(mac: str, request: Request) -> list[desk_boards.Board]:
     """Asks the board to install the hub's firmware with its next visit (within 30 s)."""

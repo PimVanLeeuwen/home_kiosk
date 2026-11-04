@@ -71,6 +71,8 @@ async def board(mac: str, request: Request,
                                      board=mac, music=playing)
     if visit.update:
         answer["update"] = True  # install the hub's firmware now (Settings, Update now)
+    # Always sent, so a board turned back in Settings turns back too (plan.md M32).
+    answer["upside_down"] = visit.upside_down
     if visit.key:
         answer["key"] = visit.key  # its device key, until the board sends it back
     return await run_in_threadpool(desk.fit, answer, room)

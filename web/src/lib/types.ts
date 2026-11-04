@@ -278,6 +278,8 @@ export interface DeskBoard {
   last_seen: string
   firmware: string
   update_requested: boolean
+  /** Its picture turned 180° (the Door panel, USB-C at the bottom); it restarts to turn. */
+  upside_down: boolean
   /** Its device key: none, on its way (handed over until the board sends it back), or in use. */
   key: 'none' | 'pending' | 'active'
 }
