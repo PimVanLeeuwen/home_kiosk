@@ -1,5 +1,5 @@
-import { briefingState, countdownState, dnsState, laundryState, photoState, todayState } from './homeStates'
-import type { Briefing, CalendarEvent, DnsStats, Laundry, Machine, Today } from './types'
+import { birthdaysState, briefingState, countdownState, dnsState, laundryState, photoState, todayState } from './homeStates'
+import type { Birthdays, Briefing, CalendarEvent, DnsStats, Laundry, Machine, Today } from './types'
 
 const at = (h: number, m = 0) => new Date(2026, 9, 23, h, m)
 const event = (from: number, to: number): CalendarEvent => ({
@@ -16,6 +16,20 @@ describe('todayState', () => {
     expect(todayState(day, at(10, 30))).toBe('now')
     expect(todayState(day, at(9, 15))).toBe('live')
     expect(todayState(day, at(8, 30))).toBe('quiet')
+  })
+})
+
+describe('birthdaysState', () => {
+  const week = (days: number[]): Birthdays => ({
+    as_of: at(7).toISOString(), stale: false, today: '2026-10-23',
+    birthdays: days.map((d) => ({ name: 'Anna', date: '2026-10-23', days: d, turns: null })),
+  })
+
+  it('always shows, and is live on a day someone has a birthday', () => {
+    expect(birthdaysState(undefined)).toBe('quiet')
+    expect(birthdaysState(week([]))).toBe('quiet')
+    expect(birthdaysState(week([3]))).toBe('quiet')
+    expect(birthdaysState(week([0, 3]))).toBe('live')
   })
 })
 

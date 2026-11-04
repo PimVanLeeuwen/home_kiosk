@@ -14,6 +14,7 @@ export type HomeCardId =
   | 'apple'
   | 'photo'
   | 'countdown'
+  | 'birthdays'
   | 'running'
   | 'weather'
   | 'news'
@@ -63,10 +64,10 @@ export function dayPart(hour: number): DayPart {
 
 /** The calm order per part of the day, wide and narrow columns interleaved. */
 const PART_ORDER: Record<DayPart, [HomeCardId, Column][]> = {
-  morning: [['briefing', 'wide'], ['photo', 'wide'], ['today', 'wide'], ['weather', 'narrow'], ['countdown', 'narrow'], ['running', 'narrow'], ['news', 'wide'], ['portfolio', 'narrow'], ['air', 'wide']],
-  day: [['photo', 'wide'], ['today', 'wide'], ['portfolio', 'narrow'], ['running', 'narrow'], ['countdown', 'narrow'], ['news', 'wide'], ['weather', 'narrow'], ['air', 'wide']],
-  evening: [['photo', 'wide'], ['apple', 'wide'], ['running', 'narrow'], ['weather', 'narrow'], ['countdown', 'narrow'], ['today', 'wide'], ['air', 'narrow'], ['news', 'wide'], ['portfolio', 'narrow']],
-  night: [['photo', 'wide'], ['today', 'wide'], ['weather', 'narrow'], ['running', 'narrow'], ['countdown', 'narrow'], ['news', 'wide'], ['air', 'narrow'], ['portfolio', 'narrow']],
+  morning: [['briefing', 'wide'], ['photo', 'wide'], ['today', 'wide'], ['birthdays', 'narrow'], ['weather', 'narrow'], ['countdown', 'narrow'], ['running', 'narrow'], ['news', 'wide'], ['portfolio', 'narrow'], ['air', 'wide']],
+  day: [['photo', 'wide'], ['today', 'wide'], ['birthdays', 'narrow'], ['portfolio', 'narrow'], ['running', 'narrow'], ['countdown', 'narrow'], ['news', 'wide'], ['weather', 'narrow'], ['air', 'wide']],
+  evening: [['photo', 'wide'], ['apple', 'wide'], ['running', 'narrow'], ['weather', 'narrow'], ['countdown', 'narrow'], ['today', 'wide'], ['birthdays', 'narrow'], ['air', 'narrow'], ['news', 'wide'], ['portfolio', 'narrow']],
+  night: [['photo', 'wide'], ['today', 'wide'], ['birthdays', 'narrow'], ['weather', 'narrow'], ['running', 'narrow'], ['countdown', 'narrow'], ['news', 'wide'], ['air', 'narrow'], ['portfolio', 'narrow']],
 }
 
 /** A card's column when its part of the day does not place it. */
@@ -79,6 +80,7 @@ const HOME_COLUMN: Record<HomeCardId, Column> = {
   apple: 'wide',
   photo: 'wide',
   countdown: 'narrow',
+  birthdays: 'narrow',
   running: 'narrow',
   weather: 'narrow',
   news: 'wide',
@@ -92,7 +94,7 @@ const HOME_COLUMN: Record<HomeCardId, Column> = {
 }
 
 /** Live cards among themselves: the one with a deadline first. */
-const LIVE_ORDER: HomeCardId[] = ['train', 'briefing', 'nowPlaying', 'today', 'running', 'laundry', 'apple']
+const LIVE_ORDER: HomeCardId[] = ['train', 'briefing', 'nowPlaying', 'today', 'birthdays', 'running', 'laundry', 'apple']
 
 const isFolded = (id: HomeCardId): id is FoldedCardId => (FOLDED as readonly string[]).includes(id)
 

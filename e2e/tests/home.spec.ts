@@ -262,3 +262,22 @@ test('Home shows the photo of the day and the nearest countdown', async ({ page 
   await expect(countdown).toContainText('Lisbon')
   await expect(countdown).toContainText("Then Anna's birthday in 128 days")
 })
+
+test('Home lists the birthdays of the coming week', async ({ page }) => {
+  const now = new Date()
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const inDays = (n: number) => iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() + n))
+  await page.route('**/api/birthdays', (route) => route.fulfill({ json: {
+    as_of: now.toISOString(), stale: false, today: inDays(0), birthdays: [
+      { name: 'Anna de Vries', date: inDays(0), days: 0, turns: 34 },
+      { name: 'Bram van Dijk', date: inDays(4), days: 4, turns: null },
+    ],
+  } }))
+  await page.goto('/')
+
+  const card = page.getByRole('region', { name: 'Birthdays' })
+  await expect(card.getByRole('listitem').first()).toContainText('Anna de Vries')
+  await expect(card.getByRole('listitem').first()).toContainText('turns 34')
+  await expect(card.getByRole('listitem').first()).toContainText('Today')
+  await expect(card.getByRole('listitem').nth(1)).toContainText('in 4 days')
+})

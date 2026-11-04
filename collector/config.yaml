@@ -125,7 +125,9 @@ my_sites:
 # Today's calendar (Home card, Now panel): iCloud over CalDAV with an app-specific
 # password (account.apple.com > Sign-In and Security > App-Specific Passwords),
 # NAS-only in .env. Subscribed calendars are read from their own feeds. Which
-# calendars show is set in Settings. Leave the password empty to switch it off.
+# calendars show is set in Settings. The same login reads the birthdays on your
+# iCloud contacts over CardDAV (Birthdays card, Door panel; read-only, every 6 hours).
+# Leave the password empty to switch both off.
 calendar:
   username: ${ICLOUD_USERNAME}
   app_password: ${ICLOUD_APP_PASSWORD}

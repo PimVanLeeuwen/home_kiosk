@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { AirCard } from '../components/home/AirCard'
 import { AppleCard } from '../components/home/AppleCard'
 import { BackupCard } from '../components/home/BackupCard'
+import { BirthdaysCard } from '../components/home/BirthdaysCard'
 import { BriefingCard } from '../components/home/BriefingCard'
 import { DnsCard } from '../components/home/DnsCard'
 import { CardSlot } from '../components/home/CardSlot'
@@ -38,6 +39,7 @@ import {
 import {
   appleState,
   backupsState,
+  birthdaysState,
   briefingState,
   countdownState,
   laundryState,
@@ -60,6 +62,7 @@ import { trainStatus } from '../lib/train'
 import type {
   AppleDevices,
   BackupHistory,
+  Birthdays,
   Briefing,
   DnsStats,
   Laundry,
@@ -104,6 +107,7 @@ export function HomePage() {
   const dns = useApi<DnsStats>('/api/dns', 60_000)
   const briefing = useApi<Briefing>('/api/briefing', 300_000)
   const countdowns = useApi<Countdowns>('/api/countdown', 300_000)
+  const birthdays = useApi<Birthdays>('/api/birthdays', 600_000)
   const photo = useApi<PhotoOfTheDay>('/api/photo', 600_000)
   const running = useApi<RunningOverview>('/api/runs/overview', 300_000)
   const music = useHomeNowPlaying()
@@ -124,6 +128,7 @@ export function HomePage() {
     apple: appleState(apple.data),
     photo: photoState(photo.data, now),
     countdown: countdownState(countdowns.data, now),
+    birthdays: birthdaysState(birthdays.data),
     running: runningState(running.data),
     weather: 'quiet',
     news: 'quiet',
@@ -160,6 +165,7 @@ export function HomePage() {
     apple: <AppleCard data={apple.data} />,
     photo: <PhotoCard data={photo.data} />,
     countdown: <CountdownCard data={countdowns.data} now={now} />,
+    birthdays: <BirthdaysCard data={birthdays.data} error={birthdays.error} />,
     running: <RunningCard data={running.data} />,
     weather: <WeatherCard />,
     news: <NewsCard />,

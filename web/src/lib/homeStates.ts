@@ -7,7 +7,7 @@ import type { RunningOverview } from './running'
 import { troubled } from './outside'
 import { focusOf, todayShows } from './today'
 import { localDate, trainShows } from './train'
-import type { AppleDevices, Briefing, DnsStats, Laundry, Nas, OutsideServices, Service, Today, Train } from './types'
+import type { AppleDevices, Birthdays, Briefing, DnsStats, Laundry, Nas, OutsideServices, Service, Today, Train } from './types'
 
 /** An event starting within this many minutes counts as live on Home. */
 export const SOON_MINUTES = 60
@@ -15,6 +15,10 @@ export const SOON_MINUTES = 60
 /** A countdown is a calm card while one is still ahead. */
 export const countdownState = (countdowns: Countdowns | undefined, now: Date): CardState =>
   ahead(countdowns?.events, now).length > 0 ? 'quiet' : 'hidden'
+
+/** Birthdays always show (plan.md M32); live on a day someone has one. */
+export const birthdaysState = (birthdays: Birthdays | undefined): CardState =>
+  birthdays?.birthdays.some((b) => b.days === 0) ? 'live' : 'quiet'
 
 /** The photo of the day shows on its own day only: yesterday's waits for this morning's read. */
 export function photoState(photo: PhotoOfTheDay | undefined, now: Date): CardState {

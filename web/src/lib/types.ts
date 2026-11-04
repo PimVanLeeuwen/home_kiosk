@@ -227,6 +227,25 @@ export interface CalendarEvent {
   all_day: boolean
 }
 
+/** A contact's birthday in the coming week (`/api/birthdays`, plan.md M32). */
+export interface Birthday {
+  name: string
+  /** This year's (or next year's) birthday, YYYY-MM-DD. */
+  date: string
+  /** 0 today, 1 tomorrow, ... */
+  days: number
+  /** The age they turn, when the contact has a birth year. */
+  turns: number | null
+}
+
+/** The contacts' birthdays from today to a week on, nearest first. */
+export interface Birthdays {
+  as_of: string
+  stale: boolean
+  today: string
+  birthdays: Birthday[]
+}
+
 /** Today's events (`/api/calendar`). */
 export interface Today {
   as_of: string

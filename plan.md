@@ -1977,6 +1977,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Steps, each with its tests and commit: (1) the merged House rules and the `door` panel in the
   hub; (2) birthdays over CardDAV and the hub card; (3) the Door screen on the panel, with its
   painted background; (4) the Upside down switch.
+- Built 2026-11-04 (hub, steps 1 and 2): House carries Home's screens with the order above, the
+  `door` panel shows the clock and calendar until its today view comes, and a board on `home`
+  moves to `door` when the hub starts. Birthdays (`app/sources/birthdays.py`): every address
+  book's cards listed (PROPFIND) and fetched in batches of 100 (addressbook-multiget), every 6
+  hours; only a name and a date leave each card, and the week ahead is worked out when asked
+  (`/api/birthdays`). Apple's 1604 year means no year; 29 February counts as the 28th in other
+  years. A Birthdays card on Home, always shown (also with nobody this week), live on a day with
+  one, with the age they turn when the year is known.
 - To settle while building: whether the Door panel dims with the living room lights like the
   desk panels; the shell's fit on the real charger and socket.
 

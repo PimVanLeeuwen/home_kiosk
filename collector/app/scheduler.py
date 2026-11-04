@@ -26,6 +26,7 @@ from .sources import (
     air,
     apple,
     backups,
+    birthdays,
     container_stats,
     countdown,
     db_copy,
@@ -83,6 +84,7 @@ DNS_INTERVAL_SECONDS = 60  # two local calls to AdGuard Home
 AIR_INTERVAL_SECONDS = 60  # one local WebSocket call; the Matter server keeps the sensor subscribed
 CALENDAR_INTERVAL_SECONDS = 300  # feeds at most every 15 min (agenda.FEED_EVERY)
 COUNTDOWN_INTERVAL_SECONDS = 3600
+BIRTHDAYS_INTERVAL_SECONDS = 6 * 3600  # the week is worked out when asked
 RADAR_INTERVAL_SECONDS = 300  # Buienradar's frames come every 5 minutes
 MEDIA_INTERVAL_SECONDS = 60  # local calls to Sonarr and Radarr
 OVERVIEW_INTERVAL_SECONDS = 300  # watch stats and library counts move slowly
@@ -317,6 +319,19 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
             seconds=COUNTDOWN_INTERVAL_SECONDS,
             args=[store, countdown.CACHE_KEY, lambda: countdown.collect(cfg, store)],
             id="countdown",
+            next_run_time=None,
+            max_instances=1,
+            coalesce=True,
+        )
+
+    if birthdays.settings(cfg)["enabled"]:
+        # The contacts' birthdays (plan.md M32), read every 6 hours.
+        scheduler.add_job(
+            _run,
+            "interval",
+            seconds=BIRTHDAYS_INTERVAL_SECONDS,
+            args=[store, birthdays.CACHE_KEY, lambda: birthdays.collect(cfg, store)],
+            id="birthdays",
             next_run_time=None,
             max_instances=1,
             coalesce=True,

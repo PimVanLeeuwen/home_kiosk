@@ -56,6 +56,7 @@ from .sources import (
     air,
     apple,
     apple_tv,
+    birthdays,
     container_stats,
     countdown,
     exposure,
@@ -286,6 +287,15 @@ def apple_artwork(room: str) -> Response:
 def calendar_today() -> Any:
     """Today's events from the calendars switched on in Settings."""
     return _serve(agenda.CACHE_KEY)
+
+
+@app.get("/api/birthdays")
+def birthdays_ahead() -> Any:
+    """The contacts' birthdays from today to a week on, nearest first (plan.md M32)."""
+    upcoming = birthdays.serve(app.state.config, app.state.store)
+    if upcoming is None:
+        return JSONResponse(status_code=503, content={"detail": "no birthdays data collected yet"})
+    return upcoming
 
 
 @app.get("/api/countdown")
