@@ -1,6 +1,7 @@
 import { BACKUP_MAX_AGE_HOURS, POOL_FULL_PCT } from './attention'
 import { ahead } from './countdown'
 import type { CardState } from './homeOrder'
+import type { Reminders } from './reminders'
 import type { Playing } from './musicTypes'
 import type { Countdowns, PhotoOfTheDay } from './pieceTypes'
 import type { RunningOverview } from './running'
@@ -15,6 +16,12 @@ export const SOON_MINUTES = 60
 /** A countdown is a calm card while one is still ahead. */
 export const countdownState = (countdowns: Countdowns | undefined, now: Date): CardState =>
   ahead(countdowns?.events, now).length > 0 ? 'quiet' : 'hidden'
+
+/** Reminders show on a day with some (plan.md M32): live while one is still open. */
+export function remindersState(reminders: Reminders | undefined): CardState {
+  if (!reminders?.due.length) return 'hidden'
+  return reminders.due.some((r) => !r.done) ? 'live' : 'quiet'
+}
 
 /** Birthdays always show (plan.md M32); live on a day someone has one. */
 export const birthdaysState = (birthdays: Birthdays | undefined): CardState =>

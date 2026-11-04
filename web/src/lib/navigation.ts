@@ -1,5 +1,6 @@
 import {
   Bell,
+  AlarmClock,
   Bookmark,
   Box,
   Clapperboard,
@@ -72,6 +73,13 @@ export const NAV: NavSection[] = [
         icon: Footprints,
         description: 'Your runs from Apple Health against Runna\'s plan',
         milestone: 'M28',
+      },
+      {
+        label: 'Reminders',
+        to: '/reminders',
+        icon: AlarmClock,
+        description: 'What to remember on a day, on the Door panel and ntfy',
+        milestone: 'M32',
       },
     ],
   },

@@ -1974,9 +1974,27 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
     Desk panels. The hub sends it with the board's answer; the board keeps it in NVS and
     restarts to apply it, as the LVGL adapter only takes its rotation at start-up (270° instead
     of 90°, touch turned to match). Every board keeps running the same firmware.
+- Decided 2026-11-04 (replaces the calendar and the layout above):
+  - Reminders in the hub instead of the calendar on the Door panel; the calendar stays on the
+    Now panel and Home. A reminder has a title, a date and an optional time, and repeats never,
+    every N days or weeks, weekly on chosen days, monthly on a day (or the last day), or yearly.
+    Each reminder chooses its ntfy notification: none, at its time (08:00 without one), an hour
+    before, or the evening before at 20:00; to the owner only, on a new `hub-reminders` topic.
+    Ticked off only in the hub (the occurrence, not the series). A Reminders page in the
+    navigation to add, edit, tick off and delete, and a Reminders card on Home that mirrors the
+    panel. Kept in SQLite; titles are personal data, never logged.
+  - The Door panel's layout (mockups 2026-11-04): the clock and date large at the top left, the
+    temperature now and tonight's low at the top right; under it the rain over the next two
+    hours, leading with a countdown ("Dry for 28 min, then rain until 09:25", or "Rain now, dry
+    at 09:25") over five-minute bars, with times at the spell's edges only (labels never
+    overlap; the axis ends drop out when they would), or one quiet "Dry for the next 2 hours"
+    line; then two columns: today's open reminders on the left, the birthdays (today and the
+    next 7 days) on the right; the wind on the bottom line.
+  - The Door panel dims with the living room lights like the desk panels.
 - Steps, each with its tests and commit: (1) the merged House rules and the `door` panel in the
-  hub; (2) birthdays over CardDAV and the hub card; (3) the Door screen on the panel, with its
-  painted background; (4) the Upside down switch.
+  hub; (2) birthdays over CardDAV and the hub card; (3) reminders in the hub (store, API, page,
+  Home card, ntfy); (4) the Door screen on the panel, with its painted background; (5) the
+  Upside down switch.
 - Built 2026-11-04 (hub, steps 1 and 2): House carries Home's screens with the order above, the
   `door` panel shows the clock and calendar until its today view comes, and a board on `home`
   moves to `door` when the hub starts. Birthdays (`app/sources/birthdays.py`): every address
@@ -1985,8 +2003,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   (`/api/birthdays`). Apple's 1604 year means no year; 29 February counts as the 28th in other
   years. A Birthdays card on Home, always shown (also with nobody this week), live on a day with
   one, with the age they turn when the year is known.
-- To settle while building: whether the Door panel dims with the living room lights like the
-  desk panels; the shell's fit on the real charger and socket.
+- Built 2026-11-04 (hub, step 3): reminders in `app/reminders.py` (tables `reminder`,
+  `reminder_done`, `reminder_sent`) and `/api/reminders`; a monthly day past the month's end
+  falls on its last day; the ntfy message goes out in the minute it is due (category
+  `reminders`, topic `hub-reminders`), each once, not for a day ticked off, and not when it is
+  more than two hours late (the hub was down). The Reminders page (Today with ticks, the form,
+  every reminder with its next day) and a Reminders card on Home, shown on a day with some and
+  live while one is open.
+- To settle while building: the shell's fit on the real charger and socket.
+- After M32: look critically at which screens the two desk panels still need (for example the
+  year's days gone, made for three panels' worth of rotation).
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

@@ -77,6 +77,8 @@ CATEGORIES = {
     "ai": "AI",
     # The morning digest, weekdays at 06:30 (app/briefing.py).
     "briefing": "Morning digest",
+    # What the owner set to remember on a day (app/reminders.py, plan.md M32).
+    "reminders": "Reminders",
     "manual": "Sent from the hub",
 }
 

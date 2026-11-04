@@ -15,6 +15,7 @@ import { NowPlayingCard } from '../components/home/NowPlayingCard'
 import { PhotoCard } from '../components/home/PhotoCard'
 import { RunningCard } from '../components/home/RunningCard'
 import { PortfolioCard } from '../components/home/PortfolioCard'
+import { RemindersCard } from '../components/home/RemindersCard'
 import { ServicesCard } from '../components/home/ServicesCard'
 import { OPENED_ID, StatusStrip } from '../components/home/StatusStrip'
 import { TodayCard } from '../components/home/TodayCard'
@@ -47,6 +48,7 @@ import {
   nowPlayingState,
   outsideState,
   photoState,
+  remindersState,
   runningState,
   dnsState,
   servicesState,
@@ -55,6 +57,7 @@ import {
 } from '../lib/homeStates'
 import { coverUrl } from '../lib/musicTypes'
 import type { Countdowns, PhotoOfTheDay } from '../lib/pieceTypes'
+import type { Reminders } from '../lib/reminders'
 import type { RunningOverview } from '../lib/running'
 import { PROBLEM_LIGHT, skyLights } from '../lib/sky'
 import { focusOf } from '../lib/today'
@@ -108,6 +111,7 @@ export function HomePage() {
   const briefing = useApi<Briefing>('/api/briefing', 300_000)
   const countdowns = useApi<Countdowns>('/api/countdown', 300_000)
   const birthdays = useApi<Birthdays>('/api/birthdays', 600_000)
+  const reminders = useApi<Reminders>('/api/reminders', 60_000)
   const photo = useApi<PhotoOfTheDay>('/api/photo', 600_000)
   const running = useApi<RunningOverview>('/api/runs/overview', 300_000)
   const music = useHomeNowPlaying()
@@ -129,6 +133,7 @@ export function HomePage() {
     photo: photoState(photo.data, now),
     countdown: countdownState(countdowns.data, now),
     birthdays: birthdaysState(birthdays.data),
+    reminders: remindersState(reminders.data),
     running: runningState(running.data),
     weather: 'quiet',
     news: 'quiet',
@@ -166,6 +171,7 @@ export function HomePage() {
     photo: <PhotoCard data={photo.data} />,
     countdown: <CountdownCard data={countdowns.data} now={now} />,
     birthdays: <BirthdaysCard data={birthdays.data} error={birthdays.error} />,
+    reminders: <RemindersCard data={reminders.data} error={reminders.error} />,
     running: <RunningCard data={running.data} />,
     weather: <WeatherCard />,
     news: <NewsCard />,

@@ -14,7 +14,7 @@ from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from . import briefing, pinned
+from . import briefing, pinned, reminders
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
 from .news import headlines, stories
@@ -639,6 +639,17 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         seconds=60,
         args=[cfg, store],
         id="alert-rules",
+        max_instances=1,
+        coalesce=True,
+    )
+
+    # The reminders' ntfy messages (plan.md M32): each goes out in the minute it is due.
+    scheduler.add_job(
+        reminders.send_due,
+        "interval",
+        seconds=60,
+        args=[cfg, store],
+        id="reminders",
         max_instances=1,
         coalesce=True,
     )

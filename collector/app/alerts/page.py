@@ -53,6 +53,7 @@ _CATEGORIES: dict[str, list[tuple[str, ...]]] = {
     "updates": [("Docker page", "/docker", "")],
     "backup": [("Backups page", "/backups", "")],
     "train": [("Home", "/", "your train")],
+    "reminders": [("Reminders page", "/reminders", "")],
 }
 
 

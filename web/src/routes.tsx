@@ -19,6 +19,7 @@ import { PortfolioPage } from './pages/PortfolioPage'
 import { PageError } from './pages/PageError'
 import { RecipePage } from './pages/RecipePage'
 import { RecipesPage } from './pages/RecipesPage'
+import { RemindersPage } from './pages/RemindersPage'
 import { ReposPage } from './pages/ReposPage'
 import { RunningPage } from './pages/RunningPage'
 import { SavedPage } from './pages/SavedPage'
@@ -35,6 +36,7 @@ const PAGES: Record<string, ReactElement> = {
   '/music': <MusicPage />,
   '/weather': <WeatherPage />,
   '/running': <RunningPage />,
+  '/reminders': <RemindersPage />,
   '/services': <ServicesPage />,
   '/settings': <SettingsPage />,
   '/repos': <ReposPage />,

@@ -31,6 +31,8 @@ from . import (
     exposure_api,
     lights_api,
     music_api,
+    reminders,
+    reminders_api,
     restore_request,
     runs_api,
     scheduler,
@@ -109,6 +111,7 @@ async def lifespan(app: FastAPI):
     ups.ensure_tables(app.state.store)
     my_sites.ensure_tables(app.state.store)
     agenda.ensure_tables(app.state.store)
+    reminders.ensure_tables(app.state.store)
     desk_boards.ensure_tables(app.state.store)
     desk_headlines.ensure_tables(app.state.store)
     apple.ensure_tables(app.state.store)
@@ -169,6 +172,7 @@ app.include_router(alerts_api.router)
 app.include_router(news_api.router)
 app.include_router(portfolio_api.router)
 app.include_router(recipes_api.router)
+app.include_router(reminders_api.router)
 
 
 def _serve(key: str) -> Any:
