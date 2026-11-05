@@ -25,7 +25,8 @@ export function Layout() {
   }, [])
 
   return (
-    <div className="flex h-dvh bg-panel md:bg-canvas">
+    // On paper the page is one long column: no chrome, and no scroll area that cuts it off.
+    <div className="flex h-dvh bg-panel md:bg-canvas print:block print:h-auto print:bg-transparent">
       <a
         href={`#${MAIN_ID}`}
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-20 focus:rounded-lg focus:bg-accent focus:px-3 focus:py-2 focus:text-white"
@@ -35,9 +36,9 @@ export function Layout() {
 
       <Sidebar host={host} onSearch={() => setSearching(true)} />
 
-      <div className="flex min-w-0 flex-1 flex-col md:py-2 md:pr-2">
+      <div className="flex min-w-0 flex-1 flex-col md:py-2 md:pr-2 print:block print:p-0">
         {/* The insets keep the bar clear of the iPhone's status bar and notch in the installed app. */}
-        <header className="flex items-center justify-between pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-2 pl-[max(1rem,env(safe-area-inset-left))] md:hidden">
+        <header className="flex items-center justify-between pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-2 pl-[max(1rem,env(safe-area-inset-left))] md:hidden print:hidden">
           <Brand host={null} />
           <div className="flex items-center gap-3">
             <ConnectionBadge />
@@ -56,7 +57,7 @@ export function Layout() {
           id={MAIN_ID}
           tabIndex={-1}
           style={{ viewTransitionName: 'page' }}
-          className="min-h-0 flex-1 overflow-y-auto pt-2 pr-[max(1rem,env(safe-area-inset-right))] pb-28 pl-[max(1rem,env(safe-area-inset-left))] focus:outline-none md:rounded-[14px] md:border md:border-line-soft md:bg-panel md:px-8 md:py-8 lg:px-11 lg:py-9"
+          className="min-h-0 flex-1 overflow-y-auto pt-2 pr-[max(1rem,env(safe-area-inset-right))] pb-28 pl-[max(1rem,env(safe-area-inset-left))] focus:outline-none md:rounded-[14px] md:border md:border-line-soft md:bg-panel md:px-8 md:py-8 lg:px-11 lg:py-9 print:overflow-visible print:border-0 print:bg-transparent print:p-0"
         >
           <Outlet />
         </main>

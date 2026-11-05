@@ -127,6 +127,22 @@ describe('RecipePage', () => {
     expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: /Undo/ })).toBeNull()
   })
 
+  it('prints under the recipe title alone, so the PDF is named after it', async () => {
+    setup()
+    await waitFor(() => expect(document.title).toBe('Kip shoarma uit de oven · Home hub'))
+    let printedAs = ''
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {
+      printedAs = document.title
+    })
+
+    await menu(/Print or save as PDF/)
+    expect(print).toHaveBeenCalledOnce()
+    expect(printedAs).toBe('Kip shoarma uit de oven')
+    window.dispatchEvent(new Event('afterprint'))
+    expect(document.title).toBe('Kip shoarma uit de oven · Home hub')
+    print.mockRestore()
+  })
+
   it('deletes only after a second yes, and says so on the list', async () => {
     const { fetchMock } = setup({ [`DELETE ${PATH}`]: { deleted: 'kip-shoarma' } })
 

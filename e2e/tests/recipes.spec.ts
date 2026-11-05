@@ -180,3 +180,21 @@ test('cook mode goes phase by phase, pauses before the heat and keeps its place 
   await page.getByRole('link', { name: 'Close cook mode' }).click()
   await expect(page).toHaveURL('/recipes/kip-shoarma?persons=3')
 })
+
+test('a recipe prints as a light page with only the recipe on it', async ({ page, isMobile }) => {
+  await page.route('**/api/recipes/kip-shoarma', (r) => r.fulfill({ json: DETAIL }))
+  await page.route('**/api/recipes/kip-shoarma/photo/*', (r) => r.fulfill({ body: PNG, contentType: 'image/png' }))
+  await page.goto('/recipes/kip-shoarma')
+  await expect(page.getByRole('heading', { level: 1, name: 'Kip shoarma uit de oven' })).toBeVisible()
+
+  await page.emulateMedia({ media: 'print' })
+  await expect(page.getByRole('button', { name: 'Recipe actions' })).toBeHidden()
+  await expect(page.getByRole('button', { name: 'More persons' })).toBeHidden()
+  await expect(page.locator(isMobile ? 'nav.fixed' : 'aside')).toBeHidden()
+  await expect(page.getByRole('main').getByRole('link', { name: /^Cook/ }).filter({ visible: true })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Oven, cook' })).toBeVisible()
+  // The whole page runs on instead of scrolling inside the page area, in dark text on white.
+  const main = page.getByRole('main')
+  expect(await main.evaluate((el) => getComputedStyle(el).overflowY)).toBe('visible')
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(255, 255, 255)')
+})

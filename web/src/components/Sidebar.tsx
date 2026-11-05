@@ -16,7 +16,7 @@ export function Brand({ host }: { host: string | null }) {
 
 export function Sidebar({ host, onSearch }: { host: string | null; onSearch: () => void }) {
   return (
-    <aside className="hidden w-62 shrink-0 flex-col md:flex">
+    <aside className="hidden w-62 shrink-0 flex-col md:flex print:hidden">
       <div className="px-5.5 pt-5.5 pb-4.5">
         <Brand host={host} />
         <button

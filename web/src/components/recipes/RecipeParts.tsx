@@ -27,13 +27,13 @@ export function Facts({ recipe, servings, onServings }: { recipe: Recipe; servin
       <div className={cn(tile, 'flex-[1.2]')}>
         <span className="text-label text-faint">Persons</span>
         <span className="flex items-center gap-2.5">
-          <button type="button" aria-label="Fewer persons" disabled={servings <= 1} onClick={() => onServings(servings - 1)} className="grid size-7 place-items-center rounded-lg border border-line bg-raised disabled:opacity-40">
+          <button type="button" aria-label="Fewer persons" disabled={servings <= 1} onClick={() => onServings(servings - 1)} className="grid size-7 print:hidden place-items-center rounded-lg border border-line bg-raised disabled:opacity-40">
             <Minus aria-hidden="true" className="size-3.5" />
           </button>
           <output aria-label="Persons" className="min-w-5 text-center text-title font-semibold">
             {servings}
           </output>
-          <button type="button" aria-label="More persons" disabled={servings >= 50} onClick={() => onServings(servings + 1)} className="grid size-7 place-items-center rounded-lg border border-line bg-raised disabled:opacity-40">
+          <button type="button" aria-label="More persons" disabled={servings >= 50} onClick={() => onServings(servings + 1)} className="grid size-7 print:hidden place-items-center rounded-lg border border-line bg-raised disabled:opacity-40">
             <Plus aria-hidden="true" className="size-3.5" />
           </button>
         </span>
@@ -96,13 +96,13 @@ export function StepIngredient({ ing, factor }: { ing: Ingredient; factor: numbe
 function PhaseCard({ phase, factor }: { phase: Phase; factor: number }) {
   return (
     <Surface as="section" aria-label={`${phase.name}, ${phase.kind}`} padding="compact" className={cn('border-l-[3px]', phase.kind === 'prep' ? 'border-l-accent-fg' : 'border-l-cook')}>
-      <div className="mb-2.5 flex items-baseline justify-between gap-3 px-1">
+      <div className="mb-2.5 flex items-baseline justify-between gap-3 px-1 break-after-avoid">
         <h3 className="text-title font-semibold">{phase.name}</h3>
         <span className={cn('text-label font-bold tracking-[0.12em] uppercase', phase.kind === 'prep' ? 'text-accent-fg' : 'text-cook')}>{phase.kind}</span>
       </div>
       <ol className="flex flex-col gap-3 px-1">
         {phase.steps.map((step, n) => (
-          <li key={n} className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-2">
+          <li key={n} className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-2 break-inside-avoid">
             <span className="pt-0.5 text-caption text-faint">{n + 1}</span>
             <span>
               <span className="block">{step.text}</span>

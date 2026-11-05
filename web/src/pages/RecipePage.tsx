@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, ClipboardPaste, Copy, Sun, Trash2, Undo2 } from 'lucide-react'
+import { ArrowLeft, Camera, ClipboardPaste, Copy, Printer, Sun, Trash2, Undo2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { PageHeader } from '../components/PageHeader'
@@ -103,6 +103,15 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
       return 'Copied with the prompt. Paste Claude’s answer back with Paste JSON.'
     }, 'Nothing copied')
 
+  // The browser's own Print, which also saves as PDF (the share sheet on the iPhone). The title
+  // is the PDF's file name, so it is the recipe's alone while printing.
+  const print = () => {
+    const title = document.title
+    document.title = recipe.title
+    window.addEventListener('afterprint', () => (document.title = title), { once: true })
+    window.print()
+  }
+
   const undo = () =>
     act(async () => {
       await sendJson('POST', `/api/recipes/${encodeURIComponent(recipe.id)}/undo`, {})
@@ -125,6 +134,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
 
   const actions = [
     { label: 'Copy JSON', hint: 'The recipe as JSON, to change it with Claude', icon: Copy, onSelect: copyJson },
+    { label: 'Print or save as PDF', hint: 'A light page to print or send', icon: Printer, onSelect: print },
     { label: 'Paste JSON', hint: 'Replace this recipe with a new version', icon: ClipboardPaste, onSelect: () => setPasting(true) },
     ...(detail.previous_at
       ? [{ label: 'Undo last paste', hint: `Pasted ${formatAgo(detail.previous_at)}; back to the version before`, icon: Undo2, onSelect: undo }]
@@ -135,7 +145,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 print:hidden">
         <BackLink />
         <div className="mb-4 flex items-center gap-2">
           <span className="hidden md:block">
@@ -177,7 +187,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
       />
 
       {confirming && (
-        <Surface padding="compact" role="alert" className="mb-4 flex flex-wrap items-center gap-3 border-down/40">
+        <Surface padding="compact" role="alert" className="mb-4 flex flex-wrap items-center gap-3 border-down/40 print:hidden">
           <p className="basis-full sm:basis-0 sm:flex-1">Delete &quot;{recipe.title}&quot; for good? There is no undo.</p>
           <Button variant="danger" onClick={remove} disabled={busy}>
             <Trash2 aria-hidden="true" className="size-4" />
@@ -189,7 +199,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
         </Surface>
       )}
       {notice && (
-        <p role="status" className={cn('mb-4 text-small', notice.ok ? 'text-up' : 'text-down')}>
+        <p role="status" className={cn('mb-4 text-small print:hidden', notice.ok ? 'text-up' : 'text-down')}>
           {notice.text}
         </p>
       )}
@@ -202,7 +212,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
             <img
               src={photoUrl({ id: recipe.id, photo: detail.photo }, 'lead')}
               alt=""
-              className="order-1 aspect-[3/2] w-full rounded-[16px] border border-line-soft bg-raised object-cover"
+              className="order-1 aspect-[3/2] w-full rounded-[16px] border border-line-soft bg-raised object-cover print:max-h-56"
             />
           )}
           <div className="order-3 flex flex-col gap-5">
@@ -220,7 +230,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
           )}
           <PageHeader title={recipe.title} subtitle={recipe.intro ?? undefined} />
           {detail.needs_review && (
-            <Surface padding="compact" className="-mt-3 flex flex-col gap-2 border-warn/30 bg-warn/5">
+            <Surface padding="compact" className="-mt-3 flex flex-col gap-2 border-warn/30 bg-warn/5 print:hidden">
               <p className="font-semibold text-warn">Not in phases yet</p>
               <p className="text-small text-muted">
                 This came from Tandoor as one cook phase. Copy it with the prompt for Claude, then paste the reworked version back.
@@ -257,7 +267,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
         </div>
         {/* On the phone the way into cook mode stays in thumb reach all the way down the page. Sticky
             counts the page area's bottom padding (room for the tab bar), so 0 sits just above the bar. */}
-        <div className="sticky bottom-0 z-10 order-5 md:hidden">
+        <div className="sticky bottom-0 z-10 order-5 md:hidden print:hidden">
           <Link to={cookPath} viewTransition className={cn(buttonClass('primary'), 'h-12 w-full text-title shadow-[0_8px_30px_rgb(0_0_0/0.5)]')}>
             <Sun aria-hidden="true" className="size-5" />
             Cook · screen stays on

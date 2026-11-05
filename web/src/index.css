@@ -303,3 +303,36 @@ body {
   outline: 2px solid var(--color-accent-line);
   outline-offset: 2px;
 }
+
+/*
+ * On paper (Print, Save as PDF): the same tokens in light, so a page prints as dark text on
+ * white instead of a black sheet. Layout.tsx hides the chrome and lets the page run on.
+ */
+@media print {
+  :root {
+    /* The page's own colour scheme is dark, which paints the paper's margins black. */
+    color-scheme: light;
+    background-color: #fff;
+    --color-canvas: #fff;
+    --color-panel: #fff;
+    --color-card: #fff;
+    --color-raised: #f2f2f4;
+    --color-line: #c9cbd1;
+    --color-line-soft: #dcdde1;
+    --color-fg: #15161a;
+    --color-muted: #45484f;
+    --color-faint: #5f626a;
+    --color-accent-fg: #5240c9;
+    --color-cook: #a8560f;
+    --color-glass: transparent;
+    --color-glass-line: #dcdde1;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+
+  body {
+    font-size: 12px;
+  }
+}

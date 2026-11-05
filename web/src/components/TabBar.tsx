@@ -18,7 +18,7 @@ export function TabBar() {
   return (
     <nav
       aria-label="Sections"
-      className="fixed inset-x-0 bottom-0 z-10 flex border-t border-line bg-canvas/90 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-lg md:hidden"
+      className="fixed inset-x-0 bottom-0 z-10 flex border-t border-line bg-canvas/90 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-lg md:hidden print:hidden"
     >
       {TAB_ITEMS.map((item) => (
         <NavLink

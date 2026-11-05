@@ -2226,11 +2226,11 @@ M29, M30, M31, M32.
   settings and report template; its report also carries `.Restarted` and a `.Changelog` per
   update).
 - Recipes (discussed 2026-10-23): decided 2026-10-27 as M30, a Recipes section in the hub.
-- Recipes as PDF (asked 2026-10-27, for later): the owner wants a PDF export at some point. To
-  decide then: one recipe, a selection, or the whole collection as a cookbook (with a contents
-  page); and how: a print stylesheet so the browser's own Save as PDF does it (no new
-  dependency, also prints on paper), or a PDF made in the hub (a new dependency such as
-  WeasyPrint, asked first). The phases, To get and Check would carry over; photos optional.
+- Recipes as PDF (asked 2026-10-27): decided 2026-11-05 as a print stylesheet, one recipe at a
+  time: Print or save as PDF in a recipe's menu opens the browser's own Print (the share sheet
+  on the iPhone), and the page prints light, without the hub's chrome, under the recipe's title,
+  for the amounts the persons are set to. No new dependency. A selection or the whole
+  collection as a cookbook stays open.
 - Ask the hub in Telegram (`/ask`, discussed 2026-10-23): dropped; the owner asks Claude Code.
 - cloudflared stays (2026-10-23): the household's second Obsidian user syncs LiveSync through it.
 
