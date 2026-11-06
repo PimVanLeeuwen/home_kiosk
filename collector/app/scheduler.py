@@ -18,7 +18,7 @@ from . import briefing, pinned, reminders
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
 from .news import headlines, stories
-from .portfolio import indices
+from .portfolio import indices, weeks
 from .portfolio import report as portfolio_report
 from .sources import (
     adguard,
@@ -467,6 +467,18 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         seconds=PORTFOLIO_INTERVAL_SECONDS,
         args=[store, "indices", lambda: indices.collect(cfg)],
         id="indices",
+        next_run_time=None,
+        max_instances=1,
+        coalesce=True,
+    )
+
+    # A week of prices per holding, for the panel's Stock screen and the week card.
+    scheduler.add_job(
+        _run,
+        "interval",
+        seconds=PORTFOLIO_INTERVAL_SECONDS,
+        args=[store, weeks.CACHE_KEY, lambda: weeks.collect(store)],
+        id="stock-weeks",
         next_run_time=None,
         max_instances=1,
         coalesce=True,

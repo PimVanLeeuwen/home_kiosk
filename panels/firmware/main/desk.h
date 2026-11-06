@@ -514,33 +514,40 @@ typedef struct {
     char others[48];         /* "the other 6 are operational" */
 } desk_services_t;
 
-/* The House panel's Top movers screen: the heat map's tiles laid out by the hub
- * (app/desk_movers.py), and the indices below. */
-#define DESK_MOVER_TILES 12
-#define DESK_INDICES 3
+/* The House panel's Stock screen (decided 2026-11-06): every holding's last five trading
+ * days, of which the screen shows one at random each time it comes round; the line and the
+ * previous close (`base`) on one scale, 0..1000. Ready to draw (app/desk_stock.py). */
+#define DESK_STOCKS 12
+#define DESK_STOCK_POINTS 72
+#define DESK_STOCK_DAYS 6
 typedef struct {
     bool present;
     bool stale;
     uint32_t version;
-    char title[24];          /* "TOP MOVERS · TODAY" */
-    char total[32];          /* "portfolio −0.14%" */
-    bool total_up;
+    char title[16];          /* "THIS WEEK" */
     int count;
     struct {
-        int16_t x, y, w, h;  /* on the screen */
-        char size;           /* 'l' ticker, change and name; 'm' ticker and change; 's' ticker */
-        char ticker[16];     /* "NVDA", "3 others" */
-        char name[48];
-        char change[12];     /* "+2.54%" */
-        int16_t move;        /* in hundredths of a percent, for the tint */
-    } tiles[DESK_MOVER_TILES];
-    int index_count;
-    struct {
-        char label[16];      /* "S&P 500" */
-        char change[12];
+        char ticker[16];     /* "NVDA" */
+        char name[48];       /* "NVIDIA Corporation" */
+        char price[24];      /* "$181.60", "1,295.00 EUR" */
+        char week[12];       /* "+4.21%" */
         bool up;
-    } indices[DESK_INDICES];
-} desk_movers_t;
+        char today[24];      /* "TODAY +1.34%", or "" */
+        bool today_up;
+        char gain[24];       /* "YOURS +212.4%", or "" */
+        bool gain_up;
+        char high[24], low[24];
+        int16_t high_at, low_at; /* their index in points */
+        uint16_t base;       /* the previous close */
+        int count;
+        uint16_t points[DESK_STOCK_POINTS];
+        int day_count;
+        struct {
+            int16_t at;      /* the day's first point */
+            char label[4];   /* "Mon" */
+        } days[DESK_STOCK_DAYS];
+    } stocks[DESK_STOCKS];
+} desk_stock_t;
 
 /* The House panel's pipelines (plan.md M21): the running ones as job graphs, at most
  * two (they take turns), and the idle card. Ready to draw (app/desk_pipelines.py). */
@@ -737,9 +744,9 @@ void desk_backups_copy(desk_backups_t *into);
 bool desk_has_money(void);
 uint32_t desk_money_version(void);
 void desk_money_copy(desk_money_t *into);
-bool desk_has_movers(void);
-uint32_t desk_movers_version(void);
-void desk_movers_copy(desk_movers_t *into);
+bool desk_has_stock(void);
+uint32_t desk_stock_version(void);
+void desk_stock_copy(desk_stock_t *into);
 bool desk_has_pipeline(void);
 uint32_t desk_pipeline_version(void);
 void desk_pipeline_copy(desk_pipeline_t *into);

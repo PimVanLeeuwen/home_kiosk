@@ -52,7 +52,6 @@
 #include "screen_pipelines.h"
 #include "screen_piece.h"
 #include "desk_piece.h"
-#include "screen_movers.h"
 #include "screen_nas.h"
 #include "screen_services.h"
 #include "screen_sites.h"
@@ -63,6 +62,7 @@
 #include "screen_music.h"
 #include "screen_playing.h"
 #include "screen_start.h"
+#include "screen_stock.h"
 #include "screen_train.h"
 
 LV_FONT_DECLARE(instrument_24);
@@ -75,7 +75,7 @@ LV_FONT_DECLARE(instrument_24);
 /* In the order they turn; the pieces (plan.md M27) where they belong among the others. */
 enum { CLOCK, NIGHT, BRIEFING, TRAIN, AGENDA, COUNTDOWN, RUN, RUNWEEK, STREETS, DAY, RADAR, HEADLINES, PLAYING, LIGHTS,
        AIR, LAUNDRY, APPLE, PHOTO, MUSIC, PIPELINE, PIPELINES, NAS, CODE, SITES, SERVICES, TAILNET, MONEY,
-       MOVERS, BACKUPS, ALERTS, DOOR, BOARD, START, COUNT };
+       STOCK, BACKUPS, ALERTS, DOOR, BOARD, START, COUNT };
 
 /* Each piece's screen, by its place in desk_piece.h. */
 static const int PIECE_SCREEN[PIECES] = {
@@ -141,8 +141,8 @@ static bool ready(int which)
         return desk_has_tailnet();
     case MONEY:
         return desk_has_money();
-    case MOVERS:
-        return desk_has_movers();
+    case STOCK:
+        return desk_has_stock();
     case BACKUPS:
         return desk_has_backups();
     case ALERTS:
@@ -389,7 +389,7 @@ void screens_start(void)
     screens[SERVICES] = lv_obj_create(NULL);
     screens[TAILNET] = lv_obj_create(NULL);
     screens[MONEY] = lv_obj_create(NULL);
-    screens[MOVERS] = lv_obj_create(NULL);
+    screens[STOCK] = lv_obj_create(NULL);
     screens[BACKUPS] = lv_obj_create(NULL);
     screens[ALERTS] = lv_obj_create(NULL);
     screens[DOOR] = lv_obj_create(NULL);
@@ -418,7 +418,7 @@ void screens_start(void)
     backdrops_attach(screens[SERVICES], "services");
     backdrops_attach(screens[TAILNET], "tailnet");
     backdrops_attach(screens[MONEY], "money");
-    backdrops_attach(screens[MOVERS], "movers");
+    backdrops_attach(screens[STOCK], "stock");
     backdrops_attach(screens[BACKUPS], "backups");
     backdrops_attach(screens[ALERTS], "alerts");
     backdrops_attach(screens[PIPELINES], "pipelines");
@@ -438,7 +438,7 @@ void screens_start(void)
     screen_services_create(screens[SERVICES]);
     screen_tailnet_create(screens[TAILNET]);
     screen_money_create(screens[MONEY]);
-    screen_movers_create(screens[MOVERS]);
+    screen_stock_create(screens[STOCK]);
     screen_backups_create(screens[BACKUPS]);
     screen_alerts_create(screens[ALERTS]);
     screen_door_create(screens[DOOR]);

@@ -137,7 +137,7 @@ def test_the_route_and_its_panel_names(store):
         {"kind": "services", "stale": False, "present": False},
         {"kind": "tailnet", "stale": False, "present": False},
         {"kind": "money", "stale": False, "present": False},
-        {"kind": "movers", "stale": False, "present": False},
+        {"kind": "stock", "stale": False, "present": False},
         {"kind": "backups", "stale": False, "present": False},
         {"kind": "alerts", "stale": False, "present": True, "title": "ALERTS",
          "status": "NONE OPEN", "tone": "ok",
@@ -351,7 +351,7 @@ def test_the_other_panels_keep_turning(store):
 def test_an_answer_too_big_for_a_board_leaves_screens_out(store):
     big = {"name": "house", "screens": [
         {"kind": kind, "stale": False, "present": True, "words": "x" * 1700}
-        for kind in ("pipelines", "nas", "code", "movers", "backups", "alerts")]}
+        for kind in ("pipelines", "nas", "code", "stock", "backups", "alerts")]}
     fitted = desk.fit(dict(big), 8192)
     assert [s["kind"] for s in fitted["screens"]] == ["pipelines", "nas", "code", "alerts"]
     assert desk.size(fitted) <= 8192 - 64

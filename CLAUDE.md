@@ -203,6 +203,11 @@ python3 dashboard/serve.py
 - 2026-11-04: with two desk panels, the sky, the year, your week and the running session leave
   Now, and the orbit clock, the art of the day and Media leave House, code included; the hub's
   pages keep the week and the session. plan.md M32.
+- 2026-11-06: the movers heat map is replaced by a Stock screen on House and a "This week" card
+  on the Portfolio page: one holding's last five trading days, half-hourly from Yahoo, a random
+  holding (equal chances) each time the screen comes round or the page opens, with a shuffle on
+  the page; its price, week change, today and your gain, in percentages only on the panel.
+  plan.md M20.
 
 ## Gotchas
 

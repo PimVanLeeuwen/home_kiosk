@@ -10,6 +10,11 @@ const PORTFOLIO = {
 const HISTORY = { as_of: PORTFOLIO.as_of, stale: false, range: 'year', points: [
   { d: '2025-10-02', v: 6000, invested: 5000 }, { d: '2026-10-02', v: 9155, invested: 6069 },
 ] }
+// The last two half hours of a week, in New York (the card picks among the holdings).
+const WEEKS = { as_of: PORTFOLIO.as_of, stale: false, stocks: [
+  { symbol: 'NVDA', currency: 'USD', price: 230.86, previous_close: 220, zone: 'America/New_York',
+    points: [{ t: '2026-11-05T19:30:00Z', price: 228 }, { t: '2026-11-05T20:00:00Z', price: 230.86 }] },
+] }
 const NVDA = {
   symbol: 'NVDA', data_source: 'YAHOO', name: 'NVIDIA Corporation', isin: null, currency: 'USD', quantity: 10,
   average_price: 169.85, price: 230.86, price_min: 46, price_max: 240, value: 2050, invested: 1569, gain_abs: 1837,
@@ -22,14 +27,18 @@ test('Portfolio shows the summary and opens a holding', async ({ page }) => {
   await page.route('**/api/portfolio', (r) => r.fulfill({ json: PORTFOLIO }))
   await page.route('**/api/portfolio/history?**', (r) => r.fulfill({ json: HISTORY }))
   await page.route('**/api/indices', (r) => r.fulfill({ json: { as_of: PORTFOLIO.as_of, stale: false, indices: [] } }))
+  await page.route('**/api/portfolio/weeks', (r) => r.fulfill({ json: WEEKS }))
   await page.route('**/api/portfolio/holdings/YAHOO/NVDA', (r) => r.fulfill({ json: NVDA }))
   await page.goto('/portfolio')
 
   await expect(page.getByRole('region', { name: 'Value' })).toContainText('€ 9.143')
   await expect(page.getByRole('region', { name: 'Summary' })).toContainText('Total gain')
   await expect(page.getByRole('img', { name: /Portfolio value, 1Y/ })).toBeVisible()
-  // The heat map's tile and the holdings row both open the holding.
-  await expect(page.getByRole('region', { name: "Today's movers" }).getByRole('link', { name: /^NVDA, / }).filter({ visible: true })).toHaveAttribute('href', '/portfolio?h=YAHOO%2FNVDA')
+  // The week card's ticker and the holdings row both open the holding.
+  const week = page.getByRole('region', { name: 'This week' })
+  await expect(week.getByRole('img', { name: 'NVDA over its last five trading days' })).toBeVisible()
+  await expect(week).toContainText('+4,94%')
+  await expect(week.getByRole('link', { name: 'NVDA' })).toHaveAttribute('href', '/portfolio?h=YAHOO%2FNVDA')
   await page.getByRole('region', { name: /^Holdings/ }).getByRole('link', { name: /NVDA/ }).filter({ visible: true }).click()
 
   await expect(page).toHaveURL('/portfolio?h=YAHOO%2FNVDA')
@@ -46,6 +55,8 @@ for (const reduced of [false, true]) {
     await page.route('**/api/portfolio', (r) => r.fulfill({ json: PORTFOLIO }))
     await page.route('**/api/portfolio/history?**', (r) => r.fulfill({ json: HISTORY }))
     await page.route('**/api/indices', (r) => r.fulfill({ json: { as_of: PORTFOLIO.as_of, stale: false, indices: [] } }))
+    await page.route('**/api/portfolio/weeks', (r) => r.fulfill({ json: WEEKS }))
+  await page.route('**/api/portfolio/weeks', (r) => r.fulfill({ json: WEEKS }))
     await page.goto('/portfolio')
     await expect(page.getByRole('img', { name: /Portfolio value, 1Y/ })).toBeVisible()
 

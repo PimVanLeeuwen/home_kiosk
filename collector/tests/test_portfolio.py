@@ -234,6 +234,13 @@ def test_holding_endpoint(client):
     assert client.get("/api/portfolio/holdings/YAHOO/NVDA").status_code == 502
 
 
+def test_weeks_endpoint(client, store):
+    assert client.get("/api/portfolio/weeks").status_code == 503
+    store.put_cache("stock_weeks", {"as_of": "2026-11-06T08:00:00Z", "stale": True, "stocks": []})
+    assert client.get("/api/portfolio/weeks").json() == {
+        "as_of": "2026-11-06T08:00:00Z", "stale": True, "stocks": []}
+
+
 def test_indices_endpoint(client, store):
     assert client.get("/api/indices").status_code == 503
     store.put_cache("indices", {"as_of": "2026-10-02T08:00:00Z", "stale": False, "indices": []})

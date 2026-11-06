@@ -721,6 +721,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   (`screen_movers.c`), after Services in House's turn; holdings under 2% share one tile ("+3"
   where "3 others" does not fit), and the changes use a plain hyphen, as the panel fonts stop
   at Latin-1.
+  Replaced 2026-11-06 by **Stock** (the owner did not find the heat map useful): one holding's
+  last five trading days, half-hourly from Yahoo's chart endpoint (`app/portfolio/weeks.py`,
+  every 15 minutes, one request per holding Yahoo can price), as a large glowing line with a
+  dashed line at the close before the week, the trading days apart, the high and the low, and a
+  ripple on the latest price; its ticker, name, price and week change, and today and your gain
+  in the pills, in percentages only on the panel. The hub sends every holding's week
+  (`desk_stock.py`, at most 12, 72 points each) and the panel draws one at random each time the
+  screen comes round, equal chances, never the same twice running (`screen_stock.c`), so it
+  never changes while shown. On the Portfolio page the "This week" card does the same, a random
+  holding each visit with a shuffle for another (`/api/portfolio/weeks`).
 - **My sites** (House, added 2026-10-10): the owner's own sites: example.com,
   aoc.example.com, hubble.cafe, meteor.cafe, admin.hubble.cafe, harry.hubble.cafe and
   harry-admin.hubble.cafe. The list is grouped Personal and Hubble with short names (aoc, admin,

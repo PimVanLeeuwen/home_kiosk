@@ -9,7 +9,7 @@
 #include "desk_code.h"
 #include "desk_door.h"
 #include "desk_piece.h"
-#include "desk_movers.h"
+#include "desk_stock.h"
 #include "desk_services.h"
 #include "desk_sites.h"
 #include "desk_tailnet.h"
@@ -79,7 +79,7 @@ EXT_RAM_BSS_ATTR static desk_nas_t nas_state;
 EXT_RAM_BSS_ATTR static desk_backups_t backups_state;
 EXT_RAM_BSS_ATTR static desk_money_t money_state;
 EXT_RAM_BSS_ATTR static desk_takeover_t takeover_state;
-EXT_RAM_BSS_ATTR static desk_movers_t movers_state;
+EXT_RAM_BSS_ATTR static desk_stock_t stock_state;
 EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline_state;
 EXT_RAM_BSS_ATTR static desk_pipelines_t pipelines_state;
 EXT_RAM_BSS_ATTR static desk_apple_t apple_state;
@@ -314,7 +314,7 @@ COPIERS(nas, desk_nas_t, nas_state)
 COPIERS(backups, desk_backups_t, backups_state)
 COPIERS(money, desk_money_t, money_state)
 COPIERS(takeover, desk_takeover_t, takeover_state)
-COPIERS(movers, desk_movers_t, movers_state)
+COPIERS(stock, desk_stock_t, stock_state)
 COPIERS(door, desk_door_t, door_state)
 GETTERS(apple, desk_apple_t, apple_state)
 
@@ -886,7 +886,7 @@ static void apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_backups_t backups;
     EXT_RAM_BSS_ATTR static desk_money_t money;
     EXT_RAM_BSS_ATTR static desk_takeover_t takeover;
-    EXT_RAM_BSS_ATTR static desk_movers_t movers;
+    EXT_RAM_BSS_ATTR static desk_stock_t stock;
     EXT_RAM_BSS_ATTR static desk_pipeline_t pipeline;
     EXT_RAM_BSS_ATTR static desk_pipelines_t pipes;
     EXT_RAM_BSS_ATTR static desk_apple_t apple;
@@ -915,7 +915,7 @@ static void apply(const char *body)
     copy_string(takeover.title, sizeof takeover.title, cJSON_GetObjectItem(error, "title"));
     copy_string(takeover.body, sizeof takeover.body, cJSON_GetObjectItem(error, "body"));
     copy_string(takeover.since, sizeof takeover.since, cJSON_GetObjectItem(error, "since"));
-    memset(&movers, 0, sizeof movers);
+    memset(&stock, 0, sizeof stock);
     memset(&pipeline, 0, sizeof pipeline);
     memset(&pipes, 0, sizeof pipes);
     memset(&apple, 0, sizeof apple);
@@ -987,8 +987,8 @@ static void apply(const char *body)
             desk_parse_alerts(screen, &alerts);
             continue;
         }
-        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "movers") == 0) {
-            desk_parse_movers(screen, &movers);
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "stock") == 0) {
+            desk_parse_stock(screen, &stock);
             continue;
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "pipeline") == 0) {
@@ -1126,7 +1126,7 @@ static void apply(const char *body)
     COMMIT(backups_state, backups);
     COMMIT(money_state, money);
     COMMIT(takeover_state, takeover);
-    COMMIT(movers_state, movers);
+    COMMIT(stock_state, stock);
     COMMIT(pipeline_state, pipeline);
     COMMIT(pipelines_state, pipes);
     COMMIT(apple_state, apple);

@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from ..security import same_origin_json
 from ..sources.ghostfolio import CHARTS_KEY, GhostfolioError
-from . import degiro, degiro_import, holding
+from . import degiro, degiro_import, holding, weeks
 from .models import HoldingDetail
 
 router = APIRouter(prefix="/api")
@@ -44,6 +44,12 @@ async def holding_detail(data_source: str, symbol: str, request: Request) -> Hol
         raise HTTPException(404, "No such holding.") from exc
     except Exception as exc:  # GhostfolioError or transport trouble
         raise HTTPException(502, "Ghostfolio is not answering.") from exc
+
+
+@router.get("/portfolio/weeks")
+def stock_weeks(request: Request) -> dict[str, Any]:
+    """Every holding's last five trading days, half-hourly, for the page's week card."""
+    return _cached(request, weeks.CACHE_KEY)
 
 
 @router.get("/indices")

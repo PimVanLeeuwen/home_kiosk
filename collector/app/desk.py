@@ -31,7 +31,6 @@ from .desk_home import (
     playing_screen,
 )
 from .desk_money import money_screen
-from .desk_movers import movers_screen
 from .desk_nas import nas_screen
 from .desk_pieces import (
     countdown_screen,
@@ -43,6 +42,7 @@ from .desk_pipelines import house_pipelines
 from .desk_running import run_screen, runweek_screen, streets_screen
 from .desk_services import services_screen
 from .desk_sites import sites_screen
+from .desk_stock import stock_screen
 from .desk_tailnet import tailnet_screen
 from .desk_train import train_screen
 from .sources import forecast, hue
@@ -130,8 +130,9 @@ NOW = (clock_screen, night_screen, briefing_screen, train_screen, agenda_screen,
        radar_screen, _headlines)
 # Decided 2026-10-22: NAS first and Backups before Alerts, as in the mockup.
 # Decided 2026-11-04 (plan.md M32): the orbit clock and Media are gone.
+# Decided 2026-11-06: one stock's week (Stock) replaces the movers heat map.
 HOUSE = (nas_screen, code_screen, sites_screen, services_screen, tailnet_screen,
-         money_screen, movers_screen, backups_screen, alerts_screen)
+         money_screen, stock_screen, backups_screen, alerts_screen)
 # The Home panel's screens, on House since its board went to the door (plan.md M32), after
 # House's own; Now Playing goes before them and the favourites after (they need `music`).
 HOME = (lights_screen, air_screen, laundry_screen, apple_screen, photo_screen)
@@ -149,7 +150,7 @@ TAKEOVER = {"now", "house", "test"}
 # the pieces (plan.md M27) first, then the newest, the alerts last.
 ROOM = 8192
 DROP_FIRST = ("night", "countdown", "radar", "photo", "streets", "runweek", "run",
-              "money", "backups", "movers", "tailnet", "services", "sites", "code",
+              "money", "backups", "stock", "tailnet", "services", "sites", "code",
               "nas", "pipelines", "headlines", "agenda", "day", "apple", "laundry", "air")
 
 

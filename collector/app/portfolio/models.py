@@ -69,3 +69,23 @@ class IndexQuote(BaseModel):
 
 class Indices(Envelope):
     indices: list[IndexQuote]
+
+
+class WeekPoint(BaseModel):
+    t: datetime
+    price: float
+
+
+class StockWeek(BaseModel):
+    """One holding's last five trading days, half-hourly (app.portfolio.weeks)."""
+
+    symbol: str
+    currency: str | None = None
+    price: float
+    previous_close: float | None = None  # the close before the five days
+    zone: str = "UTC"  # the exchange's, for its trading days
+    points: list[WeekPoint]
+
+
+class StockWeeks(Envelope):
+    stocks: list[StockWeek]

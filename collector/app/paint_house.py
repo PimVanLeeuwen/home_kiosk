@@ -54,7 +54,8 @@ SCREENS: dict[str, tuple[Callable[[dict[str, Any]], str], Spot]] = {
     "tailnet": (lambda s: AMBER if s.get("warn") else VIOLET, (360, 300, 380, 0.3)),
     # Violet: the chart's own colour depends on the period chosen on the panel.
     "money": (lambda s: VIOLET, (360, 430, 440, 0.24)),
-    "movers": (lambda s: GREEN if s.get("total_up", True) else RED, (360, 380, 480, 0.2)),
+    # Violet: the panel picks the stock, so the line's colour is only known there.
+    "stock": (lambda s: VIOLET, (360, 420, 460, 0.22)),
     "backups": (_backups, (120, 150, 330, 0.34)),
     "alerts": (lambda s: _tone(s.get("tone")), (130, 180, 400, 0.32)),
     "pipelines": (lambda s: VIOLET, (360, 330, 400, 0.24)),

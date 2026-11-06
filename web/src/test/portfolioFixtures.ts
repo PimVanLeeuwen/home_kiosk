@@ -85,3 +85,29 @@ export const NVDA: HoldingDetail = {
     { date: '2023-11-06T00:00:00.000Z', type: 'BUY', quantity: 1, unit_price: 454.91, fee: 2, currency: 'USD', value: 0 },
   ],
 }
+
+/** /api/portfolio/weeks: Friday and Monday in New York for NVDA, two hours of Amsterdam for ASML. */
+export const WEEKS = {
+  as_of: '2026-11-06T08:00:00Z',
+  stale: false,
+  stocks: [
+    {
+      symbol: 'NVDA', currency: 'USD', price: 110, previous_close: 100, zone: 'America/New_York',
+      points: [
+        { t: '2026-10-30T13:30:00Z', price: 101 },
+        { t: '2026-10-30T14:00:00Z', price: 99 },
+        { t: '2026-11-02T14:30:00Z', price: 103 },
+        { t: '2026-11-02T15:00:00Z', price: 110 },
+      ],
+    },
+    {
+      symbol: 'ASML.AS', currency: 'EUR', price: 1295, previous_close: 1400, zone: 'Europe/Amsterdam',
+      points: [
+        { t: '2026-11-05T08:00:00Z', price: 1380 },
+        { t: '2026-11-05T09:00:00Z', price: 1295 },
+      ],
+    },
+    // Sold since: not shown.
+    { symbol: 'GONE', currency: 'USD', price: 1, previous_close: 1, zone: 'UTC', points: [{ t: '2026-11-05T08:00:00Z', price: 1 }, { t: '2026-11-05T09:00:00Z', price: 1 }] },
+  ],
+}
