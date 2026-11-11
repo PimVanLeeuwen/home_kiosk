@@ -71,6 +71,7 @@ def test_the_today_view_has_the_weather_the_open_reminders_and_the_birthdays(sto
         "Wednesday 4 November", 9, "Light rain", "Tonight 3°")  # 3.4° at midnight
     assert s["wind"] == "Wind 4 Bft from SW"
     assert (s["wet"], s["wet_from"], s["rain_step"]) == (True, stamp(10), 300)
+    assert (s["stale"], s["weather_at"]) == (False, stamp(0))  # the panel fades it when old
     assert s["reminders"] == [{"title": "Bins out", "at": "07:30"}]  # Plants is ticked off
     assert s["birthdays"] == [{"name": "Anna", "when": "today", "turns": 34, "today": True},
                               {"name": "Bram", "when": "Fri", "turns": 0, "today": False}]
@@ -81,7 +82,16 @@ def test_the_today_view_without_any_data_still_shows(store):
     s = desk_door.door_screen(store, AMS, NOW)
     assert (s["present"], s["stale"], s["temperature"], s["tonight"], s["wind"]) == (
         True, True, None, "", "")
-    assert (s["reminders"], s["birthdays"], s["rain"]) == ([], [], [])
+    assert (s["reminders"], s["birthdays"], s["rain"], s["weather_at"]) == ([], [], [], 0)
+
+
+def test_the_panel_gets_up_to_twelve_reminders_to_turn_through(store):
+    reminders.ensure_tables(store)
+    for i in range(14):
+        reminders.add(store, reminders.Draft(title=f"Task {i:02}", start=date(2026, 11, 4)))
+    s = desk_door.door_screen(store, AMS, NOW)
+    assert [r["title"] for r in s["reminders"]] == [f"Task {i:02}" for i in range(12)]
+    assert s["more_reminders"] == 2
 
 
 def test_the_door_panel_answer_fits_and_has_its_background(store):

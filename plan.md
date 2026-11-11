@@ -2040,6 +2040,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   keep the week (Weather) and the session (Running). Now turns through about 7 screens a round
   and House about 14, at 15 s each. The panels' picture slots 9 and 10 (Media's posters) are
   free.
+- Decided 2026-11-11 (the board now hangs on the wall; Door changes are tried on a desk
+  panel): the reminders show four at a time and turn every 8 s with a short fade, dots by
+  the header (the hub sends up to 12, "and N more" past that); the weather fades to grey
+  with "weather as of 08:12" on the bottom line once it is over 20 minutes old (`weather_at`,
+  so a hub that stops answering shows too); rain bars that have passed drop off on the
+  panel's own clock.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

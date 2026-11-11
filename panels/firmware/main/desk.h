@@ -255,7 +255,7 @@ typedef struct {
 } desk_briefing_t;
 
 #define DESK_DOOR_RAIN 30
-#define DESK_DOOR_REMINDERS 5
+#define DESK_DOOR_REMINDERS 12 /* the screen turns through them, four a page */
 #define DESK_DOOR_BIRTHDAYS 4
 
 /* The Door panel's today view (app/desk_door.py, plan.md M32): the date, the temperature,
@@ -274,6 +274,7 @@ typedef struct {
     float rain[DESK_DOOR_RAIN]; /* mm an hour, one per rain_step seconds from rain_from */
     int64_t rain_from;
     int rain_step;
+    int64_t weather_at;      /* when the hub read the weather; 0: none */
     bool wet;                /* rain within the two hours */
     int64_t wet_from;        /* when it starts; 0: it rains now */
     int64_t wet_until;       /* when it is dry again; 0: not within the two hours */

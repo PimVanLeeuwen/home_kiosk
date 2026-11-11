@@ -40,6 +40,7 @@ void desk_parse_door(const cJSON *screen, desk_door_t *door)
     }
     door->rain_from = seconds(FIELD("rain_from"));
     door->rain_step = (int)seconds(FIELD("rain_step"));
+    door->weather_at = seconds(FIELD("weather_at"));
     door->wet = cJSON_IsTrue(FIELD("wet"));
     door->wet_from = seconds(FIELD("wet_from"));
     door->wet_until = seconds(FIELD("wet_until"));

@@ -2,7 +2,9 @@
 the rain over the next two hours, today's open reminders, the birthdays of the coming
 week and the wind, as ready-to-draw values. The panel draws the clock and words the rain
 ("Dry for 28 min, then rain until 09:25") on its own clock from the spell's start and
-end, so the countdown runs between answers.
+end, so the countdown runs between answers. It also drops the rain bars that have passed
+and fades the weather once `weather_at` is old, so a hub that stops answering shows, and
+it turns through the reminders four at a time.
 
 Reminder titles and names are personal data: served to the panel, never logged.
 """
@@ -19,7 +21,7 @@ from .panel_text import latin1
 from .sources import birthdays, forecast, weather
 from .store import Store
 
-MAX_REMINDERS = 5
+MAX_REMINDERS = 12  # the panel turns through them, four a page
 MAX_BIRTHDAYS = 4
 RAIN_STEP = 300  # seconds between Buienradar's points
 TONIGHT_FROM, TONIGHT_UNTIL = 18, 6  # the hours "tonight" spans
@@ -70,6 +72,14 @@ def _wind(w: dict[str, Any]) -> str:
     return f"Wind {bft} Bft from {where}" if where else f"Wind {bft} Bft"
 
 
+def _seconds(iso: Any) -> int:
+    """An ISO time as seconds since 1970, 0 when there is none."""
+    try:
+        return round(datetime.fromisoformat(iso).timestamp()) if iso else 0
+    except (TypeError, ValueError):
+        return 0
+
+
 def _when(days: int, date_iso: str) -> str:
     if days == 0:
         return "today"
@@ -91,6 +101,7 @@ def door_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     return {
         "kind": "door",
         "stale": bool(w.get("stale")) or not w,
+        "weather_at": _seconds(w.get("as_of")),
         "present": True,
         "date": local.strftime("%A %-d %B"),
         "temperature": round(temperature) if temperature is not None else None,
