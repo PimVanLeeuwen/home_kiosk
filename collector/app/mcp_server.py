@@ -20,6 +20,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from apscheduler.schedulers.base import BaseScheduler
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 from mcp.server.streamable_http_manager import StreamableHTTPASGIApp
@@ -28,8 +29,8 @@ from mcp_types import ToolAnnotations
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
+from . import mcp_dev, mcp_writes
 from . import mcp_house as house
-from . import mcp_writes
 from . import reminders as reminders_store
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
@@ -78,10 +79,12 @@ def _dumped(value: Any) -> Any:
 
 
 def build(store: Callable[[], Store], config: Callable[[], dict[str, Any]],
-          writes: bool = False) -> MCPServer:
+          writes: bool = False,
+          sched: Callable[[], BaseScheduler | None] = lambda: None) -> MCPServer:
     """The server; `store` and `config` are asked on each call, so tests and the app can swap
-    them. What each tool returns is in mcp_house.py; with `writes`, the tools that change the
-    house (mcp_writes.py) as well."""
+    them. What each tool returns is in mcp_house.py; the developer tools are in mcp_dev.py
+    (`sched`: the collector's scheduler); with `writes`, the tools that change the house
+    (mcp_writes.py) as well."""
     server = MCPServer("home-hub", instructions=INSTRUCTIONS)
     tool = server.tool(annotations=READ_ONLY)
 
@@ -227,6 +230,7 @@ def build(store: Callable[[], Store], config: Callable[[], dict[str, Any]],
             raise ToolError("Spotify could not be reached.") from None
         return house.music(answer)
 
+    mcp_dev.register(server, store, config, sched)
     if writes:
         mcp_writes.register(server, store, config, today_or)
     return server

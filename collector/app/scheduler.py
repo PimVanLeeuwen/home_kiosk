@@ -12,6 +12,12 @@ from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from apscheduler.events import (
+    EVENT_JOB_ERROR,
+    EVENT_JOB_EXECUTED,
+    EVENT_JOB_MISSED,
+    JobEvent,
+)
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from . import briefing, pinned, reminders
@@ -101,13 +107,29 @@ def mark_stale(store: Store, key: str) -> None:
         store.put_cache(key, payload)
 
 
+# The last outcome of each job (the MCP `job_status` tool, plan.md M34), in memory only:
+# by job id when it ran (the scheduler's events), by cache key whether its refresh worked
+# (`_run` catches its failures, so the scheduler sees those as runs that went fine).
+RUNS: dict[str, dict[str, Any]] = {}
+REFRESHES: dict[str, dict[str, Any]] = {}
+
+
+def _ran(event: JobEvent) -> None:
+    error = getattr(event, "exception", None)
+    RUNS[event.job_id] = {"at": datetime.now(UTC), "missed": event.code == EVENT_JOB_MISSED,
+                          "error": type(error).__name__ if error else None}
+
+
 async def _run(store: Store, key: str, job: Callable[[], Awaitable[Any]]) -> None:
     try:
         result = await job()
         store.put_cache(key, result.model_dump(mode="json"))
-    except Exception:
+        REFRESHES[key] = {"at": datetime.now(UTC), "ok": True, "error": None}
+    except Exception as exc:
         log.exception("%s refresh failed; serving cached payload as stale", key)
         mark_stale(store, key)
+        # The class only: a message can carry a URL with a key in it.
+        REFRESHES[key] = {"at": datetime.now(UTC), "ok": False, "error": type(exc).__name__}
 
 
 async def _stories(cfg: dict[str, Any], store: Store) -> None:
@@ -126,6 +148,7 @@ async def _briefing(cfg: dict[str, Any], store: Store) -> None:
 
 def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler(timezone=cfg.get("timezone", "UTC"))
+    scheduler.add_listener(_ran, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR | EVENT_JOB_MISSED)
 
     scheduler.add_job(
         _run,

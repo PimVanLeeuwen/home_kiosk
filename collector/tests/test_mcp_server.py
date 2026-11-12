@@ -225,6 +225,8 @@ def test_alerts_keep_open_incidents_and_drop_chat_ids_and_html():
 ALL_TOOLS = ["air", "alerts", "backups", "calendar", "docker", "forecast", "laundry", "lights",
              "media", "music", "nas",
              "outside_services", "reminders", "services", "train", "weather", "websites"]
+DEV_TOOLS = ["container_logs", "deployed_version", "hub_logs", "job_status", "panel_state",
+             "source_sample"]
 
 
 def test_every_tool_answers_on_an_empty_hub(store):
@@ -257,7 +259,7 @@ def test_tools_are_read_only_and_answer_from_the_cache(store):
 
     tools, result, missing = asyncio.run(ask())
 
-    assert sorted(t.name for t in tools) == ALL_TOOLS
+    assert sorted(t.name for t in tools) == sorted(ALL_TOOLS + DEV_TOOLS)
     assert all(t.annotations.read_only_hint for t in tools)
     assert result.structured_content["train"]["name"] == "IC 3522"
     assert missing.structured_content["available"] is False
@@ -320,8 +322,8 @@ def test_the_write_tools_only_show_with_the_write_token(store):
 
     writes = {"lights_room", "lights_change", "music_control", "music_volume",
               "music_play_favourite", "add_reminder", "tick_reminder", "send_test_message"}
-    assert plain == set(ALL_TOOLS)
-    assert with_token == set(ALL_TOOLS) | writes
+    assert plain == set(ALL_TOOLS + DEV_TOOLS)
+    assert with_token == set(ALL_TOOLS + DEV_TOOLS) | writes
 
 
 def test_a_wrong_token_or_none_set_up_is_a_401(store):

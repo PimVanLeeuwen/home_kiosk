@@ -114,7 +114,9 @@ to become the app. The Pi kiosk at `/kiosk/` is not part of the app.
 The hub answers MCP at `/mcp` (plan.md M33): read-only tools over what it already knows (the
 train, calendar, reminders, weather and forecast, air, laundry, NAS, Docker, backups, media,
 services, websites, outside services and alerts), each trimmed to what answers a question. The
-calendar reads iCloud on the spot for any range other than today and tomorrow. Add it once on
+calendar reads iCloud on the spot for any range other than today and tomorrow. Developer
+tools come along (plan.md M34): a source's cached payload, the jobs, the hub's log, any
+container's log (redacted), the deployed commit and the panels' state. Add it once on
 the Mac, in the user-level config so the address stays out of this repo:
 
 ```bash

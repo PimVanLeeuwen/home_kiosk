@@ -2119,6 +2119,20 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   - `compose_drift`: the NAS's `/volume1/docker` against nas-docker `main`. Needs a read-only view
     of that folder in the collector, which it does not have today; settle or drop.
 - Read-only, no container actions (Dockge stays the place for those).
+- Decided 2026-11-12: `container_logs` for any container, redacted like the alert explainer's
+  logs; `source_sample` with values, but the personal sources (and any source not on its list)
+  by shape only; `panel_state` instead of `panel_screenshot` (a screenshot needs USB from the
+  Mac); `compose_drift` dropped (it would need every stack's `.env` inside the hub).
+- Built 2026-11-12 (`app/mcp_dev.py`, on both MCP servers): `source_sample` (without a key,
+  every cache key with its age and size; lists cut to 3, long text cut short), `job_status`
+  (every scheduled job's trigger, next and last run, and whether its last refresh worked, the
+  error by class only; the scheduler now keeps these in memory), `hub_logs` (the collector's
+  last 1000 records from INFO up, kept in memory by `app/logbuffer.py`, redacted when read),
+  `container_logs` (up to 200 lines), `deployed_version` (the hub's two containers with the
+  commit their image was built from, and home_kiosk's latest CI run from the Pipelines
+  source; CI now labels both images with `org.opencontainers.image.revision`, so images
+  built before that show none) and `panel_state` (each board, and the screens the hub would
+  send it now by kind, with the answer's size against the board's room).
 
 **M35. Ask the hub** (added 2026-11-12)
 - Why: ask the house a question in words, on the laptop or the phone, without the Claude app.

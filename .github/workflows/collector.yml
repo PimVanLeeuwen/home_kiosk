@@ -166,6 +166,8 @@ jobs:
           tags: |
             pimvanleeuwen/home-kiosk-collector:latest
             pimvanleeuwen/home-kiosk-collector:${{ github.sha }}
+          # The commit it was built from, read back by the MCP deployed_version tool (M34).
+          labels: org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -185,5 +187,7 @@ jobs:
           tags: |
             pimvanleeuwen/home-kiosk-dashboard:latest
             pimvanleeuwen/home-kiosk-dashboard:${{ github.sha }}
+          # The commit it was built from, read back by the MCP deployed_version tool (M34).
+          labels: org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

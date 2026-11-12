@@ -30,6 +30,7 @@ from . import (
     documents_api,
     exposure_api,
     lights_api,
+    logbuffer,
     mcp_server,
     music_api,
     reminders,
@@ -86,6 +87,8 @@ from .store import Store
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger(__name__)
+# A copy of the log in memory for the MCP hub_logs tool (plan.md M34).
+logbuffer.install()
 # httpx logs every request URL at INFO, and SABnzbd only takes its API key as a
 # query parameter: keep URLs out of the container log (Dozzle shows it to the LAN).
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -179,8 +182,13 @@ app.include_router(reminders_api.router)
 
 # Claude asks the house here (plan.md M33): the read-only tools, and with the write token
 # (MCP_WRITE_TOKEN) also the ones that change something.
-house = mcp_server.build(lambda: app.state.store, lambda: app.state.config)
-house_writes = mcp_server.build(lambda: app.state.store, lambda: app.state.config, writes=True)
+def _scheduler() -> Any:
+    return getattr(app.state, "scheduler", None)
+
+
+house = mcp_server.build(lambda: app.state.store, lambda: app.state.config, sched=_scheduler)
+house_writes = mcp_server.build(lambda: app.state.store, lambda: app.state.config, writes=True,
+                                sched=_scheduler)
 app.add_route(mcp_server.PATH,
               mcp_server.http_endpoint(house, house_writes,
                                        lambda: mcp_server.write_token(app.state.config)),
