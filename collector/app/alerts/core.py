@@ -79,6 +79,8 @@ CATEGORIES = {
     "briefing": "Morning digest",
     # What the owner set to remember on a day (app/reminders.py, plan.md M32).
     "reminders": "Reminders",
+    # Media requests and their status from Seerr's Webhook agent (nas-docker README, Alerts).
+    "media": "Media requests",
     "manual": "Sent from the hub",
 }
 

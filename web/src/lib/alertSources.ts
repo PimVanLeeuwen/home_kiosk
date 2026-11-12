@@ -13,6 +13,7 @@ const SOURCE_LABEL: Record<string, string> = {
   ai: 'AI',
   ups: 'UPS',
   paperless: 'Paperless',
+  seerr: 'Seerr',
 }
 
 export function sourceLabel(source: string): string {
