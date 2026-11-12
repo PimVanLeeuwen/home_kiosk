@@ -22,6 +22,7 @@ from pydantic import BaseModel, HttpUrl
 from . import (
     ai,
     ai_api,
+    ask_api,
     briefing,
     config,
     desk_api,
@@ -170,6 +171,7 @@ app.include_router(exposure_api.router)
 app.include_router(lights_api.router)
 app.include_router(documents_api.router)
 app.include_router(ai_api.router)
+app.include_router(ask_api.router)
 app.include_router(music_api.router)
 app.include_router(weather_api.router)
 app.include_router(runs_api.router)
@@ -189,6 +191,8 @@ def _scheduler() -> Any:
 house = mcp_server.build(lambda: app.state.store, lambda: app.state.config, sched=_scheduler)
 house_writes = mcp_server.build(lambda: app.state.store, lambda: app.state.config, writes=True,
                                 sched=_scheduler)
+# The Ask page (plan.md M35) calls the same tools in-process.
+app.state.mcp_read, app.state.mcp_write = house, house_writes
 app.add_route(mcp_server.PATH,
               mcp_server.http_endpoint(house, house_writes,
                                        lambda: mcp_server.write_token(app.state.config)),

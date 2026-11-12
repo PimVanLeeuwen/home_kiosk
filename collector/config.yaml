@@ -146,7 +146,8 @@ air:
 # sends a Telegram note at 80%. Leave the key empty to switch AI off entirely.
 ai:
   api_key: ${ANTHROPIC_API_KEY}
-  cap_eur: 5
+  # Raised from 5 for Ask (plan.md M35, 2026-11-12); shared by every AI feature.
+  cap_eur: 10
 
 # DNS blocking (Home's status strip): AdGuard Home's last 24 hours, read as its
 # own "hub" user (AdGuard has no read-only users; nas-docker README, AdGuard

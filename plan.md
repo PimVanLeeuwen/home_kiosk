@@ -2146,8 +2146,19 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
     commands only (the 2026-10-23 decision against `/ask` stands).
   - The owner only for now; the partner is not a user yet.
   - Writes (lights, a reminder) ask for a confirm before they happen.
-- To settle while building: the cap (EUR 5 may need raising once Ask is used daily); keeping a
-  short conversation per chat or only one question at a time.
+- Decided 2026-11-12 (before building): a short conversation per chat, kept in the browser
+  only (follow-ups work; New chat or a reload clears it; nothing stored on the NAS); Haiku 5.5;
+  the monthly AI cap goes from EUR 5 to EUR 10, shared with the other AI features; changes
+  (lights, music, reminders) through the chat, each behind a Confirm on the page. Mockup
+  `docs/hub-ask-mockup.html`.
+- Built 2026-11-12 (step 1, the hub's side): `app/ask.py` and `POST /api/ask` (same-origin
+  JSON; the page sends the conversation, the last 20 messages count). Haiku with the house
+  tools, called in-process on the MCP servers (not the developer tools, not the test
+  message), up to 8 tool rounds. A write tool call is not run: it comes back as a proposal
+  with a title and a line in the hub's words ("Dim the Spots to 40%", "now at 80%"), and
+  `POST /api/ask/confirm` runs it after the owner's Confirm, through the write tool itself.
+  Every call is recorded as AI feature "ask" (its own switch in Settings, AI, off until
+  switched on); the cap's default is now EUR 10 (`ai.cap_eur`). Next: the Ask page.
 
 **M36. 3D printer** (added 2026-11-12)
 - Why: a Bambu Lab P2S (with the filament buffer, no AMS) is coming; the hub shows and reports

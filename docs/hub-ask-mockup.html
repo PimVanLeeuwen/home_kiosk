@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Design mockup of Ask (plan.md M35): a chat page where Claude answers with the hub's own
+     tools, and asks before it changes anything. Example data only. Not served by the hub. -->
+<title>Home hub: Ask</title>
+<style>
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; src: url('../web/src/assets/fonts/instrument-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; src: url('../web/src/assets/fonts/jetbrains-mono-latin.woff2') format('woff2'); }
+:root {
+  color-scheme: dark;
+  --canvas: #08090a; --side: #0c0d0f; --panel: #121316; --card: #17181c; --raised: #1d1e23;
+  --line: #26282e; --line-soft: #1e2025;
+  --fg: #ecedef; --muted: #9a9ea7; --faint: #7e828b;
+  --accent: #6d5ce8; --accent-fg: #b4aaff; --accent-line: #8f80ff; --accent-bg: rgba(124,108,242,.14);
+  --up: #3fb97f; --down: #e5646a; --warn: #e0a23b;
+  --f-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #050506; color: var(--fg); font: 14px/1.5 var(--f-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1500px; margin: 0 auto; padding: 32px 28px 64px; }
+.intro h1 { margin: 0; font-size: 22px; font-weight: 600; }
+.intro p { margin: 6px 0 0; color: var(--muted); max-width: 90ch; }
+.label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; margin: 32px 0 12px; }
+.row { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+
+/* desktop frame */
+.desk { width: 1180px; height: 760px; background: var(--side); border-radius: 14px; border: 1px solid var(--line-soft); display: grid; grid-template-columns: 220px 1fr; overflow: hidden; }
+.side { padding: 22px 12px; }
+.brand { padding: 0 10px 18px; } .brand b { font-weight: 600; } .brand div { color: var(--faint); font-size: 12px; }
+.nav a { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; font-size: 14.5px; }
+.nav a.on { background: var(--accent-bg); color: var(--fg); box-shadow: inset 3px 0 0 var(--accent-line); }
+.nav .grp { font-size: 11px; letter-spacing: .1em; color: var(--faint); margin: 16px 10px 6px; font-weight: 600; }
+.ico { width: 16px; height: 16px; border: 1.6px solid currentColor; border-radius: 4px; opacity: .8; }
+.page { margin: 8px; background: var(--panel); border-radius: 14px; border: 1px solid var(--line-soft); display: grid; grid-template-rows: auto 1fr auto; min-height: 0; }
+.ph { display: flex; justify-content: space-between; align-items: flex-start; padding: 26px 40px 10px; }
+.ph h2 { margin: 0; font-size: 26px; font-weight: 600; } .ph p { margin: 4px 0 0; color: var(--muted); }
+.ph .right { display: flex; gap: 10px; align-items: center; }
+.pill { font-size: 11px; font-weight: 600; letter-spacing: .06em; border-radius: 999px; padding: 3px 9px; text-transform: uppercase; white-space: nowrap; color: var(--accent-fg); background: var(--accent-bg); }
+.btn { font: inherit; font-size: 13px; border-radius: 9px; padding: 7px 13px; border: 1px solid var(--line); background: var(--raised); color: var(--fg); }
+.btn.primary { background: var(--accent); border-color: var(--accent); font-weight: 600; }
+.btn.ghost { background: transparent; }
+
+/* thread */
+.thread { overflow: hidden; padding: 12px 40px; display: flex; flex-direction: column; gap: 18px; max-width: 860px; width: 100%; margin: 0 auto; }
+.me { align-self: flex-end; background: var(--raised); border: 1px solid var(--line); border-radius: 14px 14px 4px 14px; padding: 9px 14px; max-width: 75%; }
+.claude { align-self: flex-start; max-width: 92%; }
+.claude p { margin: 0 0 8px; line-height: 1.55; }
+.claude ul { margin: 0 0 8px; padding-left: 18px; } .claude li { margin: 2px 0; }
+.used { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; color: var(--faint); font-size: 12px; }
+.chip { font: 11.5px var(--f-mono); color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; }
+.mono { font-family: var(--f-mono); font-size: 12.5px; }
+.confirm { border: 1px solid rgba(143,128,255,.4); background: rgba(124,108,242,.08); border-radius: 12px; padding: 14px 16px; margin: 4px 0 8px; max-width: 460px; }
+.confirm .what { font-weight: 600; margin-bottom: 2px; } .confirm .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+.confirm .acts { display: flex; gap: 8px; }
+.done { display: flex; gap: 8px; align-items: center; color: var(--up); font-size: 13px; }
+.done::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--up); }
+.thinking { display: flex; gap: 8px; align-items: center; color: var(--faint); font-size: 13px; }
+.dots { display: inline-flex; gap: 4px; } .dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-line); opacity: .5; }
+
+/* composer */
+.composer { padding: 10px 40px 22px; }
+.box { max-width: 860px; margin: 0 auto; display: flex; gap: 10px; align-items: flex-end; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 10px 10px 16px; }
+.box .ta { flex: 1; color: var(--faint); padding: 6px 0; }
+.send { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); display: grid; place-items: center; }
+.send::before { content: ''; border: solid #fff; border-width: 0 2px 2px 0; padding: 4px; transform: rotate(-135deg); margin-top: 5px; }
+.hint { max-width: 860px; margin: 8px auto 0; color: var(--faint); font-size: 12px; display: flex; justify-content: space-between; }
+
+/* phone frames */
+.phone { width: 390px; height: 800px; border-radius: 40px; border: 10px solid #1a1b1f; background: var(--panel); overflow: hidden; display: grid; grid-template-rows: auto 1fr auto auto; }
+.phone .ph { padding: 54px 20px 6px; } .phone .ph h2 { font-size: 24px; }
+.phone .thread { padding: 10px 16px; gap: 14px; }
+.phone .composer { padding: 8px 12px 10px; }
+.phone .box { border-radius: 22px; }
+.tabs { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line-soft); padding: 8px 0 26px; background: var(--side); }
+.tabs span { display: grid; justify-items: center; gap: 4px; font-size: 10.5px; color: var(--faint); }
+.tabs span.on { color: var(--accent-fg); }
+.empty { display: grid; align-content: center; justify-items: center; text-align: center; gap: 10px; padding: 0 22px; }
+.empty .mark { width: 38px; height: 38px; border-radius: 10px; background: var(--accent-bg); display: grid; place-items: center; }
+.empty .mark::before { content: ''; width: 12px; height: 12px; border-radius: 3px; background: var(--accent-line); transform: rotate(45deg); }
+.empty h3 { margin: 4px 0 0; font-size: 17px; font-weight: 600; } .empty p { margin: 0; color: var(--muted); font-size: 13.5px; }
+.sugg { display: grid; gap: 8px; width: 100%; margin-top: 10px; }
+.sugg span { text-align: left; border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; }
+.err { border: 1px solid rgba(229,100,106,.35); background: rgba(229,100,106,.08); border-radius: 12px; padding: 12px 14px; font-size: 13.5px; }
+.err b { color: var(--down); font-weight: 600; }
+.notes { margin-top: 36px; color: var(--muted); max-width: 100ch; }
+.notes li { margin: 4px 0; }
+</style>
+<body>
+<div class="wrap">
+  <div class="intro">
+    <h1>Ask: a chat with the house</h1>
+    <p>A new page under Home. Claude (Haiku) answers with the hub's own tools, the same ones Claude Code has over MCP. The conversation lives in the browser only and is gone after New chat or a reload; nothing of it is stored on the NAS. Before anything changes (lights, music, reminders) it shows what it wants to do and waits for Confirm.</p>
+  </div>
+
+  <div class="label">Laptop: a conversation with a change waiting for Confirm</div>
+  <div class="desk">
+    <aside class="side">
+      <div class="brand"><b>Home hub</b><div>dev-minotaur</div></div>
+      <nav class="nav">
+        <a><i class="ico"></i>Home</a>
+        <a class="on"><i class="ico"></i>Ask</a>
+        <a><i class="ico"></i>Lights</a>
+        <a><i class="ico"></i>Music</a>
+        <a><i class="ico"></i>Weather</a>
+        <a><i class="ico"></i>Reminders</a>
+        <div class="grp">READ</div>
+        <a><i class="ico"></i>News</a>
+        <a><i class="ico"></i>Saved</a>
+        <div class="grp">HOUSE</div>
+        <a><i class="ico"></i>NAS</a>
+        <a><i class="ico"></i>Docker</a>
+        <a><i class="ico"></i>Backups</a>
+      </nav>
+    </aside>
+    <main class="page">
+      <div class="ph">
+        <div><h2>Ask</h2><p>Questions about the house, answered from the hub's own data</p></div>
+        <div class="right"><span class="pill">€0.42 of €10 this month</span><button class="btn ghost">New chat</button></div>
+      </div>
+      <div class="thread">
+        <div class="me">Is my train on time tomorrow, and will it rain when I leave?</div>
+        <div class="claude">
+          <p>Tomorrow's <b>07:16 to Rotterdam Centraal</b> is on time so far, from track 8b. The hub checks it again from 06:30.</p>
+          <p>Rain is unlikely around then: a 10% chance between 07:00 and 08:00, 0.0 mm expected. It turns wetter after 14:00 (up to 70%, about 2 mm in the afternoon).</p>
+          <div class="used">Used <span class="chip">train</span><span class="chip">forecast</span></div>
+        </div>
+        <div class="me">Dim the spots to 40% and add a reminder to put the bins out on Thursday</div>
+        <div class="claude">
+          <p>Two changes, each waiting for you:</p>
+          <div class="confirm">
+            <div class="what">Dim the Spots to 40%</div>
+            <div class="sub">Living room, 3 lights, now at 80%</div>
+            <div class="acts"><button class="btn primary">Confirm</button><button class="btn">Cancel</button></div>
+          </div>
+          <div class="confirm">
+            <div class="what">Add a reminder: Bins out</div>
+            <div class="sub">Thursday 19 November, message at 08:00</div>
+            <div class="done">Added</div>
+          </div>
+          <div class="used">Used <span class="chip">lights</span></div>
+        </div>
+        <div class="thinking"><span class="dots"><i></i><i></i><i></i></span>Asking the hub</div>
+      </div>
+      <div class="composer">
+        <div class="box"><div class="ta">Ask about the house…</div><div class="send"></div></div>
+        <div class="hint"><span>Enter to send, Shift+Enter for a new line</span><span>Nothing is kept after New chat</span></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="label">Phone: empty, answering, and at the cap</div>
+  <div class="row">
+    <div class="phone">
+      <div class="ph"><div><h2>Ask</h2></div><div class="right"><span class="pill">€0.42</span></div></div>
+      <div class="empty">
+        <div class="mark"></div>
+        <h3>Ask the house</h3>
+        <p>The hub answers from its own data. It asks before it changes anything.</p>
+        <div class="sugg">
+          <span>How did last night's backup go?</span>
+          <span>What's on the calendar tomorrow?</span>
+          <span>Is anything broken right now?</span>
+          <span>Turn off the living room lights</span>
+        </div>
+      </div>
+      <div class="composer"><div class="box"><div class="ta">Ask about the house…</div><div class="send"></div></div></div>
+      <div class="tabs"><span>Home</span><span class="on">Ask</span><span>News</span><span>Services</span><span>More</span></div>
+    </div>
+
+    <div class="phone">
+      <div class="ph"><div><h2>Ask</h2></div><div class="right"><button class="btn ghost">New chat</button></div></div>
+      <div class="thread">
+        <div class="me">Is anything broken right now?</div>
+        <div class="claude">
+          <p>Mostly fine. One thing needs a look:</p>
+          <ul>
+            <li><b>Readeck</b> runs an image from 3 weeks ago: Codeberg refused the pull last night.</li>
+            <li>All 44 containers run, backups at 03:01 went fine, disks are healthy.</li>
+          </ul>
+          <div class="used">Used <span class="chip">docker</span><span class="chip">alerts</span><span class="chip">backups</span></div>
+        </div>
+        <div class="me">And the sites?</div>
+        <div class="thinking"><span class="dots"><i></i><i></i><i></i></span>Asking the hub</div>
+      </div>
+      <div class="composer"><div class="box"><div class="ta">Ask about the house…</div><div class="send"></div></div></div>
+      <div class="tabs"><span>Home</span><span class="on">Ask</span><span>News</span><span>Services</span><span>More</span></div>
+    </div>
+
+    <div class="phone">
+      <div class="ph"><div><h2>Ask</h2></div><div class="right"><span class="pill">€10 of €10</span></div></div>
+      <div class="thread">
+        <div class="me">What's on tomorrow?</div>
+        <div class="err"><b>The AI cap is reached for November.</b> Ask works again on 1 December, or raise the cap in Settings, AI.</div>
+      </div>
+      <div class="composer"><div class="box"><div class="ta">Ask about the house…</div><div class="send"></div></div></div>
+      <div class="tabs"><span>Home</span><span class="on">Ask</span><span>News</span><span>Services</span><span>More</span></div>
+    </div>
+  </div>
+
+  <ul class="notes">
+    <li>Placement: Ask right under Home in the sidebar; on the phone it takes a bottom tab (Portfolio moves into More). To decide.</li>
+    <li>Answers in plain text with light formatting (bold, short lists); no tables. "Used" names the tools behind an answer.</li>
+    <li>A change shows as a card with Confirm and Cancel; after Confirm it says what happened. Several changes in one answer each get their own card.</li>
+    <li>The Shortcut "Ask the hub" posts to the same endpoint and gets the answer as text; a change asked by voice is never made without the page's Confirm (the Shortcut says to open the hub).</li>
+  </ul>
+</div>
+</body>
+</html>

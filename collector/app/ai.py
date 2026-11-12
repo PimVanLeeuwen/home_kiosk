@@ -73,6 +73,7 @@ FEATURES: dict[str, str] = {
     "headlines": "Grouped headlines",  # app/news/stories.py
     "explainer": "Alert explainer",  # app/explainer.py
     "market_notes": "Market notes",  # app/portfolio/notes.py
+    "ask": "Ask",  # app/ask.py: the Ask page (plan.md M35)
 }
 
 WARN_SHARE = 0.8
@@ -106,7 +107,7 @@ WARNED = "ai_warned_month"  # "2026-10" once this month's 80% note went out
 def settings(cfg: dict[str, Any]) -> dict[str, Any]:
     a = cfg.get("ai") or {}
     key = str(a.get("api_key") or "").strip()
-    return {"api_key": key, "cap_eur": float(a.get("cap_eur") or 5), "enabled": bool(key)}
+    return {"api_key": key, "cap_eur": float(a.get("cap_eur") or 10), "enabled": bool(key)}
 
 
 def ensure_tables(store: Store) -> None:
