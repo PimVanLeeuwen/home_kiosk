@@ -109,6 +109,19 @@ working as a normal website. On an iPhone: open the Tailscale address in Safari,
 Home Screen. A home screen icon made before (a plain bookmark) has to be removed and added again
 to become the app. The Pi kiosk at `/kiosk/` is not part of the app.
 
+## Claude Code and the hub's MCP server
+
+The hub answers MCP at `/mcp` (plan.md M33): read-only tools over its cache (the train, the
+backups, the NAS). Add it once on the Mac, in the user-level config so the address stays out of
+this repo:
+
+```bash
+claude mcp add --transport http --scope user home-hub https://<nas>.<tailnet>.ts.net/mcp
+```
+
+It works on the LAN address too (`http://<nas LAN IP>:8083/mcp`). There is no login, like the
+rest of the hub; a request with an Origin header (any browser) gets a 403.
+
 ## Port scan from outside
 
 The house needs no open port (Tandoor and CouchDB go through the Cloudflare tunnel), and the NAS

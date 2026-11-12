@@ -2073,8 +2073,14 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Steps, each with its tests and commit: (1) the server at `/mcp` with two or three tools and
   Claude Code connected; (2) the rest of the read-only house tools; (3) the write tools with
   their token.
-- To settle while building: how the token is kept and checked; whether the tools share code
-  with the `/api` routes or call them.
+- To settle while building: how the token for the write tools is kept and checked.
+- Built 2026-11-12 (step 1): `app/mcp_server.py` with `mcp` 2.3.0, routed at `/mcp` in the
+  collector and through Caddy. Stateless and plain JSON (no event stream). Three read-only tools,
+  `train`, `backups` and `nas`, each the cached payload trimmed (no stop times, no run list, no
+  network history); nothing cached yet is an answer saying so, not an error. The read-only tools
+  need no token, like `/api`. Any request with an Origin header gets a 403 (no browser needs
+  `/mcp`), in place of the SDK's Host check, which would need every name the hub answers on.
+  Added to Claude Code with `claude mcp add` at user level (docs/operations.md).
 
 **M34. Developer tools over MCP** (added 2026-11-12)
 - Why: tools for Claude Code sessions that work on the hub, the panels and nas-docker.

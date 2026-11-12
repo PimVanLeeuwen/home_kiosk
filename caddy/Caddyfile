@@ -9,6 +9,11 @@
 		reverse_proxy collector:8000
 	}
 
+	# The hub's MCP server (plan.md M33), for Claude Code on the tailnet.
+	handle /mcp {
+		reverse_proxy collector:8000
+	}
+
 	# The Pi's kiosk carousel. Its asset paths are relative, so it needs the
 	# trailing slash.
 	redir /kiosk /kiosk/ permanent

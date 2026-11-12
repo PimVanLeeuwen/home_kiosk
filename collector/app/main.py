@@ -30,6 +30,7 @@ from . import (
     documents_api,
     exposure_api,
     lights_api,
+    mcp_server,
     music_api,
     reminders,
     reminders_api,
@@ -147,7 +148,9 @@ async def lifespan(app: FastAPI):
         tasks.append(asyncio.create_task(hue.listen(app.state.config, app.state.store)))
 
     try:
-        yield
+        # The MCP endpoint answers only while its session manager runs.
+        async with house.session_manager.run():
+            yield
     finally:
         for task in tasks:
             task.cancel()
@@ -173,6 +176,11 @@ app.include_router(news_api.router)
 app.include_router(portfolio_api.router)
 app.include_router(recipes_api.router)
 app.include_router(reminders_api.router)
+
+# Claude asks the house here (plan.md M33); read-only tools over the cache.
+house = mcp_server.build(lambda: app.state.store)
+app.add_route(mcp_server.PATH, mcp_server.http_endpoint(house), methods=["GET", "POST", "DELETE"],
+              include_in_schema=False)
 
 
 def _serve(key: str) -> Any:

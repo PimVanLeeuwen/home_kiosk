@@ -25,6 +25,8 @@ dependencies = [
     "websockets>=17.3",
     # Claude for a few written extras (plan.md M26); calls are capped in app/ai.py.
     "anthropic>=2.3",
+    # The hub's MCP server at /mcp (plan.md M33): Claude asks the house over the tailnet.
+    "mcp>=2.3",
 ]
 
 [project.optional-dependencies]
