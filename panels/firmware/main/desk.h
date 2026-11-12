@@ -288,7 +288,7 @@ typedef struct {
     int birthday_count;
     struct {
         char name[40];
-        char when[12];       /* "today", "tomorrow", "Fri" */
+        char when[12];       /* "Today", or the weekday: "Fri" */
         int turns;           /* 0 when the year is not known */
         bool today;
     } birthdays[DESK_DOOR_BIRTHDAYS];

@@ -48,6 +48,7 @@ LV_FONT_DECLARE(instrument_24);
 #define RIGHT_WIDTH 214
 #define ROW_HEIGHT 56
 #define BIRTHDAY_HEIGHT 70
+#define DAY_GAP 12        /* between a birthday's day and the name */
 #define TOP_MM 3.0f
 #define WET_MM 0.1f       /* as the hub's desk_clock.WET_MM */
 #define ROWS 4            /* reminders a page: always room for the wind line */
@@ -71,7 +72,8 @@ static lv_obj_t *bars[DESK_DOOR_RAIN], *axis[AXES];
 static lv_obj_t *columns, *reminders_title, *reminder_rows[ROWS], *reminder_bar[ROWS];
 static lv_obj_t *reminder_at[ROWS], *reminder_text[ROWS], *dots[PAGES];
 static lv_obj_t *more, *no_reminders, *birthdays_title, *birthday_name[DESK_DOOR_BIRTHDAYS];
-static lv_obj_t *birthday_when[DESK_DOOR_BIRTHDAYS], *no_birthdays, *wind;
+static lv_obj_t *birthday_when[DESK_DOOR_BIRTHDAYS], *birthday_day[DESK_DOOR_BIRTHDAYS];
+static lv_obj_t *no_birthdays, *wind;
 EXT_RAM_BSS_ATTR static desk_door_t shown; /* off the LVGL task's small stack */
 static int page;     /* the reminders' page on screen */
 static int passed;   /* rain bars that have passed since the hub's answer */
@@ -356,21 +358,35 @@ static void fill(void)
     lv_label_set_text(weather, text);
     show_page();
 
+    /* The day column is as wide as its widest day ("Mon", or "Today"), so the names keep
+     * the rest; "turns 22" goes under the name, so the age can't be read as the date. */
+    int32_t day_width = 0;
+    for (int i = 0; i < shown.birthday_count; i++) {
+        const char *day = shown.birthdays[i].when;
+        int32_t width = lv_text_get_width(day, strlen(day), &instrument_24, 0);
+        day_width = width > day_width ? width : day_width;
+    }
+    int32_t name_x = RIGHT_X - LEFT + day_width + DAY_GAP;
+    int32_t name_width = RIGHT_WIDTH - day_width - DAY_GAP;
     for (int i = 0; i < DESK_DOOR_BIRTHDAYS; i++) {
         bool on = i < shown.birthday_count;
+        lv_obj_set_flag(birthday_day[i], LV_OBJ_FLAG_HIDDEN, !on);
         lv_obj_set_flag(birthday_name[i], LV_OBJ_FLAG_HIDDEN, !on);
-        lv_obj_set_flag(birthday_when[i], LV_OBJ_FLAG_HIDDEN, !on);
+        lv_obj_set_flag(birthday_when[i], LV_OBJ_FLAG_HIDDEN, !on || shown.birthdays[i].turns <= 0);
         if (!on) {
             continue;
         }
+        uint32_t accent = shown.birthdays[i].today ? ROSE : VIOLET;
+        lv_label_set_text(birthday_day[i], shown.birthdays[i].when);
+        lv_obj_set_style_text_color(birthday_day[i], lv_color_hex(accent), 0);
         lv_label_set_text(birthday_name[i], shown.birthdays[i].name);
         lv_obj_set_style_text_color(birthday_name[i], lv_color_hex(shown.birthdays[i].today ? ROSE : 0xf2f1f6), 0);
-        if (shown.birthdays[i].turns > 0) {
-            snprintf(text, sizeof text, "%d · %s", shown.birthdays[i].turns, shown.birthdays[i].when);
-        } else {
-            snprintf(text, sizeof text, "%s", shown.birthdays[i].when);
-        }
-        lv_label_set_text(birthday_when[i], text);
+        lv_obj_set_x(birthday_name[i], name_x);
+        lv_obj_set_width(birthday_name[i], name_width);
+        lv_label_set_text_fmt(birthday_when[i], "turns %d", shown.birthdays[i].turns);
+        lv_obj_set_style_text_color(birthday_when[i], lv_color_hex(shown.birthdays[i].today ? ROSE : GREY), 0);
+        lv_obj_set_x(birthday_when[i], name_x);
+        lv_obj_set_width(birthday_when[i], name_width);
     }
     lv_obj_set_flag(no_birthdays, LV_OBJ_FLAG_HIDDEN, shown.birthday_count > 0);
 }
@@ -501,6 +517,9 @@ void screen_door_create(lv_obj_t *screen)
     birthdays_title = header(columns, "BIRTHDAYS");
     lv_obj_set_pos(birthdays_title, RIGHT_X - LEFT, 0);
     for (int i = 0; i < DESK_DOOR_BIRTHDAYS; i++) {
+        birthday_day[i] = ui_text(columns, &instrument_24, VIOLET);
+        lv_obj_set_pos(birthday_day[i], RIGHT_X - LEFT, 48 + i * BIRTHDAY_HEIGHT); /* on the name's line */
+        lv_obj_add_flag(birthday_day[i], LV_OBJ_FLAG_HIDDEN);
         birthday_name[i] = ui_one_line(columns, &instrument_28_bold, 0xf2f1f6, RIGHT_WIDTH);
         lv_obj_set_pos(birthday_name[i], RIGHT_X - LEFT, 44 + i * BIRTHDAY_HEIGHT);
         birthday_when[i] = ui_one_line(columns, &instrument_24, GREY, RIGHT_WIDTH);

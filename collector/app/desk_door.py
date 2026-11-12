@@ -81,10 +81,10 @@ def _seconds(iso: Any) -> int:
 
 
 def _when(days: int, date_iso: str) -> str:
+    """The panel's day column: "Today", else the weekday ("Thu", also for tomorrow, as
+    "Tomorrow" does not fit and the date line above names today)."""
     if days == 0:
-        return "today"
-    if days == 1:
-        return "tomorrow"
+        return "Today"
     return datetime.fromisoformat(date_iso).strftime("%a")
 
 

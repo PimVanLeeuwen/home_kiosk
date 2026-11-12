@@ -73,7 +73,7 @@ def test_the_today_view_has_the_weather_the_open_reminders_and_the_birthdays(sto
     assert (s["wet"], s["wet_from"], s["rain_step"]) == (True, stamp(10), 300)
     assert (s["stale"], s["weather_at"]) == (False, stamp(0))  # the panel fades it when old
     assert s["reminders"] == [{"title": "Bins out", "at": "07:30"}]  # Plants is ticked off
-    assert s["birthdays"] == [{"name": "Anna", "when": "today", "turns": 34, "today": True},
+    assert s["birthdays"] == [{"name": "Anna", "when": "Today", "turns": 34, "today": True},
                               {"name": "Bram", "when": "Fri", "turns": 0, "today": False}]
 
 
@@ -110,3 +110,9 @@ def test_the_background_paints_its_lights():
     assert paint_door.inputs({"present": True, "wet": False, "birthdays": [{"today": True}]},
                              datetime(2026, 11, 4, 21, tzinfo=AMS)) == {
         "part": "evening", "wet": False, "birthday": True}
+
+
+def test_a_birthday_tomorrow_shows_its_weekday():
+    """The day column is too narrow for "Tomorrow"; the date line above names today."""
+    assert desk_door._when(0, "2026-11-04") == "Today"
+    assert desk_door._when(1, "2026-11-05") == "Thu"
