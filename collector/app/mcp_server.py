@@ -1,16 +1,19 @@
 """The hub's MCP server at /mcp (plan.md M33): Claude asks the house over the tailnet.
 
-Read-only tools over the collector's own cache, so a call never waits on a source and
-never reaches one. Whatever a tool returns goes into a prompt at Anthropic, so each tool
-returns the least that answers: the cached payload trimmed, never more than `/api` serves.
+Read-only tools, mostly over the collector's own cache, so a call rarely waits on a source.
+Whatever a tool returns goes into a prompt at Anthropic, so each tool returns the least that
+answers: the payload trimmed, never more than `/api` serves.
 
-No login, like the rest of the hub (the LAN and Tailscale are the boundary). A browser
-has no business here, so any request with an Origin header is refused: that keeps another
-website, or a DNS rebinding trick, from asking on the owner's behalf.
+No login for reading, like the rest of the hub (the LAN and Tailscale are the boundary).
+The tools that change something (mcp_writes.py) are on a second server, reached only with
+the write token. A browser has no business here, so any request with an Origin header is
+refused: that keeps another website, or a DNS rebinding trick, from asking on the owner's
+behalf.
 """
 
 from __future__ import annotations
 
+import hmac
 import logging
 from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta
@@ -26,13 +29,15 @@ from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from . import mcp_house as house
+from . import mcp_writes
 from . import reminders as reminders_store
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
-from .sources import agenda, media_status, my_sites, ns
+from .sources import agenda, hue, media_status, my_sites, ns, spotify
 from .sources import air as air_source
 from .sources import forecast as forecast_source
 from .sources import laundry as laundry_source
+from .sources import music as music_source
 from .sources import outside_services as outside_services_source
 from .sources import services as service_catalog
 from .sources import weather as weather_source
@@ -72,11 +77,16 @@ def _dumped(value: Any) -> Any:
     return value.model_dump(mode="json") if hasattr(value, "model_dump") else value
 
 
-def build(store: Callable[[], Store], config: Callable[[], dict[str, Any]]) -> MCPServer:
+def build(store: Callable[[], Store], config: Callable[[], dict[str, Any]],
+          writes: bool = False) -> MCPServer:
     """The server; `store` and `config` are asked on each call, so tests and the app can swap
-    them. What each tool returns is in mcp_house.py."""
+    them. What each tool returns is in mcp_house.py; with `writes`, the tools that change the
+    house (mcp_writes.py) as well."""
     server = MCPServer("home-hub", instructions=INSTRUCTIONS)
     tool = server.tool(annotations=READ_ONLY)
+
+    def today_or(value: str | None) -> date:
+        return _date(value, datetime.now(_zone(config())).date())
 
     def cached(key: str) -> Any:
         return store().get_cache(key)
@@ -196,6 +206,29 @@ def build(store: Callable[[], Store], config: Callable[[], dict[str, Any]]) -> M
         messages = alerts_core.messages(s, min(max(limit, 1), 50), category)
         return house.alerts(messages, alert_rules.incidents(s))
 
+    @tool
+    def lights() -> dict[str, Any]:
+        """The living room's lights by group (with the ids the light tools take): on, how
+        bright, which white, and the whites to choose from."""
+        return house.lights(cached(hue.CACHE_KEY))
+
+    @tool
+    async def music() -> dict[str, Any]:
+        """Spotify: what plays and on which device, what played last, the devices, and the
+        favourite playlists by position."""
+        cfg = config()
+        if not spotify.settings(cfg)["enabled"]:
+            raise ToolError("Spotify is not set up (SPOTIFY_CLIENT_ID).")
+        try:
+            answer = await music_source.latest(cfg, store())
+        except Exception as exc:
+            if isinstance(exc, spotify.SpotifyError):
+                raise ToolError(str(exc)) from None
+            raise ToolError("Spotify could not be reached.") from None
+        return house.music(answer)
+
+    if writes:
+        mcp_writes.register(server, store, config, today_or)
     return server
 
 
@@ -213,14 +246,35 @@ class _RefuseBrowsers:
         await self.app(scope, receive, send)
 
 
-def http_endpoint(server: MCPServer) -> ASGIApp:
-    """The ASGI endpoint to route at PATH.
+def write_token(cfg: dict[str, Any]) -> str:
+    """The write token (`mcp.write_token`, NAS-only MCP_WRITE_TOKEN); empty: no writes."""
+    return ((cfg.get("mcp") or {}).get("write_token") or "").strip()
 
-    Stateless and plain JSON (no event stream): every tool answers at once from the
-    cache, and Caddy passes it on like any API call. The SDK's own Host check is off:
-    the hub answers on several names (LAN, Tailscale), and the Origin check covers it.
-    It answers only while `server.session_manager.run()` runs (the app's lifespan).
-    """
+
+class _ByToken:
+    """Sends a request to the server with the write tools only when it carries the write
+    token (`Authorization: Bearer <token>`); without one, to the read-only server. A wrong
+    token is a 401, so a typo does not quietly leave Claude without its tools."""
+
+    def __init__(self, read: ASGIApp, write: ASGIApp, token: Callable[[], str]) -> None:
+        self.read, self.write, self.token = read, write, token
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        given = next((v.decode("latin-1") for k, v in scope.get("headers") or []
+                      if k == b"authorization"), None)
+        if given is None:
+            await self.read(scope, receive, send)
+            return
+        token = self.token()
+        offered = given[7:].strip() if given.startswith("Bearer ") else ""
+        if token and offered and hmac.compare_digest(offered.encode(), token.encode()):
+            await self.write(scope, receive, send)
+            return
+        reason = "Wrong write token." if token else "Writes are not set up (MCP_WRITE_TOKEN)."
+        await JSONResponse({"detail": reason}, status_code=401)(scope, receive, send)
+
+
+def _transport(server: MCPServer) -> ASGIApp:
     # Builds the server's session manager; the SDK's own Starlette app is not used.
     server.streamable_http_app(
         streamable_http_path=PATH,
@@ -228,4 +282,15 @@ def http_endpoint(server: MCPServer) -> ASGIApp:
         json_response=True,
         transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
     )
-    return _RefuseBrowsers(StreamableHTTPASGIApp(server.session_manager))
+    return StreamableHTTPASGIApp(server.session_manager)
+
+
+def http_endpoint(read: MCPServer, write: MCPServer, token: Callable[[], str]) -> ASGIApp:
+    """The ASGI endpoint to route at PATH.
+
+    Stateless and plain JSON (no event stream): every tool answers at once, and Caddy
+    passes it on like any API call. The SDK's own Host check is off: the hub answers on
+    several names (LAN, Tailscale), and the Origin check covers it. It answers only while
+    both servers' `session_manager.run()` run (the app's lifespan).
+    """
+    return _RefuseBrowsers(_ByToken(_transport(read), _transport(write), token))

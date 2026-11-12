@@ -2073,7 +2073,6 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Steps, each with its tests and commit: (1) the server at `/mcp` with two or three tools and
   Claude Code connected; (2) the rest of the read-only house tools; (3) the write tools with
   their token.
-- To settle while building: how the token for the write tools is kept and checked.
 - Built 2026-11-12 (step 1): `app/mcp_server.py` with `mcp` 2.3.0, routed at `/mcp` in the
   collector and through Caddy. Stateless and plain JSON (no event stream). Three read-only tools,
   `train`, `backups` and `nas`, each the cached payload trimmed (no stop times, no run list, no
@@ -2093,6 +2092,19 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   latest update) and `alerts` (the newest messages, 20 by default and at most 50, optionally
   one category, without chat ids or HTML, plus the open incidents). A wrong date is a tool
   error that says how to write it. Tried on the NAS's live answers: each under 13 kB.
+- Decided 2026-11-12 (step 3): write tools for the lights, music, reminders and a test message,
+  behind one bearer token (`MCP_WRITE_TOKEN`, NAS-only, `mcp.write_token` in the config).
+- Built 2026-11-12 (step 3): two servers behind `/mcp`. A request without `Authorization`
+  goes to the read-only one; with the right `Bearer` token to one that also has the write
+  tools (`app/mcp_writes.py`), so without the token they do not even show; a wrong token, or
+  any token while none is set, is a 401. Two more read tools for them: `lights` (the groups
+  with their ids, from the cache) and `music` (what plays, devices, favourites; asks Spotify
+  like the Music page). Write tools: `lights_room`, `lights_change` (group, on, brightness,
+  kelvin), `music_control` (play, pause, next, previous), `music_volume`,
+  `music_play_favourite`, `add_reminder` (one-off, with time and notification),
+  `tick_reminder` (one day, ticked or not) and `send_test_message` (category "Sent from the
+  hub", also in quiet hours). Each goes through the same function as the hub's own page.
+  Reminders now carry their id in the `reminders` tool.
 
 **M34. Developer tools over MCP** (added 2026-11-12)
 - Why: tools for Claude Code sessions that work on the hub, the panels and nas-docker.

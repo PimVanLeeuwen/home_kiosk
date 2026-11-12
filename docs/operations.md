@@ -121,8 +121,22 @@ the Mac, in the user-level config so the address stays out of this repo:
 claude mcp add --transport http --scope user home-hub https://<nas>.<tailnet>.ts.net/mcp
 ```
 
-It works on the LAN address too (`http://<nas LAN IP>:8083/mcp`). There is no login, like the
-rest of the hub; a request with an Origin header (any browser) gets a 403.
+It works on the LAN address too (`http://<nas LAN IP>:8083/mcp`). There is no login for
+reading, like the rest of the hub; a request with an Origin header (any browser) gets a 403.
+
+**Write tools** (lights, music, reminders, a test message) come only with the write token:
+
+1. Put a long random `MCP_WRITE_TOKEN` in the NAS's `.env` (`openssl rand -hex 32`), and the
+   `mcp:` block from `config.yaml` in the NAS's config. Recreate the collector.
+2. On the Mac, add the server again with the token as a header (remove it first:
+   `claude mcp remove --scope user home-hub`):
+
+   ```bash
+   claude mcp add --transport http --scope user home-hub https://<nas>.<tailnet>.ts.net/mcp --header "Authorization: Bearer <MCP_WRITE_TOKEN>"
+   ```
+
+A wrong token is a 401 (not a quiet fall back to reading only). Claude Code asks before each
+write tool call until you allow it; leave them unapproved.
 
 ## Port scan from outside
 

@@ -148,8 +148,8 @@ async def lifespan(app: FastAPI):
         tasks.append(asyncio.create_task(hue.listen(app.state.config, app.state.store)))
 
     try:
-        # The MCP endpoint answers only while its session manager runs.
-        async with house.session_manager.run():
+        # The MCP endpoint answers only while its session managers run.
+        async with house.session_manager.run(), house_writes.session_manager.run():
             yield
     finally:
         for task in tasks:
@@ -177,10 +177,14 @@ app.include_router(portfolio_api.router)
 app.include_router(recipes_api.router)
 app.include_router(reminders_api.router)
 
-# Claude asks the house here (plan.md M33); read-only tools over the cache.
+# Claude asks the house here (plan.md M33): the read-only tools, and with the write token
+# (MCP_WRITE_TOKEN) also the ones that change something.
 house = mcp_server.build(lambda: app.state.store, lambda: app.state.config)
-app.add_route(mcp_server.PATH, mcp_server.http_endpoint(house), methods=["GET", "POST", "DELETE"],
-              include_in_schema=False)
+house_writes = mcp_server.build(lambda: app.state.store, lambda: app.state.config, writes=True)
+app.add_route(mcp_server.PATH,
+              mcp_server.http_endpoint(house, house_writes,
+                                       lambda: mcp_server.write_token(app.state.config)),
+              methods=["GET", "POST", "DELETE"], include_in_schema=False)
 
 
 def _serve(key: str) -> Any:

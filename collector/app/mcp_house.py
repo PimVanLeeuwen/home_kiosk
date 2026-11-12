@@ -187,12 +187,50 @@ def reminders(overview: Payload, days: list[tuple[str, list[Payload]]]) -> Paylo
     """Each asked day's reminders with their ticks, and every reminder's next day."""
     return {
         "today": overview.get("today"),
-        "days": [{"date": day, "reminders": [_pick(r, "title", "at", "done") for r in found]}
+        "days": [{"date": day,
+                  "reminders": [_pick(r, "id", "title", "at", "done") for r in found]}
                  for day, found in days],
         "reminders": [
-            {**_pick(r, "title", "next", "at"), "repeats": (r.get("repeat") or {}).get("kind")}
+            {**_pick(r, "id", "title", "next", "at"),
+             "repeats": (r.get("repeat") or {}).get("kind")}
             for r in overview.get("reminders") or []
         ],
+    }
+
+
+def lights(payload: Payload | None) -> Payload:
+    """The living room's lights by group, with the group ids the light tools take."""
+    if payload is None:
+        return missing("lights")
+    return {
+        **_envelope(payload),
+        "room": payload.get("room"),
+        "kelvins": payload.get("kelvins"),
+        "groups": [
+            {**_pick(g, "id", "name", "kind", "on", "brightness", "kelvin"),
+             "lights": [_pick(x, "name", "on", "brightness", "kelvin", "reachable")
+                        for x in g.get("lights") or []]}
+            for g in payload.get("groups") or []
+        ],
+    }
+
+
+def music(answer: Payload) -> Payload:
+    """What plays on Spotify and where, the devices, and the favourites by position."""
+
+    def device(d: Payload | None) -> Payload | None:
+        return d and _pick(d, "id", "name", "type", "active", "volume")
+
+    playing = answer.get("playing")
+    last = answer.get("last")
+    return {
+        "stale": answer.get("stale", False),
+        "connected": answer.get("connected"),
+        "playing": playing and {**_pick(playing, "kind", "title", "subtitle", "state"),
+                                "device": device(playing.get("device"))},
+        "last_played": last and _pick(last, "kind", "title", "subtitle"),
+        "devices": [device(d) for d in answer.get("devices") or []],
+        "favourites": [_pick(f, "position", "name") for f in answer.get("favourites") or []],
     }
 
 

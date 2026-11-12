@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 
 from fastapi.testclient import TestClient
@@ -221,8 +222,8 @@ def test_alerts_keep_open_incidents_and_drop_chat_ids_and_html():
     assert [i["title"] for i in out["open_incidents"]] == ["Disk full"]
 
 
-ALL_TOOLS = ["air", "alerts", "backups", "calendar", "docker", "forecast", "laundry", "media",
-             "nas",
+ALL_TOOLS = ["air", "alerts", "backups", "calendar", "docker", "forecast", "laundry", "lights",
+             "media", "music", "nas",
              "outside_services", "reminders", "services", "train", "weather", "websites"]
 
 
@@ -237,7 +238,10 @@ def test_every_tool_answers_on_an_empty_hub(store):
     results = asyncio.run(ask())
 
     for name, result in results.items():
-        assert not result.is_error, name
+        if name == "music":  # asks Spotify itself, which is not set up here
+            assert result.is_error and "not set up" in result.content[0].text
+        else:
+            assert not result.is_error, name
 
 
 def test_tools_are_read_only_and_answer_from_the_cache(store):
@@ -259,29 +263,81 @@ def test_tools_are_read_only_and_answer_from_the_cache(store):
     assert missing.structured_content["available"] is False
 
 
+HEADERS = {"Accept": "application/json, text/event-stream", "Content-Type": "application/json"}
+TOKEN = "s3cret-write-token"
+
+
+def http_app(store, token: str = TOKEN) -> Starlette:
+    """The /mcp endpoint as the app routes it: the read server, and the write one by token."""
+    read = mcp_server.build(lambda: store, lambda: {})
+    write = mcp_server.build(lambda: store, lambda: {}, writes=True)
+
+    @contextlib.asynccontextmanager
+    async def lifespan(_):
+        async with read.session_manager.run(), write.session_manager.run():
+            yield
+
+    return Starlette(routes=[Route(mcp_server.PATH,
+                                   mcp_server.http_endpoint(read, write, lambda: token),
+                                   methods=["GET", "POST", "DELETE"])], lifespan=lifespan)
+
+
+def rpc(client, method: str, params: dict, headers: dict | None = None):
+    """An initialize, then `method`, as a client over HTTP does it."""
+    headers = {**HEADERS, **(headers or {})}
+    resp = client.post(mcp_server.PATH, headers=headers, json={
+        "jsonrpc": "2.0", "id": 1, "method": "initialize",
+        "params": {"protocolVersion": "2025-06-18", "capabilities": {},
+                   "clientInfo": {"name": "test", "version": "1"}}})
+    if resp.status_code != 200:
+        return resp
+    version = resp.json()["result"]["protocolVersion"]
+    return client.post(mcp_server.PATH, headers={**headers, "MCP-Protocol-Version": version},
+                       json={"jsonrpc": "2.0", "id": 2, "method": method, "params": params})
+
+
 def test_answers_over_http(store):
     store.put_cache("nas", {"as_of": "t", "cpu_pct": 7.5})
-    server = mcp_server.build(lambda: store, lambda: {})
-    app = Starlette(routes=[Route(mcp_server.PATH, mcp_server.http_endpoint(server),
-                                  methods=["GET", "POST", "DELETE"])],
-                    lifespan=lambda _: server.session_manager.run())
-    headers = {"Accept": "application/json, text/event-stream",
-               "Content-Type": "application/json"}
 
-    with TestClient(app) as client:
-        resp = client.post(mcp_server.PATH, headers=headers, json={
-            "jsonrpc": "2.0", "id": 1, "method": "initialize",
-            "params": {"protocolVersion": "2025-06-18", "capabilities": {},
-                       "clientInfo": {"name": "test", "version": "1"}}})
-        assert resp.status_code == 200, resp.text
-        version = resp.json()["result"]["protocolVersion"]
-        resp = client.post(mcp_server.PATH, headers={**headers, "MCP-Protocol-Version": version},
-                           json={"jsonrpc": "2.0", "id": 2, "method": "tools/call",
-                                 "params": {"name": "nas", "arguments": {}}})
+    with TestClient(http_app(store)) as client:
+        resp = rpc(client, "tools/call", {"name": "nas", "arguments": {}})
 
     assert resp.status_code == 200, resp.text
     content = resp.json()["result"]["content"][0]["text"]
     assert json.loads(content)["cpu_pct"] == 7.5
+
+
+def tool_names(resp) -> set[str]:
+    assert resp.status_code == 200, resp.text
+    return {t["name"] for t in resp.json()["result"]["tools"]}
+
+
+def test_the_write_tools_only_show_with_the_write_token(store):
+    with TestClient(http_app(store)) as client:
+        plain = tool_names(rpc(client, "tools/list", {}))
+        with_token = tool_names(rpc(client, "tools/list", {},
+                                    {"Authorization": f"Bearer {TOKEN}"}))
+
+    writes = {"lights_room", "lights_change", "music_control", "music_volume",
+              "music_play_favourite", "add_reminder", "tick_reminder", "send_test_message"}
+    assert plain == set(ALL_TOOLS)
+    assert with_token == set(ALL_TOOLS) | writes
+
+
+def test_a_wrong_token_or_none_set_up_is_a_401(store):
+    with TestClient(http_app(store)) as client:
+        wrong = rpc(client, "tools/list", {}, {"Authorization": "Bearer guess"})
+        basic = rpc(client, "tools/list", {}, {"Authorization": f"Basic {TOKEN}"})
+    with TestClient(http_app(store, token="")) as client:
+        unset = rpc(client, "tools/list", {}, {"Authorization": f"Bearer {TOKEN}"})
+
+    assert wrong.status_code == basic.status_code == unset.status_code == 401
+    assert "not set up" in unset.json()["detail"]
+
+
+def test_the_write_token_comes_from_the_config():
+    assert mcp_server.write_token({"mcp": {"write_token": " abc "}}) == "abc"
+    assert mcp_server.write_token({}) == ""
 
 
 def test_the_app_refuses_browsers_at_mcp(store):
@@ -311,8 +367,10 @@ def test_reminders_cover_a_range_of_days_with_their_ticks(store):
     out = asyncio.run(ask()).structured_content
 
     falls = {d["date"]: d["reminders"] for d in out["days"] if d["reminders"]}
-    assert falls == {"2026-11-12": [{"title": "Bins out", "at": None, "done": True}],
-                     "2026-11-19": [{"title": "Bins out", "at": None, "done": False}]}
+    assert falls == {"2026-11-12": [{"id": bins.id, "title": "Bins out", "at": None,
+                                     "done": True}],
+                     "2026-11-19": [{"id": bins.id, "title": "Bins out", "at": None,
+                                     "done": False}]}
     assert len(out["days"]) == 8
 
 

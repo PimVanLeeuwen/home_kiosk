@@ -403,6 +403,12 @@ services:
       - { id: trash-guides, name: TRaSH Guides, description: Arr quality profiles, url: "https://trash-guides.info", icon: trash-guides }
       - { id: hetzner-robot, name: Hetzner Robot, description: Backup storage box, url: "https://robot.hetzner.com", icon: hetzner }
 
+# MCP (plan.md M33): Claude reads the house at /mcp without a token; with
+# "Authorization: Bearer <MCP_WRITE_TOKEN>" it also gets the tools that change something
+# (lights, music, reminders, a test message). Empty: reading only.
+mcp:
+  write_token: ${MCP_WRITE_TOKEN}
+
 # Runs (M28): Health Auto Export on the phone posts workouts to /api/runs/health with
 # "Authorization: Bearer <RUNS_KEY>" (its REST automation: JSON, version 2, route data and
 # workout metrics on). Only runs are kept, on the NAS.
