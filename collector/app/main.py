@@ -178,7 +178,7 @@ app.include_router(recipes_api.router)
 app.include_router(reminders_api.router)
 
 # Claude asks the house here (plan.md M33); read-only tools over the cache.
-house = mcp_server.build(lambda: app.state.store)
+house = mcp_server.build(lambda: app.state.store, lambda: app.state.config)
 app.add_route(mcp_server.PATH, mcp_server.http_endpoint(house), methods=["GET", "POST", "DELETE"],
               include_in_schema=False)
 

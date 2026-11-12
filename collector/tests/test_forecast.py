@@ -42,3 +42,24 @@ def test_asks_for_the_weather_place_in_local_time():
     assert asked[0]["latitude"] == "52.11" and asked[0]["timezone"] == "Europe/Amsterdam"
     assert asked[0]["forecast_days"] == "7"  # the week view (plan.md M27, J)
     assert "weather_code" in asked[0]["daily"]
+    assert "precipitation_sum" in asked[0]["daily"]
+    assert asked[0]["hourly"].endswith(",precipitation")
+
+
+def test_reads_the_expected_rain_when_the_answer_has_it():
+    answer = {
+        "hourly": {**ANSWER["hourly"], "precipitation": [0.0, 0.4, 1.2]},
+        "daily": {**ANSWER["daily"], "precipitation_sum": [3.5, None]},
+    }
+
+    today, tomorrow = forecast.parse(answer)
+
+    assert [h.rain_mm for h in today.hours] == [0.0]
+    assert [h.rain_mm for h in tomorrow.hours] == [1.2]
+    assert (today.rain_mm, tomorrow.rain_mm) == (3.5, None)
+
+
+def test_without_amounts_the_rain_stays_unknown():
+    today, _ = forecast.parse(ANSWER)
+
+    assert today.rain_mm is None and today.hours[0].rain_mm is None

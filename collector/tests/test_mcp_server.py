@@ -8,7 +8,8 @@ from mcp.client import Client
 from starlette.applications import Starlette
 from starlette.routing import Route
 
-from app import main, mcp_server
+from app import main, mcp_house, mcp_server, reminders
+from app.sources import agenda
 
 TRAIN = {
     "as_of": "2026-11-12T06:40:00Z",
@@ -65,7 +66,7 @@ BACKUPS = {
 
 
 def test_train_keeps_the_card_and_names_the_stops_only():
-    out = mcp_server.train_summary(TRAIN)
+    out = mcp_house.train(TRAIN)
 
     assert out["train"]["track"] == "8b"
     assert out["train"]["delay_minutes"] == 4
@@ -75,7 +76,7 @@ def test_train_keeps_the_card_and_names_the_stops_only():
 
 
 def test_backups_give_each_volume_its_own_result_and_drop_the_run_list():
-    out = mcp_server.backups_summary(BACKUPS)
+    out = mcp_house.backups(BACKUPS)
 
     assert "runs" not in out
     first, second = out["volumes"]
@@ -91,7 +92,7 @@ def test_nas_drops_the_network_history():
     payload = {"as_of": "t", "cpu_pct": 12.0,
                "network": {"rx_mbps": 1.0, "tx_mbps": 2.0, "history": [{"t": "t", "rx": 1}]}}
 
-    out = mcp_server.nas_summary(payload)
+    out = mcp_house.nas(payload)
 
     assert out["network"] == {"rx_mbps": 1.0, "tx_mbps": 2.0}
     assert out["cpu_pct"] == 12.0
@@ -99,14 +100,149 @@ def test_nas_drops_the_network_history():
 
 
 def test_nothing_cached_yet_says_so():
-    for summary in (mcp_server.train_summary, mcp_server.backups_summary,
-                    mcp_server.nas_summary):
+    for summary in (mcp_house.train, mcp_house.backups, mcp_house.nas, mcp_house.calendar,
+                    mcp_house.weather, mcp_house.forecast, mcp_house.air, mcp_house.laundry,
+                    mcp_house.docker,
+                    mcp_house.media, mcp_house.sites, mcp_house.outside):
         assert summary(None)["available"] is False
+
+
+def test_calendar_keeps_titles_and_times_only_for_today_and_tomorrow():
+    payload = {
+        "as_of": "t", "date": "2026-11-12", "errors": {"work": "401"},
+        "events": [{"calendar_id": "abc", "calendar": "Work", "color": "#f00",
+                    "title": "Dentist", "start": "10:00", "end": "10:30", "all_day": False}],
+        "all_day": [],
+        "tomorrow": {"date": "2026-11-13", "all_day": [],
+                     "events": [{"title": "Later", "calendar": "Work", "start": "9:00",
+                                 "end": None, "all_day": False}]},
+    }
+
+    one = mcp_house.calendar(payload, 1)
+    two = mcp_house.calendar(payload, 2)
+
+    assert one["days"] == [{"date": "2026-11-12", "all_day": [], "events": [
+        {"title": "Dentist", "start": "10:00", "end": "10:30", "all_day": False}]}]
+    assert [d["date"] for d in two["days"]] == ["2026-11-12", "2026-11-13"]
+    assert "calendar" not in two["days"][1]["events"][0]
+    assert one["unread_calendars"] == 1
+
+
+def test_a_calendar_range_read_on_the_spot_is_trimmed_the_same_way():
+    event = agenda.CalendarEvent(calendar_id="abc", calendar="Work", color="#f00",
+                                 title="Trip", start=None, end=None, all_day=True)
+    out = mcp_house.calendar_days({"as_of": "t", "errors": {},
+                                   "days": [{"date": "2026-12-01", "events": [],
+                                             "all_day": [event]}]})
+
+    assert out["days"] == [{"date": "2026-12-01", "events": [], "all_day": [
+        {"title": "Trip", "start": None, "end": None, "all_day": True}]}]
+
+
+def test_forecast_gives_every_day_or_one_with_its_hours():
+    payload = {"as_of": "t", "days": [
+        {"date": "2026-11-12", "high": 11.0, "low": 4.0, "code": 61, "rain_max": 80,
+         "rain_mm": 3.5, "sunrise": "08:00", "sunset": "16:50",
+         "hours": [{"hour": 9, "temperature": 7.0, "rain_chance": 60, "rain_mm": 0.4}]},
+        {"date": "2026-11-13", "high": 9.0, "low": 2.0, "hours": []},
+    ]}
+
+    week = mcp_house.forecast(payload)
+    one = mcp_house.forecast(payload, "2026-11-13")
+
+    assert [d["date"] for d in week["days"]] == ["2026-11-12", "2026-11-13"]
+    assert week["days"][0]["rain_mm"] == 3.5
+    assert week["days"][0]["hours"] == [{"hour": 9, "temperature": 7.0, "rain_chance": 60,
+                                         "rain_mm": 0.4}]
+    assert [d["date"] for d in one["days"]] == ["2026-11-13"]
+    assert one["known_days"] == ["2026-11-12", "2026-11-13"]
+
+
+def test_air_and_weather_drop_history_and_the_station():
+    air = mcp_house.air({"as_of": "t", "co2": 640, "history": [{"at": "t", "co2": 600}]})
+    weather = mcp_house.weather({"as_of": "t", "station": "Somewhere", "temperature": 9.5,
+                                 "rain": [{"at": "t", "mm_per_hour": 0.0}]})
+
+    assert air == {"as_of": "t", "co2": 640}
+    assert "station" not in weather and weather["temperature"] == 9.5
+    assert weather["rain"] == [{"at": "t", "mm_per_hour": 0.0}]
+
+
+def test_docker_media_and_services_drop_paths_and_ids():
+    docker = mcp_house.docker({"as_of": "t", "cpu_pct": 3.0, "mem_bytes": 2_500_000_000,
+                               "containers": [{"name": "jellyfin", "project": "jellyfin",
+                                               "image": "x", "state": "running",
+                                               "mem_bytes": 300_000_000, "rx_bps": 1.0}]})
+    media = mcp_house.media({"as_of": "t", "downloads": [
+        {"id": "sonarr:1", "kind": "tv", "title": "Show", "poster": "sonarr/1",
+         "progress_pct": 40.0, "state": "downloading"}],
+        "missing": [], "upcoming": [], "errors": {"radarr": "down"}, "posters": {"a": "b"}})
+    services = mcp_house.services({"as_of": "t", "groups": [{"name": "Media", "services": [
+        {"id": "jf", "name": "Jellyfin", "port": 8096, "icon": "jf", "status": "up",
+         "stats": [{"label": "Streams", "value": 1, "unit": ""}]}]}]})
+
+    assert docker["mem_mb"] == 2500.0
+    assert docker["containers"][0]["mem_mb"] == 300.0
+    assert docker["containers"][0]["image"] == "x"
+    assert "poster" not in media["downloads"][0] and "id" not in media["downloads"][0]
+    assert "posters" not in media and media["unread_sources"] == ["radarr"]
+    assert services["groups"][0]["services"] == [
+        {"name": "Jellyfin", "description": None, "status": "up", "container": None,
+         "port": 8096, "path": None, "url": None,
+         "stats": [{"label": "Streams", "value": 1, "unit": ""}]}]
+
+
+def test_outside_gives_each_incident_its_latest_word():
+    out = mcp_house.outside({"as_of": "t", "services": [{
+        "key": "gh", "name": "GitHub", "url": "u", "state": "degraded", "stale": False,
+        "incidents": [{"title": "Actions slow", "impact": "degraded", "status": "monitoring",
+                       "url": "u", "updates": [{"text": "first"}, {"text": "fixed, watching"}]}],
+    }]})
+
+    assert out["services"][0]["incidents"][0]["latest"] == "fixed, watching"
+    assert "url" not in out["services"][0]
+
+
+def test_alerts_keep_open_incidents_and_drop_chat_ids_and_html():
+    messages = [{"id": 1, "ts": "t", "source": "rclone", "category": "backup",
+                 "severity": "info", "title": "Backup done", "body": "ok", "chat": "nas",
+                 "status": "sent", "channel": "ntfy", "ntfy_id": "x", "html": "<b>"}]
+    incidents = [
+        {"rule": "disk", "severity": "warn", "title": "Disk full", "body": "90%",
+         "opened_at": "t", "last_seen_at": "t", "resolved_at": None, "dismissed_at": None},
+        {"rule": "old", "title": "Gone", "resolved_at": "t", "dismissed_at": None},
+    ]
+
+    out = mcp_house.alerts(messages, incidents)
+
+    assert out["messages"] == [{"id": 1, "ts": "t", "category": "backup", "severity": "info",
+                                "title": "Backup done", "body": "ok", "status": "sent",
+                                "channel": "ntfy"}]
+    assert [i["title"] for i in out["open_incidents"]] == ["Disk full"]
+
+
+ALL_TOOLS = ["air", "alerts", "backups", "calendar", "docker", "forecast", "laundry", "media",
+             "nas",
+             "outside_services", "reminders", "services", "train", "weather", "websites"]
+
+
+def test_every_tool_answers_on_an_empty_hub(store):
+    reminders.ensure_tables(store)
+    server = mcp_server.build(lambda: store, lambda: {"timezone": "Europe/Amsterdam"})
+
+    async def ask():
+        async with Client(server) as client:
+            return {name: await client.call_tool(name, {}) for name in ALL_TOOLS}
+
+    results = asyncio.run(ask())
+
+    for name, result in results.items():
+        assert not result.is_error, name
 
 
 def test_tools_are_read_only_and_answer_from_the_cache(store):
     store.put_cache("train", TRAIN)
-    server = mcp_server.build(lambda: store)
+    server = mcp_server.build(lambda: store, lambda: {})
 
     async def ask():
         async with Client(server) as client:
@@ -117,7 +253,7 @@ def test_tools_are_read_only_and_answer_from_the_cache(store):
 
     tools, result, missing = asyncio.run(ask())
 
-    assert sorted(t.name for t in tools) == ["backups", "nas", "train"]
+    assert sorted(t.name for t in tools) == ALL_TOOLS
     assert all(t.annotations.read_only_hint for t in tools)
     assert result.structured_content["train"]["name"] == "IC 3522"
     assert missing.structured_content["available"] is False
@@ -125,7 +261,7 @@ def test_tools_are_read_only_and_answer_from_the_cache(store):
 
 def test_answers_over_http(store):
     store.put_cache("nas", {"as_of": "t", "cpu_pct": 7.5})
-    server = mcp_server.build(lambda: store)
+    server = mcp_server.build(lambda: store, lambda: {})
     app = Starlette(routes=[Route(mcp_server.PATH, mcp_server.http_endpoint(server),
                                   methods=["GET", "POST", "DELETE"])],
                     lifespan=lambda _: server.session_manager.run())
@@ -156,3 +292,38 @@ def test_the_app_refuses_browsers_at_mcp(store):
                        json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
 
     assert resp.status_code == 403
+
+
+def test_reminders_cover_a_range_of_days_with_their_ticks(store):
+    from datetime import date
+
+    reminders.ensure_tables(store)
+    bins = reminders.add(store, reminders.Draft.model_validate({
+        "title": "Bins out", "start": "2026-11-10",
+        "repeat": {"kind": "weekly", "weekdays": [3]}}))  # Thursdays
+    reminders.set_done(store, bins.id, date(2026, 11, 12), True)
+    server = mcp_server.build(lambda: store, lambda: {"timezone": "Europe/Amsterdam"})
+
+    async def ask():
+        async with Client(server) as client:
+            return await client.call_tool("reminders", {"start": "2026-11-12", "days": 8})
+
+    out = asyncio.run(ask()).structured_content
+
+    falls = {d["date"]: d["reminders"] for d in out["days"] if d["reminders"]}
+    assert falls == {"2026-11-12": [{"title": "Bins out", "at": None, "done": True}],
+                     "2026-11-19": [{"title": "Bins out", "at": None, "done": False}]}
+    assert len(out["days"]) == 8
+
+
+def test_a_wrong_date_is_a_tool_error_that_says_how(store):
+    server = mcp_server.build(lambda: store, lambda: {})
+
+    async def ask():
+        async with Client(server) as client:
+            return await client.call_tool("calendar", {"start": "12-11-2026", "days": 5})
+
+    result = asyncio.run(ask())
+
+    assert result.is_error
+    assert "YYYY-MM-DD" in result.content[0].text

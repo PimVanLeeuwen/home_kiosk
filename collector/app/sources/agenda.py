@@ -320,6 +320,55 @@ async def collect(cfg: dict[str, Any], store: Store, now: datetime | None = None
                                    all_day=[e for e in later if e.all_day]))
 
 
+MAX_DAYS = 31  # the most days one `days()` call reads
+
+
+async def days(cfg: dict[str, Any], store: Store, first: date, count: int,
+               reader: Reader | None = None, now: datetime | None = None) -> dict[str, Any]:
+    """The shown calendars' events from `first` for `count` days, read now (the MCP calendar
+    tool, plan.md M33), not cached. Read as collect() reads: one REPORT per own calendar for
+    the whole range, the subscriptions from their kept feed. Raises when the calendar is not
+    set up or its list cannot be read; one calendar failing only notes it."""
+    s = settings(cfg)
+    if not s["enabled"]:
+        raise LookupError("The calendar is not set up.")
+    count = min(max(count, 1), MAX_DAYS)
+    reader = reader or READER
+    now = now or datetime.now(UTC)
+    tz = s["timezone"]
+    off = hidden(store)
+    wanted = [first + timedelta(days=i) for i in range(count)]
+    found: dict[date, list[CalendarEvent]] = {day: [] for day in wanted}
+    errors: dict[str, str] = {}
+    async with httpx.AsyncClient(auth=s["auth"], timeout=TIMEOUT_SECONDS,
+                                 transport=reader.transport) as client:
+        calendars = await reader.calendar_list(client, s["server"], now)
+        shown = [(info, url) for info, url in calendars if info.id not in off]
+
+        async def one(info: CalendarInfo, url: str) -> list[icalendar.Calendar]:
+            if info.kind == "subscribed":
+                return [await reader.feed(client, info, url, now)]
+            return parse_report(await _dav(client, "REPORT", url, "1", _report(first, tz, count)))
+
+        results = await asyncio.gather(*(one(i, u) for i, u in shown), return_exceptions=True)
+    for (info, _), result in zip(shown, results, strict=True):
+        if isinstance(result, BaseException):
+            log.warning("calendar %s failed: %s", info.id[:8], type(result).__name__)
+            errors[info.name] = _reason(result)
+            continue
+        for day in wanted:
+            found[day] += events_today(result, info, day, tz)
+    return {
+        "as_of": now.isoformat(),
+        "days": [{"date": day.isoformat(),
+                  "events": sorted((e for e in found[day] if not e.all_day),
+                                   key=lambda e: e.start),
+                  "all_day": [e for e in found[day] if e.all_day]}
+                 for day in wanted],
+        "errors": errors,
+    }
+
+
 def calendar_list(store: Store, reader: Reader | None = None) -> list[CalendarInfo]:
     """For Settings: every calendar with its switch, without any addresses."""
     off = hidden(store)

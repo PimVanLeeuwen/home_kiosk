@@ -31,6 +31,7 @@ class Hour(BaseModel):
     hour: int  # 0 to 23, local
     temperature: float
     rain_chance: int  # percent
+    rain_mm: float | None = None  # expected rain in that hour
 
 
 class Day(BaseModel):
@@ -42,6 +43,7 @@ class Day(BaseModel):
     hours: list[Hour]
     code: int | None = None       # WMO weather code: the day's sky (0 clear ... 95 thunder)
     rain_max: int | None = None   # the day's highest chance of rain, percent
+    rain_mm: float | None = None  # the day's expected rain in total
 
 
 class Forecast(Envelope):
@@ -57,16 +59,23 @@ def _at(values: list[Any] | None, i: int) -> int | None:
     return int(value) if value is not None else None
 
 
+def _mm(values: list[Any] | None, i: int) -> float | None:
+    value = values[i] if values and i < len(values) else None
+    return float(value) if value is not None else None
+
+
 def parse(answer: dict[str, Any]) -> list[Day]:
     hourly, daily = answer.get("hourly") or {}, answer.get("daily") or {}
     by_date: dict[str, list[Hour]] = {}
-    for at, temperature, chance in zip(hourly.get("time") or [],
-                                       hourly.get("temperature_2m") or [],
-                                       hourly.get("precipitation_probability") or [], strict=False):
+    amounts = hourly.get("precipitation") or []
+    for i, (at, temperature, chance) in enumerate(zip(
+            hourly.get("time") or [], hourly.get("temperature_2m") or [],
+            hourly.get("precipitation_probability") or [], strict=False)):
         if temperature is None:
             continue
         by_date.setdefault(at[:10], []).append(
-            Hour(hour=int(at[11:13]), temperature=temperature, rain_chance=int(chance or 0)))
+            Hour(hour=int(at[11:13]), temperature=temperature, rain_chance=int(chance or 0),
+                 rain_mm=_mm(amounts, i)))
     days = []
     for i, date in enumerate(daily.get("time") or []):
         high, low = daily["temperature_2m_max"][i], daily["temperature_2m_min"][i]
@@ -77,7 +86,8 @@ def parse(answer: dict[str, Any]) -> list[Day]:
                         sunset=_hhmm(daily.get("sunset", [None] * (i + 1))[i]),
                         hours=by_date.get(date, []),
                         code=_at(daily.get("weather_code"), i),
-                        rain_max=_at(daily.get("precipitation_probability_max"), i)))
+                        rain_max=_at(daily.get("precipitation_probability_max"), i),
+                        rain_mm=_mm(daily.get("precipitation_sum"), i)))
     return days
 
 
@@ -85,9 +95,9 @@ async def collect(cfg: dict[str, Any], transport: httpx.AsyncBaseTransport | Non
                   now: datetime | None = None) -> Forecast:
     w = weather.settings(cfg)
     params = {"latitude": w["lat"], "longitude": w["lon"],
-              "hourly": "temperature_2m,precipitation_probability",
+              "hourly": "temperature_2m,precipitation_probability,precipitation",
               "daily": "temperature_2m_max,temperature_2m_min,sunrise,sunset,weather_code,"
-                       "precipitation_probability_max",
+                       "precipitation_probability_max,precipitation_sum",
               "timezone": cfg.get("timezone", "UTC"), "forecast_days": 7}
     async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS, transport=transport) as http:
         resp = await http.get(URL, params=params)

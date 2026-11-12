@@ -2059,7 +2059,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
     M35's chat page and Shortcut are enough).
   - The official `mcp` Python SDK (approved 2026-11-12; look up the latest version when adding
     it).
-  - Read-only house tools first: train, calendar (today's titles and times only), weather and
+  - Read-only house tools first: train, calendar (titles and times only), weather and
     rain, NAS health, backups and dumps, Docker, media queue, laundry, air, alerts, reminders,
     service and outside status. Write tools (lights, music, reminders, a test send) come later,
     each behind a token, and stay unapproved in Claude Code's permissions.
@@ -2081,6 +2081,18 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   need no token, like `/api`. Any request with an Origin header gets a 403 (no browser needs
   `/mcp`), in place of the SDK's Host check, which would need every name the hub answers on.
   Added to Claude Code with `claude mcp add` at user level (docs/operations.md).
+- Built 2026-11-12 (step 2): what each tool returns moved to `app/mcp_house.py`; twelve more
+  read-only tools: `calendar` (title, start, end, all day, no calendar names; `start` and
+  `days`, up to 31: today and tomorrow from the cache, any other range read from iCloud on the
+  spot with `agenda.days`), `weather` (now and the next two hours, no station), `forecast` (the
+  7 days by the hour, or one day; the forecast now also asks Open-Meteo for the expected rain
+  in mm per hour and per day), `air` and `laundry` (no history, no ids), `reminders` (per day
+  from `start` for `days`, up to 92, with ticks, and each reminder's next day), `docker`
+  (memory in MB), `media` (no posters or ids), `services` (name, description, status,
+  container, port, path or URL, live figures), `websites`, `outside_services` (each incident's
+  latest update) and `alerts` (the newest messages, 20 by default and at most 50, optionally
+  one category, without chat ids or HTML, plus the open incidents). A wrong date is a tool
+  error that says how to write it. Tried on the NAS's live answers: each under 13 kB.
 
 **M34. Developer tools over MCP** (added 2026-11-12)
 - Why: tools for Claude Code sessions that work on the hub, the panels and nas-docker.

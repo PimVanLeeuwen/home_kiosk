@@ -268,3 +268,34 @@ def test_floating_times_count_as_local():
     (lunch,) = agenda.events_today([cal], info, date(2026, 10, 14), AMS)
 
     assert lunch.start == datetime(2026, 10, 14, 12, 0, tzinfo=AMS)
+
+
+def test_days_reads_a_range_from_a_later_start_with_each_day_apart(cal_store):
+    cloud = ICloud()
+    reader = agenda.Reader(transport=cloud.transport())
+
+    answer = asyncio.run(agenda.days(CFG, cal_store, date(2026, 10, 14), 3, reader=reader,
+                                     now=NOW))
+
+    assert [d["date"] for d in answer["days"]] == ["2026-10-14", "2026-10-15", "2026-10-16"]
+    first, second, third = answer["days"]
+    assert [e.title for e in first["events"]] == ["Standup (moved)", "Dinner"]
+    assert [e.title for e in second["events"]] == ["Dentist"]
+    assert third["events"] == [] and answer["errors"] == {}
+    # One REPORT per own calendar for the whole range.
+    assert sum(1 for s in cloud.seen if s[0] == "REPORT") == 2
+
+
+def test_days_notes_a_failing_calendar_and_caps_the_range(cal_store):
+    reader = agenda.Reader(transport=ICloud(shared_down=True).transport())
+
+    answer = asyncio.run(agenda.days(CFG, cal_store, date(2026, 10, 14), 400, reader=reader,
+                                     now=NOW))
+
+    assert len(answer["days"]) == agenda.MAX_DAYS
+    assert answer["errors"] == {"Pim en Sanne": "HTTP 503"}
+
+
+def test_days_without_a_calendar_set_up_says_so(cal_store):
+    with pytest.raises(LookupError):
+        asyncio.run(agenda.days({}, cal_store, date(2026, 10, 14), 1))

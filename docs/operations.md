@@ -111,9 +111,11 @@ to become the app. The Pi kiosk at `/kiosk/` is not part of the app.
 
 ## Claude Code and the hub's MCP server
 
-The hub answers MCP at `/mcp` (plan.md M33): read-only tools over its cache (the train, the
-backups, the NAS). Add it once on the Mac, in the user-level config so the address stays out of
-this repo:
+The hub answers MCP at `/mcp` (plan.md M33): read-only tools over what it already knows (the
+train, calendar, reminders, weather and forecast, air, laundry, NAS, Docker, backups, media,
+services, websites, outside services and alerts), each trimmed to what answers a question. The
+calendar reads iCloud on the spot for any range other than today and tomorrow. Add it once on
+the Mac, in the user-level config so the address stays out of this repo:
 
 ```bash
 claude mcp add --transport http --scope user home-hub https://<nas>.<tailnet>.ts.net/mcp
