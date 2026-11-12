@@ -2047,9 +2047,81 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   so a hub that stops answering shows too); rain bars that have passed drop off on the
   panel's own clock.
 
+**M33. MCP server** (added 2026-11-12)
+- Why: the hub already knows the state of the house; an MCP server lets Claude ask it. First for
+  Claude Code sessions on the Mac (developing the hub and nas-docker with live data instead of
+  guesses), then for the hub's own Ask (M35). The first step of turning the hub into the
+  household's assistant: text first, no voice output.
+- Decided 2026-11-12:
+  - Inside the collector (same process, same stores and caches), streamable HTTP at `/mcp`
+    through Caddy, on the LAN and Tailscale only like the rest of the hub. Never through
+    cloudflared, so the Claude phone app and claude.ai cannot reach it (accepted: on the phone,
+    M35's chat page and Shortcut are enough).
+  - The official `mcp` Python SDK (approved 2026-11-12; look up the latest version when adding
+    it).
+  - Read-only house tools first: train, calendar (today's titles and times only), weather and
+    rain, NAS health, backups and dumps, Docker, media queue, laundry, air, alerts, reminders,
+    service and outside status. Write tools (lights, music, reminders, a test send) come later,
+    each behind a token, and stay unapproved in Claude Code's permissions.
+  - What a tool returns is what leaves the house (it goes into the prompt), so each tool returns
+    the least that answers: portfolio as percentages only, no amounts; no email addresses,
+    attendees, notes, message bodies or Paperless text; names are personal data, never logged.
+  - News tools return headlines and links only, never article text, so a page cannot talk to a
+    session that also holds write tools.
+  - The MCP address goes in the owner's user-level Claude config, never in a `.mcp.json` in this
+    public repo.
+- Steps, each with its tests and commit: (1) the server at `/mcp` with two or three tools and
+  Claude Code connected; (2) the rest of the read-only house tools; (3) the write tools with
+  their token.
+- To settle while building: how the token is kept and checked; whether the tools share code
+  with the `/api` routes or call them.
+
+**M34. Developer tools over MCP** (added 2026-11-12)
+- Why: tools for Claude Code sessions that work on the hub, the panels and nas-docker.
+- Planned tools:
+  - `source_sample(name)`: a source's live payload, redacted like its tool, to build on real
+    shapes.
+  - `job_status`: each scheduler job's last run, result and last error.
+  - `hub_logs(since, level)`: the collector's recent log lines (already free of personal data).
+  - `deployed_version`: the commit and image the NAS runs against `main` ("is my change live?").
+  - `panel_screenshot(board)`: what a desk panel shows, with what `panels/tools` already does.
+  - `container_logs(name, lines)`: through the read-only Docker access the hub already has.
+  - `compose_drift`: the NAS's `/volume1/docker` against nas-docker `main`. Needs a read-only view
+    of that folder in the collector, which it does not have today; settle or drop.
+- Read-only, no container actions (Dockge stays the place for those).
+
+**M35. Ask the hub** (added 2026-11-12)
+- Why: ask the house a question in words, on the laptop or the phone, without the Claude app.
+- Decided 2026-11-12:
+  - One chat endpoint in the hub that runs Claude with M33's tools, through `ai.py`'s `ask()`
+    path: the monthly cap, usage in `ai_usage`, nothing logged. Haiku by default (about a
+    quarter of a cent for a question with three tool calls).
+  - A chat page in the hub is the way in, on the laptop and the phone. Also an Apple Shortcut
+    "Ask the hub" (dictation in, the answer as text, over Tailscale) on the same endpoint. Voice
+    in only through the Shortcut; no spoken answers. Not in Telegram: the bot keeps its
+    commands only (the 2026-10-23 decision against `/ask` stands).
+  - The owner only for now; the partner is not a user yet.
+  - Writes (lights, a reminder) ask for a confirm before they happen.
+- To settle while building: the cap (EUR 5 may need raising once Ask is used daily); keeping a
+  short conversation per chat or only one question at a time.
+
+**M36. 3D printer** (added 2026-11-12)
+- Why: a Bambu Lab P2S (with the filament buffer, no AMS) is coming; the hub shows and reports
+  on it.
+- Decided 2026-11-12: read-only. The printer stays in normal (cloud) mode so Bambu Handy and
+  the cloud keep working; no LAN-only mode, no Developer Mode, no printing from the hub. The hub
+  reads the printer's status over its local MQTT (reported to keep working read-only outside
+  Developer Mode; check on the real printer first). An MQTT client (`aiomqtt` or `paho-mqtt`,
+  approved 2026-11-12; latest version when adding it).
+- Planned: a Printer card on Home and a House panel screen while a print runs (job, progress,
+  time left, layer, temperatures); ntfy on done, failed, paused or filament run out, with the
+  camera's snapshot when the printer serves one; a print history; an MCP tool for the status.
+- To settle while building: what the P2S answers without Developer Mode (status, camera); where
+  the access code lives (NAS-only `.env`).
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
-M29, M30, M31, M32.
+M29, M30, M31, M32, M33, M34, M35, M36.
 
 ## 4. Open items
 
@@ -2248,6 +2320,15 @@ M29, M30, M31, M32.
   for the amounts the persons are set to. No new dependency. A selection or the whole
   collection as a cookbook stays open.
 - Ask the hub in Telegram (`/ask`, discussed 2026-10-23): dropped; the owner asks Claude Code.
+  Still dropped (2026-11-12); asking the hub got its own chat page instead (M35).
+- Home Assistant (2026-11-12): only worth it to put devices that are not in HomeKit into Apple
+  Home and Siri (its HomeKit Bridge), so the bedtime "everything off" from Siri covers more.
+  Evaluate after M33: list what should be in Apple Home, and try the Matter air sensor in Apple
+  Home directly first (Matter allows a second controller). Siri and HomeKit stay the voice layer.
+- CAD for prints (2026-11-12): parametric models (OpenSCAD or CadQuery) written with Claude Code
+  on the Mac, a preview to look at, sliced with the slicer's CLI and printed from Bambu Studio or
+  Handy by hand. The desk panel stands first (the board's depth and holes still to measure).
+  Lives outside this repo.
 - cloudflared stays (2026-10-23): the household's second Obsidian user syncs LiveSync through it.
 
 ## 5. Non-goals
