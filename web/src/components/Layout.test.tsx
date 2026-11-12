@@ -20,7 +20,7 @@ describe('Layout', () => {
     for (const heading of ['Read', 'Money', 'Kitchen', 'House', 'Code', 'System']) {
       expect(nav.getByText(heading)).toBeInTheDocument()
     }
-    expect(nav.getAllByRole('link')).toHaveLength(19)
+    expect(nav.getAllByRole('link')).toHaveLength(20)
   })
 
   it('marks the current section in the sidebar', () => {
@@ -41,7 +41,7 @@ describe('Layout', () => {
     const names = within(tabBar())
       .getAllByRole('link')
       .map((link) => link.textContent)
-    expect(names).toEqual(['Home', 'News', 'Portfolio', 'Recipes', 'More'])
+    expect(names).toEqual(['Home', 'Ask', 'News', 'Recipes', 'More'])
   })
 
   it('highlights More while on a section that lives under it', () => {

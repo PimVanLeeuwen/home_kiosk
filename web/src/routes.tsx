@@ -4,6 +4,7 @@ import { Layout } from './components/Layout'
 import { NAV_ITEMS, MORE_ROUTE } from './lib/navigation'
 import { AlertMessagePage } from './pages/AlertMessagePage'
 import { AlertsPage } from './pages/AlertsPage'
+import { AskPage } from './pages/AskPage'
 import { BackupsPage } from './pages/BackupsPage'
 import { CookPage } from './pages/CookPage'
 import { DockerPage } from './pages/DockerPage'
@@ -32,6 +33,7 @@ import { WeatherPage } from './pages/WeatherPage'
 /** Sections that are built; the rest show their placeholder. */
 const PAGES: Record<string, ReactElement> = {
   '/': <HomePage />,
+  '/ask': <AskPage />,
   '/lights': <LightsPage />,
   '/music': <MusicPage />,
   '/weather': <WeatherPage />,

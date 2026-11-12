@@ -2159,6 +2159,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   `POST /api/ask/confirm` runs it after the owner's Confirm, through the write tool itself.
   Every call is recorded as AI feature "ask" (its own switch in Settings, AI, off until
   switched on); the cap's default is now EUR 10 (`ai.cap_eur`). Next: the Ask page.
+- Built 2026-11-12 (step 2, the page): `/ask`, under Home in the sidebar and a bottom tab on
+  the phone (Portfolio moved into More). Suggestions while empty; the answer with **bold** and
+  "- " lists (no HTML), the tools it used as chips, and a card per change with Confirm and
+  Cancel (Doing it, Done, Cancelled, or the hub's reason with Try again); a card's outcome goes
+  along with the next question. The month's spend against the cap in the header, New chat,
+  Enter to send. While Ask is switched off (or there is no key) the page says so and links to
+  Settings, AI. The Shortcut is documented in docs/operations.md, not built.
 
 **M36. 3D printer** (added 2026-11-12)
 - Why: a Bambu Lab P2S (with the filament buffer, no AMS) is coming; the hub shows and reports

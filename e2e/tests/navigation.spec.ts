@@ -44,10 +44,10 @@ test.describe('mobile navigation', () => {
     await page.goto('/')
     await expect(shell.sidebar).toBeHidden()
 
-    await shell.tabBar.getByRole('link', { name: 'Portfolio' }).click()
+    await shell.tabBar.getByRole('link', { name: 'Ask' }).click()
 
-    await expect(page).toHaveURL('/portfolio')
-    await expect(shell.heading()).toHaveText('Portfolio')
+    await expect(page).toHaveURL('/ask')
+    await expect(shell.heading()).toHaveText('Ask')
   })
 
   test('More lists the other sections and stays highlighted inside them', async ({ page }) => {

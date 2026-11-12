@@ -16,6 +16,7 @@ import {
   Network,
   Newspaper,
   Server,
+  Sparkles,
   Settings,
   TrendingUp,
   type LucideIcon,
@@ -45,6 +46,13 @@ export const NAV: NavSection[] = [
         icon: House,
         description: 'Status, portfolio, news and services at a glance',
         milestone: 'M2',
+      },
+      {
+        label: 'Ask',
+        to: '/ask',
+        icon: Sparkles,
+        description: 'Questions about the house, answered from the hub\'s own data',
+        milestone: 'M35',
       },
       {
         label: 'Lights',
@@ -209,7 +217,7 @@ export const NAV: NavSection[] = [
 export const NAV_ITEMS: NavItem[] = NAV.flatMap((section) => section.items)
 
 /** Sections with their own tab in the mobile tab bar; the rest sit under More. */
-export const TAB_ROUTES = ['/', '/news', '/portfolio', '/recipes']
+export const TAB_ROUTES = ['/', '/ask', '/news', '/recipes']
 
 export const TAB_ITEMS: NavItem[] = TAB_ROUTES.map(
   (to) => NAV_ITEMS.find((item) => item.to === to)!,

@@ -34,6 +34,7 @@ describe('routes', () => {
       'Running',
       'Reminders',
       'Saved',
+      'Portfolio',
       'NAS',
       'Docker',
       'Backups',

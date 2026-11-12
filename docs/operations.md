@@ -109,6 +109,18 @@ working as a normal website. On an iPhone: open the Tailscale address in Safari,
 Home Screen. A home screen icon made before (a plain bookmark) has to be removed and added again
 to become the app. The Pi kiosk at `/kiosk/` is not part of the app.
 
+## Ask
+
+The Ask page (plan.md M35) answers with Claude, so it needs the Anthropic key in `.env` and its
+switch on in Settings, AI. It shares the monthly cap (`ai.cap_eur`, EUR 10 by default; a
+`cap_eur` in the NAS's config wins). The conversation lives in the browser only; the hub keeps
+the token usage, never the text.
+
+An Apple Shortcut can ask too: *Get contents of URL*, `https://<nas>.<tailnet>.ts.net/api/ask`,
+method POST, request body JSON with `messages` = a list of one dictionary (`role` user, `text`
+the dictated question), then *Get dictionary value* `text`. A change it proposes comes back in
+`proposals` and is never made: open the Ask page for that.
+
 ## Claude Code and the hub's MCP server
 
 The hub answers MCP at `/mcp` (plan.md M33): read-only tools over what it already knows (the
