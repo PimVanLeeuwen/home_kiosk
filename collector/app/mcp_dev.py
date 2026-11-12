@@ -151,7 +151,7 @@ async def deployed(socket: str, pipelines: dict[str, Any] | None,
 
 def panels(cfg: dict[str, Any], store: Store) -> list[dict[str, Any]]:
     """Every desk board the hub knows, and what it would send each one now: the screens by
-    kind (no content) and the answer's size against what a board can read."""
+    kind (no content) and the answer's size before it is fitted to the board."""
     out = []
     for board in desk_boards.boards(store):
         item = board.model_dump(mode="json")
@@ -160,8 +160,9 @@ def panels(cfg: dict[str, Any], store: Store) -> list[dict[str, Any]]:
             item["screens"] = [{"kind": s.get("kind"), "present": s.get("present", True)}
                                for s in answer.get("screens") or []]
             item["rotates"] = answer.get("rotate")
+            # Before fitting: each board says how much it can read with every request
+            # (`room`), which the hub does not keep; desk.fit leaves screens out past it.
             item["answer_bytes"] = desk.size(answer)
-            item["room_bytes"] = desk.ROOM
         out.append(item)
     return out
 
@@ -225,5 +226,6 @@ def register(server: MCPServer, store: Callable[[], Store],
     def panel_state() -> dict[str, Any]:
         """The desk panels: each board's panel, when it last asked, its firmware, whether it
         is upside down, and the screens the hub would send it now (kinds only) with the
-        answer's size against what a board can read."""
+        answer's size before it is fitted to what the board can read (it says so itself
+        with each request; current firmware reads 32 kB)."""
         return {"boards": panels(config(), store())}
