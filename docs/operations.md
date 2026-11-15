@@ -71,8 +71,9 @@ container's details, logs and stats, and events; anything else is refused and lo
 request" in the proxy's log. A new Docker call in the hub needs its path added to the proxy's
 `-allowGET` in the compose file. The collector also runs with no Linux capabilities and a
 read-only image: as root without capabilities it can still read and write files root owns, but
-not files of another user that are not open to all, so keep its mounted files root-owned or
-world-readable.
+not files of another user that are not open to all. UGREEN gives `data/` and rclone's `config/`
+to your user and the `admin` group (10) only, so the collector joins that group (`group_add`);
+keep anything else it mounts root-owned, in group 10, or world-readable.
 
 Moving an existing NAS to this setup (once): copy the new compose file, set
 `nas.docker_socket: /var/run/docker-proxy/docker.sock` in the NAS's

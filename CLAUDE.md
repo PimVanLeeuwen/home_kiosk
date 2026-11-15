@@ -208,6 +208,11 @@ python3 dashboard/serve.py
   holding (equal chances) each time the screen comes round or the page opens, with a shuffle on
   the page; its price, week change, today and your gain, in percentages only on the panel.
   plan.md M20.
+- 2026-11-15: the collector reaches Docker only through a `docker-proxy` service
+  (wollomatic/socket-proxy) that allows GET on the container list, details, logs, stats and
+  events, and runs without Linux capabilities on a read-only image; a new Docker call needs its
+  path in the proxy's `-allowGET` (replaces "no Docker socket proxy", 2026-10-09). plan.md M14,
+  docs/operations.md.
 
 ## Gotchas
 
