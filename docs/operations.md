@@ -64,6 +64,22 @@ A push to `main` runs lint, tests, the web build and e2e, then builds and pushes
 `:<sha>`). Watchtower on the NAS pulls `:latest` nightly, so anything merged to `main` goes live.
 The compose file is copied into `nas-docker/home_kiosk/`; change it here first.
 
+The collector never gets Docker's own socket. The `docker-proxy` service (wollomatic's
+socket-proxy) hands it a filtered copy in a shared volume, read by `nas.docker_socket`
+(`/var/run/docker-proxy/docker.sock`), that allows only GET on the container list, one
+container's details, logs and stats, and events; anything else is refused and logged as "blocked
+request" in the proxy's log. A new Docker call in the hub needs its path added to the proxy's
+`-allowGET` in the compose file. The collector also runs with no Linux capabilities and a
+read-only image: as root without capabilities it can still read and write files root owns, but
+not files of another user that are not open to all, so keep its mounted files root-owned or
+world-readable.
+
+Moving an existing NAS to this setup (once): copy the new compose file, set
+`nas.docker_socket: /var/run/docker-proxy/docker.sock` in the NAS's
+`/volume1/docker/home_kiosk/config.yaml`, then `docker compose up -d` in the stack. Check that
+`docker logs docker-proxy` shows no "blocked request" lines after an hour, and that the NAS
+page still lists the containers.
+
 ## Backups of the hub itself
 
 Every night at 02:00 the collector also mirrors all repos of PimVanLeeuwen and

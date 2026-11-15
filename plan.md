@@ -235,6 +235,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
      the result back. Any open port is an error alert, no good scan in 48 h a warning.
   Both show on the NAS page's Exposure card.
 - No Docker socket proxy (decided 2026-10-09): not worth the setup for a LAN-only stack.
+  Replaced 2026-11-15 after a threat model: the collector parses a lot of internet content, and
+  with the real socket a bug there would make it root on the NAS. A `docker-proxy` service
+  (wollomatic/socket-proxy) now hands it a filtered socket (GET on the container list, details,
+  logs, stats and events only), and the collector runs without capabilities on a read-only
+  image (docs/operations.md, Deploying).
 
 **M15. Weather and app** (added 2026-10-08). **Done 2026-10-09.**
 - Buienradar for the home spot: rain in the next 2 hours from
@@ -2366,7 +2371,8 @@ M29, M30, M31, M32, M33, M34, M35, M36.
   with ErP off (designs: pixelwave Wake-On-ESP32, Erriez ESPHomePCPowerControlHomeAssistant).
   Tuya and eWeLink PCIe cards on Amazon need a cloud app. Revisit if a local ready-made card
   appears.
-- Considered and dropped (2026-10-08 and 09): a Docker socket proxy; pinned image versions
+- Considered and dropped (2026-10-08 and 09): a Docker socket proxy (added after all
+  2026-11-15, see M14); pinned image versions
   with Renovate PRs (updates stay automatic, no PRs); a rollback command from the previous image
   digest; a Tailscale key expiry rule (keys do not expire on this tailnet); a privacy blur for
   amounts on the kiosk; Tailscale identity headers to gate writes; self-hosting a password

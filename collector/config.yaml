@@ -80,7 +80,9 @@ nas:
   # Disk temps and SMART come from the Scrutiny container already on the NAS,
   # which is why there is no smartctl_exporter here.
   scrutiny: http://${NAS_HOST:-100.70.0.10}:8080
-  docker_socket: /var/run/docker.sock
+  # The filtered socket from the docker-proxy service (docker-compose.yml),
+  # which allows only the reads the hub makes.
+  docker_socket: /var/run/docker-proxy/docker.sock
   backup_marker: /volume1/docker/rclone/config/.backup_status
   # One JSON line per backup run, written by the same backup.sh.
   backup_runs: /volume1/docker/rclone/config/backup-runs.jsonl

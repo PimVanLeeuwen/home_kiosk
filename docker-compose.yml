@@ -51,8 +51,10 @@ services:
       # The household's own config; the image only carries the example
       # config.yaml. Copy it here before deploying (see docs/operations.md, Configuration).
       - /volume1/docker/home_kiosk/config.yaml:/app/config.local.yaml:ro
-      # Container counts.
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Docker's API, filtered by docker-proxy below: only the reads the hub
+      # makes. Never the real socket, which would make the collector root on
+      # the NAS. config.yaml's nas.docker_socket points here.
+      - docker-proxy:/var/run/docker-proxy:ro
       # The backup marker written by rclone's backup.sh. Without this mount the
       # backup tile silently reads "unknown".
       - /volume1/docker/rclone/config:/volume1/docker/rclone/config:ro
@@ -69,6 +71,16 @@ services:
       - /volume3/backups/databases:/backups/databases:ro
     extra_hosts:
       - host.docker.internal:host-gateway
+    # Still root inside, but without any Linux capability, without a way to
+    # gain one, and with the image read-only: it writes only to its mounts
+    # (/app/data, /backups/github) and /tmp (SQLite's temporary files).
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     # Read by the hub's own "container unhealthy" rule (and Dockge). Python,
     # because the slim image has no curl or wget.
     healthcheck:
@@ -79,8 +91,40 @@ services:
       retries: 3
     depends_on:
       - node-exporter
+      - docker-proxy
       - readeck
       - ghostfolio
+
+  # The collector's only way to Docker: a filtered copy of the socket in the
+  # shared docker-proxy volume that allows GET on the container list, one
+  # container's details, logs and stats, and events. Anything else (starting,
+  # exec, file copies) is refused. Root so it can read the socket and create
+  # its own in the volume without knowing the NAS's docker group, but with no
+  # capabilities and no network: whoever holds this container holds the real
+  # socket either way.
+  docker-proxy:
+    image: wollomatic/socket-proxy:1.13.2
+    container_name: docker-proxy
+    restart: unless-stopped
+    user: "0:0"
+    network_mode: none
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - '-proxysocketendpoint=/sock/docker.sock'
+      # The collector runs without capabilities, so it needs the mode, not
+      # the owner. Only these two containers mount the volume.
+      - '-proxysocketendpointfilemode=0666'
+      - '-allowGET=(/v1\.[0-9]+)?/(containers/json|containers/[a-zA-Z0-9][a-zA-Z0-9_.-]*/(json|logs|stats)|events)'
+      # A Docker update can break the socket: stop, and restart picks it up.
+      - '-watchdoginterval=3600'
+      - '-stoponwatchdog'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - docker-proxy:/sock
 
   # --- Ghostfolio (M3) -----------------------------------------------------
   # Portfolio source. Holdings are entered in its own UI or imported from a
@@ -169,3 +213,7 @@ services:
       retries: 3
     depends_on:
       - collector
+
+volumes:
+  # The filtered Docker socket, shared by docker-proxy and the collector.
+  docker-proxy:
