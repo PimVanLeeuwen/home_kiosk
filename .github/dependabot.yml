@@ -1,0 +1,14 @@
+# The workflows' actions are pinned to commit SHAs (a moved tag cannot change what runs with
+# the Docker Hub token). Dependabot keeps them current: one grouped pull request a month,
+# merged by hand. Only the actions: npm, pip and images stay as they are (plan.md M14).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci

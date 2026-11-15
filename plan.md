@@ -245,6 +245,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   addresses always pass (a rebinding page cannot use one), as do localhost,
   host.docker.internal, `hub.url`'s name, the Tailscale name read from tailscaled, and
   `hub.host_names`; anything else is a 421.
+- CI's actions are pinned to commit SHAs (added 2026-11-15, same threat model): a moved tag of a
+  third-party action could otherwise run with the Docker Hub token and push an image Watchtower
+  deploys. Dependabot proposes the updates in one pull request a month (github-actions only;
+  an exception to "no PRs" of 2026-10-08, as SHA pins do not update themselves). Every workflow
+  has a read-only token, and the firmware's build image (espressif/idf) is pinned by digest.
 
 **M15. Weather and app** (added 2026-10-08). **Done 2026-10-09.**
 - Buienradar for the home spot: rain in the next 2 hours from

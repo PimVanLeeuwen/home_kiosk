@@ -11,12 +11,18 @@ on:
         type: boolean
         default: false
 
+# Read-only token: the jobs only read the repo, and the image job signs in to Docker Hub with
+# its own token. Actions are pinned to commit SHAs (a moved tag cannot change them);
+# Dependabot proposes the updates once a month (.github/dependabot.yml).
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/ruff-action@v4.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/ruff-action@278981a28ce3188b1e39527901f38254bf3aac89 # v4.1.0
         with:
           src: collector
 
@@ -26,9 +32,9 @@ jobs:
       run:
         working-directory: collector
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           # Same runtime as the image (python:3.14-slim).
           python-version: '3.14'
@@ -44,9 +50,9 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: web/.nvmrc
           cache: npm
@@ -64,9 +70,9 @@ jobs:
       run:
         working-directory: e2e
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: e2e/.nvmrc
           cache: npm
@@ -78,7 +84,7 @@ jobs:
       - run: npx playwright install --only-shell chromium
       - run: npx playwright test
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: playwright-traces
@@ -92,7 +98,7 @@ jobs:
     # firmware folder, so the boards only update when the firmware changed.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Build
         env:
@@ -128,13 +134,13 @@ jobs:
             rm -f panels/dist/firmware.json panels/dist/firmware.bin
           fi
           docker run --rm -e PANEL_VERSION="$version" -v "$PWD/panels/firmware":/project -w /project \
-            espressif/idf:v5.5.6 idf.py build
+            espressif/idf:v5.5.6@sha256:bf72fe7a15c22849a9a94147301165a545fb8905d97c176cf748e3e4614cac84 idf.py build
           cp panels/firmware/build/desk_panel.bin panels/dist/firmware.bin
           size=$(stat -c %s panels/dist/firmware.bin)
           printf '{"version": "%s", "size": %s}\n' "$version" "$size" > panels/dist/firmware.json
           cat panels/dist/firmware.json
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: panel-firmware
           path: |
@@ -148,16 +154,16 @@ jobs:
     needs: [lint, test, web, e2e, panels]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      - uses: docker/login-action@v4
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - uses: docker/build-push-action@v7
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ./collector
           # The DXP4800 Plus is a Pentium Gold 8505, so amd64 only.
@@ -171,14 +177,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: panel-firmware
           path: panels/dist
 
       # Context is the repo root: the image builds web/ and also needs
       # dashboard/ and the Caddyfile, which live in different directories.
-      - uses: docker/build-push-action@v7
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ./dashboard/Dockerfile

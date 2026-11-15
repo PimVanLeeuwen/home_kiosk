@@ -213,6 +213,10 @@ python3 dashboard/serve.py
   events, and runs without Linux capabilities on a read-only image; a new Docker call needs its
   path in the proxy's `-allowGET` (replaces "no Docker socket proxy", 2026-10-09). plan.md M14,
   docs/operations.md.
+- 2026-11-15: CI's actions are pinned to commit SHAs with the version as a comment, and
+  Dependabot proposes their updates in one pull request a month (github-actions only; an
+  exception to "no PRs"); every workflow has a read-only token; the firmware's build image is
+  pinned by digest. plan.md M14.
 
 ## Gotchas
 
