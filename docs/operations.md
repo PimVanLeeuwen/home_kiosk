@@ -81,6 +81,13 @@ Moving an existing NAS to this setup (once): copy the new compose file, set
 `docker logs docker-proxy` shows no "blocked request" lines after an hour, and that the NAS
 page still lists the containers.
 
+The collector answers only to names it knows, against DNS rebinding (`app/security.py`): any IP
+address, `localhost`, `host.docker.internal` (Watchtower and rclone's `backup.sh` post there),
+the name in `hub.url`, and the NAS's Tailscale name, full and short, as the `hosts` job reads it.
+Anything else gets 421 "Unknown host name." and a warning in the collector's log ("refused a
+request for the unknown host name"). Opening the hub by another name (a `.local` name, an AdGuard
+rewrite) needs that name in `hub.host_names`.
+
 ## Backups of the hub itself
 
 Every night at 02:00 the collector also mirrors all repos of PimVanLeeuwen and

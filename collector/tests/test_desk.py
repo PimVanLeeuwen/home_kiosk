@@ -383,7 +383,7 @@ def test_a_slow_panel_answer_does_not_stall_the_collector(store, monkeypatch):
 
     async def both() -> tuple[float, float]:
         transport = httpx.ASGITransport(app=main.app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://hub") as client:
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
             started = time.perf_counter()
             board = asyncio.create_task(client.get("/api/desk/board/e8:f6:0a:e4:42:b0"))
             await asyncio.sleep(0.1)

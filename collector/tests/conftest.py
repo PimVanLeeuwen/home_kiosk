@@ -13,3 +13,12 @@ def store(tmp_path) -> Store:
     core.ensure_tables(store)
     rules.ensure_tables(store)
     return store
+
+
+@pytest.fixture(autouse=True)
+def _testserver_is_a_hub_name(monkeypatch):
+    # FastAPI's TestClient sends "Host: testserver"; the app only answers to its own
+    # names (security.KnownHosts).
+    from app import security
+
+    monkeypatch.setattr(security, "BUILT_IN_HOSTS", {*security.BUILT_IN_HOSTS, "testserver"})

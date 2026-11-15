@@ -362,6 +362,10 @@ ntfy:
 # Alerts page).
 hub:
   url: https://dev-minotaur.tail1234.ts.net
+  # The hub answers only to names it knows (DNS rebinding, app/security.py): IP
+  # addresses, localhost, host.docker.internal, this url's name and the NAS's
+  # Tailscale name (full and short). Any other name it is opened by goes here.
+  host_names: []
 
 # Home hub service catalog. Only seeds the database on the first start; after
 # that the catalog is edited in the app and this list is ignored. Links are

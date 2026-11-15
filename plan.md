@@ -240,6 +240,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   (wollomatic/socket-proxy) now hands it a filtered socket (GET on the container list, details,
   logs, stats and events only), and the collector runs without capabilities on a read-only
   image (docs/operations.md, Deploying).
+- The hub answers only to names it knows (added 2026-11-15, same threat model): the same-origin
+  check compares Origin with Host, and DNS rebinding makes a website's own name both. IP
+  addresses always pass (a rebinding page cannot use one), as do localhost,
+  host.docker.internal, `hub.url`'s name, the Tailscale name read from tailscaled, and
+  `hub.host_names`; anything else is a 421.
 
 **M15. Weather and app** (added 2026-10-08). **Done 2026-10-09.**
 - Buienradar for the home spot: rain in the next 2 hours from

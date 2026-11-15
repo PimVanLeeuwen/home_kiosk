@@ -54,7 +54,7 @@ from .portfolio import api as portfolio_api
 from .portfolio import degiro_import
 from .recipes import api as recipes_api
 from .recipes import store as recipes_store
-from .security import same_origin_json
+from .security import KnownHosts, hub_names, same_origin_json
 from .sources import (
     adguard,
     agenda,
@@ -166,6 +166,10 @@ app = FastAPI(title="Desk Dashboard Collector", version="0.1.0", lifespan=lifesp
 # No CORS: the hub, the kiosk and the Vite dev server all reach the API on the
 # same origin. Allowing any origin would let other websites call the write
 # endpoints; see security.py.
+# And only to the hub's own names (DNS rebinding, see security.py). Read while
+# requests come in: config and store exist once the lifespan has started.
+app.add_middleware(KnownHosts, names=lambda: hub_names(
+    getattr(app.state, "config", {}), getattr(app.state, "store", None)))
 app.include_router(settings_api.router)
 app.include_router(exposure_api.router)
 app.include_router(lights_api.router)
