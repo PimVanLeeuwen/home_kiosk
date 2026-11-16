@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from datetime import UTC, date, datetime
 from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
-from fastapi.testclient import TestClient
 
-from app import main
 from app.sources import runna
 
 TZ = ZoneInfo("Europe/Amsterdam")
@@ -105,13 +104,10 @@ def test_read_hourly_and_served_without_its_address(store):
                                      transport=httpx.MockTransport(handler)))
     assert calls == [SECRET] and plan.sessions[0].name == "Threshold Intervals"
 
-    main.app.state.store = store
-    client = TestClient(main.app)
-    assert client.get("/api/runs/plan").status_code == 503
-    store.put_cache(runna.CACHE_KEY, plan.model_dump(mode="json"))
-    served = client.get("/api/runs/plan")
-    assert served.json()["race"]["name"] == "Half Marathon"
-    assert "s3cret" not in served.text and "runna.example/w" not in served.text
+    # What the Running page and the panels read from the cache never names the feed.
+    cached = json.dumps(plan.model_dump(mode="json"))
+    assert plan.race.name == "Half Marathon"
+    assert "s3cret" not in cached and "runna.example/w" not in cached
 
 
 @pytest.mark.parametrize("answer", [httpx.Response(404), httpx.ConnectError("no route to s3cret")])

@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 
 from . import paint_streets, running
 from .security import same_origin_json
-from .sources import runna, runs, streets
+from .sources import runs, streets
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/runs")
@@ -108,15 +108,6 @@ def streets_picture(request: Request) -> Response:
         _picture.update(key=key, jpeg=paint_streets.web_jpeg(store, since))
     return Response(_picture["jpeg"], media_type="image/jpeg",
                     headers={"Cache-Control": "private, max-age=300"})
-
-
-@router.get("/plan")
-def training_plan(request: Request) -> Any:
-    """Runna's plan: the next sessions, this week's planned distance and the race."""
-    payload = request.app.state.store.get_cache(runna.CACHE_KEY)
-    if payload is None:
-        raise HTTPException(503, "Runna's plan is not read yet (RUNNA_ICS_URL).")
-    return payload
 
 
 _route_streets: dict[str, Any] = {"key": None, "webp": None}

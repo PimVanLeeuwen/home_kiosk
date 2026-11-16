@@ -103,25 +103,9 @@ that file in place of `data/collector.db`, and start it again.
 
 ## Recipes: the one-time Tandoor import
 
-Done on 2026-10-27, through Paste JSON on the Recipes list with the photos added per recipe;
-Tandoor is gone since (its last dump and export: `/volume3/backups/tandoor-final`). Kept for
-reference, should an export ever need importing again.
-
-Tandoor's recipes come into the hub once, from Tandoor's own export (Settings, Export, format
-Default: a zip with one zip per recipe), plus optionally a JSON file with reworked versions
-(one recipe, a list, or Copy all's JSON; matched by `id`, used instead of the plain conversion).
-Without that file each recipe comes in as one cook phase, marked "Needs review".
-
-```bash
-docker cp export.zip home-kiosk-collector:/tmp/
-docker cp recipes-phased.json home-kiosk-collector:/tmp/
-docker exec home-kiosk-collector python -m app.recipes.tandoor /tmp/export.zip --phased /tmp/recipes-phased.json --dry-run
-docker exec home-kiosk-collector python -m app.recipes.tandoor /tmp/export.zip --phased /tmp/recipes-phased.json
-docker exec home-kiosk-collector rm /tmp/export.zip /tmp/recipes-phased.json
-```
-
-`--dry-run` prints the recipes and saves nothing. Recipes already in the hub are skipped unless
-`--replace` is given. Any fault in any recipe imports nothing.
+Done on 2026-10-27; Tandoor is gone since (its last dump and export:
+`/volume3/backups/tandoor-final`). The importer (`app/recipes/tandoor.py`) was removed on
+2026-11-16; it is in git history should that export ever need importing again.
 
 ## Install on a phone or laptop
 

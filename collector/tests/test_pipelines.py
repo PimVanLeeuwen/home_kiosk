@@ -5,9 +5,7 @@ from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
-from fastapi.testclient import TestClient
 
-from app import main
 from app.sources import pipelines
 
 NOW = datetime(2026, 10, 21, 12, 30, tzinfo=UTC)
@@ -254,15 +252,6 @@ def test_a_repo_github_does_not_answer_keeps_its_last_state(store):
 
     assert second.stale is True
     assert second.repos[0].recent == first.repos[0].recent
-
-
-def test_the_api_serves_the_pipelines(store):
-    main.app.state.store = store
-    client = TestClient(main.app)
-    assert client.get("/api/pipelines").status_code == 503
-    payload = collect(store, GitHub([run(3, 103, started=300, updated=290)], {}))
-    store.put_cache(pipelines.CACHE_KEY, payload.model_dump(mode="json"))
-    assert client.get("/api/pipelines").json()["repos"][0]["name"] == "cafe"
 
 
 def test_a_run_rerun_hours_later_does_not_stretch_the_usual_range():

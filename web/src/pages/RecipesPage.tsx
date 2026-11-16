@@ -105,7 +105,7 @@ export function RecipesPage() {
       {data && data.count === 0 && (
         <Surface className="flex flex-col items-start gap-3">
           <p className="font-medium">No recipes yet</p>
-          <p className="text-muted">Paste a recipe&apos;s JSON, as Claude writes it, or import Tandoor&apos;s export once (docs/operations.md).</p>
+          <p className="text-muted">Paste a recipe&apos;s JSON, as Claude writes it.</p>
           <Button variant="primary" onClick={() => setPasting(true)}>
             <ClipboardPaste aria-hidden="true" className="size-4" />
             Paste JSON

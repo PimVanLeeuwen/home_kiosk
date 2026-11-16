@@ -76,7 +76,6 @@ from .sources import (
     ns,
     outside_services,
     photo,
-    pipelines,
     readeck,
     runs,
     spotify,
@@ -274,12 +273,6 @@ def nas() -> Any:
 @app.get("/api/hosts")
 def hosts() -> Any:
     return _serve("hosts")
-
-
-@app.get("/api/pipelines")
-def pipelines_status() -> Any:
-    """The House panel's pipelines: the watched repos' main CI (sources/pipelines.py)."""
-    return _serve(pipelines.CACHE_KEY)
 
 
 @app.get("/api/air")

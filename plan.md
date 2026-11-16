@@ -928,7 +928,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   state, skipped jobs are left out, and names drop their matrix part and wrap to two lines. A run
   waiting at an approval gate (community-cafe-web's "Await publish approval") shows the gate in
   amber for 5 minutes, then House rotates again with the card saying "waiting for approval", and
-  the run takes over again once approved. Built 2026-10-21 (collector): `/api/pipelines`
+  the run takes over again once approved. Built 2026-10-21 (collector): `/api/pipelines` (removed 2026-11-16, no client)
   (`app/sources/pipelines.py`) every 15 s, idle repos once a minute; the "usually" range and the
   idle bars leave out runs over twice the median (a re-run hours later). Built 2026-10-21 (hub):
   House's answer (`app/desk_pipelines.py`): a `pipeline` screen per running or just-finished run
@@ -1597,7 +1597,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   `RUNNA_ICS_URL`) is read hourly into the next nine weeks of sessions: each with its name,
   kind, distance in metres, Runna's expected time and its steps (warm-up, reps, cool-down),
   timed when the workout has a time of day; this week's planned distance per day; and the race
-  (a session named "Race" or "Marathon", not one of race pace). `/api/runs/plan` serves it.
+  (a session named "Race" or "Marathon", not one of race pace). `/api/runs/plan` served it
+  until 2026-11-16 (removed, no client; the Running page and panels read the cache).
   Runna does not document its events: the format is the one seen in its feeds (`🏃 Threshold
   Intervals • 8km`), to be checked against the owner's own feed. The address is a secret: a
   failing feed is logged by its status only, never with the address httpx would put in its
@@ -1804,6 +1805,7 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   are stored here already (step 4 adds uploads): a WebP lead at most 900 px wide and a 240 px
   square in `recipe_photo`, served at `/api/recipes/{id}/photo/{lead|thumb}`, with a `photo`
   stamp in the list and the recipe for the address.
+  The importer was removed on 2026-11-16 (dead code audit); it is in git history.
 - Step 3 (done 2026-10-27, `web/src/pages/RecipesPage.tsx`, `components/recipes/`): the
   Recipes list, phone first. A row per recipe on the phone (a 88 px square photo, or the first
   letter on a dark tile), photo cards four across on a wide screen; prep time in violet and cook
