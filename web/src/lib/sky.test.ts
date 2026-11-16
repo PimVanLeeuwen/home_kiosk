@@ -1,11 +1,12 @@
-import { skyGlow } from './sky'
+import { skyLights } from './sky'
 
-describe('skyGlow', () => {
+describe('skyLights', () => {
   it('follows the time of day', () => {
-    expect(skyGlow(2)).toBe(skyGlow(22)) // night
-    expect(new Set([skyGlow(2), skyGlow(7), skyGlow(12), skyGlow(19)]).size).toBe(4)
-    expect(skyGlow(6)).toBe(skyGlow(8)) // dawn starts at six
-    expect(skyGlow(9)).toBe(skyGlow(16)) // day
-    expect(skyGlow(17)).toBe(skyGlow(20)) // dusk
+    const glow = (hour: number) => skyLights(hour)[0]
+    expect(glow(2)).toBe(glow(22)) // night
+    expect(new Set([glow(2), glow(7), glow(12), glow(19)]).size).toBe(4)
+    expect(glow(6)).toBe(glow(8)) // dawn starts at six
+    expect(glow(9)).toBe(glow(16)) // day
+    expect(glow(17)).toBe(glow(20)) // dusk
   })
 })

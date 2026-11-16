@@ -13,5 +13,3 @@ export function skyLights(hour: number): [string, string] {
 
 /** The first light when something is down: the page says so before you read it. */
 export const PROBLEM_LIGHT = 'rgb(229 100 106 / 0.15)'
-
-export const skyGlow = (hour: number): string => skyLights(hour)[0]
