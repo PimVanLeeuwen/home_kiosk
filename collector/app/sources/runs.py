@@ -44,6 +44,9 @@ CREATE TABLE IF NOT EXISTS run (
 # Two workouts starting this close together, this close in distance, are one run.
 SAME_START_S = 60
 SAME_DISTANCE = 0.01
+KJ_PER_KCAL = 4.184
+# Running burns about 60 to 110 kcal a km; a value kept above this per km was kJ (fix_kilojoules).
+MOST_KCAL_PER_KM = 150
 TO_METRES = {"m": 1.0, "km": 1000.0, "ft": 0.3048, "mi": 1609.344, "yd": 0.9144}
 # Best efforts: the fastest stretch of this length inside any run, worked out from its route.
 BESTS = {"5k": 5000.0, "10k": 10000.0, "half": 21097.5}
@@ -110,6 +113,14 @@ def _qty(quantity: Any) -> float | None:
     return round(float(quantity["qty"]), 1)
 
 
+def _kcal(quantity: Any) -> float | None:
+    """Health exports energy in the phone's unit: kcal (also "Cal") or kJ."""
+    value = _qty(quantity)
+    if value is None:
+        return None
+    return round(value / KJ_PER_KCAL, 1) if str(quantity.get("units")).lower() == "kj" else value
+
+
 def _celsius(quantity: Any) -> float | None:
     value = _qty(quantity)
     if value is None:
@@ -158,7 +169,7 @@ def parse(workout: dict[str, Any]) -> dict[str, Any]:
         "distance_m": _metres(workout.get("distance")),
         "elevation_up_m": _metres(workout.get("elevationUp")),
         "elevation_down_m": _metres(workout.get("elevationDown")),
-        "energy_kcal": _qty(workout.get("activeEnergyBurned")),
+        "energy_kcal": _kcal(workout.get("activeEnergyBurned")),
         "avg_hr": _qty(workout.get("avgHeartRate")),
         "max_hr": _qty(workout.get("maxHeartRate")),
         "temperature_c": _celsius(workout.get("temperature")),
@@ -210,6 +221,18 @@ def drop_copies(store: Store) -> int:
                 kept = row
         conn.executemany("DELETE FROM run WHERE id = ?", [(i,) for i in drop])
     return len(drop)
+
+
+def fix_kilojoules(store: Store) -> int:
+    """Converts energy kept in kJ as if it were kcal (before 2026-11-16) to kcal: any run whose
+    energy per km is too high to be kcal. Runs without a distance are left alone. Returns how
+    many were converted; a second call finds none."""
+    ensure_tables(store)
+    with store.connect() as conn:
+        found = conn.execute(
+            "UPDATE run SET energy_kcal = round(energy_kcal / ?, 1) WHERE distance_m > 0 "
+            "AND energy_kcal / (distance_m / 1000) > ?", (KJ_PER_KCAL, MOST_KCAL_PER_KM))
+        return found.rowcount
 
 
 def receive(store: Store, body: dict[str, Any], now: datetime | None = None) -> dict[str, int]:

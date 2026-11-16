@@ -129,6 +129,9 @@ async def lifespan(app: FastAPI):
     # Renamed runs that came in twice before the hub knew about them (2026-11-16).
     if dropped := runs.drop_copies(app.state.store):
         log.info("runs: dropped %d second workouts of renamed runs", dropped)
+    # Energy that came in as kJ was kept as kcal before 2026-11-16.
+    if converted := runs.fix_kilojoules(app.state.store):
+        log.info("runs: converted the energy of %d runs from kJ to kcal", converted)
     # A favourite can wake the living room Apple TV and open Spotify on it.
     music.wake = apple_tv.wake_spotify
     if news_store.seed(app.state.store, app.state.config):

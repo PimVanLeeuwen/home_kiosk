@@ -207,3 +207,26 @@ def test_copies_kept_before_are_dropped_once(store):
     assert runs.drop_copies(store) == 1
     assert [r["id"] for r in runs.since(store, "2000-01-01T00:00:00+00:00")] == ["w1"]
     assert runs.drop_copies(store) == 0
+
+
+# Health exports energy in the phone's unit: kJ on this phone (2026-11-16).
+def test_energy_in_kilojoules_is_kept_in_kcal():
+    kj = runs.parse(workout(activeEnergyBurned={"qty": 3040.4, "units": "kJ"}))
+    assert kj["energy_kcal"] == pytest.approx(726.7, abs=0.1)
+    assert runs.parse(workout())["energy_kcal"] == 402.5  # kcal stays
+
+
+def test_energy_kept_in_kilojoules_before_is_converted_once(store):
+    runs.receive(store, {"data": {"workouts": [
+        workout(),  # 402.5 kcal over 5.2 km: right
+        workout("w2", start=stamp(START + timedelta(days=1)),
+                end=stamp(START + timedelta(days=1, seconds=1716))),
+        workout("w3", start=stamp(START + timedelta(days=2)),
+                end=stamp(START + timedelta(days=2, seconds=1716)), distance=None)]}})
+    with store.connect() as conn:  # as kept before: kJ in the kcal column
+        conn.execute("UPDATE run SET energy_kcal = 1716.9 WHERE id IN ('w2', 'w3')")
+
+    assert runs.fix_kilojoules(store) == 1
+    assert runs.fix_kilojoules(store) == 0
+    energy = {r["id"]: r["energy_kcal"] for r in runs.since(store, "2000-01-01T00:00:00+00:00")}
+    assert energy == {"w1": 402.5, "w2": pytest.approx(410.3, abs=0.1), "w3": 1716.9}
