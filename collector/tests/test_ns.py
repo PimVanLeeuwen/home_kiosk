@@ -277,3 +277,45 @@ def test_a_failing_ns_raises_so_the_last_answer_goes_stale(store):
 def test_switched_off_without_a_key():
     assert ns.settings({"train": {"api_key": "", "from": "LEDN", "to": "RTD"}})["enabled"] is False
     assert ns.settings(CFG)["enabled"] is True
+
+
+# --- train days (Settings, Train) -------------------------------------------------
+
+
+def test_every_weekday_is_a_train_day_until_set(store):
+    assert ns.train_days(store) == [0, 1, 2, 3, 4]
+
+
+def test_a_day_off_is_like_a_weekend(store):
+    ns.put_train_days(store, [0, 2])  # Monday and Wednesday
+    api = NS()
+
+    tuesday = run(store, local(2026, 10, 13, 6, 30), api)
+    monday_evening = run(store, local(2026, 10, 12, 20, 30), api)  # before Tuesday
+    assert api.calls == []
+    assert tuesday["mode"] == "idle" and monday_evening["mode"] == "idle"
+
+    tuesday_evening = run(store, local(2026, 10, 13, 20, 30), api)  # before Wednesday
+    wednesday = run(store, local(2026, 10, 14, 6, 30), api)
+    assert (tuesday_evening["mode"], tuesday_evening["date"]) == ("evening", "2026-10-14")
+    assert wednesday["mode"] == "morning"
+
+
+def test_a_weekend_day_can_be_a_train_day(store):
+    ns.put_train_days(store, [5])  # Saturday only
+    api = NS()
+
+    friday_evening = run(store, local(2026, 10, 16, 20, 30), api)
+    saturday = run(store, local(2026, 10, 17, 6, 30), api)
+    sunday_evening = run(store, local(2026, 10, 18, 20, 30), api)  # before Monday
+
+    assert (friday_evening["mode"], friday_evening["date"]) == ("evening", "2026-10-17")
+    assert saturday["mode"] == "morning"
+    assert sunday_evening["mode"] == "idle"
+
+
+def test_no_train_days_means_no_train(store):
+    ns.put_train_days(store, [])
+    api = NS()
+    assert run(store, local(2026, 10, 14, 6, 30), api)["mode"] == "idle"
+    assert api.calls == []

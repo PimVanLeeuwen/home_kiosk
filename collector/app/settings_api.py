@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from . import desk_boards, desk_keys
 from .models import Service
 from .security import same_origin_json
-from .sources import agenda, widgets
+from .sources import agenda, ns, widgets
 from .store import Store
 
 router = APIRouter(prefix="/api/settings")
@@ -231,6 +231,23 @@ def show_calendar(calendar_id: str, body: CalendarShown,
         raise HTTPException(404, "No such calendar.")
     agenda.set_shown(store, calendar_id, body.shown)
     return agenda.calendar_list(store)
+
+
+class TrainDays(BaseModel):
+    """The days the owner takes the train, Monday = 0 to Sunday = 6."""
+    days: Annotated[list[Annotated[int, Field(ge=0, le=6, strict=True)]], Field(max_length=7)]
+
+
+@router.get("/train")
+def train_days(request: Request) -> TrainDays:
+    """Which days the train is watched (Home card, Now panel, briefing, alerts); a day off is
+    like a weekend. Every weekday until set."""
+    return TrainDays(days=ns.train_days(_store(request)))
+
+
+@router.put("/train", dependencies=write)
+def put_train_days(body: TrainDays, request: Request) -> TrainDays:
+    return TrainDays(days=ns.put_train_days(_store(request), body.days))
 
 
 class BoardPanel(BaseModel):

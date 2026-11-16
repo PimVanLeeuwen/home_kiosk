@@ -132,6 +132,23 @@ test('assigns a desk panel board in Settings', async ({ page }) => {
   expect(assigned).toEqual({ panel: 'now' })
 })
 
+test('picks the train days in Settings', async ({ page }) => {
+  let saved: unknown
+  await page.route('**/api/settings/train', (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { days: [0, 1, 2, 3, 4] } })
+    saved = route.request().postDataJSON()
+    return route.fulfill({ json: { days: [0, 1, 3, 4] } })
+  })
+
+  await page.goto('/settings/train')
+  const days = page.getByRole('group', { name: 'Train days' })
+  await expect(days.getByRole('button', { name: 'Sat' })).toHaveAttribute('aria-pressed', 'false')
+  await days.getByRole('button', { name: 'Wed' }).click()
+
+  await expect(days.getByRole('button', { name: 'Wed' })).toHaveAttribute('aria-pressed', 'false')
+  expect(saved).toEqual({ days: [0, 1, 3, 4] })
+})
+
 test('moves between Settings sections, and old anchors still land on theirs', async ({ page }) => {
   await page.route('**/api/containers', (route) => route.fulfill({ status: 503, json: {} }))
   await page.route('**/api/settings/services', (route) => route.fulfill({ json: CATALOG }))

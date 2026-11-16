@@ -1,7 +1,9 @@
 """Runs from Apple Health (plan.md M28): the phone's Health Auto Export app posts workouts to
 the hub (its REST automation, JSON version 2, routes and workout metrics on), with the key
 in `running.key` (NAS-only `RUNS_KEY`) as a bearer token. Only runs are kept, one row each
-by Health's id, so a run sent again replaces itself.
+by Health's id, so a run sent again replaces itself. A run renamed in another app comes back
+from Health as a second workout (a new id, the same start and distance, no route): the hub
+keeps one of the two, the one with a route.
 
 Kept on the NAS only: the route (latitude, longitude, altitude, seconds from the start,
 speed) and the heart rate by the minute. Routes start at home: they are never logged, never
@@ -12,7 +14,7 @@ from __future__ import annotations
 
 import json
 import math
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from ..store import Store
@@ -39,6 +41,9 @@ CREATE TABLE IF NOT EXISTS run (
 )
 """
 
+# Two workouts starting this close together, this close in distance, are one run.
+SAME_START_S = 60
+SAME_DISTANCE = 0.01
 TO_METRES = {"m": 1.0, "km": 1000.0, "ft": 0.3048, "mi": 1609.344, "yd": 0.9144}
 # Best efforts: the fastest stretch of this length inside any run, worked out from its route.
 BESTS = {"5k": 5000.0, "10k": 10000.0, "half": 21097.5}
@@ -163,8 +168,53 @@ def parse(workout: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _same_run(a: Any, b: Any) -> bool:
+    """Whether two runs ({start, distance_m}) are one: a renamed run's second workout."""
+    apart = abs((datetime.fromisoformat(a["start"])
+                 - datetime.fromisoformat(b["start"])).total_seconds())
+    if apart > SAME_START_S:
+        return False
+    if a["distance_m"] and b["distance_m"]:
+        return abs(a["distance_m"] - b["distance_m"]) <= SAME_DISTANCE * max(a["distance_m"],
+                                                                              b["distance_m"])
+    return True
+
+
+def _twin(conn: Any, run: dict[str, Any]) -> Any:
+    """The run already kept under another id that `run` is a second workout of, or None."""
+    start = datetime.fromisoformat(run["start"])
+    rows = conn.execute(
+        "SELECT id, start, distance_m, route != '[]' AS has_route FROM run "
+        "WHERE id != ? AND start BETWEEN ? AND ?",
+        (run["id"], (start - timedelta(seconds=SAME_START_S)).isoformat(),
+         (start + timedelta(seconds=SAME_START_S)).isoformat())).fetchall()
+    return next((r for r in rows if _same_run(r, run)), None)
+
+
+def drop_copies(store: Store) -> int:
+    """Removes second workouts of one run kept before the hub knew about them, keeping the
+    one with a route (else the first). Returns how many were removed."""
+    ensure_tables(store)
+    with store.connect() as conn:
+        rows = conn.execute("SELECT id, start, distance_m, route != '[]' AS has_route "
+                            "FROM run ORDER BY start, received_at").fetchall()
+        drop, kept = [], None
+        for row in rows:
+            if kept is not None and _same_run(kept, row):
+                if row["has_route"] and not kept["has_route"]:
+                    drop.append(kept["id"])
+                    kept = row
+                else:
+                    drop.append(row["id"])
+            else:
+                kept = row
+        conn.executemany("DELETE FROM run WHERE id = ?", [(i,) for i in drop])
+    return len(drop)
+
+
 def receive(store: Store, body: dict[str, Any], now: datetime | None = None) -> dict[str, int]:
-    """Keeps the runs in an export; anything else in it is left alone. Counts only."""
+    """Keeps the runs in an export; anything else in it is left alone, and so is a second
+    workout of a run already kept (counted as skipped). Counts only."""
     ensure_tables(store)
     workouts = ((body or {}).get("data") or {}).get("workouts") or []
     received_at = (now or datetime.now(UTC)).isoformat()
@@ -179,6 +229,12 @@ def receive(store: Store, body: dict[str, Any], now: datetime | None = None) -> 
             except (KeyError, TypeError, ValueError):
                 failed += 1
                 continue
+            twin = _twin(conn, run)
+            if twin is not None:
+                if twin["has_route"] or not run["route"]:
+                    skipped += 1
+                    continue
+                conn.execute("DELETE FROM run WHERE id = ?", (twin["id"],))
             bests = [best_effort(run["route"], metres) for metres in BESTS.values()]
             conn.execute(
                 "INSERT OR REPLACE INTO run (id, start, end, name, indoor, duration_s, distance_m, "

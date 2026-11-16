@@ -242,6 +242,7 @@ describe('SettingsPage sections', () => {
       'Services',
       'News feeds',
       'Calendars',
+      'Train',
       'Music',
       'Lights',
       'Running',

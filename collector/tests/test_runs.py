@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app import main
+from app import main, running
 from app.sources import runs
 
 KEY = "test-runs-key"
@@ -58,7 +59,10 @@ def post(client, body, key=KEY):
 
 def test_only_runs_are_kept_once_each_with_metric_units(client, store):
     body = {"data": {"metrics": [], "workouts": [
-        workout(), workout("w2", "Indoor Run", isIndoor=True, route=[]),
+        workout(),
+        workout("w2", "Indoor Run", isIndoor=True, route=[],  # in the evening
+                start=stamp(START + timedelta(hours=8)),
+                end=stamp(START + timedelta(hours=8, seconds=1716))),
         {"id": "y1", "name": "Yoga", "start": stamp(START), "end": stamp(START), "duration": 60},
         {"id": "bad", "name": "Outdoor Run"},  # no start: unreadable, left out
     ]}}
@@ -160,3 +164,46 @@ def test_the_drawn_pace_rides_over_gps_jitter():
     # One stretch alone swings from 1:40 to 8:20 a km; drawn, nearly all read the true 5:00.
     near = [p for p in paces if 285 <= p <= 315]
     assert len(near) >= 0.95 * len(paces) and max(paces) - min(paces) <= 80
+
+
+# A renamed run: the app it was renamed in writes it to Health again as a new workout, with a
+# new id, the same start and distance, a whole-second duration and no route (seen 2026-11-16).
+def renamed_copy(wid="copy1", **over):
+    return workout(wid, duration=1716.0, route=[], heartRateData=[], **over)
+
+
+def test_a_renamed_run_counts_once(client, store):
+    post(client, {"data": {"workouts": [workout()]}})
+    assert post(client, {"data": {"workouts": [renamed_copy()]}}).json() == {
+        "kept": 0, "skipped": 1, "failed": 0}
+    assert [r["id"] for r in client.get("/api/runs").json()["runs"]] == ["w1"]
+    view = running.overview(store, ZoneInfo("Europe/Amsterdam"), START + timedelta(hours=2))
+    assert view["totals"]["week_m"] == 5200
+    assert sum(d["done_m"] for d in view["week"]) == 5200
+    assert view["totals"]["runs_this_year"] == 1
+
+
+def test_the_run_with_a_route_replaces_a_copy_that_came_first(store):
+    runs.receive(store, {"data": {"workouts": [renamed_copy()]}})
+    runs.receive(store, {"data": {"workouts": [workout()]}})
+    listed = runs.since(store, "2000-01-01T00:00:00+00:00")
+    assert [r["id"] for r in listed] == ["w1"]
+    assert runs.one(store, "w1")["route"]
+
+
+def test_two_runs_on_one_day_are_both_kept(store):
+    later = START + timedelta(hours=9)
+    runs.receive(store, {"data": {"workouts": [
+        workout(), workout("w2", start=stamp(later), end=stamp(later + timedelta(seconds=1716)))]}})
+    assert len(runs.since(store, "2000-01-01T00:00:00+00:00")) == 2
+
+
+def test_copies_kept_before_are_dropped_once(store):
+    runs.receive(store, {"data": {"workouts": [workout()]}})
+    with store.connect() as conn:  # a copy kept before the hub knew about them
+        conn.execute("INSERT INTO run (id, start, end, name, indoor, duration_s, distance_m, "
+                     "route, heart, received_at, bests_checked) SELECT 'copy1', start, end, "
+                     "name, indoor, 1716.0, distance_m, '[]', '[]', received_at, 1 FROM run")
+    assert runs.drop_copies(store) == 1
+    assert [r["id"] for r in runs.since(store, "2000-01-01T00:00:00+00:00")] == ["w1"]
+    assert runs.drop_copies(store) == 0

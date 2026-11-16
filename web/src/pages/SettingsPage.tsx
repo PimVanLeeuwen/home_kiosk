@@ -11,6 +11,7 @@ import { MusicSettings } from '../components/settings/MusicSettings'
 import { RunningSettings } from '../components/settings/RunningSettings'
 import { ServiceCatalogEditor } from '../components/settings/ServiceCatalogEditor'
 import { SettingsNav, type SettingsNavItem } from '../components/settings/SettingsNav'
+import { TrainSettings } from '../components/settings/TrainSettings'
 import { SETTINGS_SECTIONS } from '../lib/settingsSections'
 
 interface Section extends SettingsNavItem {
@@ -21,6 +22,7 @@ const ELEMENTS: Record<string, ReactElement> = {
   services: <ServiceCatalogEditor />,
   feeds: <FeedEditor />,
   calendars: <CalendarsEditor />,
+  train: <TrainSettings />,
   music: <MusicSettings />,
   lights: <LightsPlanEditor />,
   running: <RunningSettings />,

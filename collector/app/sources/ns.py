@@ -1,9 +1,10 @@
 """The owner's weekday morning train, from NS's travel information API.
 
-Every weekday from the watch window's start until the train has left: the
+Every train day (Settings, Train; Monday to Friday until set) from the watch
+window's start until the train has left: the
 direct trip at the configured time (delay, track, cancellation, stops), the
 next direct train when it does not run, and disruptions on the stretch it
-travels. The evening before (20:00 and 22:00 by default) the same for
+travels. The evening before a train day (20:00 and 22:00 by default) the same for
 tomorrow's train, so a cancellation is known in time to set an earlier alarm.
 Three read-only calls with the key from the NS API portal (product Ns-App):
 `trips` for the train, `journey` once a day for every station it passes, and
@@ -19,6 +20,7 @@ from zoneinfo import ZoneInfo
 
 import httpx
 
+from ..alerts import core as settings_store
 from ..models import Train, TrainDisruption, TrainRun, TrainStop
 from ..store import Store
 
@@ -34,6 +36,19 @@ KINDS = {"DISRUPTION", "MAINTENANCE"}
 GIVE_UP = timedelta(hours=2)
 # The evening checks (for tomorrow's train) stop here, before quiet hours.
 EVENING_END = time(23, 0)
+# The days the owner takes the train, Monday = 0, as set in Settings, Train.
+DAYS_SETTING = "train_days"
+EVERY_WEEKDAY = [0, 1, 2, 3, 4]
+
+
+def train_days(store: Store) -> list[int]:
+    return settings_store.get_setting(store, DAYS_SETTING, EVERY_WEEKDAY)
+
+
+def put_train_days(store: Store, days: list[int]) -> list[int]:
+    days = sorted(set(days))
+    settings_store.put_setting(store, DAYS_SETTING, days)
+    return days
 
 
 def settings(cfg: dict[str, Any]) -> dict[str, Any]:
@@ -209,15 +224,16 @@ async def _get(client: httpx.AsyncClient, path: str, **params: str) -> Any:
     return resp.json()
 
 
-def _plan(s: dict[str, Any], local: datetime) -> tuple[str, Any]:
+def _plan(s: dict[str, Any], local: datetime, days: list[int]) -> tuple[str, Any]:
     """Which train to follow now: this morning's, tomorrow's (the evening
-    before), or none, with the date of that train."""
+    before), or none, with the date of that train. Only on train days."""
     today = local.date()
     morning_end = (datetime.combine(today, s["departure"]) + GIVE_UP).time()
-    if local.weekday() < 5 and s["watch_from"] <= local.time() < morning_end:
+    if local.weekday() in days and s["watch_from"] <= local.time() < morning_end:
         return "morning", today
     tomorrow = today + timedelta(days=1)
-    if tomorrow.weekday() < 5 and s["evening"] and s["evening"][0] <= local.time() < EVENING_END:
+    evening = bool(s["evening"]) and s["evening"][0] <= local.time() < EVENING_END
+    if tomorrow.weekday() in days and evening:
         return "evening", tomorrow
     return "idle", today
 
@@ -230,7 +246,7 @@ async def collect(cfg: dict[str, Any], store: Store, now: datetime | None = None
     s = settings(cfg)
     now = now or datetime.now(UTC)
     local = now.astimezone(s["timezone"])
-    mode, day = _plan(s, local)
+    mode, day = _plan(s, local, train_days(store))
     departure = datetime.combine(day, s["departure"], s["timezone"])
     previous = store.get_cache(CACHE_KEY)
     if previous and previous.get("date") != day.isoformat():

@@ -218,3 +218,20 @@ def test_containers_endpoint_serves_the_cached_list(client, store):
                                                    "health": None}]})
 
     assert client.get("/api/containers").json()["containers"][0]["name"] == "sonarr"
+
+
+def test_train_days_default_to_every_weekday_and_save_in_order(client):
+    assert client.get("/api/settings/train").json() == {"days": [0, 1, 2, 3, 4]}
+
+    saved = client.put("/api/settings/train", json={"days": [4, 0, 0, 6]})
+
+    assert saved.status_code == 200 and saved.json() == {"days": [0, 4, 6]}
+    assert client.get("/api/settings/train").json() == {"days": [0, 4, 6]}
+
+
+def test_train_days_are_monday_0_to_sunday_6_and_need_same_origin(client):
+    assert client.put("/api/settings/train", json={"days": [7]}).status_code == 422
+    assert client.put("/api/settings/train", json={"days": ["mon"]}).status_code == 422
+    other = TestClient(main.app, headers={"origin": "http://evil.example"})
+    assert other.put("/api/settings/train", json={"days": [0]}).status_code == 403
+    assert client.get("/api/settings/train").json() == {"days": [0, 1, 2, 3, 4]}

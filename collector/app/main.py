@@ -78,6 +78,7 @@ from .sources import (
     photo,
     pipelines,
     readeck,
+    runs,
     spotify,
     tailscale,
     ups,
@@ -125,6 +126,9 @@ async def lifespan(app: FastAPI):
     ai.ensure_tables(app.state.store)
     spotify.ensure_tables(app.state.store)
     recipes_store.ensure_tables(app.state.store)
+    # Renamed runs that came in twice before the hub knew about them (2026-11-16).
+    if dropped := runs.drop_copies(app.state.store):
+        log.info("runs: dropped %d second workouts of renamed runs", dropped)
     # A favourite can wake the living room Apple TV and open Spotify on it.
     music.wake = apple_tv.wake_spotify
     if news_store.seed(app.state.store, app.state.config):
