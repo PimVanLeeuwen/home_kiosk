@@ -221,9 +221,10 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
         refresh("radar", radar.CACHE_KEY, lambda: radar.collect(cfg, store),
                 seconds=RADAR_INTERVAL_SECONDS)
     if photo.settings(cfg)["enabled"]:
-        # The photo of the day (plan.md M27, E): each morning, and at start-up.
+        # The photo of the day (plan.md M27, E): each morning, and at start-up (the picture
+        # is kept in memory only). The startup run in main.py only covers interval jobs.
         refresh("photo", photo.CACHE_KEY, lambda: photo.collect(cfg, store), "cron",
-                hour=6, minute=5, next_run_time=None)
+                hour=6, minute=5, next_run_time=datetime.now(UTC))
     if my_sites.settings(cfg, store)["enabled"]:
         refresh("sites", my_sites.CACHE_KEY, lambda: my_sites.collect(cfg, store),
                 seconds=SITES_INTERVAL_SECONDS)

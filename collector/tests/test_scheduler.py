@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import UTC, datetime, timedelta
 
 from apscheduler.triggers.interval import IntervalTrigger
 from pydantic import BaseModel
@@ -107,3 +108,13 @@ def test_the_scheduler_keeps_the_configured_time_zone(store):
     assert str(scheduler.build(mirror_cfg(False), store).timezone) == "Europe/Amsterdam"
     assert str(scheduler.build({"nas": {"docker_socket": "/nope"}}, store).timezone) == \
         "Europe/Amsterdam"
+
+
+def test_the_photo_of_the_day_is_read_at_startup_and_each_morning(store, monkeypatch):
+    # The picture is kept in memory only, so a restart needs a read straight away.
+    monkeypatch.setattr(scheduler.photo, "settings", lambda cfg: {"enabled": True})
+    job = next(job for job in started_jobs(mirror_cfg(False), store) if job.id == "photo")
+
+    assert "hour='6'" in str(job.trigger) and "minute='5'" in str(job.trigger)
+    assert job.next_run_time is not None
+    assert job.next_run_time - datetime.now(UTC) < timedelta(minutes=1)
