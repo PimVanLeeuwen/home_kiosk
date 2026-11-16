@@ -841,12 +841,13 @@ static void set_time(const cJSON *time)
     }
 }
 
-static void apply(const char *body)
+/* False when the answer could not be read: a new firmware is kept only once it reads one. */
+static bool apply(const char *body)
 {
     cJSON *root = cJSON_Parse(body);
     if (root == NULL) {
         ESP_LOGW(TAG, "unreadable answer");
-        return;
+        return false;
     }
     const cJSON *time = cJSON_GetObjectItem(root, "time");
     set_time(time);
@@ -1137,6 +1138,7 @@ static void apply(const char *body)
     COMMIT(train_state, train);
     COMMIT(board_state, board);
     xSemaphoreGive(lock);
+    return true;
 }
 
 static void desk_task(void *arg)
@@ -1145,6 +1147,12 @@ static void desk_task(void *arg)
     snprintf(url, sizeof url, "%s/api/desk/board/%s?firmware=%s&room=%d", CONFIG_PANEL_HUB_URL, desk_mac(),
              esp_app_get_description()->version, BODY_MAX);
     char *body = heap_caps_malloc(BODY_MAX, MALLOC_CAP_SPIRAM); /* internal RAM is scarce */
+    if (body == NULL) {
+        /* Without the hub's answers the board stays on its start-up screen, and a firmware
+         * on trial is rolled back, as it never reads one. */
+        ESP_LOGE(TAG, "no room for the hub's answer (%d bytes of PSRAM)", BODY_MAX);
+        vTaskDelete(NULL);
+    }
     for (;;) {
         if (net_state().connected && !update_busy()) {
             esp_http_client_config_t config = {.url = url, .timeout_ms = 5000};
@@ -1174,8 +1182,9 @@ static void desk_task(void *arg)
             }
             net_note_hub(status);
             if (status == 200) {
-                apply(body);
-                update_hub_answered();
+                if (apply(body)) {
+                    update_hub_answered();
+                }
             } else {
                 ESP_LOGW(TAG, "hub answered %d", status);
             }

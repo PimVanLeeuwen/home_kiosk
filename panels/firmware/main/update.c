@@ -4,9 +4,9 @@
  * it into its other app slot between 04:00 and 05:00 (local time, from the
  * hub), so it never restarts while someone looks at it, and restarts into it.
  *
- * The bootloader keeps the old slot until the new firmware has reached the hub
- * once (update_hub_answered); one that does not within 5 minutes is rolled
- * back. Every board follows the hub's firmware, bench builds too: "Update now"
+ * The bootloader keeps the old slot until the new firmware has read one of the
+ * hub's answers (update_hub_answered); one that does not within 5 minutes is
+ * rolled back. Every board follows the hub's firmware, bench builds too: "Update now"
  * in the hub (an "update" in the board's answer) or "update" on the serial
  * console installs it at once. CI versions the firmware with git's
  * hash of panels/firmware, so a push that leaves it alone changes nothing. The image is checked by ESP-IDF (its chip, revision
@@ -54,7 +54,7 @@ void update_hub_answered(void)
     if (on_trial) {
         on_trial = false;
         esp_ota_mark_app_valid_cancel_rollback();
-        ESP_LOGI(TAG, "firmware %s reached the hub: kept", esp_app_get_description()->version);
+        ESP_LOGI(TAG, "firmware %s read the hub's answer: kept", esp_app_get_description()->version);
     }
 }
 
