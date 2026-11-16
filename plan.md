@@ -2148,6 +2148,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   source; CI now labels both images with `org.opencontainers.image.revision`, so images
   built before that show none) and `panel_state` (each board, and the screens the hub would
   send it now by kind, with the answer's size against the board's room).
+- 2026-11-16: the developer tools move to the server behind the write token only (security
+  audit): logs and raw payloads say more than the house's tools, and the hub has no login.
 
 **M35. Ask the hub** (added 2026-11-12)
 - Why: ask the house a question in words, on the laptop or the phone, without the Claude app.

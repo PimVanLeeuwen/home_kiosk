@@ -259,7 +259,7 @@ def test_tools_are_read_only_and_answer_from_the_cache(store):
 
     tools, result, missing = asyncio.run(ask())
 
-    assert sorted(t.name for t in tools) == sorted(ALL_TOOLS + DEV_TOOLS)
+    assert sorted(t.name for t in tools) == sorted(ALL_TOOLS)
     assert all(t.annotations.read_only_hint for t in tools)
     assert result.structured_content["train"]["name"] == "IC 3522"
     assert missing.structured_content["available"] is False
@@ -314,7 +314,7 @@ def tool_names(resp) -> set[str]:
     return {t["name"] for t in resp.json()["result"]["tools"]}
 
 
-def test_the_write_tools_only_show_with_the_write_token(store):
+def test_the_write_and_developer_tools_only_show_with_the_token(store):
     with TestClient(http_app(store)) as client:
         plain = tool_names(rpc(client, "tools/list", {}))
         with_token = tool_names(rpc(client, "tools/list", {},
@@ -322,7 +322,8 @@ def test_the_write_tools_only_show_with_the_write_token(store):
 
     writes = {"lights_room", "lights_change", "music_control", "music_volume",
               "music_play_favourite", "add_reminder", "tick_reminder", "send_test_message"}
-    assert plain == set(ALL_TOOLS + DEV_TOOLS)
+    # The developer tools read logs and raw payloads: only with the token too.
+    assert plain == set(ALL_TOOLS)
     assert with_token == set(ALL_TOOLS + DEV_TOOLS) | writes
 
 

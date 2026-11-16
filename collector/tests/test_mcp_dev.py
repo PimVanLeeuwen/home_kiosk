@@ -16,7 +16,7 @@ from app import desk_boards, logbuffer, mcp_dev, mcp_server, scheduler
 
 def call(store, name: str, args: dict | None = None, sched=None):
     server = mcp_server.build(lambda: store, lambda: {"timezone": "Europe/Amsterdam"},
-                              sched=lambda: sched)
+                              writes=True, sched=lambda: sched)
 
     async def ask():
         async with Client(server) as client:

@@ -41,9 +41,6 @@ RESULT_CHARS = 16000  # a tool's answer, as Claude sees it
 # checking alerts from Claude Code, not for the chat.
 PROPOSED = ("lights_room", "lights_change", "music_control", "music_volume",
             "music_play_favourite", "add_reminder", "tick_reminder")
-# The developer tools are for Claude Code; the chat keeps to the house.
-LEFT_OUT = {"source_sample", "job_status", "hub_logs", "container_logs", "deployed_version",
-            "panel_state"}
 
 SYSTEM = (
     "You are the Home hub of one household in the Netherlands, answering its owner on the "
@@ -209,8 +206,8 @@ async def answer(cfg: dict[str, Any], store: Store, question: Question, read: MC
     proposals: list[Proposal] = []
 
     async with Client(read) as reader, Client(write) as writer:
-        tools = [_schema(t) for t in (await reader.list_tools()).tools
-                 if t.name not in LEFT_OUT]
+        # The reader has only the house's tools; the developer tools sit behind the token.
+        tools = [_schema(t) for t in (await reader.list_tools()).tools]
         tools += [_schema(t) for t in (await writer.list_tools()).tools if t.name in PROPOSED]
         text = ""
         for _ in range(MAX_ROUNDS):

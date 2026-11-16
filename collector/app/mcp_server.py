@@ -5,8 +5,9 @@ Whatever a tool returns goes into a prompt at Anthropic, so each tool returns th
 answers: the payload trimmed, never more than `/api` serves.
 
 No login for reading, like the rest of the hub (the LAN and Tailscale are the boundary).
-The tools that change something (mcp_writes.py) are on a second server, reached only with
-the write token. A browser has no business here, so any request with an Origin header is
+The tools that change something (mcp_writes.py) and the developer tools (mcp_dev.py, which
+read container logs and raw payloads) are on a second server, reached only with the write
+token. A browser has no business here, so any request with an Origin header is
 refused: that keeps another website, or a DNS rebinding trick, from asking on the owner's
 behalf.
 """
@@ -82,9 +83,9 @@ def build(store: Callable[[], Store], config: Callable[[], dict[str, Any]],
           writes: bool = False,
           sched: Callable[[], BaseScheduler | None] = lambda: None) -> MCPServer:
     """The server; `store` and `config` are asked on each call, so tests and the app can swap
-    them. What each tool returns is in mcp_house.py; the developer tools are in mcp_dev.py
-    (`sched`: the collector's scheduler); with `writes`, the tools that change the house
-    (mcp_writes.py) as well."""
+    them. What each tool returns is in mcp_house.py. With `writes` (the server behind the
+    token), also the developer tools (mcp_dev.py; `sched`: the collector's scheduler) and the
+    tools that change the house (mcp_writes.py)."""
     server = MCPServer("home-hub", instructions=INSTRUCTIONS)
     tool = server.tool(annotations=READ_ONLY)
 
@@ -230,8 +231,8 @@ def build(store: Callable[[], Store], config: Callable[[], dict[str, Any]],
             raise ToolError("Spotify could not be reached.") from None
         return house.music(answer)
 
-    mcp_dev.register(server, store, config, sched)
     if writes:
+        mcp_dev.register(server, store, config, sched)
         mcp_writes.register(server, store, config, today_or)
     return server
 

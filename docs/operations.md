@@ -150,9 +150,7 @@ the dictated question), then *Get dictionary value* `text`. A change it proposes
 The hub answers MCP at `/mcp` (plan.md M33): read-only tools over what it already knows (the
 train, calendar, reminders, weather and forecast, air, laundry, NAS, Docker, backups, media,
 services, websites, outside services and alerts), each trimmed to what answers a question. The
-calendar reads iCloud on the spot for any range other than today and tomorrow. Developer
-tools come along (plan.md M34): a source's cached payload, the jobs, the hub's log, any
-container's log (redacted), the deployed commit and the panels' state. Add it once on
+calendar reads iCloud on the spot for any range other than today and tomorrow. Add it once on
 the Mac, in the user-level config so the address stays out of this repo:
 
 ```bash
@@ -162,7 +160,10 @@ claude mcp add --transport http --scope user home-hub https://<nas>.<tailnet>.ts
 It works on the LAN address too (`http://<nas LAN IP>:8083/mcp`). There is no login for
 reading, like the rest of the hub; a request with an Origin header (any browser) gets a 403.
 
-**Write tools** (lights, music, reminders, a test message) come only with the write token:
+**Write tools** (lights, music, reminders, a test message) and the **developer tools** (plan.md
+M34: a source's cached payload, the jobs, the hub's log, any container's log (redacted), the
+deployed commit and the panels' state) come only with the write token, since logs and raw
+payloads say more than the house's own tools:
 
 1. Put a long random `MCP_WRITE_TOKEN` in the NAS's `.env` (`openssl rand -hex 32`), and the
    `mcp:` block from `config.yaml` in the NAS's config. Recreate the collector.

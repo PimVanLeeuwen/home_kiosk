@@ -199,7 +199,7 @@ def _scheduler() -> Any:
     return getattr(app.state, "scheduler", None)
 
 
-house = mcp_server.build(lambda: app.state.store, lambda: app.state.config, sched=_scheduler)
+house = mcp_server.build(lambda: app.state.store, lambda: app.state.config)
 house_writes = mcp_server.build(lambda: app.state.store, lambda: app.state.config, writes=True,
                                 sched=_scheduler)
 # The Ask page (plan.md M35) calls the same tools in-process.
