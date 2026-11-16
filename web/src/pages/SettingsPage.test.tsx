@@ -244,7 +244,6 @@ describe('SettingsPage sections', () => {
       'Calendars',
       'Train',
       'Music',
-      'Lights',
       'Running',
       'Desk panels',
       'Messages',

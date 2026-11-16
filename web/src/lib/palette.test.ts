@@ -58,9 +58,9 @@ describe('palette matching beyond the label', () => {
     expect(found).toContain('Settings')
     expect(found).toContain('Desk panels')
     expect(found).not.toContain('Alerts')
-    // The Lights page does not match; its section in Settings does, by its group.
-    const lights = results.filter((r) => r.item.label === 'Lights').map((r) => r.item.id)
-    expect(lights).toEqual(['settings:lights'])
+    // The Music page does not match; its section in Settings does, by its group.
+    const music = results.filter((r) => r.item.label === 'Music').map((r) => r.item.id)
+    expect(music).toEqual(['settings:music'])
   })
 })
 

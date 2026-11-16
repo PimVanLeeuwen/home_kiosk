@@ -1,4 +1,4 @@
-import { CalendarDays, Footprints, LayoutGrid, Lightbulb, MessageSquareText, Music, Newspaper, PanelsTopLeft, Sparkles, TrainFront, type LucideIcon } from 'lucide-react'
+import { CalendarDays, Footprints, LayoutGrid, MessageSquareText, Music, Newspaper, PanelsTopLeft, Sparkles, TrainFront, type LucideIcon } from 'lucide-react'
 
 export interface SettingsSection {
   slug: string
@@ -13,7 +13,6 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { slug: 'calendars', label: 'Calendars', icon: CalendarDays },
   { slug: 'train', label: 'Train', icon: TrainFront },
   { slug: 'music', label: 'Music', icon: Music },
-  { slug: 'lights', label: 'Lights', icon: Lightbulb },
   { slug: 'running', label: 'Running', icon: Footprints },
   { slug: 'desk-panels', label: 'Desk panels', icon: PanelsTopLeft },
   { slug: 'messages', label: 'Messages', icon: MessageSquareText },

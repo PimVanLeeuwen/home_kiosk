@@ -1467,6 +1467,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   depth, each light dragged where it hangs (or moved with the arrow keys), and kitchen, table,
   sofa and TV outlines to show, drag and turn; kept as one setting (`/api/lights/plan`).
   Unplaced lights wait in a row along the top wall.
+  Removed 2026-11-16 (not used): the Lights page shows the group tiles only, and Settings has
+  no Lights section; `/api/lights/plan` is gone (the stored `lights_plan` setting is left unused).
 - Step 6, P done 2026-10-26: before an article is picked, the reading pane on News and Saved
   (wide screens) says what to read next: the top story (on News the first top story not read
   yet), the newest saved article halfway through (90% read counts as done; else the newest not

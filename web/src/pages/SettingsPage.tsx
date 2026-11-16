@@ -5,7 +5,6 @@ import { AiSettings } from '../components/settings/AiSettings'
 import { CalendarsEditor } from '../components/settings/CalendarsEditor'
 import { DeskBoardsEditor } from '../components/settings/DeskBoardsEditor'
 import { FeedEditor } from '../components/settings/FeedEditor'
-import { LightsPlanEditor } from '../components/settings/LightsPlanEditor'
 import { MessageTemplates } from '../components/settings/MessageTemplates'
 import { MusicSettings } from '../components/settings/MusicSettings'
 import { RunningSettings } from '../components/settings/RunningSettings'
@@ -24,7 +23,6 @@ const ELEMENTS: Record<string, ReactElement> = {
   calendars: <CalendarsEditor />,
   train: <TrainSettings />,
   music: <MusicSettings />,
-  lights: <LightsPlanEditor />,
   running: <RunningSettings />,
   'desk-panels': <DeskBoardsEditor />,
   messages: <MessageTemplates />,
