@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import io
 import json
+import threading
 from datetime import UTC, datetime, timedelta
 from email.header import decode_header
 
@@ -116,6 +117,19 @@ def test_without_a_picture_the_message_goes_as_json(alerts):
 
     assert fake.requests[0].method == "POST"
     assert json.loads(fake.requests[0].content)["topic"] == "hub-rules"
+
+
+def test_the_picture_is_painted_off_the_event_loop(alerts):
+    # Pillow takes a while; on the event loop it would hold up every request meanwhile.
+    loop_thread = []
+
+    def paint():
+        loop_thread.append(threading.current_thread() is threading.main_thread())
+        return card()
+
+    send(alerts, FakeNtfy(), paint)
+
+    assert loop_thread == [False]
 
 
 def test_a_picture_that_fails_leaves_the_message_as_it_was(alerts, caplog):

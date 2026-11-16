@@ -12,6 +12,7 @@ message (the bot, the explainers) stay on Telegram.
 
 from __future__ import annotations
 
+import asyncio
 import html
 import json
 import logging
@@ -302,7 +303,8 @@ async def notify(
                       title=title, body=body, chat=chat_key, status="sending", html=html_text,
                       incident=incident)
     quiet = in_quiet_hours(local(now, cfg), quiet_hours(store))
-    jpeg = _picture(store, entry.id, now, picture) if picture else None
+    # Off the event loop: painting takes a while and would hold up every request.
+    jpeg = await asyncio.to_thread(_picture, store, entry.id, now, picture) if picture else None
 
     ntfy_failed = None
     if reply_to is None and (ntfy is not None or ntfy_on(store, cfg)):
