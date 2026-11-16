@@ -20,7 +20,7 @@ from apscheduler.events import (
 )
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from . import briefing, pinned, reminders
+from . import briefing, config, pinned, reminders
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
 from .news import headlines, stories
@@ -146,569 +146,168 @@ async def _briefing(cfg: dict[str, Any], store: Store) -> None:
         log.exception("morning digest failed")
 
 
+def _at(text: str) -> dict[str, int]:
+    """A daily "HH:MM" as a cron trigger's hour and minute."""
+    hour, minute = (int(part) for part in text.split(":"))
+    return {"hour": hour, "minute": minute}
+
+
 def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
-    scheduler = AsyncIOScheduler(timezone=cfg.get("timezone", "UTC"))
+    # APScheduler's defaults: one run of a job at a time, missed runs folded into one.
+    scheduler = AsyncIOScheduler(timezone=config.zone(cfg).key)
     scheduler.add_listener(_ran, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR | EVENT_JOB_MISSED)
 
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=NAS_INTERVAL_SECONDS,
-        args=[store, "nas", lambda: nas.collect(cfg, store)],
-        id="nas",
-        next_run_time=None,  # first run is triggered explicitly at startup
-        max_instances=1,
-        coalesce=True,
-    )
+    def refresh(job_id: str, key: str, collect: Callable[[], Awaitable[Any]],
+                trigger: str = "interval", **when: Any) -> None:
+        """A job that caches what `collect` returns under `key` (see `_run`).
 
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=CONTAINERS_INTERVAL_SECONDS,
-        args=[store, "containers", lambda: docker.collect(cfg)],
-        id="containers",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
+        An interval refresh is added paused: main.py runs them all once at startup, which
+        starts their interval.
+        """
+        if trigger == "interval":
+            when.setdefault("next_run_time", None)
+        scheduler.add_job(_run, trigger, args=[store, key, collect], id=job_id, **when)
 
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=DOCKER_INTERVAL_SECONDS,
-        args=[store, "docker", lambda: container_stats.collect(cfg, store)],
-        id="docker",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
-
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=WIDGETS_INTERVAL_SECONDS,
-        args=[store, "widgets", lambda: widgets.collect(cfg, store)],
-        id="widgets",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
-
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=REPOS_INTERVAL_SECONDS,
-        args=[store, "repos", lambda: github.collect(cfg, store)],
-        id="repos",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
-
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=BACKUPS_INTERVAL_SECONDS,
-        args=[store, "backups", lambda: backups.collect(cfg)],
-        id="backups",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
-
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=BACKUPS_INTERVAL_SECONDS,
-        args=[store, dumps.CACHE_KEY, lambda: dumps.collect(cfg, store)],
-        id="dumps",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
-
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=HOSTS_INTERVAL_SECONDS,
-        args=[store, "hosts", lambda: tailscale.collect(cfg)],
-        id="hosts",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
-
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=TAILNET_INTERVAL_SECONDS,
-        args=[store, tailscale.TAILNET_CACHE_KEY, lambda: tailscale.collect_tailnet(cfg)],
-        id="tailnet",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
+    refresh("nas", "nas", lambda: nas.collect(cfg, store), seconds=NAS_INTERVAL_SECONDS)
+    refresh("containers", "containers", lambda: docker.collect(cfg),
+            seconds=CONTAINERS_INTERVAL_SECONDS)
+    refresh("docker", "docker", lambda: container_stats.collect(cfg, store),
+            seconds=DOCKER_INTERVAL_SECONDS)
+    refresh("widgets", "widgets", lambda: widgets.collect(cfg, store),
+            seconds=WIDGETS_INTERVAL_SECONDS)
+    refresh("repos", "repos", lambda: github.collect(cfg, store), seconds=REPOS_INTERVAL_SECONDS)
+    refresh("backups", "backups", lambda: backups.collect(cfg), seconds=BACKUPS_INTERVAL_SECONDS)
+    refresh("dumps", dumps.CACHE_KEY, lambda: dumps.collect(cfg, store),
+            seconds=BACKUPS_INTERVAL_SECONDS)
+    refresh("hosts", "hosts", lambda: tailscale.collect(cfg), seconds=HOSTS_INTERVAL_SECONDS)
+    refresh("tailnet", tailscale.TAILNET_CACHE_KEY, lambda: tailscale.collect_tailnet(cfg),
+            seconds=TAILNET_INTERVAL_SECONDS)
 
     if hue.settings(cfg)["enabled"]:
         # A full read; the event stream (hue.listen) keeps it live in between.
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=LIGHTS_INTERVAL_SECONDS,
-            args=[store, hue.CACHE_KEY, lambda: hue.collect(cfg)],
-            id="lights",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("lights", hue.CACHE_KEY, lambda: hue.collect(cfg),
+                seconds=LIGHTS_INTERVAL_SECONDS)
     if apple.settings(cfg)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=APPLE_INTERVAL_SECONDS,
-            args=[store, apple.CACHE_KEY, lambda: apple.collect(cfg, store)],
-            id="apple",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("apple", apple.CACHE_KEY, lambda: apple.collect(cfg, store),
+                seconds=APPLE_INTERVAL_SECONDS)
     if pipelines.settings(cfg)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=PIPELINES_INTERVAL_SECONDS,
-            args=[store, pipelines.CACHE_KEY, lambda: pipelines.collect(cfg, store)],
-            id="pipelines",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("pipelines", pipelines.CACHE_KEY, lambda: pipelines.collect(cfg, store),
+                seconds=PIPELINES_INTERVAL_SECONDS)
     if adguard.settings(cfg)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=DNS_INTERVAL_SECONDS,
-            args=[store, adguard.CACHE_KEY, lambda: adguard.collect(cfg, store)],
-            id="dns",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("dns", adguard.CACHE_KEY, lambda: adguard.collect(cfg, store),
+                seconds=DNS_INTERVAL_SECONDS)
     if air.settings(cfg)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=AIR_INTERVAL_SECONDS,
-            args=[store, air.CACHE_KEY, lambda: air.collect(cfg, store)],
-            id="air",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("air", air.CACHE_KEY, lambda: air.collect(cfg, store),
+                seconds=AIR_INTERVAL_SECONDS)
     if laundry.settings(cfg)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=LAUNDRY_INTERVAL_SECONDS,
-            args=[store, laundry.CACHE_KEY, lambda: laundry.collect(cfg, store)],
-            id="laundry",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("laundry", laundry.CACHE_KEY, lambda: laundry.collect(cfg, store),
+                seconds=LAUNDRY_INTERVAL_SECONDS)
     if agenda.settings(cfg)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=CALENDAR_INTERVAL_SECONDS,
-            args=[store, agenda.CACHE_KEY, lambda: agenda.collect(cfg, store)],
-            id="calendar",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
-    if agenda.settings(cfg)["enabled"]:
+        refresh("calendar", agenda.CACHE_KEY, lambda: agenda.collect(cfg, store),
+                seconds=CALENDAR_INTERVAL_SECONDS)
         # The countdowns (plan.md M27, K): a year ahead, so hourly is plenty.
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=COUNTDOWN_INTERVAL_SECONDS,
-            args=[store, countdown.CACHE_KEY, lambda: countdown.collect(cfg, store)],
-            id="countdown",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("countdown", countdown.CACHE_KEY, lambda: countdown.collect(cfg, store),
+                seconds=COUNTDOWN_INTERVAL_SECONDS)
     if birthdays.settings(cfg)["enabled"]:
         # The contacts' birthdays (plan.md M32), read every 6 hours.
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=BIRTHDAYS_INTERVAL_SECONDS,
-            args=[store, birthdays.CACHE_KEY, lambda: birthdays.collect(cfg, store)],
-            id="birthdays",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("birthdays", birthdays.CACHE_KEY, lambda: birthdays.collect(cfg, store),
+                seconds=BIRTHDAYS_INTERVAL_SECONDS)
     if runna.settings(cfg)["enabled"]:
         # Runna's plan (plan.md M28): hourly is plenty for a training plan.
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=COUNTDOWN_INTERVAL_SECONDS,
-            args=[store, runna.CACHE_KEY, lambda: runna.collect(cfg, store)],
-            id="runna",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("runna", runna.CACHE_KEY, lambda: runna.collect(cfg, store),
+                seconds=COUNTDOWN_INTERVAL_SECONDS)
     if weather.settings(cfg)["enabled"]:
         # The rain radar (plan.md M27, I): only fetched while rain is expected.
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=RADAR_INTERVAL_SECONDS,
-            args=[store, radar.CACHE_KEY, lambda: radar.collect(cfg, store)],
-            id="radar",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("radar", radar.CACHE_KEY, lambda: radar.collect(cfg, store),
+                seconds=RADAR_INTERVAL_SECONDS)
     if photo.settings(cfg)["enabled"]:
         # The photo of the day (plan.md M27, E): each morning, and at start-up.
-        scheduler.add_job(
-            _run,
-            "cron",
-            hour=6,
-            minute=5,
-            args=[store, photo.CACHE_KEY, lambda: photo.collect(cfg, store)],
-            id="photo",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("photo", photo.CACHE_KEY, lambda: photo.collect(cfg, store), "cron",
+                hour=6, minute=5, next_run_time=None)
     if my_sites.settings(cfg, store)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=SITES_INTERVAL_SECONDS,
-            args=[store, my_sites.CACHE_KEY, lambda: my_sites.collect(cfg, store)],
-            id="sites",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("sites", my_sites.CACHE_KEY, lambda: my_sites.collect(cfg, store),
+                seconds=SITES_INTERVAL_SECONDS)
     if media_overview.settings(cfg, store)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=OVERVIEW_INTERVAL_SECONDS,
-            args=[store, media_overview.CACHE_KEY, lambda: media_overview.collect(cfg, store)],
-            id="media-overview",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("media-overview", media_overview.CACHE_KEY,
+                lambda: media_overview.collect(cfg, store), seconds=OVERVIEW_INTERVAL_SECONDS)
     if media_status.settings(cfg, store)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=MEDIA_INTERVAL_SECONDS,
-            args=[store, media_status.CACHE_KEY, lambda: media_status.collect(cfg, store)],
-            id="media",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("media", media_status.CACHE_KEY, lambda: media_status.collect(cfg, store),
+                seconds=MEDIA_INTERVAL_SECONDS)
     if ns.settings(cfg)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=TRAIN_INTERVAL_SECONDS,
-            args=[store, ns.CACHE_KEY, lambda: ns.collect(cfg, store)],
-            id="train",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
+        refresh("train", ns.CACHE_KEY, lambda: ns.collect(cfg, store),
+                seconds=TRAIN_INTERVAL_SECONDS)
 
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=NEWS_INTERVAL_SECONDS,
-        args=[store, "news", lambda: feeds.collect(cfg, store)],
-        id="news",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
-
+    refresh("news", "news", lambda: feeds.collect(cfg, store), seconds=NEWS_INTERVAL_SECONDS)
     # From the articles the news job stored; a picture is fetched once per story.
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=HEADLINES_INTERVAL_SECONDS,
-        args=[store, headlines.CACHE_KEY, lambda: headlines.collect(store, cfg=cfg)],
-        id="headlines",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
-
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=PORTFOLIO_INTERVAL_SECONDS,
-        args=[
-            store, "portfolio", lambda: ghostfolio.collect(cfg, cfg.get("currency", "EUR"), store)
-        ],
-        id="portfolio",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
-
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=PORTFOLIO_INTERVAL_SECONDS,
-        args=[store, "indices", lambda: indices.collect(cfg)],
-        id="indices",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
-
+    refresh("headlines", headlines.CACHE_KEY, lambda: headlines.collect(store, cfg=cfg),
+            seconds=HEADLINES_INTERVAL_SECONDS)
+    refresh("portfolio", "portfolio",
+            lambda: ghostfolio.collect(cfg, cfg.get("currency", "EUR"), store),
+            seconds=PORTFOLIO_INTERVAL_SECONDS)
+    refresh("indices", "indices", lambda: indices.collect(cfg), seconds=PORTFOLIO_INTERVAL_SECONDS)
     # A week of prices per holding, for the panel's Stock screen and the week card.
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=PORTFOLIO_INTERVAL_SECONDS,
-        args=[store, weeks.CACHE_KEY, lambda: weeks.collect(store)],
-        id="stock-weeks",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
+    refresh("stock-weeks", weeks.CACHE_KEY, lambda: weeks.collect(store),
+            seconds=PORTFOLIO_INTERVAL_SECONDS)
+    refresh("spotlight", "spotlight", lambda: spotlight.collect(cfg, store),
+            seconds=PORTFOLIO_INTERVAL_SECONDS)
 
-    scheduler.add_job(
-        _run,
-        "interval",
-        seconds=PORTFOLIO_INTERVAL_SECONDS,
-        args=[store, "spotlight", lambda: spotlight.collect(cfg, store)],
-        id="spotlight",
-        next_run_time=None,
-        max_instances=1,
-        coalesce=True,
-    )
     # The nightly git mirror of the GitHub repos, before the 03:00 Hetzner
     # backup. Right after startup too when a night was missed (hub down).
     mirror = github_mirror.settings(cfg)
     if mirror["enabled"]:
-        hour, minute = (int(part) for part in mirror["at"].split(":"))
         now = datetime.now(UTC)
         first = (
             {"next_run_time": now + MIRROR_STARTUP_DELAY}
             if github_mirror.overdue(cfg, store, now) else {}
         )
-        scheduler.add_job(
-            _run,
-            "cron",
-            hour=hour,
-            minute=minute,
-            args=[store, github_mirror.CACHE_KEY, lambda: github_mirror.collect(cfg, store)],
-            id="github-mirror",
-            max_instances=1,
-            coalesce=True,
-            misfire_grace_time=3600,
-            **first,
-        )
+        refresh("github-mirror", github_mirror.CACHE_KEY,
+                lambda: github_mirror.collect(cfg, store), "cron",
+                **_at(mirror["at"]), misfire_grace_time=3600, **first)
 
     if weather.settings(cfg)["enabled"]:
         # The day view's hourly forecast (Open-Meteo), for the same place.
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=FORECAST_INTERVAL_SECONDS,
-            args=[store, forecast.CACHE_KEY, lambda: forecast.collect(cfg)],
-            id="forecast",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=WEATHER_INTERVAL_SECONDS,
-            args=[store, weather.CACHE_KEY, lambda: weather.collect(cfg)],
-            id="weather",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("forecast", forecast.CACHE_KEY, lambda: forecast.collect(cfg),
+                seconds=FORECAST_INTERVAL_SECONDS)
+        refresh("weather", weather.CACHE_KEY, lambda: weather.collect(cfg),
+                seconds=WEATHER_INTERVAL_SECONDS)
     if outside_services.settings(cfg):
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=OUTSIDE_INTERVAL_SECONDS,
-            args=[store, outside_services.CACHE_KEY,
-                  lambda: outside_services.collect(cfg, store)],
-            id="outside-services",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("outside-services", outside_services.CACHE_KEY,
+                lambda: outside_services.collect(cfg, store), seconds=OUTSIDE_INTERVAL_SECONDS)
     # What of the house is public, from Cloudflare's view.
     if exposure.settings(cfg)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=EXPOSURE_INTERVAL_SECONDS,
-            args=[store, exposure.CACHE_KEY, lambda: exposure.collect(cfg, store)],
-            id="exposure",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-
+        refresh("exposure", exposure.CACHE_KEY, lambda: exposure.collect(cfg, store),
+                seconds=EXPOSURE_INTERVAL_SECONDS)
     # The UPS over NUT, and one report per finished power cut.
     if ups.settings(cfg)["enabled"]:
-        scheduler.add_job(
-            _run,
-            "interval",
-            seconds=UPS_INTERVAL_SECONDS,
-            args=[store, ups.CACHE_KEY, lambda: ups.collect(cfg, store)],
-            id="ups",
-            next_run_time=None,
-            max_instances=1,
-            coalesce=True,
-        )
-        scheduler.add_job(
-            ups.report_outages,
-            "interval",
-            minutes=5,
-            args=[store, cfg],
-            id="ups-report",
-            max_instances=1,
-            coalesce=True,
-        )
+        refresh("ups", ups.CACHE_KEY, lambda: ups.collect(cfg, store),
+                seconds=UPS_INTERVAL_SECONDS)
+        scheduler.add_job(ups.report_outages, "interval", minutes=5, args=[store, cfg],
+                          id="ups-report")
 
     # The morning digest (M26): weekdays, written by Claude when switched on.
-    hour, minute = (int(part) for part in briefing.AT.split(":"))
-    scheduler.add_job(
-        _briefing,
-        "cron",
-        day_of_week="mon-fri",
-        hour=hour,
-        minute=minute,
-        args=[cfg, store],
-        id="briefing",
-        max_instances=1,
-        coalesce=True,
-        misfire_grace_time=1800,
-    )
-
+    scheduler.add_job(_briefing, "cron", day_of_week="mon-fri", **_at(briefing.AT),
+                      args=[cfg, store], id="briefing", misfire_grace_time=1800)
     # Headlines, one story per event (M26): grouped hourly, read by the headlines job.
-    scheduler.add_job(
-        _stories,
-        "cron",
-        hour=stories.HOURS,
-        minute=3,
-        args=[cfg, store],
-        id="stories",
-        max_instances=1,
-        coalesce=True,
-        misfire_grace_time=1800,
-    )
-
+    scheduler.add_job(_stories, "cron", hour=stories.HOURS, minute=3, args=[cfg, store],
+                      id="stories", misfire_grace_time=1800)
     # Pinned images: a warning before an update that breaks (M26, with update notes).
-    hour, minute = (int(part) for part in pinned.CHECK_AT.split(":"))
-    scheduler.add_job(
-        _run,
-        "cron",
-        hour=hour,
-        minute=minute,
-        args=[store, pinned.CACHE_KEY, lambda: pinned.collect(cfg, store)],
-        id="pinned",
-        max_instances=1,
-        coalesce=True,
-        misfire_grace_time=3600,
-    )
-
+    refresh("pinned", pinned.CACHE_KEY, lambda: pinned.collect(cfg, store), "cron",
+            **_at(pinned.CHECK_AT), misfire_grace_time=3600)
     # A consistent copy of the hub's own database for the 03:00 Hetzner backup.
-    hour, minute = (int(part) for part in db_copy.settings(cfg)["at"].split(":"))
-    scheduler.add_job(
-        _run,
-        "cron",
-        hour=hour,
-        minute=minute,
-        args=[store, db_copy.CACHE_KEY, lambda: db_copy.collect(store)],
-        id="db-copy",
-        max_instances=1,
-        coalesce=True,
-        misfire_grace_time=600,
-    )
+    refresh("db-copy", db_copy.CACHE_KEY, lambda: db_copy.collect(store), "cron",
+            **_at(db_copy.settings(cfg)["at"]), misfire_grace_time=600)
 
     # The hub's own alert rules.
-    scheduler.add_job(
-        alert_rules.check,
-        "interval",
-        seconds=60,
-        args=[cfg, store],
-        id="alert-rules",
-        max_instances=1,
-        coalesce=True,
-    )
-
+    scheduler.add_job(alert_rules.check, "interval", seconds=60, args=[cfg, store],
+                      id="alert-rules")
     # The reminders' ntfy messages (plan.md M32): each goes out in the minute it is due.
-    scheduler.add_job(
-        reminders.send_due,
-        "interval",
-        seconds=60,
-        args=[cfg, store],
-        id="reminders",
-        max_instances=1,
-        coalesce=True,
-    )
-
+    scheduler.add_job(reminders.send_due, "interval", seconds=60, args=[cfg, store],
+                      id="reminders")
     # The portfolio report to the Portfolio chat (stock-bot's job before).
     if portfolio_report.settings(cfg)["enabled"]:
-        scheduler.add_job(
-            portfolio_report.send,
-            portfolio_report.trigger(cfg),
-            args=[store, cfg],
-            id="portfolio-report",
-            max_instances=1,
-            coalesce=True,
-            misfire_grace_time=600,
-        )
-
+        scheduler.add_job(portfolio_report.send, portfolio_report.trigger(cfg), args=[store, cfg],
+                          id="portfolio-report", misfire_grace_time=600)
     # After quiet hours, the held messages go out as one digest per chat.
-    scheduler.add_job(
-        alerts_core.send_digests,
-        "interval",
-        minutes=5,
-        args=[store, cfg],
-        id="alert-digest",
-        max_instances=1,
-        coalesce=True,
-    )
+    scheduler.add_job(alerts_core.send_digests, "interval", minutes=5, args=[store, cfg],
+                      id="alert-digest")
     return scheduler

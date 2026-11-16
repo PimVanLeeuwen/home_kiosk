@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
+from apscheduler.triggers.interval import IntervalTrigger
 from pydantic import BaseModel
 
 from app import scheduler
@@ -70,3 +71,39 @@ def test_the_status_pages_are_read_only_when_services_are_listed(store):
 
     assert scheduler.build(listed, store).get_job("outside-services") is not None
     assert scheduler.build(base, store).get_job("outside-services") is None
+
+
+def started_jobs(cfg, store):
+    """The jobs as the running scheduler holds them, with its defaults applied."""
+    async def start():
+        sched = scheduler.build(cfg, store)
+        sched.start(paused=True)
+        try:
+            return sched.get_jobs()
+        finally:
+            sched.shutdown(wait=False)
+
+    return asyncio.run(start())
+
+
+def test_every_job_runs_one_at_a_time_and_folds_missed_runs(store):
+    jobs = started_jobs(mirror_cfg(True), store)
+
+    assert len(jobs) > 10
+    assert all(job.max_instances == 1 and job.coalesce for job in jobs)
+
+
+def test_interval_refreshes_wait_for_the_startup_run(store):
+    # main.py runs every interval job once at startup; until then the refreshes are paused.
+    jobs = started_jobs(mirror_cfg(True), store)
+    running = {job.id for job in jobs
+               if isinstance(job.trigger, IntervalTrigger) and job.next_run_time}
+
+    assert running == {"alert-rules", "reminders", "alert-digest"}
+    assert next(job for job in jobs if job.id == "nas").args[1] == "nas"
+
+
+def test_the_scheduler_keeps_the_configured_time_zone(store):
+    assert str(scheduler.build(mirror_cfg(False), store).timezone) == "Europe/Amsterdam"
+    assert str(scheduler.build({"nas": {"docker_socket": "/nope"}}, store).timezone) == \
+        "Europe/Amsterdam"
