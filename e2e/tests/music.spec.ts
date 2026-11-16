@@ -88,3 +88,16 @@ test('Music plays one of the playlists and albums played lately', async ({ page 
   await lately.getByRole('button', { name: 'Play Late Night' }).click()
   await expect(lately.getByRole('button', { name: 'Late Night: playing' })).toBeVisible()
 })
+
+test('a long title stays inside the phone screen', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'the phone layout')
+  const long = 'An Extremely Long Track Title That Goes On And On (Extended Hardstyle Remix)'
+  await page.route('**/api/music', (route) => route.fulfill({ json: {
+    ...music(false), last: { kind: 'track', title: long, subtitle: long, duration_ms: 200000, cover: null, colour: null },
+  } }))
+  await page.goto('/music')
+  await expect(page.getByText(long).first()).toBeVisible()
+
+  const main = page.getByRole('main')
+  expect(await main.evaluate((m) => m.scrollWidth - m.clientWidth)).toBeLessThanOrEqual(0)
+})

@@ -13,10 +13,11 @@
   --color-raised: #1b1c21; /* controls and chips inside cards */
   --color-line: #24262c;
   --color-line-soft: #1c1e23;
+  --color-line-strong: #4a4d55; /* the edge of a field, an off switch, a tick to give */
 
   --color-fg: #ecedef;
   --color-muted: #9a9ea7;
-  --color-faint: #7e828b;
+  --color-faint: #868a93; /* 4.5:1 on cards, controls and glass tiles */
 
   /* Filled accent (buttons, toggles) carries white text at 4.8:1. */
   --color-accent: #6d5ce8;
@@ -319,6 +320,7 @@ body {
     --color-raised: #f2f2f4;
     --color-line: #c9cbd1;
     --color-line-soft: #dcdde1;
+    --color-line-strong: #9a9da5;
     --color-fg: #15161a;
     --color-muted: #45484f;
     --color-faint: #5f626a;

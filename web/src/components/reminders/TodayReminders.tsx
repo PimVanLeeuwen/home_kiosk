@@ -26,7 +26,7 @@ export function TodayReminders({ due, onToggle, busy }: Props) {
               onClick={() => onToggle(r)}
               className={cn(
                 'grid size-6 shrink-0 place-items-center rounded-full border',
-                r.done ? 'border-up/60 bg-up/20 text-up' : 'border-line text-transparent hover:border-accent-line hover:text-faint',
+                r.done ? 'border-up/60 bg-up/20 text-up' : 'border-line-strong text-transparent hover:border-accent-line hover:text-faint',
               )}
             >
               <Check aria-hidden="true" className="size-3.5" />

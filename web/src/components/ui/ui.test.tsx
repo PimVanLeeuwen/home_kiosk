@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { ArcGauge } from './ArcGauge'
 import { BarStrip } from './BarStrip'
+import { markLeft } from './markLeft'
 import { FlowLine } from './FlowLine'
 import { GlassTile } from './GlassTile'
 import { GlowArea } from './GlowArea'
@@ -76,6 +77,15 @@ describe('BarStrip', () => {
     render(<BarStrip values={[70, 94, 71]} label="n" marks={{ 2: 'down' }} markLabel="failed" markAt={2} end="last night" />)
     expect(screen.getByText('last night: failed')).toHaveAttribute('data-tone', 'down')
     expect(screen.queryByText('failed')).not.toBeInTheDocument()
+  })
+
+  it('keeps the label clear of the end words', () => {
+    // A 300 px row, "30 nights" 60 px wide on the left, "last night" 60 px on the right.
+    expect(markLeft(150, 80, 60, 60, 300)).toBe(150) // in the middle: right under its bar
+    expect(markLeft(15, 80, 60, 60, 300)).toBe(60 + 8 + 40) // near the start: just after it
+    expect(markLeft(290, 80, 60, 60, 300)).toBe(300 - 60 - 8 - 40) // near the end: just before it
+    expect(markLeft(15, 80, 0, 0, 300)).toBe(40) // no end words: only kept inside the row
+    expect(markLeft(150, 200, 60, 60, 300)).toBeNull() // no room at all: left out
   })
 
   it('renders nothing without values', () => {

@@ -73,7 +73,7 @@ export function MusicPage() {
           {music.paused_until != null && (
             <StaleNote banner>{pauseNote(music.paused_until)}; the controls wait until then.</StaleNote>
           )}
-          <div className="grid gap-3.5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-5">
+          <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-5">
             {music.playing ? (
               <NowPlaying
                 playing={music.playing}

@@ -43,3 +43,17 @@ test('Reminders adds one and ticks today\'s off; Home shows them', async ({ page
   await page.goto('/')
   await expect(page.getByRole('region', { name: 'Reminders' })).toContainText('Bins out')
 })
+
+test('a long reminder keeps its buttons on the phone screen', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'the phone layout')
+  const long = { ...BINS, title: 'Buy tickets for the high school reunion before they are sold out' }
+  await page.route('**/api/reminders', (route) => route.fulfill({ json: answer([long]) }))
+  await page.goto('/reminders')
+  await expect(page.getByText(long.title).first()).toBeVisible()
+
+  const width = page.viewportSize()!.width
+  for (const button of await page.getByRole('main').getByRole('button').all()) {
+    const box = await button.boundingBox()
+    if (box) expect(box.x + box.width, await button.getAttribute('aria-label') ?? '').toBeLessThanOrEqual(width)
+  }
+})

@@ -1,4 +1,5 @@
-import { useId } from 'react'
+import { useId, useLayoutEffect, useRef } from 'react'
+import { markLeft } from './markLeft'
 import { TONE_COLOR, type Tone } from './tones'
 
 interface Props {
@@ -24,6 +25,29 @@ const H = 46
 /** A row of bars, oldest left, with the newest lit: 30 nights of backups and the like. */
 export function BarStrip({ values, label, tone = 'up', marks = {}, start, end, markLabel, markAt, height = 56 }: Props) {
   const id = useId()
+  const row = useRef<HTMLDivElement>(null)
+  const startRef = useRef<HTMLSpanElement>(null)
+  const endRef = useRef<HTMLSpanElement>(null)
+  const markRef = useRef<HTMLSpanElement>(null)
+  // Measured after layout, and again when the strip changes width: a slow night near either
+  // end would otherwise sit on top of "30 nights" or "last night".
+  useLayoutEffect(() => {
+    const place = () => {
+      const mark = markRef.current
+      const box = row.current
+      if (!mark || !box || !values.length) return
+      const width = box.clientWidth
+      const at = markLeft(Number(mark.dataset.at) * width, mark.offsetWidth,
+        startRef.current?.offsetWidth ?? 0, endRef.current?.offsetWidth ?? 0, width)
+      mark.style.visibility = at === null ? 'hidden' : ''
+      if (at !== null) mark.style.left = `${at}px`
+    }
+    place()
+    if (typeof ResizeObserver === 'undefined' || !row.current) return
+    const observer = new ResizeObserver(place)
+    observer.observe(row.current)
+    return () => observer.disconnect()
+  })
   if (values.length === 0) return null
   const top = Math.max(...values) || 1
   const bw = W / values.length
@@ -77,18 +101,20 @@ export function BarStrip({ values, label, tone = 'up', marks = {}, start, end, m
       </svg>
       {/* Words in HTML rather than SVG text, so they keep their size however wide the strip runs. */}
       {(start || end || markLabel) && (
-        <div className="relative mt-1 flex h-4 justify-between text-label" aria-hidden="true">
-          <span style={labelStyle(undefined)}>{start}</span>
+        <div ref={row} className="relative mt-1 flex h-4 justify-between text-label" aria-hidden="true">
+          <span ref={startRef} style={labelStyle(undefined)}>{start}</span>
           {markLabel && labelled != null && marks[labelled] && !atEnd && (
             <span
+              ref={markRef}
               data-tone={marks[labelled]}
+              data-at={(labelled + 0.5) / values.length}
               className="absolute -translate-x-1/2 whitespace-nowrap"
               style={{ ...labelStyle(marks[labelled]), left: `${((labelled + 0.5) / values.length) * 100}%` }}
             >
               {markLabel}
             </span>
           )}
-          <span data-tone={atEnd ? marks[labelled] : undefined} style={labelStyle(atEnd ? marks[labelled] : undefined)}>
+          <span ref={endRef} data-tone={atEnd ? marks[labelled] : undefined} style={labelStyle(atEnd ? marks[labelled] : undefined)}>
             {atEnd ? `${end}: ${markLabel}` : end}
           </span>
         </div>

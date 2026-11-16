@@ -118,7 +118,7 @@ export function RemindersPage() {
             {data.reminders.length === 0 ? (
               <p className="text-muted">No reminders yet. Add the first one with the form.</p>
             ) : (
-              <ul className="grid divide-y divide-line-soft">
+              <ul className="grid grid-cols-1 divide-y divide-line-soft">
                 {data.reminders.map((r) => (
                   <li key={r.id} className={cn('flex items-center gap-3 py-2.5', !r.next && 'opacity-60')}>
                     <div className="w-20 shrink-0 text-caption">
