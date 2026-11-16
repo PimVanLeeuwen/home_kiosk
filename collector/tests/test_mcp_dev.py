@@ -4,9 +4,11 @@ import asyncio
 import json
 import logging
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import httpx
 import pytest
+import yaml
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from mcp.client import Client
 from mcp.server.mcpserver.exceptions import ToolError
@@ -174,3 +176,9 @@ def test_panel_state_lists_screen_kinds_without_content(store):
     assert [b["mac"] for b in boards] == ["e8:f6:0a:e4:42:b0"]
     assert boards[0]["firmware"] == "1.2.3" and boards[0]["panel"] is None
     assert "screens" not in boards[0]  # not assigned to a panel yet
+
+
+def test_without_a_configured_socket_it_reads_through_the_docker_proxy():
+    # The collector reaches Docker only through docker-proxy (2026-11-15): never the raw socket.
+    example = yaml.safe_load((Path(__file__).parents[1] / "config.yaml").read_text())
+    assert mcp_dev.DOCKER_SOCKET == example["nas"]["docker_socket"]

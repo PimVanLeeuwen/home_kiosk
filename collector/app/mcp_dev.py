@@ -42,6 +42,8 @@ MAX_LOG_LINES = 200
 LOG_CHARS = 20000
 REVISION = "org.opencontainers.image.revision"
 HUB_IMAGES = ("pimvanleeuwen/home-kiosk-collector", "pimvanleeuwen/home-kiosk-dashboard")
+# docker-proxy's filtered socket (docker-compose.yml), when the config names none.
+DOCKER_SOCKET = "/var/run/docker-proxy/docker.sock"
 
 
 def shape(value: Any) -> Any:
@@ -173,7 +175,7 @@ def register(server: MCPServer, store: Callable[[], Store],
     tool = server.tool(annotations=READ_ONLY)
 
     def socket() -> str:
-        return ((config().get("nas") or {}).get("docker_socket")) or "/var/run/docker.sock"
+        return ((config().get("nas") or {}).get("docker_socket")) or DOCKER_SOCKET
 
     @tool
     def source_sample(key: str | None = None) -> dict[str, Any]:
