@@ -17,12 +17,6 @@ from typing import Any
 from .models import Service
 
 SCHEMA = """
-CREATE TABLE IF NOT EXISTS portfolio_snapshot (
-    date        TEXT PRIMARY KEY,
-    total_value REAL NOT NULL,
-    currency    TEXT NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS nas_sample (
     ts       TEXT PRIMARY KEY,
     rx_bytes INTEGER,
@@ -164,26 +158,6 @@ class Store:
                 "SELECT payload_json FROM cache WHERE key = ?", (key,)
             ).fetchone()
         return json.loads(row["payload_json"]) if row else None
-
-    # --- portfolio_snapshot: daily rows for the 30-point chart ---------------
-
-    def put_snapshot(self, date: str, total_value: float, currency: str) -> None:
-        with self._connect() as conn:
-            conn.execute(
-                "INSERT INTO portfolio_snapshot (date, total_value, currency) VALUES (?, ?, ?) "
-                "ON CONFLICT(date) DO UPDATE SET total_value = excluded.total_value, "
-                "currency = excluded.currency",
-                (date, total_value, currency),
-            )
-
-    def recent_snapshots(self, limit: int = 30) -> list[sqlite3.Row]:
-        with self._connect() as conn:
-            rows = conn.execute(
-                "SELECT date, total_value, currency FROM portfolio_snapshot "
-                "ORDER BY date DESC LIMIT ?",
-                (limit,),
-            ).fetchall()
-        return list(reversed(rows))
 
     # --- nas_sample: 24h rolling window --------------------------------------
 

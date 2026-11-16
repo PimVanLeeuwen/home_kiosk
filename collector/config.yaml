@@ -28,11 +28,6 @@ portfolio:
     # numbers from Monday = 0, so stock-bot's "1-5" would mean Tuesday to Saturday.
     schedule: "30 8,18 * * mon-fri"
 
-prices:
-  provider: twelvedata
-  api_key: ${TWELVEDATA_API_KEY}
-  fallback: yfinance
-
 news:
   max_per_group: 3
   title_max_chars: 70

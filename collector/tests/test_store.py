@@ -14,22 +14,6 @@ def test_cache_round_trip_and_overwrite(store):
     assert store.get_cache("nas") == {"v": 2}
 
 
-def test_recent_snapshots_are_oldest_first_and_limited(store):
-    for day in range(1, 6):
-        store.put_snapshot(f"2026-09-0{day}", day * 100.0, "EUR")
-
-    rows = store.recent_snapshots(limit=3)
-
-    assert [r["date"] for r in rows] == ["2026-09-03", "2026-09-04", "2026-09-05"]
-
-
-def test_snapshot_same_day_overwrites(store):
-    store.put_snapshot("2026-09-01", 100.0, "EUR")
-    store.put_snapshot("2026-09-01", 150.0, "EUR")
-
-    assert [r["total_value"] for r in store.recent_snapshots()] == [150.0]
-
-
 def test_prune_drops_samples_older_than_retention(store):
     now = datetime.now(UTC)
     store.put_nas_sample(now - timedelta(hours=30), 1, 1, 1.0, 1.0, 40.0)

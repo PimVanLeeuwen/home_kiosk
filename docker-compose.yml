@@ -29,8 +29,8 @@ services:
     image: pimvanleeuwen/home-kiosk-collector:latest
     container_name: home-kiosk-collector
     restart: unless-stopped
-    # Secrets referenced as ${VAR} in config.yaml: READECK_TOKEN now, plus
-    # GHOSTFOLIO_TOKEN and TWELVEDATA_API_KEY for M3/M4. See .env.example.
+    # Secrets referenced as ${VAR} in config.yaml (READECK_TOKEN, GHOSTFOLIO_TOKEN, ...).
+    # See .env.example.
     env_file:
       - path: .env
         required: false
