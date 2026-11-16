@@ -423,9 +423,9 @@ static void parse_playing(const cJSON *screen, desk_playing_t *now)
     now->present = cJSON_IsTrue(cJSON_GetObjectItem(screen, "present"));
     now->stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
     const cJSON *cover = cJSON_GetObjectItem(screen, "cover");
-    now->has_cover = now->present && cJSON_IsString(cover);
+    bool has_cover = now->present && cJSON_IsString(cover);
     now->painted = cJSON_IsString(cJSON_GetObjectItem(screen, "background"));
-    pictures_want(PICTURE_PLAYING, now->has_cover ? cover->valuestring : "");
+    pictures_want(PICTURE_PLAYING, has_cover ? cover->valuestring : "");
     if (!now->present) {
         return;
     }
@@ -461,7 +461,6 @@ static void parse_music(const cJSON *screen, desk_music_t *music)
         if (!cJSON_IsString(cover)) {
             cover = cJSON_GetObjectItem(item, "thumb");
         }
-        music->favourites[i].has_cover = cJSON_IsString(cover);
         pictures_want(PICTURE_FAVOURITE + i, cJSON_IsString(cover) ? cover->valuestring : "");
     }
     for (int i = music->count; i < DESK_FAVOURITES; i++) {
@@ -477,7 +476,6 @@ static void parse_music(const cJSON *screen, desk_music_t *music)
         music->recent[i].colour = colour(cJSON_GetObjectItem(item, "colour"));
         music->recent[i].playing = cJSON_IsTrue(cJSON_GetObjectItem(item, "playing"));
         const cJSON *cover = cJSON_GetObjectItem(item, "wall");
-        music->recent[i].has_cover = cJSON_IsString(cover);
         pictures_want(PICTURE_RECENT + i, cJSON_IsString(cover) ? cover->valuestring : "");
     }
     for (int i = music->recent_count; i < DESK_RECENT; i++) {
@@ -485,12 +483,6 @@ static void parse_music(const cJSON *screen, desk_music_t *music)
     }
     copy_string(music->footer, sizeof music->footer, cJSON_GetObjectItem(screen, "footer"));
     copy_string(music->device, sizeof music->device, cJSON_GetObjectItem(screen, "device"));
-    copy_string(music->last_heading, sizeof music->last_heading, cJSON_GetObjectItem(screen, "last_heading"));
-    copy_string(music->last_title, sizeof music->last_title, cJSON_GetObjectItem(screen, "last_title"));
-    copy_string(music->last_subtitle, sizeof music->last_subtitle, cJSON_GetObjectItem(screen, "last_subtitle"));
-    /* The cover wall shows what played last in words only: its cover is not fetched. */
-    music->has_last_cover = false;
-    pictures_want(PICTURE_LAST, "");
 }
 
 static void parse_lights(const cJSON *screen, desk_lights_t *lights)
@@ -666,7 +658,6 @@ static void parse_headlines(const cJSON *screen, desk_headlines_t *news)
         copy_string(news->stories[i].source, sizeof news->stories[i].source, cJSON_GetObjectItem(item, "source"));
         copy_string(news->stories[i].age, sizeof news->stories[i].age, cJSON_GetObjectItem(item, "age"));
         const cJSON *picture = cJSON_GetObjectItem(item, "picture");
-        news->stories[i].has_picture = cJSON_IsString(picture);
         /* The lead's picture comes painted into the background when the hub paints one. */
         bool own = cJSON_IsString(picture) && !(i == 0 && news->painted);
         pictures_want(i, own ? picture->valuestring : "");
@@ -1063,18 +1054,12 @@ static bool apply(const char *body)
         next.listed = true;
         next.stale = cJSON_IsTrue(cJSON_GetObjectItem(screen, "stale"));
         next.wet = cJSON_IsTrue(cJSON_GetObjectItem(screen, "wet"));
-        copy_string(next.place, sizeof next.place, cJSON_GetObjectItem(screen, "place"));
         copy_string(next.date, sizeof next.date, cJSON_GetObjectItem(screen, "date"));
         copy_string(next.description, sizeof next.description, cJSON_GetObjectItem(screen, "description"));
         copy_string(next.rain_line, sizeof next.rain_line, cJSON_GetObjectItem(screen, "rain_line"));
         copy_string(next.sun, sizeof next.sun, cJSON_GetObjectItem(screen, "sun"));
         /* The hub's painted sky (plan.md M27), fetched only when it changes. */
         pictures_want(PICTURE_CLOCK_SKY, cJSON_IsString(background) ? background->valuestring : "");
-        const cJSON *sky = cJSON_GetObjectItem(screen, "sky");
-        const cJSON *sky_colour = cJSON_GetObjectItem(sky, "colour");
-        next.has_sky = cJSON_IsString(sky_colour);
-        next.sky_colour = next.has_sky ? (uint32_t)strtoul(sky_colour->valuestring, NULL, 16) : 0;
-        next.sky_opacity = (uint8_t)number(cJSON_GetObjectItem(sky, "opacity"), 90);
         const cJSON *horizon = cJSON_GetObjectItem(screen, "horizon");
         const cJSON *top = cJSON_GetObjectItem(horizon, "top");
         next.has_horizon = cJSON_IsString(top);

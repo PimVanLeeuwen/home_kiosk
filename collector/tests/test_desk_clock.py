@@ -44,23 +44,22 @@ def test_the_sun_shows_sunset_by_day_and_sunrise_otherwise():
     assert desk_clock.sun(local(22, 0), None, None) == ""
 
 
-def sky_at(hour: int, minute: int, kind) -> tuple[str, int]:
-    found = desk_clock.sky(local(hour, minute), SUNRISE, SUNSET, kind)
-    return found["colour"], found["opacity"]
+def top_at(hour: int, minute: int, sunrise=SUNRISE, sunset=SUNSET) -> str:
+    return desk_clock.horizon(local(hour, minute), sunrise, sunset, "clear")["top"]
 
 
-def test_the_sky_follows_the_light_and_the_weather():
-    assert sky_at(10, 1, "cloudy") == ("8d97ab", 80)
-    assert sky_at(10, 1, "rain") == ("4f74b0", 105)
-    assert sky_at(18, 30, "clear") == ("d8825a", 110)
-    assert sky_at(18, 30, "rain") == ("9a7f8a", 90)
-    assert sky_at(7, 50, "partly") == ("b46eaa", 100)
-    assert sky_at(23, 40, "partly") == ("463caa", 100)
+def test_the_light_turns_at_dawn_and_dusk():
+    skies = desk_clock.HORIZON_SKIES
+    assert top_at(10, 1) == skies["day"]["clear"][0]
+    assert top_at(18, 30) == skies["dusk"]["clear"][0]
+    assert top_at(7, 50) == skies["dawn"]["clear"][0]
+    assert top_at(23, 40) == skies["night"]["clear"][0]
 
 
-def test_without_sun_times_the_sky_goes_by_the_hour():
-    assert desk_clock.sky(local(23, 0), None, None, "clear")["colour"] == "463caa"
-    assert desk_clock.sky(local(12, 0), None, None, None) == {"colour": "7d98c4", "opacity": 95}
+def test_without_sun_times_the_light_goes_by_the_hour():
+    skies = desk_clock.HORIZON_SKIES
+    assert top_at(23, 0, None, None) == skies["night"]["clear"][0]
+    assert top_at(12, 0, None, None) == skies["day"]["clear"][0]
 
 
 def test_yesterdays_sun_times_still_place_today():
@@ -91,9 +90,9 @@ def test_the_clock_screen_from_the_hubs_weather(store):
     screen = desk_clock.clock_screen(store, ZONE, NOW)
 
     assert screen == {
-        "kind": "clock", "stale": False, "place": "De Bilt", "date": "Wed 21 Oct",
+        "kind": "clock", "stale": False, "date": "Wed 21 Oct",
         "temperature": 10, "description": "Overcast", "sun": "Sunset 18:41",
-        "sky": {"colour": "8d97ab", "opacity": 80}, "horizon": ANY, "rain": [0, 0, 0.3, 0],
+        "horizon": ANY, "rain": [0, 0, 0.3, 0],
         "rain_axis": ["Now", "11:01", "12:01"], "rain_line": "Rain from 10:11, about 5 min",
         "wet": True}
 

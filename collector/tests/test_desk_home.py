@@ -113,24 +113,20 @@ def test_now_playing_and_the_favourites_as_screens():
     favourites = desk_home.music_screen(MUSIC)
     assert [f["name"] for f in favourites["favourites"]][-1] == "Liked Songs - mine"
     assert favourites["favourites"][0]["cover"] == f"/api/desk/cover/{COVER}/tile"
-    assert favourites["last"] == "Now playing: Low Tide Static · Marlow Hayes · Tides"
     assert favourites["favourites"][0]["thumb"] == f"/api/desk/cover/{COVER}/thumb"
-    assert (favourites["last_heading"], favourites["last_title"], favourites["last_subtitle"]) == (
-        "Now playing", "Low Tide Static", "Marlow Hayes · Tides")
-    assert favourites["last_cover"] == f"/api/desk/cover/{COVER}/thumb"
+    # The panels draw what played last only in the footer; the separate parts are gone.
+    gone = {"last", "last_heading", "last_title", "last_subtitle", "last_cover"}
+    assert not gone & set(favourites)
 
 
 def test_nothing_playing_leaves_the_favourites_and_what_played_last():
     quiet = MUSIC | {"playing": None, "last": {"title": "Old Song", "subtitle": "Someone"}}
     assert desk_home.playing_screen(quiet, NOW)["present"] is False
-    assert desk_home.music_screen(quiet)["last"] == "Last played: Old Song · Someone"
+    footer = desk_home.music_screen(quiet)["footer"]
+    assert footer == "Last played: Old Song · tap a cover to play it"
     assert desk_home.music_screen(quiet)["device"] == "Apple TV Living Room"
-    last = desk_home.music_screen(quiet)
-    assert (last["last_heading"], last["last_title"], last["last_subtitle"]) == (
-        "Last played", "Old Song", "Someone")
-    assert last["last_cover"] is None
     never = desk_home.music_screen(MUSIC | {"playing": None})
-    assert (never["last"], never["last_heading"], never["last_title"]) == ("", "", "")
+    assert never["footer"] == "Tap a cover to play it"
     assert desk_home.music_screen(None)["present"] is False
     assert desk_home.music_screen(quiet | {"connected": False})["present"] is False
 

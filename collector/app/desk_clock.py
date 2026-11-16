@@ -47,17 +47,6 @@ WORDS: list[tuple[str, str, Sky]] = [
 
 TWILIGHT = timedelta(minutes=40)  # either side of sunrise and sunset
 
-# The backdrop's colour and strength (0 to 255): by the light outside, then by the weather.
-SKY_COLOURS: dict[str, dict[str, tuple[str, int]]] = {
-    "day": {"clear": ("5f97e0", 100), "partly": ("7d98c4", 95), "cloudy": ("8d97ab", 80),
-            "fog": ("a3a7b0", 75), "rain": ("4f74b0", 105), "thunder": ("5a4f9a", 110),
-            "snow": ("c8d4e8", 80)},
-    "dawn": {"clear": ("b46eaa", 110), "partly": ("b46eaa", 100), "other": ("8a7f9e", 90)},
-    "dusk": {"clear": ("d8825a", 110), "partly": ("d8825a", 100), "other": ("9a7f8a", 90)},
-    "night": {"clear": ("463caa", 120), "other": ("463caa", 100)},
-}
-
-
 def condition(description: str | None) -> tuple[str, Sky | None]:
     """Buienradar's Dutch description in English, and the kind of sky it is."""
     if not description:
@@ -96,14 +85,6 @@ def _phase(now: datetime, sunrise: datetime | None, sunset: datetime | None) -> 
     if abs(now - down) <= TWILIGHT:
         return "dusk"
     return "day" if rise < now < down else "night"
-
-
-def sky(now: datetime, sunrise: datetime | None, sunset: datetime | None,
-        kind: Sky | None) -> dict[str, Any]:
-    """The backdrop's colour (hex, no #) and opacity for the sky outside now."""
-    colours = SKY_COLOURS[_phase(now, sunrise, sunset)]
-    colour, opacity = colours.get(kind or "partly") or colours["other"]
-    return {"colour": colour, "opacity": opacity}
 
 
 def sun(now: datetime, sunrise: datetime | None, sunset: datetime | None) -> str:
@@ -208,19 +189,16 @@ def clock_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
     w = store.get_cache(weather.CACHE_KEY) or {}
     points = w.get("rain") or []
     temperature = w.get("temperature")
-    station = (w.get("station") or "").removeprefix("Meetstation ").strip()
     local = now.astimezone(zone)
     sunrise, sunset = _local(w.get("sunrise"), zone), _local(w.get("sunset"), zone)
     words, kind = condition(w.get("description"))
     return {
         "kind": "clock",
         "stale": bool(w.get("stale")) or not w,
-        "place": station or "Buienradar",
         "date": local.strftime("%a %-d %b"),
         "temperature": round(temperature) if temperature is not None else None,
         "description": words,
         "sun": sun(local, sunrise, sunset),
-        "sky": sky(local, sunrise, sunset, kind),
         "horizon": horizon(local, sunrise, sunset, kind),
         # One value per five minutes from now, as the bars along the bottom.
         "rain": [round(p["mm_per_hour"], 2) for p in points],

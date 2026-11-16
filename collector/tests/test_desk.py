@@ -39,9 +39,9 @@ def test_the_now_panel_gets_its_clock_and_the_hubs_time(store):
     assert train == {"kind": "train", "stale": False, "present": False}
     assert day["kind"] == "day"
     assert clock == {
-        "kind": "clock", "stale": False, "place": "De Bilt", "date": "Mon 19 Oct",
+        "kind": "clock", "stale": False, "date": "Mon 19 Oct",
         "temperature": 14, "description": "Overcast", "sun": "",
-        "sky": {"colour": "8a7f9e", "opacity": 90}, "horizon": ANY, "rain": [0, 0, 1.24, 2.8, 0],
+        "horizon": ANY, "rain": [0, 0, 1.24, 2.8, 0],
         "rain_axis": ["Now", "08:00", "09:00"], "rain_line": "Rain from 07:10, about 10 min",
         "wet": True, "background": ANY}
     assert clock["background"].startswith("/api/desk/background/")

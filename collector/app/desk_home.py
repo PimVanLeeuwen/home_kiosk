@@ -129,8 +129,6 @@ def music_screen(music: dict[str, Any] | None) -> dict[str, Any]:
         return {"kind": "music", "stale": False, "present": False}
     playing = music.get("playing") or {}
     last = playing or music.get("last") or {}
-    line = " · ".join(p for p in (last.get("title"), last.get("subtitle")) if p)
-    heading = "Now playing" if playing else "Last played"
     context = playing.get("context")
     if playing.get("title"):
         footer = f"{playing['title']} is playing · tap a cover to play it"
@@ -154,12 +152,6 @@ def music_screen(music: dict[str, Any] | None) -> dict[str, Any]:
         # The wash behind the wall: the colour of what plays, or played last.
         "colour": last.get("colour") or "#7c6cf2",
         "footer": latin1(footer),
-        # One line for the panels that still draw it; the list layout draws the parts.
-        "last": latin1(f"{heading}: {line}") if line else "",
-        "last_heading": heading if line else "",
-        "last_title": latin1(last.get("title") or ""),
-        "last_subtitle": latin1(last.get("subtitle") or ""),
-        "last_cover": _cover_path(last.get("cover"), "thumb") if line else None,
     }
 
 

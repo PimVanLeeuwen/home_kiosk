@@ -13,15 +13,11 @@ typedef struct {
     bool stale;            /* the hub's weather is old */
     uint32_t version;      /* changes with every new answer */
     int utc_offset;        /* seconds east of UTC, now */
-    char place[32];
     char date[24];
     bool has_temperature;
     int temperature;
     char description[48];
     char sun[24];          /* "Sunset 18:41", or "" */
-    bool has_sky;          /* the hub's colour for the sky outside */
-    uint32_t sky_colour;
-    uint8_t sky_opacity;
     int rain_count;
     float rain[DESK_RAIN_MAX];
     char rain_axis[3][8];  /* under the bars: "Now", +1 h, +2 h */
@@ -150,7 +146,6 @@ typedef struct {
         char title[160];
         char source[32];
         char age[12];         /* "12 min" */
-        bool has_picture;
         bool saved;           /* saved to Readeck from a panel */
     } stories[DESK_STORIES];
     bool painted;             /* the hub paints the lead's picture and its glass (plan.md M27) */
@@ -194,7 +189,6 @@ typedef struct {
     uint32_t version;
     char title[96];
     char subtitle[96];
-    bool has_cover;
     uint32_t colour;         /* the cover's main colour, for the light behind it */
     bool playing;            /* false: paused */
     int64_t progress_ms, duration_ms;
@@ -207,8 +201,8 @@ typedef struct {
 #define DESK_RECENT 4       /* the playlists and albums played lately, on the cover wall */
 #define PICTURE_PLAYING 3   /* picture slots: 0 to 2 the headlines, 3 the cover playing, */
 #define PICTURE_FAVOURITE 4 /* 4 to 7 the favourites, */
-#define PICTURE_LAST 8      /* 8 the cover of what played last, */
-/* 9 and 10 are free: they held the Media screen's posters (gone 2026-11-04, plan.md M32), */
+/* 8 to 10 are free: what played last (never drawn, gone 2026-11-16) and the Media screen's
+ * posters (gone 2026-11-04, plan.md M32), */
 #define PICTURE_CLOCK_SKY 11 /* 11 the Clock's painted background (plan.md M27), */
 #define PICTURE_RECENT 12   /* 12 to 15 the covers of what played lately */
 
@@ -223,22 +217,16 @@ typedef struct {
     struct {
         int position;
         char name[48];
-        bool has_cover;
         uint32_t colour;
         bool playing;        /* what plays comes from it */
     } favourites[DESK_FAVOURITES];
     int recent_count;
     struct {
         char name[48];
-        bool has_cover;
         uint32_t colour;
         bool playing;
     } recent[DESK_RECENT];
     char footer[128];        /* "Glass Harbour is playing · tap a cover to play it" */
-    char last_heading[16];   /* "Last played", "Now playing", or "" */
-    char last_title[96];
-    char last_subtitle[96];  /* artist and album */
-    bool has_last_cover;
 } desk_music_t;
 
 /* The Now panel's Briefing screen: the morning digest's line and four facts, until 09:00
