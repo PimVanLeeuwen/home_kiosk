@@ -23,6 +23,7 @@ import httpx
 import icalendar
 from pydantic import BaseModel
 
+from .. import config
 from ..models import Envelope
 from ..panel_text import latin1
 from ..store import Store
@@ -64,7 +65,7 @@ def settings(cfg: dict[str, Any]) -> dict[str, Any]:
     if url.startswith("webcal://"):
         url = "https://" + url[len("webcal://"):]
     return {"enabled": url.startswith("https://"), "url": url,
-            "timezone": ZoneInfo(cfg.get("timezone", "Europe/Amsterdam"))}
+            "timezone": config.zone(cfg)}
 
 
 def metres(text: str) -> float | None:

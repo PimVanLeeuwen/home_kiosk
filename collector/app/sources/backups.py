@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from .. import config
 from ..models import BackupHistory, BackupRun, BackupVolume, StorageBox, StorageUse, VolumeSummary
 from .nas import _projection_months
 
@@ -139,5 +140,5 @@ async def collect(cfg: dict[str, Any]) -> BackupHistory:
     return read(
         cfg["nas"]["backup_runs"],
         at=cfg["nas"].get("backup_at", "03:00"),
-        tz=cfg.get("timezone", "UTC"),
+        tz=config.zone(cfg).key,
     )

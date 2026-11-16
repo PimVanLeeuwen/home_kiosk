@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from . import reminders
+from . import config, reminders
 from .security import same_origin_json
 
 router = APIRouter(prefix="/api/reminders")
@@ -20,7 +20,7 @@ MAX_REMINDERS = 500
 
 
 def _zone(request: Request) -> ZoneInfo:
-    return ZoneInfo(request.app.state.config.get("timezone", "UTC"))
+    return config.zone(request.app.state.config)
 
 
 def _overview(request: Request) -> dict[str, Any]:

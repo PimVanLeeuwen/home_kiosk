@@ -18,11 +18,11 @@ import logging
 import re
 from datetime import UTC, datetime
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import feedparser
 import httpx
 
+from .. import config
 from ..models import News, NewsGroup, NewsItem
 from ..news import store as news_store
 from ..store import Store
@@ -269,7 +269,7 @@ async def collect(
     # The feed list as edited in Settings; config.yaml until it is seeded.
     feed_groups = news_store.as_config(store) or news_cfg.get("groups", [])
     errors: dict[int, str] = {}
-    tz = ZoneInfo(cfg.get("timezone", "UTC"))
+    tz = config.zone(cfg)
     now = datetime.now(tz)
     limit = news_cfg.get("max_per_group", 3)
 

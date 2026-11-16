@@ -30,7 +30,7 @@ from mcp_types import ToolAnnotations
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from . import mcp_dev, mcp_writes
+from . import config, mcp_dev, mcp_writes
 from . import mcp_house as house
 from . import reminders as reminders_store
 from .alerts import core as alerts_core
@@ -62,7 +62,7 @@ READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=False)
 
 
 def _zone(cfg: dict[str, Any]) -> ZoneInfo:
-    return ZoneInfo(cfg.get("timezone", "UTC"))
+    return config.zone(cfg)
 
 
 def _date(value: str | None, default: date) -> date:

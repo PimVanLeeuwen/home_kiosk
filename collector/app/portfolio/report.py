@@ -20,7 +20,7 @@ from typing import Any
 from apscheduler.triggers.cron import CronTrigger
 from PIL import Image
 
-from .. import paint_notify
+from .. import config, paint_notify
 from ..alerts import core, templates
 from ..store import Store
 from . import notes as market_notes
@@ -42,7 +42,7 @@ def settings(cfg: dict[str, Any]) -> dict[str, Any]:
 
 def trigger(cfg: dict[str, Any]) -> CronTrigger:
     return CronTrigger.from_crontab(settings(cfg)["schedule"],
-                                    timezone=cfg.get("timezone", "UTC"))
+                                    timezone=config.zone(cfg).key)
 
 
 def _nl(n: float, digits: int = 2) -> str:

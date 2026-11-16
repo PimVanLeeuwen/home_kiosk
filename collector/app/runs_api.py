@@ -10,13 +10,12 @@ import json
 import logging
 from datetime import UTC, datetime
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from . import paint_streets, running
+from . import config, paint_streets, running
 from .security import same_origin_json
 from .sources import runs, streets
 
@@ -60,7 +59,7 @@ def latest(request: Request) -> dict[str, Any]:
 @router.get("/overview")
 def overview(request: Request) -> dict[str, Any]:
     """Runs and plan together for the Running page and the Home card (plan.md M28)."""
-    zone = ZoneInfo(request.app.state.config.get("timezone", "Europe/Amsterdam"))
+    zone = config.zone(request.app.state.config)
     return running.overview(request.app.state.store, zone, datetime.now(UTC))
 
 
@@ -96,7 +95,7 @@ def streets_picture(request: Request) -> Response:
     """Your streets for the Running page: this year's runs over the town, painted once per
     change."""
     store = request.app.state.store
-    zone = ZoneInfo(request.app.state.config.get("timezone", "Europe/Amsterdam"))
+    zone = config.zone(request.app.state.config)
     local = datetime.now(zone)
     since = datetime(local.year, 1, 1, tzinfo=zone).astimezone(UTC).isoformat()
     home = streets.at_home(store, since)

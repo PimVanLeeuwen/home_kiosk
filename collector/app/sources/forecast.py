@@ -19,6 +19,7 @@ from typing import Any
 import httpx
 from pydantic import BaseModel
 
+from .. import config
 from ..models import Envelope
 from . import weather
 
@@ -98,7 +99,7 @@ async def collect(cfg: dict[str, Any], transport: httpx.AsyncBaseTransport | Non
               "hourly": "temperature_2m,precipitation_probability,precipitation",
               "daily": "temperature_2m_max,temperature_2m_min,sunrise,sunset,weather_code,"
                        "precipitation_probability_max,precipitation_sum",
-              "timezone": cfg.get("timezone", "UTC"), "forecast_days": 7}
+              "timezone": config.zone(cfg).key, "forecast_days": 7}
     async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS, transport=transport) as http:
         resp = await http.get(URL, params=params)
         resp.raise_for_status()

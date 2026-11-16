@@ -14,10 +14,10 @@ from __future__ import annotations
 import logging
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import httpx
 
+from .. import config
 from ..models import Envelope
 from ..store import Store
 
@@ -93,7 +93,7 @@ async def _text_ranks(client: httpx.AsyncClient, s: dict[str, Any], day: date,
 async def collect(cfg: dict[str, Any], store: Store, now: datetime | None = None,
                   transport: httpx.AsyncBaseTransport | None = None) -> Photo:
     s = settings(cfg)
-    tz = ZoneInfo(cfg.get("timezone", "Europe/Amsterdam"))
+    tz = config.zone(cfg)
     now = now or datetime.now(UTC)
     today = now.astimezone(tz).date()
     async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS, transport=transport,

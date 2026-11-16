@@ -27,6 +27,7 @@ import icalendar
 import recurring_ical_events
 from pydantic import BaseModel
 
+from .. import config
 from ..models import Envelope
 from ..store import Store
 
@@ -91,7 +92,7 @@ def settings(cfg: dict[str, Any]) -> dict[str, Any]:
     password = (cal.get("app_password") or "").strip()
     return {"enabled": bool(user and password), "auth": (user, password),
             "server": cal.get("server") or "https://caldav.icloud.com",
-            "timezone": ZoneInfo(cfg.get("timezone", "Europe/Amsterdam"))}
+            "timezone": config.zone(cfg)}
 
 
 def hidden(store: Store) -> set[str]:

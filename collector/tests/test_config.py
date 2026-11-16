@@ -63,3 +63,9 @@ def test_collector_config_names_another_file(tmp_path, monkeypatch):
     monkeypatch.setenv("COLLECTOR_CONFIG", str(named))
 
     assert config.load() == {"source": "named"}
+
+
+def test_the_time_zone_is_the_configured_one_else_amsterdam():
+    assert config.zone({"timezone": "UTC"}).key == "UTC"
+    assert config.zone({}).key == "Europe/Amsterdam"
+    assert config.zone({"timezone": ""}).key == "Europe/Amsterdam"

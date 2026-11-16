@@ -19,12 +19,11 @@ import logging
 from collections.abc import Callable
 from datetime import UTC, datetime, time, timedelta
 from typing import Any, Literal
-from zoneinfo import ZoneInfo
 
 from PIL import Image
 from pydantic import BaseModel
 
-from .. import paint_notify
+from .. import config, paint_notify
 from ..store import Store
 from . import ntfy as ntfy_api
 from .ntfy import Ntfy
@@ -223,7 +222,7 @@ def in_quiet_hours(local_now: datetime, quiet: dict[str, Any]) -> bool:
 
 
 def local(now: datetime, cfg: dict[str, Any]) -> datetime:
-    return now.astimezone(ZoneInfo(cfg.get("timezone", "UTC")))
+    return now.astimezone(config.zone(cfg))
 
 
 # --- sending ---------------------------------------------------------------------

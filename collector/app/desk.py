@@ -13,7 +13,7 @@ from datetime import UTC, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from . import desk_backgrounds
+from . import config, desk_backgrounds
 from .desk_agenda import agenda_screen
 from .desk_alerts import alerts_screen, takeover
 from .desk_backups import backups_screen
@@ -208,7 +208,7 @@ def answer(cfg: dict[str, Any], store: Store, name: str | None,
     """The screens of panel `name`. A board (asking by its MAC) without a panel
     gets the screen that asks to assign it; one whose panel has no screens yet,
     a screen that says so. House's music screens need `music`."""
-    zone = ZoneInfo(cfg.get("timezone", "UTC"))
+    zone = config.zone(cfg)
     now = now or datetime.now(UTC)
     screens = [make(store, zone, now) for make in SCREENS[name]] if name else []
     rotate = ROTATES.get(name or "", True)

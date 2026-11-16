@@ -20,6 +20,7 @@ from zoneinfo import ZoneInfo
 
 import httpx
 
+from .. import config
 from ..models import RainPoint, Weather
 
 log = logging.getLogger(__name__)
@@ -99,7 +100,7 @@ async def collect(cfg: dict[str, Any], transport: httpx.AsyncBaseTransport | Non
                   now: datetime | None = None) -> Weather:
     """`transport` and `now` are for tests."""
     w = settings(cfg)
-    zone = ZoneInfo(cfg.get("timezone", "Europe/Amsterdam"))
+    zone = config.zone(cfg)
     now = now or datetime.now(UTC)
     async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS, transport=transport) as client:
         rain = await client.get(RAIN_URL, params={"lat": w["lat"], "lon": w["lon"]})

@@ -26,6 +26,7 @@ from typing import Any
 
 import httpx
 
+from .. import config
 from ..alerts import core as alerts_core
 from ..alerts import templates
 from ..models import GitHubMirror, MirroredRepo, MirrorOwner, MirrorRun
@@ -211,7 +212,7 @@ async def collect(
     previous = store.get_cache(CACHE_KEY) or {}
     runs = [MirrorRun.model_validate(r) for r in previous.get("runs", [])]
     last_success = previous.get("last_success")
-    tz = cfg.get("timezone", "UTC")
+    tz = config.zone(cfg).key
     result = GitHubMirror(as_of=started, enabled=s["enabled"], dir=s["dir"], runs=runs,
                           last_success=last_success)
     if not s["enabled"]:
@@ -279,7 +280,7 @@ def current(cfg: dict[str, Any], store: Store, now: datetime | None = None) -> d
     now = now or datetime.now(UTC)
     return GitHubMirror(
         as_of=now, enabled=s["enabled"], dir=s["dir"],
-        next_due=next_run(now, s["at"], cfg.get("timezone", "UTC")) if s["enabled"] else None,
+        next_due=next_run(now, s["at"], config.zone(cfg).key) if s["enabled"] else None,
     ).model_dump(mode="json")
 
 

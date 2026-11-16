@@ -16,10 +16,10 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime, time, timedelta
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import httpx
 
+from .. import config
 from ..alerts import core as settings_store
 from ..models import Train, TrainDisruption, TrainRun, TrainStop
 from ..store import Store
@@ -61,7 +61,7 @@ def settings(cfg: dict[str, Any]) -> dict[str, Any]:
         "departure": _hm(train.get("departure", "07:16")),
         "watch_from": _hm(train.get("watch_from", "06:00")),
         "evening": sorted(_hm(t) for t in train.get("evening", ["20:00", "22:00"])),
-        "timezone": ZoneInfo(cfg.get("timezone", "Europe/Amsterdam")),
+        "timezone": config.zone(cfg),
     }
 
 

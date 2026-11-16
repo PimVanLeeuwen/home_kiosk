@@ -21,6 +21,7 @@ from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, Field, StringConstraints, model_validator
 
+from . import config
 from .alerts import core
 from .store import Store
 
@@ -296,7 +297,7 @@ async def send_due(cfg: dict[str, Any], store: Store, now: datetime | None = Non
     """Sends the messages whose time has come (every minute, app/scheduler.py), each once;
     a failed send is tried again the next minute. Answers how many went out."""
     now = now or datetime.now(UTC)
-    zone = ZoneInfo(cfg.get("timezone", "UTC"))
+    zone = config.zone(cfg)
     sent = 0
     for r, day in due(store, now, zone):
         title, line = message(r, day, now, zone)

@@ -11,6 +11,7 @@ import os
 import re
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import yaml
 
@@ -18,6 +19,7 @@ _ENV_REF = re.compile(r"\$\{([A-Z_][A-Z0-9_]*)(?::-([^}]*))?\}")
 
 DEFAULT_PATH = Path(__file__).resolve().parent.parent / "config.yaml"
 LOCAL_PATH = DEFAULT_PATH.with_name("config.local.yaml")
+DEFAULT_ZONE = "Europe/Amsterdam"  # the household's; config.yaml sets it too
 
 
 def _sub(match: re.Match[str]) -> str:
@@ -51,3 +53,8 @@ def load(path: Path | None = None) -> dict[str, Any]:
     path = path or resolve()
     with path.open() as fh:
         return _expand(yaml.safe_load(fh) or {})
+
+
+def zone(cfg: dict[str, Any]) -> ZoneInfo:
+    """The household's time zone: the config's `timezone`, else Europe/Amsterdam."""
+    return ZoneInfo(cfg.get("timezone") or DEFAULT_ZONE)

@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo
 import httpx
 from pydantic import BaseModel
 
+from .. import config
 from ..models import Envelope
 from ..store import Store
 
@@ -79,7 +80,7 @@ def settings(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
     host = (cfg.get("widgets") or {}).get("host", "localhost")
     return {"enabled": bool(slug and port), "slug": slug,
             "url": f"http://{host}:{port}" if port else "",
-            "timezone": ZoneInfo(cfg.get("timezone", "Europe/Amsterdam"))}
+            "timezone": config.zone(cfg)}
 
 
 def _beat_time(value: str) -> datetime:

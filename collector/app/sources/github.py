@@ -13,10 +13,10 @@ from __future__ import annotations
 import logging
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import httpx
 
+from .. import config
 from ..models import (
     Activity,
     ContributionDay,
@@ -342,7 +342,7 @@ async def collect(
     now: datetime | None = None,
 ) -> Repos:
     """`transport` is for tests (httpx.MockTransport)."""
-    now = now or datetime.now(ZoneInfo(cfg.get("timezone", "UTC")))
+    now = now or datetime.now(config.zone(cfg))
     gh_cfg = cfg.get("github") or {}
     default_token = (gh_cfg.get("token") or "").strip()
     cached = store.get_cache("repos") or {}

@@ -13,7 +13,6 @@ from __future__ import annotations
 import re
 from datetime import UTC, datetime
 from typing import Annotated, Any, Literal
-from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
 from fastapi.responses import JSONResponse
@@ -21,6 +20,7 @@ from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
 from . import (
+    config,
     desk,
     desk_alerts,
     desk_backgrounds,
@@ -147,7 +147,7 @@ async def _lights(request: Request, change) -> Any:
         raise HTTPException(422, str(exc)) from None
     except Exception as exc:
         raise HTTPException(502, hue.reason(exc)) from None
-    zone = ZoneInfo(cfg.get("timezone", "UTC"))
+    zone = config.zone(cfg)
     return desk_home.lights_screen(request.app.state.store, zone, datetime.now(UTC))
 
 

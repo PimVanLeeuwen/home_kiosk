@@ -14,14 +14,13 @@ import logging
 from collections.abc import Callable
 from datetime import UTC, date, datetime
 from typing import Any, Literal
-from zoneinfo import ZoneInfo
 
 import anthropic
 from mcp.client import Client
 from mcp.server.mcpserver import MCPServer
 from pydantic import BaseModel, Field
 
-from . import ai
+from . import ai, config
 from . import reminders as reminders_store
 from .sources import hue
 from .sources import music as music_source
@@ -199,7 +198,7 @@ async def answer(cfg: dict[str, Any], store: Store, question: Question, read: MC
         raise AskError(429, "The AI cap is reached for this month. Ask works again on the "
                             "1st, or raise the cap in the hub's config.")
     messages = _history(question.messages)
-    zone = ZoneInfo(cfg.get("timezone", "UTC"))
+    zone = config.zone(cfg)
     system = SYSTEM.format(now=now.astimezone(zone).strftime("%A %-d %B %Y, %H:%M"))
     api = (client or _client)(s["api_key"])
     used: list[str] = []
