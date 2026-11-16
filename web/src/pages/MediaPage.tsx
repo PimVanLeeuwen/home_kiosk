@@ -90,7 +90,7 @@ export function MediaPage() {
 
           <div className="grid items-start gap-3.5 md:gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <div className="grid gap-3.5 md:gap-5">
-              <Card title="Downloading" actions={<span className="text-caption text-faint">Sonarr · Radarr</span>}>
+              <Card title="Downloading" note="Sonarr · Radarr">
                 {data.downloads.length ? (
                   <ul className="space-y-2.5">
                     {data.downloads.map((d) => (
@@ -123,7 +123,7 @@ export function MediaPage() {
                 )}
               </Card>
 
-              <Card title="Next to air" actions={<span className="text-caption text-faint">7 days</span>}>
+              <Card title="Next to air" note="7 days">
                 {data.upcoming.length ? (
                   byDay(data.upcoming, now).map(([day, episodes]) => (
                     <section key={day} aria-label={day} className="not-first:mt-3">

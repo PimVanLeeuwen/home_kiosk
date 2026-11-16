@@ -60,7 +60,7 @@ function VolumeTile({ summary, index }: { summary: Summary; index: number }) {
 /** Each volume's last run as a glass tile: an LED, its colour in the run history, and what it did. */
 export function VolumesCard({ volumes }: { volumes: Summary[] }) {
   return (
-    <Card title="Volumes" actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Last run</span>}>
+    <Card title="Volumes" note="Last run">
       <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
         {volumes.map((summary, i) => (
           <VolumeTile key={summary.name} summary={summary} index={i} />

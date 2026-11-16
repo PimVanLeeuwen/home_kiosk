@@ -7,6 +7,7 @@ import { formatAgo } from '../../lib/format'
 import type { Headline, HeadlinesResponse } from '../../lib/newsTypes'
 import { useApi } from '../../lib/useApi'
 import { StaleNote } from '../ui/states'
+import { titleClass } from '../ui/titleStyles'
 
 type Colour = { bg: string; fg: string }
 type SaveState = 'saving' | 'saved' | 'failed'
@@ -92,15 +93,15 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
   const rows = Math.max(2, rest.length)
   return (
     <section aria-labelledby="headlines-title" className="mb-6 md:mb-7">
-      <p className="mb-2.5 flex justify-between gap-3 text-label font-semibold tracking-[0.07em] text-faint uppercase">
+      <p className={cn(titleClass, 'mb-3 flex justify-between gap-3')}>
         <span id="headlines-title">{data.grouped ? 'Top stories' : 'Headlines'}</span>
         {data.grouped ? (
-          <span className="inline-flex items-center gap-1.5 font-medium tracking-normal normal-case">
+          <span className="inline-flex items-center gap-1.5 text-caption font-normal text-faint">
             <Sparkles aria-hidden="true" className="size-3.5 text-accent-fg" />
             grouped by Claude
           </span>
         ) : (
-          <span className="truncate font-medium tracking-normal normal-case">{data.items.map((h) => h.group).join(' · ')}</span>
+          <span className="truncate text-caption font-normal text-faint">{data.items.map((h) => h.group).join(' · ')}</span>
         )}
       </p>
       <ul

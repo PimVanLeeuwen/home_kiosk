@@ -21,7 +21,7 @@ export function RunHistoryCard({ runs, volumes }: Props) {
     <Card
       title={`Last ${runs.length} runs`}
       className="mt-5"
-      actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">How long each volume took</span>}
+      note="How long each volume took"
     >
       <p className="mb-2.5 flex flex-wrap gap-x-3.5 gap-y-1 text-label text-muted" aria-hidden="true">
         {volumes.map((s, i) => (

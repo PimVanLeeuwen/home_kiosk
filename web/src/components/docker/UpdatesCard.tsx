@@ -12,7 +12,7 @@ export function UpdatesCard({ updates }: { updates: ContainerUpdate[] }) {
     <Card
       title="Image updates"
       className="mt-5"
-      actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Watchtower and Dockge</span>}
+      note="Watchtower and Dockge"
     >
       {updates.length === 0 ? (
         <p className="text-muted">

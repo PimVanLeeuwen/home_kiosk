@@ -9,6 +9,8 @@ import { relayName } from '../lib/tailnet'
 import type { Hosts, Tailnet, TailnetDevice } from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { Surface } from '../components/ui/Card'
+import { titleClass } from '../components/ui/titleStyles'
+import { cn } from '../lib/cn'
 
 const REFRESH_MS = 60_000
 
@@ -38,7 +40,7 @@ function Group({ title, devices, open, setOpen, now }: {
   const id = `devices-${title.toLowerCase()}`
   return (
     <section aria-labelledby={id} className="mt-5">
-      <h2 id={id} className="mb-2.5 flex items-center gap-2 text-label font-semibold tracking-[0.08em] text-faint uppercase">
+      <h2 id={id} className={cn(titleClass, 'mb-2.5 flex items-center gap-2')}>
         {title}
         <span className={title === 'Online' ? 'rounded-[6px] bg-up/13 px-1.5 text-up' : 'rounded-[6px] bg-raised px-1.5 text-muted'}>
           {devices.length}
@@ -79,7 +81,7 @@ export function TailscalePage() {
         status={
           data &&
           (stale ? (
-            <Pill tone="muted">Stale</Pill>
+            <Pill tone="warn">Stale</Pill>
           ) : issues ? (
             <Pill tone="warn">
               {issues} health {issues === 1 ? 'issue' : 'issues'}

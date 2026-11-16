@@ -29,7 +29,7 @@ export function DnsCard({ data: dns, error }: Props) {
   const now = new Date()
   const trouble = dns && problem(dns)
   return (
-    <Card title="Ad blocking" actions={<span className="text-caption text-muted">Last 24 hours</span>}>
+    <Card title="Ad blocking" note="Last 24 hours">
       {!dns && (error ? <Unavailable what="AdGuard Home" /> : <Loading />)}
       {dns && (
         <>

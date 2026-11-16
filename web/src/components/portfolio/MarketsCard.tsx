@@ -14,7 +14,7 @@ export function MarketsCard() {
   return (
     <Card
       title="Markets"
-      actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Last session</span>}
+      note="Last session"
     >
       <ul className="grid gap-2 text-small">
         {data.indices.map((q) => (

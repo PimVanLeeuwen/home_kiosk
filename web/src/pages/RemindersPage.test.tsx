@@ -24,6 +24,8 @@ describe('RemindersPage', () => {
     expect(within(today).getByRole('checkbox', { name: 'Bins out done' })).toHaveAttribute('aria-checked', 'false')
     const all = screen.getByRole('region', { name: 'All reminders' })
     expect(all).toHaveTextContent('Today07:30Bins outEvery 2 weeks · Message the evening before')
+    // A time is a number, not a technical value: the sans with tabular figures, never mono.
+    for (const time of screen.getAllByText('07:30')) expect(time).not.toHaveClass('font-mono')
   })
 
   it('adds a weekly reminder and ticks one off', async () => {

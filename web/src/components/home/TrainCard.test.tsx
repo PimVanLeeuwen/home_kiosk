@@ -57,6 +57,8 @@ describe('TrainCard', () => {
     expect(within(c).getByText(/Leaves in 34 min from/)).toBeInTheDocument()
     expect(within(c).getByRole('img', { name: '34 min to go' })).toBeInTheDocument()
     expect(within(within(c).getByRole('list', { name: 'Stops' })).getAllByRole('listitem')).toHaveLength(4)
+    // No light of its own: on Home only the hero has a coloured light.
+    expect(c.querySelector('[style*="--glow"]')).toBeNull()
   })
 
   it('strikes the planned time of a late train and shows the new one at every stop', async () => {

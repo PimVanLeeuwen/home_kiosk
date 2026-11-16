@@ -6,6 +6,7 @@ import { tileColour } from '../../lib/monogram'
 import type { BookmarkList, HeadlinesResponse, NewsGroup } from '../../lib/newsTypes'
 import { goOnWith, minutesLeft } from '../../lib/readNext'
 import { useApi } from '../../lib/useApi'
+import { titleClass } from '../ui/titleStyles'
 
 function Ring({ pct }: { pct: number }) {
   const c = 2 * Math.PI * 14
@@ -82,7 +83,7 @@ export function ReadNext({ onGroup, isRead }: Props) {
   const feeds = lead ? 1 + (lead.sources?.length ?? 0) : 0
   return (
     <div className="pt-1">
-      <h2 className="mb-3 text-label font-semibold tracking-[0.08em] text-faint uppercase">Read next</h2>
+      <h2 className={cn(titleClass, 'mb-3')}>Read next</h2>
       <div className="grid gap-3">
         {lead && (
           <Link

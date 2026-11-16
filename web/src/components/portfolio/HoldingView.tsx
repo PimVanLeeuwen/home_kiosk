@@ -128,7 +128,7 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
       <Card
         title="Transactions"
         className="mt-5"
-        actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">From Ghostfolio</span>}
+        note="From Ghostfolio"
       >
         {data.activities.length === 0 ? (
           <p className="text-muted">No transactions recorded.</p>

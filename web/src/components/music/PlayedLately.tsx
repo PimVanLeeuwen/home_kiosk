@@ -4,6 +4,7 @@ import { cn } from '../../lib/cn'
 import type { RecentMusic } from '../../lib/musicTypes'
 import { Surface } from '../ui/Card'
 import { Cover, Equaliser } from './NowPlaying'
+import { titleClass } from '../ui/titleStyles'
 
 interface Props {
   recent: RecentMusic[]
@@ -24,7 +25,7 @@ interface Props {
 export function PlayedLately({ recent, playingFrom, starting, onPlay, waiting = false }: Props) {
   return (
     <Surface as="section" aria-labelledby="played-lately" className="lg:col-start-1">
-      <h2 id="played-lately" className="mb-2.5 text-label font-semibold tracking-[0.07em] text-faint uppercase">
+      <h2 id="played-lately" className={cn(titleClass, 'mb-4')}>
         Played lately
       </h2>
       {recent.length ? (

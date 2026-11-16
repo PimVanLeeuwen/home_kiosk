@@ -7,6 +7,7 @@ import { Card } from '../components/ui/Card'
 import { Loading, Unavailable } from '../components/ui/states'
 import { PageHeader } from '../components/PageHeader'
 import { Pill } from '../components/ui/Pill'
+import { openTone } from '../lib/incidents'
 import type { AlertSettings, Incident } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
@@ -20,7 +21,8 @@ export function AlertsPage() {
   const loaded = useApi<AlertSettings>('/api/alerts/settings')
   const incidents = useApi<Incident[]>('/api/alerts/incidents', 60_000)
   const now = new Date()
-  const open = (incidents.data ?? []).filter((i) => !i.resolved_at).length
+  const openOnes = (incidents.data ?? []).filter((i) => !i.resolved_at)
+  const open = openOnes.length
   const [saved, setSaved] = useState<AlertSettings>()
   const settings = saved ?? loaded.data
 
@@ -35,7 +37,7 @@ export function AlertsPage() {
       <PageHeader
         title="Alerts"
         subtitle="Everything the hub sends, to your phone or Telegram, and what it listens to"
-        status={incidents.data && (open ? <Pill tone="down">{open} open</Pill> : <Pill tone="up">All quiet</Pill>)}
+        status={incidents.data && (open ? <Pill tone={openTone(openOnes)}>{open} open</Pill> : <Pill tone="up">All quiet</Pill>)}
       />
 
       {!settings && (loaded.error ? <Unavailable what="Alert settings" /> : <Loading />)}

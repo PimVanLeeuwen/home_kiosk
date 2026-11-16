@@ -116,7 +116,8 @@ describe('AlertsPage', () => {
     expect(await within(open).findByText('volume2 is 92% full')).toBeInTheDocument()
     expect(within(open).queryByText('Disk sdb has SMART warnings')).not.toBeInTheDocument()
     expect(within(open).getByText('1 open')).toBeInTheDocument()
-    expect(screen.getAllByText('1 open')).toHaveLength(2) // the card and the page header
+    // The card and the page header, both amber: the one open alert is a warning.
+    expect(screen.getAllByText('1 open').map((pill) => pill.classList.contains('text-warn'))).toEqual([true, true])
     // A warning card with a pulsing icon.
     expect(within(open).getAllByRole('listitem')[0].querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
   })

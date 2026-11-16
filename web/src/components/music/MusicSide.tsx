@@ -4,15 +4,16 @@ import { cn } from '../../lib/cn'
 import type { Favourite, MusicDevice } from '../../lib/musicTypes'
 import { Cover } from './NowPlaying'
 import { Surface } from '../ui/Card'
+import { titleClass } from '../ui/titleStyles'
 
 const ICON = { computer: Laptop, smartphone: Smartphone, tv: Tv } as const
 const TYPE: Record<string, string> = { computer: 'Computer', smartphone: 'Phone', tv: 'TV', speaker: 'Speaker', avr: 'Receiver', castvideo: 'Chromecast' }
 
 function Label({ children, aside }: { children: string; aside?: string }) {
   return (
-    <p className="mb-2.5 flex justify-between gap-2.5 text-label font-semibold tracking-[0.07em] text-faint uppercase">
+    <p className={cn(titleClass, 'mb-4 flex justify-between gap-2.5')}>
       {children}
-      {aside && <b className="truncate font-medium tracking-normal text-muted normal-case">{aside}</b>}
+      {aside && <span className="truncate text-caption font-normal text-faint">{aside}</span>}
     </p>
   )
 }

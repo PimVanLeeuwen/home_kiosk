@@ -1,4 +1,5 @@
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import { Link } from 'react-router'
 import { cn } from '../../lib/cn'
 import type { Chip, ChipTone, Segment } from '../../lib/homeChips'
 import type { FoldedCardId } from '../../lib/homeOrder'
@@ -26,7 +27,8 @@ const SEGMENT: Record<Segment, string> = {
 export const OPENED_ID = 'home-opened-card'
 
 function Meter({ segments }: { segments: Segment[] }) {
-  if (!segments.length) return null
+  // Without segments the space stays, so every chip in a row has the same shape.
+  if (!segments.length) return <span aria-hidden="true" className="col-span-full mt-1.5 h-[3px]" />
   return (
     <span aria-hidden="true" className="col-span-full mt-1.5 flex h-[3px] gap-[2px]">
       {segments.map((s, i) => (
@@ -72,12 +74,23 @@ export function StatusStrip({ chips, folded, open, reveal, onToggle, onShow }: P
           reveal && 'motion-safe:animate-rise',
         )
         const delay = reveal ? { animationDelay: `${(i + 1) * 55}ms` } : undefined
+        const hover =
+          'cursor-pointer transition-[border-color,transform] duration-200 hover:-translate-y-px hover:border-white/15 motion-reduce:transition-none motion-reduce:hover:translate-y-0'
+        // Alerts has no card on Home: its chip goes to the Alerts page instead.
         if (chip.id === 'alerts')
           return (
-            <div key={chip.id} data-tone={chip.tone} style={delay} className={surface}>
+            <Link
+              key={chip.id}
+              to="/alerts"
+              data-tone={chip.tone}
+              style={delay}
+              aria-label={`${chip.label}: ${chip.value}. Go to Alerts`}
+              className={cn(surface, hover)}
+            >
               {body}
+              <ChevronRight aria-hidden="true" className="size-3.5 text-faint" />
               <Meter segments={chip.meter} />
-            </div>
+            </Link>
           )
         const id = chip.id
         const isFolded = folded.includes(id)
@@ -94,7 +107,7 @@ export function StatusStrip({ chips, folded, open, reveal, onToggle, onShow }: P
             onClick={() => (isFolded ? onToggle(id) : onShow(id))}
             className={cn(
               surface,
-              'cursor-pointer transition-[border-color,transform] duration-200 hover:-translate-y-px hover:border-white/15 motion-reduce:transition-none motion-reduce:hover:translate-y-0',
+              hover,
               expanded && 'border-accent from-accent/25 to-accent/[0.05] hover:border-accent',
             )}
           >

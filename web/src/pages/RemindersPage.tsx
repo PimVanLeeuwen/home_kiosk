@@ -125,7 +125,7 @@ export function RemindersPage() {
                       <span className={cn('block font-medium', nextText(r.next, data.today) === 'Today' ? 'text-accent-fg' : 'text-fg')}>
                         {nextText(r.next, data.today)}
                       </span>
-                      {r.at && <span className="font-mono text-faint">{r.at}</span>}
+                      {r.at && <span className="text-faint">{r.at}</span>}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-title font-medium">{r.title}</p>

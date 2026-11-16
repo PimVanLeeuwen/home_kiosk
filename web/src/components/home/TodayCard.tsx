@@ -52,18 +52,12 @@ export function TodayCard({ data }: { data: Today | undefined }) {
 
   const today = data
   const focus = focusOf(today.events, now)
-  const color = focus?.event.color ?? 'var(--color-accent-line)'
   const nowX = ribbonX(now.getHours() + now.getMinutes() / 60)
   const rest = today.events.filter((e) => e !== focus?.event)
   const total = today.events.length + today.all_day.length
 
   return (
-    <Card title={`Today · ${dayLine.format(now)}`} actions={<span className="text-caption text-faint">{total} {total === 1 ? 'event' : 'events'}</span>}>
-      <div
-        aria-hidden="true"
-        style={{ '--glow': color } as CSSProperties}
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_70%_at_0%_0%,color-mix(in_srgb,var(--glow)_16%,transparent),transparent_70%)]"
-      />
+    <Card title={`Today · ${dayLine.format(now)}`} note={`${total} ${total === 1 ? 'event' : 'events'}`}>
       {focus ? (
         <div className="relative grid grid-cols-[80px_minmax(0,1fr)] items-center gap-3.5 md:grid-cols-[96px_minmax(0,1fr)] md:gap-4.5">
           <Ring minutes={focus.minutes} color={focus.event.color} label={focus.now ? 'min left' : 'min'} />
@@ -123,7 +117,7 @@ export function TodayCard({ data }: { data: Today | undefined }) {
               className="absolute -inset-y-1 -ml-px block w-0.5 rounded-sm bg-white shadow-[0_0_8px_#fff,0_0_14px_--alpha(var(--color-accent-fg)/90%)]"
             />
           </div>
-          <p aria-hidden="true" className="relative mt-1 flex justify-between font-mono text-label text-faint">
+          <p aria-hidden="true" className="relative mt-1 flex justify-between text-label text-faint">
             <span>07:00</span>
             <span>12:00</span>
             <span>17:00</span>
@@ -142,7 +136,7 @@ export function TodayCard({ data }: { data: Today | undefined }) {
                 data-past={past || undefined}
                 className={cn('grid grid-cols-[46px_10px_minmax(0,1fr)_auto] items-center gap-2.5 border-glass-line py-1.5 text-small not-first:border-t', past && 'opacity-45')}
               >
-                <span className="font-mono text-caption text-muted">{formatTime(e.start!)}</span>
+                <span className="text-caption text-muted">{formatTime(e.start!)}</span>
                 <i aria-hidden="true" style={{ backgroundColor: e.color, boxShadow: `0 0 6px ${e.color}` }} className="block size-2 rounded-full" />
                 <span className={cn('truncate', past && 'line-through decoration-white/30')}>{e.title}</span>
                 <span className="text-caption text-faint">{e.calendar}</span>

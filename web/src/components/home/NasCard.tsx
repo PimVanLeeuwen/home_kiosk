@@ -1,14 +1,13 @@
 import { POOL_FULL_PCT } from '../../lib/attention'
 import { cn } from '../../lib/cn'
 import { formatBytes, formatMbit, formatRunway } from '../../lib/format'
-import { nasNeedsLook, shortRunway } from '../../lib/nasHealth'
+import { shortRunway } from '../../lib/nasHealth'
 import type { Nas, NasPoint, Ups } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { ArcGauge } from '../ui/ArcGauge'
 import { GlassTile } from '../ui/GlassTile'
 import { GlowDot } from '../ui/GlowDot'
 import { MiniSparkline } from '../ui/MiniSparkline'
-import { Pill } from '../ui/Pill'
 import { Card } from '../ui/Card'
 import { Loading, StaleNote, Unavailable } from '../ui/states'
 import { Meter } from './Meter'
@@ -37,14 +36,13 @@ export function NasCard({ nas, error }: Props) {
   // Pools arrive fullest first.
   const [fullest, ...others] = nas?.storage.pools ?? []
   const badDisks = nas?.disks.filter((d) => d.smart !== 'ok') ?? []
-  const needsLook = !!nas && nasNeedsLook(nas)
   const hottest = Math.max(...(nas?.disks.map((d) => d.temp_c ?? 0) ?? [0]))
 
   return (
     <Card
       title="NAS"
+      // No state pill: the NAS chip above the cards says it already.
       link={{ to: '/nas', label: 'Details' }}
-      actions={nas && <Pill tone={needsLook ? 'warn' : 'up'}>{needsLook ? 'Needs a look' : 'Healthy'}</Pill>}
     >
       {!nas && (error ? <Unavailable what="NAS data" /> : <Loading />)}
       {nas && (

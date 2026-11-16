@@ -26,7 +26,7 @@ function Count({ n, label, warn }: { n: number; label: string; warn?: boolean })
 export function RequestsCard({ overview }: { overview: MediaOverview }) {
   const counts = overview.requests
   return (
-    <Card title="Requests" actions={<span className="text-caption text-faint">Seerr</span>}>
+    <Card title="Requests" note="Seerr">
       {!counts ? (
         <p className="text-muted">Seerr could not be read{overview.errors.jellyseerr ? ` (${overview.errors.jellyseerr})` : ''}.</p>
       ) : (

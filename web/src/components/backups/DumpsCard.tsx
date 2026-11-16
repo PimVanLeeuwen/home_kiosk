@@ -24,7 +24,7 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
   return (
     <Card
       title="Database dumps"
-      actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">02:30 · 02:45</span>}
+      note="02:30 · 02:45"
     >
       <p className="mb-3 text-caption text-muted">
         Consistent copies of the live databases, made before the nightly backup takes them to Hetzner: a{' '}

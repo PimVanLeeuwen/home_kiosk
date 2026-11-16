@@ -1,6 +1,6 @@
 import { cn } from '../../lib/cn'
 import { formatWhen } from '../../lib/format'
-import { lasted, weekOf } from '../../lib/incidents'
+import { lasted, openTone, weekOf } from '../../lib/incidents'
 import type { Incident } from '../../lib/types'
 import { Card } from '../ui/Card'
 import { Loading } from '../ui/states'
@@ -46,7 +46,7 @@ export function IncidentsCard({ incidents, now }: { incidents: Incident[] | unde
   return (
     <Card
       title="Open alerts"
-      actions={incidents && (open.length ? <Pill tone="down">{open.length} open</Pill> : <Pill tone="up">None open</Pill>)}
+      actions={incidents && (open.length ? <Pill tone={openTone(open)}>{open.length} open</Pill> : <Pill tone="up">None open</Pill>)}
     >
       {!incidents && <Loading />}
       {incidents && open.length === 0 && (

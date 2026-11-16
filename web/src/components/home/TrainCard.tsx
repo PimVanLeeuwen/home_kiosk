@@ -93,11 +93,6 @@ export function TrainCard({ data }: { data: Train | undefined }) {
 
   return (
     <Card title={`${evening ? "Tomorrow's train" : 'Your train'} · direct · ${train.route}`} className="mb-5">
-      <div
-        aria-hidden="true"
-        style={{ '--glow': color } as CSSProperties}
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(55%_90%_at_92%_0%,color-mix(in_srgb,var(--glow)_16%,transparent),transparent_70%)]"
-      />
       <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-7">
         <div className="rounded-[12px] border border-glass-line bg-glass px-3.5 pt-2.5 pb-3 md:min-w-32">
           <span className="block text-label font-semibold tracking-[0.08em] text-faint uppercase">Departure</span>
@@ -158,7 +153,7 @@ export function TrainCard({ data }: { data: Train | undefined }) {
                     i === 0 && !gone ? 'border-(--line) bg-(--line) shadow-[0_0_10px_var(--line)]' : 'border-white/25 bg-card',
                   )}
                 />
-                <span className={cn('font-mono text-small', shifted && 'text-warn', (gone || stop.cancelled) && 'line-through')}>
+                <span className={cn('text-small', shifted && 'text-warn', (gone || stop.cancelled) && 'line-through')}>
                   {formatTime(at)}
                 </span>
                 <span className={cn('truncate text-small text-muted md:block', stop.cancelled && 'line-through')}>{stop.name}</span>

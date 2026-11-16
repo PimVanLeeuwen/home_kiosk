@@ -4,7 +4,7 @@ import type { BackupRun } from './types'
 
 /** How many nights the strip on Home and the Backups page shows. */
 export const NIGHTS = 30
-/** A night this much slower than usual stands out in amber. */
+/** A night this much slower than usual stands out in grey: worth a glance, not a problem. */
 export const SLOW_FACTOR = 1.3
 /** The backup_missing rule's default: a restore check older than this needs a new one. */
 export const RESTORE_MAX_DAYS = 45
@@ -18,7 +18,7 @@ function median(values: number[]): number {
 }
 
 /**
- * The last nights oldest first as minutes, failed ones red and slow ones amber,
+ * The last nights oldest first as minutes, failed ones red and slow ones grey,
  * and which one to name under the strip: the newest failure, else the first slow night.
  */
 export function nightStrip(runs: BackupRun[]) {
@@ -28,10 +28,10 @@ export function nightStrip(runs: BackupRun[]) {
   const marks: Record<number, Tone> = {}
   shown.forEach((r, i) => {
     if (!r.ok) marks[i] = 'down'
-    else if (usual > 0 && minutes[i] > usual * SLOW_FACTOR) marks[i] = 'warn'
+    else if (usual > 0 && minutes[i] > usual * SLOW_FACTOR) marks[i] = 'muted'
   })
   const failedAt = Object.keys(marks).map(Number).filter((i) => marks[i] === 'down').pop()
-  const slowAt = Object.keys(marks).map(Number).find((i) => marks[i] === 'warn')
+  const slowAt = Object.keys(marks).map(Number).find((i) => marks[i] === 'muted')
   return {
     minutes,
     marks,

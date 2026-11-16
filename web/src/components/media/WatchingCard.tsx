@@ -12,7 +12,7 @@ export function WatchingCard({ overview }: { overview: MediaOverview }) {
   const viewers = overview.viewers
   const top = viewers?.[0]?.watch_seconds || 1
   return (
-    <Card title="Watching · 30 days" actions={<span className="text-caption text-faint">Tracearr</span>}>
+    <Card title="Watching · 30 days" note="Tracearr">
       {!viewers ? (
         <p className="text-muted">Tracearr could not be read{overview.errors.tracearr ? ` (${overview.errors.tracearr})` : ''}.</p>
       ) : (
@@ -86,7 +86,7 @@ export function LibraryCard({ overview }: { overview: MediaOverview }) {
     ['episodes', lib.episodes, lib.added_episodes],
   ]
   return (
-    <Card title="Library" actions={<span className="text-caption text-faint">{formatBytes(lib.size_bytes)}</span>}>
+    <Card title="Library" note={formatBytes(lib.size_bytes)}>
       <ul className="grid grid-cols-3 gap-2.5">
         {tiles.map(([label, n, added]) => (
           <li key={label} className="rounded-[12px] border border-glass-line bg-glass p-3">

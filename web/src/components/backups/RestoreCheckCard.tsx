@@ -25,7 +25,7 @@ export function RestoreCheckCard({ checks, lastVerified, stale, onFinished }: Pr
   return (
     <Card
       title="Restore check"
-      actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Monthly, the 1st</span>}
+      note="Monthly, the 1st"
     >
       {!last ? (
         <p className="text-muted">

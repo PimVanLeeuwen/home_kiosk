@@ -40,6 +40,8 @@ describe('TodayCard', () => {
     expect(within(card).getByText('Standup')).toBeInTheDocument()
     expect(within(card).getByText('09:30 to 10:00')).toBeInTheDocument()
     expect(within(card).getByRole('img', { name: '24 min' })).toBeInTheDocument()
+    // No light of its own: on Home only the hero has a coloured light.
+    expect(card.querySelector('[style*="--glow"]')).toBeNull()
   })
 
   it('during an event says until when, and strikes past ones in the list', async () => {

@@ -1,3 +1,4 @@
+import type { Tone } from '../components/ui/tones'
 import type { Incident } from './types'
 
 const DAY = 86_400_000
@@ -9,6 +10,12 @@ export function lasted(ms: number): string {
   if (hours < 1) return `${Math.max(1, Math.round(ms / 60_000))} min`
   if (hours < 48) return `${hours} h`
   return `${Math.floor(hours / 24)} days`
+}
+
+/** The open alerts' colour: red only while one is an error, amber for warnings, violet for the rest. */
+export function openTone(open: Incident[]): Tone {
+  if (open.some((i) => i.severity === 'error')) return 'down'
+  return open.some((i) => i.severity === 'warning') ? 'warn' : 'accent'
 }
 
 /** The last seven days, today last, each with the worst alert that was open on it. */

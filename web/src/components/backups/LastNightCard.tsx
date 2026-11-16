@@ -37,7 +37,7 @@ export function LastNightCard({ last, history, dumps, now }: Props) {
   return (
     <Card
       title="Last night"
-      actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Hetzner · encrypted</span>}
+      note="Hetzner · encrypted"
     >
       <div className="grid items-center gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-7">
         <div className="min-w-0">

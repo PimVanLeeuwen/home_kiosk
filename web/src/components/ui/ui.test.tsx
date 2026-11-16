@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
 import { ArcGauge } from './ArcGauge'
 import { BarStrip } from './BarStrip'
+import { Card } from './Card'
 import { markLeft } from './markLeft'
 import { FlowLine } from './FlowLine'
 import { GlassTile } from './GlassTile'
@@ -202,5 +204,23 @@ describe('RunDots', () => {
     expect(dots.map((d) => d.getAttribute('data-ok'))).toEqual(['true', 'true', 'false'])
     expect(dots[2]).toHaveClass('bg-down')
     expect(dots[0]).toHaveClass('bg-up/55')
+  })
+})
+
+describe('Card', () => {
+  it('has a sentence-case title, and on the right a note, then the pill, then the link', () => {
+    render(
+      <MemoryRouter>
+        <Card title="Last night" note="Hetzner · encrypted" actions={<Pill tone="up">All safe</Pill>} link={{ to: '/backups', label: 'Details' }}>
+          body
+        </Card>
+      </MemoryRouter>,
+    )
+
+    const title = screen.getByRole('heading', { name: 'Last night' })
+    expect(title).not.toHaveClass('uppercase')
+    const right = title.nextElementSibling!
+    expect([...right.children].map((c) => c.textContent)).toEqual(['Hetzner · encrypted', 'All safe', 'Details →'])
+    expect(right.firstElementChild).toHaveClass('text-faint')
   })
 })

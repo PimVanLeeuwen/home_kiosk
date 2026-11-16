@@ -92,7 +92,8 @@ describe('HomePage', () => {
     expect(within(nas).getByText('volume3 · 1,4 TB of 4,0 TB')).toBeInTheDocument()
     expect(within(nas).getByText('No growth trend yet')).toBeInTheDocument()
     expect(within(nas).getByRole('meter', { name: 'volume1' })).toBeInTheDocument()
-    expect(within(nas).getByText('Healthy')).toBeInTheDocument()
+    // The chip above says how the NAS is; the card repeats no state pill.
+    expect(within(nas).queryByText('Healthy')).not.toBeInTheDocument()
 
     expect(within(nas).getByText('CPU · 44 °C')).toBeInTheDocument()
     expect(within(nas).getByText('11%')).toBeInTheDocument()
@@ -116,7 +117,7 @@ describe('HomePage', () => {
     // A failing disk lifts the NAS card to the top, so look it up once it is there.
     expect(await screen.findByText('Full in about 1 month')).toHaveClass('text-warn')
     const nas = screen.getByRole('region', { name: 'NAS' })
-    expect(within(nas).getByText('Needs a look')).toBeInTheDocument()
+    expect(within(nas).queryByText('Needs a look')).not.toBeInTheDocument()
     expect(within(nas).getByText('1 of 2')).toBeInTheDocument()
     expect(within(nas).getByRole('img', { name: 'sdb: failing' })).toBeInTheDocument()
     expect(within(nas).getByText('Disks · 41 °C')).toBeInTheDocument()
@@ -193,7 +194,7 @@ describe('HomePage', () => {
     expect(within(card).queryByText('slow')).not.toBeInTheDocument()
   })
 
-  it('shows a good night as all safe, a slow night in amber and the restore check', async () => {
+  it('shows a good night as all safe, a slow night in grey and the restore check', async () => {
     const night = (daysAgo: number, minutes: number) => {
       const start = new Date()
       start.setDate(start.getDate() - daysAgo)
@@ -212,7 +213,7 @@ describe('HomePage', () => {
     expect(await within(card).findByText('Restore verified 12 days ago')).toHaveClass('text-up')
     expect(within(card).getByRole('img', { name: 'NAS to Hetzner · encrypted' }).querySelector('i')).not.toBeNull()
     const rects = within(card).getByRole('img', { name: 'Backup durations, last 4 nights' }).querySelectorAll('rect')
-    expect(rects[1]).toHaveAttribute('fill', 'var(--color-warn)') // 40 min against a usual 20
+    expect(rects[1]).toHaveAttribute('fill', 'var(--color-faint)') // 40 min against a usual 20: slow, not a problem
     expect(within(card).getByText('slow')).toBeInTheDocument()
   })
 
@@ -241,13 +242,18 @@ describe('HomePage', () => {
 
     expect(await screen.findByText(/1 thing needs a look/)).toBeInTheDocument()
     expect(screen.getByText('volume2 98% full')).toBeInTheDocument()
-    expect(within(card('NAS')).getByText('Needs a look')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^NAS: Needs a look/ })).toBeInTheDocument()
+    expect(within(card('NAS')).queryByText('Needs a look')).not.toBeInTheDocument()
     expect(within(card('NAS')).getByRole('meter', { name: 'volume2' })).toBeInTheDocument()
     // The chips that need a look are tinted and their dots pulse; the rest stay quiet.
     const chip = (label: string) => screen.getByRole('button', { name: new RegExp(`^${label}:`) })
     expect(chip('NAS')).toHaveAttribute('data-tone', 'warn')
     expect(chip('NAS').querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
     expect(chip('Services')).toHaveAttribute('data-tone', 'ok')
+    // Alerts has no card on Home: its chip goes to the page, shaped like the others.
+    const alerts = screen.getByRole('link', { name: /^Alerts: volume2 98% full\. Go to Alerts$/ })
+    expect(alerts).toHaveAttribute('href', '/alerts')
+    expect(alerts.children).toHaveLength(chip('Services').children.length)
     expect(chip('Services').querySelector('.motion-safe\\:animate-halo')).toBeNull()
   })
 

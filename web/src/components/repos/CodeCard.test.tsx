@@ -122,11 +122,12 @@ describe('CodeCard', () => {
     expect(screen.getByText('PimVanLeeuwen')).toBeInTheDocument()
   })
 
-  it('says running when nothing fails, and all green when nothing runs', () => {
+  it('says running in violet when nothing fails, and all green when nothing runs', () => {
     const calm = data()
     calm.groups[1].repos[0].ci = 'passing'
     const { unmount } = render(<CodeCard data={calm} />)
-    expect(screen.getByText('1 running')).toBeInTheDocument()
+    // Running is activity, not a problem: violet, never amber.
+    expect(screen.getByText('1 running')).toHaveClass('text-accent-fg')
     unmount()
 
     calm.groups[0].repos[0].pulls = []

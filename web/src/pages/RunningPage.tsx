@@ -75,7 +75,7 @@ export function RunningPage() {
               >
 
                 <div className="relative z-10 grid gap-3 p-5 md:p-6">
-                  <h2 id="last-run" className="text-label font-semibold tracking-[0.08em] text-white/60 uppercase">
+                  <h2 id="last-run" className="text-small font-semibold text-white/70">
                     Last run · {runWhen.format(new Date(last.start))}
                   </h2>
                   <p className="-mt-1 text-[56px] leading-none font-semibold tracking-tight text-white">
@@ -109,7 +109,7 @@ export function RunningPage() {
             <div className="grid content-start gap-3.5 lg:gap-5">
               <Card
                 title="This week against the plan"
-                actions={<span className="text-caption text-muted tabular-nums">{data.has_plan ? `${km(t.week_m)} of ${km(t.week_planned_m)} km` : `${km(t.week_m)} km`}</span>}
+                note={data.has_plan ? `${km(t.week_m)} of ${km(t.week_planned_m)} km` : `${km(t.week_m)} km`}
               >
                 <WeekColumns week={data.week} today={today} />
                 {!data.has_plan && <p className="mt-3 text-caption text-faint">Runna's plan shows here once its calendar feed is set (RUNNA_ICS_URL).</p>}

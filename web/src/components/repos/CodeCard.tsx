@@ -191,7 +191,7 @@ export function CodeCard({ data }: { data: ReposResponse }) {
   const pill = failing ? (
     <Pill tone="down">{failing} failing</Pill>
   ) : running ? (
-    <Pill tone="warn">{running} running</Pill>
+    <Pill tone="accent">{running} running</Pill>
   ) : (
     <Pill tone="up">All green</Pill>
   )

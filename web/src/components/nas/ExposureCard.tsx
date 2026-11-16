@@ -84,7 +84,7 @@ export function ExposureCard() {
   return (
     <Card
       title="Exposure"
-      actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Every 6 hours</span>}
+      note="Every 6 hours"
     >
       <div className="mb-3.5 flex items-center gap-3.5">
         {verdict && <Shield ok={unexpected.length === 0} />}

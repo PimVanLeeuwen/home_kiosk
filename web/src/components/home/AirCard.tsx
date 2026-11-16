@@ -112,7 +112,7 @@ export function AirCard() {
   const outside = air?.outside != null ? ` · outside ${air.outside}°` : ''
 
   return (
-    <Card title="Air" actions={air && <span className="text-caption text-muted">{air.room}{outside}</span>}>
+    <Card title="Air" note={air && <>{air.room}{outside}</>}>
       {!air && (error ? <Unavailable what="The air sensor" /> : <Loading />)}
       {air && (
         <>

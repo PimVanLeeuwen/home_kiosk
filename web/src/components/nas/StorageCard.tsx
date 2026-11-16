@@ -13,7 +13,7 @@ export function StorageCard({ pools }: { pools: Pool[] }) {
   return (
     <Card
       title="Storage"
-      actions={pools.length > 1 && <span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Fullest first</span>}
+      note={pools.length > 1 && 'Fullest first'}
     >
       {pools.length === 0 ? (
         <p className="text-muted">No storage pools reported.</p>

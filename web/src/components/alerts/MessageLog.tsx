@@ -77,7 +77,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
   ]
 
   return (
-    <Card title="Messages" actions={<span className="text-label font-semibold tracking-[0.08em] text-faint uppercase">Last 100</span>}>
+    <Card title="Messages" note="Last 100">
       <form onSubmit={send} aria-label="Send a message" className="mb-4 flex flex-wrap items-start gap-2">
         <label className="min-w-0 flex-1 basis-64">
           <span className="sr-only">Message</span>

@@ -86,7 +86,7 @@ describe('TailscalePage', () => {
     stubApi({ '/api/tailnet': { ...TAILNET, stale: true } })
     renderRoute('/tailscale')
 
-    expect(await screen.findByText('Stale')).toBeInTheDocument()
+    expect(await screen.findByText('Stale')).toHaveClass('text-warn')
     expect(screen.getByRole('status')).toHaveTextContent('this is the last known state')
   })
 

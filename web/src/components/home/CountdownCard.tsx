@@ -20,7 +20,7 @@ export function CountdownCard({ data, now = new Date() }: { data: Countdowns | u
   const colour = first.colour
 
   return (
-    <Card title="Countdown" actions={<span className="text-caption text-muted">{dayLine.format(new Date(y, m - 1, d))}</span>}>
+    <Card title="Countdown" note={dayLine.format(new Date(y, m - 1, d))}>
       <div className="relative -mx-5 -mt-3 overflow-hidden md:-mx-6" style={{ '--c': colour } as CSSProperties}>
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" aria-hidden="true" data-testid="tunnel">
           <defs>

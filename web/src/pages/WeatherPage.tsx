@@ -47,7 +47,7 @@ export function WeatherPage() {
           {!forecast.data && (forecast.error ? <Unavailable what="The forecast" /> : <Loading />)}
           {forecast.data && <WeekRanges days={forecast.data.days} today={today} />}
         </Card>
-        <Card title="Rain radar" actions={wet && <span className="text-caption text-muted">Buienradar · {formatTime(stampTime(radar.data!.stamp!).toISOString())}</span>}>
+        <Card title="Rain radar" note={wet && <>Buienradar · {formatTime(stampTime(radar.data!.stamp!).toISOString())}</>}>
           {wet ? (
             <img
               src={`/api/radar/map?at=${radar.data!.stamp}`}
