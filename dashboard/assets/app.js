@@ -23,6 +23,12 @@ const VIEWS = PINNED && ALL_VIEWS.includes(PINNED) ? [PINNED] : ALL_VIEWS;
 
 /* --- formatting ---------------------------------------------------------- */
 
+// Names from outside (feed titles, holdings, pools, disks) go into markup as
+// text, never as HTML.
+const esc = (s) =>
+  String(s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 const TB = 1e12;
 const GB = 1e9;
 
@@ -116,7 +122,7 @@ function renderNas(root, d) {
       return `
         <div class="pool ${state}">
           <div class="pool-head">
-            <div class="pool-name">${p.name}</div>
+            <div class="pool-name">${esc(p.name)}</div>
             <div class="pool-pct">${fmt.pct(p.used_pct)}</div>
           </div>
           <div class="bar"><span style="width:${p.used_pct}%"></span></div>
@@ -160,7 +166,7 @@ function renderNas(root, d) {
       return `
         <div class="disk ${state}">
           <div class="disk-dot"></div>
-          <div class="disk-name">${x.name}</div>
+          <div class="disk-name">${esc(x.name)}</div>
           <div class="disk-temp">${x.temp_c == null ? '—' : `${Math.round(x.temp_c)}°`}</div>
         </div>`;
     })
@@ -249,8 +255,8 @@ function renderPortfolio(root, d) {
     .slice(0, HOLDINGS_SHOWN)
     .map((h) => `
       <div class="holding">
-        <div class="ticker">${h.symbol}</div>
-        <div class="holding-name">${h.name}</div>
+        <div class="ticker">${esc(h.symbol)}</div>
+        <div class="holding-name">${esc(h.name)}</div>
         <div class="holding-value">${money(h.value, d.currency)}</div>
         <div class="holding-pct ${h.day_pct < 0 ? 'is-neg' : ''}">${signed(h.day_pct)}</div>
       </div>`)
@@ -260,7 +266,7 @@ function renderPortfolio(root, d) {
     .map((a, i) => `<div style="width:${a.pct}%;background:${ALLOC_COLOURS[i % ALLOC_COLOURS.length]}"></div>`)
     .join('');
   $('alloc-legend').innerHTML = d.allocation
-    .map((a, i) => `<div><i style="background:${ALLOC_COLOURS[i % ALLOC_COLOURS.length]}"></i>${a.label} ${dec(a.pct)}%</div>`)
+    .map((a, i) => `<div><i style="background:${ALLOC_COLOURS[i % ALLOC_COLOURS.length]}"></i>${esc(a.label)} ${dec(a.pct)}%</div>`)
     .join('');
 
   const updated = $('updated');
@@ -366,12 +372,6 @@ function renderSpotlight(root, d) {
 }
 
 /* --- news view ----------------------------------------------------------- */
-
-// Titles and source names come from third-party feeds, so they are inserted as
-// text rather than markup.
-const esc = (s) =>
-  String(s).replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function renderNews(root, d) {
   const $ = (name) => root.querySelector(`[data-f="${name}"]`);

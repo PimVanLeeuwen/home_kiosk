@@ -9,6 +9,22 @@ test('the kiosk carousel is served under /kiosk/', async ({ page }) => {
   await expect(page.getByText('Total value')).toBeVisible()
 })
 
+test('the kiosk shows holding names as text, never as markup', async ({ page }) => {
+  // Holdings come from Ghostfolio and DEGIRO imports, so a name is outside data.
+  await page.route('**/kiosk/fixtures/portfolio.json', async (route) => {
+    const body = await (await route.fetch()).json()
+    body.holdings[0].name = '<img src=x onerror="window.injected=1">Evil'
+    body.allocation[0].label = '<b>Bold</b>'
+    await route.fulfill({ json: body })
+  })
+  await page.goto('/kiosk/?view=portfolio')
+
+  await expect(page.getByText('<img src=x onerror="window.injected=1">Evil')).toBeVisible()
+  await expect(page.getByText('<b>Bold</b>', { exact: false })).toBeVisible()
+  await expect(page.locator('[data-f="holdings"] img, [data-f="alloc-legend"] b')).toHaveCount(0)
+  expect(await page.evaluate(() => (window as { injected?: number }).injected)).toBeUndefined()
+})
+
 test('the old reading view address redirects into /kiosk/', async ({ page }) => {
   await page.goto('/read.html')
 
