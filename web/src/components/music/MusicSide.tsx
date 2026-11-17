@@ -47,11 +47,11 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
                   onClick={() => onTransfer(d)}
                   aria-label={d.active ? `${d.name}: playing here` : `Move playback to ${d.name}`}
                   className={cn(
-                    'pressable grid w-full grid-cols-[30px_1fr_auto] items-center gap-2.5 rounded-[11px] border px-[11px] py-[9px] text-left',
+                    'pressable grid w-full grid-cols-[30px_1fr_auto] items-center gap-2.5 rounded-tile border px-[11px] py-[9px] text-left',
                     d.active ? 'border-up/45 bg-linear-to-r from-up/12 to-transparent to-70%' : 'border-glass-line bg-glass hover:border-faint',
                   )}
                 >
-                  <span aria-hidden="true" className="grid size-[30px] place-items-center rounded-[8px] bg-white/6 text-muted">
+                  <span aria-hidden="true" className="grid size-[30px] place-items-center rounded-control bg-white/6 text-muted">
                     <Icon className="size-4" />
                   </span>
                   <span className="min-w-0">
@@ -82,7 +82,7 @@ export function MusicSide({ devices, favourites, starting, onTransfer, onFavouri
                 aria-label={`Play ${f.name}`}
                 aria-busy={starting === f.position}
                 className={cn(
-                  'pressable relative flex aspect-[1.45] w-full items-end overflow-hidden rounded-[14px] px-3 py-2.5 text-left text-white disabled:cursor-wait',
+                  'pressable relative flex aspect-[1.45] w-full items-end overflow-hidden rounded-card px-3 py-2.5 text-left text-white disabled:cursor-wait',
                   waiting && 'opacity-50 disabled:cursor-default',
                 )}
               >

@@ -53,7 +53,7 @@ export function WeatherPage() {
               src={`/api/radar/map?at=${radar.data!.stamp}`}
               onError={() => setFailedFrame(radar.data!.stamp)}
               alt={`The rain radar round home at ${formatTime(stampTime(radar.data!.stamp!).toISOString())}`}
-              className="block aspect-[16/10] w-full rounded-[12px] bg-[#07080f] object-cover"
+              className="block aspect-[16/10] w-full rounded-tile bg-[#07080f] object-cover"
             />
           ) : (
             <p className="text-small text-muted">

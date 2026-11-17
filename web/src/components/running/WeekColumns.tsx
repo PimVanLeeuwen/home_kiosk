@@ -33,21 +33,21 @@ export function WeekColumns({ week, today }: { week: WeekDay[]; today: string })
               {d.planned_m > 0 && (
                 <span
                   data-planned
-                  className="absolute inset-x-0 bottom-0 rounded-[8px] border border-white/18 bg-white/[0.03]"
+                  className="absolute inset-x-0 bottom-0 rounded-control border border-white/18 bg-white/[0.03]"
                   style={{ height: `${(d.planned_m / top) * 100}%` }}
                 />
               )}
               {d.done_m > 0 && (
                 <span
                   data-done
-                  className="absolute inset-x-0.5 bottom-0 origin-bottom rounded-[7px] bg-linear-to-t from-[#c8692e] to-[#ffc98f] shadow-[0_0_18px_-4px_#f2a65a] motion-safe:animate-grow"
+                  className="absolute inset-x-0.5 bottom-0 origin-bottom rounded-tag bg-linear-to-t from-[#c8692e] to-[#ffc98f] shadow-[0_0_18px_-4px_#f2a65a] motion-safe:animate-grow"
                   style={{ height: `${(d.done_m / top) * 100}%` }}
                 />
               )}
               {!d.planned_m && !d.done_m && <span className="absolute inset-x-3 bottom-0 h-1 rounded-full bg-white/10" />}
             </span>
             <span className={cn('text-label font-semibold', isToday ? 'text-fg' : 'text-faint')}>{letter.format(date)}</span>
-            {isToday && <span aria-hidden="true" className="-mt-1 size-1 rounded-full bg-accent-line shadow-[0_0_6px_var(--color-accent-line)]" />}
+            {isToday && <span aria-hidden="true" className="-mt-1 size-1 rounded-full bg-accent-line shadow-glow shadow-accent-line" />}
           </li>
         )
       })}

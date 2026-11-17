@@ -38,7 +38,7 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
             <li
               key={db.name}
               className={cn(
-                'grid grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1 rounded-[10px] border px-3 py-2.5',
+                'grid grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1 rounded-control border px-3 py-2.5',
                 failed ? 'border-down/40 bg-linear-to-br from-down/12 to-down/[0.03]' : 'border-glass-line bg-glass',
               )}
             >
@@ -47,7 +47,7 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
                 <span className="font-semibold">{db.label}</span>
                 <span
                   className={cn(
-                    'ml-1.5 rounded-[6px] px-1.5 text-micro font-semibold tracking-[0.04em]',
+                    'ml-1.5 rounded-tag px-1.5 text-micro font-semibold tracking-[0.04em]',
                     db.kind === 'sqlite' ? 'bg-[var(--color-data-blue)]/14 text-[var(--color-data-blue)]' : 'bg-accent/18 text-accent-fg',
                   )}
                 >
@@ -64,7 +64,7 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
                 </p>
               )}
               {failed && db.error && (
-                <p className="col-start-2 col-end-4 rounded-lg border border-down/40 bg-down/10 px-2.5 py-1.5 font-mono text-label break-words text-fg">
+                <p className="col-start-2 col-end-4 rounded-control border border-down/40 bg-down/10 px-2.5 py-1.5 font-mono text-label break-words text-fg">
                   {db.error}
                 </p>
               )}

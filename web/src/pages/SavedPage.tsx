@@ -106,7 +106,7 @@ export function SavedPage() {
                   to={`/saved?b=${b.id}`}
                   aria-current={b.id === selected ? 'true' : undefined}
                   className={cn(
-                    '-mx-3 flex items-center gap-3 rounded-[11px] border border-transparent px-3 py-2.5 hover:bg-white/[0.03]',
+                    '-mx-3 flex items-center gap-3 rounded-tile border border-transparent px-3 py-2.5 hover:bg-white/[0.03]',
                     b.id === selected &&
                       'border-accent-line/30 bg-accent/12 shadow-[inset_2px_0_0_var(--color-accent-line)] hover:bg-accent/12',
                   )}
@@ -122,11 +122,11 @@ export function SavedPage() {
                           src={`/api/saved/${b.id}/thumbnail`}
                           alt=""
                           loading="lazy"
-                          className="size-14 rounded-[10px] border border-glass-line bg-raised object-cover"
+                          className="size-14 rounded-control border border-glass-line bg-raised object-cover"
                           onError={(e) => (e.currentTarget.style.visibility = 'hidden')}
                         />
                       ) : (
-                        <span className="block size-14 rounded-[10px] border border-glass-line bg-glass" />
+                        <span className="block size-14 rounded-control border border-glass-line bg-glass" />
                       )}
                       {inProgress(b) && <ProgressRing pct={b.progress} />}
                     </span>
@@ -139,7 +139,7 @@ export function SavedPage() {
             <button
               type="button"
               onClick={list.loadMore}
-              className="mt-3 w-full rounded-[11px] border border-glass-line bg-glass py-2.5 text-small text-muted hover:text-fg"
+              className="mt-3 w-full rounded-tile border border-glass-line bg-glass py-2.5 text-small text-muted hover:text-fg"
             >
               Show more ({list.total - list.items.length} left)
             </button>

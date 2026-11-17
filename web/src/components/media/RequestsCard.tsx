@@ -15,7 +15,7 @@ const STATE: Record<RequestState, { label: string; tone: string }> = {
 
 function Count({ n, label, warn }: { n: number; label: string; warn?: boolean }) {
   return (
-    <div className={cn('min-w-0 rounded-[10px] border bg-glass px-3 py-2', warn && n > 0 ? 'border-warn/35' : 'border-glass-line')}>
+    <div className={cn('min-w-0 rounded-control border bg-glass px-3 py-2', warn && n > 0 ? 'border-warn/35' : 'border-glass-line')}>
       <b className={cn('block text-heading font-semibold', warn && n > 0 && 'text-warn')}>{n}</b>
       <span className="text-label text-muted">{label}</span>
     </div>
@@ -48,7 +48,7 @@ export function RequestsCard({ overview }: { overview: MediaOverview }) {
                       {r.year && ` · ${r.year}`} · {r.by}
                     </p>
                   </div>
-                  <span data-state={r.state} className={cn('rounded-[6px] border px-[7px] text-label whitespace-nowrap', STATE[r.state].tone)}>
+                  <span data-state={r.state} className={cn('rounded-tag border px-[7px] text-label whitespace-nowrap', STATE[r.state].tone)}>
                     {STATE[r.state].label}
                   </span>
                 </li>

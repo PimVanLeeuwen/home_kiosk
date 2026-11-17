@@ -15,7 +15,7 @@ export function TodayReminders({ due, onToggle, busy }: Props) {
   return (
     <ul className="grid gap-1.5">
       {due.map((r) => (
-        <li key={r.id} className={cn('flex items-center gap-3 rounded-[10px] px-2 py-1.5', !r.done && 'bg-raised/60')}>
+        <li key={r.id} className={cn('flex items-center gap-3 rounded-control px-2 py-1.5', !r.done && 'bg-raised/60')}>
           {onToggle ? (
             <button
               type="button"

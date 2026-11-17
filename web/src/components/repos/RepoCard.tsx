@@ -42,7 +42,7 @@ function Count({ icon: Icon, label, n }: { icon: typeof Star; label: string; n: 
     <span
       title={label}
       className={cn(
-        'inline-flex items-center gap-1 rounded-[6px] border px-1.5 py-px',
+        'inline-flex items-center gap-1 rounded-tag border px-1.5 py-px',
         n ? 'border-accent-line/35 bg-glass text-accent-fg' : 'border-glass-line bg-glass text-muted',
       )}
     >
@@ -87,7 +87,7 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
       data-ci={repo.ci}
       style={{ '--lang': colour } as CSSProperties}
       className={cn(
-        'relative flex min-w-0 flex-col overflow-hidden rounded-[13px] border p-4',
+        'relative flex min-w-0 flex-col overflow-hidden rounded-tile border p-4',
         // A thin line along the top in the language's colour.
         'before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-(--lang) before:opacity-85 before:shadow-[0_0_12px_var(--lang)]',
         repo.ci === 'failing'
@@ -103,13 +103,13 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
           </a>
         </h3>
         {repo.private && (
-          <span className="inline-flex items-center gap-1 rounded-[6px] border border-glass-line bg-glass px-1.5 py-0.5 text-label text-muted">
+          <span className="inline-flex items-center gap-1 rounded-tag border border-glass-line bg-glass px-1.5 py-0.5 text-label text-muted">
             <Lock aria-hidden="true" className="size-3" />
             Private
           </span>
         )}
         {repo.fork && (
-          <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 py-0.5 text-label text-muted">Fork</span>
+          <span className="rounded-tag border border-glass-line bg-glass px-1.5 py-0.5 text-label text-muted">Fork</span>
         )}
       </div>
 

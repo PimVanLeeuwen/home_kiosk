@@ -27,7 +27,7 @@ export function QuietRing({ start, end, enabled, now }: Props) {
       viewBox="0 0 100 100"
       className="w-24 shrink-0"
     >
-      <circle cx="50" cy="50" r={R} fill="none" stroke="rgb(255 255 255 / 0.08)" strokeWidth="8" />
+      <circle cx="50" cy="50" r={R} fill="none" stroke="var(--color-track)" strokeWidth="8" />
       {enabled && span > 0 && (
         <circle
           data-testid="quiet-span"

@@ -5,7 +5,7 @@ import { amountText, duration, firstCook, ingredientTotals } from '../../lib/rec
 import type { Ingredient, Phase, Recipe } from '../../lib/recipeTypes'
 import { Surface } from '../ui/Card'
 
-const tile = 'flex min-w-0 flex-1 flex-col rounded-[12px] border border-line-soft bg-card px-3 py-2'
+const tile = 'flex min-w-0 flex-1 flex-col rounded-tile border border-line-soft bg-card px-3 py-2'
 
 /** Prep and cook time in their colours, and the persons the amounts are for. */
 export function Facts({ recipe, servings, onServings }: { recipe: Recipe; servings: number; onServings: (n: number) => void }) {
@@ -27,13 +27,13 @@ export function Facts({ recipe, servings, onServings }: { recipe: Recipe; servin
       <div className={cn(tile, 'flex-[1.2]')}>
         <span className="text-label text-faint">Persons</span>
         <span className="flex items-center gap-2.5">
-          <button type="button" aria-label="Fewer persons" disabled={servings <= 1} onClick={() => onServings(servings - 1)} className="grid size-7 print:hidden place-items-center rounded-lg border border-line bg-raised disabled:opacity-40">
+          <button type="button" aria-label="Fewer persons" disabled={servings <= 1} onClick={() => onServings(servings - 1)} className="grid size-7 print:hidden place-items-center rounded-control border border-line bg-raised disabled:opacity-40">
             <Minus aria-hidden="true" className="size-3.5" />
           </button>
           <output aria-label="Persons" className="min-w-5 text-center text-title font-semibold">
             {servings}
           </output>
-          <button type="button" aria-label="More persons" disabled={servings >= 50} onClick={() => onServings(servings + 1)} className="grid size-7 print:hidden place-items-center rounded-lg border border-line bg-raised disabled:opacity-40">
+          <button type="button" aria-label="More persons" disabled={servings >= 50} onClick={() => onServings(servings + 1)} className="grid size-7 print:hidden place-items-center rounded-control border border-line bg-raised disabled:opacity-40">
             <Plus aria-hidden="true" className="size-3.5" />
           </button>
         </span>
@@ -54,7 +54,7 @@ export function IngredientLists({ recipe, factor }: { recipe: Recipe; factor: nu
           <h2 className="flex justify-between text-small font-semibold text-muted">
             To get <span className="font-normal text-faint">{get.length} {get.length === 1 ? 'item' : 'items'}</span>
           </h2>
-          <ul className="overflow-hidden rounded-[14px] border border-line-soft bg-card">
+          <ul className="overflow-hidden rounded-card border border-line-soft bg-card">
             {get.map((i) => (
               <li key={i.name} className="flex justify-between gap-3 border-t border-line-soft px-3.5 py-2 first:border-t-0">
                 <span>{i.name}</span>

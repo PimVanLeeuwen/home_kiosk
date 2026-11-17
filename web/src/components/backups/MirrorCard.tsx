@@ -9,7 +9,7 @@ function Tile({ value, label, bad }: { value: string; label: string; bad?: boole
   return (
     <div
       className={cn(
-        'min-w-0 rounded-[10px] border px-3 py-2',
+        'min-w-0 rounded-control border px-3 py-2',
         bad ? 'border-down/40 bg-linear-to-br from-down/12 to-down/[0.03]' : 'border-glass-line bg-glass',
       )}
     >
@@ -83,7 +83,7 @@ export function MirrorCard({ mirror }: { mirror: GitHubMirror }) {
             </dl>
           )}
           {problems.length > 0 && (
-            <ul className="mt-3 space-y-1 rounded-lg border border-down/40 bg-down/10 px-3 py-2 font-mono text-caption break-words text-fg">
+            <ul className="mt-3 space-y-1 rounded-control border border-down/40 bg-down/10 px-3 py-2 font-mono text-caption break-words text-fg">
               {problems.map((p) => (
                 <li key={p}>{p}</li>
               ))}

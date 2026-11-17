@@ -27,7 +27,7 @@ export function ServiceTile({ service, href, label, index }: Props) {
       rel="noopener noreferrer"
       data-trouble={trouble ?? undefined}
       className={cn(
-        'flex items-center gap-3 rounded-[12px] border px-3 py-2.5 transition-colors',
+        'flex items-center gap-3 rounded-tile border px-3 py-2.5 transition-colors',
         trouble === 'down'
           ? 'border-down/40 bg-linear-to-br from-down/12 to-down/[0.03] hover:border-down/60'
           : trouble === 'warn'
@@ -46,7 +46,7 @@ export function ServiceTile({ service, href, label, index }: Props) {
               return (
                 <span key={st.label} className="contents">
                   {i > 0 && <span className="sr-only"> · </span>}
-                  <span className="shrink-0 rounded-[6px] border border-glass-line bg-white/5 px-1.5 text-label whitespace-nowrap text-muted">
+                  <span className="shrink-0 rounded-tag border border-glass-line bg-white/5 px-1.5 text-label whitespace-nowrap text-muted">
                     <b className="font-semibold text-fg">{figure}</b> {word}
                   </span>
                 </span>

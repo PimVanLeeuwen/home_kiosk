@@ -31,7 +31,7 @@ export function IncidentCard({ service, incident, now = new Date() }: Props) {
   return (
     <article
       aria-label={`${service.name}: ${incident.title}`}
-      className={cn('grid gap-3 rounded-[12px] border p-4', FRAME[incident.impact])}
+      className={cn('grid gap-3 rounded-tile border p-4', FRAME[incident.impact])}
     >
       <header className="flex items-center gap-3">
         <BrandLogo service={service} size={40} halo={incident.impact !== 'maintenance'} />

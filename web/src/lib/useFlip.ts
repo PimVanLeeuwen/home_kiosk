@@ -5,7 +5,8 @@ interface Spot {
   y: number
 }
 
-const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
+/** The theme's --ease-glide; the Web Animations API takes no CSS variables. */
+export const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
 /**
  * Slides the `[data-card]` elements inside `container` from where they were

@@ -128,7 +128,7 @@ export function PasteDialog({ open, onClose, onSaved, target }: Props) {
       aria-label="Paste JSON"
       onClose={() => dialog.current?.open || onClose()}
       onClick={(e) => e.target === dialog.current && onClose()}
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-y-auto rounded-t-[22px] border border-line bg-card p-0 text-fg shadow-[0_24px_80px_rgb(0_0_0/0.55)] backdrop:bg-black/55 backdrop:backdrop-blur-sm open:motion-safe:animate-rise md:m-auto md:w-[min(680px,calc(100%-2rem))] md:rounded-[16px]"
+      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-y-auto rounded-t-hero border border-line bg-card p-0 text-fg shadow-overlay backdrop:bg-black/55 backdrop:backdrop-blur-sm open:motion-safe:animate-rise md:m-auto md:w-[min(680px,calc(100%-2rem))] md:rounded-sheet"
     >
       <div className="flex flex-col gap-4 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <div className="flex items-center justify-between gap-3">
@@ -149,7 +149,7 @@ export function PasteDialog({ open, onClose, onSaved, target }: Props) {
             autoCapitalize="off"
             autoCorrect="off"
             placeholder='{ "schema": "hub-recipe/1", ... }'
-            className="min-h-48 rounded-[12px] border border-line bg-canvas px-3.5 py-3 font-mono text-caption leading-relaxed text-fg placeholder:text-faint focus:border-accent-line focus:outline-none"
+            className="min-h-48 rounded-tile border border-line bg-canvas px-3.5 py-3 font-mono text-caption leading-relaxed text-fg placeholder:text-faint focus:border-accent-line focus:outline-none"
           />
         </label>
 
@@ -166,7 +166,7 @@ export function PasteDialog({ open, onClose, onSaved, target }: Props) {
         {check?.ok && !elsewhere && (
           <ul aria-label="What this does" className="flex flex-col gap-3">
             {check.recipes.map((r) => (
-              <li key={r.id} className="rounded-[12px] border border-line-soft bg-raised/60 px-4 py-3">
+              <li key={r.id} className="rounded-tile border border-line-soft bg-raised/60 px-4 py-3">
                 <p className="font-semibold">
                   {r.result === 'new' ? 'New: ' : r.result === 'replace' ? 'Replaces ' : 'Unchanged: '}
                   {r.result === 'replace' ? `"${r.title}"` : r.title}
@@ -208,7 +208,7 @@ export function PasteDialog({ open, onClose, onSaved, target }: Props) {
 
 function Problems({ title, lines }: { title: string; lines: { path: string; message: string }[] }) {
   return (
-    <div role="alert" className="flex flex-col gap-1.5 rounded-[12px] border border-down/35 bg-down/7 px-4 py-3">
+    <div role="alert" className="flex flex-col gap-1.5 rounded-tile border border-down/35 bg-down/7 px-4 py-3">
       <p className="text-small font-semibold text-down">{title}</p>
       {lines.map((p) => (
         <p key={`${p.path} ${p.message}`} className="text-small">

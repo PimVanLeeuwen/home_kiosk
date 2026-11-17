@@ -17,7 +17,7 @@ export function Segmented<T extends string>({ label, options, value, onChange, s
       role="radiogroup"
       aria-label={label}
       className={cn(
-        'inline-flex gap-0.5 rounded-[10px] border border-line bg-raised p-[3px] text-caption',
+        'inline-flex gap-0.5 rounded-control border border-line bg-raised p-[3px] text-caption',
         stretch && 'flex w-full sm:inline-flex sm:w-auto',
         className,
       )}
@@ -30,7 +30,7 @@ export function Segmented<T extends string>({ label, options, value, onChange, s
           aria-checked={value === v}
           onClick={() => onChange(v)}
           className={cn(
-            'rounded-[7px] px-2.5 py-1 whitespace-nowrap',
+            'rounded-tag px-2.5 py-1 whitespace-nowrap',
             stretch && 'flex-1 sm:flex-none',
             value === v ? 'bg-accent/20 text-fg shadow-[inset_0_0_0_1px_--alpha(var(--color-accent-line)/40%)]' : 'text-muted hover:text-fg',
           )}

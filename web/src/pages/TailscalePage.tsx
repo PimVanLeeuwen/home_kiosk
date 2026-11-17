@@ -42,7 +42,7 @@ function Group({ title, devices, open, setOpen, now }: {
     <section aria-labelledby={id} className="mt-5">
       <h2 id={id} className={cn(titleClass, 'mb-2.5 flex items-center gap-2')}>
         {title}
-        <span className={title === 'Online' ? 'rounded-[6px] bg-up/13 px-1.5 text-up' : 'rounded-[6px] bg-raised px-1.5 text-muted'}>
+        <span className={title === 'Online' ? 'rounded-tag bg-up/13 px-1.5 text-up' : 'rounded-tag bg-raised px-1.5 text-muted'}>
           {devices.length}
         </span>
       </h2>
@@ -104,7 +104,7 @@ export function TailscalePage() {
             <section
               key={warning}
               role="alert"
-              className="mb-4 flex items-start gap-3.5 rounded-[14px] border border-warn/35 bg-linear-to-br from-warn/12 to-warn/3 px-5 py-4"
+              className="mb-4 flex items-start gap-3.5 rounded-card border border-warn/35 bg-linear-to-br from-warn/12 to-warn/3 px-5 py-4"
             >
               <span
                 aria-hidden="true"

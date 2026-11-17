@@ -182,14 +182,14 @@ function NowPlaying({ room }: { room: Room & { playing: ApplePlaying } }) {
     <li
       data-state={p.state}
       style={{ '--c': colour } as CSSProperties}
-      className="grid grid-cols-[46px_minmax(0,1fr)_auto] items-center gap-3 rounded-[12px] border border-glass-line bg-glass bg-linear-to-r from-[color-mix(in_srgb,var(--c)_14%,transparent)] to-transparent to-70% px-3 py-2.5"
+      className="grid grid-cols-[46px_minmax(0,1fr)_auto] items-center gap-3 rounded-tile border border-glass-line bg-glass bg-linear-to-r from-[color-mix(in_srgb,var(--c)_14%,transparent)] to-transparent to-70% px-3 py-2.5"
     >
       {p.artwork ? (
-        <img src={`/api/apple/artwork/${room.id}`} alt="" className="size-[46px] rounded-[9px] border border-glass-line object-cover" />
+        <img src={`/api/apple/artwork/${room.id}`} alt="" className="size-[46px] rounded-control border border-glass-line object-cover" />
       ) : (
         <span
           aria-hidden="true"
-          className="size-[46px] rounded-[9px] border border-glass-line"
+          className="size-[46px] rounded-control border border-glass-line"
           style={{ background: `radial-gradient(70% 80% at 40% 35%, ${colour}, transparent 70%), linear-gradient(160deg, #2a2440, #121118)` }}
         />
       )}
@@ -201,7 +201,7 @@ function NowPlaying({ room }: { room: Room & { playing: ApplePlaying } }) {
         {[0, -0.3, -0.6, -0.15].map((delay) => (
           <i
             key={delay}
-            className={cn('block h-1 w-[3px] rounded-[2px] bg-(--c)', p.state === 'playing' ? 'motion-safe:animate-eq' : 'opacity-60')}
+            className={cn('block h-1 w-[3px] rounded-mark bg-(--c)', p.state === 'playing' ? 'motion-safe:animate-eq' : 'opacity-60')}
             style={{ animationDelay: `${delay}s` }}
           />
         ))}

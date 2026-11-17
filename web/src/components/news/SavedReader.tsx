@@ -94,7 +94,7 @@ export function SavedReader({ id, known, onChange, onDeleted }: Props) {
       back={{ to: '/saved', label: 'Saved' }}
       meta={
         <>
-          {archived && <span className="mr-1 rounded-[6px] border border-glass-line bg-glass px-1.5 py-px text-label font-semibold text-muted">Archived</span>}
+          {archived && <span className="mr-1 rounded-tag border border-glass-line bg-glass px-1.5 py-px text-label font-semibold text-muted">Archived</span>}
           <span>
             {[known?.site ?? content.data?.site, known?.created && `saved ${formatAgo(known.created)}`]
               .filter(Boolean)

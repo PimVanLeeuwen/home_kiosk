@@ -24,7 +24,7 @@ export function StorageCard({ pools }: { pools: Pool[] }) {
             {pools.map((pool) => (
               <li
                 key={pool.name}
-                className="grid grid-cols-[130px_minmax(0,1fr)] items-center gap-2.5 rounded-[12px] border border-glass-line bg-glass p-3 text-left sm:grid-cols-1 sm:text-center"
+                className="grid grid-cols-[130px_minmax(0,1fr)] items-center gap-2.5 rounded-tile border border-glass-line bg-glass p-3 text-left sm:grid-cols-1 sm:text-center"
               >
                 <ArcGauge pct={pool.used_pct} alertAt={POOL_FULL_PCT} label={pool.name} className="mx-auto w-full sm:w-[82%] sm:max-w-[200px]" />
                 <div className="min-w-0">
@@ -40,7 +40,7 @@ export function StorageCard({ pools }: { pools: Pool[] }) {
           </ul>
           {pools.length > 1 && (
             <div className="mt-4 flex items-center gap-3 border-t border-line-soft pt-3 text-small">
-              <span className="text-label font-semibold tracking-[0.06em] text-faint uppercase">All pools</span>
+              <span className="text-label eyebrow text-faint">All pools</span>
               <span
                 role="meter"
                 aria-label="All pools"

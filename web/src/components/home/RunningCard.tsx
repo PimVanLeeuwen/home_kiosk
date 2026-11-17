@@ -16,7 +16,7 @@ export function RunningCard({ data }: { data: RunningOverview | undefined }) {
     return (
       <Card title="Ran today" link={{ to: '/running', label: 'Running' }}>
         <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
-          <span className="grid aspect-square place-items-center rounded-[12px] bg-[radial-gradient(80%_80%_at_50%_50%,#15131f,#08080c)]">
+          <span className="grid aspect-square place-items-center rounded-tile bg-[radial-gradient(80%_80%_at_50%_50%,#15131f,#08080c)]">
             <RouteArt points={last.route} width={120} height={120} pad={12} mini className="size-full" />
           </span>
           <div>

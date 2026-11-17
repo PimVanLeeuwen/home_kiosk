@@ -53,7 +53,7 @@ function BlockView({ block, lead }: { block: Block; lead: boolean }) {
             src={block.src}
             alt={block.text}
             loading="lazy"
-            className="w-full rounded-[10px] bg-raised"
+            className="w-full rounded-control bg-raised"
             onError={(e) => (e.currentTarget.parentElement!.hidden = true)}
           />
         </figure>
@@ -120,7 +120,7 @@ export function ArticleView({ content, title, url, meta, actions, back, bodyRef 
           className="sticky top-0 z-10 -mt-1 mb-4 h-0.5 overflow-hidden rounded-full bg-raised"
         >
           <span
-            className="block h-full rounded-full bg-linear-to-r from-[var(--color-accent)] to-[var(--color-accent-fg)] shadow-[0_0_8px_var(--color-accent-line)] transition-[width] duration-150"
+            className="block h-full rounded-full bg-linear-to-r from-[var(--color-accent)] to-[var(--color-accent-fg)] shadow-glow shadow-accent-line transition-[width] duration-150"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -156,7 +156,7 @@ export function ArticleView({ content, title, url, meta, actions, back, bodyRef 
         </Surface>
       )}
       {hero && (
-        <figure className="relative mb-7 overflow-hidden rounded-[14px] border border-glass-line">
+        <figure className="relative mb-7 overflow-hidden rounded-card border border-glass-line">
           <img
             src={hero.src}
             alt={hero.text}
@@ -192,7 +192,7 @@ interface ActionProps {
 /** A reader action button, or a link styled like one. */
 export function ReaderAction({ onClick, href, icon, label, short, primary, disabled, danger }: ActionProps) {
   const className = [
-    'inline-flex items-center gap-1.5 rounded-[10px] border px-3 py-2 text-small font-medium disabled:opacity-50',
+    'inline-flex items-center gap-1.5 rounded-control border px-3 py-2 text-small font-medium disabled:opacity-50',
     primary
       ? 'border-accent bg-accent text-white shadow-[0_0_14px_-4px_var(--color-accent-line)] hover:brightness-110'
       : danger

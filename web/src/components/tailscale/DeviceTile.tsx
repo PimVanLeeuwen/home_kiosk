@@ -20,7 +20,7 @@ export function CopyButton({ value, what }: { value: string; what: string }) {
           window.setTimeout(() => setCopied(false), 1500)
         })
       }
-      className="ml-1.5 rounded-[6px] border border-glass-line bg-glass px-1.5 align-[1px] font-sans text-micro text-muted hover:text-fg"
+      className="ml-1.5 rounded-tag border border-glass-line bg-glass px-1.5 align-[1px] font-sans text-micro text-muted hover:text-fg"
     >
       {copied ? 'Copied' : 'Copy'}
     </button>
@@ -47,7 +47,7 @@ function Chip({ tone, children }: { tone?: 'direct' | 'relay' | 'exit'; children
   return (
     <span
       className={cn(
-        'rounded-[6px] border px-[7px] text-label whitespace-nowrap',
+        'rounded-tag border px-[7px] text-label whitespace-nowrap',
         tone === 'direct' && 'border-up/25 text-up',
         tone === 'relay' && 'border-accent-line/30 text-accent-fg',
         tone === 'exit' && 'border-transparent bg-accent text-white',
@@ -72,7 +72,7 @@ export function DeviceTile({ device: d, open, onToggle, now }: Props) {
   return (
     <li
       className={cn(
-        'rounded-[12px] border',
+        'rounded-tile border',
         open ? 'col-span-full border-accent-line/35 bg-accent/10' : 'border-glass-line bg-glass',
         !d.online && !open && 'opacity-75',
       )}
@@ -85,7 +85,7 @@ export function DeviceTile({ device: d, open, onToggle, now }: Props) {
       >
         <span
           className={cn(
-            'grid size-10 place-items-center rounded-[11px] border bg-raised',
+            'grid size-10 place-items-center rounded-tile border bg-raised',
             d.online ? 'border-up/40 shadow-[0_0_14px_-5px_var(--color-up)]' : 'border-dashed border-white/18 text-faint',
           )}
         >

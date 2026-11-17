@@ -60,7 +60,7 @@ export function WatchingCard({ overview }: { overview: MediaOverview }) {
           )}
           {overview.genres.length > 0 && (
             <div className="mt-3">
-              <p className="mb-1.5 text-label font-semibold tracking-[0.08em] text-faint uppercase">Most-watched genres, all time</p>
+              <p className="mb-1.5 text-label eyebrow text-faint">Most-watched genres, all time</p>
               <ul className="flex flex-wrap gap-1.5">
                 {overview.genres.map((g) => (
                   <li key={g} className="rounded-full bg-accent/12 px-2.5 py-0.5 text-label text-accent-fg">
@@ -89,7 +89,7 @@ export function LibraryCard({ overview }: { overview: MediaOverview }) {
     <Card title="Library" note={formatBytes(lib.size_bytes)}>
       <ul className="grid grid-cols-3 gap-2.5">
         {tiles.map(([label, n, added]) => (
-          <li key={label} className="rounded-[12px] border border-glass-line bg-glass p-3">
+          <li key={label} className="rounded-tile border border-glass-line bg-glass p-3">
             <b className="block text-stat font-semibold">{count.format(n)}</b>
             <span className="text-caption text-muted">{label}</span>
             {added != null && added > 0 && <span className="block text-label text-up">+{count.format(added)} this week</span>}

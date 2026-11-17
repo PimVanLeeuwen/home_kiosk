@@ -51,7 +51,7 @@ function Porthole({ m }: { m: Machine }) {
   return (
     <div className="relative mb-2 aspect-square w-32 md:w-[150px]">
       <svg viewBox="0 0 100 100" className="block size-full" aria-hidden="true">
-        <circle cx="50" cy="50" r={R} fill="none" stroke="rgb(255 255 255 / 0.08)" strokeWidth="4" />
+        <circle cx="50" cy="50" r={R} fill="none" stroke="var(--color-track)" strokeWidth="4" />
         {filled > 0 && (
           <circle
             cx="50"

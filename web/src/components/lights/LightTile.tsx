@@ -52,7 +52,7 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
       data-on={group.on}
       style={{ '--w': white, '--b': glow } as CSSProperties}
       className={cn(
-        'relative overflow-hidden rounded-[18px] border px-5 pt-[18px] pb-4 transition-[background,box-shadow,border-color] duration-500',
+        'relative overflow-hidden rounded-sheet border px-5 pt-[18px] pb-4 transition-[background,box-shadow,border-color] duration-500',
         'bg-[radial-gradient(120%_90%_at_20%_0%,color-mix(in_srgb,var(--w)_calc(var(--b)*38%),transparent),transparent_70%),var(--color-card)]',
         group.on
           ? 'border-[color-mix(in_srgb,var(--w)_45%,transparent)] shadow-[0_0_calc(var(--b)*46px)_-8px_color-mix(in_srgb,var(--w)_70%,transparent)]'
@@ -106,12 +106,12 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
         onChange={(e) => dim(Number(e.target.value))}
         style={{ '--p': `${Math.max(1, level)}%` } as CSSProperties}
         className={cn(
-          'mt-3 h-[34px] w-full cursor-pointer appearance-none rounded-[12px] border border-glass-line disabled:cursor-default',
+          'mt-3 h-[34px] w-full cursor-pointer appearance-none rounded-tile border border-glass-line disabled:cursor-default',
           group.on
             ? 'bg-[linear-gradient(90deg,color-mix(in_srgb,var(--w)_35%,transparent),color-mix(in_srgb,var(--w)_85%,transparent)_var(--p),rgb(255_255_255/0.05)_var(--p))]'
             : 'bg-[linear-gradient(90deg,rgb(255_255_255/0.06)_var(--p),rgb(255_255_255/0.03)_var(--p))]',
-          '[&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-1 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-[3px] [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgb(255_255_255/0.8)]',
-          '[&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-1 [&::-moz-range-thumb]:rounded-[3px] [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white',
+          '[&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-1 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-mark [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgb(255_255_255/0.8)]',
+          '[&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-1 [&::-moz-range-thumb]:rounded-mark [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white',
         )}
       />
 
@@ -131,7 +131,7 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
                   onClick={() => onChange({ kelvin: k })}
                   style={{ background: whiteOf(k), '--c': whiteOf(k) } as CSSProperties}
                   className={cn(
-                    'pressable h-[30px] flex-1 rounded-[10px] border border-white/10',
+                    'pressable h-[30px] flex-1 rounded-control border border-white/10',
                     chosen && 'shadow-[0_0_14px_var(--c)] outline-2 outline-offset-2 outline-white',
                   )}
                 />

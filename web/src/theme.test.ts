@@ -1,5 +1,6 @@
 /// <reference types="node" />
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
+import { EASE } from './lib/useFlip'
 
 // Read from disk: the tests run with CSS processing off, so a `?raw` import comes back empty.
 const css = readFileSync(`${import.meta.dirname}/index.css`, 'utf8')
@@ -38,5 +39,34 @@ describe('theme contrast (WCAG AA)', () => {
     for (const surface of ['card', 'raised']) {
       expect(contrast(token('line-strong'), token(surface))).toBeGreaterThan(contrast(token('line'), token(surface)) * 1.5)
     }
+  })
+})
+
+/** Every component and page source, for the checks that keep hand-written values out. */
+const sources = (readdirSync(import.meta.dirname, { recursive: true }) as string[])
+  .filter((f) => /\.tsx?$/.test(f) && !/\.test\./.test(f))
+  .map((f) => [f, readFileSync(`${import.meta.dirname}/${f}`, 'utf8')] as const)
+
+describe('design tokens', () => {
+  it('rounds every corner with a named radius, never a pixel value', () => {
+    const loose = sources.flatMap(([f, src]) => [...src.matchAll(/rounded(-[a-z]+)?-(\[\d[^\]]*px[^\]]*\]|(?:sm|md|lg|xl|2xl|3xl)\b)/g)].map((m) => `${f}: ${m[0]}`))
+    expect(loose).toEqual([])
+  })
+
+  it('writes small capitals with the eyebrow utility, cook mode excepted', () => {
+    const loose = sources
+      .filter(([f]) => !/(Cook|RecipeParts)/.test(f))
+      .flatMap(([f, src]) => [...src.matchAll(/['"`][^'"`\n]*\buppercase\b[^'"`\n]*['"`]/g)].map((m) => `${f}: ${m[0]}`))
+    expect(loose).toEqual([])
+  })
+
+  it('draws ring tracks and chart grids with their tokens', () => {
+    const loose = sources.flatMap(([f, src]) => [...src.matchAll(/stroke="rgb\(255 255 255 \/ 0\.0[4-9]\)"/g)].map((m) => `${f}: ${m[0]}`))
+    // The weather's horizon and rain baseline and the week chart's day lines are lines, not tracks.
+    expect(loose.map((l) => l.split(':')[0]).sort()).toEqual(['components/portfolio/WeekChart.tsx', 'components/weather/DayCurve.tsx', 'components/weather/SunArc.tsx'])
+  })
+
+  it('keeps the flip animation on the theme easing', () => {
+    expect(css).toContain(`--ease-glide: ${EASE};`)
   })
 })

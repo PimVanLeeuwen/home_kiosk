@@ -18,11 +18,11 @@ export function RunDots({ runs, label }: Props) {
             key={i}
             data-ok={run.ok}
             className={cn(
-              'block size-[7px] rounded-[2px]',
+              'block size-[7px] rounded-mark',
               !run.ok
-                ? 'bg-down shadow-[0_0_6px_var(--color-down)]'
+                ? 'bg-down shadow-glow shadow-down'
                 : newest
-                  ? 'bg-up shadow-[0_0_6px_var(--color-up)]'
+                  ? 'bg-up shadow-glow shadow-up'
                   : 'bg-up/55',
             )}
           />

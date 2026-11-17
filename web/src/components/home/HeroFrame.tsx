@@ -22,7 +22,7 @@ export function HeroFrame({ light, light2, backdrop, children }: Props) {
       data-hero
       style={{ '--h': light, '--h2': light2 ?? light } as CSSProperties}
       className={cn(
-        'relative isolate overflow-hidden rounded-[20px] border border-white/[0.075]',
+        'relative isolate overflow-hidden rounded-hero border border-white/[0.075]',
         'bg-[radial-gradient(70%_140%_at_100%_0%,color-mix(in_srgb,var(--h)_24%,transparent),transparent_62%),radial-gradient(60%_120%_at_0%_100%,color-mix(in_srgb,var(--h2)_12%,transparent),transparent_70%),linear-gradient(180deg,#17181e,#121318)]',
         'shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_24px_60px_-30px_color-mix(in_srgb,var(--h)_60%,transparent)]',
         // The card inside gives up its own surface and grows a little.

@@ -68,6 +68,29 @@
   /* Glass surfaces inside cards (tiles, chips), as on the desk panels. */
   --color-glass: rgb(255 255 255 / 0.035);
   --color-glass-line: rgb(255 255 255 / 0.07);
+  /* The unfilled part of a ring, arc or meter, and a chart's grid lines. */
+  --color-track: rgb(255 255 255 / 0.08);
+  --color-grid: rgb(255 255 255 / 0.04);
+
+  /*
+   * Radii, by what is rounded (rounded-tag, rounded-card, ...). Every corner in the
+   * hub is one of these or rounded-full; a box inside another keeps a smaller step.
+   */
+  --radius-mark: 3px; /* bars, LEDs, small marks in a chart */
+  --radius-tag: 6px; /* tags, badges, a ticker, an option inside a control */
+  --radius-control: 10px; /* buttons, fields, segmented controls, rows you tap */
+  --radius-tile: 12px; /* tiles and boxes inside a card */
+  --radius-card: 14px; /* cards and the status chips */
+  --radius-sheet: 18px; /* big pictures, dialogs, the composer */
+  --radius-hero: 20px; /* Home's hero */
+
+  /* Shadows: a dialog or menu over the page, and the glow of a status dot or small bar
+     (its colour from a shadow colour class, for example `shadow-glow shadow-down`). */
+  --shadow-overlay: 0 24px 80px rgb(0 0 0 / 0.55);
+  --shadow-glow: 0 0 7px currentColor;
+
+  /* The hub's one easing for things that arrive: quick, then settling (ease-glide). */
+  --ease-glide: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* A light running along a line (the backup route), left to right. */
   --animate-flow: flow 3.6s ease-in-out infinite;
@@ -130,7 +153,7 @@
   }
 
   /* Home's one staggered reveal when the page opens; each element sets its own delay. */
-  --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-rise: rise 0.7s var(--ease-glide) both;
   @keyframes rise {
     from {
       opacity: 0;
@@ -173,19 +196,19 @@
       opacity: 0;
     }
   }
-  --animate-sweep: sweep 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-sweep: sweep 1s var(--ease-glide) both;
   @keyframes sweep {
     from {
       stroke-dasharray: 0 1000;
     }
   }
-  --animate-grow: grow 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-grow: grow 0.8s var(--ease-glide) both;
   @keyframes grow {
     from {
       transform: scaleY(0);
     }
   }
-  --animate-grow-x: grow-x 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-grow-x: grow-x 0.9s var(--ease-glide) both;
   @keyframes grow-x {
     from {
       transform: scaleX(0);
@@ -217,9 +240,19 @@
  * A press response for controls you tap a lot (lights, music, buttons): a
  * small, quick give, nothing with reduced motion.
  */
+/*
+ * A small-capitals label over a figure, a group or a tile. Size and colour come from
+ * the element (text-label or text-micro, text-faint); cook mode has its own louder one.
+ */
+@utility eyebrow {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 @utility pressable {
   transition:
-    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 160ms var(--ease-glide),
     filter 150ms,
     border-color 150ms,
     background-color 150ms,
@@ -248,7 +281,7 @@
     animation: page-out 120ms ease-in both;
   }
   ::view-transition-new(page) {
-    animation: page-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: page-in 280ms var(--ease-glide) both;
   }
 }
 @media (prefers-reduced-motion: reduce) {

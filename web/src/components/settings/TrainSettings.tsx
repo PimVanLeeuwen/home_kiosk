@@ -46,7 +46,7 @@ export function TrainSettings() {
             aria-pressed={days.includes(d)}
             onClick={() => toggle(d)}
             className={cn(
-              'rounded-[8px] border px-1 py-1.5 text-caption sm:px-3',
+              'rounded-control border px-1 py-1.5 text-caption sm:px-3',
               days.includes(d) ? 'border-accent-line/60 bg-accent-soft text-fg' : 'border-line bg-raised text-muted hover:text-fg',
             )}
           >

@@ -114,7 +114,7 @@ export function ExposureCard() {
             <li
               key={host.hostname}
               className={cn(
-                'rounded-[10px] border px-3 py-2.5',
+                'rounded-control border px-3 py-2.5',
                 host.allowed
                   ? 'border-glass-line bg-glass'
                   : 'border-down/40 bg-linear-to-br from-down/12 to-down/[0.03]',
@@ -130,7 +130,7 @@ export function ExposureCard() {
               <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-caption text-muted">
                 <span
                   className={cn(
-                    'rounded-[6px] px-1.5 text-micro font-semibold tracking-[0.04em] uppercase',
+                    'rounded-tag px-1.5 text-micro eyebrow',
                     host.source === 'tunnel' ? 'bg-accent/18 text-accent-fg' : 'bg-[var(--color-data-blue)]/14 text-[var(--color-data-blue)]',
                   )}
                 >
@@ -144,7 +144,7 @@ export function ExposureCard() {
         </ul>
       )}
       <div className="mt-3.5 border-t border-line-soft pt-3 text-caption">
-        <p className="mb-1.5 text-label font-semibold tracking-[0.08em] text-faint uppercase">Port scan from outside</p>
+        <p className="mb-1.5 text-label eyebrow text-faint">Port scan from outside</p>
         <ScanLine scan={scan} />
       </div>
       {data.stale && <StaleNote />}

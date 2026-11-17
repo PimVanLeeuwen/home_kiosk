@@ -56,11 +56,11 @@ function Favourites({ current, onSaved }: { current: Favourite[]; onSaved: () =>
                 disabled={n < 0 && picked.length >= MAX}
                 onClick={() => toggle(p.id)}
                 className={cn(
-                  'grid w-full grid-cols-[36px_minmax(0,1fr)_24px] items-center gap-3 rounded-[10px] px-2 py-1.5 text-left hover:bg-white/3 disabled:opacity-45',
+                  'grid w-full grid-cols-[36px_minmax(0,1fr)_24px] items-center gap-3 rounded-control px-2 py-1.5 text-left hover:bg-white/3 disabled:opacity-45',
                   n >= 0 && 'bg-accent/12',
                 )}
               >
-                <Cover item={{ cover: p.cover, colour: null }} className="size-9 rounded-[7px]" />
+                <Cover item={{ cover: p.cover, colour: null }} className="size-9 rounded-tag" />
                 <span className="min-w-0">
                   <span className="block truncate">{p.name}</span>
                   {p.owner && <span className="block truncate text-caption text-faint">{p.owner}</span>}

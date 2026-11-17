@@ -19,7 +19,7 @@ const tone = (n: number | null | undefined) => (!n ? 'text-muted' : n > 0 ? 'tex
 const pill = (n: number) => (n > 0 ? 'bg-up/12 text-up' : n < 0 ? 'bg-down/13 text-down' : 'bg-raised text-muted')
 /** A ticker on a small glass chip. */
 const CHIP =
-  'inline-block min-w-[3.4rem] shrink-0 rounded-[6px] border border-glass-line bg-glass px-1.5 py-0.5 text-center font-mono text-caption font-medium'
+  'inline-block min-w-[3.4rem] shrink-0 rounded-tag border border-glass-line bg-glass px-1.5 py-0.5 text-center font-mono text-caption font-medium'
 
 function sorted(holdings: HoldingRow[], sort: Sort): HoldingRow[] {
   const key = (h: HoldingRow) => (sort === 'value' ? h.value : sort === 'today' ? h.day_pct : (h.gain_pct ?? 0))
@@ -74,7 +74,7 @@ export function HoldingsCard({ holdings, currency }: { holdings: HoldingRow[]; c
                 </span>
               </td>
               <td className="py-2.5 pl-3 text-right whitespace-nowrap">
-                <span className={cn('rounded-[7px] px-1.5 py-0.5 text-caption font-semibold', pill(h.day_pct))}>{formatSignedPct(h.day_pct)}</span>
+                <span className={cn('rounded-tag px-1.5 py-0.5 text-caption font-semibold', pill(h.day_pct))}>{formatSignedPct(h.day_pct)}</span>
                 {h.day_abs != null && <span className="mt-0.5 block text-caption text-muted">{formatSignedMoney(h.day_abs, currency)}</span>}
               </td>
               <td className={cn('py-2.5 pl-3 text-right whitespace-nowrap', tone(h.gain_pct))}>

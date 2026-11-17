@@ -63,7 +63,7 @@ export function ServiceForm({ service, groups, containers, widgets, onSubmit, on
     <form
       onSubmit={submit}
       aria-label={service ? `Edit ${service.name}` : 'Add a service'}
-      className="rounded-[12px] border border-line bg-panel p-4"
+      className="rounded-tile border border-line bg-panel p-4"
     >
       <fieldset className="mb-3 flex flex-wrap gap-x-5 gap-y-2">
         <legend className="sr-only">Kind</legend>

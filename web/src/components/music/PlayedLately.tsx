@@ -44,14 +44,14 @@ export function PlayedLately({ recent, playingFrom, starting, onPlay, waiting = 
                 >
                   <span
                     className={cn(
-                      'relative block aspect-square overflow-hidden rounded-[14px]',
+                      'relative block aspect-square overflow-hidden rounded-card',
                       plays && 'shadow-[0_0_28px_-6px_var(--c)] ring-2 ring-white/85',
                     )}
                     style={{ '--c': r.colour ?? 'var(--color-data-violet)' } as CSSProperties}
                   >
                     <Cover item={r} className="absolute inset-0 size-full" />
                     {plays ? (
-                      <span className="absolute right-2 bottom-2 grid place-items-center rounded-[9px] bg-black/60 px-2 py-1.5">
+                      <span className="absolute right-2 bottom-2 grid place-items-center rounded-control bg-black/60 px-2 py-1.5">
                         <Equaliser playing />
                       </span>
                     ) : (

@@ -218,7 +218,7 @@ describe('Card', () => {
     )
 
     const title = screen.getByRole('heading', { name: 'Last night' })
-    expect(title).not.toHaveClass('uppercase')
+    expect(title).not.toHaveClass('eyebrow')
     const right = title.nextElementSibling!
     expect([...right.children].map((c) => c.textContent)).toEqual(['Hetzner · encrypted', 'All safe', 'Details →'])
     expect(right.firstElementChild).toHaveClass('text-faint')

@@ -73,7 +73,7 @@ export function ArcGauge({ pct, alertAt, label, children, className }: Props) {
             strokeWidth="0.5"
           />
         ))}
-        <path d={arc(0, 1)} stroke="rgb(255 255 255 / 0.07)" strokeWidth="6" fill="none" strokeLinecap="round" />
+        <path d={arc(0, 1)} stroke="var(--color-track)" strokeWidth="6" fill="none" strokeLinecap="round" />
         {value > 0 && (
           <path
             d={arc(0, value / 100)}

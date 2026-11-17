@@ -56,8 +56,8 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
                 className={cn(
                   'block size-[7px] rounded-full',
                   status === 'up' && 'bg-up shadow-[0_0_5px_--alpha(var(--color-up)/70%)]',
-                  (status === 'unhealthy' || status === 'starting') && 'bg-warn shadow-[0_0_6px_var(--color-warn)]',
-                  status === 'down' && 'bg-down shadow-[0_0_6px_var(--color-down)]',
+                  (status === 'unhealthy' || status === 'starting') && 'bg-warn shadow-glow shadow-warn',
+                  status === 'down' && 'bg-down shadow-glow shadow-down',
                 )}
               />
             )
@@ -96,7 +96,7 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
         <ul className="mt-1.5 flex flex-wrap gap-x-2.5 gap-y-0.5 text-label text-muted">
           {biggest.map((c, i) => (
             <li key={c.name} className="flex min-w-0 items-center gap-1">
-              <i className="inline-block size-[7px] shrink-0 rounded-[2px]" style={{ backgroundColor: MEMORY_COLOURS[i] }} />
+              <i className="inline-block size-[7px] shrink-0 rounded-mark" style={{ backgroundColor: MEMORY_COLOURS[i] }} />
               <span className="truncate">{c.name}</span>
             </li>
           ))}
@@ -108,7 +108,7 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
           {days.map((d, i) => (
             <span key={i} className="grid justify-items-center gap-0.5 text-micro text-faint">
               <b
-                className={cn('block w-2.5 rounded-[3px]', d.count ? 'bg-accent-line shadow-[0_0_6px_var(--color-accent-line)]' : 'bg-accent-line/25')}
+                className={cn('block w-2.5 rounded-mark', d.count ? 'bg-accent-line shadow-glow shadow-accent-line' : 'bg-accent-line/25')}
                 style={{ height: 6 + Math.min(d.count, 4) * 6 }}
               />
               {d.label}

@@ -4,7 +4,7 @@ export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'heat'
 export type ButtonSize = 'md' | 'sm'
 
 const BASE =
-  'pressable inline-flex items-center justify-center gap-1.5 rounded-[10px] border text-small font-medium whitespace-nowrap disabled:pointer-events-none disabled:opacity-40 disabled:shadow-none'
+  'pressable inline-flex items-center justify-center gap-1.5 rounded-control border text-small font-medium whitespace-nowrap disabled:pointer-events-none disabled:opacity-40 disabled:shadow-none'
 
 const VARIANT: Record<ButtonVariant, string> = {
   // The one action a card or form is for.
@@ -29,4 +29,4 @@ export function buttonClass(variant: ButtonVariant = 'secondary', size: ButtonSi
 
 /** A small square button with only an icon (edit, move, delete); give it an `aria-label`. */
 export const iconButtonClass =
-  'grid size-8 place-items-center rounded-lg text-muted hover:bg-raised hover:text-fg disabled:opacity-30 disabled:hover:bg-transparent'
+  'grid size-8 place-items-center rounded-control text-muted hover:bg-raised hover:text-fg disabled:opacity-30 disabled:hover:bg-transparent'

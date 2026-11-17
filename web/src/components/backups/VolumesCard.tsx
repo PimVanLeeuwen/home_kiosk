@@ -16,7 +16,7 @@ function VolumeTile({ summary, index }: { summary: Summary; index: number }) {
     <section
       aria-labelledby={id}
       className={cn(
-        'grid content-start gap-1.5 rounded-[12px] border p-3 text-caption',
+        'grid content-start gap-1.5 rounded-tile border p-3 text-caption',
         bad ? 'border-down/40 bg-linear-to-br from-down/12 to-down/[0.03]' : 'border-glass-line bg-glass',
       )}
     >
@@ -25,7 +25,7 @@ function VolumeTile({ summary, index }: { summary: Summary; index: number }) {
         <h3 id={id} className="font-mono text-small font-semibold">
           {summary.name}
         </h3>
-        <span aria-hidden="true" className="ml-auto size-[9px] rounded-[3px]" style={{ backgroundColor: volumeColour(index) }} />
+        <span aria-hidden="true" className="ml-auto size-[9px] rounded-mark" style={{ backgroundColor: volumeColour(index) }} />
       </div>
       {v && (
         <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-0.5 [&_dd]:text-right [&_dt]:text-muted">
@@ -49,7 +49,7 @@ function VolumeTile({ summary, index }: { summary: Summary; index: number }) {
         </dl>
       )}
       {v?.last_error && (
-        <p className="rounded-lg border border-down/40 bg-down/10 px-2.5 py-1.5 font-mono text-label break-words text-fg">
+        <p className="rounded-control border border-down/40 bg-down/10 px-2.5 py-1.5 font-mono text-label break-words text-fg">
           {v.last_error}
         </p>
       )}

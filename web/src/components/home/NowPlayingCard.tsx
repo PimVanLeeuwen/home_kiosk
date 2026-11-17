@@ -39,8 +39,8 @@ export function NowPlayingCard({ playing, send, hero, pausedUntil = null }: Prop
         <Cover
           item={playing}
           className={cn(
-            'size-24 rounded-[12px] shadow-[0_10px_26px_color-mix(in_srgb,var(--np)_35%,transparent)]',
-            hero && 'md:size-34 md:rounded-[14px] md:shadow-[0_18px_40px_-10px_color-mix(in_srgb,var(--np)_55%,transparent)]',
+            'size-24 rounded-tile shadow-[0_10px_26px_color-mix(in_srgb,var(--np)_35%,transparent)]',
+            hero && 'md:size-34 md:rounded-card md:shadow-[0_18px_40px_-10px_color-mix(in_srgb,var(--np)_55%,transparent)]',
           )}
         />
         <div className="min-w-0">

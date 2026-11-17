@@ -48,7 +48,7 @@ export function WeekChart({ stock, view }: { stock: StockWeek; view: WeekView })
     i !== last && (
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute rounded-[5px] bg-card/75 px-1 text-caption whitespace-nowrap"
+        className="pointer-events-none absolute rounded-tag bg-card/75 px-1 text-caption whitespace-nowrap"
         style={{ ...edge((x(i) / WIDTH) * 100), top: `calc(${pct(y(prices[i]), HEIGHT)} ${over ? '- 26px' : '+ 8px'})` }}
       >
         <span className={over ? 'text-fg' : 'text-muted'}>{price(prices[i])}</span>

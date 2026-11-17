@@ -16,8 +16,8 @@ function Week({ incidents, now, className }: { incidents: Incident[]; now: Date;
             data-worst={d.worst ?? 'none'}
             className={cn(
               'block size-[9px] rounded-full',
-              d.worst === 'error' && 'bg-down shadow-[0_0_6px_var(--color-down)]',
-              d.worst === 'warning' && 'bg-warn shadow-[0_0_6px_var(--color-warn)]',
+              d.worst === 'error' && 'bg-down shadow-glow shadow-down',
+              d.worst === 'warning' && 'bg-warn shadow-glow shadow-warn',
               !d.worst && 'bg-up/50',
               d.today && 'outline outline-offset-2 outline-white/35',
             )}
@@ -80,13 +80,13 @@ export function IncidentsCard({ incidents, now }: { incidents: Incident[] | unde
                 <li
                   key={i.key}
                   className={cn(
-                    'grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 rounded-[12px] border p-3.5',
+                    'grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 rounded-tile border p-3.5',
                     error ? 'border-down/40 bg-linear-to-br from-down/14 to-down/[0.03]' : 'border-warn/35 bg-linear-to-br from-warn/13 to-warn/[0.03]',
                   )}
                 >
                   <span
                     className={cn(
-                      'grid size-11 place-items-center rounded-[12px] border border-white/12 bg-white/6 motion-safe:animate-halo',
+                      'grid size-11 place-items-center rounded-tile border border-white/12 bg-white/6 motion-safe:animate-halo',
                       error ? 'text-down [--glow:var(--color-down)]' : 'text-warn [--glow:var(--color-warn)]',
                     )}
                   >

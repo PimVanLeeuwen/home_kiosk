@@ -92,7 +92,7 @@ describe('ServicesPage', () => {
     renderRoute('/services')
 
     const media = await screen.findByRole('region', { name: 'Media' })
-    expect(screen.getByText('2 need a look', { selector: '.uppercase' })).toBeInTheDocument()
+    expect(screen.getByText('2 need a look', { selector: '.eyebrow' })).toBeInTheDocument()
     const summary = screen.getByRole('region', { name: 'Running' })
     expect(summary).toHaveTextContent('1 / 3')
     expect(screen.getByRole('region', { name: 'Needs a look' })).toHaveTextContent('2Immich, CouchDB')

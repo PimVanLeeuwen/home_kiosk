@@ -137,7 +137,7 @@ describe('AlertsPage', () => {
     expect(within(card).getByText(/^Nothing has needed you for \d+ (h|days)$/)).toBeInTheDocument()
     const dots = within(within(card).getByRole('list', { name: 'The last 7 days' })).getAllByRole('listitem')
     expect(dots.map((d) => d.querySelector('b')?.getAttribute('data-worst'))).toEqual(['none', 'warning', 'none', 'error', 'none', 'none', 'none'])
-    expect(screen.getByText('All quiet', { selector: '.uppercase' })).toBeInTheDocument()
+    expect(screen.getByText('All quiet', { selector: '.eyebrow' })).toBeInTheDocument()
   })
 
   it('puts open alerts before the messages, for a phone', async () => {

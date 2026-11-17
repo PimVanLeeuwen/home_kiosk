@@ -42,7 +42,7 @@ export function FeedForm({ feed, groupId, groups, onSubmit, onCancel }: Props) {
     <form
       onSubmit={submit}
       aria-label={feed ? `Edit ${feed.name ?? feed.url}` : 'Add a feed'}
-      className="grid gap-3 rounded-[12px] border border-line bg-panel p-4 sm:grid-cols-2"
+      className="grid gap-3 rounded-tile border border-line bg-panel p-4 sm:grid-cols-2"
     >
       <label htmlFor={`${id}-url`} className="block sm:col-span-2">
         <span className="mb-1 block text-small text-muted">Feed address</span>

@@ -51,7 +51,7 @@ export function NewsCard() {
                     <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-caption text-faint">
                       {group && (
                         <span
-                          className="rounded-[6px] px-1.5 text-micro font-semibold tracking-[0.04em]"
+                          className="rounded-tag px-1.5 text-micro font-semibold tracking-[0.04em]"
                           style={{ backgroundColor: group.colour.bg, color: group.colour.fg }}
                         >
                           {group.title}

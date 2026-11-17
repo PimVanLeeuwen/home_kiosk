@@ -27,7 +27,7 @@ export function CookStepCard({ step, kind, factor, now, onTick }: { step: Step; 
       aria-pressed={false}
       onClick={onTick}
       className={cn(
-        'pressable grid w-full grid-cols-[1.75rem_minmax(0,1fr)] gap-3.5 rounded-[18px] border bg-card p-4 text-left',
+        'pressable grid w-full grid-cols-[1.75rem_minmax(0,1fr)] gap-3.5 rounded-sheet border bg-card p-4 text-left',
         now ? (kind === 'prep' ? 'border-accent-line/45 bg-accent/10' : 'border-cook/45 bg-cook/8') : 'border-line-soft opacity-55',
       )}
     >
@@ -55,7 +55,7 @@ export function CookStepCard({ step, kind, factor, now, onTick }: { step: Step; 
 /** A ticked step, folded to one line; a tap unticks it. */
 export function DoneLine({ step, kind, onTick }: { step: Step; kind: Kind; onTick: () => void }) {
   return (
-    <button type="button" aria-pressed onClick={onTick} className="flex w-full items-center gap-3 rounded-[12px] bg-glass px-3.5 py-2.5 text-left text-faint">
+    <button type="button" aria-pressed onClick={onTick} className="flex w-full items-center gap-3 rounded-tile bg-glass px-3.5 py-2.5 text-left text-faint">
       <Tick on kind={kind} small />
       <s className="line-clamp-1 decoration-white/25">{step.text}</s>
     </button>
@@ -96,7 +96,7 @@ export function Pause({ recipe, ticks }: { recipe: Recipe; ticks: string[] }) {
           const done = phaseDone(recipe, ticks, i)
           const all = done === phase.steps.length
           return (
-            <li key={i} className="flex items-center gap-3 rounded-[12px] border border-line-soft bg-card px-3.5 py-2.5 text-left">
+            <li key={i} className="flex items-center gap-3 rounded-tile border border-line-soft bg-card px-3.5 py-2.5 text-left">
               <Check aria-hidden="true" className={cn('size-4', all ? 'text-accent-fg' : 'text-faint')} />
               {phase.name}
               <span className={cn('ml-auto text-caption', all ? 'text-faint' : 'text-warn')}>
@@ -106,7 +106,7 @@ export function Pause({ recipe, ticks }: { recipe: Recipe; ticks: string[] }) {
           )
         })}
       </ul>
-      <div className="w-full rounded-[14px] border border-cook/30 bg-cook/10 p-3.5 text-left">
+      <div className="w-full rounded-card border border-cook/30 bg-cook/10 p-3.5 text-left">
         <p className="text-label font-bold tracking-[0.12em] text-cook uppercase">First, {first.name}</p>
         <p className="mt-1">{first.steps[0].text}</p>
       </div>

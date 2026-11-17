@@ -15,7 +15,7 @@ function MinutesRing({ minutes, color, label }: { minutes: number; color: string
   const filled = Math.min(1, minutes / 60)
   return (
     <svg role="img" aria-label={`${minutes} ${label}`} viewBox="0 0 64 64" className="w-[76px] shrink-0 md:w-24">
-      <circle cx="32" cy="32" r={R} fill="none" stroke="rgb(255 255 255 / 0.08)" strokeWidth="4.5" />
+      <circle cx="32" cy="32" r={R} fill="none" stroke="var(--color-track)" strokeWidth="4.5" />
       <circle
         cx="32"
         cy="32"
@@ -48,7 +48,7 @@ function Platform({ run }: { run: TrainRun }) {
       <span
         data-changed={changed || undefined}
         className={cn(
-          'rounded-[6px] px-1.5 font-semibold',
+          'rounded-tag px-1.5 font-semibold',
           changed
             ? 'bg-warn/15 text-warn shadow-[0_0_0_1px_--alpha(var(--color-warn)/40%),0_0_14px_-2px_--alpha(var(--color-warn)/60%)]'
             : 'bg-raised text-fg',
@@ -94,8 +94,8 @@ export function TrainCard({ data }: { data: Train | undefined }) {
   return (
     <Card title={`${evening ? "Tomorrow's train" : 'Your train'} · direct · ${train.route}`} className="mb-5">
       <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-7">
-        <div className="rounded-[12px] border border-glass-line bg-glass px-3.5 pt-2.5 pb-3 md:min-w-32">
-          <span className="block text-label font-semibold tracking-[0.08em] text-faint uppercase">Departure</span>
+        <div className="rounded-tile border border-glass-line bg-glass px-3.5 pt-2.5 pb-3 md:min-w-32">
+          <span className="block text-label eyebrow text-faint">Departure</span>
           <span className="text-display leading-tight font-semibold tracking-tight">
             {gone ? (
               <s className="text-faint">{train.departure}</s>
@@ -119,8 +119,8 @@ export function TrainCard({ data }: { data: Train | undefined }) {
       </div>
 
       {gone && train.next_direct && (
-        <div className="relative mt-4 flex flex-wrap items-baseline gap-x-3.5 gap-y-1 rounded-[12px] border border-glass-line bg-glass px-3.5 py-3">
-          <span className="basis-full text-label font-semibold tracking-[0.08em] text-faint uppercase">Next direct train</span>
+        <div className="relative mt-4 flex flex-wrap items-baseline gap-x-3.5 gap-y-1 rounded-tile border border-glass-line bg-glass px-3.5 py-3">
+          <span className="basis-full text-label eyebrow text-faint">Next direct train</span>
           <span className="text-stat font-semibold">{formatTime(train.next_direct.planned_departure)}</span>
           <span>
             <Platform run={train.next_direct} />
@@ -164,8 +164,8 @@ export function TrainCard({ data }: { data: Train | undefined }) {
       )}
 
       {train.disruptions.map((d) => (
-        <div key={d.id} role="note" className="relative mt-4 flex items-start gap-2.5 rounded-[10px] border border-warn/35 bg-warn/8 px-3 py-2.5 text-small">
-          <span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-warn shadow-[0_0_8px_var(--color-warn)]" />
+        <div key={d.id} role="note" className="relative mt-4 flex items-start gap-2.5 rounded-control border border-warn/35 bg-warn/8 px-3 py-2.5 text-small">
+          <span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-warn shadow-glow shadow-warn" />
           <p>
             <b className="text-warn">{d.title}</b> <span className="text-muted">{[d.text, d.until].filter(Boolean).join(' ')} (NS)</span>
           </p>

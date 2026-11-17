@@ -20,7 +20,7 @@ export function ProposalCard({ card, onConfirm, onCancel }: Props) {
     <div
       role="group"
       aria-label={card.title}
-      className="max-w-md rounded-xl border border-accent-line/40 bg-violet/8 px-4 py-3.5"
+      className="max-w-md rounded-tile border border-accent-line/40 bg-violet/8 px-4 py-3.5"
     >
       <p className="font-semibold">{card.title}</p>
       {card.detail && <p className="text-small text-muted">{card.detail}</p>}

@@ -75,7 +75,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
               <span className="flex min-w-0 flex-1 items-center gap-3">
                 <i
                   aria-hidden="true"
-                  className={cn('block size-2.5 shrink-0 rounded-full', on ? 'bg-up shadow-[0_0_6px_var(--color-up)]' : 'bg-white/20')}
+                  className={cn('block size-2.5 shrink-0 rounded-full', on ? 'bg-up shadow-glow shadow-up' : 'bg-white/20')}
                 />
                 <span className="min-w-0">
                   <span className="block font-mono text-small">{b.mac}</span>
@@ -119,7 +119,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
                       <button
                         type="button"
                         onClick={() => send('POST', b, {}, '/update')}
-                        className="mt-1.5 rounded-[9px] border border-accent-line bg-accent/12 px-2.5 py-1 text-caption text-fg hover:bg-accent/20"
+                        className="mt-1.5 rounded-control border border-accent-line bg-accent/12 px-2.5 py-1 text-caption text-fg hover:bg-accent/20"
                       >
                         Update to <span className="font-mono">{offered.version}</span>
                       </button>
@@ -137,7 +137,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
                 type="button"
                 onClick={() => send('DELETE', b)}
                 aria-label={`Forget ${b.mac}`}
-                className="rounded-[9px] px-2 py-1 text-caption text-muted hover:bg-white/5 hover:text-fg"
+                className="rounded-control px-2 py-1 text-caption text-muted hover:bg-white/5 hover:text-fg"
               >
                 Forget
               </button>

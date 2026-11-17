@@ -22,7 +22,7 @@ export function BriefingCard({ data }: { data: Briefing | undefined }) {
       <p className="text-heading font-semibold tracking-tight">{data.line}</p>
       <ul className="mt-4 grid gap-2 sm:grid-cols-2">
         {data.facts.map((fact) => (
-          <li key={fact} className="flex items-center gap-2.5 rounded-[10px] border border-line-soft bg-white/[0.02] px-3 py-2 text-small">
+          <li key={fact} className="flex items-center gap-2.5 rounded-control border border-line-soft bg-white/[0.02] px-3 py-2 text-small">
             <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-accent-line" />
             {fact}
           </li>

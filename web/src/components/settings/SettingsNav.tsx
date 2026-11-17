@@ -35,7 +35,7 @@ export function SettingsNav({ items }: { items: SettingsNavItem[] }) {
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-2 rounded-full border px-3 py-1.5 text-small font-medium whitespace-nowrap transition-colors',
-                  'lg:rounded-lg lg:border-transparent lg:px-2.5 lg:py-2 lg:text-body',
+                  'lg:rounded-control lg:border-transparent lg:px-2.5 lg:py-2 lg:text-body',
                   isActive
                     ? 'border-accent-line bg-accent-soft text-accent-fg'
                     : 'border-line-soft text-muted hover:bg-card hover:text-fg',

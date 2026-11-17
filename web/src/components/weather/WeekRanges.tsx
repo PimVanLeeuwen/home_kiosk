@@ -31,7 +31,7 @@ export function WeekRanges({ days, today }: { days: ForecastDay[]; today: string
           <li
             key={d.date}
             aria-label={`${name}: ${sky.word}, ${whole(d.low)}° to ${whole(d.high)}°${d.rain_max ? `, ${d.rain_max}% chance of rain` : ''}`}
-            className="grid grid-cols-[52px_28px_34px_minmax(0,1fr)_34px_44px] items-center gap-2 rounded-[10px] px-1.5 py-2 odd:bg-white/[0.015]"
+            className="grid grid-cols-[52px_28px_34px_minmax(0,1fr)_34px_44px] items-center gap-2 rounded-control px-1.5 py-2 odd:bg-white/[0.015]"
           >
             <span className={d.date === today ? 'font-semibold' : 'text-muted'}>{name}</span>
             <Icon aria-hidden="true" className="size-5 text-muted" strokeWidth={1.7} />

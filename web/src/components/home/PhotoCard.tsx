@@ -31,7 +31,7 @@ export function PhotoCard({ data }: { data: PhotoOfTheDay | undefined }) {
       <h2 id="card-photo" className="absolute top-4 left-5 text-small font-semibold text-white/80 md:left-6">
         Photo of the day
       </h2>
-      <div className="absolute inset-x-3 bottom-3 rounded-[12px] border border-white/10 bg-black/35 px-4 py-3 backdrop-blur-md md:inset-x-4 md:bottom-4">
+      <div className="absolute inset-x-3 bottom-3 rounded-tile border border-white/10 bg-black/35 px-4 py-3 backdrop-blur-md md:inset-x-4 md:bottom-4">
         <p className="text-heading font-semibold text-white">{agoLine(data.years)}</p>
         <p className="text-small text-white/80">{line}</p>
       </div>

@@ -38,7 +38,7 @@ export function WeatherCard({ onPage = false }: { onPage?: boolean }) {
               </p>
               {w.sunrise && w.sunset && (
                 <div className="mt-3.5">
-                  <p className="text-micro font-semibold tracking-[0.08em] text-faint uppercase">
+                  <p className="text-micro eyebrow text-faint">
                     <span className="whitespace-nowrap">Sunrise {formatTime(w.sunrise)}</span> ·{' '}
                     <span className="whitespace-nowrap">Sunset {formatTime(w.sunset)}</span>
                   </p>

@@ -19,8 +19,8 @@ const SEGMENT: Record<Segment, string> = {
   up: 'bg-up/75',
   accent: 'bg-accent-line/80',
   warn: 'bg-warn/80',
-  down: 'bg-down shadow-[0_0_6px_var(--color-down)]',
-  off: 'bg-white/[0.08]',
+  down: 'bg-down shadow-glow shadow-down',
+  off: 'bg-track',
 }
 
 /** The id of the card a chip opens below the strip. */
@@ -32,7 +32,7 @@ function Meter({ segments }: { segments: Segment[] }) {
   return (
     <span aria-hidden="true" className="col-span-full mt-1.5 flex h-[3px] gap-[2px]">
       {segments.map((s, i) => (
-        <i key={i} className={cn('flex-1 rounded-[2px]', SEGMENT[s])} />
+        <i key={i} className={cn('flex-1 rounded-mark', SEGMENT[s])} />
       ))}
     </span>
   )
@@ -69,7 +69,7 @@ export function StatusStrip({ chips, folded, open, reveal, onToggle, onShow }: P
           </>
         )
         const surface = cn(
-          'grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 rounded-[14px] border bg-card bg-linear-to-br px-3.5 py-3 text-left backdrop-blur-md md:px-4',
+          'grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 rounded-card border bg-card bg-linear-to-br px-3.5 py-3 text-left backdrop-blur-md md:px-4',
           SURFACE[chip.tone],
           reveal && 'motion-safe:animate-rise',
         )

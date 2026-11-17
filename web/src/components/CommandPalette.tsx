@@ -160,7 +160,7 @@ export function CommandPalette({ open, onClose }: Props) {
       onClose={() => dialog.current?.open || onClose()}
       // A click on the backdrop lands on the dialog itself.
       onClick={(e) => e.target === dialog.current && onClose()}
-      className="m-auto mt-[10vh] w-[min(640px,calc(100%-2rem))] max-w-none overflow-hidden rounded-[16px] border border-line bg-card p-0 text-fg shadow-[0_24px_80px_rgb(0_0_0/0.55)] backdrop:bg-black/55 backdrop:backdrop-blur-sm open:motion-safe:animate-rise"
+      className="m-auto mt-[10vh] w-[min(640px,calc(100%-2rem))] max-w-none overflow-hidden rounded-sheet border border-line bg-card p-0 text-fg shadow-overlay backdrop:bg-black/55 backdrop:backdrop-blur-sm open:motion-safe:animate-rise"
     >
       <div className="flex items-center gap-3 border-b border-line-soft px-4 py-3.5">
         <Search aria-hidden="true" className="size-[18px] shrink-0 text-muted" />
@@ -185,14 +185,14 @@ export function CommandPalette({ open, onClose }: Props) {
           style={{ outline: 'none' }}
           className="min-w-0 flex-1 bg-transparent text-body text-fg placeholder:text-faint"
         />
-        <kbd className="hidden rounded-[6px] border border-line px-1.5 py-0.5 font-sans text-label text-faint sm:block">Esc</kbd>
+        <kbd className="hidden rounded-tag border border-line px-1.5 py-0.5 font-sans text-label text-faint sm:block">Esc</kbd>
       </div>
 
       <ul ref={list} id={`${id}-list`} role="listbox" aria-label="Results" aria-busy={busy} className="max-h-[min(420px,60vh)] overflow-y-auto p-2">
         {rows.map(({ item, heading }, i) => (
           <li key={item.id} role="presentation">
             {heading && (
-              <p role="presentation" className="px-2.5 pt-2 pb-1 text-label font-semibold tracking-[0.08em] text-faint uppercase">
+              <p role="presentation" className="px-2.5 pt-2 pb-1 text-label eyebrow text-faint">
                 {heading}
               </p>
             )}
@@ -203,7 +203,7 @@ export function CommandPalette({ open, onClose }: Props) {
               onMouseMove={() => i !== current && setActive(i)}
               onClick={() => choose(item)}
               className={cn(
-                'flex cursor-pointer items-center gap-3 rounded-[10px] px-2.5 py-2',
+                'flex cursor-pointer items-center gap-3 rounded-control px-2.5 py-2',
                 i === current ? 'bg-accent-soft text-accent-fg' : 'text-fg',
               )}
             >

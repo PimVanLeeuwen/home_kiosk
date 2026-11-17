@@ -26,7 +26,7 @@ export function RunHistoryCard({ runs, volumes }: Props) {
       <p className="mb-2.5 flex flex-wrap gap-x-3.5 gap-y-1 text-label text-muted" aria-hidden="true">
         {volumes.map((s, i) => (
           <span key={s.name} className="flex items-center gap-1.5">
-            <i className="inline-block size-[9px] rounded-[3px]" style={{ backgroundColor: volumeColour(i) }} />
+            <i className="inline-block size-[9px] rounded-mark" style={{ backgroundColor: volumeColour(i) }} />
             {s.name}
           </span>
         ))}

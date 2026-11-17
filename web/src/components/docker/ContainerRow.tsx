@@ -50,7 +50,7 @@ export function ContainerRow({ container: c, spark, updates, open, onToggle, cpu
         aria-controls={detailId}
         onClick={onToggle}
         className={cn(
-          'grid w-full grid-cols-[minmax(0,1fr)_4rem_4.5rem] items-center gap-x-3 gap-y-1 rounded-[10px] px-2.5 py-2.5 text-left hover:bg-white/[0.03] md:grid-cols-[minmax(0,1fr)_5rem_5.5rem_6.5rem_10rem_1rem] md:gap-x-4',
+          'grid w-full grid-cols-[minmax(0,1fr)_4rem_4.5rem] items-center gap-x-3 gap-y-1 rounded-control px-2.5 py-2.5 text-left hover:bg-white/[0.03] md:grid-cols-[minmax(0,1fr)_5rem_5.5rem_6.5rem_10rem_1rem] md:gap-x-4',
           open && 'bg-white/[0.03]',
           trouble && 'bg-linear-to-r from-down/10 to-transparent to-60%',
         )}
@@ -93,7 +93,7 @@ export function ContainerRow({ container: c, spark, updates, open, onToggle, cpu
 
 function Panel({ title, note, children }: { title: string; note: string; children: ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-[11px] border border-glass-line bg-glass px-3 pt-2.5">
+    <div className="overflow-hidden rounded-tile border border-glass-line bg-glass px-3 pt-2.5">
       <p className="flex justify-between gap-3 text-caption">
         <span className="text-muted">{title}</span>
         <span>{note}</span>

@@ -116,7 +116,7 @@ export function ReminderForm({ initial, editing, busy, onSave, onCancel }: Props
                 aria-pressed={rep.weekdays.includes(d)}
                 onClick={() => toggleDay(d)}
                 className={cn(
-                  'rounded-[8px] border px-1 py-1 text-caption sm:px-2.5',
+                  'rounded-control border px-1 py-1 text-caption sm:px-2.5',
                   rep.weekdays.includes(d) ? 'border-accent-line/60 bg-accent-soft text-fg' : 'border-line bg-raised text-muted hover:text-fg',
                 )}
               >

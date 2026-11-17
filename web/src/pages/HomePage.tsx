@@ -230,7 +230,7 @@ export function HomePage() {
                 aria-hidden="true"
                 data-live={light}
                 className={cn(
-                  'pointer-events-none absolute inset-0 rounded-[14px] ring-1',
+                  'pointer-events-none absolute inset-0 rounded-card ring-1',
                   light === 'up'
                     ? 'bg-[radial-gradient(80%_60%_at_100%_0%,--alpha(var(--color-up)/12%),transparent_70%)] ring-up/30'
                     : 'bg-[radial-gradient(80%_60%_at_100%_0%,--alpha(var(--color-violet)/13%),transparent_70%)] ring-accent-line/30',
@@ -289,7 +289,7 @@ export function HomePage() {
               style={{ left: pointerAt(opened) }}
               className="absolute -top-[7px] z-10 hidden size-3.5 -translate-x-1/2 rotate-45 border-t border-l border-accent bg-[#191a21] 2xl:block"
             />
-            <div className="grid rounded-[15px] ring-1 ring-accent">{cards[opened]}</div>
+            <div className="grid rounded-card ring-1 ring-accent">{cards[opened]}</div>
           </div>
         )}
         <div

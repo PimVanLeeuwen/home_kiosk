@@ -16,7 +16,7 @@ export function SearchField({ label, value, onChange, placeholder, maxLength, cl
   return (
     <label
       className={cn(
-        'flex min-w-0 items-center gap-2 rounded-[10px] border border-line-strong bg-raised px-3 py-2 text-muted focus-within:border-accent-line',
+        'flex min-w-0 items-center gap-2 rounded-control border border-line-strong bg-raised px-3 py-2 text-muted focus-within:border-accent-line',
         className,
       )}
     >

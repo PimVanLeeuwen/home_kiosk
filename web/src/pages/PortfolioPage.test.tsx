@@ -28,7 +28,7 @@ describe('PortfolioPage', () => {
     const value = screen.getByRole('region', { name: 'Value' })
     expect(within(value).getByText('€ 9.143')).toBeInTheDocument()
     expect(within(value).queryByText(/today$/)).not.toBeInTheDocument()
-    expect(screen.getByText(/today$/, { selector: '.uppercase' })).toHaveTextContent(/^−0,0\d% today$/)
+    expect(screen.getByText(/today$/, { selector: '.eyebrow' })).toHaveTextContent(/^−0,0\d% today$/)
     // Today is the sum of the holdings' moves, like the daily report: 22,11 + 7,88 - 32.
     expect(tile(summary(), 'Today')).toHaveTextContent('−€ 2')
     expect(tile(summary(), 'Total gain')).toHaveTextContent('+€ 4.452+103,87%')

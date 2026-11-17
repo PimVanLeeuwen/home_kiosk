@@ -25,7 +25,7 @@ export function Surface({ as: Tag = 'div', padding = 'card', className, ...rest 
     <Tag
       {...rest}
       className={cn(
-        'relative min-w-0 overflow-hidden rounded-[14px] border border-line-soft bg-card bg-linear-to-b from-white/[0.022] to-transparent to-40%',
+        'relative min-w-0 overflow-hidden rounded-card border border-line-soft bg-card bg-linear-to-b from-white/[0.022] to-transparent to-40%',
         PADDING[padding],
         className,
       )}

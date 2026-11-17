@@ -31,7 +31,7 @@ export function Composer({ busy, disabled, onSend }: Props) {
     <form
       aria-label="Ask"
       onSubmit={send}
-      className="flex items-end gap-2.5 rounded-[18px] border border-line bg-card py-2 pr-2 pl-4 focus-within:border-accent-line md:rounded-[14px]"
+      className="flex items-end gap-2.5 rounded-sheet border border-line bg-card py-2 pr-2 pl-4 focus-within:border-accent-line md:rounded-card"
     >
       <label htmlFor="ask-question" className="sr-only">
         Your question
@@ -52,7 +52,7 @@ export function Composer({ busy, disabled, onSend }: Props) {
         aria-label="Send"
         disabled={!ready}
         className={cn(
-          'pressable grid size-9 shrink-0 place-items-center rounded-[10px] bg-accent text-white',
+          'pressable grid size-9 shrink-0 place-items-center rounded-control bg-accent text-white',
           'disabled:opacity-40',
         )}
       >

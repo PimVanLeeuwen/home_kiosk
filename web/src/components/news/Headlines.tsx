@@ -17,7 +17,7 @@ const picture = (h: Headline, size: 'lead' | 'thumb') => `/api/news/headlines/${
 function Source({ h, colour }: { h: Headline; colour: Colour }) {
   return (
     <span
-      className="rounded-[6px] px-[7px] py-0.5 text-label font-semibold tracking-[0.02em] text-white"
+      className="rounded-tag px-[7px] py-0.5 text-label font-semibold tracking-[0.02em] text-white"
       style={{ background: `color-mix(in srgb, ${colour.fg} 55%, rgb(0 0 0 / 0.4))`, boxShadow: `0 0 12px -2px ${colour.fg}` }}
     >
       {h.source}
@@ -39,8 +39,8 @@ function SaveButton({ h, state, onSave, onImage }: { h: Headline; state?: SaveSt
       className={cn(
         'absolute z-[2] grid place-items-center border',
         onImage
-          ? 'top-3.5 right-3.5 size-[38px] rounded-[11px] border-white/14 bg-[rgb(12_12_18/0.45)] backdrop-blur-[8px]'
-          : 'top-2.5 right-2.5 size-8 rounded-[9px] border-glass-line bg-glass',
+          ? 'top-3.5 right-3.5 size-[38px] rounded-tile border-white/14 bg-[rgb(12_12_18/0.45)] backdrop-blur-[8px]'
+          : 'top-2.5 right-2.5 size-8 rounded-control border-glass-line bg-glass',
         saved && 'border-[--alpha(var(--color-accent-fg)/60%)] bg-accent/35 shadow-[0_0_16px_-2px_--alpha(var(--color-accent-line)/80%)]',
         state === 'failed' && 'border-down/60',
       )}
@@ -55,7 +55,7 @@ function Thumb({ h, colour }: { h: Headline; colour: Colour }) {
   return (
     <span
       aria-hidden="true"
-      className="relative grid aspect-square place-items-center overflow-hidden rounded-[10px] border border-glass-line bg-[#16161d] text-heading font-bold text-white/85"
+      className="relative grid aspect-square place-items-center overflow-hidden rounded-control border border-glass-line bg-[#16161d] text-heading font-bold text-white/85"
       style={h.image ? undefined : { background: `radial-gradient(80% 90% at 30% 20%, color-mix(in srgb, ${colour.fg} 55%, transparent), transparent 70%), #16161d` }}
     >
       {h.image ? <img src={picture(h, 'thumb')} alt="" loading="lazy" className="size-full object-cover" /> : h.source[0]}
@@ -111,7 +111,7 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
         <li className="relative flex flex-col gap-2 md:row-[1/span_var(--rows)]" data-image={lead.image ?? 'none'}>
           <Link
             to={`/news?a=${lead.id}`}
-            className="relative flex min-h-[230px] flex-1 flex-col justify-end overflow-hidden rounded-[16px] border border-glass-line p-4 text-fg after:absolute after:inset-0 after:bg-linear-to-b after:from-[rgb(10_10_14/0.15)] after:via-[rgb(10_10_14/0.35)] after:to-[rgb(10_10_14/0.92)] md:min-h-[290px] md:px-[22px] md:py-5"
+            className="relative flex min-h-[230px] flex-1 flex-col justify-end overflow-hidden rounded-sheet border border-glass-line p-4 text-fg after:absolute after:inset-0 after:bg-linear-to-b after:from-[rgb(10_10_14/0.15)] after:via-[rgb(10_10_14/0.35)] after:to-[rgb(10_10_14/0.92)] md:min-h-[290px] md:px-[22px] md:py-5"
             style={
               lead.image === 'lead'
                 ? undefined
@@ -135,7 +135,7 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
             <p className="flex flex-wrap items-center gap-1.5 px-1 text-caption text-muted">
               Also in
               {lead.sources.map((s) => (
-                <Link key={s.id} to={`/news?a=${s.id}`} className="rounded-[6px] border border-line-soft bg-card px-2 py-0.5 font-medium text-fg hover:border-line">
+                <Link key={s.id} to={`/news?a=${s.id}`} className="rounded-tag border border-line-soft bg-card px-2 py-0.5 font-medium text-fg hover:border-line">
                   {s.source}
                 </Link>
               ))}
@@ -146,7 +146,7 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
           <li key={h.id} className="relative" data-image={h.image ?? 'none'}>
             <Link
               to={`/news?a=${h.id}`}
-              className="grid h-full grid-cols-[76px_minmax(0,1fr)] items-center gap-3 rounded-[14px] border border-line-soft bg-card bg-linear-to-b from-white/[0.025] to-transparent to-45% py-2.5 pr-11 pl-2.5 text-fg md:grid-cols-[104px_minmax(0,1fr)] md:gap-3.5 md:py-3 md:pr-12 md:pl-3"
+              className="grid h-full grid-cols-[76px_minmax(0,1fr)] items-center gap-3 rounded-card border border-line-soft bg-card bg-linear-to-b from-white/[0.025] to-transparent to-45% py-2.5 pr-11 pl-2.5 text-fg md:grid-cols-[104px_minmax(0,1fr)] md:gap-3.5 md:py-3 md:pr-12 md:pl-3"
             >
               <Thumb h={h} colour={colourOf(h.group_id)} />
               <span className="min-w-0">

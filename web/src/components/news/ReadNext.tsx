@@ -12,7 +12,7 @@ function Ring({ pct }: { pct: number }) {
   const c = 2 * Math.PI * 14
   return (
     <svg aria-hidden="true" viewBox="0 0 36 36" className="size-9 shrink-0">
-      <circle cx="18" cy="18" r="14" fill="none" stroke="rgb(255 255 255 / 0.09)" strokeWidth="4" />
+      <circle cx="18" cy="18" r="14" fill="none" stroke="var(--color-track)" strokeWidth="4" />
       <circle
         cx="18"
         cy="18"
@@ -40,7 +40,7 @@ function Mini({ art, title, line, end, ...link }: { art: ReactNode; title: strin
       {end}
     </>
   )
-  const className = 'pressable flex w-full items-center gap-3.5 rounded-[14px] border border-glass-line bg-glass p-2.5 pr-3.5 text-left hover:border-faint'
+  const className = 'pressable flex w-full items-center gap-3.5 rounded-card border border-glass-line bg-glass p-2.5 pr-3.5 text-left hover:border-faint'
   return 'to' in link ? (
     <Link to={link.to} className={className}>
       {body}
@@ -88,7 +88,7 @@ export function ReadNext({ onGroup, isRead }: Props) {
         {lead && (
           <Link
             to={`/news?a=${lead.id}`}
-            className="pressable group relative block aspect-[2/1] overflow-hidden rounded-[18px] border border-glass-line bg-[#16161d]"
+            className="pressable group relative block aspect-[2/1] overflow-hidden rounded-sheet border border-glass-line bg-[#16161d]"
           >
             {lead.image === 'lead' && !noPicture ? (
               <img src={`/api/news/headlines/${lead.id}/image/lead`} alt="" onError={() => setNoPicture(true)} className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-[1.02]" />
@@ -110,9 +110,9 @@ export function ReadNext({ onGroup, isRead }: Props) {
             to={`/saved?b=${bookmark.id}`}
             art={
               bookmark.thumbnail ? (
-                <img src={`/api/saved/${bookmark.id}/thumbnail`} alt="" className="size-14 shrink-0 rounded-[10px] bg-[#16161d] object-cover" />
+                <img src={`/api/saved/${bookmark.id}/thumbnail`} alt="" className="size-14 shrink-0 rounded-control bg-[#16161d] object-cover" />
               ) : (
-                <span aria-hidden="true" className="size-14 shrink-0 rounded-[10px] bg-[radial-gradient(90%_90%_at_30%_20%,--alpha(var(--color-violet)/35%),transparent_70%),#16161d]" />
+                <span aria-hidden="true" className="size-14 shrink-0 rounded-control bg-[radial-gradient(90%_90%_at_30%_20%,--alpha(var(--color-violet)/35%),transparent_70%),#16161d]" />
               )
             }
             title={`Saved: ${bookmark.title}`}
@@ -124,7 +124,7 @@ export function ReadNext({ onGroup, isRead }: Props) {
           <Mini
             {...(onGroup ? { onClick: () => onGroup(busiest.id) } : { to: `/news?group=${encodeURIComponent(busiest.id)}` })}
             art={
-              <span aria-hidden="true" className="grid size-14 shrink-0 place-items-center rounded-[10px]" style={{ background: busiestColour.bg, color: busiestColour.fg }}>
+              <span aria-hidden="true" className="grid size-14 shrink-0 place-items-center rounded-control" style={{ background: busiestColour.bg, color: busiestColour.fg }}>
                 <Newspaper className="size-6" strokeWidth={1.8} />
               </span>
             }

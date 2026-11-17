@@ -117,8 +117,8 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
       <Card title="Position" className="mt-5">
         <dl className="grid grid-cols-2 gap-2.5 text-small md:grid-cols-4">
           {figures.map(([label, value, tone]) => (
-            <div key={label} className="min-w-0 rounded-[11px] border border-glass-line bg-glass px-3 py-2">
-              <dt className="text-micro font-semibold tracking-[0.08em] text-faint uppercase">{label}</dt>
+            <div key={label} className="min-w-0 rounded-tile border border-glass-line bg-glass px-3 py-2">
+              <dt className="text-micro eyebrow text-faint">{label}</dt>
               <dd className={cn('mt-0.5 truncate text-title font-semibold', tone)}>{value}</dd>
             </div>
           ))}
@@ -159,7 +159,7 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
                   <td className="py-2 whitespace-nowrap text-muted">{formatDate(a.date)}</td>
                   <td className="py-2">
                     <span
-                      className="rounded-[6px] px-1.5 py-px text-micro font-semibold tracking-[0.04em] uppercase"
+                      className="rounded-tag px-1.5 py-px text-micro eyebrow"
                       style={{
                         color: TYPE_COLOURS[a.type] ?? 'var(--color-muted)',
                         backgroundColor: `color-mix(in srgb, ${TYPE_COLOURS[a.type] ?? 'var(--color-muted)'} 16%, transparent)`,

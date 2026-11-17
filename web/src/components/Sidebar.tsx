@@ -7,7 +7,7 @@ import { ConnectionBadge } from './ConnectionBadge'
 
 export function Brand({ host }: { host: string | null }) {
   return (
-    <Link to="/" className="block rounded-lg" aria-label="Home hub, go to Home">
+    <Link to="/" className="block rounded-control" aria-label="Home hub, go to Home">
       <span className="block text-base font-semibold tracking-tight text-fg">Home hub</span>
       {host && <span className="block text-xs text-faint">{host}</span>}
     </Link>
@@ -23,7 +23,7 @@ export function Sidebar({ host, onSearch }: { host: string | null; onSearch: () 
           type="button"
           onClick={onSearch}
           aria-keyshortcuts="Meta+K Control+K"
-          className="mt-4 flex w-full items-center gap-2.5 rounded-[10px] border border-line bg-raised px-3 py-2 text-left text-muted transition-colors hover:border-white/15 hover:text-fg"
+          className="mt-4 flex w-full items-center gap-2.5 rounded-control border border-line bg-raised px-3 py-2 text-left text-muted transition-colors hover:border-white/15 hover:text-fg"
         >
           <Search aria-hidden="true" className="size-4 shrink-0" />
           <span className="flex-1">Search</span>
@@ -35,7 +35,7 @@ export function Sidebar({ host, onSearch }: { host: string | null; onSearch: () 
         {NAV.map((section, i) => (
           <div key={section.title ?? i}>
             {section.title && (
-              <p className="px-2.5 pb-1.5 text-label font-semibold tracking-[0.08em] text-faint uppercase">
+              <p className="px-2.5 pb-1.5 text-label eyebrow text-faint">
                 {section.title}
               </p>
             )}
@@ -48,9 +48,9 @@ export function Sidebar({ host, onSearch }: { host: string | null; onSearch: () 
                     end={item.to === '/'}
                     className={({ isActive }) =>
                       cn(
-                        'relative flex items-center gap-2.75 rounded-lg px-2.5 py-2 font-medium transition-colors',
+                        'relative flex items-center gap-2.75 rounded-control px-2.5 py-2 font-medium transition-colors',
                         isActive
-                          ? 'bg-accent-soft text-accent-fg before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-[3px] before:rounded-r-[3px] before:bg-accent-line'
+                          ? 'bg-accent-soft text-accent-fg before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-[3px] before:rounded-r-mark before:bg-accent-line'
                           : 'text-muted hover:bg-card hover:text-fg',
                       )
                     }

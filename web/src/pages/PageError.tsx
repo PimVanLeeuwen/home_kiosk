@@ -12,7 +12,7 @@ export function PageError() {
       <PageHeader title="Something went wrong" subtitle="This page could not be shown." />
       <div role="alert" className="flex flex-wrap gap-3">
         <Button onClick={() => window.location.reload()}>Reload</Button>
-        <Link to="/" className="rounded-[9px] px-3 py-2 font-medium text-accent-fg hover:underline">
+        <Link to="/" className="rounded-control px-3 py-2 font-medium text-accent-fg hover:underline">
           Back to Home
         </Link>
       </div>

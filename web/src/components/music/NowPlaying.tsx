@@ -28,7 +28,7 @@ export function Equaliser({ playing, className }: { playing: boolean; className?
       {[0, -0.3, -0.6, -0.15].map((delay) => (
         <i
           key={delay}
-          className={cn('block h-[5px] w-1 rounded-[2px] bg-white', playing ? 'motion-safe:animate-eq' : 'opacity-60')}
+          className={cn('block h-[5px] w-1 rounded-mark bg-white', playing ? 'motion-safe:animate-eq' : 'opacity-60')}
           style={{ animationDelay: `${delay}s` }}
         />
       ))}
@@ -93,7 +93,7 @@ export function NowPlaying({ playing, onControl, onVolume, waiting = false }: Pr
     <section
       aria-label="Now playing"
       data-state={playing.state}
-      className="relative flex min-h-0 flex-col overflow-hidden rounded-[18px] border border-glass-line px-[18px] py-5 md:min-h-[380px] md:px-7 md:pt-[26px] md:pb-6"
+      className="relative flex min-h-0 flex-col overflow-hidden rounded-sheet border border-glass-line px-[18px] py-5 md:min-h-[380px] md:px-7 md:pt-[26px] md:pb-6"
     >
       <div
         aria-hidden="true"
@@ -116,13 +116,13 @@ export function NowPlaying({ playing, onControl, onVolume, waiting = false }: Pr
           </span>
           <Cover
             item={playing}
-            className="relative z-[1] size-[150px] rounded-[16px] shadow-[0_14px_40px_var(--glow),0_8px_20px_rgb(0_0_0/0.5)] md:size-[190px]"
+            className="relative z-[1] size-[150px] rounded-sheet shadow-[0_14px_40px_var(--glow),0_8px_20px_rgb(0_0_0/0.5)] md:size-[190px]"
           />
         </div>
         {playing.device && (
           // On a phone the Devices list below says where it plays; the chip would cover the record.
           <span className="hidden items-center gap-[7px] rounded-full border border-white/18 bg-white/12 px-3 py-1.5 text-caption whitespace-nowrap text-white backdrop-blur-[8px] sm:inline-flex">
-            <i aria-hidden="true" className="size-[7px] rounded-full bg-up shadow-[0_0_6px_var(--color-up)]" />
+            <i aria-hidden="true" className="size-[7px] rounded-full bg-up shadow-glow shadow-up" />
             {playing.device.name}
           </span>
         )}
@@ -184,13 +184,13 @@ export function NowPlaying({ playing, onControl, onVolume, waiting = false }: Pr
 /** When nothing plays: what played last, and where to start. */
 export function NothingPlaying({ last, defaultDevice }: { last: MusicItem | null; defaultDevice: string }) {
   return (
-    <section aria-label="Now playing" data-state="idle" className="rounded-[18px] border border-glass-line bg-card px-[18px] py-5 md:min-h-[380px] md:px-7 md:pt-[26px]">
-      <p className="text-label font-semibold tracking-[0.07em] text-faint uppercase">Now playing</p>
+    <section aria-label="Now playing" data-state="idle" className="rounded-sheet border border-glass-line bg-card px-[18px] py-5 md:min-h-[380px] md:px-7 md:pt-[26px]">
+      <p className="text-label eyebrow text-faint">Now playing</p>
       <h2 className="mt-[18px] text-stat font-semibold">Nothing playing</h2>
       <p className="text-muted">Start a favourite: it plays on {defaultDevice}, or play on any of your devices.</p>
       {last && (
-        <div className="mt-[18px] flex items-center gap-3 rounded-[12px] border border-glass-line bg-glass p-2.5">
-          <Cover item={last} className="size-[46px] flex-none rounded-[9px]" />
+        <div className="mt-[18px] flex items-center gap-3 rounded-tile border border-glass-line bg-glass p-2.5">
+          <Cover item={last} className="size-[46px] flex-none rounded-control" />
           <div className="min-w-0">
             <b className="block truncate text-body">{last.title}</b>
             <span className="block truncate text-caption text-muted">Played last{last.subtitle ? ` · ${last.subtitle}` : ''}</span>

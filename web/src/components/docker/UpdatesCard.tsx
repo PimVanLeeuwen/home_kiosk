@@ -29,16 +29,16 @@ export function UpdatesCard({ updates }: { updates: ContainerUpdate[] }) {
                 aria-hidden="true"
                 className={cn(
                   'absolute top-[0.85em] -left-[20.5px] size-[7px] rounded-full',
-                  i === 0 ? 'bg-accent-line shadow-[0_0_7px_var(--color-accent-line)]' : 'bg-faint',
+                  i === 0 ? 'bg-accent-line shadow-glow shadow-accent-line' : 'bg-faint',
                 )}
               />
               <span className="text-faint">{formatWhen(u.at)}</span>
               <span className="truncate font-mono">{u.name}</span>
               <span className="col-span-2 truncate text-muted md:col-span-1">{u.image}</span>
               <span className="col-span-2 font-mono text-label whitespace-nowrap text-muted md:col-span-1">
-                <span className="rounded-[5px] border border-glass-line bg-glass px-1.5 py-px">{shortId(u.old_image_id)}</span>
+                <span className="rounded-tag border border-glass-line bg-glass px-1.5 py-px">{shortId(u.old_image_id)}</span>
                 <span aria-label="replaced by"> → </span>
-                <span className="rounded-[5px] border border-accent-line/40 bg-glass px-1.5 py-px text-accent-fg">
+                <span className="rounded-tag border border-accent-line/40 bg-glass px-1.5 py-px text-accent-fg">
                   {shortId(u.new_image_id)}
                 </span>
               </span>

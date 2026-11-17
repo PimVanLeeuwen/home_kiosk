@@ -61,7 +61,7 @@ export function UpsCard() {
         </dl>
       </div>
 
-      <p className="mt-4 text-label font-semibold tracking-[0.08em] text-faint uppercase">Power cuts</p>
+      <p className="mt-4 text-label eyebrow text-faint">Power cuts</p>
       {past.length === 0 ? (
         <p className="mt-1 text-caption text-muted">None recorded.</p>
       ) : (
@@ -72,7 +72,7 @@ export function UpsCard() {
                 aria-hidden="true"
                 className={cn(
                   'absolute top-[0.45em] -left-[18px] size-[7px] rounded-full',
-                  o.reached_low ? 'bg-down shadow-[0_0_8px_var(--color-down)]' : 'bg-faint',
+                  o.reached_low ? 'bg-down shadow-glow shadow-down' : 'bg-faint',
                 )}
               />
               <span className={o.reached_low ? 'text-fg' : 'text-muted'}>{describe(o)}</span>

@@ -16,7 +16,7 @@ function Ring({ minutes, color, label }: { minutes: number; color: string; label
   const filled = Math.max(0, Math.min(1, minutes / 60))
   return (
     <svg role="img" aria-label={`${minutes} ${label}`} viewBox="0 0 64 64" className="w-20 shrink-0 md:w-24">
-      <circle cx="32" cy="32" r={R} fill="none" stroke="rgb(255 255 255 / 0.08)" strokeWidth="4.5" />
+      <circle cx="32" cy="32" r={R} fill="none" stroke="var(--color-track)" strokeWidth="4.5" />
       <circle
         cx="32"
         cy="32"
@@ -62,7 +62,7 @@ export function TodayCard({ data }: { data: Today | undefined }) {
         <div className="relative grid grid-cols-[80px_minmax(0,1fr)] items-center gap-3.5 md:grid-cols-[96px_minmax(0,1fr)] md:gap-4.5">
           <Ring minutes={focus.minutes} color={focus.event.color} label={focus.now ? 'min left' : 'min'} />
           <div className="min-w-0">
-            <p className="text-label font-semibold tracking-[0.08em] uppercase" style={{ color: focus.event.color }}>
+            <p className="text-label eyebrow" style={{ color: focus.event.color }}>
               {focus.now ? 'Now' : 'Next'} · {focus.event.calendar}
             </p>
             <p className="my-0.5 text-heading leading-tight font-semibold tracking-tight md:text-stat">{focus.event.title}</p>
@@ -114,7 +114,7 @@ export function TodayCard({ data }: { data: Today | undefined }) {
             })}
             <b
               style={{ left: `${nowX}%` }}
-              className="absolute -inset-y-1 -ml-px block w-0.5 rounded-sm bg-white shadow-[0_0_8px_#fff,0_0_14px_--alpha(var(--color-accent-fg)/90%)]"
+              className="absolute -inset-y-1 -ml-px block w-0.5 rounded-tag bg-white shadow-[0_0_8px_#fff,0_0_14px_--alpha(var(--color-accent-fg)/90%)]"
             />
           </div>
           <p aria-hidden="true" className="relative mt-1 flex justify-between text-label text-faint">

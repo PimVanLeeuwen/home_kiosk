@@ -20,7 +20,7 @@ export function DownloadTile({ item }: { item: MediaDownload }) {
     <li
       data-state={item.state}
       className={cn(
-        'grid grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-3.5 rounded-[12px] border p-3',
+        'grid grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-3.5 rounded-tile border p-3',
         bad
           ? 'border-down/40 bg-linear-to-br from-down/11 to-down/2'
           : warn
@@ -35,7 +35,7 @@ export function DownloadTile({ item }: { item: MediaDownload }) {
           {CHIP[item.state] && (
             <span
               className={cn(
-                'ml-1.5 rounded-[6px] border px-1.5 align-[1px] text-label whitespace-nowrap',
+                'ml-1.5 rounded-tag border px-1.5 align-[1px] text-label whitespace-nowrap',
                 bad ? 'border-down/40 text-down' : warn ? 'border-warn/35 text-warn' : 'border-glass-line bg-white/5 text-muted',
               )}
             >

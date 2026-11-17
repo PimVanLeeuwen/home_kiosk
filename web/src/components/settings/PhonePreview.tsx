@@ -14,8 +14,8 @@ const DOT: Record<Severity, string> = {
 export function PhonePreview({ html, category }: { html: string; category: string | null }) {
   const banner = phoneBanner(html, category)
   return (
-    <div role="figure" aria-label="On your phone" className="rounded-[18px] border border-line-soft bg-raised px-3.5 py-2.5">
-      <p className="flex items-center gap-2 text-label tracking-[0.04em] text-faint uppercase">
+    <div role="figure" aria-label="On your phone" className="rounded-sheet border border-line-soft bg-raised px-3.5 py-2.5">
+      <p className="flex items-center gap-2 text-label eyebrow text-faint">
         <span className="flex-1">ntfy</span>
         <span className="normal-case">now</span>
       </p>

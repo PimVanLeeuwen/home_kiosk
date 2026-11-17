@@ -31,16 +31,16 @@ export function BirthdaysCard({ data, error }: { data: Birthdays | undefined; er
             return (
               <li
                 key={`${b.name}-${b.date}`}
-                className={cn('flex items-center gap-3 rounded-[10px] px-2 py-1.5', today && 'bg-accent-soft ring-1 ring-accent-line/40')}
+                className={cn('flex items-center gap-3 rounded-control px-2 py-1.5', today && 'bg-accent-soft ring-1 ring-accent-line/40')}
               >
                 <span
                   aria-hidden="true"
                   className={cn(
-                    'flex w-10 shrink-0 flex-col items-center rounded-[8px] border py-1 leading-none',
+                    'flex w-10 shrink-0 flex-col items-center rounded-control border py-1 leading-none',
                     today ? 'border-accent-line/60 text-accent-fg' : 'border-line text-muted',
                   )}
                 >
-                  <span className="text-micro uppercase">{weekday.format(date)}</span>
+                  <span className="text-micro eyebrow">{weekday.format(date)}</span>
                   <span className="mt-0.5 text-title font-semibold text-fg">{date.getDate()}</span>
                 </span>
                 <span className="min-w-0 flex-1">

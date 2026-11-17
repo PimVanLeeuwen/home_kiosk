@@ -69,7 +69,7 @@ function RunRow({ row, now }: { row: Row; now: Date }) {
     <li
       data-ci={row.ci}
       style={{ '--glow': CI_COLOUR[row.ci] } as CSSProperties}
-      className={cn('rounded-[10px]', row.ci === 'failing' && 'bg-linear-to-r from-down/13 to-transparent to-80%')}
+      className={cn('rounded-control', row.ci === 'failing' && 'bg-linear-to-r from-down/13 to-transparent to-80%')}
     >
       <a href={row.url} target="_blank" rel="noreferrer" className="grid grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-x-3 px-2.5 py-2 hover:bg-white/3">
         <span
@@ -98,7 +98,7 @@ function RunRow({ row, now }: { row: Row; now: Date }) {
 
 function Label({ children, aside }: { children: string; aside?: string }) {
   return (
-    <p className="mb-2.5 flex justify-between gap-2.5 text-label font-semibold tracking-[0.07em] text-faint uppercase">
+    <p className="mb-2.5 flex justify-between gap-2.5 text-label eyebrow text-faint">
       {children}
       {aside && <b className="font-medium tracking-normal text-muted normal-case">{aside}</b>}
     </p>
@@ -137,7 +137,7 @@ function ActivityGrid({ activity }: { activity: Activity }) {
                 key={c.day}
                 title={`${c.count} on ${c.day}`}
                 data-level={c.level}
-                className={cn('aspect-square rounded-[4px]', LEVEL[c.level] ?? LEVEL[0], c.day === today && 'outline-[1.5px] outline-offset-1 outline-[--alpha(var(--color-data-lavender)/80%)]')}
+                className={cn('aspect-square rounded-tag', LEVEL[c.level] ?? LEVEL[0], c.day === today && 'outline-[1.5px] outline-offset-1 outline-[--alpha(var(--color-data-lavender)/80%)]')}
               />
             ) : (
               <i key={`future-${i}`} className="aspect-square" />
@@ -162,7 +162,7 @@ function ActivityGrid({ activity }: { activity: Activity }) {
         <span aria-hidden="true" className="inline-flex items-center gap-[3px] text-label text-faint">
           Less
           {LEVEL.map((l) => (
-            <i key={l} className={cn('size-2.5 rounded-[3px]', l)} />
+            <i key={l} className={cn('size-2.5 rounded-mark', l)} />
           ))}
           More
         </span>

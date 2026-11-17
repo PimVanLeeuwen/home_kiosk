@@ -5,7 +5,7 @@ const ENTITY: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', 
 const TAGS = { b: 'strong', i: 'em', u: 'u', s: 's', code: 'code', pre: 'pre', blockquote: 'blockquote', a: 'a' } as const
 const CLASS: Partial<Record<keyof typeof TAGS, string>> = {
   code: 'font-mono text-[0.92em]',
-  pre: 'my-1 overflow-x-auto rounded-[6px] border border-line-soft px-2 py-1.5 font-mono text-[0.92em] whitespace-pre',
+  pre: 'my-1 overflow-x-auto rounded-tag border border-line-soft px-2 py-1.5 font-mono text-[0.92em] whitespace-pre',
   // Telegram folds an expandable quote until tapped; the preview shows it open.
   blockquote: 'my-1 border-l-2 border-accent-line pl-2 text-muted',
   a: 'text-accent-fg underline underline-offset-2',

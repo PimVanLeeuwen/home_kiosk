@@ -17,7 +17,7 @@ function Figure({ value, unit }: { value: string; unit: string }) {
   return (
     <div>
       <b className="block text-heading font-semibold text-white tabular-nums">{value}</b>
-      <span className="text-label tracking-[0.06em] text-white/60 uppercase">{unit}</span>
+      <span className="text-label eyebrow text-white/60">{unit}</span>
     </div>
   )
 }

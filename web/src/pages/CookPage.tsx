@@ -75,7 +75,7 @@ function Cook({ detail }: { detail: RecipeDetail }) {
               to={back}
               viewTransition
               aria-label="Close cook mode"
-              className="grid size-10 place-items-center rounded-[12px] border border-line-soft bg-card text-muted hover:text-fg"
+              className="grid size-10 place-items-center rounded-tile border border-line-soft bg-card text-muted hover:text-fg"
             >
               <X aria-hidden="true" className="size-5" />
             </Link>

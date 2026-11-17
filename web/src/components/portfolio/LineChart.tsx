@@ -93,7 +93,7 @@ export function LineChart({ points, aLabel, bLabel, format, label, bleed }: Prop
             </linearGradient>
           </defs>
           {[0.25, 0.5, 0.75].map((f) => (
-            <line key={f} x1="0" x2={WIDTH} y1={HEIGHT * f} y2={HEIGHT * f} stroke="rgb(255 255 255 / 0.04)" vectorEffect="non-scaling-stroke" />
+            <line key={f} x1="0" x2={WIDTH} y1={HEIGHT * f} y2={HEIGHT * f} stroke="var(--color-grid)" vectorEffect="non-scaling-stroke" />
           ))}
           <path d={`${line} L${WIDTH} ${HEIGHT} L0 ${HEIGHT} Z`} fill={`url(#${gradient})`} className="motion-safe:animate-fill-in" />
           {reference && (

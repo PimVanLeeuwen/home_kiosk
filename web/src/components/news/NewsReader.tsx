@@ -69,7 +69,7 @@ export function NewsReader({ id, known, groupTitle, groupColour, onReadChange }:
       meta={
         <>
           <span
-            className="mr-1 rounded-[6px] px-1.5 py-px text-label font-semibold"
+            className="mr-1 rounded-tag px-1.5 py-px text-label font-semibold"
             style={{ backgroundColor: groupColour(article.group_id).bg, color: groupColour(article.group_id).fg }}
           >
             {groupTitle(article.group_id)}

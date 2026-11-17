@@ -27,7 +27,7 @@ export function RingMeter({ pct, tone, label, caption }: Props) {
       viewBox="0 0 100 100"
       className="block w-full"
     >
-      <circle cx="50" cy="50" r={R} fill="none" stroke="rgb(255 255 255 / 0.07)" strokeWidth="7" />
+      <circle cx="50" cy="50" r={R} fill="none" stroke="var(--color-track)" strokeWidth="7" />
       {value > 0 && (
         <circle
           cx="50"

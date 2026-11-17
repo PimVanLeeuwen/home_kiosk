@@ -47,7 +47,7 @@ function Co2Ring({ ppm, level }: { ppm: number; level: Level }) {
   const [hx, hy] = point(to)
   return (
     <svg viewBox="0 0 200 200" className="block w-full max-w-[200px]" role="img" aria-label={`CO₂ ${ppm} ppm, ${word.toLowerCase()}`}>
-      <path d={arc(START, START + SPAN)} fill="none" stroke="rgb(255 255 255 / 0.08)" strokeWidth="13" strokeLinecap="round" />
+      <path d={arc(START, START + SPAN)} fill="none" stroke="var(--color-track)" strokeWidth="13" strokeLinecap="round" />
       {[STUFFY_FROM, OPEN_FROM].map((t) => {
         const a = START + SPAN * share(t)
         const [x0, y0] = point(a, R - 10)

@@ -31,7 +31,7 @@ export function AllocationCard({ allocation }: { allocation: { label: string; pc
         viewBox="0 0 100 100"
         className="mx-auto mb-3 block w-[150px]"
       >
-        <circle cx="50" cy="50" r={R} fill="none" stroke="rgb(255 255 255 / 0.06)" strokeWidth="10" />
+        <circle cx="50" cy="50" r={R} fill="none" stroke="var(--color-track)" strokeWidth="10" />
         {allocation.map((slice, i) => {
           const share = (slice.pct / total) * C
           const length = Math.max(0, share - (allocation.length > 1 ? GAP : 0))
@@ -65,7 +65,7 @@ export function AllocationCard({ allocation }: { allocation: { label: string; pc
           <li key={slice.label} className="flex items-center gap-2.5">
             <span
               aria-hidden="true"
-              className="size-2.5 rounded-[3px]"
+              className="size-2.5 rounded-mark"
               style={{ background: COLOURS[i % COLOURS.length], boxShadow: `0 0 5px ${COLOURS[i % COLOURS.length]}` }}
             />
             <span className="flex-1">{slice.label}</span>

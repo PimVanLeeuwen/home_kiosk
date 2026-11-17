@@ -36,7 +36,7 @@ export function OutsideServicesSection() {
                   target="_blank"
                   rel="noreferrer"
                   aria-label={`${s.name}: ${STATE_LABEL[s.state]}, open the status page`}
-                  className="flex items-center gap-3 rounded-[11px] border border-line-soft bg-raised/50 px-3 py-2.5 hover:border-line"
+                  className="flex items-center gap-3 rounded-tile border border-line-soft bg-raised/50 px-3 py-2.5 hover:border-line"
                 >
                   <BrandLogo service={s} size={32} halo={s.state === 'degraded' || s.state === 'outage'} dim={s.state === 'unknown'} />
                   <span className="min-w-0">

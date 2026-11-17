@@ -45,7 +45,7 @@ export function AlertsPage() {
       {settings && (
         <>
           {missing && missing.length > 0 && (
-            <p role="alert" className="mb-4 rounded-[12px] border border-warn/40 bg-warn/10 px-4 py-3 text-small">
+            <p role="alert" className="mb-4 rounded-tile border border-warn/40 bg-warn/10 px-4 py-3 text-small">
               Not set up yet: {missing.join(', ')}. Add {missing.length === 1 ? 'it' : 'them'} to the hub&apos;s .env on
               the NAS.
             </p>
@@ -66,7 +66,7 @@ export function AlertsPage() {
                 <ul className="space-y-1.5 text-small">
                   {COMMANDS.map(([command, what]) => (
                     <li key={command} className="flex items-center justify-between gap-3">
-                      <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 font-mono text-caption">{command}</span>
+                      <span className="rounded-tag border border-glass-line bg-glass px-1.5 font-mono text-caption">{command}</span>
                       <span className="text-faint">{what}</span>
                     </li>
                   ))}

@@ -42,9 +42,9 @@ export function RecipeCard({ recipe }: { recipe: RecipeSummary }) {
     <Link
       to={`/recipes/${encodeURIComponent(recipe.id)}`}
       viewTransition
-      className="pressable grid h-full grid-cols-[88px_minmax(0,1fr)] items-center gap-3.5 overflow-hidden rounded-[16px] border border-line-soft bg-card p-2 hover:border-line lg:flex lg:flex-col lg:items-stretch lg:gap-0 lg:p-0"
+      className="pressable grid h-full grid-cols-[88px_minmax(0,1fr)] items-center gap-3.5 overflow-hidden rounded-sheet border border-line-soft bg-card p-2 hover:border-line lg:flex lg:flex-col lg:items-stretch lg:gap-0 lg:p-0"
     >
-      <RecipePhoto recipe={recipe} className="size-[88px] rounded-[11px] lg:h-40 lg:w-full lg:rounded-none" />
+      <RecipePhoto recipe={recipe} className="size-[88px] rounded-tile lg:h-40 lg:w-full lg:rounded-none" />
       <span className="flex min-w-0 flex-col gap-1 lg:px-3.5 lg:pt-3 lg:pb-3.5">
         <span className="text-title leading-snug font-semibold">{recipe.title}</span>
         <RecipeTimes recipe={recipe} />

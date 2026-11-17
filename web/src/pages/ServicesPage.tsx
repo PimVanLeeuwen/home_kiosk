@@ -17,10 +17,10 @@ const REFRESH_MS = 30_000
 /** The summary's dot per service: green up, amber starting or unhealthy, red down, grey for a link. */
 const DOT: Record<ServiceStatus | 'link', string> = {
   up: 'bg-up shadow-[0_0_5px_--alpha(var(--color-up)/70%)]',
-  starting: 'bg-warn shadow-[0_0_7px_var(--color-warn)]',
-  unhealthy: 'bg-warn shadow-[0_0_7px_var(--color-warn)]',
-  down: 'bg-down shadow-[0_0_7px_var(--color-down)]',
-  missing: 'bg-down shadow-[0_0_7px_var(--color-down)]',
+  starting: 'bg-warn shadow-glow shadow-warn',
+  unhealthy: 'bg-warn shadow-glow shadow-warn',
+  down: 'bg-down shadow-glow shadow-down',
+  missing: 'bg-down shadow-glow shadow-down',
   unknown: 'bg-faint',
   link: 'bg-white/14',
 }
@@ -28,14 +28,14 @@ const DOT: Record<ServiceStatus | 'link', string> = {
 /** "3/4" running in a group, tinted by its worst service; "2 links" for a group of links. */
 function GroupCount({ services }: { services: Service[] }) {
   const nas = services.filter((s) => !s.url)
-  if (!nas.length) return <span className="rounded-[6px] bg-raised px-1.5 text-micro text-muted">{services.length} links</span>
+  if (!nas.length) return <span className="rounded-tag bg-raised px-1.5 text-micro text-muted">{services.length} links</span>
   const up = nas.filter((s) => s.status === 'up').length
   const tone = nas.some((s) => s.status === 'down' || s.status === 'missing') ? 'down' : up < nas.length ? 'warn' : 'up'
   return (
     <span
       data-tone={tone}
       className={cn(
-        'rounded-[6px] px-1.5 text-micro',
+        'rounded-tag px-1.5 text-micro',
         tone === 'up' ? 'bg-up/13 text-up' : tone === 'down' ? 'bg-down/14 text-down' : 'bg-warn/15 text-warn',
       )}
     >

@@ -54,7 +54,7 @@ export function GlowArea({ values, label, tone = 'accent', color, height = 118, 
         </linearGradient>
       </defs>
       {[1 / 3, 2 / 3].map((f) => (
-        <line key={f} x1="0" x2={W} y1={H * f} y2={H * f} stroke="rgb(255 255 255 / 0.04)" vectorEffect="non-scaling-stroke" />
+        <line key={f} x1="0" x2={W} y1={H * f} y2={H * f} stroke="var(--color-grid)" vectorEffect="non-scaling-stroke" />
       ))}
       <polygon points={`0,${H} ${pts} ${W},${H}`} fill={`url(#${id}-fill)`} className="motion-safe:animate-fill-in" />
       <polyline

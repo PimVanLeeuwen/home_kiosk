@@ -40,7 +40,7 @@ interface PageUnavailableProps extends UnavailableProps {
 /** A whole page whose source is not answering: what, why, and a way to try again. */
 export function PageUnavailable({ what, plural, detail, onRetry }: PageUnavailableProps) {
   return (
-    <div role="alert" className="flex flex-col items-start gap-1 rounded-[14px] border border-line bg-card p-5">
+    <div role="alert" className="flex flex-col items-start gap-1 rounded-card border border-line bg-card p-5">
       <p className="font-medium">
         {what} {plural ? 'are' : 'is'} not available right now
       </p>

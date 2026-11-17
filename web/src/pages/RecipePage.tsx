@@ -212,7 +212,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
             <img
               src={photoUrl({ id: recipe.id, photo: detail.photo }, 'lead')}
               alt=""
-              className="order-1 aspect-[3/2] w-full rounded-[16px] border border-line-soft bg-raised object-cover print:max-h-56"
+              className="order-1 aspect-[3/2] w-full rounded-sheet border border-line-soft bg-raised object-cover print:max-h-56"
             />
           )}
           <div className="order-3 flex flex-col gap-5">

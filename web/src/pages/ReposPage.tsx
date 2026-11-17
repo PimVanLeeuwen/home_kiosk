@@ -86,7 +86,7 @@ export function ReposPage() {
           <div
             role="tablist"
             aria-label="Owners"
-            className="mb-5 inline-flex max-w-full gap-0.5 overflow-x-auto rounded-[12px] border border-glass-line bg-glass p-[3px]"
+            className="mb-5 inline-flex max-w-full gap-0.5 overflow-x-auto rounded-tile border border-glass-line bg-glass p-[3px]"
           >
             {groups.map((g) => {
               const selected = g === active
@@ -101,7 +101,7 @@ export function ReposPage() {
                   aria-controls={`${ids}-panel`}
                   onClick={() => setParams({ tab: g.label }, { replace: true })}
                   className={cn(
-                    'rounded-[9px] px-3.5 py-1.5 font-medium whitespace-nowrap',
+                    'rounded-control px-3.5 py-1.5 font-medium whitespace-nowrap',
                     selected ? 'bg-accent/20 text-fg shadow-[inset_0_0_0_1px_--alpha(var(--color-accent-line)/40%)]' : 'text-muted hover:text-fg',
                   )}
                 >

@@ -34,18 +34,18 @@ export function ActionMenu({ label, actions, className }: { label: string; actio
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={cn(iconButtonClass, 'size-10 rounded-[12px] border border-line-soft bg-card')}
+        className={cn(iconButtonClass, 'size-10 rounded-tile border border-line-soft bg-card')}
       >
         <Ellipsis aria-hidden="true" className="size-5" />
       </button>
       {open && (
-        <div role="menu" className="absolute top-12 right-0 z-20 flex w-68 flex-col gap-1 rounded-[14px] border border-line bg-card p-1.5 shadow-[0_18px_50px_rgb(0_0_0/0.5)]">
+        <div role="menu" className="absolute top-12 right-0 z-20 flex w-68 flex-col gap-1 rounded-card border border-line bg-card p-1.5 shadow-overlay">
           {actions.map(({ label: name, hint, icon: Icon, onSelect, danger }) => (
             <button
               key={name}
               type="button"
               role="menuitem"
-              className="flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-left hover:bg-raised"
+              className="flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left hover:bg-raised"
               onClick={() => {
                 setOpen(false)
                 onSelect()

@@ -127,7 +127,7 @@ export function MediaPage() {
                 {data.upcoming.length ? (
                   byDay(data.upcoming, now).map(([day, episodes]) => (
                     <section key={day} aria-label={day} className="not-first:mt-3">
-                      <h3 className="text-label font-semibold tracking-[0.08em] text-faint uppercase">{day}</h3>
+                      <h3 className="text-label eyebrow text-faint">{day}</h3>
                       <ul>
                         {episodes.map((e) => (
                           <EpisodeRow

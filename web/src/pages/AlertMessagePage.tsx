@@ -84,7 +84,7 @@ function Message({ message }: { message: Shown }) {
       <BackLink />
       <p className="mb-2 flex flex-wrap items-center gap-2 text-caption text-faint">
         <span>{formatWhen(message.ts, now)}</span>
-        <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 text-micro font-semibold tracking-[0.04em] text-muted">
+        <span className="rounded-tag border border-glass-line bg-glass px-1.5 text-micro font-semibold tracking-[0.04em] text-muted">
           {sourceLabel(message.source)}
         </span>
         <SeverityPill severity={message.severity} />
@@ -98,7 +98,7 @@ function Message({ message }: { message: Shown }) {
               alt="The picture sent with this message"
               width={1200}
               height={800}
-              className="aspect-[3/2] w-full rounded-[14px] border border-line-soft bg-card object-cover"
+              className="aspect-[3/2] w-full rounded-card border border-line-soft bg-card object-cover"
             />
           )}
           {message.state && <StateStrip state={message.state} severity={message.severity} now={now} />}
@@ -140,7 +140,7 @@ function StateStrip({ state, severity, now }: { state: NonNullable<Shown['state'
   const tone = !state.open ? 'border-up/30 bg-up/[0.07]' : severity === 'error' ? 'border-down/35 bg-down/[0.08]' : 'border-warn/35 bg-warn/[0.07]'
   const dot = !state.open ? 'bg-up' : severity === 'error' ? 'bg-down shadow-[0_0_10px_var(--color-down)]' : 'bg-warn shadow-[0_0_10px_var(--color-warn)]'
   return (
-    <div role="status" className={cn('flex items-center gap-3 rounded-[14px] border px-4 py-3', tone)}>
+    <div role="status" className={cn('flex items-center gap-3 rounded-card border px-4 py-3', tone)}>
       <span aria-hidden="true" className={cn('size-2.5 shrink-0 rounded-full', dot)} />
       <div>
         <p className="font-semibold">{state.open ? 'Still open' : `Resolved at ${clock.format(new Date(state.resolved_at!))}`}</p>
@@ -201,7 +201,7 @@ function Links({ links }: { links: MessageLink[] }) {
   const services = useApi<ServicesResponse>('/api/services')
   const hosts = useApi<Hosts>('/api/hosts')
   const all = (services.data?.groups ?? []).flatMap((g) => g.services)
-  const row = 'flex items-center gap-3 rounded-[13px] border border-line-soft bg-card px-4 py-3 font-medium hover:border-line'
+  const row = 'flex items-center gap-3 rounded-tile border border-line-soft bg-card px-4 py-3 font-medium hover:border-line'
   return (
     <nav aria-label="Go to" className="grid gap-2">
       {links.map((link) => {

@@ -35,10 +35,10 @@ const PAGE_DAYS = 7
 
 /** The dot on the timeline, in the severity's colour. */
 const DOT: Record<AlertMessage['severity'], string> = {
-  error: 'bg-down shadow-[0_0_7px_var(--color-down)]',
-  warning: 'bg-warn shadow-[0_0_7px_var(--color-warn)]',
-  ok: 'bg-up shadow-[0_0_7px_var(--color-up)]',
-  info: 'bg-accent-line shadow-[0_0_7px_var(--color-accent-line)]',
+  error: 'bg-down shadow-glow shadow-down',
+  warning: 'bg-warn shadow-glow shadow-warn',
+  ok: 'bg-up shadow-glow shadow-up',
+  info: 'bg-accent-line shadow-glow shadow-accent-line',
 }
 
 export function MessageLog({ settings }: { settings: AlertSettings }) {
@@ -150,7 +150,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
               <span aria-hidden="true" className={cn('absolute -left-[20.5px] size-[7px] rounded-full', DOT[m.severity], 'top-[1.15rem] in-[li:first-child]:top-[0.55rem]')} />
               <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-faint">
                 <span>{formatWhen(m.ts)}</span>
-                <span className="rounded-[6px] border border-glass-line bg-glass px-1.5 text-micro font-semibold tracking-[0.04em] text-muted">
+                <span className="rounded-tag border border-glass-line bg-glass px-1.5 text-micro font-semibold tracking-[0.04em] text-muted">
                   {sourceLabel(m.source)}
                 </span>
                 <SeverityPill severity={m.severity} />

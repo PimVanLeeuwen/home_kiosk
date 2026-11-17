@@ -20,7 +20,7 @@ function Bubble({ html, label }: { html: string; label: string }) {
     <div
       role="figure"
       aria-label={label}
-      className="rounded-[12px] rounded-bl-[4px] border border-line-soft bg-raised px-3.5 py-2.5 text-small leading-relaxed break-words whitespace-pre-wrap"
+      className="rounded-tile rounded-bl-tag border border-line-soft bg-raised px-3.5 py-2.5 text-small leading-relaxed break-words whitespace-pre-wrap"
     >
       <TelegramText html={html} />
     </div>
@@ -142,7 +142,7 @@ function Editor({ template, parentLabel, category, ntfy, onSaved, onClose }: Edi
                   type="button"
                   onClick={() => insert(p.name)}
                   title={p.description}
-                  className="rounded-md border border-line bg-raised px-2 py-1 font-mono text-caption text-accent-fg hover:border-accent-line"
+                  className="rounded-tag border border-line bg-raised px-2 py-1 font-mono text-caption text-accent-fg hover:border-accent-line"
                 >
                   {`{${p.name}}`}
                   <span className="sr-only">: {p.description}</span>
@@ -246,7 +246,7 @@ export function MessageTemplates() {
                 aria-expanded={isOpen}
                 aria-controls={listId}
                 onClick={toggle}
-                className="flex w-full items-center gap-3 rounded-lg px-1 py-0.5 text-left hover:text-fg"
+                className="flex w-full items-center gap-3 rounded-control px-1 py-0.5 text-left hover:text-fg"
               >
                 <span className="flex-1">{group}</span>
                 <span className="font-normal text-faint">
@@ -265,7 +265,7 @@ export function MessageTemplates() {
                         <p className="font-medium">
                           {t.label}
                           {t.customised && (
-                            <span className="ml-2 rounded-md border border-accent-line px-1.5 py-0.5 align-middle text-label font-normal text-accent-fg">
+                            <span className="ml-2 rounded-tag border border-accent-line px-1.5 py-0.5 align-middle text-label font-normal text-accent-fg">
                               Customised
                             </span>
                           )}

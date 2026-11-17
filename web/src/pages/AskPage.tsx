@@ -91,7 +91,7 @@ export function AskPage() {
 
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col">
         {switchedOff ? (
-          <div role="status" className="rounded-[14px] border border-line bg-card p-5">
+          <div role="status" className="rounded-card border border-line bg-card p-5">
             <p className="font-medium">Ask is not switched on</p>
             <p className="mt-1 text-muted">
               {status.configured ? (
@@ -106,7 +106,7 @@ export function AskPage() {
           </div>
         ) : empty ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2.5 py-8 text-center">
-            <span aria-hidden="true" className="grid size-10 place-items-center rounded-xl bg-accent-soft">
+            <span aria-hidden="true" className="grid size-10 place-items-center rounded-tile bg-accent-soft">
               <Sparkles className="size-[18px] text-accent-fg" strokeWidth={1.9} />
             </span>
             <h2 className="mt-1 text-title font-semibold">Ask the house</h2>
@@ -117,7 +117,7 @@ export function AskPage() {
                   key={s}
                   type="button"
                   onClick={() => send(s)}
-                  className="pressable rounded-xl border border-line bg-card px-3.5 py-2.5 text-left text-small hover:border-faint"
+                  className="pressable rounded-tile border border-line bg-card px-3.5 py-2.5 text-left text-small hover:border-faint"
                 >
                   {s}
                 </button>
@@ -129,12 +129,12 @@ export function AskPage() {
             {entries.map((entry, i) => (
               <li key={i} className={entry.kind === 'me' ? 'flex justify-end' : undefined}>
                 {entry.kind === 'me' && (
-                  <p className="max-w-[80%] rounded-[14px_14px_4px_14px] border border-line bg-raised px-3.5 py-2 whitespace-pre-wrap">
+                  <p className="max-w-[80%] rounded-card rounded-br-tag border border-line bg-raised px-3.5 py-2 whitespace-pre-wrap">
                     {entry.text}
                   </p>
                 )}
                 {entry.kind === 'error' && (
-                  <p role="alert" className="rounded-xl border border-down/35 bg-down/8 px-3.5 py-3 text-small">
+                  <p role="alert" className="rounded-tile border border-down/35 bg-down/8 px-3.5 py-3 text-small">
                     {entry.text}
                   </p>
                 )}
@@ -153,7 +153,7 @@ export function AskPage() {
                       <p className="flex flex-wrap items-center gap-1.5 text-caption text-faint">
                         Used
                         {entry.used.map((tool) => (
-                          <span key={tool} className="rounded-md border border-line px-1.5 font-mono text-[11.5px] text-muted">
+                          <span key={tool} className="rounded-tag border border-line px-1.5 font-mono text-[11.5px] text-muted">
                             {tool}
                           </span>
                         ))}

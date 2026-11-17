@@ -11,8 +11,8 @@ import { RestoreLine } from './RestoreLine'
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     // One line on a phone (label left, value right), a small tile from sm up.
-    <div className="flex min-w-0 items-baseline justify-between gap-3 rounded-[10px] border border-glass-line bg-glass px-2.5 py-2 sm:block">
-      <dt className="shrink-0 text-micro font-semibold tracking-[0.08em] text-faint uppercase">{label}</dt>
+    <div className="flex min-w-0 items-baseline justify-between gap-3 rounded-control border border-glass-line bg-glass px-2.5 py-2 sm:block">
+      <dt className="shrink-0 text-micro eyebrow text-faint">{label}</dt>
       <dd className="mt-px truncate text-body font-semibold">{children}</dd>
     </div>
   )

@@ -133,7 +133,7 @@ export function NewsPage() {
         )}
         {byDay(list.items).map(([day, articles]) => (
           <div key={day}>
-            <h2 className="mt-4 mb-1 flex items-center gap-2 text-label font-semibold tracking-[0.08em] text-faint uppercase after:h-px after:flex-1 after:bg-line-soft first:mt-0">
+            <h2 className="mt-4 mb-1 flex items-center gap-2 text-label eyebrow text-faint after:h-px after:flex-1 after:bg-line-soft first:mt-0">
               {day}
             </h2>
             <ul>
@@ -143,7 +143,7 @@ export function NewsPage() {
                     to={`/news?a=${a.id}`}
                     aria-current={a.id === selected ? 'true' : undefined}
                     className={cn(
-                      '-mx-3 flex gap-3 rounded-[11px] border border-transparent px-3 py-2.5 hover:bg-white/[0.03]',
+                      '-mx-3 flex gap-3 rounded-tile border border-transparent px-3 py-2.5 hover:bg-white/[0.03]',
                       a.id === selected &&
                         'border-accent-line/30 bg-accent/12 shadow-[inset_2px_0_0_var(--color-accent-line)] hover:bg-accent/12',
                     )}
@@ -152,14 +152,14 @@ export function NewsPage() {
                       aria-hidden="true"
                       className={cn(
                         'mt-2 size-[7px] shrink-0 rounded-full',
-                        !isRead(a) && 'bg-accent-line shadow-[0_0_8px_var(--color-accent-line)]',
+                        !isRead(a) && 'bg-accent-line shadow-glow shadow-accent-line',
                       )}
                     />
                     <span className="min-w-0">
                       <span className={cn('block', isRead(a) ? 'text-muted' : 'font-medium')}>{a.title}</span>
                       <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-caption text-faint">
                         <span
-                          className="rounded-[6px] px-1.5 text-micro font-semibold"
+                          className="rounded-tag px-1.5 text-micro font-semibold"
                           style={{ backgroundColor: colourOf(a.group_id).bg, color: colourOf(a.group_id).fg }}
                         >
                           {groupTitle(a.group_id)}
@@ -180,7 +180,7 @@ export function NewsPage() {
           <button
             type="button"
             onClick={list.loadMore}
-            className="mt-3 w-full rounded-[11px] border border-glass-line bg-glass py-2.5 text-small text-muted hover:text-fg"
+            className="mt-3 w-full rounded-tile border border-glass-line bg-glass py-2.5 text-small text-muted hover:text-fg"
           >
             Show more ({list.total - list.items.length} left)
           </button>
