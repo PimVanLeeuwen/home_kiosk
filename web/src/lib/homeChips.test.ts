@@ -21,9 +21,9 @@ describe('homeChips', () => {
       homeChips({ nas: undefined, services: undefined, backups: undefined, outside: undefined, dns: d, attention: [], now: new Date() })
         .find((c) => c.id === 'dns')!
 
-    expect(chip(dns)).toMatchObject({ label: 'Ads blocked', value: '12,3%', tone: 'ok', meter: ['off', 'accent'] })
+    expect(chip(dns)).toMatchObject({ label: 'Ads blocked', value: '12,3%', tone: 'up', meter: ['off', 'accent'] })
     expect(chip({ ...dns, answering: false })).toMatchObject({ value: 'Down', tone: 'warn' })
     expect(chip({ ...dns, protection: false })).toMatchObject({ value: 'Paused', tone: 'warn' })
-    expect(chip(undefined)).toMatchObject({ value: 'Unknown', tone: 'unknown' })
+    expect(chip(undefined)).toMatchObject({ value: 'Unknown', tone: 'muted' })
   })
 })

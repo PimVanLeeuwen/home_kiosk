@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { ArcGauge } from './ArcGauge'
+import { BarMeter } from './BarMeter'
 import { BarStrip } from './BarStrip'
-import { Card } from './Card'
+import { Card, Surface } from './Card'
 import { markLeft } from './markLeft'
 import { FlowLine } from './FlowLine'
 import { GlassTile } from './GlassTile'
@@ -10,9 +11,11 @@ import { GlowArea } from './GlowArea'
 import { GlowDot } from './GlowDot'
 import { MiniSparkline } from './MiniSparkline'
 import { Pill } from './Pill'
+import { Ring } from './Ring'
 import { RingMeter } from './RingMeter'
 import { RunDots } from './RunDots'
 import { Seal } from './Seal'
+import { Tag } from './Tag'
 
 describe('ArcGauge', () => {
   it('is a meter with the figure, clamped to 0 to 100', () => {
@@ -222,5 +225,121 @@ describe('Card', () => {
     const right = title.nextElementSibling!
     expect([...right.children].map((c) => c.textContent)).toEqual(['Hetzner · encrypted', 'All safe', 'Details →'])
     expect(right.firstElementChild).toHaveClass('text-faint')
+  })
+})
+
+describe('Surface', () => {
+  it('takes its colours from its look and its padding from a name', () => {
+    render(
+      <>
+        <Surface look="down" padding="compact">problem</Surface>
+        <MemoryRouter>
+          <Card title="Revenue" padding="chart">chart</Card>
+        </MemoryRouter>
+      </>,
+    )
+
+    const problem = screen.getByText('problem')
+    expect(problem).toHaveAttribute('data-look', 'down')
+    expect(problem).toHaveClass('border-down/40', 'p-3')
+    expect(problem).not.toHaveClass('border-line-soft')
+    const card = screen.getByRole('region', { name: 'Revenue' })
+    expect(card).toHaveClass('pt-5')
+    expect(card).not.toHaveClass('py-5')
+  })
+})
+
+describe('BarMeter', () => {
+  it('fills in violet by default and in a state colour when given one', () => {
+    render(
+      <>
+        <BarMeter label="volume1" value="40%" pct={40} />
+        <BarMeter label="volume2" value="99%" pct={140} tone="down" />
+      </>,
+    )
+
+    expect(screen.getByRole('meter', { name: 'volume1' })).toHaveAttribute('data-tone', 'accent')
+    const full = screen.getByRole('meter', { name: 'volume2' })
+    expect(full.firstElementChild).toHaveClass('bg-down')
+    expect(full.firstElementChild).toHaveStyle({ width: '100%' })
+  })
+})
+
+describe('Ring', () => {
+  it('draws a clamped arc from its start, and no arc at nothing', () => {
+    const { container } = render(
+      <>
+        <Ring data-testid="full" box={100} r={40} stroke={6} color="red" fraction={1.4} start={0.25} />
+        <Ring data-testid="empty" box={100} r={40} stroke={6} color="red" fraction={0} />
+      </>,
+    )
+
+    const c = 2 * Math.PI * 40
+    const arc = screen.getByTestId('full').querySelector('[data-arc]')!
+    expect(Number(arc.getAttribute('stroke-dasharray')!.split(' ')[0])).toBeCloseTo(c, 1)
+    expect(Number(arc.getAttribute('stroke-dashoffset'))).toBeCloseTo(-0.25 * c, 1)
+    expect(screen.getByTestId('empty').querySelector('[data-arc]')).toBeNull()
+    expect(container.querySelectorAll('circle[stroke="var(--color-track)"]')).toHaveLength(2)
+  })
+})
+
+describe('GlowDot', () => {
+  it('takes a tone or a colour of its own, a size, and names itself when asked', () => {
+    render(
+      <>
+        <GlowDot tone="down" size="lg" label="Failing" />
+        <GlowDot color="#8cc4ff" size="sm" text="Tech" />
+        <GlowDot tone="muted" title="Not checked" />
+      </>,
+    )
+
+    const failing = screen.getByRole('img', { name: 'Failing' })
+    expect(failing).toHaveAttribute('data-tone', 'down')
+    expect(failing).toHaveClass('size-[9px]')
+    expect(failing.className).toMatch(/shadow-/)
+    const tech = screen.getByTitle('Tech')
+    expect(tech).toHaveStyle({ backgroundColor: '#8cc4ff' })
+    expect(within(tech).getByText('Tech')).toHaveClass('sr-only')
+    const quiet = screen.getByTitle('Not checked')
+    expect(quiet).toHaveAttribute('aria-hidden', 'true')
+    expect(quiet.className).not.toMatch(/shadow-/)
+  })
+
+  it('stays plain in a dense row, an empty slot dimmer than a muted dot', () => {
+    render(
+      <>
+        <GlowDot tone="up" flat title="sonarr" />
+        <GlowDot tone="down" flat halo title="radarr" />
+        <GlowDot flat title="a link" />
+      </>,
+    )
+
+    expect(screen.getByTitle('sonarr').className).not.toMatch(/shadow-/)
+    expect(screen.getByTitle('radarr')).toHaveClass('motion-safe:animate-halo')
+    expect(screen.getByTitle('a link')).toHaveStyle({ backgroundColor: 'rgb(255 255 255 / 0.14)' })
+  })
+})
+
+describe('Tag', () => {
+  it('comes tinted, outlined or glass, in a tone or a colour of its own', () => {
+    render(
+      <>
+        <Tag tone="down" size="micro" caps>Error</Tag>
+        <Tag variant="outline" tone="accent">Relay</Tag>
+        <Tag variant="glass">Fork</Tag>
+        <Tag variant="glass" mono>NVDA</Tag>
+        <Tag colour={{ bg: '#123', fg: '#8cc4ff' }}>Tech</Tag>
+        <Tag colour="#7cc4ff">SQLite</Tag>
+      </>,
+    )
+
+    expect(screen.getByText('Error')).toHaveAttribute('data-tone', 'down')
+    expect(screen.getByText('Error')).toHaveClass('text-down', 'eyebrow', 'text-micro')
+    expect(screen.getByText('Relay')).toHaveClass('border', 'text-accent-fg')
+    expect(screen.getByText('Fork')).toHaveClass('bg-glass', 'text-muted')
+    expect(screen.getByText('NVDA')).toHaveClass('font-mono', 'text-fg')
+    expect(screen.getByText('Tech')).toHaveStyle({ color: '#8cc4ff' })
+    expect(screen.getByText('SQLite')).toHaveStyle({ color: '#7cc4ff' })
+    expect(screen.getByText('SQLite')).not.toHaveAttribute('data-tone')
   })
 })

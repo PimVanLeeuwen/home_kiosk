@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { cn } from '../../lib/cn'
 import { FILAMENT_KELVIN, whiteOf } from '../../lib/lightColour'
 import type { LightGroup } from '../../lib/types'
+import { GlowDot } from '../ui/GlowDot'
 
 export type Change = { on?: boolean; brightness?: number; kelvin?: number }
 
@@ -153,13 +154,7 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
             data-reachable={light.reachable}
             className="inline-flex items-center gap-1.5 rounded-full border border-glass-line bg-glass px-2.5 py-[3px]"
           >
-            <i
-              aria-hidden="true"
-              className={cn(
-                'size-[7px] rounded-full',
-                !light.reachable ? 'bg-warn' : light.on ? 'bg-(--w) shadow-[0_0_7px_var(--w)]' : 'bg-faint',
-              )}
-            />
+            <GlowDot tone={light.reachable ? 'muted' : 'warn'} color={light.reachable && light.on ? 'var(--w)' : undefined} size="sm" />
             {light.name}
             <span className="sr-only">{!light.reachable ? ': unreachable' : light.on ? ': on' : ': off'}</span>
             {!light.reachable && <span className="text-warn">unreachable</span>}

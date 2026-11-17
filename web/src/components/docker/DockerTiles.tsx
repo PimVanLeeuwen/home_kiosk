@@ -4,6 +4,8 @@ import { formatBytes } from '../../lib/format'
 import type { ContainerLoad, ContainerUpdate, DockerOverview } from '../../lib/types'
 import { OutOf, StatTile, StatTiles } from '../ui/StatTile'
 import { AnimatedNumber } from '../ui/AnimatedNumber'
+import { GlowDot } from '../ui/GlowDot'
+import { STATUS_TONE } from '../../lib/status'
 
 const pct = (n: number) => `${n.toFixed(1).replace('.', ',')}%`
 /** Colours for the biggest memory users; the rest is grey. */
@@ -50,16 +52,7 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
           {all.map((c: ContainerLoad) => {
             const status = containerStatus(c)
             return (
-              <i
-                key={c.name}
-                title={c.name}
-                className={cn(
-                  'block size-[7px] rounded-full',
-                  status === 'up' && 'bg-up shadow-[0_0_5px_--alpha(var(--color-up)/70%)]',
-                  (status === 'unhealthy' || status === 'starting') && 'bg-warn shadow-glow shadow-warn',
-                  status === 'down' && 'bg-down shadow-glow shadow-down',
-                )}
-              />
+              <GlowDot key={c.name} title={c.name} tone={STATUS_TONE[status]} size="sm" flat />
             )
           })}
         </p>

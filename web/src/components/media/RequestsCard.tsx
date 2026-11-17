@@ -2,15 +2,17 @@ import { cn } from '../../lib/cn'
 import type { MediaOverview, RequestState } from '../../lib/types'
 import { Card } from '../ui/Card'
 import { Poster } from './Poster'
+import { Tag } from '../ui/Tag'
+import type { Tone } from '../ui/tones'
 
-const STATE: Record<RequestState, { label: string; tone: string }> = {
-  waiting: { label: 'Waiting', tone: 'border-warn/35 text-warn' },
-  approved: { label: 'Approved', tone: 'border-glass-line text-muted' },
-  downloading: { label: 'Downloading', tone: 'border-accent-line/30 text-accent-fg' },
-  partly: { label: 'Partly available', tone: 'border-up/30 text-up' },
-  available: { label: 'Available', tone: 'border-up/30 text-up' },
-  declined: { label: 'Declined', tone: 'border-glass-line text-faint' },
-  failed: { label: 'Failed', tone: 'border-down/40 text-down' },
+const STATE: Record<RequestState, { label: string; tone: Tone }> = {
+  waiting: { label: 'Waiting', tone: 'warn' },
+  approved: { label: 'Approved', tone: 'muted' },
+  downloading: { label: 'Downloading', tone: 'accent' },
+  partly: { label: 'Partly available', tone: 'up' },
+  available: { label: 'Available', tone: 'up' },
+  declined: { label: 'Declined', tone: 'muted' },
+  failed: { label: 'Failed', tone: 'down' },
 }
 
 function Count({ n, label, warn }: { n: number; label: string; warn?: boolean }) {
@@ -48,9 +50,9 @@ export function RequestsCard({ overview }: { overview: MediaOverview }) {
                       {r.year && ` · ${r.year}`} · {r.by}
                     </p>
                   </div>
-                  <span data-state={r.state} className={cn('rounded-tag border px-[7px] text-label whitespace-nowrap', STATE[r.state].tone)}>
+                  <Tag variant="outline" tone={STATE[r.state].tone} data-state={r.state}>
                     {STATE[r.state].label}
-                  </span>
+                  </Tag>
                 </li>
               ))}
             </ul>

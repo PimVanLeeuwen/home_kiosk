@@ -63,7 +63,7 @@ describe('AlertsPage', () => {
     // A timeline: a dot in each message's severity colour, a source chip and a delivery mark.
     const items = within(log).getAllByRole('listitem')
     const dot = (li: HTMLElement) => li.querySelector('span[aria-hidden="true"]')!
-    expect(items.some((li) => dot(li).className.includes('bg-warn'))).toBe(true)
+    expect(items.some((li) => dot(li).getAttribute('data-tone') === 'warn')).toBe(true)
     const failed = within(log).getByText('Not sent: Telegram answered 403').previousElementSibling!
     expect(failed).toHaveTextContent('!')
     expect(failed).toHaveClass('text-down')

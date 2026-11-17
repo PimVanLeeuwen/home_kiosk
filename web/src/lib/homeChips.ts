@@ -3,9 +3,11 @@ import { formatPercent, formatWhen } from './format'
 import type { CardState, FoldedCardId } from './homeOrder'
 import { backupsState, dnsState, nasState, outsideState, servicesState } from './homeStates'
 import { troubled } from './outside'
+import type { Tone } from '../components/ui/tones'
 import type { BackupHistory, DnsStats, Nas, OutsideServices, OutsideState, Service, ServiceStatus } from './types'
 
-export type ChipTone = 'ok' | 'warn' | 'down' | 'unknown'
+/** A chip's state in the hub's tones: up while all is well, muted while unknown. */
+export type ChipTone = Extract<Tone, 'up' | 'warn' | 'down' | 'muted'>
 /** One segment of a chip's small meter. */
 export type Segment = 'up' | 'accent' | 'warn' | 'down' | 'off'
 
@@ -23,7 +25,7 @@ export const NIGHTS = 14
 const MAX_SEGMENTS = 24
 
 const toneOf = (state: CardState, known: boolean): ChipTone =>
-  !known ? 'unknown' : state === 'down' ? 'down' : state === 'warn' ? 'warn' : 'ok'
+  !known ? 'muted' : state === 'down' ? 'down' : state === 'warn' ? 'warn' : 'up'
 
 const SERVICE_SEGMENT: Record<ServiceStatus, Segment> = {
   up: 'up',
@@ -118,7 +120,7 @@ export function homeChips({ nas, services, backups, outside, dns, attention, now
       id: 'alerts',
       label: 'Alerts',
       value: !worst ? 'None' : attention.length === 1 ? worst.text : `${worst.text} +${attention.length - 1}`,
-      tone: worst?.level ?? 'ok',
+      tone: worst?.level ?? 'up',
       meter: [],
     },
   ]

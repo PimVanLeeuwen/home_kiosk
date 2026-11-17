@@ -4,6 +4,7 @@ import { statParts, statsSummary } from '../lib/stats'
 import type { Service } from '../lib/types'
 import { ServiceIcon } from './ServiceIcon'
 import { StatusDot } from './StatusDot'
+import { Tag } from './ui/Tag'
 
 interface Props {
   service: Service
@@ -46,9 +47,9 @@ export function ServiceTile({ service, href, label, index }: Props) {
               return (
                 <span key={st.label} className="contents">
                   {i > 0 && <span className="sr-only"> · </span>}
-                  <span className="shrink-0 rounded-tag border border-glass-line bg-white/5 px-1.5 text-label whitespace-nowrap text-muted">
+                  <Tag variant="glass" className="shrink-0">
                     <b className="font-semibold text-fg">{figure}</b> {word}
-                  </span>
+                  </Tag>
                 </span>
               )
             })}

@@ -7,6 +7,7 @@ import { useApi } from '../../lib/useApi'
 import { Pill } from '../ui/Pill'
 import { RingMeter } from '../ui/RingMeter'
 import type { Tone } from '../ui/tones'
+import { GlowDot } from '../ui/GlowDot'
 
 const STATUS: Record<Ups['status'], { label: string; tone: Tone; className: string }> = {
   online: { label: 'On mains', tone: 'up', className: 'text-up' },
@@ -68,13 +69,7 @@ export function UpsCard() {
         <ol className="mt-2 grid gap-2 border-l border-line pl-3.5 text-caption">
           {past.map((o) => (
             <li key={o.started_at} className="relative">
-              <span
-                aria-hidden="true"
-                className={cn(
-                  'absolute top-[0.45em] -left-[18px] size-[7px] rounded-full',
-                  o.reached_low ? 'bg-down shadow-glow shadow-down' : 'bg-faint',
-                )}
-              />
+              <GlowDot tone={o.reached_low ? 'down' : 'muted'} size="sm" className="absolute top-[0.45em] -left-[18px]" />
               <span className={o.reached_low ? 'text-fg' : 'text-muted'}>{describe(o)}</span>
             </li>
           ))}

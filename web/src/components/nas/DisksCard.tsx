@@ -48,7 +48,7 @@ export function DisksCard({ nas }: { nas: Nas }) {
                 key={disk.name}
                 className="grid grid-cols-[14px_56px_minmax(0,1fr)_48px] items-center gap-2.5 rounded-control border border-glass-line bg-linear-to-r from-white/[0.04] to-white/[0.015] px-3 py-[9px] text-small sm:grid-cols-[14px_64px_minmax(0,1fr)_56px_74px]"
               >
-                <GlowDot tone={smart.tone} halo={disk.smart !== 'ok'} className="size-[7px]" />
+                <GlowDot tone={smart.tone} halo={disk.smart !== 'ok'} size="sm" />
                 <span className="font-mono text-caption">{disk.name}</span>
                 <span className="relative h-[5px] overflow-hidden rounded-full bg-raised" aria-hidden="true">
                   {disk.temp_c != null && (

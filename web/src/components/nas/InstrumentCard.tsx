@@ -30,7 +30,7 @@ export function InstrumentCard({ title, now, detail, values, label, min = 0, max
   const series = values.map((v) => v ?? 0)
   const alert = tone === 'warn' || tone === 'down'
   return (
-    <Card title={title} className="pb-0 md:pb-0">
+    <Card title={title} padding="chart">
       <p className={cn('-mt-2 text-stat leading-tight font-semibold tracking-tight md:text-display', tone === 'warn' && 'text-warn', tone === 'down' && 'text-down')}>
         {now}
       </p>

@@ -1,9 +1,9 @@
-import { cn } from '../../lib/cn'
 import { formatSignedPct } from '../../lib/format'
 import type { Indices } from '../../lib/portfolioTypes'
 import { useApi } from '../../lib/useApi'
 import { Card } from '../ui/Card'
 import { StaleNote } from '../ui/states'
+import { Tag } from '../ui/Tag'
 
 const decimals = new Intl.NumberFormat('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -25,14 +25,9 @@ export function MarketsCard() {
           >
             <span className="col-start-1 row-start-1 truncate">{q.label}</span>
             <span className="col-start-1 row-start-2 text-caption text-muted">{decimals.format(q.price)}</span>
-            <span
-              className={cn(
-                'col-start-2 row-span-2 row-start-1 rounded-tag px-1.5 py-0.5 text-caption font-semibold',
-                q.day_pct > 0 ? 'bg-up/12 text-up' : q.day_pct < 0 ? 'bg-down/13 text-down' : 'bg-raised text-muted',
-              )}
-            >
+            <Tag tone={q.day_pct > 0 ? 'up' : q.day_pct < 0 ? 'down' : 'muted'} size="caption" className="col-start-2 row-span-2 row-start-1">
               {formatSignedPct(q.day_pct)}
-            </span>
+            </Tag>
           </li>
         ))}
       </ul>

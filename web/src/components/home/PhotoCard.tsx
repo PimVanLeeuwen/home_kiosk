@@ -19,7 +19,7 @@ export function PhotoCard({ data }: { data: PhotoOfTheDay | undefined }) {
   const asset = data.asset
 
   return (
-    <Surface as="section" padding="none" aria-labelledby="card-photo" className="aspect-[4/3] bg-[#0e0e14] sm:aspect-[16/10]">
+    <Surface as="section" padding="none" look="bare" aria-labelledby="card-photo" className="aspect-[4/3] bg-[#0e0e14] sm:aspect-[16/10]">
       <img
         src={`/api/photo/picture?asset=${encodeURIComponent(asset)}`}
         alt={`The photo of the day, from ${line}`}

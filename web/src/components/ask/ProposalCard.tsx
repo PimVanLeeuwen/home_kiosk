@@ -1,9 +1,11 @@
 import type { Card } from '../../lib/ask'
 import { Button } from '../ui/Button'
+import { GlowDot } from '../ui/GlowDot'
+import type { Tone } from '../ui/tones'
 
-const OUTCOME: Partial<Record<Card['state'], { text: string; tone: string; dot: string }>> = {
-  done: { text: 'Done', tone: 'text-up', dot: 'bg-up' },
-  cancelled: { text: 'Cancelled', tone: 'text-faint', dot: 'bg-faint' },
+const OUTCOME: Partial<Record<Card['state'], { text: string; tone: string; dot: Tone }>> = {
+  done: { text: 'Done', tone: 'text-up', dot: 'up' },
+  cancelled: { text: 'Cancelled', tone: 'text-faint', dot: 'muted' },
 }
 
 interface Props {
@@ -41,7 +43,7 @@ export function ProposalCard({ card, onConfirm, onCancel }: Props) {
       ) : (
         outcome && (
           <p className={`mt-2 flex items-center gap-2 text-small ${outcome.tone}`}>
-            <span aria-hidden="true" className={`size-[7px] rounded-full ${outcome.dot}`} />
+            <GlowDot tone={outcome.dot} size="sm" />
             {outcome.text}
           </p>
         )

@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import type { DueReminder } from '../../lib/reminders'
+import { GlowDot } from '../ui/GlowDot'
 
 interface Props {
   due: DueReminder[]
@@ -32,7 +33,7 @@ export function TodayReminders({ due, onToggle, busy }: Props) {
               <Check aria-hidden="true" className="size-3.5" />
             </button>
           ) : (
-            <span aria-hidden="true" className={cn('size-2 shrink-0 rounded-full', r.done ? 'bg-up/60' : 'bg-accent-line')} />
+            <GlowDot tone={r.done ? 'muted' : 'accent'} />
           )}
           <span className={cn('min-w-0 flex-1 truncate text-title', r.done && 'text-faint line-through')}>{r.title}</span>
           <span className={cn('shrink-0 text-caption', r.at ? 'text-muted' : 'text-faint')}>{r.at ?? 'All day'}</span>

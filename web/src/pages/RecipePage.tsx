@@ -187,7 +187,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
       />
 
       {confirming && (
-        <Surface padding="compact" role="alert" className="mb-4 flex flex-wrap items-center gap-3 border-down/40 print:hidden">
+        <Surface padding="compact" look="down" role="alert" className="mb-4 flex flex-wrap items-center gap-3 print:hidden">
           <p className="basis-full sm:basis-0 sm:flex-1">Delete &quot;{recipe.title}&quot; for good? There is no undo.</p>
           <Button variant="danger" onClick={remove} disabled={busy}>
             <Trash2 aria-hidden="true" className="size-4" />
@@ -230,7 +230,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
           )}
           <PageHeader title={recipe.title} subtitle={recipe.intro ?? undefined} />
           {detail.needs_review && (
-            <Surface padding="compact" className="-mt-3 flex flex-col gap-2 border-warn/30 bg-warn/5 print:hidden">
+            <Surface padding="compact" look="warn" className="-mt-3 flex flex-col gap-2 print:hidden">
               <p className="font-semibold text-warn">Not in phases yet</p>
               <p className="text-small text-muted">
                 This came from Tandoor as one cook phase. Copy it with the prompt for Claude, then paste the reworked version back.

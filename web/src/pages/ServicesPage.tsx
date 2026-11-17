@@ -3,44 +3,30 @@ import { PageHeader } from '../components/PageHeader'
 import { OutOf, StatTile, StatTiles } from '../components/ui/StatTile'
 import { MySitesSection } from '../components/sites/MySitesSection'
 import { Pill } from '../components/ui/Pill'
-import { cn } from '../lib/cn'
 import { ServiceTile } from '../components/ServiceTile'
 import { uniqueMonograms } from '../lib/monogram'
-import type { Service, ServiceStatus, ServicesResponse } from '../lib/types'
+import type { Service, ServicesResponse } from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { useServiceLinks } from '../lib/useServiceLinks'
 import { PageUnavailable, StaleNote } from '../components/ui/states'
 import { Surface } from '../components/ui/Card'
+import { GlowDot } from '../components/ui/GlowDot'
+import { STATUS_TONE } from '../lib/status'
+import { Tag } from '../components/ui/Tag'
 
 const REFRESH_MS = 30_000
 
-/** The summary's dot per service: green up, amber starting or unhealthy, red down, grey for a link. */
-const DOT: Record<ServiceStatus | 'link', string> = {
-  up: 'bg-up shadow-[0_0_5px_--alpha(var(--color-up)/70%)]',
-  starting: 'bg-warn shadow-glow shadow-warn',
-  unhealthy: 'bg-warn shadow-glow shadow-warn',
-  down: 'bg-down shadow-glow shadow-down',
-  missing: 'bg-down shadow-glow shadow-down',
-  unknown: 'bg-faint',
-  link: 'bg-white/14',
-}
 
 /** "3/4" running in a group, tinted by its worst service; "2 links" for a group of links. */
 function GroupCount({ services }: { services: Service[] }) {
   const nas = services.filter((s) => !s.url)
-  if (!nas.length) return <span className="rounded-tag bg-raised px-1.5 text-micro text-muted">{services.length} links</span>
+  if (!nas.length) return <Tag size="micro">{services.length} links</Tag>
   const up = nas.filter((s) => s.status === 'up').length
   const tone = nas.some((s) => s.status === 'down' || s.status === 'missing') ? 'down' : up < nas.length ? 'warn' : 'up'
   return (
-    <span
-      data-tone={tone}
-      className={cn(
-        'rounded-tag px-1.5 text-micro',
-        tone === 'up' ? 'bg-up/13 text-up' : tone === 'down' ? 'bg-down/14 text-down' : 'bg-warn/15 text-warn',
-      )}
-    >
+    <Tag tone={tone} size="micro">
       {up}/{nas.length}
-    </span>
+    </Tag>
   )
 }
 
@@ -92,7 +78,7 @@ export function ServicesPage() {
           <StatTile title="Running" figure={<OutOf n={running} of={onNas.length} />}>
             <p className="mt-2.5 flex flex-wrap gap-1.5" aria-hidden="true">
               {all.map((s) => (
-                <i key={s.id} title={s.name} data-status={s.url ? 'link' : s.status} className={cn('block size-[9px] rounded-full', DOT[s.url ? 'link' : s.status])} />
+                <GlowDot key={s.id} title={s.name} data-status={s.url ? 'link' : s.status} tone={s.url ? 'muted' : STATUS_TONE[s.status]} size="lg" flat />
               ))}
             </p>
           </StatTile>

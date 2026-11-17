@@ -249,7 +249,7 @@ describe('HomePage', () => {
     const chip = (label: string) => screen.getByRole('button', { name: new RegExp(`^${label}:`) })
     expect(chip('NAS')).toHaveAttribute('data-tone', 'warn')
     expect(chip('NAS').querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
-    expect(chip('Services')).toHaveAttribute('data-tone', 'ok')
+    expect(chip('Services')).toHaveAttribute('data-tone', 'up')
     // Alerts has no card on Home: its chip goes to the page, shaped like the others.
     const alerts = screen.getByRole('link', { name: /^Alerts: volume2 98% full\. Go to Alerts$/ })
     expect(alerts).toHaveAttribute('href', '/alerts')

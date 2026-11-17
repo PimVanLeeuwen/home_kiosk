@@ -10,6 +10,7 @@ import { PhonePreview } from './PhonePreview'
 import { TelegramText } from './TelegramText'
 import { Loading, Unavailable } from '../ui/states'
 import { Surface } from '../ui/Card'
+import { Tag } from '../ui/Tag'
 
 const ENDPOINT = '/api/alerts/templates'
 const PREVIEW_DELAY_MS = 300
@@ -265,9 +266,9 @@ export function MessageTemplates() {
                         <p className="font-medium">
                           {t.label}
                           {t.customised && (
-                            <span className="ml-2 rounded-tag border border-accent-line px-1.5 py-0.5 align-middle text-label font-normal text-accent-fg">
+                            <Tag variant="outline" tone="accent" className="ml-2 align-middle">
                               Customised
-                            </span>
+                            </Tag>
                           )}
                         </p>
                         <p className="text-caption text-muted">

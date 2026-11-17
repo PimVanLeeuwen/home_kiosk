@@ -17,6 +17,8 @@ import { usePaged } from '../lib/usePaged'
 import { Loading, Unavailable } from '../components/ui/states'
 import { buttonClass } from '../components/ui/buttonStyles'
 import { SearchField } from '../components/ui/SearchField'
+import { GlowDot } from '../components/ui/GlowDot'
+import { Tag } from '../components/ui/Tag'
 
 function useDebounced(value: string, ms: number): string {
   const [debounced, setDebounced] = useState(value)
@@ -148,22 +150,14 @@ export function NewsPage() {
                         'border-accent-line/30 bg-accent/12 shadow-[inset_2px_0_0_var(--color-accent-line)] hover:bg-accent/12',
                     )}
                   >
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        'mt-2 size-[7px] shrink-0 rounded-full',
-                        !isRead(a) && 'bg-accent-line shadow-glow shadow-accent-line',
-                      )}
-                    />
+                    {/* Read ones keep the space, without a dot. */}
+                    <GlowDot tone="accent" size="sm" className={cn('mt-2', isRead(a) && 'invisible')} />
                     <span className="min-w-0">
                       <span className={cn('block', isRead(a) ? 'text-muted' : 'font-medium')}>{a.title}</span>
                       <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-caption text-faint">
-                        <span
-                          className="rounded-tag px-1.5 text-micro font-semibold"
-                          style={{ backgroundColor: colourOf(a.group_id).bg, color: colourOf(a.group_id).fg }}
-                        >
+                        <Tag size="micro" colour={colourOf(a.group_id)}>
                           {groupTitle(a.group_id)}
-                        </span>
+                        </Tag>
                         <span>
                           {a.source} · {formatAgo(a.published)}
                         </span>

@@ -1,4 +1,3 @@
-import { cn } from '../../lib/cn'
 import { formatMoney, formatSignedMoney, formatSignedPct } from '../../lib/format'
 import { dayMove } from '../../lib/portfolio'
 import type { PortfolioFull } from '../../lib/portfolioTypes'
@@ -8,9 +7,11 @@ import { Pill } from '../ui/Pill'
 import { Card } from '../ui/Card'
 import { Loading, StaleNote, Unavailable } from '../ui/states'
 import { AnimatedNumber } from '../ui/AnimatedNumber'
+import { Tag } from '../ui/Tag'
+import type { Tone } from '../ui/tones'
 
 const tone = (n: number) => (n > 0 ? 'text-up' : n < 0 ? 'text-down' : 'text-muted')
-const chip = (n: number) => (n > 0 ? 'bg-up/12 text-up' : n < 0 ? 'bg-down/13 text-down' : 'bg-raised text-muted')
+const sign = (n: number): Tone => (n > 0 ? 'up' : n < 0 ? 'down' : 'muted')
 
 const shortDay = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' })
 /** "2026-10-11" as a local date, "11 Oct". */
@@ -77,18 +78,18 @@ export function PortfolioCard() {
               {data.holdings.slice(0, 3).map((h) => (
                 <tr key={h.symbol} className="border-t border-line-soft first:border-t-0">
                   <td className="py-1.5 pr-2">
-                    <span className="inline-block min-w-[3.25rem] truncate rounded-tag border border-glass-line bg-glass px-1.5 py-0.5 text-center font-mono text-caption">
+                    <Tag variant="glass" size="caption" mono className="min-w-[3.25rem] truncate text-center">
                       {h.symbol}
-                    </span>
+                    </Tag>
                   </td>
                   <td className="truncate py-1.5 pr-3 text-muted" title={h.name}>
                     {h.name}
                   </td>
                   <td className="py-1.5 pr-3 text-right whitespace-nowrap">{formatMoney(h.value, data.currency)}</td>
                   <td className="py-1.5 text-right">
-                    <span className={cn('rounded-tag px-1.5 py-0.5 text-caption font-semibold whitespace-nowrap', chip(h.day_pct))}>
+                    <Tag tone={sign(h.day_pct)} size="caption">
                       {formatSignedPct(h.day_pct)}
-                    </span>
+                    </Tag>
                   </td>
                 </tr>
               ))}

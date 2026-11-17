@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { cn } from '../../lib/cn'
 import { coverUrl, minutes, type MusicItem, type Playing } from '../../lib/musicTypes'
 import { useProgress } from '../../lib/useMusic'
+import { GlowDot } from '../ui/GlowDot'
 
 const VIOLET = 'var(--color-data-violet)'
 /** A volume is sent once the slider has rested this long. */
@@ -122,7 +123,7 @@ export function NowPlaying({ playing, onControl, onVolume, waiting = false }: Pr
         {playing.device && (
           // On a phone the Devices list below says where it plays; the chip would cover the record.
           <span className="hidden items-center gap-[7px] rounded-full border border-white/18 bg-white/12 px-3 py-1.5 text-caption whitespace-nowrap text-white backdrop-blur-[8px] sm:inline-flex">
-            <i aria-hidden="true" className="size-[7px] rounded-full bg-up shadow-glow shadow-up" />
+            <GlowDot tone="up" size="sm" />
             {playing.device.name}
           </span>
         )}

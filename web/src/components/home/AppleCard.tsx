@@ -5,6 +5,7 @@ import type { AppleDevices, ApplePlaying } from '../../lib/types'
 import { Pill } from '../ui/Pill'
 import { Card } from '../ui/Card'
 import { StaleNote } from '../ui/states'
+import { GlowDot } from '../ui/GlowDot'
 
 const VIDEO = 'var(--color-data-deep-blue)'
 const MUSIC = 'var(--color-accent-fg)'
@@ -239,13 +240,7 @@ export function AppleCard({ data }: { data: AppleDevices | undefined }) {
         </span>
         {routers.length > 0 && (
           <span className="inline-flex items-center gap-1.5">
-            <i
-              aria-hidden="true"
-              className={cn(
-                'size-[7px] rounded-full',
-                threadUp === routers.length ? 'bg-[var(--color-accent-fg)] shadow-[0_0_8px_#b4a9ff]' : 'bg-[var(--color-data-amber)] shadow-[0_0_8px_#f0bd5a]',
-              )}
-            />
+            <GlowDot tone={threadUp === routers.length ? 'accent' : 'warn'} size="sm" />
             Thread · {threadUp} of {routers.length} border routers
           </span>
         )}

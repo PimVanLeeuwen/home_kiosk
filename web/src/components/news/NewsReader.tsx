@@ -6,6 +6,7 @@ import type { Article, ArticleContent } from '../../lib/newsTypes'
 import { useApi } from '../../lib/useApi'
 import { ArticleView, ReaderAction } from './ArticleView'
 import { Loading } from '../ui/states'
+import { Tag } from '../ui/Tag'
 
 interface Props {
   id: string
@@ -68,12 +69,9 @@ export function NewsReader({ id, known, groupTitle, groupColour, onReadChange }:
       back={{ to: '/news', label: 'News' }}
       meta={
         <>
-          <span
-            className="mr-1 rounded-tag px-1.5 py-px text-label font-semibold"
-            style={{ backgroundColor: groupColour(article.group_id).bg, color: groupColour(article.group_id).fg }}
-          >
+          <Tag colour={groupColour(article.group_id)} className="mr-1">
             {groupTitle(article.group_id)}
-          </span>
+          </Tag>
           <span>
             {article.source} · {formatAgo(article.published)}
           </span>

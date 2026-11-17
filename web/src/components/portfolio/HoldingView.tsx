@@ -9,6 +9,8 @@ import { Card } from '../ui/Card'
 import { Pill } from '../ui/Pill'
 import { LineChart } from './LineChart'
 import { Loading, Unavailable } from '../ui/states'
+import { GlowDot } from '../ui/GlowDot'
+import { Tag } from '../ui/Tag'
 
 const TYPES: Record<string, string> = {
   BUY: 'Buy',
@@ -94,7 +96,7 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
         }
       />
 
-      <Card title="Price" className="pb-0 md:pb-0">
+      <Card title="Price" padding="chart">
         <p className="-mt-1 mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <span className="text-display leading-tight font-semibold tracking-tight md:text-hero">{formatMoney(data.value, currency)}</span>
           {data.gain_abs != null && (
@@ -151,22 +153,13 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
               {data.activities.map((a, i) => (
                 <tr key={i} className="border-t border-line-soft">
                   <td className="py-2" aria-hidden="true">
-                    <span
-                      className="block size-[7px] rounded-full"
-                      style={{ backgroundColor: TYPE_COLOURS[a.type] ?? 'var(--color-faint)', boxShadow: `0 0 6px ${TYPE_COLOURS[a.type] ?? 'transparent'}` }}
-                    />
+                    <GlowDot color={TYPE_COLOURS[a.type]} size="sm" className="block" />
                   </td>
                   <td className="py-2 whitespace-nowrap text-muted">{formatDate(a.date)}</td>
                   <td className="py-2">
-                    <span
-                      className="rounded-tag px-1.5 py-px text-micro eyebrow"
-                      style={{
-                        color: TYPE_COLOURS[a.type] ?? 'var(--color-muted)',
-                        backgroundColor: `color-mix(in srgb, ${TYPE_COLOURS[a.type] ?? 'var(--color-muted)'} 16%, transparent)`,
-                      }}
-                    >
+                    <Tag size="micro" caps colour={TYPE_COLOURS[a.type] ?? 'var(--color-muted)'}>
                       {TYPES[a.type] ?? a.type}
-                    </span>
+                    </Tag>
                   </td>
                   <td className="py-2 text-right">{formatQuantity(a.quantity)}</td>
                   <td className="hidden py-2 text-right whitespace-nowrap sm:table-cell">{formatPrice(a.unit_price, a.currency)}</td>

@@ -1,15 +1,11 @@
 import type { ReactNode } from 'react'
-import { cn } from '../../lib/cn'
 import type { Repo } from '../../lib/types'
 import { StatTile, StatTiles } from '../ui/StatTile'
 import { GlowDot } from '../ui/GlowDot'
+import type { Tone } from '../ui/tones'
 
-const CI_DOT: Record<Repo['ci'], string> = {
-  passing: 'bg-up shadow-[0_0_5px_--alpha(var(--color-up)/70%)]',
-  running: 'bg-warn shadow-glow shadow-warn',
-  failing: 'bg-down shadow-glow shadow-down motion-safe:animate-halo [--glow:var(--color-down)]',
-  none: 'bg-white/14',
-}
+/** Running is activity, not a problem: violet (the hub's status colours). */
+const CI_TONE: Record<Repo['ci'], Tone> = { passing: 'up', running: 'accent', failing: 'down', none: 'muted' }
 
 interface Props {
   /** The owner's repos as shown (forks hidden unless switched on). */
@@ -66,7 +62,7 @@ export function ReposTiles({ repos, forksHidden, backup, mirrored }: Props) {
       >
         <p className="mt-2.5 flex flex-wrap gap-1" aria-hidden="true">
           {repos.map((r) => (
-            <i key={r.full_name} title={r.name} data-ci={r.ci} className={cn('block size-2 rounded-full', CI_DOT[r.ci])} />
+            <GlowDot key={r.full_name} title={r.name} data-ci={r.ci} tone={CI_TONE[r.ci]} size="sm" halo={r.ci === 'failing'} flat />
           ))}
         </p>
       </StatTile>

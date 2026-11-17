@@ -7,6 +7,7 @@ import { progressOf } from '../../lib/readProgress'
 import type { ArticleContent, Bookmark } from '../../lib/newsTypes'
 import { useApi } from '../../lib/useApi'
 import { ArticleView, ReaderAction } from './ArticleView'
+import { Tag } from '../ui/Tag'
 
 interface Props {
   id: string
@@ -94,7 +95,7 @@ export function SavedReader({ id, known, onChange, onDeleted }: Props) {
       back={{ to: '/saved', label: 'Saved' }}
       meta={
         <>
-          {archived && <span className="mr-1 rounded-tag border border-glass-line bg-glass px-1.5 py-px text-label font-semibold text-muted">Archived</span>}
+          {archived && <Tag variant="glass" className="mr-1">Archived</Tag>}
           <span>
             {[known?.site ?? content.data?.site, known?.created && `saved ${formatAgo(known.created)}`]
               .filter(Boolean)

@@ -5,6 +5,7 @@ import { osName, relayName } from '../../lib/tailnet'
 import type { TailnetDevice } from '../../lib/types'
 import { GlowDot } from '../ui/GlowDot'
 import { DeviceIcon } from './DeviceIcon'
+import { Tag } from '../ui/Tag'
 
 /** Copies a value; only offered where the browser allows it (HTTPS, or the Tailscale address). */
 export function CopyButton({ value, what }: { value: string; what: string }) {
@@ -43,19 +44,13 @@ export function Facts({ rows, className }: { rows: [string, ReactNode][]; classN
 
 const Mono = ({ children }: { children: ReactNode }) => <span className="font-mono text-caption">{children}</span>
 
+/** How a device is reached: direct in green, through a relay in violet, an exit node tinted. */
 function Chip({ tone, children }: { tone?: 'direct' | 'relay' | 'exit'; children: ReactNode }) {
+  if (tone === 'exit') return <Tag tone="accent">{children}</Tag>
   return (
-    <span
-      className={cn(
-        'rounded-tag border px-[7px] text-label whitespace-nowrap',
-        tone === 'direct' && 'border-up/25 text-up',
-        tone === 'relay' && 'border-accent-line/30 text-accent-fg',
-        tone === 'exit' && 'border-transparent bg-accent text-white',
-        !tone && 'border-glass-line bg-white/5 text-muted',
-      )}
-    >
+    <Tag variant={tone ? 'outline' : 'glass'} tone={tone === 'direct' ? 'up' : 'accent'}>
       {children}
-    </span>
+    </Tag>
   )
 }
 
@@ -94,7 +89,7 @@ export function DeviceTile({ device: d, open, onToggle, now }: Props) {
         <span className="min-w-0">
           <span className="flex items-center gap-2 text-body font-medium">
             {d.name}
-            {d.online && <GlowDot tone="up" label="Online" className="size-1.5" />}
+            {d.online && <GlowDot tone="up" label="Online" size="sm" />}
           </span>
           <span className="block truncate font-mono text-label text-faint">{d.dns_name}</span>
         </span>

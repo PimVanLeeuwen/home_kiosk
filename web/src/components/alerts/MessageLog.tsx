@@ -11,6 +11,9 @@ import { Card } from '../ui/Card'
 import { SeverityPill } from './SeverityPill'
 import { buttonClass } from '../ui/buttonStyles'
 import { inputClass } from '../ui/fieldStyles'
+import { GlowDot } from '../ui/GlowDot'
+import { SEVERITY_TONE } from '../../lib/status'
+import { Tag } from '../ui/Tag'
 
 function delivery(m: AlertMessage, chatLabel: string): { text: string; className: string; mark: string; markClass: string } {
   switch (m.status) {
@@ -33,13 +36,6 @@ function delivery(m: AlertMessage, chatLabel: string): { text: string; className
 /** A message has its own page for 7 days (M31). */
 const PAGE_DAYS = 7
 
-/** The dot on the timeline, in the severity's colour. */
-const DOT: Record<AlertMessage['severity'], string> = {
-  error: 'bg-down shadow-glow shadow-down',
-  warning: 'bg-warn shadow-glow shadow-warn',
-  ok: 'bg-up shadow-glow shadow-up',
-  info: 'bg-accent-line shadow-glow shadow-accent-line',
-}
 
 export function MessageLog({ settings }: { settings: AlertSettings }) {
   const [category, setCategory] = useState<string | null>(null)
@@ -147,12 +143,12 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
           const d = delivery(m, chats[m.chat] ?? m.chat)
           return (
             <li key={m.id} className="relative border-t border-line-soft py-3 first:border-t-0 first:pt-0.5">
-              <span aria-hidden="true" className={cn('absolute -left-[20.5px] size-[7px] rounded-full', DOT[m.severity], 'top-[1.15rem] in-[li:first-child]:top-[0.55rem]')} />
+              <GlowDot tone={SEVERITY_TONE[m.severity]} size="sm" className="absolute top-[1.15rem] -left-[20.5px] in-[li:first-child]:top-[0.55rem]" />
               <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-faint">
                 <span>{formatWhen(m.ts)}</span>
-                <span className="rounded-tag border border-glass-line bg-glass px-1.5 text-micro font-semibold tracking-[0.04em] text-muted">
+                <Tag variant="glass" size="micro">
                   {sourceLabel(m.source)}
-                </span>
+                </Tag>
                 <SeverityPill severity={m.severity} />
               </p>
               <p className="mt-1 font-semibold">

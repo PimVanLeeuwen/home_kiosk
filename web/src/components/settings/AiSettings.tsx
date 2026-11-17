@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ApiError, sendJson } from '../../lib/api'
 import type { AiStatus, Briefing } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
-import { Meter } from '../home/Meter'
+import { BarMeter } from '../ui/BarMeter'
 import { Surface } from '../ui/Card'
 import { Loading, Unavailable } from '../ui/states'
 import { Switch } from '../ui/Switch'
@@ -55,11 +55,11 @@ export function AiSettings() {
         <p className="mt-4 text-small text-warn">No API key: set ANTHROPIC_API_KEY in the hub’s .env on the NAS to use AI.</p>
       ) : (
         <div className="mt-5">
-          <Meter
+          <BarMeter
             label="Spent this month"
             value={`${ai.spent.toFixed(2)} of ${ai.cap.toFixed(2)} · ${ai.calls} ${ai.calls === 1 ? 'call' : 'calls'}`}
             pct={share}
-            tone={ai.capped ? 'down' : share >= 80 ? 'warn' : 'ok'}
+            tone={ai.capped ? 'down' : share >= 80 ? 'warn' : 'accent'}
           />
           <p className="mt-2 text-caption text-faint">
             {ai.capped

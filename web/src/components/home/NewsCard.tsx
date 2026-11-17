@@ -8,6 +8,7 @@ import { GlowDot } from '../ui/GlowDot'
 import { Pill } from '../ui/Pill'
 import { Card } from '../ui/Card'
 import { Loading, Unavailable } from '../ui/states'
+import { Tag } from '../ui/Tag'
 
 const SHOWN = 5
 
@@ -36,7 +37,7 @@ export function NewsCard() {
                   {a.read ? (
                     <span aria-hidden="true" className="mt-2 size-[7px] shrink-0" />
                   ) : (
-                    <GlowDot tone="accent" className="mt-2 size-[7px]" />
+                    <GlowDot tone="accent" size="sm" className="mt-2" />
                   )}
                   <span className="min-w-0">
                     <span
@@ -50,12 +51,9 @@ export function NewsCard() {
                     </span>
                     <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-caption text-faint">
                       {group && (
-                        <span
-                          className="rounded-tag px-1.5 text-micro font-semibold tracking-[0.04em]"
-                          style={{ backgroundColor: group.colour.bg, color: group.colour.fg }}
-                        >
+                        <Tag size="micro" colour={group.colour}>
                           {group.title}
-                        </span>
+                        </Tag>
                       )}
                       <span>{[a.source, formatAgo(a.published)].filter(Boolean).join(' · ')}</span>
                       {!a.read && <span className="sr-only"> · unread</span>}

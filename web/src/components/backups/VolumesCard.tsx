@@ -21,7 +21,7 @@ function VolumeTile({ summary, index }: { summary: Summary; index: number }) {
       )}
     >
       <div className="flex items-center gap-2">
-        <GlowDot tone={!v ? 'muted' : v.ok ? 'up' : 'down'} halo={bad} className="size-[7px]" />
+        <GlowDot tone={!v ? 'muted' : v.ok ? 'up' : 'down'} halo={bad} size="sm" />
         <h3 id={id} className="font-mono text-small font-semibold">
           {summary.name}
         </h3>

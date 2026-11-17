@@ -10,6 +10,7 @@ import type { Bookmark } from '../lib/newsTypes'
 import { usePaged } from '../lib/usePaged'
 import { Loading } from '../components/ui/states'
 import { Segmented } from '../components/ui/Segmented'
+import { Ring } from '../components/ui/Ring'
 
 function details(b: Bookmark): string {
   return [
@@ -27,25 +28,20 @@ const inProgress = (b: Bookmark) => b.progress > 0 && b.progress < 100
 
 /** How far a bookmark has been read, as a small ring on its thumbnail. */
 function ProgressRing({ pct }: { pct: number }) {
-  const r = 9
-  const c = 2 * Math.PI * r
   return (
-    <svg aria-hidden="true" data-progress={pct} viewBox="0 0 24 24" className="absolute -right-1.5 -bottom-1.5 size-6">
-      <circle cx="12" cy="12" r={r} fill="var(--color-panel)" stroke="rgb(255 255 255 / 0.15)" strokeWidth="3" />
-      <circle
-        cx="12"
-        cy="12"
-        r={r}
-        fill="none"
-        stroke="var(--color-accent-line)"
-        strokeWidth="3"
-        strokeLinecap="round"
-        className="motion-safe:animate-sweep"
-        strokeDasharray={`${((c * pct) / 100).toFixed(1)} ${c.toFixed(1)}`}
-        transform="rotate(-90 12 12)"
-        style={{ filter: 'drop-shadow(0 0 3px var(--color-accent-line))' }}
-      />
-    </svg>
+    <Ring
+      aria-hidden="true"
+      data-progress={pct}
+      className="absolute -right-1.5 -bottom-1.5 size-6"
+      box={24}
+      r={9}
+      stroke={3}
+      fill="var(--color-panel)"
+      track="rgb(255 255 255 / 0.15)"
+      glow={3}
+      color="var(--color-accent-line)"
+      fraction={pct / 100}
+    />
   )
 }
 

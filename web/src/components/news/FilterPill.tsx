@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../lib/cn'
+import { GlowDot } from '../ui/GlowDot'
 
 interface Props {
   on: boolean
@@ -22,7 +23,7 @@ export function FilterPill({ on, onClick, children, colour }: Props) {
       )}
     >
       {colour && (
-        <i aria-hidden="true" className="inline-block size-[7px] rounded-full" style={{ backgroundColor: colour, boxShadow: `0 0 5px ${colour}` }} />
+        <GlowDot color={colour} size="sm" />
       )}
       {children}
     </button>

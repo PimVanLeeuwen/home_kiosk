@@ -5,6 +5,7 @@ import { formatWhen } from '../../lib/format'
 import type { Exposure, PortScan, PublicHost } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
 import { GlowDot } from '../ui/GlowDot'
+import { Tag } from '../ui/Tag'
 
 function answer(host: PublicHost): string {
   if (host.status != null) return `answers ${host.status}`
@@ -123,19 +124,14 @@ export function ExposureCard() {
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
                 <span className="font-mono text-caption break-all">{host.hostname}</span>
                 <span className={cn('flex items-center gap-1.5 text-caption font-semibold', host.allowed ? 'text-up' : 'text-down')}>
-                  {!host.allowed && <GlowDot tone="down" halo className="size-[7px]" />}
+                  {!host.allowed && <GlowDot tone="down" halo size="sm" />}
                   {host.allowed ? 'Allowed' : 'Not allowed'}
                 </span>
               </div>
               <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-caption text-muted">
-                <span
-                  className={cn(
-                    'rounded-tag px-1.5 text-micro eyebrow',
-                    host.source === 'tunnel' ? 'bg-accent/18 text-accent-fg' : 'bg-[var(--color-data-blue)]/14 text-[var(--color-data-blue)]',
-                  )}
-                >
+                <Tag size="micro" caps tone="accent" colour={host.source === 'tunnel' ? undefined : 'var(--color-data-blue)'}>
                   {host.source === 'tunnel' ? 'Tunnel' : 'DNS'}
-                </span>
+                </Tag>
                 <span className="font-mono text-label break-all">{host.target}</span>
                 <span>· {answer(host)}</span>
               </p>

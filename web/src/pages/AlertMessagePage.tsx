@@ -16,11 +16,13 @@ import { serviceHref } from '../lib/links'
 import type { Hosts, MessageExplanation, MessageLink, MessagePage, ServicesResponse, Severity } from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { bodyHtml } from '../lib/phoneText'
+import { GlowDot } from '../components/ui/GlowDot'
+import { SEVERITY_TONE } from '../lib/status'
+import { Tag } from '../components/ui/Tag'
 
 const REFRESH_MS = 30_000
 
 /** The dot on "Earlier", in the severity's colour. */
-const DOT: Record<Severity, string> = { error: 'bg-down', warning: 'bg-warn', ok: 'bg-up', info: 'bg-accent-line' }
 
 const day = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 const clock = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' })
@@ -84,9 +86,9 @@ function Message({ message }: { message: Shown }) {
       <BackLink />
       <p className="mb-2 flex flex-wrap items-center gap-2 text-caption text-faint">
         <span>{formatWhen(message.ts, now)}</span>
-        <span className="rounded-tag border border-glass-line bg-glass px-1.5 text-micro font-semibold tracking-[0.04em] text-muted">
+        <Tag variant="glass" size="micro">
           {sourceLabel(message.source)}
-        </span>
+        </Tag>
         <SeverityPill severity={message.severity} />
       </p>
       <PageHeader title={message.title} />
@@ -138,10 +140,9 @@ function Foot({ message, delivered }: { message: Shown; delivered: string }) {
 
 function StateStrip({ state, severity, now }: { state: NonNullable<Shown['state']>; severity: Severity; now: Date }) {
   const tone = !state.open ? 'border-up/30 bg-up/[0.07]' : severity === 'error' ? 'border-down/35 bg-down/[0.08]' : 'border-warn/35 bg-warn/[0.07]'
-  const dot = !state.open ? 'bg-up' : severity === 'error' ? 'bg-down shadow-[0_0_10px_var(--color-down)]' : 'bg-warn shadow-[0_0_10px_var(--color-warn)]'
   return (
     <div role="status" className={cn('flex items-center gap-3 rounded-card border px-4 py-3', tone)}>
-      <span aria-hidden="true" className={cn('size-2.5 shrink-0 rounded-full', dot)} />
+      <GlowDot tone={!state.open ? 'up' : severity === 'error' ? 'down' : 'warn'} size="lg" />
       <div>
         <p className="font-semibold">{state.open ? 'Still open' : `Resolved at ${clock.format(new Date(state.resolved_at!))}`}</p>
         <p className="text-small text-muted">
@@ -232,7 +233,7 @@ function Earlier({ message, now }: { message: Shown; now: Date }) {
       <ul className="ml-1 grid gap-2.5 border-l border-line pl-4">
         {message.earlier.map((m) => (
           <li key={m.id} className="relative text-small">
-            <span aria-hidden="true" className={cn('absolute top-1.5 -left-[20.5px] size-[7px] rounded-full', DOT[m.severity])} />
+            <GlowDot tone={SEVERITY_TONE[m.severity]} size="sm" className="absolute top-1.5 -left-[20.5px]" />
             {m.id === message.id ? (
               <span className="text-accent-fg">{m.title}</span>
             ) : (

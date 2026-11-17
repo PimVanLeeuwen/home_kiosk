@@ -10,7 +10,7 @@ import { GlowDot } from '../ui/GlowDot'
 import { MiniSparkline } from '../ui/MiniSparkline'
 import { Card } from '../ui/Card'
 import { Loading, StaleNote, Unavailable } from '../ui/states'
-import { Meter } from './Meter'
+import { BarMeter } from '../ui/BarMeter'
 
 
 const UPS_LABEL: Record<Ups['status'], string> = {
@@ -73,7 +73,7 @@ export function NasCard({ nas, error }: Props) {
                     key={d.name}
                     tone={d.smart === 'fail' ? 'down' : d.smart === 'warn' ? 'warn' : 'up'}
                     label={`${d.name}: ${d.smart === 'ok' ? 'healthy' : d.smart === 'warn' ? 'SMART warnings' : 'failing'}`}
-                    className="size-[7px]"
+                    size="sm"
                   />
                 ))}
               </span>
@@ -83,12 +83,12 @@ export function NasCard({ nas, error }: Props) {
           {others.length > 0 && (
             <div className="space-y-2.5">
               {others.slice(0, 2).map((pool) => (
-                <Meter
+                <BarMeter
                   key={pool.name}
                   label={pool.name}
                   value={`${formatBytes(pool.used_bytes)} / ${formatBytes(pool.total_bytes)}`}
                   pct={pool.used_pct}
-                  tone={pool.used_pct >= 97 ? 'down' : pool.used_pct >= POOL_FULL_PCT ? 'warn' : 'ok'}
+                  tone={pool.used_pct >= 97 ? 'down' : pool.used_pct >= POOL_FULL_PCT ? 'warn' : 'accent'}
                 />
               ))}
             </div>

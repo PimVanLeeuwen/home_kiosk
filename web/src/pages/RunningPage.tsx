@@ -70,8 +70,9 @@ export function RunningPage() {
               <Surface
                 as="section"
                 padding="none"
+                look="bare"
                 aria-labelledby="last-run"
-                className="relative bg-[radial-gradient(70%_60%_at_60%_60%,#15131f,#08080c)] lg:min-h-[460px]"
+                className="bg-[radial-gradient(70%_60%_at_60%_60%,#15131f,#08080c)] lg:min-h-[460px]"
               >
 
                 <div className="relative z-10 grid gap-3 p-5 md:p-6">

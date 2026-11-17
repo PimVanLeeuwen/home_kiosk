@@ -10,6 +10,7 @@ import { Pill } from '../components/ui/Pill'
 import { openTone } from '../lib/incidents'
 import type { AlertSettings, Incident } from '../lib/types'
 import { useApi } from '../lib/useApi'
+import { Tag } from '../components/ui/Tag'
 
 const COMMANDS = [
   ['/status', 'NAS, containers, open alerts'],
@@ -66,7 +67,7 @@ export function AlertsPage() {
                 <ul className="space-y-1.5 text-small">
                   {COMMANDS.map(([command, what]) => (
                     <li key={command} className="flex items-center justify-between gap-3">
-                      <span className="rounded-tag border border-glass-line bg-glass px-1.5 font-mono text-caption">{command}</span>
+                      <Tag variant="glass" size="caption" mono>{command}</Tag>
                       <span className="text-faint">{what}</span>
                     </li>
                   ))}

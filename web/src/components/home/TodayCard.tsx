@@ -6,39 +6,9 @@ import type { Today } from '../../lib/types'
 import { GlowDot } from '../ui/GlowDot'
 import { Card } from '../ui/Card'
 import { StaleNote } from '../ui/states'
+import { MinutesRing } from './MinutesRing'
 
-const R = 26
-const C = 2 * Math.PI * R
 const dayLine = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
-
-/** Minutes in a ring that empties over the last hour. */
-function Ring({ minutes, color, label }: { minutes: number; color: string; label: string }) {
-  const filled = Math.max(0, Math.min(1, minutes / 60))
-  return (
-    <svg role="img" aria-label={`${minutes} ${label}`} viewBox="0 0 64 64" className="w-20 shrink-0 md:w-24">
-      <circle cx="32" cy="32" r={R} fill="none" stroke="var(--color-track)" strokeWidth="4.5" />
-      <circle
-        cx="32"
-        cy="32"
-        r={R}
-        fill="none"
-        stroke={color}
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        className="motion-safe:animate-sweep"
-        strokeDasharray={`${(C * filled).toFixed(1)} ${C.toFixed(1)}`}
-        transform="rotate(-90 32 32)"
-        style={{ filter: `drop-shadow(0 0 3px ${color})` }}
-      />
-      <text x="32" y="33" textAnchor="middle" fontSize="16" fontWeight="600" fill="var(--color-fg)">
-        {minutes}
-      </text>
-      <text x="32" y="44" textAnchor="middle" fontSize="6.5" fill="var(--color-muted)">
-        {label}
-      </text>
-    </svg>
-  )
-}
 
 /**
  * Today on Home, the Now panel's calendar card: the event under way or next
@@ -60,7 +30,7 @@ export function TodayCard({ data }: { data: Today | undefined }) {
     <Card title={`Today · ${dayLine.format(now)}`} note={`${total} ${total === 1 ? 'event' : 'events'}`}>
       {focus ? (
         <div className="relative grid grid-cols-[80px_minmax(0,1fr)] items-center gap-3.5 md:grid-cols-[96px_minmax(0,1fr)] md:gap-4.5">
-          <Ring minutes={focus.minutes} color={focus.event.color} label={focus.now ? 'min left' : 'min'} />
+          <MinutesRing minutes={focus.minutes} color={focus.event.color} label={focus.now ? 'min left' : 'min'} className="w-20 shrink-0 md:w-24" />
           <div className="min-w-0">
             <p className="text-label eyebrow" style={{ color: focus.event.color }}>
               {focus.now ? 'Now' : 'Next'} · {focus.event.calendar}
@@ -137,7 +107,7 @@ export function TodayCard({ data }: { data: Today | undefined }) {
                 className={cn('grid grid-cols-[46px_10px_minmax(0,1fr)_auto] items-center gap-2.5 border-glass-line py-1.5 text-small not-first:border-t', past && 'opacity-45')}
               >
                 <span className="text-caption text-muted">{formatTime(e.start!)}</span>
-                <i aria-hidden="true" style={{ backgroundColor: e.color, boxShadow: `0 0 6px ${e.color}` }} className="block size-2 rounded-full" />
+                <GlowDot color={e.color} />
                 <span className={cn('truncate', past && 'line-through decoration-white/30')}>{e.title}</span>
                 <span className="text-caption text-faint">{e.calendar}</span>
               </li>

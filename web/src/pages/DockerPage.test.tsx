@@ -65,7 +65,7 @@ describe('DockerPage', () => {
     expect(screen.getByText('1 needs a look')).toBeInTheDocument()
     const tile = (name: string) => screen.getByRole('region', { name })
     expect(tile('Running')).toHaveTextContent('4 / 5')
-    expect(tile('Running').querySelectorAll('i.bg-down')).toHaveLength(1)
+    expect(tile('Running').querySelectorAll('[data-tone="down"]')).toHaveLength(1)
     expect(tile('CPU, all containers')).toHaveTextContent('14,6%of the NAS')
     // The busiest containers as bars, busiest first.
     expect(within(tile('CPU, all containers')).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
@@ -154,8 +154,8 @@ describe('DockerPage', () => {
     const entries = within(log).getAllByRole('listitem')
     expect(within(entries[0]).getByText('aaaaaaaaaaaa')).not.toHaveClass('text-accent-fg')
     expect(within(entries[0]).getByText('bbbbbbbbbbbb')).toHaveClass('text-accent-fg')
-    expect(entries[0].querySelector('.bg-accent-line')).not.toBeNull()
-    expect(entries[1].querySelector('.bg-accent-line')).toBeNull()
+    expect(entries[0].querySelector('[data-tone="accent"]')).not.toBeNull()
+    expect(entries[1].querySelector('[data-tone="accent"]')).toBeNull()
     expect(within(log).getAllByText('radarr')).toHaveLength(2) // name and image
   })
 

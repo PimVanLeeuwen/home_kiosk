@@ -5,12 +5,10 @@ import type { Chip, ChipTone, Segment } from '../../lib/homeChips'
 import type { FoldedCardId } from '../../lib/homeOrder'
 import { GlowDot } from '../ui/GlowDot'
 
-const DOT_TONE = { ok: 'up', warn: 'warn', down: 'down', unknown: 'muted' } as const
-
 /** Glass while all is well; something that needs a look tints its chip. */
 const SURFACE: Record<ChipTone, string> = {
-  ok: 'border-white/[0.075] from-white/[0.055] to-white/[0.012]',
-  unknown: 'border-white/[0.075] from-white/[0.055] to-white/[0.012]',
+  up: 'border-white/[0.075] from-white/[0.055] to-white/[0.012]',
+  muted: 'border-white/[0.075] from-white/[0.055] to-white/[0.012]',
   warn: 'border-warn/40 from-warn/15 to-warn/[0.03]',
   down: 'border-down/45 from-down/20 to-down/[0.03]',
 }
@@ -26,7 +24,8 @@ const SEGMENT: Record<Segment, string> = {
 /** The id of the card a chip opens below the strip. */
 export const OPENED_ID = 'home-opened-card'
 
-function Meter({ segments }: { segments: Segment[] }) {
+/** A chip's small bar of segments: a pool's fill, the services, the nights. */
+function SegmentBar({ segments }: { segments: Segment[] }) {
   // Without segments the space stays, so every chip in a row has the same shape.
   if (!segments.length) return <span aria-hidden="true" className="col-span-full mt-1.5 h-[3px]" />
   return (
@@ -61,7 +60,7 @@ export function StatusStrip({ chips, folded, open, reveal, onToggle, onShow }: P
         const needsLook = chip.tone === 'warn' || chip.tone === 'down'
         const body = (
           <>
-            <GlowDot tone={DOT_TONE[chip.tone]} halo={needsLook} />
+            <GlowDot tone={chip.tone} halo={needsLook} />
             <span className="min-w-0">
               <span className="block text-caption text-muted">{chip.label}</span>
               <span className="block truncate text-title font-semibold">{chip.value}</span>
@@ -89,7 +88,7 @@ export function StatusStrip({ chips, folded, open, reveal, onToggle, onShow }: P
             >
               {body}
               <ChevronRight aria-hidden="true" className="size-3.5 text-faint" />
-              <Meter segments={chip.meter} />
+              <SegmentBar segments={chip.meter} />
             </Link>
           )
         const id = chip.id
@@ -116,7 +115,7 @@ export function StatusStrip({ chips, folded, open, reveal, onToggle, onShow }: P
               aria-hidden="true"
               className={cn('size-3.5 text-faint transition-transform duration-200', expanded && 'rotate-180 text-accent-fg')}
             />
-            <Meter segments={chip.meter} />
+            <SegmentBar segments={chip.meter} />
           </button>
         )
       })}

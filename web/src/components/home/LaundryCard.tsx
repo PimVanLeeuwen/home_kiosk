@@ -6,9 +6,9 @@ import { Pill } from '../ui/Pill'
 import { Card } from '../ui/Card'
 import { StaleNote } from '../ui/states'
 import { AnimatedNumber } from '../ui/AnimatedNumber'
+import { Ring } from '../ui/Ring'
 
 const R = 44
-const C = 2 * Math.PI * R
 const MACHINE_COLOUR = { washer: 'var(--color-data-violet)', dryer: 'var(--color-data-deep-blue)' } as const
 const STATE_COLOUR = { done: 'var(--color-up)', paused: 'var(--color-warn)', error: 'var(--color-down)' } as const
 
@@ -50,24 +50,7 @@ function Porthole({ m }: { m: Machine }) {
   }
   return (
     <div className="relative mb-2 aspect-square w-32 md:w-[150px]">
-      <svg viewBox="0 0 100 100" className="block size-full" aria-hidden="true">
-        <circle cx="50" cy="50" r={R} fill="none" stroke="var(--color-track)" strokeWidth="4" />
-        {filled > 0 && (
-          <circle
-            cx="50"
-            cy="50"
-            r={R}
-            fill="none"
-            stroke={colour}
-            strokeWidth="4"
-            strokeLinecap="round"
-            className="motion-safe:animate-sweep"
-            strokeDasharray={`${(C * filled).toFixed(1)} ${C.toFixed(1)}`}
-            transform="rotate(-90 50 50)"
-            style={{ filter: `drop-shadow(0 0 3px ${colour})` }}
-          />
-        )}
-      </svg>
+      <Ring aria-hidden="true" className="block size-full" box={100} r={R} stroke={4} glow={3} color={colour} fraction={filled} />
       <div
         style={{ '--wc': MACHINE_COLOUR[m.kind] } as CSSProperties}
         className={cn(

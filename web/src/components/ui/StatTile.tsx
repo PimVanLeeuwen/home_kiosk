@@ -19,7 +19,7 @@ interface Props {
 /** One of a page's headline numbers: a small card with a label, a large figure and what goes with it. */
 export function StatTile({ title, figure, sub, tone, children }: Props) {
   return (
-    <Card title={title} className="px-3.5 py-3.5 md:px-4.5 md:py-4">
+    <Card title={title} padding="tile">
       <div
         style={tone ? { color: TONE_COLOR[tone] } : undefined}
         className="-mt-2 text-stat leading-tight font-semibold tracking-tight md:text-page"

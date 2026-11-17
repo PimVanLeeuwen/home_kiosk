@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { sendJson } from '../../lib/api'
-import { cn } from '../../lib/cn'
 import { formatAgo } from '../../lib/format'
 import type { DeskBoard, DeskPanel, PanelFirmware } from '../../lib/types'
 import { useApi } from '../../lib/useApi'
@@ -8,6 +7,7 @@ import { Segmented } from '../ui/Segmented'
 import { Switch } from '../ui/Switch'
 import { Loading, Unavailable } from '../ui/states'
 import { Surface } from '../ui/Card'
+import { GlowDot } from '../ui/GlowDot'
 
 type Choice = DeskPanel | 'none'
 
@@ -73,10 +73,7 @@ export function DeskBoardsEditor({ now = new Date() }: { now?: Date }) {
           return (
             <li key={b.mac} className="flex flex-wrap items-center gap-x-4 gap-y-2 border-line-soft py-3 not-first:border-t">
               <span className="flex min-w-0 flex-1 items-center gap-3">
-                <i
-                  aria-hidden="true"
-                  className={cn('block size-2.5 shrink-0 rounded-full', on ? 'bg-up shadow-glow shadow-up' : 'bg-white/20')}
-                />
+                <GlowDot tone={on ? 'up' : 'muted'} size="lg" />
                 <span className="min-w-0">
                   <span className="block font-mono text-small">{b.mac}</span>
                   <span className="block text-caption text-faint">

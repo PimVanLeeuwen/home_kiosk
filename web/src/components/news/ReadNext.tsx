@@ -7,26 +7,10 @@ import type { BookmarkList, HeadlinesResponse, NewsGroup } from '../../lib/newsT
 import { goOnWith, minutesLeft } from '../../lib/readNext'
 import { useApi } from '../../lib/useApi'
 import { titleClass } from '../ui/titleStyles'
+import { Ring } from '../ui/Ring'
 
-function Ring({ pct }: { pct: number }) {
-  const c = 2 * Math.PI * 14
-  return (
-    <svg aria-hidden="true" viewBox="0 0 36 36" className="size-9 shrink-0">
-      <circle cx="18" cy="18" r="14" fill="none" stroke="var(--color-track)" strokeWidth="4" />
-      <circle
-        cx="18"
-        cy="18"
-        r="14"
-        fill="none"
-        stroke="var(--color-accent-line)"
-        strokeWidth="4"
-        strokeLinecap="round"
-        className="motion-safe:animate-sweep"
-        strokeDasharray={`${((c * pct) / 100).toFixed(1)} ${c.toFixed(1)}`}
-        transform="rotate(-90 18 18)"
-      />
-    </svg>
-  )
+function ReadRing({ pct }: { pct: number }) {
+  return <Ring aria-hidden="true" className="size-9 shrink-0" box={36} r={14} stroke={4} color="var(--color-accent-line)" fraction={pct / 100} />
 }
 
 function Mini({ art, title, line, end, ...link }: { art: ReactNode; title: string; line: string; end?: ReactNode } & ({ to: string } | { onClick: () => void })) {
@@ -117,7 +101,7 @@ export function ReadNext({ onGroup, isRead }: Props) {
             }
             title={`Saved: ${bookmark.title}`}
             line={[bookmark.site, minutesLeft(bookmark)].filter(Boolean).join(' · ')}
-            end={bookmark.progress > 0 ? <Ring pct={bookmark.progress} /> : undefined}
+            end={bookmark.progress > 0 ? <ReadRing pct={bookmark.progress} /> : undefined}
           />
         )}
         {busiest && busiest.unread > 0 && busiestColour && (

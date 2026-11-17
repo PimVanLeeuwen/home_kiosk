@@ -1,7 +1,7 @@
-import { cn } from '../../lib/cn'
 import { formatWhen } from '../../lib/format'
 import type { ContainerUpdate } from '../../lib/types'
 import { Card } from '../ui/Card'
+import { GlowDot } from '../ui/GlowDot'
 
 const SHOWN = 25
 const shortId = (id: string) => id.replace(/^sha256:/, '').slice(0, 12)
@@ -25,13 +25,7 @@ export function UpdatesCard({ updates }: { updates: ContainerUpdate[] }) {
               key={`${u.at}-${u.name}`}
               className="relative grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 gap-y-0.5 py-1.5 text-small md:grid-cols-[9.5rem_9.5rem_minmax(0,1fr)_auto]"
             >
-              <span
-                aria-hidden="true"
-                className={cn(
-                  'absolute top-[0.85em] -left-[20.5px] size-[7px] rounded-full',
-                  i === 0 ? 'bg-accent-line shadow-glow shadow-accent-line' : 'bg-faint',
-                )}
-              />
+              <GlowDot tone={i === 0 ? 'accent' : 'muted'} size="sm" className="absolute top-[0.85em] -left-[20.5px]" />
               <span className="text-faint">{formatWhen(u.at)}</span>
               <span className="truncate font-mono">{u.name}</span>
               <span className="col-span-2 truncate text-muted md:col-span-1">{u.image}</span>

@@ -1,5 +1,5 @@
+import { Ring } from '../ui/Ring'
 const R = 38
-const C = 2 * Math.PI * R
 
 /** "23:00" → 23; "07:30" → 7.5. */
 const hours = (hhmm: string) => {
@@ -20,30 +20,20 @@ export function QuietRing({ start, end, enabled, now }: Props) {
   const span = (hours(end) - from + 24) % 24
   const at = ((now.getHours() + now.getMinutes() / 60) / 24) * 2 * Math.PI - Math.PI / 2
   return (
-    <svg
+    <Ring
       role="img"
       aria-label={enabled ? `Quiet from ${start} to ${end}` : 'Quiet hours off'}
       data-on={enabled}
-      viewBox="0 0 100 100"
       className="w-24 shrink-0"
+      box={100}
+      r={R}
+      stroke={8}
+      cap="butt"
+      glow={3}
+      color="var(--color-accent-line)"
+      fraction={enabled ? span / 24 : 0}
+      start={from / 24}
     >
-      <circle cx="50" cy="50" r={R} fill="none" stroke="var(--color-track)" strokeWidth="8" />
-      {enabled && span > 0 && (
-        <circle
-          data-testid="quiet-span"
-          cx="50"
-          cy="50"
-          r={R}
-          fill="none"
-          stroke="var(--color-accent-line)"
-          strokeWidth="8"
-          className="motion-safe:animate-sweep"
-          strokeDasharray={`${((span / 24) * C).toFixed(2)} ${C.toFixed(2)}`}
-          strokeDashoffset={(-(from / 24) * C).toFixed(2)}
-          transform="rotate(-90 50 50)"
-          style={{ filter: 'drop-shadow(0 0 3px var(--color-accent-line))' }}
-        />
-      )}
       <circle cx={(50 + R * Math.cos(at)).toFixed(1)} cy={(50 + R * Math.sin(at)).toFixed(1)} r="3.4" fill="var(--color-fg)" />
       {[
         ['0', 50, 7],
@@ -61,6 +51,6 @@ export function QuietRing({ start, end, enabled, now }: Props) {
       <text x="50" y="60" textAnchor="middle" fontSize="6.5" fill="var(--color-muted)">
         quiet
       </text>
-    </svg>
+    </Ring>
   )
 }

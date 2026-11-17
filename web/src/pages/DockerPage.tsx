@@ -6,12 +6,12 @@ import { Card } from '../components/ui/Card'
 import { Loading, StaleNote, Unavailable } from '../components/ui/states'
 import { PageHeader } from '../components/PageHeader'
 import { Pill } from '../components/ui/Pill'
-import { cn } from '../lib/cn'
 import { containerStatus } from '../lib/containers'
 import type { ContainerLoad, ContainerUpdate, DockerOverview, Nas, Sparklines } from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { SearchField } from '../components/ui/SearchField'
 import { Segmented } from '../components/ui/Segmented'
+import { Tag } from '../components/ui/Tag'
 
 type Order = 'stack' | 'cpu' | 'memory' | 'name'
 
@@ -117,15 +117,9 @@ export function DockerPage() {
                     <section key={stack} aria-label={`${stack} · ${up}/${list.length}`} className="mt-4 first:mt-0">
                       <h3 className="mb-1 flex items-center gap-2 px-2.5 text-label eyebrow text-faint">
                         {stack}
-                        <span
-                          data-tone={up === list.length ? 'up' : stopped ? 'down' : 'warn'}
-                          className={cn(
-                            'rounded-tag px-1.5 text-micro tracking-normal normal-case',
-                            up === list.length ? 'bg-up/13 text-up' : stopped ? 'bg-down/14 text-down' : 'bg-warn/15 text-warn',
-                          )}
-                        >
+                        <Tag tone={up === list.length ? 'up' : stopped ? 'down' : 'warn'} size="micro">
                           {up}/{list.length}
-                        </span>
+                        </Tag>
                       </h3>
                       {renderRows(list)}
                     </section>

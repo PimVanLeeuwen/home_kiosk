@@ -1,14 +1,14 @@
-import { cn } from '../../lib/cn'
+import { SEVERITY_TONE } from '../../lib/status'
 import type { Severity } from '../../lib/types'
+import { Tag } from '../ui/Tag'
 
-const STYLE: Record<Severity, { label: string; className: string }> = {
-  error: { label: 'Error', className: 'bg-down/15 text-down' },
-  warning: { label: 'Warning', className: 'bg-warn/15 text-warn' },
-  ok: { label: 'OK', className: 'bg-up/15 text-up' },
-  info: { label: 'Info', className: 'bg-accent/20 text-accent-fg' },
-}
+const LABEL: Record<Severity, string> = { error: 'Error', warning: 'Warning', ok: 'OK', info: 'Info' }
 
+/** A message's severity as a small-capitals tag in its tone. */
 export function SeverityPill({ severity }: { severity: Severity }) {
-  const s = STYLE[severity]
-  return <span className={cn('rounded-tag px-1.5 py-px text-micro eyebrow', s.className)}>{s.label}</span>
+  return (
+    <Tag tone={SEVERITY_TONE[severity]} size="micro" caps>
+      {LABEL[severity]}
+    </Tag>
+  )
 }

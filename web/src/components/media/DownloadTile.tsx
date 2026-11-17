@@ -2,6 +2,7 @@ import { cn } from '../../lib/cn'
 import { formatBytes, formatDuration } from '../../lib/format'
 import type { MediaDownload } from '../../lib/types'
 import { Poster } from './Poster'
+import { Tag } from '../ui/Tag'
 
 const CHIP: Partial<Record<MediaDownload['state'], string>> = {
   failed: 'Failed',
@@ -33,14 +34,9 @@ export function DownloadTile({ item }: { item: MediaDownload }) {
         <p className="truncate text-body font-medium">
           {item.title}
           {CHIP[item.state] && (
-            <span
-              className={cn(
-                'ml-1.5 rounded-tag border px-1.5 align-[1px] text-label whitespace-nowrap',
-                bad ? 'border-down/40 text-down' : warn ? 'border-warn/35 text-warn' : 'border-glass-line bg-white/5 text-muted',
-              )}
-            >
+            <Tag variant={bad || warn ? 'outline' : 'glass'} tone={bad ? 'down' : 'warn'} className="ml-1.5 align-[1px]">
               {CHIP[item.state]}
-            </span>
+            </Tag>
           )}
         </p>
         <p className="text-caption text-muted">{item.detail}</p>

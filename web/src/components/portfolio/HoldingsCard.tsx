@@ -7,6 +7,8 @@ import { holdingPath } from '../../lib/portfolio'
 import type { HoldingRow } from '../../lib/portfolioTypes'
 import { Card } from '../ui/Card'
 import { Segmented } from '../ui/Segmented'
+import { Tag } from '../ui/Tag'
+import type { Tone } from '../ui/tones'
 
 type Sort = 'value' | 'today' | 'gain'
 const SORTS: [Sort, string][] = [
@@ -16,10 +18,13 @@ const SORTS: [Sort, string][] = [
 ]
 
 const tone = (n: number | null | undefined) => (!n ? 'text-muted' : n > 0 ? 'text-up' : 'text-down')
-const pill = (n: number) => (n > 0 ? 'bg-up/12 text-up' : n < 0 ? 'bg-down/13 text-down' : 'bg-raised text-muted')
+const sign = (n: number): Tone => (n > 0 ? 'up' : n < 0 ? 'down' : 'muted')
 /** A ticker on a small glass chip. */
-const CHIP =
-  'inline-block min-w-[3.4rem] shrink-0 rounded-tag border border-glass-line bg-glass px-1.5 py-0.5 text-center font-mono text-caption font-medium'
+const Ticker = ({ symbol }: { symbol: string }) => (
+  <Tag variant="glass" size="caption" mono className="min-w-[3.4rem] shrink-0 text-center">
+    {symbol}
+  </Tag>
+)
 
 function sorted(holdings: HoldingRow[], sort: Sort): HoldingRow[] {
   const key = (h: HoldingRow) => (sort === 'value' ? h.value : sort === 'today' ? h.day_pct : (h.gain_pct ?? 0))
@@ -59,7 +64,7 @@ export function HoldingsCard({ holdings, currency }: { holdings: HoldingRow[]; c
             <tr key={h.symbol} className="group relative border-t border-line-soft hover:bg-white/[0.03]">
               <td className="max-w-0 py-2.5 pr-3">
                 <Link to={holdingPath(h)} className="flex min-w-0 items-center gap-2.5 after:absolute after:inset-0" title={h.name}>
-                  <span className={CHIP}>{h.symbol}</span>
+                  <Ticker symbol={h.symbol} />
                   <span className="truncate text-caption text-muted">{h.name}</span>
                 </Link>
               </td>
@@ -74,7 +79,7 @@ export function HoldingsCard({ holdings, currency }: { holdings: HoldingRow[]; c
                 </span>
               </td>
               <td className="py-2.5 pl-3 text-right whitespace-nowrap">
-                <span className={cn('rounded-tag px-1.5 py-0.5 text-caption font-semibold', pill(h.day_pct))}>{formatSignedPct(h.day_pct)}</span>
+                <Tag tone={sign(h.day_pct)} size="caption">{formatSignedPct(h.day_pct)}</Tag>
                 {h.day_abs != null && <span className="mt-0.5 block text-caption text-muted">{formatSignedMoney(h.day_abs, currency)}</span>}
               </td>
               <td className={cn('py-2.5 pl-3 text-right whitespace-nowrap', tone(h.gain_pct))}>
@@ -93,7 +98,7 @@ export function HoldingsCard({ holdings, currency }: { holdings: HoldingRow[]; c
         {rows.map((h) => (
           <li key={h.symbol} className="border-t border-line-soft first:border-t-0">
             <Link to={holdingPath(h)} className="flex items-center gap-3 py-3">
-              <span className={CHIP}>{h.symbol}</span>
+              <Ticker symbol={h.symbol} />
               <span className="min-w-0 flex-1 truncate text-caption text-muted">{h.name}</span>
               <span className="text-right whitespace-nowrap">
                 <span className="block">{money(h.value)}</span>

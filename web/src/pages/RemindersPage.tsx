@@ -104,7 +104,7 @@ export function RemindersPage() {
           </div>
           <Card title="All reminders">
             {deleting && (
-              <Surface padding="compact" role="alert" className="mb-4 flex flex-wrap items-center gap-3 border-down/40">
+              <Surface padding="compact" look="down" role="alert" className="mb-4 flex flex-wrap items-center gap-3">
                 <p className="basis-full sm:basis-0 sm:flex-1">Delete &quot;{deleting.title}&quot; and every day it falls? There is no undo.</p>
                 <Button variant="danger" onClick={() => remove(deleting)} disabled={busy}>
                   <Trash2 aria-hidden="true" className="size-4" />

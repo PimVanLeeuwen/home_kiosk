@@ -34,9 +34,9 @@ describe('NewsPage', () => {
     expect(within(list).getByRole('button', { name: /Tech\s*1/ })).toBeInTheDocument()
     // A group chip in the group's colour, the same as on Home; unread dots glow.
     expect(within(links[1]).getByText('Tech')).toHaveStyle({ color: '#8cc4ff' })
-    expect(links[0].querySelector('[aria-hidden="true"]')).toHaveClass('bg-accent-line')
-    expect(links[2].querySelector('[aria-hidden="true"]')).not.toHaveClass('bg-accent-line')
-    expect(within(list).getByRole('button', { name: /Tech\s*1/ }).querySelector('i')).toHaveStyle({ backgroundColor: '#8cc4ff' })
+    expect(links[0].querySelector('[data-tone="accent"]')).not.toHaveClass('invisible')
+    expect(links[2].querySelector('[data-tone="accent"]')).toHaveClass('invisible')
+    expect(within(list).getByRole('button', { name: /Tech\s*1/ }).querySelector('[aria-hidden]')).toHaveStyle({ backgroundColor: '#8cc4ff' })
   })
 
   it('filters by group, unread and search', async () => {

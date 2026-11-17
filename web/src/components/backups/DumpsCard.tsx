@@ -5,6 +5,7 @@ import { formatBytes, formatWhen } from '../../lib/format'
 import type { DatabaseDumps, DumpedDatabase } from '../../lib/types'
 import { GlowDot } from '../ui/GlowDot'
 import { RunDots } from '../ui/RunDots'
+import { Tag } from '../ui/Tag'
 
 function Status({ db }: { db: DumpedDatabase }) {
   if (db.ok == null) return <span className="text-muted">Not run yet</span>
@@ -42,17 +43,12 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
                 failed ? 'border-down/40 bg-linear-to-br from-down/12 to-down/[0.03]' : 'border-glass-line bg-glass',
               )}
             >
-              <GlowDot tone={db.ok == null ? 'muted' : db.ok ? 'up' : 'down'} halo={failed} className="size-[7px]" />
+              <GlowDot tone={db.ok == null ? 'muted' : db.ok ? 'up' : 'down'} halo={failed} size="sm" />
               <span className="min-w-0">
                 <span className="font-semibold">{db.label}</span>
-                <span
-                  className={cn(
-                    'ml-1.5 rounded-tag px-1.5 text-micro font-semibold tracking-[0.04em]',
-                    db.kind === 'sqlite' ? 'bg-[var(--color-data-blue)]/14 text-[var(--color-data-blue)]' : 'bg-accent/18 text-accent-fg',
-                  )}
-                >
+                <Tag size="micro" tone="accent" colour={db.kind === 'sqlite' ? 'var(--color-data-blue)' : undefined} className="ml-1.5">
                   {db.kind === 'sqlite' ? 'SQLite' : 'pg_dump'}
-                </span>
+                </Tag>
               </span>
               <span className="text-right">
                 <Status db={db} />

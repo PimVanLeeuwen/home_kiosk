@@ -53,7 +53,7 @@ export function RunHistoryCard({ runs, volumes }: Props) {
             {runs.map((run) => (
               <tr key={run.started} className={cn('border-t border-line-soft', !run.ok && 'bg-down/6')}>
                 <td className="py-2">
-                  <GlowDot tone={run.ok ? 'up' : 'down'} className="size-[7px]" />
+                  <GlowDot tone={run.ok ? 'up' : 'down'} size="sm" />
                   <span className="sr-only">{run.ok ? 'Succeeded' : 'Failed'}</span>
                 </td>
                 <td className="py-2 pr-3 whitespace-nowrap">{formatWhen(run.finished)}</td>

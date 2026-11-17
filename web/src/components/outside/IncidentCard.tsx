@@ -4,6 +4,7 @@ import { runningFor, STATE_LABEL, STATE_TEXT, statusWord } from '../../lib/outsi
 import type { OutsideIncident, OutsideService } from '../../lib/types'
 import { cn } from '../../lib/cn'
 import { BrandLogo } from './BrandLogo'
+import { GlowDot } from '../ui/GlowDot'
 
 const FRAME: Record<OutsideIncident['impact'], string> = {
   outage: 'border-down/40 bg-linear-to-br from-down/12 to-down/[0.03]',
@@ -50,13 +51,7 @@ export function IncidentCard({ service, incident, now = new Date() }: Props) {
         <ol aria-label="Timeline" className="grid gap-1.5 border-l border-line pl-3">
           {timeline.map((u, i) => (
             <li key={u.at + u.status} className="relative flex items-baseline gap-2 text-caption">
-              <span
-                aria-hidden="true"
-                className={cn(
-                  'absolute top-[0.45em] -left-[16.5px] size-[7px] rounded-full',
-                  i === 0 ? 'bg-fg shadow-[0_0_0_3px_--alpha(var(--color-fg)/12%)]' : 'bg-faint',
-                )}
-              />
+              <GlowDot color={i === 0 ? 'var(--color-fg)' : undefined} size="sm" className="absolute top-[0.45em] -left-[16.5px]" />
               <span className={i === 0 ? 'font-medium' : 'text-muted'}>{statusWord(u.status)}</span>
               <span className="text-faint">{when(u.at, now)}</span>
             </li>

@@ -70,3 +70,25 @@ describe('design tokens', () => {
     expect(css).toContain(`--ease-glide: ${EASE};`)
   })
 })
+
+describe('surfaces', () => {
+  it('get padding and colours from their props, never from className', () => {
+    const loose: string[] = []
+    for (const [f, src] of sources) {
+      for (const m of src.matchAll(/<(Card|Surface)\b([^>]*?)>/gs)) {
+        const attrs = m[2]
+        const cls = attrs.match(/className=(?:"([^"]*)"|\{cn\(([^)]*)\)\})/s)
+        if (!cls) continue
+        const bare = attrs.includes('look="bare"')
+        const unpadded = attrs.includes('padding="none"')
+        for (const c of (cls[1] ?? cls[2]).split(/[\s'",]+/)) {
+          const u = c.replace(/^(\w+:)+/, '')
+          if (/^(p|px|py|pt|pb|pl|pr)-/.test(u) && !unpadded) loose.push(`${f}: ${c}`)
+          if (/^(bg|rounded)(-|$)/.test(u) && !bare) loose.push(`${f}: ${c}`)
+          if (/^border(-(?!l-)|$)/.test(u)) loose.push(`${f}: ${c}`)
+        }
+      }
+    }
+    expect(loose).toEqual([])
+  })
+})

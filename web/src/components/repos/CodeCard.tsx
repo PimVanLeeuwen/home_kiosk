@@ -1,10 +1,11 @@
-import type { CSSProperties } from 'react'
 import { activityStats, gridCells, monthLabels } from '../../lib/activity'
 import { cn } from '../../lib/cn'
 import { formatAgo } from '../../lib/format'
 import type { Activity, Repo, ReposResponse } from '../../lib/types'
 import { Pill } from '../ui/Pill'
 import { Card } from '../ui/Card'
+import { GlowDot } from '../ui/GlowDot'
+import { TONE_COLOR, type Tone } from '../ui/tones'
 
 const MAX_BUILDS = 6
 const MAX_PULLS = 5
@@ -15,12 +16,8 @@ const LEVEL = [
   'bg-[rgb(150_136_250/0.82)] shadow-[0_0_6px_rgb(150_136_250/0.35)]',
   'bg-[var(--color-data-lavender)] shadow-[0_0_9px_--alpha(var(--color-data-lavender)/60%)]',
 ]
-const CI_COLOUR: Record<Repo['ci'], string> = {
-  passing: 'var(--color-up)',
-  failing: 'var(--color-down)',
-  running: 'var(--color-warn)',
-  none: 'var(--color-faint)',
-}
+/** Running is activity, not a problem: violet (the hub's status colours). */
+const CI_TONE: Record<Repo['ci'], Tone> = { passing: 'up', failing: 'down', running: 'accent', none: 'muted' }
 const CI_WORD: Record<Repo['ci'], string> = { passing: 'Passed', failing: 'Failed', running: 'Running', none: 'No checks' }
 
 interface Row {
@@ -68,25 +65,16 @@ function RunRow({ row, now }: { row: Row; now: Date }) {
   return (
     <li
       data-ci={row.ci}
-      style={{ '--glow': CI_COLOUR[row.ci] } as CSSProperties}
       className={cn('rounded-control', row.ci === 'failing' && 'bg-linear-to-r from-down/13 to-transparent to-80%')}
     >
       <a href={row.url} target="_blank" rel="noreferrer" className="grid grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-x-3 px-2.5 py-2 hover:bg-white/3">
-        <span
-          aria-hidden="true"
-          className={cn(
-            'size-[9px] rounded-full bg-(--glow)',
-            row.ci !== 'none' && 'shadow-[0_0_8px_var(--glow)]',
-            row.ci === 'failing' && 'motion-safe:animate-halo',
-            row.ci === 'running' && 'motion-safe:animate-pulse',
-          )}
-        />
+        <GlowDot tone={CI_TONE[row.ci]} size="lg" halo={row.ci === 'failing'} className={row.ci === 'running' ? 'motion-safe:animate-pulse' : undefined} />
         <span className="min-w-0">
           <b className="font-mono text-small font-medium">{row.name}</b>
           <small className="block truncate text-caption text-muted">{row.detail}</small>
         </span>
         <span className="text-right text-caption whitespace-nowrap text-muted">
-          <em className="block font-semibold not-italic" style={{ color: CI_COLOUR[row.ci] }}>
+          <em className="block font-semibold not-italic" style={{ color: TONE_COLOR[CI_TONE[row.ci]] }}>
             {CI_WORD[row.ci]}
           </em>
           {row.when && formatAgo(row.when, now)}

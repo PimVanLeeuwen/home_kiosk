@@ -157,8 +157,8 @@ describe('NasPage', () => {
     expect(cuts[0]).toHaveTextContent('Tue 6 Oct 10:02, 39 min, down to 62%')
     expect(cuts[1]).toHaveTextContent('2 h 5 min, down to 14% (services stopped)')
     // A cut that stopped the services has a red dot on the timeline.
-    expect(cuts[1].querySelector('.bg-down')).not.toBeNull()
-    expect(cuts[0].querySelector('.bg-down')).toBeNull()
+    expect(cuts[1].querySelector('[data-tone="down"]')).not.toBeNull()
+    expect(cuts[0].querySelector('[data-tone="down"]')).toBeNull()
     expect(within(card).getByRole('meter', { name: 'Battery' })).toHaveAttribute('data-tone', 'up')
     expect(within(card).getByText('Stops at').nextElementSibling).toHaveTextContent('15%')
   })

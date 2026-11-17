@@ -12,6 +12,7 @@ import { cn } from '../../lib/cn'
 import { formatAgo, formatCount, formatWhen } from '../../lib/format'
 import type { MirroredRepo, Repo } from '../../lib/types'
 import { GlowDot } from '../ui/GlowDot'
+import { Tag as TagLabel } from '../ui/Tag'
 
 /** The repo in the nightly GitHub mirror; `null` when it is not in it (yet). */
 export type RepoBackup = MirroredRepo | null
@@ -103,13 +104,13 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
           </a>
         </h3>
         {repo.private && (
-          <span className="inline-flex items-center gap-1 rounded-tag border border-glass-line bg-glass px-1.5 py-0.5 text-label text-muted">
-            <Lock aria-hidden="true" className="size-3" />
+          <TagLabel variant="glass">
+            <Lock aria-hidden="true" className="mr-1 inline size-3 align-[-2px]" />
             Private
-          </span>
+          </TagLabel>
         )}
         {repo.fork && (
-          <span className="rounded-tag border border-glass-line bg-glass px-1.5 py-0.5 text-label text-muted">Fork</span>
+          <TagLabel variant="glass">Fork</TagLabel>
         )}
       </div>
 
@@ -120,11 +121,7 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
       <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-caption text-muted">
         {repo.language && (
           <span className="inline-flex items-center gap-1.5">
-            <span
-              aria-hidden="true"
-              className="size-2 rounded-full"
-              style={{ backgroundColor: colour, boxShadow: `0 0 6px ${colour}` }}
-            />
+            <GlowDot color={colour} />
             {repo.language}
           </span>
         )}
@@ -141,7 +138,7 @@ export function RepoCard({ repo, backup }: { repo: Repo; backup?: RepoBackup }) 
 
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-line-soft pt-3 text-caption">
         <span className={cn('inline-flex items-center gap-1.5 font-semibold', ci.className)}>
-          <GlowDot tone={ci.tone} halo={repo.ci === 'failing'} className="size-[7px]" />
+          <GlowDot tone={ci.tone} halo={repo.ci === 'failing'} size="sm" />
           {ci.label}
         </span>
         <Count icon={GitPullRequest} label="Open pull requests" n={repo.open_prs} />
