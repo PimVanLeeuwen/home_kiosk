@@ -2234,8 +2234,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the Home card and the palette entry; (3) Settings, Todos and the daily ntfy message; (4) the
   MCP tools and Ask's proposals; (5) the Now panel screen (the hub's answer, then the
   firmware, tried on a desk panel).
-- To settle while building: the Now screen's signature visual (M27), and whether Undo after
-  ticking keeps the todo's id (a short-lived "ticked" mark) or adds it back as new.
+- To settle while building: the Now screen's signature visual (M27).
+- Built 2026-11-18 (step 1): `app/todos.py` (table `todo`) and `/api/todos`: list, add
+  (`POST`), change (`PUT /{id}`), tick off (`DELETE /{id}`, which answers the todo as
+  `removed`) and Undo (`POST /restore` with that todo, back with its id and age, 409 when it
+  is already there). The answer counts `open`, `overdue` and `due_today` and gives each todo
+  its `state` ("overdue", "today" or none) in the hub's zone.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

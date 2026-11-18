@@ -40,6 +40,8 @@ from . import (
     runs_api,
     scheduler,
     settings_api,
+    todos,
+    todos_api,
     weather_api,
 )
 from .alerts import api as alerts_api
@@ -118,6 +120,7 @@ async def lifespan(app: FastAPI):
     my_sites.ensure_tables(app.state.store)
     agenda.ensure_tables(app.state.store)
     reminders.ensure_tables(app.state.store)
+    todos.ensure_tables(app.state.store)
     desk_boards.ensure_tables(app.state.store)
     desk_headlines.ensure_tables(app.state.store)
     apple.ensure_tables(app.state.store)
@@ -192,6 +195,7 @@ app.include_router(news_api.router)
 app.include_router(portfolio_api.router)
 app.include_router(recipes_api.router)
 app.include_router(reminders_api.router)
+app.include_router(todos_api.router)
 
 # Claude asks the house here (plan.md M33): the read-only tools, and with the write token
 # (MCP_WRITE_TOKEN) also the ones that change something.
