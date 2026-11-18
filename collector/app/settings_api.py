@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from . import desk_boards, desk_keys
+from . import desk_boards, desk_keys, todos
 from .models import Service
 from .security import same_origin_json
 from .sources import agenda, ns, widgets
@@ -248,6 +248,22 @@ def train_days(request: Request) -> TrainDays:
 @router.put("/train", dependencies=write)
 def put_train_days(body: TrainDays, request: Request) -> TrainDays:
     return TrainDays(days=ns.put_train_days(_store(request), body.days))
+
+
+class TodoSettings(BaseModel):
+    """When the daily message with the open todos goes out, local time."""
+    at: todos.Clock
+
+
+@router.get("/todos")
+def todo_settings(request: Request) -> TodoSettings:
+    """The daily ntfy message's time (plan.md M37), 08:00 until set."""
+    return TodoSettings(at=todos.message_at(_store(request)))
+
+
+@router.put("/todos", dependencies=write)
+def put_todo_settings(body: TodoSettings, request: Request) -> TodoSettings:
+    return TodoSettings(at=todos.put_message_at(_store(request), body.at))
 
 
 class BoardPanel(BaseModel):

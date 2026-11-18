@@ -43,7 +43,7 @@ specific to that setup. The overview is in the [README](../README.md).
   (`NOTIFY_KEY`); see the nas-docker README, *Alerts*.
 - **ntfy** (plan.md M31): the hub sends every message to the NAS's own ntfy (the stack in
   nas-docker, README *ntfy*), one topic per category (`hub-backup`, `hub-rules`,
-  `hub-reminders`, ...), as soon as `NTFY_TOKEN` is in `.env` and the `ntfy:` block from
+  `hub-reminders`, `hub-todos`, ...), as soon as `NTFY_TOKEN` is in `.env` and the `ntfy:` block from
   `config.yaml` is in the NAS's config.
   Telegram then only gets a message when ntfy fails, and the Alerts page says why. Errors arrive
   Time Sensitive; in quiet hours the rest arrives silently instead of being held, and the morning

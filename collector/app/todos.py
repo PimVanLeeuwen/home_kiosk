@@ -3,7 +3,8 @@ card on Home, the Now panel, a daily ntfy message and Claude.
 
 A todo has a title, and optionally a short note, a due date and a High flag. Ticking one off
 removes it; the hub's Undo puts it back as it was (`restore`, same id and age), so there is
-no Done list and no history.
+no Done list and no history. Once a day, at the time set in Settings, Todos (08:00 until
+changed), one ntfy message lists what is open (`send_daily`); none when nothing is.
 
 Titles and notes are personal data: served to the hub, the panel and the MCP tools, never
 logged.
@@ -12,11 +13,13 @@ logged.
 from __future__ import annotations
 
 import weakref
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Annotated, Any
 
 from pydantic import BaseModel, StringConstraints, field_validator
 
+from . import config
+from .alerts import core
 from .store import Store
 
 TABLES = """
@@ -32,9 +35,16 @@ CREATE TABLE IF NOT EXISTS todo (
 """
 
 MAX_OPEN = 500
+# The daily message: its time (Settings, Todos), and the day it last went out.
+AT_SETTING = "todos_message_at"
+DEFAULT_AT = "08:00"
+SENT_SETTING = "todos_message_sent"
+LATE = timedelta(hours=2)  # a message missed by more than this (the hub was down) is skipped
+MESSAGE_TODOS = 5  # titles in the message, then "and N more"
 
 Title = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
 Note = Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)]
+Clock = Annotated[str, StringConstraints(pattern=r"^([01]\d|2[0-3]):[0-5]\d$")]
 
 
 class Draft(BaseModel):
@@ -167,3 +177,66 @@ def overview(store: Store, now: datetime, day: date) -> dict[str, Any]:
             "overdue": sum(t["state"] == "overdue" for t in listed),
             "due_today": sum(t["state"] == "today" for t in listed),
             "todos": listed}
+
+
+# --- the daily ntfy message -----------------------------------------------------------
+
+
+def message_at(store: Store) -> str:
+    """The daily message's time, "08:00" until set."""
+    return core.get_setting(store, AT_SETTING, DEFAULT_AT)
+
+
+def put_message_at(store: Store, at: str) -> str:
+    core.put_setting(store, AT_SETTING, at)
+    return at
+
+
+def _late(t: Todo, day: date) -> str:
+    if t.due is None or t.due > day:
+        return ""
+    days = (day - t.due).days
+    return " (today)" if days == 0 else " (yesterday)" if days == 1 else f" ({days} days late)"
+
+
+def message(listed: list[Todo], day: date) -> tuple[str, str]:
+    """The ntfy title and text: "4 open todos, 1 overdue", then the first five, each with
+    High and how late it is."""
+    overdue = sum(state(t, day) == "overdue" for t in listed)
+    title = f"{len(listed)} open todo{'' if len(listed) == 1 else 's'}"
+    if overdue:
+        title += f", {overdue} overdue"
+    lines = [f"{'High: ' if t.high else ''}{t.title}{_late(t, day)}"
+             for t in listed[:MESSAGE_TODOS]]
+    if len(listed) > MESSAGE_TODOS:
+        lines.append(f"and {len(listed) - MESSAGE_TODOS} more")
+    return title, "\n".join(lines)
+
+
+def due_message(store: Store, now: datetime, zone: Any) -> date | None:
+    """The day whose message goes out now: its time has come in the last two hours, and
+    none went out for it yet. None otherwise."""
+    local = now.astimezone(zone)
+    when = datetime.combine(local.date(), time.fromisoformat(message_at(store)), zone)
+    if not when <= now < when + LATE:
+        return None
+    if core.get_setting(store, SENT_SETTING, None) == local.date().isoformat():
+        return None
+    return local.date()
+
+
+async def send_daily(cfg: dict[str, Any], store: Store, now: datetime | None = None) -> bool:
+    """Every minute (app/scheduler.py): at the set time, one message with the open todos,
+    every day of the week; nothing when none is open. A failed send is tried again the next
+    minute. Answers whether one went out."""
+    now = now or datetime.now(UTC)
+    day = due_message(store, now, config.zone(cfg))
+    if day is None:
+        return False
+    listed = all_todos(store)
+    if listed:
+        title, body = message(listed, day)
+        await core.notify(store, cfg, source="todos", category="todos", severity="info",
+                          title=title, body=body, now=now)
+    core.put_setting(store, SENT_SETTING, day.isoformat())
+    return bool(listed)

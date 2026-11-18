@@ -149,6 +149,24 @@ test('picks the train days in Settings', async ({ page }) => {
   expect(saved).toEqual({ days: [0, 1, 3, 4] })
 })
 
+test('sets the time of the daily todo message in Settings', async ({ page }) => {
+  let saved: unknown
+  await page.route('**/api/settings/todos', (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { at: '08:00' } })
+    saved = route.request().postDataJSON()
+    return route.fulfill({ json: saved })
+  })
+
+  await page.goto('/settings/todos')
+  const at = page.getByLabel('Send the daily message at')
+  await expect(at).toHaveValue('08:00')
+  await at.fill('07:15')
+  await at.press('Enter')
+
+  await expect.poll(() => saved).toEqual({ at: '07:15' })
+  await expect(at).toHaveValue('07:15')
+})
+
 test('moves between Settings sections, and old anchors still land on theirs', async ({ page }) => {
   await page.route('**/api/containers', (route) => route.fulfill({ status: 503, json: {} }))
   await page.route('**/api/settings/services', (route) => route.fulfill({ json: CATALOG }))

@@ -2220,8 +2220,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   - One ntfy message a day with the open todos, on a new `hub-todos` topic (category `todos`),
     to the owner only, every day of the week, at a time set in Settings, Todos (08:00 until
     changed). Not sent when nothing is open. The title counts them ("4 open todos, 1 overdue"),
-    the body lists the first five titles; a tap opens the Todos page. Quiet hours deliver it
-    silently, as every message (M31). Not in the morning briefing.
+    the body lists the first five titles; a tap opens the message's page (M31), which links
+    to the Todos page. Quiet hours deliver it silently, as every message. Not in the morning
+    briefing.
   - A Todos screen on the Now panel, read-only: in the rotation while any is open, the first
     six titles with High and overdue marked, "and N more"; ticking off stays in the hub. A
     small payload (titles only, no notes).
@@ -2245,6 +2246,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   High, the form beside them, and an Undo bar for 8 s after a tick. A Todos card on Home
   (`lib/useTodos.ts` shared with the page) beside Reminders: the first five, no notes, ticked
   off there with the same Undo; it stays while Undo is offered for the last one.
+- Built 2026-11-18 (step 3): Settings, Todos (`/api/settings/todos`, setting
+  `todos_message_at`) sets the message's time; `todos.send_daily` runs every minute and sends
+  once a day (`todos_message_sent` keeps the day) once the time has come, not more than two
+  hours late (the hub was down), on category `todos` (topic `hub-todos`, already allowed by
+  ntfy's `hub-*` rule). A day with nothing open counts as done, so a todo added later that
+  day waits for tomorrow. Each line: "High: " when High, the title, and "(today)",
+  "(yesterday)" or "(3 days late)".
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

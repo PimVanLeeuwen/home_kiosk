@@ -100,7 +100,7 @@ def test_interval_refreshes_wait_for_the_startup_run(store):
     running = {job.id for job in jobs
                if isinstance(job.trigger, IntervalTrigger) and job.next_run_time}
 
-    assert running == {"alert-rules", "reminders", "alert-digest"}
+    assert running == {"alert-rules", "reminders", "todos", "alert-digest"}
     assert next(job for job in jobs if job.id == "nas").args[1] == "nas"
 
 

@@ -10,6 +10,7 @@ import { MusicSettings } from '../components/settings/MusicSettings'
 import { RunningSettings } from '../components/settings/RunningSettings'
 import { ServiceCatalogEditor } from '../components/settings/ServiceCatalogEditor'
 import { SettingsNav, type SettingsNavItem } from '../components/settings/SettingsNav'
+import { TodoSettings } from '../components/settings/TodoSettings'
 import { TrainSettings } from '../components/settings/TrainSettings'
 import { SETTINGS_SECTIONS } from '../lib/settingsSections'
 
@@ -22,6 +23,7 @@ const ELEMENTS: Record<string, ReactElement> = {
   feeds: <FeedEditor />,
   calendars: <CalendarsEditor />,
   train: <TrainSettings />,
+  todos: <TodoSettings />,
   music: <MusicSettings />,
   running: <RunningSettings />,
   'desk-panels': <DeskBoardsEditor />,

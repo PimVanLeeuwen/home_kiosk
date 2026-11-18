@@ -20,7 +20,7 @@ from apscheduler.events import (
 )
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from . import briefing, config, pinned, reminders
+from . import briefing, config, pinned, reminders, todos
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
 from .news import headlines, stories
@@ -307,6 +307,8 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
     # The reminders' ntfy messages (plan.md M32): each goes out in the minute it is due.
     scheduler.add_job(reminders.send_due, "interval", seconds=60, args=[cfg, store],
                       id="reminders")
+    # The open todos' daily ntfy message (plan.md M37), at the time set in Settings, Todos.
+    scheduler.add_job(todos.send_daily, "interval", seconds=60, args=[cfg, store], id="todos")
     # The portfolio report to the Portfolio chat (stock-bot's job before).
     if portfolio_report.settings(cfg)["enabled"]:
         scheduler.add_job(portfolio_report.send, portfolio_report.trigger(cfg), args=[store, cfg],
