@@ -8,6 +8,7 @@
 #include "desk_briefing.h"
 #include "desk_code.h"
 #include "desk_door.h"
+#include "desk_todos.h"
 #include "desk_piece.h"
 #include "desk_stock.h"
 #include "desk_services.h"
@@ -71,6 +72,7 @@ EXT_RAM_BSS_ATTR static desk_air_t air_state;
 EXT_RAM_BSS_ATTR static desk_code_t code_state;
 EXT_RAM_BSS_ATTR static desk_briefing_t briefing_state;
 EXT_RAM_BSS_ATTR static desk_door_t door_state;
+EXT_RAM_BSS_ATTR static desk_todos_t todos_state;
 EXT_RAM_BSS_ATTR static desk_sites_t sites_state;
 EXT_RAM_BSS_ATTR static desk_services_t services_state;
 EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet_state;
@@ -316,6 +318,7 @@ COPIERS(money, desk_money_t, money_state)
 COPIERS(takeover, desk_takeover_t, takeover_state)
 COPIERS(stock, desk_stock_t, stock_state)
 COPIERS(door, desk_door_t, door_state)
+COPIERS(todos, desk_todos_t, todos_state)
 GETTERS(apple, desk_apple_t, apple_state)
 
 static void parse_apple(const cJSON *screen, desk_apple_t *apple)
@@ -870,6 +873,7 @@ static bool apply(const char *body)
     EXT_RAM_BSS_ATTR static desk_code_t code;
     EXT_RAM_BSS_ATTR static desk_briefing_t briefing;
     EXT_RAM_BSS_ATTR static desk_door_t door;
+    EXT_RAM_BSS_ATTR static desk_todos_t todos;
     EXT_RAM_BSS_ATTR static desk_sites_t sites;
     EXT_RAM_BSS_ATTR static desk_services_t services;
     EXT_RAM_BSS_ATTR static desk_tailnet_t tailnet;
@@ -893,6 +897,7 @@ static bool apply(const char *body)
     memset(&code, 0, sizeof code);
     memset(&briefing, 0, sizeof briefing);
     memset(&door, 0, sizeof door);
+    memset(&todos, 0, sizeof todos);
     memset(&sites, 0, sizeof sites);
     memset(&services, 0, sizeof services);
     memset(&tailnet, 0, sizeof tailnet);
@@ -946,6 +951,9 @@ static bool apply(const char *body)
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "briefing") == 0) {
             desk_parse_briefing(screen, &briefing);
             continue;
+        }
+        if (cJSON_IsString(kind) && strcmp(kind->valuestring, "todos") == 0) {
+            desk_parse_todos(screen, &todos);
         }
         if (cJSON_IsString(kind) && strcmp(kind->valuestring, "door") == 0) {
             desk_parse_door(screen, &door);
@@ -1104,6 +1112,7 @@ static bool apply(const char *body)
     COMMIT(code_state, code);
     COMMIT(briefing_state, briefing);
     COMMIT(door_state, door);
+    COMMIT(todos_state, todos);
     COMMIT(sites_state, sites);
     COMMIT(services_state, services);
     COMMIT(tailnet_state, tailnet);

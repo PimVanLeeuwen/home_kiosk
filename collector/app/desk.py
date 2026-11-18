@@ -44,6 +44,7 @@ from .desk_services import services_screen
 from .desk_sites import sites_screen
 from .desk_stock import stock_screen
 from .desk_tailnet import tailnet_screen
+from .desk_todos import todos_screen
 from .desk_train import train_screen
 from .sources import forecast, hue
 from .store import Store
@@ -125,7 +126,8 @@ def _headlines(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any]:
 
 
 # Decided 2026-11-04 (plan.md M32): the sky, the week, the year and the session are gone.
-NOW = (clock_screen, night_screen, briefing_screen, train_screen, agenda_screen,
+# Decided 2026-11-18 (plan.md M37): the open todos after the calendar.
+NOW = (clock_screen, night_screen, briefing_screen, train_screen, agenda_screen, todos_screen,
        countdown_screen, run_screen, runweek_screen, streets_screen, day_screen,
        radar_screen, _headlines)
 # Decided 2026-10-22: NAS first and Backups before Alerts, as in the mockup.
@@ -151,7 +153,7 @@ TAKEOVER = {"now", "house", "test"}
 ROOM = 8192
 DROP_FIRST = ("night", "countdown", "radar", "photo", "streets", "runweek", "run",
               "money", "backups", "stock", "tailnet", "services", "sites", "code",
-              "nas", "pipelines", "headlines", "agenda", "day", "apple", "laundry", "air")
+              "nas", "pipelines", "headlines", "todos", "agenda", "day", "apple", "laundry", "air")
 
 
 def size(answer: dict[str, Any]) -> int:

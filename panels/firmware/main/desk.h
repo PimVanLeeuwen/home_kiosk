@@ -242,6 +242,25 @@ typedef struct {
     char as_of[40];          /* "written by Claude at 06:30" */
 } desk_briefing_t;
 
+#define DESK_TODOS 12 /* the screen turns through them, four a page */
+
+/* The Now panel's Todos screen (app/desk_todos.py, plan.md M37): the open todos in the
+ * hub's order, read-only. Latin-1 text, as the fonts hold. */
+typedef struct {
+    bool present;
+    bool stale;
+    uint32_t version;
+    char title[40];          /* "TODOS · 6 OPEN · 1 LATE" */
+    int count;
+    struct {
+        char title[72];
+        char due[16];        /* "2 days late", "Today", "Sun 22 Nov", or "" */
+        char state;          /* 'o' overdue, 't' today, 0 neither */
+        bool high;
+    } todos[DESK_TODOS];
+    int more;                /* open past the twelve */
+} desk_todos_t;
+
 #define DESK_DOOR_RAIN 30
 #define DESK_DOOR_REMINDERS 12 /* the screen turns through them, four a page */
 #define DESK_DOOR_BIRTHDAYS 4
@@ -706,6 +725,10 @@ desk_code_t desk_code(void);
 bool desk_has_briefing(void);
 uint32_t desk_briefing_version(void);
 desk_briefing_t desk_briefing(void);
+/* The todos are copied into the caller's buffer (about 1.2 kB). */
+bool desk_has_todos(void);
+uint32_t desk_todos_version(void);
+void desk_todos_copy(desk_todos_t *into);
 bool desk_has_door(void);
 uint32_t desk_door_version(void);
 void desk_door_copy(desk_door_t *into);

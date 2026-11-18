@@ -2223,9 +2223,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
     the body lists the first five titles; a tap opens the message's page (M31), which links
     to the Todos page. Quiet hours deliver it silently, as every message. Not in the morning
     briefing.
-  - A Todos screen on the Now panel, read-only: in the rotation while any is open, the first
-    six titles with High and overdue marked, "and N more"; ticking off stays in the hub. A
-    small payload (titles only, no notes).
+  - A Todos screen on the Now panel, read-only: in the rotation while any is open, after the
+    calendar; up to 12 todos, four large rows a page turning every 8 s like the Door panel's
+    reminders (chosen 2026-11-18), with High and the due word, "and N more" past the twelve;
+    ticking off stays in the hub. A small payload (titles only, no notes).
   - Claude: the MCP server gets `todos` (read, with notes and due dates), `add_todo` and
     `tick_todo` (writes); Ask may propose `add_todo` and `tick_todo`, each behind the owner's
     Confirm (M35). Editing and deleting stay in the hub.
@@ -2235,7 +2236,6 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   the Home card and the palette entry; (3) Settings, Todos and the daily ntfy message; (4) the
   MCP tools and Ask's proposals; (5) the Now panel screen (the hub's answer, then the
   firmware, tried on a desk panel).
-- To settle while building: the Now screen's signature visual (M27).
 - Built 2026-11-18 (step 1): `app/todos.py` (table `todo`) and `/api/todos`: list, add
   (`POST`), change (`PUT /{id}`), tick off (`DELETE /{id}`, which answers the todo as
   `removed`) and Undo (`POST /restore` with that todo, back with its id and age, 409 when it
@@ -2259,6 +2259,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   only write tool marked destructive: over MCP there is no Undo bar. Ask may propose both,
   each behind Confirm: "Add a todo: Tax return" with "High, due Friday 20 November, box 3",
   and "Tick off: Fix the shed" with "removes it from the list".
+- Built 2026-11-18 (step 5, tried on the Now board through a pass-through hub): the hub's
+  `todos` screen (`app/desk_todos.py`) after the calendar, dropped before it when an answer
+  is too big; the panel (`screen_todos.c`, `desk_todos.c`) turns through four rows a page
+  every 8 s with the Door panel's text-only fade and dots, the ring, title, an amber HIGH tag
+  and the due word (red when late, violet for today), "and N more" on the last page; the
+  glow from the top is violet, red while one is overdue (late rows get a red edge). The
+  todos are copied into the screen's buffer in PSRAM, never onto a stack. M37 is built.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

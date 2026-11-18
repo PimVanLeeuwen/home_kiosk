@@ -41,6 +41,7 @@
 #include "screen_backups.h"
 #include "screen_board.h"
 #include "screen_briefing.h"
+#include "screen_todos.h"
 #include "screen_clock.h"
 #include "screen_day.h"
 #include "screen_door.h"
@@ -73,7 +74,7 @@ LV_FONT_DECLARE(instrument_24);
 #define DARKEN 165 /* how much the dark layer takes away, of 255 */
 
 /* In the order they turn; the pieces (plan.md M27) where they belong among the others. */
-enum { CLOCK, NIGHT, BRIEFING, TRAIN, AGENDA, COUNTDOWN, RUN, RUNWEEK, STREETS, DAY, RADAR, HEADLINES, PLAYING, LIGHTS,
+enum { CLOCK, NIGHT, BRIEFING, TRAIN, AGENDA, TODOS, COUNTDOWN, RUN, RUNWEEK, STREETS, DAY, RADAR, HEADLINES, PLAYING, LIGHTS,
        AIR, LAUNDRY, APPLE, PHOTO, MUSIC, PIPELINE, PIPELINES, NAS, CODE, SITES, SERVICES, TAILNET, MONEY,
        STOCK, BACKUPS, ALERTS, DOOR, BOARD, START, COUNT };
 
@@ -109,6 +110,8 @@ static bool ready(int which)
         return desk_has_train();
     case AGENDA:
         return desk_has_agenda();
+    case TODOS:
+        return desk_has_todos();
     case DAY:
         return desk_has_day();
     case HEADLINES:
@@ -372,6 +375,7 @@ void screens_start(void)
     screens[CLOCK] = lv_obj_create(NULL);
     screens[TRAIN] = lv_obj_create(NULL);
     screens[AGENDA] = lv_obj_create(NULL);
+    screens[TODOS] = lv_obj_create(NULL);
     screens[DAY] = lv_obj_create(NULL);
     screens[HEADLINES] = lv_obj_create(NULL);
     screens[PLAYING] = lv_obj_create(NULL);
@@ -403,6 +407,7 @@ void screens_start(void)
     screen_briefing_create(screens[BRIEFING]);
     screen_train_create(screens[TRAIN]);
     screen_agenda_create(screens[AGENDA]);
+    screen_todos_create(screens[TODOS]);
     screen_day_create(screens[DAY]);
     backdrops_attach(screens[DAY], "day");
     backdrops_attach(screens[AGENDA], "agenda");
