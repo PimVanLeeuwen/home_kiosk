@@ -305,6 +305,14 @@ widgets:
     uptimekuma:
       slug: nas  # the Kuma status page whose monitors are counted
 
+# Backups other machines push to this NAS (for example another NAS's Hyper
+# Backup over WebDAV), each mounted read-only into the collector (see
+# docker-compose.yml, INCOMING_BACKUP_DIR). A backup is judged by its folder: the
+# backup alert fires when nothing in it changed for `max_days`. `at` is when the
+# sender starts, shown on the Backups page.
+incoming_backups: []
+#  - { name: family, label: Family NAS, path: /backups/incoming/family, max_days: 3, at: "22:30" }
+
 # Repos page. Tokens are fine-grained, read-only, NAS-only (see .env.example).
 # A fine-grained token covers one owner, so Hubble has its own; owners without
 # one use `token`, which also reads every public repo.

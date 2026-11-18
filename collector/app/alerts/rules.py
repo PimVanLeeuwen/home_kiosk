@@ -509,10 +509,27 @@ def restore_problems(dumps: dict[str, Any] | None, settings: dict[str, Any],
                     {"days": days, "last_verified": _when(last), "error": failed})]
 
 
+def incoming_problems(incoming: dict[str, Any] | None, now: datetime) -> list[Problem]:
+    """A machine that backs up to this NAS sent nothing for its own number of days,
+    or its folder cannot be read. Judged as it is, like the dumps."""
+    problems = []
+    for source in (incoming or {}).get("sources") or []:
+        last = source.get("last_change")
+        days = source["max_days"]
+        recent = last and now - datetime.fromisoformat(last) <= timedelta(days=days)
+        if source["present"] and recent:
+            continue
+        problems.append(Problem(
+            f"backup_missing:incoming:{source['name']}", "backup_missing", "error",
+            "incoming_missing", {"source": source["label"], "days": days,
+                                 "last_change": _when(last), "error": source.get("error") or ""}))
+    return problems
+
+
 def backup_missing(
     backups: dict[str, Any] | None, nas: dict[str, Any] | None,
     settings: dict[str, Any], now: datetime, mirror: dict[str, Any] | None = None,
-    dumps: dict[str, Any] | None = None,
+    dumps: dict[str, Any] | None = None, incoming: dict[str, Any] | None = None,
 ) -> list[Problem] | None:
     limit = timedelta(hours=settings["hours"])
     # The GitHub mirror runs once a night, so its payload is judged as it is
@@ -539,7 +556,7 @@ def backup_missing(
         # a missing input must never "resolve" an open problem.
         return None
     problems = (mirror_problems + dump_problems(dumps, settings, now)
-                + restore_problems(dumps, settings, now))
+                + restore_problems(dumps, settings, now) + incoming_problems(incoming, now))
     for name, last in lasts.items():
         if last is None or now - datetime.fromisoformat(last) > limit:
             label = "the NAS" if name == "backup" else name
@@ -673,7 +690,8 @@ async def check(cfg: dict[str, Any], store: Store, now: datetime | None = None,
         "backup_missing": backup_missing(_fresh(store.get_cache("backups"), now), nas,
                                          settings["backup_missing"], now,
                                          store.get_cache("github_mirror"),
-                                         store.get_cache("dumps")),
+                                         store.get_cache("dumps"),
+                                         store.get_cache("incoming_backups")),
         "storage_box": storage_box(_fresh(store.get_cache("backups"), now),
                                    settings["storage_box"]),
         "token_expiry": token_expiry(store.get_cache("repos"), settings["token_expiry"], now),

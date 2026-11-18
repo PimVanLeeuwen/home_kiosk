@@ -844,6 +844,32 @@ export interface DatabaseDumps {
   last_verified?: string | null
 }
 
+/** A backup another machine pushes to this NAS, judged by when its folder changed. */
+export interface IncomingBackup {
+  name: string
+  label: string
+  /** The folder is mounted and readable. */
+  present: boolean
+  error: string | null
+  /** The newest change anywhere in the folder. */
+  last_change: string | null
+  bytes: number | null
+  files: number | null
+  /** The backup alert fires after this many days without a change. */
+  max_days: number
+  /** When the sender starts, "HH:MM". */
+  at: string | null
+  /** Newest first; a night runs from noon to noon. */
+  nights: { night: string; ok: boolean }[]
+}
+
+/** GET /api/incoming-backups. */
+export interface IncomingBackups {
+  as_of: string
+  stale: boolean
+  sources: IncomingBackup[]
+}
+
 /** /api/backups/restore-check: a check asked for from the Backups page (restore_request.py). */
 export interface RestoreRequest {
   state: 'idle' | 'requested' | 'running'

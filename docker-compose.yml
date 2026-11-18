@@ -69,6 +69,11 @@ services:
       # host-jobs/dump-databases.sh (root's crontab). Read-only: root writes
       # there, so no container may.
       - /volume3/backups/databases:/backups/databases:ro
+      # A backup another NAS pushes here (Hyper Backup over WebDAV, through
+      # Tailscale): the hub reads when it last changed for the Backups page and
+      # the backup alert (config.yaml, incoming_backups). The host folder is set
+      # in .env so its name stays out of this file.
+      - ${INCOMING_BACKUP_DIR:?set INCOMING_BACKUP_DIR in .env}:/backups/incoming/family:ro
     extra_hosts:
       - host.docker.internal:host-gateway
     # Still root inside, but without any Linux capability, without a way to

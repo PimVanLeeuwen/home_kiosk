@@ -99,3 +99,28 @@ test('Backups shows the database dumps and a failed one', async ({ page }) => {
   await expect(restore).toContainText('Passed')
   await expect(restore).toContainText('restored: 31 tables, 212 activities')
 })
+
+const INCOMING = {
+  as_of: new Date().toISOString(), stale: false,
+  sources: [{
+    name: 'family', label: 'Family NAS', present: true, error: null,
+    last_change: new Date(Date.now() - 11 * 3_600_000).toISOString(), bytes: 412_000_000_000, files: 8_412,
+    max_days: 3, at: '22:30',
+    nights: [
+      { night: '2026-11-17', ok: true }, { night: '2026-11-16', ok: true }, { night: '2026-11-15', ok: false },
+      { night: '2026-11-14', ok: true }, { night: '2026-11-13', ok: true },
+    ],
+  }],
+}
+
+test('Backups shows the backup another NAS sends here', async ({ page }) => {
+  await page.route('**/api/backups', (route) => route.fulfill({ json: HISTORY }))
+  await page.route('**/api/incoming-backups', (route) => route.fulfill({ json: INCOMING }))
+  await page.goto('/backups')
+
+  const card = page.getByRole('region', { name: 'Family NAS' })
+  await expect(card).toContainText('On time')
+  await expect(card).toContainText('11 hours ago')
+  await expect(card).toContainText('4 of 5')
+  await expect(card.getByRole('img', { name: 'Backups from Family NAS, last 5 nights, oldest first' })).toBeVisible()
+})

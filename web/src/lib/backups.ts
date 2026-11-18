@@ -1,6 +1,6 @@
 import type { Tone } from '../components/ui/tones'
 import { BACKUP_MAX_AGE_HOURS } from './attention'
-import type { BackupRun } from './types'
+import type { BackupRun, IncomingBackup } from './types'
 
 /** How many nights the strip on Home and the Backups page shows. */
 export const NIGHTS = 30
@@ -52,4 +52,10 @@ export const VERDICT_PILL: Record<BackupVerdict, { tone: Tone; label: string }> 
   safe: { tone: 'up', label: 'All safe' },
   failed: { tone: 'down', label: 'Failed' },
   overdue: { tone: 'warn', label: 'Overdue' },
+}
+
+/** Whether the backup alert is (or would be) open for an incoming backup: unreadable, or nothing new for its days. */
+export function incomingLate(backup: IncomingBackup, now: Date): boolean {
+  if (!backup.present || !backup.last_change) return true
+  return now.getTime() - new Date(backup.last_change).getTime() > backup.max_days * 86_400_000
 }

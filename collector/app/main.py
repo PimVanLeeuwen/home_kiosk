@@ -68,6 +68,7 @@ from .sources import (
     feeds,
     github_mirror,
     hue,
+    incoming,
     laundry,
     media_overview,
     media_status,
@@ -410,6 +411,12 @@ def nas_history() -> Any:
 @app.get("/api/github-mirror")
 def github_mirror_status() -> Any:
     return github_mirror.current(app.state.config, app.state.store)
+
+
+@app.get("/api/incoming-backups")
+def incoming_backups() -> Any:
+    """Backups other machines push to this NAS (config.yaml's incoming_backups)."""
+    return _serve(incoming.CACHE_KEY)
 
 
 @app.get("/api/backups")

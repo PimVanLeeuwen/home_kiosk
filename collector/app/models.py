@@ -656,6 +656,33 @@ class DatabaseCopy(Envelope):
     last_success: datetime | None = None
 
 
+# --- Home hub: incoming backups ---------------------------------------------------
+
+
+class BackupNight(BaseModel):
+    night: date  # the evening the night starts
+    ok: bool  # something in the folder changed that night
+
+
+class IncomingBackup(BaseModel):
+    """A backup another NAS pushes to this one, judged by its folder's changes."""
+
+    name: str
+    label: str
+    present: bool  # the folder is mounted and readable
+    error: str | None = None
+    last_change: datetime | None = None  # the newest modification anywhere in it
+    bytes: int | None = None
+    files: int | None = None
+    max_days: int
+    at: str | None = None  # when the sender starts, "HH:MM"
+    nights: list[BackupNight] = []  # newest first
+
+
+class IncomingBackups(Envelope):
+    sources: list[IncomingBackup]
+
+
 # --- Home hub: database dumps -----------------------------------------------------
 
 

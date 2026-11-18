@@ -1,5 +1,5 @@
 import { fireEvent, screen, within } from '@testing-library/react'
-import { BACKUPS, DUMPS, MIRROR } from '../test/fixtures'
+import { BACKUPS, DUMPS, INCOMING, MIRROR } from '../test/fixtures'
 import { renderRoute } from '../test/renderRoute'
 import { failWith, stubApi } from '../test/stubApi'
 
@@ -281,5 +281,38 @@ describe('BackupsPage', () => {
     stubApi({ '/api/backups': { ...BACKUPS, runs: [], volumes: [], next_due: null }, '/api/github-mirror': MIRROR })
     renderRoute('/backups')
     expect(await screen.findByRole('region', { name: 'GitHub mirror' })).toBeInTheDocument()
+  })
+
+  it('shows a backup another NAS sends here, on time, with its nights', async () => {
+    const family = { ...INCOMING.sources[0], last_change: new Date(Date.now() - 11 * 3_600_000).toISOString() }
+    stubApi({ '/api/backups': BACKUPS, '/api/incoming-backups': { ...INCOMING, sources: [family] } })
+    renderRoute('/backups')
+
+    const card = await screen.findByRole('region', { name: 'Family NAS' })
+    expect(within(card).getByText('On time')).toBeInTheDocument()
+    expect(within(card).getByText('Last arrived').nextElementSibling).toHaveTextContent('11 hours ago')
+    expect(within(card).getByText('412 GB')).toBeInTheDocument()
+    expect(within(card).getByText('8.412')).toBeInTheDocument()
+    expect(within(card).getByText(/every night at 22:30/)).toBeInTheDocument()
+    expect(within(card).getByText('Alert after').nextElementSibling).toHaveTextContent('3 days without one')
+    expect(within(card).getByText('2 of 3')).toHaveClass('text-warn')
+    const dots = within(card).getByRole('img', { name: 'Backups from Family NAS, last 3 nights, oldest first' })
+    expect([...dots.querySelectorAll('i')].map((i) => i.dataset.ok)).toEqual(['true', 'false', 'true'])
+  })
+
+  it('marks an incoming backup late after its days, or when its folder cannot be read', async () => {
+    const old = { ...INCOMING.sources[0], last_change: new Date(Date.now() - 4 * 86_400_000).toISOString() }
+    const unreadable = {
+      ...INCOMING.sources[0], name: 'other', label: 'Other NAS', present: false, error: 'PermissionError 13',
+      last_change: null, bytes: null, files: null, nights: [],
+    }
+    stubApi({ '/api/backups': BACKUPS, '/api/incoming-backups': { ...INCOMING, sources: [old, unreadable] } })
+    renderRoute('/backups')
+
+    const family = await screen.findByRole('region', { name: 'Family NAS' })
+    expect(within(family).getByText('Late')).toBeInTheDocument()
+    const other = screen.getByRole('region', { name: 'Other NAS' })
+    expect(within(other).getByText('Never')).toHaveClass('text-down')
+    expect(within(other).getByText('The folder cannot be read: PermissionError 13')).toBeInTheDocument()
   })
 })

@@ -1,4 +1,4 @@
-import type { BackupHistory, BackupRun, DatabaseDumps, GitHubMirror, MirroredRepo, Nas, Portfolio, ServicesResponse, Tailnet, TailnetDevice } from '../lib/types'
+import type { BackupHistory, BackupRun, DatabaseDumps, GitHubMirror, IncomingBackups, MirroredRepo, Nas, Portfolio, ServicesResponse, Tailnet, TailnetDevice } from '../lib/types'
 
 /** Shared API fixtures for page tests. Times are relative to now so "today" holds. */
 export function nasFixture(over: Partial<Nas> = {}): Nas {
@@ -130,6 +130,30 @@ export const MIRROR: GitHubMirror = {
   ],
   last_success: '2026-10-03T00:02:00Z',
   next_due: '2026-10-05T00:00:00Z',
+}
+
+/** A family NAS whose backup arrived last night, with one missed night before it. */
+export const INCOMING: IncomingBackups = {
+  as_of: '2026-11-18T09:00:00Z',
+  stale: false,
+  sources: [
+    {
+      name: 'family',
+      label: 'Family NAS',
+      present: true,
+      error: null,
+      last_change: '2026-11-17T22:10:00Z',
+      bytes: 412_000_000_000,
+      files: 8_412,
+      max_days: 3,
+      at: '22:30',
+      nights: [
+        { night: '2026-11-17', ok: true },
+        { night: '2026-11-16', ok: false },
+        { night: '2026-11-15', ok: true },
+      ],
+    },
+  ],
 }
 
 const dumped = (name: string, label: string, over: Partial<DatabaseDumps['databases'][number]> = {}) => ({

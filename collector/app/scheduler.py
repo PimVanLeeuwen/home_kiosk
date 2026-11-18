@@ -45,6 +45,7 @@ from .sources import (
     github,
     github_mirror,
     hue,
+    incoming,
     laundry,
     media_overview,
     media_status,
@@ -178,6 +179,8 @@ def build(cfg: dict[str, Any], store: Store) -> AsyncIOScheduler:
     refresh("repos", "repos", lambda: github.collect(cfg, store), seconds=REPOS_INTERVAL_SECONDS)
     refresh("backups", "backups", lambda: backups.collect(cfg), seconds=BACKUPS_INTERVAL_SECONDS)
     refresh("dumps", dumps.CACHE_KEY, lambda: dumps.collect(cfg, store),
+            seconds=BACKUPS_INTERVAL_SECONDS)
+    refresh("incoming", incoming.CACHE_KEY, lambda: incoming.collect(cfg),
             seconds=BACKUPS_INTERVAL_SECONDS)
     refresh("hosts", "hosts", lambda: tailscale.collect(cfg), seconds=HOSTS_INTERVAL_SECONDS)
     refresh("tailnet", tailscale.TAILNET_CACHE_KEY, lambda: tailscale.collect_tailnet(cfg),

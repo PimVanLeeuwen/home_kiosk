@@ -575,3 +575,27 @@ def test_adguard_warns_once_even_with_old_counts_and_resolves_when_back(rule_sto
     rule_store.put_cache("dns", dns_payload())
     assert run_check(rule_store, later) == [
         "<b>OK</b> · <b>Resolved: AdGuard is not answering</b>\nafter 1 h 0 min"]
+
+
+def test_an_incoming_backup_is_missing_after_its_own_days_or_when_unreadable():
+    settings = {"hours": 26}
+
+    def source(name, days_ago, present=True, error=None):
+        last = (NOW - timedelta(days=days_ago)).isoformat() if days_ago is not None else None
+        return {"name": name, "label": name.capitalize(), "present": present, "error": error,
+                "last_change": last, "max_days": 3}
+
+    def judge(*sources):
+        return rules.backup_missing(None, nas_payload(), settings, NOW,
+                                    incoming={"sources": list(sources)})
+
+    # Two days old is fine for a three-day limit, though past the rule's 26 hours.
+    assert judge(source("family", 2)) == []
+    assert rules.backup_missing(None, nas_payload(), settings, NOW, incoming=None) == []
+
+    (late,) = judge(source("family", 4))
+    assert (late.key, late.title, late.body) == (
+        "backup_missing:incoming:family", "No backup from Family in 3 days",
+        "Last arrived: Sun 27 Sep 10:00")
+    (unreadable,) = judge(source("family", None, present=False, error="PermissionError 13"))
+    assert unreadable.body == "Last arrived: none recorded\nPermissionError 13"

@@ -1,4 +1,5 @@
 import { DumpsCard } from '../components/backups/DumpsCard'
+import { IncomingCard } from '../components/backups/IncomingCard'
 import { MirrorCard } from '../components/backups/MirrorCard'
 import { RestoreCheckCard } from '../components/backups/RestoreCheckCard'
 import { LastNightCard } from '../components/backups/LastNightCard'
@@ -11,13 +12,14 @@ import { PageHeader } from '../components/PageHeader'
 import { Pill } from '../components/ui/Pill'
 import { backupVerdict, VERDICT_PILL } from '../lib/backups'
 import { cn } from '../lib/cn'
-import type { BackupHistory, DatabaseDumps, GitHubMirror } from '../lib/types'
+import type { BackupHistory, DatabaseDumps, GitHubMirror, IncomingBackups } from '../lib/types'
 import { useApi } from '../lib/useApi'
 
 export function BackupsPage() {
   const { data, error } = useApi<BackupHistory>('/api/backups', 300_000)
   const { data: mirror } = useApi<GitHubMirror>('/api/github-mirror', 300_000)
   const { data: dumps, reload: reloadDumps } = useApi<DatabaseDumps>('/api/database-dumps', 300_000)
+  const { data: incoming } = useApi<IncomingBackups>('/api/incoming-backups', 300_000)
   const last = data?.runs[0]
   const recent = data?.runs.slice(0, 30) ?? []
   const now = new Date()
@@ -69,6 +71,9 @@ export function BackupsPage() {
           />
         </div>
       )}
+      {incoming?.sources.map((source) => (
+        <IncomingCard key={source.name} backup={source} stale={incoming.stale} now={now} />
+      ))}
       {mirror?.enabled && <MirrorCard mirror={mirror} />}
     </>
   )

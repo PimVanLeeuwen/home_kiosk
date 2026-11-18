@@ -268,6 +268,16 @@ CATALOG: dict[str, Template] = {
         "Last success: {last_success}",
         "rules", "error", {"hours": ("The rule's limit", "26"),
                            "last_success": ("When it last worked", "Fri 02 Oct 02:01")}),
+    "incoming_missing": _msg(
+        RULES, "Incoming backup missing",
+        "Nothing arrived from a machine that backs up to this NAS for too long.",
+        "<b>{level}</b> · <b>No backup from {source} in {days} days</b>\n"
+        "Last arrived: {last_change}\n{error}",
+        "rules", "error", {"source": ("The sending machine", "Family NAS"),
+                           "days": ("Its limit in days", "3"),
+                           "last_change": ("When something last arrived", "Fri 02 Oct 23:10"),
+                           "error": ("Why the folder cannot be read, if so",
+                                     "PermissionError 13")}),
     "dump_missing": _msg(
         RULES, "Database dump failed", "A database's newest dump failed, or none is recent.",
         "<b>{level}</b> · <b>No good dump of the {database} database</b>\n"
