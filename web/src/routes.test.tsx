@@ -33,6 +33,7 @@ describe('routes', () => {
       'Weather',
       'Running',
       'Reminders',
+      'Todos',
       'Saved',
       'Portfolio',
       'NAS',

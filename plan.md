@@ -2214,8 +2214,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
     back. No Done list and no history.
   - Order everywhere: High first, then by due date (overdue and today on top, no date last),
     then oldest first. An overdue todo is marked, and so is one due today.
-  - A Todos page in the navigation beside Reminders (and the command palette): add, edit, tick
-    off and delete. A Todos card on Home, shown while any is open and live while one is
+  - A Todos page in the navigation beside Reminders (and the command palette): add, edit and
+    tick off (which is the delete: no separate delete button). A Todos card on Home, shown while any is open and live while one is
     overdue or due today: the first five with a tick each, "and N more", a link to the page.
   - One ntfy message a day with the open todos, on a new `hub-todos` topic (category `todos`),
     to the owner only, every day of the week, at a time set in Settings, Todos (08:00 until
@@ -2240,6 +2240,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   `removed`) and Undo (`POST /restore` with that todo, back with its id and age, 409 when it
   is already there). The answer counts `open`, `overdue` and `due_today` and gives each todo
   its `state` ("overdue", "today" or none) in the hub's zone.
+- Built 2026-11-18 (step 2): the Todos page (`/todos`, under Home in the sidebar, More on the
+  phone, and the palette): the open todos with note, due date ("Today", "3 days late") and
+  High, the form beside them, and an Undo bar for 8 s after a tick. A Todos card on Home
+  (`lib/useTodos.ts` shared with the page) beside Reminders: the first five, no notes, ticked
+  off there with the same Undo; it stays while Undo is offered for the last one.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

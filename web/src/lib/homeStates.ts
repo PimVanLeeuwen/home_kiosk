@@ -2,6 +2,7 @@ import { BACKUP_MAX_AGE_HOURS, POOL_FULL_PCT } from './attention'
 import { ahead } from './countdown'
 import type { CardState } from './homeOrder'
 import type { Reminders } from './reminders'
+import type { Todo, Todos } from './todos'
 import type { Playing } from './musicTypes'
 import type { Countdowns, PhotoOfTheDay } from './pieceTypes'
 import type { RunningOverview } from './running'
@@ -21,6 +22,13 @@ export const countdownState = (countdowns: Countdowns | undefined, now: Date): C
 export function remindersState(reminders: Reminders | undefined): CardState {
   if (!reminders?.due.length) return 'hidden'
   return reminders.due.some((r) => !r.done) ? 'live' : 'quiet'
+}
+
+/** Todos show while any is open (plan.md M37), and while Undo is offered for the last one;
+ * live while one is overdue or due today. */
+export function todosState(todos: Todos | undefined, ticked?: Todo): CardState {
+  if (todos?.overdue || todos?.due_today) return 'live'
+  return todos?.open || ticked ? 'quiet' : 'hidden'
 }
 
 /** Birthdays always show (plan.md M32); live on a day someone has one. */

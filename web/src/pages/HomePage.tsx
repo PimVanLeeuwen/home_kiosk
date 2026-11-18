@@ -16,6 +16,7 @@ import { PhotoCard } from '../components/home/PhotoCard'
 import { RunningCard } from '../components/home/RunningCard'
 import { PortfolioCard } from '../components/home/PortfolioCard'
 import { RemindersCard } from '../components/home/RemindersCard'
+import { TodosCard } from '../components/home/TodosCard'
 import { ServicesCard } from '../components/home/ServicesCard'
 import { OPENED_ID, StatusStrip } from '../components/home/StatusStrip'
 import { TodayCard } from '../components/home/TodayCard'
@@ -49,6 +50,7 @@ import {
   outsideState,
   photoState,
   remindersState,
+  todosState,
   runningState,
   dnsState,
   servicesState,
@@ -80,6 +82,7 @@ import { useApi } from '../lib/useApi'
 import { useFlip } from '../lib/useFlip'
 import { useHomeNowPlaying } from '../lib/useHomeNowPlaying'
 import { useMediaQuery } from '../lib/useMediaQuery'
+import { useTodos } from '../lib/useTodos'
 
 const dateLine = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
@@ -112,6 +115,7 @@ export function HomePage() {
   const countdowns = useApi<Countdowns>('/api/countdown', 300_000)
   const birthdays = useApi<Birthdays>('/api/birthdays', 600_000)
   const reminders = useApi<Reminders>('/api/reminders', 60_000)
+  const todos = useTodos()
   const photo = useApi<PhotoOfTheDay>('/api/photo', 600_000)
   const running = useApi<RunningOverview>('/api/runs/overview', 300_000)
   const music = useHomeNowPlaying()
@@ -134,6 +138,7 @@ export function HomePage() {
     countdown: countdownState(countdowns.data, now),
     birthdays: birthdaysState(birthdays.data),
     reminders: remindersState(reminders.data),
+    todos: todosState(todos.data, todos.ticked),
     running: runningState(running.data),
     weather: 'quiet',
     news: 'quiet',
@@ -172,6 +177,7 @@ export function HomePage() {
     countdown: <CountdownCard data={countdowns.data} now={now} />,
     birthdays: <BirthdaysCard data={birthdays.data} error={birthdays.error} />,
     reminders: <RemindersCard data={reminders.data} error={reminders.error} />,
+    todos: <TodosCard todos={todos} />,
     running: <RunningCard data={running.data} />,
     weather: <WeatherCard />,
     news: <NewsCard />,

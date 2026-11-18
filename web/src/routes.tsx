@@ -28,6 +28,7 @@ import { SectionPage } from './pages/SectionPage'
 import { ServicesPage } from './pages/ServicesPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { TailscalePage } from './pages/TailscalePage'
+import { TodosPage } from './pages/TodosPage'
 import { WeatherPage } from './pages/WeatherPage'
 
 /** Sections that are built; the rest show their placeholder. */
@@ -39,6 +40,7 @@ const PAGES: Record<string, ReactElement> = {
   '/weather': <WeatherPage />,
   '/running': <RunningPage />,
   '/reminders': <RemindersPage />,
+  '/todos': <TodosPage />,
   '/services': <ServicesPage />,
   '/settings': <SettingsPage />,
   '/repos': <ReposPage />,
