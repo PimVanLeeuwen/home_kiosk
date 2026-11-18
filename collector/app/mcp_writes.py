@@ -2,7 +2,7 @@
 
 Only on the server that answers a request carrying the write token (mcp_server.py), so a
 Claude without the token never sees them. The same writes the hub's own pages make, through
-the same functions: the living room's lights, Spotify, reminders and a test message.
+the same functions: the living room's lights, Spotify, reminders, todos and a test message.
 """
 
 from __future__ import annotations
@@ -18,6 +18,7 @@ from pydantic import ValidationError
 
 from . import mcp_house as house
 from . import reminders as reminders_store
+from . import todos as todos_store
 from .alerts import core as alerts_core
 from .lights_api import Change
 from .sources import hue, music, spotify
@@ -25,6 +26,8 @@ from .store import Store
 
 # Changes the house, but nothing that cannot be changed back.
 WRITE = ToolAnnotations(read_only_hint=False, destructive_hint=False, open_world_hint=False)
+# Ticking a todo off removes it (plan.md M37): the hub's Undo is on its pages only.
+REMOVES = ToolAnnotations(read_only_hint=False, destructive_hint=True, open_world_hint=False)
 TEST_TITLE = "Test from Claude"
 
 
@@ -56,6 +59,9 @@ def register(server: MCPServer, store: Callable[[], Store],
              config: Callable[[], dict[str, Any]], day: Callable[[str | None], date]) -> None:
     """Adds the write tools to `server`. `day` reads a tool's YYYY-MM-DD argument."""
     tool = server.tool(annotations=WRITE)
+
+    def _todo(t: todos_store.Todo) -> dict[str, Any]:
+        return house.todo(t.model_dump(mode="json") | {"state": todos_store.state(t, day(None))})
 
     @tool
     async def lights_room(on: bool) -> dict[str, Any]:
@@ -155,6 +161,34 @@ def register(server: MCPServer, store: Callable[[], Store],
             raise ToolError(f"{found.title!r} does not fall on {when.isoformat()}.")
         reminders_store.set_done(s, reminder_id, when, done)
         return {"ok": True, "title": found.title, "on": when.isoformat(), "done": done}
+
+    @tool
+    def add_todo(title: str, note: str | None = None, due: str | None = None,
+                 high: bool = False) -> dict[str, Any]:
+        """Add a todo: a title, optionally a short `note`, a `due` date (YYYY-MM-DD) and
+        `high` for something that matters most. It stays until ticked off, on the Todos page,
+        Home, the Now panel and the daily todo message."""
+        s = store()
+        try:
+            draft = todos_store.Draft.model_validate(
+                {"title": title, "note": note, "due": day(due).isoformat() if due else None,
+                 "high": high})
+        except ValidationError as exc:
+            raise ToolError(_first_error(exc)) from None
+        if todos_store.count(s) >= todos_store.MAX_OPEN:
+            raise ToolError(f"At most {todos_store.MAX_OPEN} open todos.")
+        made = todos_store.add(s, draft)
+        return {"ok": True, **_todo(made)}
+
+    @server.tool(annotations=REMOVES)
+    def tick_todo(todo_id: int) -> dict[str, Any]:
+        """Tick a todo off, which removes it from the list (there is no done list). Its id
+        comes from the `todos` tool. Answers with the todo as it was, so it can be added
+        again if this was a mistake."""
+        removed = todos_store.remove(store(), todo_id)
+        if removed is None:
+            raise ToolError(f"No open todo with id {todo_id}; see the todos tool.")
+        return {"ok": True, "removed": _todo(removed)}
 
     @tool
     async def send_test_message(text: str = "Claude can reach the hub.") -> dict[str, Any]:

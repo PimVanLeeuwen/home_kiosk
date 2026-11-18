@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 
 from . import ai, config
 from . import reminders as reminders_store
+from . import todos as todos_store
 from .sources import hue
 from .sources import music as music_source
 from .store import Store
@@ -39,7 +40,7 @@ RESULT_CHARS = 16000  # a tool's answer, as Claude sees it
 # What Claude may ask to change; each needs the owner's Confirm. The test message is for
 # checking alerts from Claude Code, not for the chat.
 PROPOSED = ("lights_room", "lights_change", "music_control", "music_volume",
-            "music_play_favourite", "add_reminder", "tick_reminder")
+            "music_play_favourite", "add_reminder", "tick_reminder", "add_todo", "tick_todo")
 
 SYSTEM = (
     "You are the Home hub of one household in the Netherlands, answering its owner on the "
@@ -47,9 +48,9 @@ SYSTEM = (
     "fit, then answer briefly in plain sentences, in the owner's language. Bold a key fact "
     "with **double asterisks** and use a short list with '- ' when it helps; no tables, no "
     "headings, no emoji. Times are local (24-hour clock). When a tool says it has no data "
-    "or fails, say so plainly. To change something (lights, music, reminders), call its "
-    "tool: the hub shows the change to the owner with Confirm and Cancel, and nothing "
-    "happens before they confirm. So say what you proposed, never that it is done. "
+    "or fails, say so plainly. To change something (lights, music, reminders, todos), "
+    "call its tool: the hub shows the change to the owner with Confirm and Cancel, and "
+    "nothing happens before they confirm. So say what you proposed, never that it is done. "
     "Now: {now}."
 )
 
@@ -142,6 +143,17 @@ def describe(tool: str, args: dict[str, Any], store: Store) -> tuple[str, str | 
         found = reminders_store.get(store, int(args.get("reminder_id") or 0))
         name = found.title if found else f"reminder {args.get('reminder_id')}"
         return f"{verb}: {name}", when
+    if tool == "add_todo":
+        parts = [f"due {_day(args['due'])}" if args.get("due") else "no due date"]
+        if args.get("high"):
+            parts.insert(0, "High")
+        if args.get("note"):
+            parts.append(str(args["note"]))
+        return f"Add a todo: {args.get('title')}", ", ".join(parts)
+    if tool == "tick_todo":
+        found = todos_store.get(store, int(args.get("todo_id") or 0))
+        name = found.title if found else f"todo {args.get('todo_id')}"
+        return f"Tick off: {name}", "removes it from the list"
     return tool, json.dumps(args)
 
 

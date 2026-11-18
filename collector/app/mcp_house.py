@@ -198,6 +198,17 @@ def reminders(overview: Payload, days: list[tuple[str, list[Payload]]]) -> Paylo
     }
 
 
+def todo(t: Payload) -> Payload:
+    """One todo as Claude sees it."""
+    return _pick(t, "id", "title", "note", "due", "high", "state")
+
+
+def todos(overview: Payload) -> Payload:
+    """Every open todo in the hub's order (High, then due date, then oldest), with counts."""
+    return {**_pick(overview, "today", "open", "overdue", "due_today"),
+            "todos": [todo(t) for t in overview.get("todos") or []]}
+
+
 def lights(payload: Payload | None) -> Payload:
     """The living room's lights by group, with the group ids the light tools take."""
     if payload is None:

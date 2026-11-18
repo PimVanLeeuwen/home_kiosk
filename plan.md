@@ -2253,6 +2253,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   ntfy's `hub-*` rule). A day with nothing open counts as done, so a todo added later that
   day waits for tomorrow. Each line: "High: " when High, the title, and "(today)",
   "(yesterday)" or "(3 days late)".
+- Built 2026-11-18 (step 4): the MCP read tool `todos` (open todos in order, with id, note,
+  due date and state, and the counts) and the write tools `add_todo` (title, note, due, high)
+  and `tick_todo` (answers the removed todo, so Claude can add it again). `tick_todo` is the
+  only write tool marked destructive: over MCP there is no Undo bar. Ask may propose both,
+  each behind Confirm: "Add a todo: Tax return" with "High, due Friday 20 November, box 3",
+  and "Tick off: Fix the shed" with "removes it from the list".
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

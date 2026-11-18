@@ -33,6 +33,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 from . import config, mcp_dev, mcp_writes
 from . import mcp_house as house
 from . import reminders as reminders_store
+from . import todos as todos_store
 from .alerts import core as alerts_core
 from .alerts import rules as alert_rules
 from .sources import agenda, hue, media_status, my_sites, ns, spotify
@@ -51,11 +52,11 @@ PATH = "/mcp"
 
 INSTRUCTIONS = (
     "The Home hub of one household in the Netherlands: the NAS and its apps, backups, Docker "
-    "and media stack, the owner's weekday train, today's calendar and reminders, the weather, "
-    "the living room's air, the washer and dryer, the owner's websites, the outside services "
-    "the house depends on, and the alerts the hub sent. Every answer is the hub's last good "
-    "reading; `stale: true` means a source failed and this is older than usual, `as_of` says "
-    "from when."
+    "and media stack, the owner's weekday train, today's calendar and reminders, the open "
+    "todos, the weather, the living room's air, the washer and dryer, the owner's websites, "
+    "the outside services the house depends on, and the alerts the hub sent. Every answer is "
+    "the hub's last good reading; `stale: true` means a source failed and this is older than "
+    "usual, `as_of` says from when."
 )
 
 READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=False)
@@ -170,6 +171,15 @@ def build(store: Callable[[], Store], config: Callable[[], dict[str, Any]],
         wanted = [first + timedelta(days=i) for i in range(min(max(days, 1), 92))]
         found = [(day.isoformat(), reminders_store.today(s, day)) for day in wanted]
         return house.reminders(reminders_store.overview(s, now, zone), found)
+
+    @tool
+    def todos() -> dict[str, Any]:
+        """The hub's open todos, High first, then by due date (overdue and today on top),
+        then oldest: each with its id, title, note, due date and state (overdue, today or
+        none), and how many are open and overdue. Done todos are gone: there is no history."""
+        zone = _zone(config())
+        now = datetime.now(UTC)
+        return house.todos(todos_store.overview(store(), now, now.astimezone(zone).date()))
 
     @tool
     def docker() -> dict[str, Any]:

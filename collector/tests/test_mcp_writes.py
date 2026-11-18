@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 from mcp.client import Client
 
-from app import mcp_server, reminders
+from app import mcp_server, reminders, todos
 from app.alerts import core
 from app.sources import hue, music
 
@@ -33,7 +33,7 @@ def call(store, name: str, args: dict[str, Any], cfg: dict[str, Any] | None = No
     return asyncio.run(ask())
 
 
-def test_write_tools_say_they_change_something_but_nothing_for_good(store):
+def test_write_tools_say_they_change_something_and_only_a_tick_removes(store):
     server = mcp_server.build(lambda: store, lambda: CFG, writes=True)
 
     async def ask():
@@ -44,8 +44,9 @@ def test_write_tools_say_they_change_something_but_nothing_for_good(store):
 
     assert set(writes) == {"lights_room", "lights_change", "music_control", "music_volume",
                            "music_play_favourite", "add_reminder", "tick_reminder",
-                           "send_test_message"}
-    assert not any(t.annotations.destructive_hint for t in writes.values())
+                           "add_todo", "tick_todo", "send_test_message"}
+    # Ticking a todo off removes it; the hub's Undo is on its pages only.
+    assert {n for n, t in writes.items() if t.annotations.destructive_hint} == {"tick_todo"}
 
 
 def test_lights_room_switches_and_answers_with_the_bridge_state(store, monkeypatch):
@@ -153,6 +154,35 @@ def test_tick_an_unknown_reminder_says_so(store):
     result = call(store, "tick_reminder", {"reminder_id": 99})
 
     assert result.is_error and "99" in result.content[0].text
+
+
+def test_add_and_tick_off_a_todo(store):
+    todos.ensure_tables(store)
+
+    made = call(store, "add_todo", {"title": " Ring the plumber ", "note": "kitchen tap",
+                                    "due": "2030-11-20", "high": True}).structured_content
+    assert made == {"ok": True, "id": 1, "title": "Ring the plumber", "note": "kitchen tap",
+                    "due": "2030-11-20", "high": True, "state": None}
+    ticked = call(store, "tick_todo", {"todo_id": made["id"]}).structured_content
+
+    assert ticked["removed"]["title"] == "Ring the plumber"
+    assert todos.all_todos(store) == []
+    again = call(store, "tick_todo", {"todo_id": made["id"]})
+    assert again.is_error and "No open todo with id 1" in again.content[0].text
+
+
+def test_a_todo_needs_a_title_and_a_real_date(store, monkeypatch):
+    todos.ensure_tables(store)
+
+    blank = call(store, "add_todo", {"title": "  "})
+    bad_day = call(store, "add_todo", {"title": "Bins", "due": "20-11"})
+    monkeypatch.setattr(todos, "MAX_OPEN", 0)
+    full = call(store, "add_todo", {"title": "Bins"})
+
+    assert blank.is_error and "title" in blank.content[0].text
+    assert bad_day.is_error and "YYYY-MM-DD" in bad_day.content[0].text
+    assert full.is_error and "At most 0 open todos" in full.content[0].text
+    assert todos.all_todos(store) == []
 
 
 @pytest.mark.parametrize(("text", "body"),

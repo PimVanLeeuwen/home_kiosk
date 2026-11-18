@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi.testclient import TestClient
 
-from app import ai, ask, main, mcp_server, reminders
+from app import ai, ask, main, mcp_server, reminders, todos
 from app.sources import hue
 
 CFG = {"timezone": "Europe/Amsterdam", "ai": {"api_key": "sk-test", "cap_eur": 10}}
@@ -44,6 +44,7 @@ class Script:
 def hub(store):
     ai.ensure_tables(store)
     reminders.ensure_tables(store)
+    todos.ensure_tables(store)
     ai.set_switches(store, {"ask": True})
     read = mcp_server.build(lambda: store, lambda: CFG)
     write = mcp_server.build(lambda: store, lambda: CFG, writes=True)
@@ -149,6 +150,29 @@ def test_describe_a_reminder_and_music():
     assert detail == "Thursday 19 November, message at 08:00"
     assert ask.describe("music_volume", {"percent": 30}, Store())[0] == \
         "Set the music's volume to 30%"
+
+
+def test_describe_a_todo(store):
+    todos.ensure_tables(store)
+    todos.add(store, todos.Draft(title="Fix the shed"))
+
+    assert ask.describe("add_todo", {"title": "Tax return", "due": "2026-11-20", "high": True,
+                                     "note": "box 3"}, store) == (
+        "Add a todo: Tax return", "High, due Friday 20 November, box 3")
+    assert ask.describe("add_todo", {"title": "Bins"}, store) == ("Add a todo: Bins",
+                                                                  "no due date")
+    assert ask.describe("tick_todo", {"todo_id": 1}, store) == (
+        "Tick off: Fix the shed", "removes it from the list")
+    assert ask.describe("tick_todo", {"todo_id": 9}, store)[0] == "Tick off: todo 9"
+
+
+def test_ask_proposes_todos_and_confirm_adds_one(hub):
+    store, _, write = hub
+    assert {"add_todo", "tick_todo"} <= set(ask.PROPOSED)
+
+    made = asyncio.run(ask.confirm(write, "add_todo", {"title": "Ring the plumber"}))
+
+    assert made["ok"] and todos.all_todos(store)[0].title == "Ring the plumber"
 
 
 def test_confirm_runs_the_change_and_only_known_ones(hub):

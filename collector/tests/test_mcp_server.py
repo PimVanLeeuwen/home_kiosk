@@ -9,7 +9,7 @@ from mcp.client import Client
 from starlette.applications import Starlette
 from starlette.routing import Route
 
-from app import main, mcp_house, mcp_server, reminders
+from app import main, mcp_house, mcp_server, reminders, todos
 from app.sources import agenda
 
 TRAIN = {
@@ -224,13 +224,15 @@ def test_alerts_keep_open_incidents_and_drop_chat_ids_and_html():
 
 ALL_TOOLS = ["air", "alerts", "backups", "calendar", "docker", "forecast", "laundry", "lights",
              "media", "music", "nas",
-             "outside_services", "reminders", "services", "train", "weather", "websites"]
+             "outside_services", "reminders", "services", "todos", "train", "weather",
+             "websites"]
 DEV_TOOLS = ["container_logs", "deployed_version", "hub_logs", "job_status", "panel_state",
              "source_sample"]
 
 
 def test_every_tool_answers_on_an_empty_hub(store):
     reminders.ensure_tables(store)
+    todos.ensure_tables(store)
     server = mcp_server.build(lambda: store, lambda: {"timezone": "Europe/Amsterdam"})
 
     async def ask():
@@ -321,7 +323,8 @@ def test_the_write_and_developer_tools_only_show_with_the_token(store):
                                     {"Authorization": f"Bearer {TOKEN}"}))
 
     writes = {"lights_room", "lights_change", "music_control", "music_volume",
-              "music_play_favourite", "add_reminder", "tick_reminder", "send_test_message"}
+              "music_play_favourite", "add_reminder", "tick_reminder", "add_todo",
+              "tick_todo", "send_test_message"}
     # The developer tools read logs and raw payloads: only with the token too.
     assert plain == set(ALL_TOOLS)
     assert with_token == set(ALL_TOOLS + DEV_TOOLS) | writes
@@ -388,3 +391,22 @@ def test_a_wrong_date_is_a_tool_error_that_says_how(store):
 
     assert result.is_error
     assert "YYYY-MM-DD" in result.content[0].text
+
+
+def test_todos_come_in_the_hubs_order_with_their_state(store):
+    todos.ensure_tables(store)
+    todos.add(store, todos.Draft(title="Fix the shed"))
+    todos.add(store, todos.Draft(title="Tax return", note="box 3", due="2020-01-01",
+                                 high=True))
+    server = mcp_server.build(lambda: store, lambda: {"timezone": "Europe/Amsterdam"})
+
+    async def ask():
+        async with Client(server) as client:
+            return (await client.call_tool("todos", {})).structured_content
+
+    out = asyncio.run(ask())
+
+    assert (out["open"], out["overdue"]) == (2, 1)
+    assert out["todos"][0] == {"id": 2, "title": "Tax return", "note": "box 3",
+                               "due": "2020-01-01", "high": True, "state": "overdue"}
+    assert [t["title"] for t in out["todos"]] == ["Tax return", "Fix the shed"]
