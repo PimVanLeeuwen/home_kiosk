@@ -329,7 +329,7 @@ class TrainDisruption(BaseModel):
 
 
 class Train(Envelope):
-    """The owner's weekday morning train, followed from the watch window until it leaves."""
+    """The owner's morning train on a train day, followed from the watch window until it leaves."""
 
     date: str  # the local date of the train this is about, YYYY-MM-DD
     route: str  # "Leiden Centraal to Rotterdam Centraal"

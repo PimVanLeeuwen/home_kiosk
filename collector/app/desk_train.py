@@ -1,6 +1,6 @@
 """The Now panel's train screen (plan.md M20): the hub's train card (web
 TrainCard, lib/train.ts) as ready-to-draw values. It shows when Home shows the
-card: this weekday morning's train until it has left, and tomorrow's the
+card: this train day's morning train until it has left, and tomorrow's the
 evening before only when it has a problem.
 
 The minutes to go change every minute, so the screen carries the moment the

@@ -52,7 +52,7 @@ PATH = "/mcp"
 
 INSTRUCTIONS = (
     "The Home hub of one household in the Netherlands: the NAS and its apps, backups, Docker "
-    "and media stack, the owner's weekday train, today's calendar and reminders, the open "
+    "and media stack, the owner's morning train, today's calendar and reminders, the open "
     "todos, the weather, the living room's air, the washer and dryer, the owner's websites, "
     "the outside services the house depends on, and the alerts the hub sent. Every answer is "
     "the hub's last good reading; `stale: true` means a source failed and this is older than "
@@ -98,8 +98,10 @@ def build(store: Callable[[], Store], config: Callable[[], dict[str, Any]],
 
     @tool
     def train() -> dict[str, Any]:
-        """The owner's weekday morning train: on weekday mornings until it leaves, the evening
-        before for tomorrow's. Status, delay, track, cancellation with the next direct train."""
+        """The owner's morning train, on the train days set in the hub (Settings, Train;
+        Monday to Friday until changed): on those mornings until it leaves, and the evening
+        before for the next one. Status, delay, track, cancellation with the next direct
+        train. On other days there is no train, as on a weekend."""
         return house.train(cached(ns.CACHE_KEY))
 
     @tool

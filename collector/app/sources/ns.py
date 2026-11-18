@@ -1,4 +1,4 @@
-"""The owner's weekday morning train, from NS's travel information API.
+"""The owner's morning train on the train days, from NS's travel information API.
 
 Every train day (Settings, Train; Monday to Friday until set) from the watch
 window's start until the train has left: the

@@ -391,7 +391,7 @@ async def media_poster(source: str, item_id: int) -> Response:
 
 @app.get("/api/train")
 def train() -> Any:
-    """The weekday morning train; 503 until the first check after startup."""
+    """The morning train on train days (Settings, Train); 503 until the first check."""
     return _serve(ns.CACHE_KEY)
 
 

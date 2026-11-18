@@ -41,7 +41,7 @@ def _run(run: Payload | None, with_stops: bool) -> Payload | None:
 
 
 def train(payload: Payload | None) -> Payload:
-    """The weekday train as the Home card knows it; the stops by name only."""
+    """The morning train as the Home card knows it; the stops by name only."""
     if payload is None:
         return missing("train")
     return {
