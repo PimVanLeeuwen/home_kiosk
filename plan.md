@@ -2202,9 +2202,44 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - To settle while building: what the P2S answers without Developer Mode (status, camera); where
   the access code lives (NAS-only `.env`).
 
+**M37. Todos** (added 2026-11-18)
+- Why: a todo list beside the reminders. A reminder belongs to a day; a todo stays until it is
+  done. Seen on Home and the Now panel, with one message a day of what is still open, and
+  something Claude can add to and tick off.
+- Decided 2026-11-18:
+  - A todo has a title (1 to 120 characters), and optionally a short note (up to 500), a due
+    date and a High flag. No lists or categories, no repeats (that is what reminders are for),
+    no times. At most 500 open todos.
+  - Ticking a todo off removes it at once; the hub offers Undo for a few seconds, which adds it
+    back. No Done list and no history.
+  - Order everywhere: High first, then by due date (overdue and today on top, no date last),
+    then oldest first. An overdue todo is marked, and so is one due today.
+  - A Todos page in the navigation beside Reminders (and the command palette): add, edit, tick
+    off and delete. A Todos card on Home, shown while any is open and live while one is
+    overdue or due today: the first five with a tick each, "and N more", a link to the page.
+  - One ntfy message a day with the open todos, on a new `hub-todos` topic (category `todos`),
+    to the owner only, every day of the week, at a time set in Settings, Todos (08:00 until
+    changed). Not sent when nothing is open. The title counts them ("4 open todos, 1 overdue"),
+    the body lists the first five titles; a tap opens the Todos page. Quiet hours deliver it
+    silently, as every message (M31). Not in the morning briefing.
+  - A Todos screen on the Now panel, read-only: in the rotation while any is open, the first
+    six titles with High and overdue marked, "and N more"; ticking off stays in the hub. A
+    small payload (titles only, no notes).
+  - Claude: the MCP server gets `todos` (read, with notes and due dates), `add_todo` and
+    `tick_todo` (writes); Ask may propose `add_todo` and `tick_todo`, each behind the owner's
+    Confirm (M35). Editing and deleting stay in the hub.
+  - Kept in SQLite; titles and notes are personal data, served to the hub, the panel and the
+    MCP tools, never logged.
+- Steps, each with its tests and commit: (1) the store and `/api/todos`; (2) the Todos page,
+  the Home card and the palette entry; (3) Settings, Todos and the daily ntfy message; (4) the
+  MCP tools and Ask's proposals; (5) the Now panel screen (the hub's answer, then the
+  firmware, tried on a desk panel).
+- To settle while building: the Now screen's signature visual (M27), and whether Undo after
+  ticking keeps the todo's id (a short-lived "ticked" mark) or adds it back as new.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
-M29, M30, M31, M32, M33, M34, M35, M36.
+M29, M30, M31, M32, M33, M34, M35, M36, M37.
 
 ## 4. Open items
 
