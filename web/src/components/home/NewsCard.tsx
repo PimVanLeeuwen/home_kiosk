@@ -49,7 +49,7 @@ export function NewsCard() {
                     >
                       {a.title}
                     </span>
-                    <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-caption text-faint">
+                    <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-small text-faint">
                       {group && (
                         <Tag size="micro" colour={group.colour}>
                           {group.title}

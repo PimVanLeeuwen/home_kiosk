@@ -73,14 +73,14 @@ export function CountdownCard({ data, now = new Date() }: { data: Countdowns | u
             className="absolute -mt-[2px] -ml-[2px] block size-[4px] rounded-full bg-white opacity-0 shadow-[0_0_6px_var(--c)] motion-safe:animate-spark"
           />
         ))}
-        <p className="absolute inset-x-0 bottom-1 text-center text-hero leading-none font-semibold tracking-tight md:text-giant">
+        <p className="absolute inset-x-0 bottom-1 text-center text-display leading-none font-semibold tracking-tight md:text-hero">
           {days === 0 ? 'Today' : <AnimatedNumber value={days} />}
         </p>
       </div>
-      {days > 0 && <p className="mt-2 text-center text-caption text-muted">{days === 1 ? 'day' : 'days'} to</p>}
+      {days > 0 && <p className="mt-2 text-center text-small text-muted">{days === 1 ? 'day' : 'days'} to</p>}
       <p className={days > 0 ? 'text-center text-heading font-semibold' : 'mt-2 text-center text-heading font-semibold'}>{first.title}</p>
       {then && (
-        <p className="mt-3 text-center text-caption text-faint">
+        <p className="mt-3 text-center text-small text-faint">
           Then {then.title} {thenIn(daysUntil(then.date, now))}
         </p>
       )}

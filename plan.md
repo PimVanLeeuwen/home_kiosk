@@ -2267,6 +2267,72 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   glow from the top is violet, red while one is overdue (late rows get a red edge). The
   todos are copied into the screen's buffer in PSRAM, never onto a stack. M37 is built.
 
+**M38. Hub v2: neo-minimal and spaces** (added 2026-11-20)
+- Why: a UI check on 2026-11-20 (25 pages, desktop and phone, live data) found a strong base
+  (text contrast passes everywhere, every control named, tokens almost never bypassed) but a
+  dated feel and real gaps: links and buttons of 18 to 20 px to tap, a lot of 10 to 11 px text,
+  a Home of about 4000 px on the phone, 21 sidebar sections that run past the fold at 900 px,
+  repeated badges (Alerts, Services, Docker), and weak spots on Weather (the Now ring, an empty
+  Rain radar) and Alerts (the composer above the history). After eleven mocked directions the
+  owner chose neo-minimal, spaces with a top bar, and the panels along. Mockups:
+  `~/Pictures/pr-screenshots/home_kiosk/2026-11-20-ui-check/v2-neo-minimal_*.png`.
+- Decided 2026-11-20:
+  - Look, neo-minimal: near-black (`#050506`) with a faint grain and one violet glow at the top
+    of the page; content in hairline grid cells (1 px lines, no card boxes or shadows) with
+    fine sparklines under a figure; large light figures; a two-line page headline that fades
+    to grey ("Good evening. / The house is quiet."). Violet stays the one accent; the state
+    colours (up, warn, down) stay. Still dark only.
+  - Navigation: six spaces in a top bar, Now, Home, House, Read, Money, Kitchen, with Jump to
+    (the command palette, Cmd+K) and Ask on the right. A space page has tabs: Home (Lights,
+    Music, Air, Laundry, Apple devices), House (Overview, NAS, Docker, Services, Backups,
+    Network, Outside, Alerts), Read (News, Saved), Money (Portfolio), Kitchen (Recipes), Now
+    (today: calendar, reminders, todos, weather, run). Settings sits behind the top bar's menu.
+    A dot on a space or tab while something there needs a look. Every old URL (`/nas`,
+    `/docker`, `/alerts/:id`, ...) redirects to its space tab, so links, ntfy taps and bookmarks
+    keep working.
+  - The phone: a floating tab bar (Now, Home, House, Read, More) with 44 px or larger targets,
+    the top bar keeps the name and Ask.
+  - Attention first: Now and each space's overview open with what needs a look (one row per
+    open warning or error, with its action), then everything healthy folded into one line.
+  - Type v2: nothing below 12 px; body 15 px; the scale is cut to about nine sizes. Touch
+    targets 44 px on a coarse pointer, 24 px at least everywhere (WCAG 2.2 2.5.8).
+  - The desk panels follow: their screens move to the same look (true black stays, as IPS
+    needs; hairlines, light large figures, the violet glow), keeping their own rules from
+    docs/desk-panels.md (24 px minimum, 90 px targets, calm motion). Colours and type sizes
+    come from one token source that writes both `web/src/index.css`'s theme and a C header
+    for the firmware, so the two cannot drift.
+  - Fixes folded in: one badge per fact (no "1 OPEN" twice), the Alerts history before the
+    composer, Weather's Now card and an honest empty Rain radar, plan.md section 1 brought in
+    line (navigation and tab bar).
+- Steps, each with its tests, the full Playwright suite and screenshots (desktop and phone):
+  (1) the token source and type v2 (CSS and the panels' header generated from it, the type
+  floor, target sizes), the look unchanged otherwise; (2) the neo-minimal surfaces in
+  `components/ui` (cell grid, sparkline, headline, attention row, healthy line), with
+  `Card`/`StatTile` mapped onto them so every page moves at once; (3) the spaces: top bar,
+  phone tab bar, space tabs, redirects for every old route, the palette; (4) Now and each
+  space's overview attention first; (5) page by page polish of the dense pages (Docker,
+  Alerts, Repos, Settings) and the folded-in fixes; (6) the panel screens, one panel at a
+  time, each tried on a real panel before it ships.
+- To settle while building: whether Home's current cards all fit the spaces as tabs or some
+  become overview cells; how much grain and glow the panels can show (likely pre-rendered by
+  the hub as their JPEG backdrop); the e2e specs that name the sidebar or the 21 sections
+  change with step 3.
+- Built 2026-11-20 (step 1): `tokens/tokens.json` holds the colours, type scale, fonts, radii
+  and target sizes (and the panels' own palette); `node tokens/build.mjs` writes the block
+  between `tokens:start` and `tokens:end` in `web/src/index.css` and
+  `panels/firmware/main/tokens.h` (`TOK_*` for the shared colours, `TOK_DESK_*` for the
+  panels'), and `--check` fails while either is stale (run by `theme.test.ts`). Type v2: label
+  12, small 13, body 15, title 17, heading 20, stat 26, page 32, display 40, hero 56
+  (`text-micro` and `text-caption` folded into label and small, the old hero into display,
+  giant into hero); no pixel text sizes in the sources. Targets: a `hit` utility gives small
+  links and controls an invisible area of 24 px (44 px on touch) without moving them (card
+  links, the switch, message and repo links, the copy buttons, back links); icon buttons sit
+  too close for that and grow to 44 px on touch instead. The firmware's 218 literals that equal
+  a token use its macro; the compiled screens are byte for byte the same without debug info.
+  Still under 12 px: labels drawn inside scaled SVG charts (the Weather day curve's axis, the
+  quiet-hours and minutes rings, the UPS ring, the Services seal, the Apple map), which need
+  to move out of the SVG.
+
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
 M29, M30, M31, M32, M33, M34, M35, M36, M37.

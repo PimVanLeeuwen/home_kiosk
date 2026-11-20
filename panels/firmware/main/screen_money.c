@@ -19,6 +19,7 @@
 #include "arrive.h"
 #include "backdrops.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -33,9 +34,9 @@ LV_IMAGE_DECLARE(glow_sky);
 #define TOP_PAD 50   /* room above the line for the best point's label */
 #define SWITCH_TOP 612
 
-#define GREEN 0x5fd39c
+#define GREEN TOK_DESK_UP
 #define RED 0xff7d7d
-#define VIOLET 0x7c6cf2
+#define VIOLET TOK_VIOLET
 
 static lv_obj_t *sky, *title, *pill, *pill_text, *change, *span, *chart, *high, *buttons[DESK_MONEY_PERIODS];
 static char chosen[4] = "1M"; /* the period on show, kept across answers */
@@ -146,7 +147,7 @@ static void show_period(void)
             bool on = i == which;
             lv_label_set_text(lv_obj_get_child(buttons[i], 0), shown.periods[i].key);
             lv_obj_set_style_bg_opa(buttons[i], on ? 60 : 0, 0);
-            lv_obj_set_style_text_color(lv_obj_get_child(buttons[i], 0), lv_color_hex(on ? 0xffffff : 0x8a8794), 0);
+            lv_obj_set_style_text_color(lv_obj_get_child(buttons[i], 0), lv_color_hex(on ? 0xffffff : TOK_DESK_MUTED), 0);
         }
     }
 }
@@ -193,7 +194,7 @@ void screen_money_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    title = ui_one_line(screen, &instrument_24, 0x8a8794, 420);
+    title = ui_one_line(screen, &instrument_24, TOK_DESK_MUTED, 420);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
     pill = ui_plain(screen);
@@ -209,7 +210,7 @@ void screen_money_create(lv_obj_t *screen)
     change = ui_text(screen, &instrument_52_bold, GREEN);
     arrive_count(change);
     lv_obj_set_pos(change, LEFT, 96);
-    span = ui_one_line(screen, &instrument_24, 0x8a8794, WIDTH);
+    span = ui_one_line(screen, &instrument_24, TOK_DESK_MUTED, WIDTH);
     lv_obj_set_pos(span, LEFT, 168);
 
     chart = lv_canvas_create(screen);
@@ -217,7 +218,7 @@ void screen_money_create(lv_obj_t *screen)
     memset(lv_canvas_get_draw_buf(chart)->data, 0, lv_canvas_get_draw_buf(chart)->header.stride * CHART_H);
     lv_obj_set_pos(chart, 0, CHART_TOP);
     arrive_draw_in(chart, CHART_W, CHART_H);
-    high = ui_text(screen, &instrument_24, 0xf1eff7);
+    high = ui_text(screen, &instrument_24, TOK_DESK_FG);
     lv_obj_add_flag(high, LV_OBJ_FLAG_HIDDEN);
 
     /* The switch: four equal parts, the chosen one lit. */
@@ -238,7 +239,7 @@ void screen_money_create(lv_obj_t *screen)
         lv_obj_set_style_bg_color(button, lv_color_white(), 0);
         lv_obj_add_flag(button, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);
         lv_obj_add_event_cb(button, on_period, LV_EVENT_CLICKED, (void *)(intptr_t)i);
-        lv_obj_t *label = ui_text(button, &instrument_28_bold, 0x8a8794);
+        lv_obj_t *label = ui_text(button, &instrument_28_bold, TOK_DESK_MUTED);
         lv_obj_center(label);
         lv_obj_add_flag(button, LV_OBJ_FLAG_HIDDEN);
     }

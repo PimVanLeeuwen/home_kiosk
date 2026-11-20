@@ -204,7 +204,7 @@ function ServiceSummary({ service, label, index }: { service: CatalogService; la
       <ServiceIcon icon={service.icon} label={label} index={index} />
       <div className="min-w-0">
         <p className="truncate font-medium">{service.name}</p>
-        <p className="truncate text-caption text-muted">
+        <p className="truncate text-small text-muted">
           <span className="font-mono">
             {service.url ?? `:${service.port}${service.path !== '/' ? service.path : ''}`}
           </span>

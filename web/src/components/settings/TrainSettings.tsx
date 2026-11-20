@@ -34,7 +34,7 @@ export function TrainSettings() {
 
   return (
     <Surface padding="list">
-      <p className="pt-3 pb-2.5 text-caption text-faint">
+      <p className="pt-3 pb-2.5 text-small text-faint">
         The days you take the train. On these mornings Home and the Now panel follow it, and it is checked the evening before. Other days are like a
         weekend: no train card and no train alerts. The morning briefing still goes out, without the train.
       </p>
@@ -46,7 +46,7 @@ export function TrainSettings() {
             aria-pressed={days.includes(d)}
             onClick={() => toggle(d)}
             className={cn(
-              'rounded-control border px-1 py-1.5 text-caption sm:px-3',
+              'rounded-control border px-1 py-1.5 text-small sm:px-3',
               days.includes(d) ? 'border-accent-line/60 bg-accent-soft text-fg' : 'border-line bg-raised text-muted hover:text-fg',
             )}
           >
@@ -54,9 +54,9 @@ export function TrainSettings() {
           </button>
         ))}
       </div>
-      {!days.length && <p className="pb-3 text-caption text-muted">No train days: the train is not watched at all.</p>}
+      {!days.length && <p className="pb-3 text-small text-muted">No train days: the train is not watched at all.</p>}
       {error && (
-        <p role="alert" className="pb-3 text-caption text-down">
+        <p role="alert" className="pb-3 text-small text-down">
           {error}
         </p>
       )}

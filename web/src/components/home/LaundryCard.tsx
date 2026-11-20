@@ -39,7 +39,7 @@ function Porthole({ m }: { m: Machine }) {
   } else if (m.state === 'error') {
     inside = <span className="text-heading text-down">{m.error}</span>
   } else if (m.state === 'idle') {
-    inside = <span className="text-caption font-normal text-muted">Off</span>
+    inside = <span className="text-small font-normal text-muted">Off</span>
   } else {
     inside = (
       <>
@@ -121,13 +121,13 @@ export function LaundryCard({ data }: { data: Laundry | undefined }) {
             <li key={m.id} data-state={m.state} className={cn('grid content-start justify-items-center gap-0.5 text-center', m.state === 'idle' && 'opacity-45')}>
               <Porthole m={m} />
               <p className="text-title font-semibold">{m.name}</p>
-              {first && <p className="text-caption text-muted">{first}</p>}
+              {first && <p className="text-small text-muted">{first}</p>}
               {second && <p className="text-small font-semibold">{second}</p>}
             </li>
           )
         })}
       </ul>
-      <p className="mt-3.5 text-center text-caption text-faint">Updated {formatAgo(data.as_of, now)} · ConnectLife</p>
+      <p className="mt-3.5 text-center text-small text-faint">Updated {formatAgo(data.as_of, now)} · ConnectLife</p>
       {data.stale && <StaleNote />}
     </Card>
   )

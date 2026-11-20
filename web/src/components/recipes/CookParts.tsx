@@ -99,7 +99,7 @@ export function Pause({ recipe, ticks }: { recipe: Recipe; ticks: string[] }) {
             <li key={i} className="flex items-center gap-3 rounded-tile border border-line-soft bg-card px-3.5 py-2.5 text-left">
               <Check aria-hidden="true" className={cn('size-4', all ? 'text-accent-fg' : 'text-faint')} />
               {phase.name}
-              <span className={cn('ml-auto text-caption', all ? 'text-faint' : 'text-warn')}>
+              <span className={cn('ml-auto text-small', all ? 'text-faint' : 'text-warn')}>
                 {all ? `${phase.steps.length} ${phase.steps.length === 1 ? 'step' : 'steps'}` : `${done} of ${phase.steps.length} ticked`}
               </span>
             </li>

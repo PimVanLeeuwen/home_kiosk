@@ -65,6 +65,7 @@
 #include "screen_start.h"
 #include "screen_stock.h"
 #include "screen_train.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_24);
 
@@ -484,13 +485,13 @@ void screens_start(void)
     lv_obj_set_style_radius(away, 24, 0);
     lv_obj_set_style_bg_color(away, lv_color_hex(0x1c1408), 0);
     lv_obj_set_style_bg_opa(away, LV_OPA_COVER, 0);
-    lv_obj_set_style_border_color(away, lv_color_hex(0xe0a23b), 0);
+    lv_obj_set_style_border_color(away, lv_color_hex(TOK_WARN), 0);
     lv_obj_set_style_border_width(away, 2, 0);
     lv_obj_align(away, LV_ALIGN_TOP_MID, 0, 16);
     lv_obj_remove_flag(away, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_t *away_text = lv_label_create(away);
     lv_obj_set_style_text_font(away_text, &instrument_24, 0);
-    lv_obj_set_style_text_color(away_text, lv_color_hex(0xe0a23b), 0);
+    lv_obj_set_style_text_color(away_text, lv_color_hex(TOK_WARN), 0);
     lv_obj_set_style_text_letter_space(away_text, 2, 0);
     lv_label_set_text(away_text, "HUB OUT OF REACH  ·  RECONNECTING");
     lv_obj_center(away_text);

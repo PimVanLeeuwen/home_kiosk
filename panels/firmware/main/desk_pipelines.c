@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "tokens.h"
 
 static void text(char *to, size_t size, const cJSON *from)
 {
@@ -21,7 +22,7 @@ static int number(const cJSON *from, int otherwise)
 static uint32_t hex(const cJSON *from)
 {
     if (!cJSON_IsString(from) || from->valuestring[0] != '#') {
-        return 0x8f80ff;
+        return TOK_ACCENT_LINE;
     }
     return (uint32_t)strtoul(from->valuestring + 1, NULL, 16);
 }

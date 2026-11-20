@@ -24,7 +24,7 @@ export function MarketsCard() {
             className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 rounded-tile border border-glass-line bg-glass px-3 py-2.5"
           >
             <span className="col-start-1 row-start-1 truncate">{q.label}</span>
-            <span className="col-start-1 row-start-2 text-caption text-muted">{decimals.format(q.price)}</span>
+            <span className="col-start-1 row-start-2 text-small text-muted">{decimals.format(q.price)}</span>
             <Tag tone={q.day_pct > 0 ? 'up' : q.day_pct < 0 ? 'down' : 'muted'} size="caption" className="col-start-2 row-span-2 row-start-1">
               {formatSignedPct(q.day_pct)}
             </Tag>

@@ -22,7 +22,7 @@ function Row({ site, index, now }: { site: Site; index: number; now: Date }) {
     <li className="grid grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2.5 border-glass-line py-1.5 text-small not-first:border-t">
       <i aria-hidden="true" style={{ '--key': siteKey(site, index) } as CSSProperties} className="block h-1 w-2.5 rounded-mark bg-(--key)" />
       <span className="truncate">{site.name}</span>
-      <span className="text-caption tabular-nums">{right}</span>
+      <span className="text-small tabular-nums">{right}</span>
     </li>
   )
 }
@@ -48,7 +48,7 @@ export function MySitesSection() {
       {data && sites.length === 0 && <p className="text-muted">No sites on Kuma's status page yet.</p>}
       {sites.length > 0 && (
         <>
-          <p className="-mt-2 mb-3 text-caption text-faint">From Uptime Kuma, 30 days, a segment per day.</p>
+          <p className="-mt-2 mb-3 text-small text-faint">From Uptime Kuma, 30 days, a segment per day.</p>
           <div className="grid items-center justify-items-center gap-4 md:grid-cols-[260px_minmax(0,1fr)] md:justify-items-stretch md:gap-7">
             <SiteRings sites={sites} />
             <div className="grid w-full gap-x-7 sm:grid-cols-2">

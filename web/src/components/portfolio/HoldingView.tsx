@@ -98,7 +98,7 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
 
       <Card title="Price" padding="chart">
         <p className="-mt-1 mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <span className="text-display leading-tight font-semibold tracking-tight md:text-hero">{formatMoney(data.value, currency)}</span>
+          <span className="text-display leading-tight font-semibold tracking-tight">{formatMoney(data.value, currency)}</span>
           {data.gain_abs != null && (
             <span className={cn('text-body font-semibold', gainTone)}>
               {formatSignedMoney(data.gain_abs, currency)}
@@ -120,7 +120,7 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
         <dl className="grid grid-cols-2 gap-2.5 text-small md:grid-cols-4">
           {figures.map(([label, value, tone]) => (
             <div key={label} className="min-w-0 rounded-tile border border-glass-line bg-glass px-3 py-2">
-              <dt className="text-micro eyebrow text-faint">{label}</dt>
+              <dt className="text-label eyebrow text-faint">{label}</dt>
               <dd className={cn('mt-0.5 truncate text-title font-semibold', tone)}>{value}</dd>
             </div>
           ))}
@@ -138,7 +138,7 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
           <table className="w-full text-small">
             <caption className="sr-only">Transactions in {data.symbol}, newest first</caption>
             <thead>
-              <tr className="text-left text-caption text-faint">
+              <tr className="text-left text-small text-faint">
                 <th scope="col" className="w-5 pb-2">
                   <span className="sr-only">Kind</span>
                 </th>

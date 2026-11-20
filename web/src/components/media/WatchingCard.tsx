@@ -33,7 +33,7 @@ export function WatchingCard({ overview }: { overview: MediaOverview }) {
                 const colour = tileColour(i)
                 return (
                   <li key={v.name} className="grid grid-cols-[18px_30px_minmax(0,1fr)_auto] items-center gap-2.5 py-1.5">
-                    <span className="text-right text-caption text-faint tabular-nums">{i + 1}</span>
+                    <span className="text-right text-small text-faint tabular-nums">{i + 1}</span>
                     <span aria-hidden="true" style={{ backgroundColor: colour.bg, color: colour.fg, boxShadow: `0 0 12px -4px ${colour.fg}` }} className="grid size-[30px] place-items-center rounded-full text-label font-bold">
                       {monogram(v.name)}
                     </span>
@@ -54,7 +54,7 @@ export function WatchingCard({ overview }: { overview: MediaOverview }) {
             <p className="text-muted">Nobody watched in the last 30 days.</p>
           )}
           {overview.idle_viewers > 0 && (
-            <p className="mt-1.5 text-caption text-faint">
+            <p className="mt-1.5 text-small text-faint">
               {overview.idle_viewers} more without plays in 30 days.
             </p>
           )}
@@ -91,7 +91,7 @@ export function LibraryCard({ overview }: { overview: MediaOverview }) {
         {tiles.map(([label, n, added]) => (
           <li key={label} className="rounded-tile border border-glass-line bg-glass p-3">
             <b className="block text-stat font-semibold">{count.format(n)}</b>
-            <span className="text-caption text-muted">{label}</span>
+            <span className="text-small text-muted">{label}</span>
             {added != null && added > 0 && <span className="block text-label text-up">+{count.format(added)} this week</span>}
           </li>
         ))}

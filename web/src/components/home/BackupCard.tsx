@@ -74,7 +74,7 @@ function LastRun({ last, runs, history, dumps, now }: LastRunProps) {
             <span className={last.ok ? 'text-up' : 'text-down'}>{last.ok ? 'Succeeded' : 'Failed'}</span>
             <span className="ml-2 text-body font-normal text-muted">{formatWhen(last.finished)}</span>
           </p>
-          <p className="text-caption text-muted">
+          <p className="text-small text-muted">
             {last.volumes.length} {last.volumes.length === 1 ? 'volume' : 'volumes'} · {formatDuration(runSeconds(last))}
             {bytes > 0 && ` · ${formatBytes(bytes)}`}
           </p>
@@ -103,7 +103,7 @@ function LastRun({ last, runs, history, dumps, now }: LastRunProps) {
         start={`${n} ${n === 1 ? 'night' : 'nights'}`}
         end="last night"
       />
-      {history.next_due && <p className="mt-2.5 text-caption text-faint">Next run due {formatWhen(history.next_due)}</p>}
+      {history.next_due && <p className="mt-2.5 text-small text-faint">Next run due {formatWhen(history.next_due)}</p>}
     </>
   )
 }

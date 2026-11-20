@@ -19,6 +19,7 @@
 #include "arrive.h"
 #include "backdrops.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_time);
 LV_FONT_DECLARE(instrument_40);
@@ -39,10 +40,10 @@ LV_IMAGE_DECLARE(glow_sky);
 #define SPARK_W (TILE_W - 36)
 #define SPARK_H 56
 
-#define GREEN 0x5fd39c
-#define AMBER 0xf0bd5a
-#define RED 0xff6b6b
-#define VIOLET 0x7c6cf2
+#define GREEN TOK_DESK_UP
+#define AMBER TOK_DATA_AMBER
+#define RED TOK_DESK_DOWN
+#define VIOLET TOK_VIOLET
 #define LINE 0xb4a9ff
 
 static lv_obj_t *sky, *title, *pill, *pill_text, *gauge, *percent, *size, *runway;
@@ -191,7 +192,7 @@ static void tick(lv_timer_t *timer)
         lv_obj_set_style_shadow_color(disk_dots[i], lv_color_hex(dot), 0);
     }
     lv_label_set_text(ups, shown.ups);
-    lv_obj_set_style_text_color(ups, lv_color_hex(shown.ups_ok ? 0x8a8794 : AMBER), 0);
+    lv_obj_set_style_text_color(ups, lv_color_hex(shown.ups_ok ? TOK_DESK_MUTED : AMBER), 0);
 }
 
 static lv_obj_t *tile(lv_obj_t *screen, int i, const char *name, lv_obj_t **value)
@@ -205,11 +206,11 @@ static lv_obj_t *tile(lv_obj_t *screen, int i, const char *name, lv_obj_t **valu
     lv_obj_set_style_bg_color(box, lv_color_hex(0x0d0d10), 0);
     lv_obj_set_style_border_width(box, 1, 0);
     lv_obj_set_style_border_color(box, lv_color_hex(0x1c1c22), 0);
-    lv_obj_t *label = ui_text(box, &instrument_24, 0x8a8794);
+    lv_obj_t *label = ui_text(box, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(label, 2, 0);
     lv_label_set_text(label, name);
     lv_obj_set_pos(label, 18, 16);
-    *value = ui_text(box, &instrument_40, 0xf1eff7);
+    *value = ui_text(box, &instrument_40, TOK_DESK_FG);
     lv_obj_set_pos(*value, 18, 50);
     return box;
 }
@@ -239,7 +240,7 @@ void screen_nas_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
     pill = ui_plain(screen);
@@ -264,12 +265,12 @@ void screen_nas_create(lv_obj_t *screen)
     lv_obj_set_flex_align(number, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
     lv_obj_set_style_pad_column(number, 4, 0);
     lv_obj_align(number, LV_ALIGN_TOP_MID, 0, GAUGE_TOP + GAUGE_H - 20 - 96);
-    percent = ui_text(number, &instrument_time, 0xf1eff7);
-    lv_obj_t *sign = ui_text(number, &instrument_40, 0xb4b1c2);
+    percent = ui_text(number, &instrument_time, TOK_DESK_FG);
+    lv_obj_t *sign = ui_text(number, &instrument_40, TOK_DESK_SECONDARY);
     lv_label_set_text(sign, "%");
     lv_obj_set_style_pad_bottom(sign, 8, 0);
 
-    size = ui_one_line(screen, &instrument_24, 0xc9c6d6, WIDTH);
+    size = ui_one_line(screen, &instrument_24, TOK_DESK_SOFT, WIDTH);
     lv_obj_set_style_text_align(size, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_pos(size, LEFT, GAUGE_TOP + GAUGE_H + 8);
     runway = ui_one_line(screen, &instrument_24, AMBER, WIDTH);
@@ -293,7 +294,7 @@ void screen_nas_create(lv_obj_t *screen)
         lv_obj_set_style_shadow_opa(disk_dots[i], 140, 0);
         lv_obj_add_flag(disk_dots[i], LV_OBJ_FLAG_HIDDEN);
     }
-    ups = ui_one_line(disks, &instrument_24, 0x8a8794, TILE_W - 36);
+    ups = ui_one_line(disks, &instrument_24, TOK_DESK_MUTED, TILE_W - 36);
     lv_obj_set_pos(ups, 18, TILE_H - 18 - lv_font_get_line_height(&instrument_24));
 
     lv_timer_create(tick, 1000, NULL);

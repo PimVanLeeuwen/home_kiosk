@@ -71,7 +71,7 @@ export function IngredientLists({ recipe, factor }: { recipe: Recipe; factor: nu
           </h2>
           <ul className="flex flex-wrap gap-1.5">
             {check.map((i) => (
-              <li key={i.name} className="rounded-full border border-dashed border-line px-2.5 py-1 text-caption text-muted">
+              <li key={i.name} className="rounded-full border border-dashed border-line px-2.5 py-1 text-small text-muted">
                 {i.name}
                 <span className="ml-1.5 text-faint">{i.text}</span>
               </li>
@@ -103,11 +103,11 @@ function PhaseCard({ phase, factor }: { phase: Phase; factor: number }) {
       <ol className="flex flex-col gap-3 px-1">
         {phase.steps.map((step, n) => (
           <li key={n} className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-2 break-inside-avoid">
-            <span className="pt-0.5 text-caption text-faint">{n + 1}</span>
+            <span className="pt-0.5 text-small text-faint">{n + 1}</span>
             <span>
               <span className="block">{step.text}</span>
               {step.ingredients.length > 0 && (
-                <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-caption">
+                <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-small">
                   {step.ingredients.map((ing) => (
                     <StepIngredient key={`${ing.name} ${ing.unit}`} ing={ing} factor={factor} />
                   ))}

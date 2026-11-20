@@ -10,6 +10,7 @@
 #include "lvgl.h"
 #include "backdrops.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -56,7 +57,7 @@ static void tick(lv_timer_t *timer)
             int height = BAR_LOW + r->bars[b].height * BAR_HIGH / 1000;
             lv_obj_set_size(bar, BAR_WIDTH, height);
             lv_obj_set_pos(bar, BARS_LEFT + b * (BAR_WIDTH + BAR_GAP), BAR_BOTTOM - height);
-            lv_obj_set_style_bg_color(bar, lv_color_hex(r->bars[b].ok ? 0x8f80ff : 0xe5646a), 0);
+            lv_obj_set_style_bg_color(bar, lv_color_hex(r->bars[b].ok ? TOK_ACCENT_LINE : TOK_DOWN), 0);
             lv_obj_set_style_bg_opa(bar, b == r->bar_count - 1 ? LV_OPA_COVER : 140, 0);
         }
     }
@@ -73,15 +74,15 @@ void screen_pipelines_create(lv_obj_t *screen)
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);
     lv_obj_set_pos(sky, 0, 0);
-    lv_obj_set_style_image_recolor(sky, lv_color_hex(0x7c6cf2), 0);
+    lv_obj_set_style_image_recolor(sky, lv_color_hex(TOK_VIOLET), 0);
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    lv_obj_t *title = ui_text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_label_set_text(title, "PIPELINES");
     lv_obj_set_pos(title, LEFT, 30);
-    lv_obj_t *right = ui_text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *right = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(right, 2, 0);
     lv_label_set_text(right, "LAST 10 RUNS ON MAIN");
     lv_obj_align(right, LV_ALIGN_TOP_RIGHT, -LEFT, 30);
@@ -97,7 +98,7 @@ void screen_pipelines_create(lv_obj_t *screen)
         lv_obj_set_style_bg_opa(rows[i].dot, LV_OPA_COVER, 0);
         rows[i].name = ui_text(row, &instrument_28_bold, 0xffffff);
         lv_obj_set_pos(rows[i].name, LEFT + 40, 0);
-        rows[i].line = ui_text(row, &instrument_24, 0x8a8794);
+        rows[i].line = ui_text(row, &instrument_24, TOK_DESK_MUTED);
         lv_obj_set_pos(rows[i].line, LEFT + 40, 44);
         for (int b = 0; b < 10; b++) {
             lv_obj_t *bar = rows[i].bars[b] = ui_plain(row);
@@ -105,7 +106,7 @@ void screen_pipelines_create(lv_obj_t *screen)
         }
     }
 
-    lv_obj_t *note = ui_text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *note = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_label_set_text(note, "Bar height is run time; red is a failed run");
     lv_obj_set_pos(note, LEFT, 664);
 

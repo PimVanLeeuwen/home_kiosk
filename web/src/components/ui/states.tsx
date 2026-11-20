@@ -60,7 +60,7 @@ export function PageUnavailable({ what, plural, detail, onRetry }: PageUnavailab
  */
 export function StaleNote({ children, banner }: { children?: ReactNode; banner?: boolean }) {
   return (
-    <p role="status" className={banner ? 'mb-4 text-small text-warn' : 'mt-3 text-caption text-warn'}>
+    <p role="status" className={banner ? 'mb-4 text-small text-warn' : 'mt-3 text-small text-warn'}>
       {children ?? 'Showing the last known figures.'}
     </p>
   )

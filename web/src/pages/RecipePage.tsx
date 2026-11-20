@@ -54,7 +54,7 @@ export function RecipePage() {
 
 function BackLink() {
   return (
-    <Link to="/recipes" viewTransition className="mb-4 inline-flex items-center gap-1.5 text-small text-muted hover:text-fg">
+    <Link to="/recipes" viewTransition className="hit mb-4 inline-flex items-center gap-1.5 text-small text-muted hover:text-fg">
       <ArrowLeft aria-hidden="true" className="size-4" />
       Recipes
     </Link>
@@ -222,7 +222,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
         </div>
         <div className="order-2 flex flex-col gap-2 lg:col-start-2 lg:row-start-1">
           {recipe.tags.length > 0 && (
-            <p className="flex flex-wrap gap-x-2 text-caption text-faint">
+            <p className="flex flex-wrap gap-x-2 text-small text-faint">
               {recipe.tags.map((t) => (
                 <span key={t}>#{t}</span>
               ))}

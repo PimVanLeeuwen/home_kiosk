@@ -48,7 +48,7 @@ export function WeekRanges({ days, today }: { days: ForecastDay[]; today: string
               />
             </span>
             <span className="text-small font-semibold tabular-nums">{whole(d.high)}°</span>
-            <span className="text-right text-caption text-data-blue tabular-nums">{d.rain_max ? `${d.rain_max}%` : ''}</span>
+            <span className="text-right text-small text-data-blue tabular-nums">{d.rain_max ? `${d.rain_max}%` : ''}</span>
           </li>
         )
       })}

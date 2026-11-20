@@ -18,6 +18,7 @@
 #include "lvgl.h"
 #include "arrive.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_40);
@@ -123,7 +124,7 @@ static void show_chips(void)
         lv_obj_set_style_bg_opa(chip, 40, 0);
         lv_obj_set_style_bg_color(chip, lv_color_hex(shown.all_day[i].color), 0);
         dot(chip, 12, shown.all_day[i].color);
-        lv_obj_t *label = ui_text(chip, &instrument_24, 0xf1eff7);
+        lv_obj_t *label = ui_text(chip, &instrument_24, TOK_DESK_FG);
         lv_label_set_text(label, shown.all_day[i].title);
     }
 }
@@ -209,12 +210,12 @@ static void show_later(int y, int focus, int64_t now)
             continue;
         }
         int top = rows++ * ROW;
-        lv_obj_t *at = ui_text(later, &instrument_24, 0xb4b1c2);
+        lv_obj_t *at = ui_text(later, &instrument_24, TOK_DESK_SECONDARY);
         lv_label_set_text(at, shown.events[i].start[0] ? shown.events[i].start : "     ");
         lv_obj_set_pos(at, 0, top);
         lv_obj_t *mark = dot(later, 12, shown.events[i].color);
         lv_obj_set_pos(mark, 88, top + 10);
-        lv_obj_t *name = ui_text(later, &instrument_24, 0xf1eff7);
+        lv_obj_t *name = ui_text(later, &instrument_24, TOK_DESK_FG);
         lv_label_set_long_mode(name, LV_LABEL_LONG_DOT);
         lv_obj_set_width(name, WIDTH - 116);
         lv_label_set_text(name, shown.events[i].title);
@@ -235,7 +236,7 @@ static void show_tomorrow(int y)
     lv_obj_set_height(next, BOTTOM - y - 48);
     int top = 0;
     for (int i = 0; i < shown.tomorrow_count; i++, top += 96) {
-        lv_obj_t *at = ui_text(next, &instrument_40, 0xf1eff7);
+        lv_obj_t *at = ui_text(next, &instrument_40, TOK_DESK_FG);
         lv_label_set_text(at, shown.tomorrow[i].start);
         lv_obj_set_pos(at, 0, top);
         lv_obj_t *bar = ui_plain(next);
@@ -244,10 +245,10 @@ static void show_tomorrow(int y)
         lv_obj_set_style_radius(bar, 3, 0);
         lv_obj_set_style_bg_opa(bar, LV_OPA_COVER, 0);
         lv_obj_set_style_bg_color(bar, lv_color_hex(shown.tomorrow[i].color), 0);
-        lv_obj_t *name = ui_one_line(next, &instrument_40, 0xf1eff7, WIDTH - 152);
+        lv_obj_t *name = ui_one_line(next, &instrument_40, TOK_DESK_FG, WIDTH - 152);
         lv_label_set_text(name, shown.tomorrow[i].title);
         lv_obj_set_pos(name, 152, top);
-        lv_obj_t *cal = ui_one_line(next, &instrument_24, 0x8a8794, WIDTH - 152);
+        lv_obj_t *cal = ui_one_line(next, &instrument_24, TOK_DESK_MUTED, WIDTH - 152);
         char line[64];
         snprintf(line, sizeof line, "%s%s%s", shown.tomorrow[i].calendar, shown.tomorrow[i].end[0] ? " · until " : "",
                  shown.tomorrow[i].end);
@@ -266,7 +267,7 @@ static void show_tomorrow(int y)
         lv_obj_set_style_bg_opa(chip, 40, 0);
         lv_obj_set_style_bg_color(chip, lv_color_hex(shown.tomorrow_all_day[i].color), 0);
         dot(chip, 12, shown.tomorrow_all_day[i].color);
-        lv_obj_t *label = ui_one_line(chip, &instrument_24, 0xf1eff7, 280);
+        lv_obj_t *label = ui_one_line(chip, &instrument_24, TOK_DESK_FG, 280);
         lv_label_set_text(label, shown.tomorrow_all_day[i].title);
         lv_obj_set_pos(chip, i * 320, top + 4);
     }
@@ -356,10 +357,10 @@ void screen_agenda_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(glow, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(glow, 46, 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 24);
-    count = ui_text(screen, &instrument_24, 0x8a8794);
+    count = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(count, 2, 0);
     lv_obj_align(count, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
 
@@ -376,9 +377,9 @@ void screen_agenda_create(lv_obj_t *screen)
     lv_obj_set_style_arc_width(ring, 12, LV_PART_INDICATOR);
     lv_obj_set_style_arc_color(ring, lv_color_hex(0x232129), LV_PART_MAIN);
     lv_obj_set_style_arc_rounded(ring, true, LV_PART_INDICATOR);
-    ring_number = ui_text(ring, &instrument_52_bold, 0xf1eff7);
+    ring_number = ui_text(ring, &instrument_52_bold, TOK_DESK_FG);
     lv_obj_align(ring_number, LV_ALIGN_CENTER, 0, -10);
-    ring_label = ui_text(ring, &instrument_24, 0xb4b1c2);
+    ring_label = ui_text(ring, &instrument_24, TOK_DESK_SECONDARY);
     lv_obj_align(ring_label, LV_ALIGN_CENTER, 0, 30);
 
     /* "NEXT · WORK", the title (two lines at most) and its times, stacked. */
@@ -387,13 +388,13 @@ void screen_agenda_create(lv_obj_t *screen)
     lv_obj_set_size(focus_text, 720 - LEFT - TEXT_X, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(focus_text, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_row(focus_text, 6, 0);
-    kicker = ui_text(focus_text, &instrument_24, 0x8f80ff);
+    kicker = ui_text(focus_text, &instrument_24, TOK_ACCENT_LINE);
     lv_obj_set_style_text_letter_space(kicker, 2, 0);
-    event_title = ui_text(focus_text, &instrument_52_bold, 0xf1eff7);
+    event_title = ui_text(focus_text, &instrument_52_bold, TOK_DESK_FG);
     lv_label_set_long_mode(event_title, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(event_title, lv_pct(100));
     lv_obj_set_style_max_height(event_title, 2 * 62, 0);
-    event_time = ui_text(focus_text, &instrument_24, 0xb4b1c2);
+    event_time = ui_text(focus_text, &instrument_24, TOK_DESK_SECONDARY);
 
     /* The day is done: a calm line instead of the countdown. */
     done = ui_plain(screen);
@@ -402,8 +403,8 @@ void screen_agenda_create(lv_obj_t *screen)
     lv_obj_set_flex_align(done, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_column(done, 16, 0);
     lv_obj_set_pos(done, LEFT, 110);
-    dot(done, 16, 0x5fd39c);
-    done_text = ui_text(done, &instrument_40, 0xf1eff7);
+    dot(done, 16, TOK_DESK_UP);
+    done_text = ui_text(done, &instrument_40, TOK_DESK_FG);
     lv_label_set_text(done_text, "Nothing more today");
     lv_obj_add_flag(done, LV_OBJ_FLAG_HIDDEN);
 
@@ -418,7 +419,7 @@ void screen_agenda_create(lv_obj_t *screen)
     later = ui_plain(screen);
     lv_obj_set_size(later, WIDTH, 0);
 
-    next_head = ui_text(screen, &instrument_24, 0x8a8794);
+    next_head = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(next_head, 2, 0);
     lv_obj_add_flag(next_head, LV_OBJ_FLAG_HIDDEN);
     next = ui_plain(screen);

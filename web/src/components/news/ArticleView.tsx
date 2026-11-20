@@ -125,7 +125,7 @@ export function ArticleView({ content, title, url, meta, actions, back, bodyRef 
           />
         </div>
       )}
-      <div className="mb-3 flex flex-wrap items-center gap-x-1 gap-y-1.5 text-caption text-faint">
+      <div className="mb-3 flex flex-wrap items-center gap-x-1 gap-y-1.5 text-small text-faint">
         {meta}
         {minutes && <span>· {minutes} min read</span>}
       </div>

@@ -21,6 +21,7 @@
 #include "esp_attr.h"
 #include "lvgl.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_40);
@@ -61,7 +62,7 @@ static void paint_tile(int i)
     lv_obj_set_style_border_opa(tiles[i].tile, on ? 110 : 30, 0);
     lv_obj_set_style_image_recolor(tiles[i].glow, lv_color_hex(tone), 0);
     lv_obj_set_flag(tiles[i].glow, LV_OBJ_FLAG_HIDDEN, !on);
-    lv_obj_set_style_text_color(tiles[i].name, lv_color_hex(on ? 0xffffff : 0x8a8794), 0);
+    lv_obj_set_style_text_color(tiles[i].name, lv_color_hex(on ? 0xffffff : TOK_DESK_MUTED), 0);
     lv_obj_set_style_bg_color(tiles[i].dot, lv_color_hex(on ? tone : 0x3a3844), 0);
     lv_label_set_text(tiles[i].name, shown.groups[i].name);
     lv_label_set_text(tiles[i].line, shown.groups[i].line);
@@ -220,10 +221,10 @@ void screen_lights_create(lv_obj_t *screen)
 {
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 24);
-    count = ui_text(screen, &instrument_24, 0x8a8794);
+    count = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(count, 2, 0);
     lv_obj_align(count, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
 
@@ -277,7 +278,7 @@ void screen_lights_create(lv_obj_t *screen)
 
     /* The row of whites, warm to cool. */
     int row_top = TILE_TOP + TILE_HEIGHT + 28;
-    whites_label = ui_text(screen, &instrument_24, 0x8a8794);
+    whites_label = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(whites_label, 2, 0);
     lv_obj_set_pos(whites_label, LEFT, row_top);
     whites_row = ui_plain(screen);
@@ -311,7 +312,7 @@ void screen_lights_create(lv_obj_t *screen)
     lv_obj_set_style_border_opa(room_button, 30, 0);
     lv_obj_add_flag(room_button, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_add_event_cb(room_button, on_room, LV_EVENT_CLICKED, NULL);
-    room_label = ui_text(room_button, &instrument_28_bold, 0xf1eff7);
+    room_label = ui_text(room_button, &instrument_28_bold, TOK_DESK_FG);
     lv_obj_center(room_label);
 
     /* The brightness sheet: a card over a dark veil, opened by holding a tile. */
@@ -346,7 +347,7 @@ void screen_lights_create(lv_obj_t *screen)
     lv_obj_remove_flag(slider, LV_OBJ_FLAG_GESTURE_BUBBLE); /* sliding is not swiping */
     lv_obj_add_event_cb(slider, on_slide, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(slider, on_slide_done, LV_EVENT_RELEASED, NULL);
-    lv_obj_t *close = ui_text(card, &instrument_24, 0x8a8794);
+    lv_obj_t *close = ui_text(card, &instrument_24, TOK_DESK_MUTED);
     lv_label_set_text(close, "Tap beside the card to close");
     lv_obj_align(close, LV_ALIGN_BOTTOM_MID, 0, -16);
 

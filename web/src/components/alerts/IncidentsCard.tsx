@@ -11,7 +11,7 @@ function Week({ incidents, now, className }: { incidents: Incident[]; now: Date;
   return (
     <ol aria-label="The last 7 days" className={cn('flex gap-2.5', className)}>
       {days.map((d, i) => (
-        <li key={i} className="grid justify-items-center gap-1 text-micro text-faint">
+        <li key={i} className="grid justify-items-center gap-1 text-label text-faint">
           <b
             data-worst={d.worst ?? 'none'}
             className={cn(
@@ -65,7 +65,7 @@ export function IncidentsCard({ incidents, now }: { incidents: Incident[] | unde
             </svg>
           </div>
           <p className="mt-1 text-heading font-semibold">All quiet</p>
-          <p className="text-caption text-muted">
+          <p className="text-small text-muted">
             {lastEnd ? `Nothing has needed you for ${lasted(now.getTime() - lastEnd)}` : 'Nothing has needed you yet'}
           </p>
           <Week incidents={incidents} now={now} className="mt-3 justify-center" />
@@ -95,8 +95,8 @@ export function IncidentsCard({ incidents, now }: { incidents: Incident[] | unde
                   <div className="min-w-0">
                     <Pill tone={error ? 'down' : i.severity === 'warning' ? 'warn' : 'accent'}>{i.severity}</Pill>
                     <p className="mt-1 text-title leading-snug font-semibold">{i.title}</p>
-                    {i.body && <p className="mt-0.5 text-caption text-muted">{i.body}</p>}
-                    <p className="mt-0.5 text-caption text-faint">
+                    {i.body && <p className="mt-0.5 text-small text-muted">{i.body}</p>}
+                    <p className="mt-0.5 text-small text-faint">
                       open {lasted(now.getTime() - new Date(i.opened_at).getTime())} · since {formatWhen(i.opened_at, now)}
                     </p>
                   </div>

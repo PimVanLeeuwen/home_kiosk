@@ -68,7 +68,7 @@ export function NowPlayingCard({ playing, send, hero, pausedUntil = null }: Prop
             </button>
           </div>
           {waiting && (
-            <p role="status" className="mt-1 text-right text-caption text-warn">
+            <p role="status" className="mt-1 text-right text-small text-warn">
               {pauseNote(pausedUntil)}
             </p>
           )}

@@ -16,6 +16,7 @@
 #include "lvgl.h"
 #include "pictures.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -249,7 +250,7 @@ void screen_headlines_create(lv_obj_t *screen)
     lv_obj_set_flex_flow(top, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(top, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_column(top, 14, 0);
-    badge = ui_text(top, &instrument_28_bold, 0xf1eff7);
+    badge = ui_text(top, &instrument_28_bold, TOK_DESK_FG);
     lv_obj_set_style_bg_opa(badge, 150, 0);
     lv_obj_set_style_bg_color(badge, lv_color_hex(0x121118), 0);
     lv_obj_set_style_radius(badge, 18, 0);
@@ -284,10 +285,10 @@ void screen_headlines_create(lv_obj_t *screen)
         rows[i].image = pictures[i + 1].image = lv_image_create(frame);
         lv_obj_add_flag(rows[i].image, LV_OBJ_FLAG_HIDDEN);
 
-        rows[i].kicker = ui_text(row, &instrument_24, 0x8a8794);
+        rows[i].kicker = ui_text(row, &instrument_24, TOK_DESK_MUTED);
         lv_obj_set_style_text_letter_space(rows[i].kicker, 2, 0);
         lv_obj_set_pos(rows[i].kicker, THUMB + 24, 0);
-        rows[i].title = ui_text(row, &instrument_28_bold, 0xf1eff7);
+        rows[i].title = ui_text(row, &instrument_28_bold, TOK_DESK_FG);
         lv_label_set_long_mode(rows[i].title, LV_LABEL_LONG_DOT);
         lv_obj_set_size(rows[i].title, WIDTH - THUMB - 24 - 56, 2 * 36);
         lv_obj_set_pos(rows[i].title, THUMB + 24, 34);

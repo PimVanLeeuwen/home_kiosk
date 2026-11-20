@@ -19,6 +19,7 @@
 #include "lvgl.h"
 #include "backdrops.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -36,11 +37,11 @@ LV_IMAGE_DECLARE(glow_sky);
 #define LIGHT 12
 #define PARTICLES 3 /* per live link: the traffic as a flow (plan.md M27) */
 
-#define GREEN 0x5fd39c
+#define GREEN TOK_DESK_UP
 #define VIOLET 0xb4a9ff
-#define NAS 0x7c6cf2
-#define AMBER 0xf0bd5a
-#define IDLE 0x6c6a78
+#define NAS TOK_VIOLET
+#define AMBER TOK_DATA_AMBER
+#define IDLE TOK_DESK_FAINT
 #define DIM 0x4a4955
 
 typedef struct {
@@ -161,7 +162,7 @@ static void show_map(void)
             snprintf(name, sizeof name, "%s%s", node->name, node->exit ? " · exit" : "");
         }
         lv_label_set_text(nodes[i].name, name);
-        lv_obj_set_style_text_color(nodes[i].name, lv_color_hex(off ? IDLE : 0xc9c6d6), 0);
+        lv_obj_set_style_text_color(nodes[i].name, lv_color_hex(off ? IDLE : TOK_DESK_SOFT), 0);
         /* As wide as the name (up to NAME_W), under its tile, kept on the screen. */
         int32_t width = lv_text_get_width(name, strlen(name), &instrument_24, 0) + 4;
         width = width < NAME_W ? width : NAME_W;
@@ -212,7 +213,7 @@ static void show_rows(void)
         lv_label_set_text(rows[i].name, row->name);
         lv_label_set_text(rows[i].ip, row->ip);
         lv_label_set_text(rows[i].via, row->via);
-        lv_obj_set_style_text_color(rows[i].via, lv_color_hex(self && shown.warn ? AMBER : 0x8a8794), 0);
+        lv_obj_set_style_text_color(rows[i].via, lv_color_hex(self && shown.warn ? AMBER : TOK_DESK_MUTED), 0);
     }
 }
 
@@ -264,7 +265,7 @@ void screen_tailnet_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
 
@@ -297,7 +298,7 @@ void screen_tailnet_create(lv_obj_t *screen)
         lv_obj_add_flag(nodes[i].tile, LV_OBJ_FLAG_HIDDEN);
         nodes[i].label = ui_text(nodes[i].tile, &instrument_28_bold, 0xffffff);
         lv_obj_center(nodes[i].label);
-        nodes[i].name = ui_one_line(screen, &instrument_24, 0xc9c6d6, NAME_W);
+        nodes[i].name = ui_one_line(screen, &instrument_24, TOK_DESK_SOFT, NAME_W);
         lv_obj_set_style_text_align(nodes[i].name, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_add_flag(nodes[i].name, LV_OBJ_FLAG_HIDDEN);
     }
@@ -321,11 +322,11 @@ void screen_tailnet_create(lv_obj_t *screen)
         lv_obj_set_style_bg_opa(rows[i].dot, LV_OPA_COVER, 0);
         lv_obj_set_style_shadow_width(rows[i].dot, 10, 0);
         lv_obj_align(rows[i].dot, LV_ALIGN_LEFT_MID, 2, 0);
-        rows[i].name = ui_one_line(box, &instrument_24, 0xf1eff7, 250);
+        rows[i].name = ui_one_line(box, &instrument_24, TOK_DESK_FG, 250);
         lv_obj_align(rows[i].name, LV_ALIGN_LEFT_MID, 28, 0);
-        rows[i].ip = ui_one_line(box, &instrument_24, 0x8a8794, 170);
+        rows[i].ip = ui_one_line(box, &instrument_24, TOK_DESK_MUTED, 170);
         lv_obj_align(rows[i].ip, LV_ALIGN_LEFT_MID, 290, 0);
-        rows[i].via = ui_one_line(box, &instrument_24, 0x8a8794, 180);
+        rows[i].via = ui_one_line(box, &instrument_24, TOK_DESK_MUTED, 180);
         lv_obj_set_style_text_align(rows[i].via, LV_TEXT_ALIGN_RIGHT, 0);
         lv_obj_align(rows[i].via, LV_ALIGN_RIGHT_MID, 0, 0);
     }

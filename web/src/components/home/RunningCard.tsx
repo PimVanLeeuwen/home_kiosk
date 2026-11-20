@@ -27,7 +27,7 @@ export function RunningCard({ data }: { data: RunningOverview | undefined }) {
             <p className="mt-1.5 text-small text-muted tabular-nums">
               {[last.pace_s_per_km != null ? `${pace(last.pace_s_per_km)} /km` : null, clock(last.duration_s)].filter(Boolean).join(' · ')}
             </p>
-            {session && <p className="mt-0.5 text-caption text-faint">Runna: {session.name}</p>}
+            {session && <p className="mt-0.5 text-small text-faint">Runna: {session.name}</p>}
           </div>
         </div>
       </Card>
@@ -37,7 +37,7 @@ export function RunningCard({ data }: { data: RunningOverview | undefined }) {
   return (
     <Card title={`Today: ${session.name}`} link={{ to: '/running', label: 'Running' }}>
       <SessionShape blocks={session.blocks} label={`${session.name} as blocks, from warm-up to cool-down`} />
-      <p className="mt-2 text-caption text-muted">
+      <p className="mt-2 text-small text-muted">
         {[session.distance_m ? `${km(session.distance_m)} km` : null, session.estimate, session.time].filter(Boolean).join(' · ')}
       </p>
     </Card>

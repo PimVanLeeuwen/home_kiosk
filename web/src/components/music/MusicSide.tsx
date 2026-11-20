@@ -13,7 +13,7 @@ function Label({ children, aside }: { children: string; aside?: string }) {
   return (
     <p className={cn(titleClass, 'mb-4 flex justify-between gap-2.5')}>
       {children}
-      {aside && <span className="truncate text-caption font-normal text-faint">{aside}</span>}
+      {aside && <span className="truncate text-small font-normal text-faint">{aside}</span>}
     </p>
   )
 }

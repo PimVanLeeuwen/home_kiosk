@@ -112,7 +112,7 @@ export function LightsPage() {
             </p>
           )}
           {lights.stale && <StaleNote />}
-          <p className="mt-3.5 text-caption text-faint">Updated {formatAgo(lights.as_of)} · Hue Bridge</p>
+          <p className="mt-3.5 text-small text-faint">Updated {formatAgo(lights.as_of)} · Hue Bridge</p>
         </>
       )}
     </>

@@ -40,7 +40,7 @@ export function IncidentCard({ service, incident, now = new Date() }: Props) {
           <p className="text-title leading-tight font-semibold">
             {service.name}: {incident.title}
           </p>
-          <p className="mt-0.5 text-caption text-muted">
+          <p className="mt-0.5 text-small text-muted">
             <span className={STATE_TEXT[state]}>{STATE_LABEL[state]}</span>
             {since && <> · {since}</>}
           </p>
@@ -50,7 +50,7 @@ export function IncidentCard({ service, incident, now = new Date() }: Props) {
       {timeline.length > 0 && (
         <ol aria-label="Timeline" className="grid gap-1.5 border-l border-line pl-3">
           {timeline.map((u, i) => (
-            <li key={u.at + u.status} className="relative flex items-baseline gap-2 text-caption">
+            <li key={u.at + u.status} className="relative flex items-baseline gap-2 text-small">
               <GlowDot color={i === 0 ? 'var(--color-fg)' : undefined} size="sm" className="absolute top-[0.45em] -left-[16.5px]" />
               <span className={i === 0 ? 'font-medium' : 'text-muted'}>{statusWord(u.status)}</span>
               <span className="text-faint">{when(u.at, now)}</span>
@@ -63,7 +63,7 @@ export function IncidentCard({ service, incident, now = new Date() }: Props) {
           href={incident.url}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex w-fit items-center gap-1.5 text-caption font-medium text-accent-fg hover:underline"
+          className="hit inline-flex w-fit items-center gap-1.5 text-small font-medium text-accent-fg hover:underline"
         >
           On the status page
           <ExternalLink aria-hidden="true" className="size-3.5" />

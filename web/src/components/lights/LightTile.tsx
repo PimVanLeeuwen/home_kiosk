@@ -72,7 +72,7 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
             <span id={`lights-${group.id}`} className="block text-heading font-semibold">
               {group.name}
             </span>
-            <span className="mt-0.5 block text-caption text-muted">{subtitle}</span>
+            <span className="mt-0.5 block text-small text-muted">{subtitle}</span>
           </span>
           <span
             aria-hidden="true"
@@ -84,7 +84,7 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
             <Lightbulb className="size-[22px]" strokeWidth={1.8} />
           </span>
         </span>
-        <span className={cn('mt-[22px] mb-1 block text-hero leading-none font-semibold tracking-[-0.03em]', !group.on && 'text-faint')}>
+        <span className={cn('mt-[22px] mb-1 block text-display leading-none font-semibold tracking-[-0.03em]', !group.on && 'text-faint')}>
           {group.on ? (
             <>
               {level}
@@ -146,7 +146,7 @@ export function LightTile({ group, kelvins, disabled, onChange }: Props) {
         </>
       )}
 
-      <ul aria-label={`${group.name}: each light`} className="mt-3.5 flex flex-wrap gap-2 border-t border-line-soft pt-3 text-caption text-muted">
+      <ul aria-label={`${group.name}: each light`} className="mt-3.5 flex flex-wrap gap-2 border-t border-line-soft pt-3 text-small text-muted">
         {group.lights.map((light) => (
           <li
             key={light.id}

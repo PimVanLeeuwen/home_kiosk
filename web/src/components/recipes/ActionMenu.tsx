@@ -54,7 +54,7 @@ export function ActionMenu({ label, actions, className }: { label: string; actio
               <Icon aria-hidden="true" className={cn('size-4 shrink-0', danger ? 'text-down' : 'text-accent-fg')} />
               <span>
                 <span className={cn('block font-medium', danger && 'text-down')}>{name}</span>
-                <span className="block text-caption text-faint">{hint}</span>
+                <span className="block text-small text-faint">{hint}</span>
               </span>
             </button>
           ))}

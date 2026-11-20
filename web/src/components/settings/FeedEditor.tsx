@@ -142,8 +142,8 @@ export function FeedEditor() {
                 <li key={feed.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 py-2.5">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">{feedLabel(feed)}</p>
-                    <p className="truncate font-mono text-caption text-faint">{feed.url}</p>
-                    <p className="text-caption">
+                    <p className="truncate font-mono text-small text-faint">{feed.url}</p>
+                    <p className="text-small">
                       <Health feed={feed} />
                     </p>
                   </div>

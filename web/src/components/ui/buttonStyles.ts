@@ -29,4 +29,4 @@ export function buttonClass(variant: ButtonVariant = 'secondary', size: ButtonSi
 
 /** A small square button with only an icon (edit, move, delete); give it an `aria-label`. */
 export const iconButtonClass =
-  'grid size-8 place-items-center rounded-control text-muted hover:bg-raised hover:text-fg disabled:opacity-30 disabled:hover:bg-transparent'
+  'grid size-8 place-items-center rounded-control pointer-coarse:size-11 text-muted hover:bg-raised hover:text-fg disabled:opacity-30 disabled:hover:bg-transparent'

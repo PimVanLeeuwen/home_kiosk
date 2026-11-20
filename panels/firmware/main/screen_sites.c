@@ -19,6 +19,7 @@
 #include "arrive.h"
 #include "backdrops.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -35,9 +36,9 @@ LV_IMAGE_DECLARE(glow_sky);
 #define STRIP_W (DESK_SITE_DAYS * (BAR + BAR_GAP) - BAR_GAP)
 #define STRIP_H 18
 
-#define GREEN 0x5fd39c
-#define AMBER 0xf0bd5a
-#define RED 0xff6b6b
+#define GREEN TOK_DESK_UP
+#define AMBER TOK_DATA_AMBER
+#define RED TOK_DESK_DOWN
 #define TILE 0x0d0d10
 #define TILE_DOWN 0x1f0c0d
 
@@ -120,7 +121,7 @@ static void tick(lv_timer_t *timer)
     lv_obj_set_style_border_color(pill, lv_color_hex(pill_colour), 0);
     lv_obj_set_style_border_opa(pill, any_down ? LV_OPA_COVER : 150, 0);
     lv_obj_set_style_text_color(pill_text, lv_color_hex(any_down ? 0xff8a8a : GREEN), 0);
-    lv_obj_set_style_image_recolor(sky, lv_color_hex(any_down ? RED : 0x7c6cf2), 0);
+    lv_obj_set_style_image_recolor(sky, lv_color_hex(any_down ? RED : TOK_VIOLET), 0);
 
     for (int i = 0; i < DESK_SITES; i++) {
         tile_t *t = &tiles[i];
@@ -132,14 +133,14 @@ static void tick(lv_timer_t *timer)
         bool down = site->state == 'd';
         lv_obj_set_style_bg_color(t->box, lv_color_hex(down ? TILE_DOWN : TILE), 0);
         lv_obj_set_style_border_color(t->box, lv_color_hex(down ? 0x7a3333 : 0x1c1c22), 0);
-        uint32_t dot = down ? RED : site->state == '?' ? 0x6c6a78 : GREEN;
+        uint32_t dot = down ? RED : site->state == '?' ? TOK_DESK_FAINT : GREEN;
         lv_obj_set_style_bg_color(t->dot, lv_color_hex(dot), 0);
         lv_label_set_text(t->name, site->name);
-        lv_obj_set_style_text_color(t->name, lv_color_hex(down ? 0xff8a8a : 0xf1eff7), 0);
+        lv_obj_set_style_text_color(t->name, lv_color_hex(down ? 0xff8a8a : TOK_DESK_FG), 0);
         lv_label_set_text(t->left, site->left);
-        lv_obj_set_style_text_color(t->left, lv_color_hex(down ? 0xff8a8a : 0x8a8794), 0);
+        lv_obj_set_style_text_color(t->left, lv_color_hex(down ? 0xff8a8a : TOK_DESK_MUTED), 0);
         lv_label_set_text(t->right, site->right);
-        uint32_t worst = site->worst == 'd' ? RED : site->worst == 'b' ? AMBER : 0x8a8794;
+        uint32_t worst = site->worst == 'd' ? RED : site->worst == 'b' ? AMBER : TOK_DESK_MUTED;
         lv_obj_set_style_text_color(t->right, lv_color_hex(worst), 0);
         paint_strip(t->strip, site->days, down);
         /* Up: the beat in green; down or unknown: a flat line, red or grey. */
@@ -149,7 +150,7 @@ static void tick(lv_timer_t *timer)
                                                       TRACE_Y + (t->beating ? BEAT[p][1] * TRACE_H : 0)};
         }
         lv_line_set_points(t->trace, trace_points[i], BEAT_POINTS);
-        lv_obj_set_style_line_color(t->trace, lv_color_hex(down ? RED : t->beating ? GREEN : 0x6c6a78), 0);
+        lv_obj_set_style_line_color(t->trace, lv_color_hex(down ? RED : t->beating ? GREEN : TOK_DESK_FAINT), 0);
     }
 }
 
@@ -190,11 +191,11 @@ void screen_sites_create(lv_obj_t *screen)
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);
     lv_obj_set_pos(sky, 0, 0);
-    lv_obj_set_style_image_recolor(sky, lv_color_hex(0x7c6cf2), 0);
+    lv_obj_set_style_image_recolor(sky, lv_color_hex(TOK_VIOLET), 0);
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
 
@@ -224,11 +225,11 @@ void screen_sites_create(lv_obj_t *screen)
         lv_obj_set_style_radius(t->dot, 6, 0);
         lv_obj_set_style_bg_opa(t->dot, LV_OPA_COVER, 0);
         lv_obj_set_pos(t->dot, PAD, PAD + 11);
-        t->name = ui_one_line(t->box, &instrument_28_bold, 0xf1eff7, TILE_W - PAD * 2 - 22);
+        t->name = ui_one_line(t->box, &instrument_28_bold, TOK_DESK_FG, TILE_W - PAD * 2 - 22);
         lv_obj_set_pos(t->name, PAD + 22, PAD);
-        t->left = ui_text(t->box, &instrument_24, 0x8a8794);
+        t->left = ui_text(t->box, &instrument_24, TOK_DESK_MUTED);
         lv_obj_set_pos(t->left, PAD, 62);
-        t->right = ui_text(t->box, &instrument_24, 0x8a8794);
+        t->right = ui_text(t->box, &instrument_24, TOK_DESK_MUTED);
         lv_obj_align(t->right, LV_ALIGN_TOP_RIGHT, -PAD, 62);
 
         t->trace = lv_line_create(t->box);

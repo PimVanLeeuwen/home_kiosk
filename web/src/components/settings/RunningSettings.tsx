@@ -95,7 +95,7 @@ export function RunningSettings() {
           ))}
         </ul>
       )}
-      <p className="mt-3 text-caption text-faint">
+      <p className="mt-3 text-small text-faint">
         Your streets show home's runs; runs elsewhere get their area's streets under them on the last run, once fetched. Fetch again when you run somewhere new.
       </p>
     </Surface>

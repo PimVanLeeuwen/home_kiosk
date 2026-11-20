@@ -118,7 +118,7 @@ export function AirCard() {
         <>
           <div className="grid grid-cols-[minmax(0,1fr)_130px] items-center gap-4 sm:grid-cols-[minmax(0,1fr)_170px]">
             <div className="min-w-0">
-              <p className="text-giant leading-none font-semibold tracking-tight tabular-nums sm:text-giant">
+              <p className="text-hero leading-none font-semibold tracking-tight tabular-nums">
                 {air.temperature != null ? `${degrees(air.temperature)}°` : '–'}
               </p>
               <ul className="mt-3 grid gap-1 text-small text-muted">
@@ -130,7 +130,7 @@ export function AirCard() {
                 {air.pm25 != null && (
                   <li>
                     <span className="font-semibold text-fg">{air.pm25}</span> µg/m³ fine dust
-                    {air.quality && <span className="block text-caption text-faint">Sensor says: {air.quality}</span>}
+                    {air.quality && <span className="block text-small text-faint">Sensor says: {air.quality}</span>}
                   </li>
                 )}
               </ul>
@@ -143,8 +143,8 @@ export function AirCard() {
             )}
           </div>
           {air.level && <Co2Curve history={air.history} level={air.level} />}
-          {!air.available && <p className="mt-3 text-caption text-warn">The sensor is not answering: showing its last values.</p>}
-          <p className="mt-3 text-caption text-faint">Updated {formatAgo(air.as_of, now)} · IKEA ALPSTUGA</p>
+          {!air.available && <p className="mt-3 text-small text-warn">The sensor is not answering: showing its last values.</p>}
+          <p className="mt-3 text-small text-faint">Updated {formatAgo(air.as_of, now)} · IKEA ALPSTUGA</p>
           {air.stale && <StaleNote />}
         </>
       )}

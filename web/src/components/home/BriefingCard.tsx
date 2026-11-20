@@ -13,7 +13,7 @@ export function BriefingCard({ data }: { data: Briefing | undefined }) {
     <Card
       title={`Briefing · ${weekday.format(new Date(`${data.date}T12:00`))}`}
       actions={
-        <span className="inline-flex items-center gap-1.5 text-caption text-muted">
+        <span className="inline-flex items-center gap-1.5 text-small text-muted">
           <Sparkles aria-hidden="true" className="size-3.5 text-accent-fg" />
           written by Claude
         </span>
@@ -28,7 +28,7 @@ export function BriefingCard({ data }: { data: Briefing | undefined }) {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-caption text-faint">As of {formatTime(data.as_of)}</p>
+      <p className="mt-3 text-small text-faint">As of {formatTime(data.as_of)}</p>
       {data.stale && <StaleNote />}
     </Card>
   )

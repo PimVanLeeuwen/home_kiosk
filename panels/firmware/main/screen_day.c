@@ -23,6 +23,7 @@
 #include "lvgl.h"
 #include "arrive.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -321,10 +322,10 @@ void screen_day_create(lv_obj_t *screen)
 {
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_align(title, LV_ALIGN_TOP_LEFT, 36, 24);
-    range = ui_text(screen, &instrument_24, 0x8a8794);
+    range = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(range, 2, 0);
     lv_obj_align(range, LV_ALIGN_TOP_RIGHT, -36, 24);
 

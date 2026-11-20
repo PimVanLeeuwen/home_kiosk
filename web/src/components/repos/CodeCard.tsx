@@ -71,9 +71,9 @@ function RunRow({ row, now }: { row: Row; now: Date }) {
         <GlowDot tone={CI_TONE[row.ci]} size="lg" halo={row.ci === 'failing'} className={row.ci === 'running' ? 'motion-safe:animate-pulse' : undefined} />
         <span className="min-w-0">
           <b className="font-mono text-small font-medium">{row.name}</b>
-          <small className="block truncate text-caption text-muted">{row.detail}</small>
+          <small className="block truncate text-small text-muted">{row.detail}</small>
         </span>
-        <span className="text-right text-caption whitespace-nowrap text-muted">
+        <span className="text-right text-small whitespace-nowrap text-muted">
           <em className="block font-semibold not-italic" style={{ color: TONE_COLOR[CI_TONE[row.ci]] }}>
             {CI_WORD[row.ci]}
           </em>
@@ -104,14 +104,14 @@ function ActivityGrid({ activity }: { activity: Activity }) {
       <Label aside={activity.login}>Activity · 16 weeks</Label>
       <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
         <span />
-        <div aria-hidden="true" className="grid h-[13px] gap-1 text-micro text-faint" style={columns}>
+        <div aria-hidden="true" className="grid h-[13px] gap-1 text-label text-faint" style={columns}>
           {months.map((m, i) => (
             <span key={i} className="whitespace-nowrap">
               {m}
             </span>
           ))}
         </div>
-        <div aria-hidden="true" className="grid grid-rows-7 gap-1 text-micro leading-none text-faint">
+        <div aria-hidden="true" className="grid grid-rows-7 gap-1 text-label leading-none text-faint">
           {['Mon', '', 'Wed', '', 'Fri', '', ''].map((d, i) => (
             <span key={i} className="flex items-center">
               {d}
@@ -140,12 +140,12 @@ function ActivityGrid({ activity }: { activity: Activity }) {
           [`${stats.streak} day${stats.streak === 1 ? '' : 's'}`, 'streak'],
         ].map(([value, label]) => (
           <div key={label} className="grid">
-            <dt className="order-last text-caption text-muted">{label}</dt>
+            <dt className="order-last text-small text-muted">{label}</dt>
             <dd className="text-heading font-semibold tracking-[-0.02em] md:text-stat">{value}</dd>
           </div>
         ))}
       </dl>
-      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2.5 text-caption text-muted">
+      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2.5 text-small text-muted">
         <span>{activity.error ? <span className="text-warn">GitHub: {activity.error}</span> : stats.busiest && `Busiest on ${stats.busiest}`}</span>
         <span aria-hidden="true" className="inline-flex items-center gap-[3px] text-label text-faint">
           Less

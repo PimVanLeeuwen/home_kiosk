@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { EASE } from './lib/useFlip'
 
@@ -64,6 +65,23 @@ describe('design tokens', () => {
     const loose = sources.flatMap(([f, src]) => [...src.matchAll(/stroke="rgb\(255 255 255 \/ 0\.0[4-9]\)"/g)].map((m) => `${f}: ${m[0]}`))
     // The weather's horizon and rain baseline and the week chart's day lines are lines, not tracks.
     expect(loose.map((l) => l.split(':')[0]).sort()).toEqual(['components/portfolio/WeekChart.tsx', 'components/weather/DayCurve.tsx', 'components/weather/SunArc.tsx'])
+  })
+
+  it('sizes text only from the type scale, never in pixels', () => {
+    const loose = sources.flatMap(([f, src]) => [...src.matchAll(/\btext-\[\d[^\]]*(?:px|rem)\]/g)].map((m) => `${f}: ${m[0]}`))
+    expect(loose).toEqual([])
+  })
+
+  it('keeps the type scale to nine sizes, none below 12px', () => {
+    const theme = css.slice(css.indexOf('@theme'), css.indexOf('@media print'))
+    const sizes = [...theme.matchAll(/--text-([a-z]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], Number(m[2])] as const)
+    expect(sizes.map(([name]) => name)).toEqual(['label', 'small', 'body', 'title', 'heading', 'stat', 'page', 'display', 'hero'])
+    expect(Math.min(...sizes.map(([, px]) => px))).toBeGreaterThanOrEqual(12)
+  })
+
+  it('takes colours, type and radii from tokens/tokens.json, as the panels do', () => {
+    // index.css and panels/firmware/main/tokens.h are written by tokens/build.mjs; --check fails when either is stale.
+    expect(() => execFileSync(process.execPath, [`${import.meta.dirname}/../../tokens/build.mjs`, '--check'], { stdio: 'pipe' })).not.toThrow()
   })
 
   it('keeps the flip animation on the theme easing', () => {

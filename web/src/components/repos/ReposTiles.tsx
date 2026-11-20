@@ -92,7 +92,7 @@ export function ReposTiles({ repos, forksHidden, backup, mirrored }: Props) {
           </span>
         }
       >
-        <div className="mt-1 text-caption [&_p]:mb-0 [&_p]:text-caption">{backup}</div>
+        <div className="mt-1 text-small [&_p]:mb-0 [&_p]:text-small">{backup}</div>
       </StatTile>
     </StatTiles>
   )

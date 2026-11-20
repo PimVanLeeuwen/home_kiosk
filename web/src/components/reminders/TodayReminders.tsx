@@ -36,7 +36,7 @@ export function TodayReminders({ due, onToggle, busy }: Props) {
             <GlowDot tone={r.done ? 'muted' : 'accent'} />
           )}
           <span className={cn('min-w-0 flex-1 truncate text-title', r.done && 'text-faint line-through')}>{r.title}</span>
-          <span className={cn('shrink-0 text-caption', r.at ? 'text-muted' : 'text-faint')}>{r.at ?? 'All day'}</span>
+          <span className={cn('shrink-0 text-small', r.at ? 'text-muted' : 'text-faint')}>{r.at ?? 'All day'}</span>
         </li>
       ))}
     </ul>

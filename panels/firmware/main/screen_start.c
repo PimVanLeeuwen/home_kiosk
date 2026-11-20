@@ -18,6 +18,7 @@
 #include "net.h"
 #include "sdkconfig.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_24);
@@ -86,11 +87,11 @@ void screen_start_create(lv_obj_t *screen)
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);
     lv_obj_set_pos(sky, 0, 0);
-    lv_obj_set_style_image_recolor(sky, lv_color_hex(0x7c6cf2), 0);
+    lv_obj_set_style_image_recolor(sky, lv_color_hex(TOK_VIOLET), 0);
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 70, 0);
 
-    lv_obj_t *header = centred(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *header = centred(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(header, 2, 0);
     lv_label_set_text(header, "DESK PANEL");
     lv_obj_align(header, LV_ALIGN_TOP_LEFT, 36, 24);

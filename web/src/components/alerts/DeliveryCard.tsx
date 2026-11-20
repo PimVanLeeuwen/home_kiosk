@@ -44,7 +44,7 @@ export function DeliveryCard({ settings, onSaved }: Props) {
       <div className="mb-5 flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <p className="font-medium">Send through ntfy</p>
-          <p className="mt-0.5 text-caption text-faint">
+          <p className="mt-0.5 text-small text-faint">
             {!ntfyConfigured
               ? 'No ntfy token on the hub (NTFY_TOKEN), so everything goes to Telegram.'
               : ntfy
@@ -72,7 +72,7 @@ export function DeliveryCard({ settings, onSaved }: Props) {
               <input type="time" value={quiet.end} onChange={(e) => setQuiet({ ...quiet, end: e.target.value })} className={inlineInputClass} />
             </label>
           </div>
-          <p className="mt-1.5 text-caption text-faint">
+          <p className="mt-1.5 text-small text-faint">
             {ntfyOn
               ? 'Errors still sound; the rest arrives silently, and the morning briefing sums up the night.'
               : 'Errors still go out; the rest arrives as one digest when quiet hours end.'}

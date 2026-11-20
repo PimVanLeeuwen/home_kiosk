@@ -79,7 +79,7 @@ function Cook({ detail }: { detail: RecipeDetail }) {
             >
               <X aria-hidden="true" className="size-5" />
             </Link>
-            <span className="flex items-center gap-1.5 text-caption text-faint">
+            <span className="flex items-center gap-1.5 text-small text-faint">
               {wake === 'on' ? (
                 <span className="flex items-center gap-1.5 text-up">
                   <Sun aria-hidden="true" className="size-4" />
@@ -165,7 +165,7 @@ function PhaseSteps({
         <p className={cn('text-label font-bold tracking-[0.12em] uppercase', current.kind === 'prep' ? 'text-accent-fg' : 'text-cook')}>
           {current.kind} {position} of {ofKind.length}
         </p>
-        <h1 className="text-hero leading-tight font-semibold tracking-tight">{current.name}</h1>
+        <h1 className="text-display leading-tight font-semibold tracking-tight">{current.name}</h1>
       </div>
       {current.steps.map((step, s) => {
         const key = stepKey(phase, s)

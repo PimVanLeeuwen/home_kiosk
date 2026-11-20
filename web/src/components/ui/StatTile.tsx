@@ -26,7 +26,7 @@ export function StatTile({ title, figure, sub, tone, children }: Props) {
       >
         {typeof figure === 'number' ? <AnimatedNumber value={figure} /> : figure}
       </div>
-      {sub && <p className="mt-0.5 text-caption text-muted">{sub}</p>}
+      {sub && <p className="mt-0.5 text-small text-muted">{sub}</p>}
       {children}
     </Card>
   )

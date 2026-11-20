@@ -27,10 +27,10 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
       title="Database dumps"
       note="02:30 · 02:45"
     >
-      <p className="mb-3 text-caption text-muted">
+      <p className="mb-3 text-small text-muted">
         Consistent copies of the live databases, made before the nightly backup takes them to Hetzner: a{' '}
-        <span className="font-mono text-caption">pg_dump</span> per Postgres database at 02:30 into{' '}
-        <span className="font-mono text-caption">/volume3/backups/databases</span>, and the hub's own database at 02:45.
+        <span className="font-mono text-small">pg_dump</span> per Postgres database at 02:30 into{' '}
+        <span className="font-mono text-small">/volume3/backups/databases</span>, and the hub's own database at 02:45.
       </p>
       <ul className="grid gap-2 text-small">
         {dumps.databases.map((db) => {
@@ -54,7 +54,7 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
                 <Status db={db} />
               </span>
               {db.ok != null && (
-                <p className="col-start-2 col-end-4 text-caption text-muted">
+                <p className="col-start-2 col-end-4 text-small text-muted">
                   {db.at && <>Last attempt {formatWhen(db.at)} · </>}
                   Last success {db.last_success ? formatWhen(db.last_success) : 'never recorded'}
                 </p>
@@ -68,7 +68,7 @@ export function DumpsCard({ dumps }: { dumps: DatabaseDumps }) {
           )
         })}
       </ul>
-      <div className="mt-3 border-t border-line-soft pt-2.5 text-caption text-muted">
+      <div className="mt-3 border-t border-line-soft pt-2.5 text-small text-muted">
         {recent.length === 0 ? (
           <p>
             No dump run recorded yet. The dumps run from root's crontab on the NAS (see the nas-docker README, Database

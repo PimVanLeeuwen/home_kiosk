@@ -72,6 +72,9 @@ npm run dev
 
 # end to end: builds and runs the dashboard image, so Docker must be running
 cd e2e && npm ci && npx playwright test
+
+# design tokens: edit tokens/tokens.json, then write web/src/index.css and the panels' tokens.h
+node tokens/build.mjs
 ```
 
 My notes on configuring, deploying and running it (the NAS, the panels, the port scan) are in

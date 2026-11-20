@@ -121,7 +121,7 @@ export function RemindersPage() {
               <ul className="grid grid-cols-1 divide-y divide-line-soft">
                 {data.reminders.map((r) => (
                   <li key={r.id} className={cn('flex items-center gap-3 py-2.5', !r.next && 'opacity-60')}>
-                    <div className="w-20 shrink-0 text-caption">
+                    <div className="w-20 shrink-0 text-small">
                       <span className={cn('block font-medium', nextText(r.next, data.today) === 'Today' ? 'text-accent-fg' : 'text-fg')}>
                         {nextText(r.next, data.today)}
                       </span>
@@ -129,7 +129,7 @@ export function RemindersPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-title font-medium">{r.title}</p>
-                      <p className="text-caption text-muted">
+                      <p className="text-small text-muted">
                         {repeatText(r)} · {notifyText(r)}
                       </p>
                     </div>

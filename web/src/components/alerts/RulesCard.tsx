@@ -80,7 +80,7 @@ export function RulesCard() {
                     label={`${loaded.data!.labels[name] ?? name} on`}
                   />
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-caption text-muted">
+                <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-small text-muted">
                   {NOTES[name]}
                   {(FIELDS[name] ?? []).map(({ field, before, after, min, max }) => (
                     <label key={field} className="flex items-center gap-1.5">

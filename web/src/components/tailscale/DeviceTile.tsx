@@ -21,7 +21,7 @@ export function CopyButton({ value, what }: { value: string; what: string }) {
           window.setTimeout(() => setCopied(false), 1500)
         })
       }
-      className="ml-1.5 rounded-tag border border-glass-line bg-glass px-1.5 align-[1px] font-sans text-micro text-muted hover:text-fg"
+      className="hit ml-1.5 rounded-tag border border-glass-line bg-glass px-1.5 align-[1px] font-sans text-label text-muted hover:text-fg"
     >
       {copied ? 'Copied' : 'Copy'}
     </button>
@@ -42,7 +42,7 @@ export function Facts({ rows, className }: { rows: [string, ReactNode][]; classN
   )
 }
 
-const Mono = ({ children }: { children: ReactNode }) => <span className="font-mono text-caption">{children}</span>
+const Mono = ({ children }: { children: ReactNode }) => <span className="font-mono text-small">{children}</span>
 
 /** How a device is reached: direct in green, through a relay in violet, an exit node tinted. */
 function Chip({ tone, children }: { tone?: 'direct' | 'relay' | 'exit'; children: ReactNode }) {

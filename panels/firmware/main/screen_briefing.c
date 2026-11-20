@@ -11,6 +11,7 @@
 #include "esp_attr.h"
 #include "lvgl.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -62,7 +63,7 @@ void screen_briefing_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 80, 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
 
@@ -96,7 +97,7 @@ void screen_briefing_create(lv_obj_t *screen)
         lv_obj_align(facts[i], LV_ALIGN_LEFT_MID, 58, 0);
     }
 
-    as_of = ui_text(screen, &instrument_24, 0x6c6a78);
+    as_of = ui_text(screen, &instrument_24, TOK_DESK_FAINT);
     lv_obj_set_pos(as_of, LEFT, 664);
 
     lv_timer_create(tick, 1000, NULL);

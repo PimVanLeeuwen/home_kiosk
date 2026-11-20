@@ -16,7 +16,7 @@ function VolumeTile({ summary, index }: { summary: Summary; index: number }) {
     <section
       aria-labelledby={id}
       className={cn(
-        'grid content-start gap-1.5 rounded-tile border p-3 text-caption',
+        'grid content-start gap-1.5 rounded-tile border p-3 text-small',
         bad ? 'border-down/40 bg-linear-to-br from-down/12 to-down/[0.03]' : 'border-glass-line bg-glass',
       )}
     >

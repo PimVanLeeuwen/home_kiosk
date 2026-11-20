@@ -13,7 +13,7 @@ interface Props {
 export function GlassTile({ label, value, children, className }: Props) {
   return (
     <div className={cn('min-w-0 rounded-tile border border-glass-line bg-glass px-[11px] py-[9px]', className)}>
-      <p className="text-micro eyebrow text-faint">{label}</p>
+      <p className="text-label eyebrow text-faint">{label}</p>
       <p className="mt-px mb-[3px] truncate text-title font-semibold">{value}</p>
       {children}
     </div>

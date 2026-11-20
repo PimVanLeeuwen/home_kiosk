@@ -52,7 +52,7 @@ export function RestoreCheckCard({ checks, lastVerified, stale, onFinished }: Pr
                 <span
                   aria-hidden="true"
                   className={cn(
-                    'absolute top-0.5 -left-[24px] grid size-[15px] place-items-center rounded-full text-micro font-bold',
+                    'absolute top-0.5 -left-[24px] grid size-[15px] place-items-center rounded-full text-label font-bold',
                     c.ok ? 'bg-up/16 text-up' : 'bg-down/18 text-down',
                   )}
                 >
@@ -60,14 +60,14 @@ export function RestoreCheckCard({ checks, lastVerified, stale, onFinished }: Pr
                 </span>
                 <span className="sr-only">{c.ok ? 'OK' : 'Failed'}</span>
                 <span>{LABELS[c.name] ?? c.name}</span>
-                <span className={cn('block text-caption', c.ok ? 'text-muted' : 'font-mono text-fg')}>{c.detail}</span>
+                <span className={cn('block text-small', c.ok ? 'text-muted' : 'font-mono text-fg')}>{c.detail}</span>
               </li>
             ))}
           </ol>
         </>
       )}
       <RunNow onFinished={onFinished} />
-      <p className="mt-3 text-caption text-faint">
+      <p className="mt-3 text-small text-faint">
         The NAS downloads the dumps and the hub database from Hetzner, compares them with the local files and loads them
         into throwaway containers.
       </p>
@@ -112,17 +112,17 @@ function RunNow({ onFinished }: { onFinished?: () => void }) {
         Run a check now
       </button>
       {state === 'requested' && (
-        <span role="status" className="text-caption text-muted">
+        <span role="status" className="text-small text-muted">
           Asked{request.data?.since ? ` ${formatWhen(request.data.since)}` : ''}; the NAS starts it within 5 minutes
         </span>
       )}
       {state === 'running' && (
-        <span role="status" className="text-caption text-muted">
+        <span role="status" className="text-small text-muted">
           Running on the NAS…
         </span>
       )}
       {refused && (
-        <span role="alert" className="text-caption text-down">
+        <span role="alert" className="text-small text-down">
           {refused}
         </span>
       )}

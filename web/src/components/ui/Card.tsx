@@ -80,10 +80,10 @@ export function Card({ title, link, note, actions, padding, className, children 
         </h2>
         {(note || actions || link) && (
           <div className="flex flex-wrap items-center gap-3">
-            {note && <span className="text-caption text-faint">{note}</span>}
+            {note && <span className="text-small text-faint">{note}</span>}
             {actions}
             {link && (
-              <Link to={link.to} className="text-small font-medium text-accent-fg hover:underline">
+              <Link to={link.to} className="hit text-small font-medium text-accent-fg hover:underline">
                 {link.label} →
               </Link>
             )}

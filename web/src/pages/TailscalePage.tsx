@@ -14,7 +14,7 @@ import { cn } from '../lib/cn'
 
 const REFRESH_MS = 60_000
 
-const mono = (value: string) => <span className="font-mono text-caption">{value}</span>
+const mono = (value: string) => <span className="font-mono text-small">{value}</span>
 
 /** The NAS's own names and addresses, with what is known; empty rows left out. */
 function selfRows(self: TailnetDevice, served: number, issues: number): [string, ReactNode][] {

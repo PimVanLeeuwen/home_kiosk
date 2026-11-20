@@ -149,7 +149,7 @@ export function PasteDialog({ open, onClose, onSaved, target }: Props) {
             autoCapitalize="off"
             autoCorrect="off"
             placeholder='{ "schema": "hub-recipe/1", ... }'
-            className="min-h-48 rounded-tile border border-line bg-canvas px-3.5 py-3 font-mono text-caption leading-relaxed text-fg placeholder:text-faint focus:border-accent-line focus:outline-none"
+            className="min-h-48 rounded-tile border border-line bg-canvas px-3.5 py-3 font-mono text-small leading-relaxed text-fg placeholder:text-faint focus:border-accent-line focus:outline-none"
           />
         </label>
 
@@ -186,7 +186,7 @@ export function PasteDialog({ open, onClose, onSaved, target }: Props) {
               </li>
             ))}
             {replacing > 0 && (
-              <li className="text-caption text-faint">The photo stays. The version it replaces is kept for one undo.</li>
+              <li className="text-small text-faint">The photo stays. The version it replaces is kept for one undo.</li>
             )}
           </ul>
         )}
@@ -212,7 +212,7 @@ function Problems({ title, lines }: { title: string; lines: { path: string; mess
       <p className="text-small font-semibold text-down">{title}</p>
       {lines.map((p) => (
         <p key={`${p.path} ${p.message}`} className="text-small">
-          {p.path && <code className="mr-1.5 font-mono text-caption text-down">{p.path}</code>}
+          {p.path && <code className="mr-1.5 font-mono text-small text-down">{p.path}</code>}
           {p.message}
         </p>
       ))}

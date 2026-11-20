@@ -9,6 +9,7 @@
 #include "esp_app_desc.h"
 #include "lvgl.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_24);
@@ -45,11 +46,11 @@ void screen_board_create(lv_obj_t *screen)
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);
     lv_obj_set_pos(sky, 0, 0);
-    lv_obj_set_style_image_recolor(sky, lv_color_hex(0x7c6cf2), 0);
+    lv_obj_set_style_image_recolor(sky, lv_color_hex(TOK_VIOLET), 0);
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 70, 0);
 
-    lv_obj_t *header = centred(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *header = centred(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(header, 2, 0);
     lv_label_set_text(header, "DESK PANEL");
     lv_obj_align(header, LV_ALIGN_TOP_LEFT, 36, 24);
@@ -64,9 +65,9 @@ void screen_board_create(lv_obj_t *screen)
     lv_obj_set_style_pad_hor(pill, 32, 0);
     lv_obj_set_style_pad_ver(pill, 18, 0);
     lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_bg_color(pill, lv_color_hex(0x7c6cf2), 0);
+    lv_obj_set_style_bg_color(pill, lv_color_hex(TOK_VIOLET), 0);
     lv_obj_set_style_bg_opa(pill, 36, 0);
-    lv_obj_set_style_border_color(pill, lv_color_hex(0x8f80ff), 0);
+    lv_obj_set_style_border_color(pill, lv_color_hex(TOK_ACCENT_LINE), 0);
     lv_obj_set_style_border_opa(pill, 110, 0);
     lv_obj_set_style_border_width(pill, 2, 0);
     lv_obj_align(pill, LV_ALIGN_CENTER, 0, 0);

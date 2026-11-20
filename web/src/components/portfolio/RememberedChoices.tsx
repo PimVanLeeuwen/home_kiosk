@@ -36,9 +36,9 @@ export function RememberedChoices({ products, onForget }: Props) {
           <li key={isin} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
             <span className="min-w-0 flex-1">
               {products[isin] && <>{products[isin]} </>}
-              <span className="font-mono text-caption text-faint">{isin}</span>
+              <span className="font-mono text-small text-faint">{isin}</span>
             </span>
-            <span className="font-mono text-caption">{c.ignore ? 'left out' : c.symbol}</span>
+            <span className="font-mono text-small">{c.ignore ? 'left out' : c.symbol}</span>
             <button
               type="button"
               onClick={() => forget(isin)}

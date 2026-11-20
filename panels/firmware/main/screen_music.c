@@ -15,6 +15,7 @@
 #include "lvgl.h"
 #include "pictures.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_24);
 
@@ -123,7 +124,7 @@ void screen_music_create(lv_obj_t *screen)
 {
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
-    lv_obj_t *header = ui_text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *header = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(header, 2, 0);
     lv_label_set_text(header, "MUSIC");
     lv_obj_set_pos(header, LEFT, 30);
@@ -143,7 +144,7 @@ void screen_music_create(lv_obj_t *screen)
 
     static const char *const HEADINGS[2] = {"FAVOURITES", "PLAYED LATELY"};
     for (int row = 0; row < 2; row++) {
-        headings[row] = ui_text(screen, &instrument_24, 0x8a8794);
+        headings[row] = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
         lv_obj_set_style_text_letter_space(headings[row], 2, 0);
         lv_label_set_text(headings[row], HEADINGS[row]);
         lv_obj_set_pos(headings[row], LEFT, ROW_TOP[row] - 40);
@@ -174,13 +175,13 @@ void screen_music_create(lv_obj_t *screen)
             lv_obj_add_flag(t->cover.image, LV_OBJ_FLAG_HIDDEN);
             t->eq = eq_create(t->art);
 
-            t->name = ui_one_line(t->tile, &instrument_24, 0xf1eff7, COVER);
+            t->name = ui_one_line(t->tile, &instrument_24, TOK_DESK_FG, COVER);
             lv_obj_set_pos(t->name, 0, COVER + 10);
             lv_obj_add_flag(t->tile, LV_OBJ_FLAG_HIDDEN);
         }
     }
 
-    footer = ui_one_line(screen, &instrument_24, 0xb4b1c2, WIDTH);
+    footer = ui_one_line(screen, &instrument_24, TOK_DESK_SECONDARY, WIDTH);
     lv_obj_set_pos(footer, LEFT, 650);
 
     lv_timer_create(tick, 1000, NULL);

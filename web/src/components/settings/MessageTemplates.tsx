@@ -122,18 +122,18 @@ function Editor({ template, parentLabel, category, ntfy, onSaved, onClose }: Edi
     >
       <div className="min-w-0 space-y-3">
         <label className="block">
-          <span className="mb-1.5 block text-caption text-muted">Message text</span>
+          <span className="mb-1.5 block text-small text-muted">Message text</span>
           <textarea
             ref={area}
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={Math.min(14, Math.max(3, text.split('\n').length + 1))}
             spellCheck={false}
-            className={cn(inputClass, 'font-mono text-caption leading-relaxed')}
+            className={cn(inputClass, 'font-mono text-small leading-relaxed')}
           />
         </label>
         <div>
-          <p className="mb-1.5 text-caption text-muted">
+          <p className="mb-1.5 text-small text-muted">
             Placeholders <span className="text-faint">(click to insert)</span>
           </p>
           <ul className="flex flex-wrap gap-1.5">
@@ -143,7 +143,7 @@ function Editor({ template, parentLabel, category, ntfy, onSaved, onClose }: Edi
                   type="button"
                   onClick={() => insert(p.name)}
                   title={p.description}
-                  className="rounded-tag border border-line bg-raised px-2 py-1 font-mono text-caption text-accent-fg hover:border-accent-line"
+                  className="rounded-tag border border-line bg-raised px-2 py-1 font-mono text-small text-accent-fg hover:border-accent-line"
                 >
                   {`{${p.name}}`}
                   <span className="sr-only">: {p.description}</span>
@@ -151,20 +151,20 @@ function Editor({ template, parentLabel, category, ntfy, onSaved, onClose }: Edi
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-caption text-faint">
+          <p className="mt-2 text-small text-faint">
             Allowed tags: {'<b> <i> <u> <s> <code> <pre> <blockquote>'}, {'<blockquote expandable>'} for a quote folded until tapped, and {'<a href="{url}">'} with the address from a placeholder; Telegram allows no other tags inside {'<pre>'}, and no {'<code>'} or {'<pre>'} inside a quote. A line that only has an empty placeholder is left out.
           </p>
         </div>
       </div>
 
       <div className="min-w-0 space-y-3">
-        <p className="text-caption text-muted">
+        <p className="text-small text-muted">
           Preview with sample values{parentLabel ? `, inside the ${parentLabel}` : ''}
         </p>
         <Bubble html={preview.html} label="Preview" />
         {ntfy && (
           <>
-            <p className="text-caption text-muted">On your phone (ntfy, plain text)</p>
+            <p className="text-small text-muted">On your phone (ntfy, plain text)</p>
             <PhonePreview html={preview.html} category={category} />
           </>
         )}
@@ -271,7 +271,7 @@ export function MessageTemplates() {
                             </Tag>
                           )}
                         </p>
-                        <p className="text-caption text-muted">
+                        <p className="text-small text-muted">
                           {t.description}
                           {t.category && <span className="text-faint"> · routed as {t.category}</span>}
                         </p>

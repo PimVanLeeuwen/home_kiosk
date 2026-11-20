@@ -20,6 +20,7 @@
 #include "lvgl.h"
 #include "pictures.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -210,9 +211,9 @@ void screen_playing_create(lv_obj_t *screen)
     lv_obj_set_style_shadow_width(progress, 16, LV_PART_INDICATOR);
     lv_obj_set_style_shadow_color(progress, lv_color_white(), LV_PART_INDICATOR);
     lv_obj_set_style_shadow_opa(progress, 110, LV_PART_INDICATOR);
-    elapsed = ui_text(screen, &instrument_24, 0xb4b1c2);
+    elapsed = ui_text(screen, &instrument_24, TOK_DESK_SECONDARY);
     lv_obj_set_pos(elapsed, LEFT, 538);
-    length = ui_text(screen, &instrument_24, 0xb4b1c2);
+    length = ui_text(screen, &instrument_24, TOK_DESK_SECONDARY);
     lv_obj_align(length, LV_ALIGN_TOP_RIGHT, -LEFT, 538);
 
     /* Previous, play or pause, next. */

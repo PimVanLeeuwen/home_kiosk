@@ -17,6 +17,7 @@
 #include "arrive.h"
 #include "backdrops.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -34,7 +35,7 @@ LV_IMAGE_DECLARE(glow_sky);
 #define BAR_HIGH 150
 
 /* GitHub's quartiles in the panels' violet, as on the hub's Code card. */
-static const uint32_t LEVELS[5] = {0x17161d, 0x2b2655, 0x4a4191, 0x8074d5, 0xc3b9ff};
+static const uint32_t LEVELS[5] = {0x17161d, 0x2b2655, 0x4a4191, 0x8074d5, TOK_DATA_LAVENDER};
 
 static lv_obj_t *canvas, *title, *right, *months[6], *bars[16], *this_week, *streak, *busiest, *today_glow, *today_ring;
 EXT_RAM_BSS_ATTR static desk_code_t shown; /* off the LVGL task's small stack */
@@ -114,7 +115,7 @@ static void tick(lv_timer_t *timer)
         bool last = w == shown.week_count - 1;
         lv_obj_set_size(bars[w], CELL, height);
         lv_obj_set_pos(bars[w], GRID_X + w * STEP, BASE - height);
-        lv_obj_set_style_bg_color(bars[w], lv_color_hex(last ? 0xc3b9ff : 0x8f80ff), 0);
+        lv_obj_set_style_bg_color(bars[w], lv_color_hex(last ? TOK_DATA_LAVENDER : TOK_ACCENT_LINE), 0);
         lv_obj_set_style_bg_opa(bars[w], last ? LV_OPA_COVER : 90 + 165 * shown.weeks[w] / 1000, 0);
     }
     lv_obj_set_pos(today_glow, shown.city_x - 9, shown.city_y - 9);
@@ -135,19 +136,19 @@ void screen_code_create(lv_obj_t *screen)
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);
     lv_obj_set_pos(sky, 0, 0);
-    lv_obj_set_style_image_recolor(sky, lv_color_hex(0x7c6cf2), 0);
+    lv_obj_set_style_image_recolor(sky, lv_color_hex(TOK_VIOLET), 0);
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
-    right = ui_text(screen, &instrument_24, 0x8a8794);
+    right = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(right, 2, 0);
     lv_obj_align(right, LV_ALIGN_TOP_RIGHT, -LEFT, 30);
 
     for (int m = 0; m < 6; m++) {
-        months[m] = ui_text(screen, &instrument_24, 0x6c6a78);
+        months[m] = ui_text(screen, &instrument_24, TOK_DESK_FAINT);
     }
     canvas = lv_canvas_create(screen);
     lv_canvas_set_draw_buf(canvas, lv_draw_buf_create(GRID_WIDTH, GRID_HEIGHT, LV_COLOR_FORMAT_ARGB8888, 0));
@@ -166,7 +167,7 @@ void screen_code_create(lv_obj_t *screen)
     lv_obj_set_style_bg_color(base, lv_color_white(), 0);
     lv_obj_set_style_bg_opa(base, 25, 0);
 
-    lv_obj_t *per_week = ui_text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *per_week = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_label_set_text(per_week, "per week");
     lv_obj_set_pos(per_week, LEFT, BASE + 16);
 
@@ -204,7 +205,7 @@ void screen_code_create(lv_obj_t *screen)
     lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
     lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
     lv_anim_start(&anim);
-    this_week = ui_text(screen, &instrument_24, 0x8a8794);
+    this_week = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_align(this_week, LV_ALIGN_TOP_RIGHT, -LEFT, BASE + 16);
     streak = ui_text(screen, &instrument_28_bold, 0xffffff);
     lv_obj_set_pos(streak, LEFT, 640);

@@ -48,7 +48,7 @@ export function HoldingsCard({ holdings, currency }: { holdings: HoldingRow[]; c
       <table className="hidden w-full text-small md:table">
         <caption className="sr-only">Holdings, sorted by {sort}</caption>
         <thead>
-          <tr className="text-left text-caption text-faint">
+          <tr className="text-left text-small text-faint">
             <th scope="col" className="w-[38%] pb-2 font-medium">Holding</th>
             <th scope="col" className="pb-2 text-right font-medium">Value</th>
             <th scope="col" className="pb-2 text-right font-medium">Weight</th>
@@ -65,7 +65,7 @@ export function HoldingsCard({ holdings, currency }: { holdings: HoldingRow[]; c
               <td className="max-w-0 py-2.5 pr-3">
                 <Link to={holdingPath(h)} className="flex min-w-0 items-center gap-2.5 after:absolute after:inset-0" title={h.name}>
                   <Ticker symbol={h.symbol} />
-                  <span className="truncate text-caption text-muted">{h.name}</span>
+                  <span className="truncate text-small text-muted">{h.name}</span>
                 </Link>
               </td>
               <td className="py-2.5 pl-3 text-right whitespace-nowrap">{money(h.value)}</td>
@@ -80,11 +80,11 @@ export function HoldingsCard({ holdings, currency }: { holdings: HoldingRow[]; c
               </td>
               <td className="py-2.5 pl-3 text-right whitespace-nowrap">
                 <Tag tone={sign(h.day_pct)} size="caption">{formatSignedPct(h.day_pct)}</Tag>
-                {h.day_abs != null && <span className="mt-0.5 block text-caption text-muted">{formatSignedMoney(h.day_abs, currency)}</span>}
+                {h.day_abs != null && <span className="mt-0.5 block text-small text-muted">{formatSignedMoney(h.day_abs, currency)}</span>}
               </td>
               <td className={cn('py-2.5 pl-3 text-right whitespace-nowrap', tone(h.gain_pct))}>
                 {h.gain_pct != null ? formatSignedPct(h.gain_pct) : '–'}
-                {h.gain_abs != null && <span className="block text-caption opacity-80">{formatSignedMoney(h.gain_abs, currency)}</span>}
+                {h.gain_abs != null && <span className="block text-small opacity-80">{formatSignedMoney(h.gain_abs, currency)}</span>}
               </td>
               <td className="py-2.5 pl-2 text-faint group-hover:text-fg">
                 <ChevronRight aria-hidden="true" className="size-4" />
@@ -99,10 +99,10 @@ export function HoldingsCard({ holdings, currency }: { holdings: HoldingRow[]; c
           <li key={h.symbol} className="border-t border-line-soft first:border-t-0">
             <Link to={holdingPath(h)} className="flex items-center gap-3 py-3">
               <Ticker symbol={h.symbol} />
-              <span className="min-w-0 flex-1 truncate text-caption text-muted">{h.name}</span>
+              <span className="min-w-0 flex-1 truncate text-small text-muted">{h.name}</span>
               <span className="text-right whitespace-nowrap">
                 <span className="block">{money(h.value)}</span>
-                <span className={cn('block text-caption', tone(sort === 'gain' ? h.gain_pct : h.day_pct))}>
+                <span className={cn('block text-small', tone(sort === 'gain' ? h.gain_pct : h.day_pct))}>
                   {sort === 'gain'
                     ? `${h.gain_pct != null ? formatSignedPct(h.gain_pct) : '–'} total`
                     : `${formatSignedPct(h.day_pct)} today`}

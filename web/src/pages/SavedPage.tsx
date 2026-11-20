@@ -109,7 +109,7 @@ export function SavedPage() {
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block font-medium">{b.title}</span>
-                    <span className="mt-0.5 block text-caption text-faint">{details(b)}</span>
+                    <span className="mt-0.5 block text-small text-faint">{details(b)}</span>
                   </span>
                   {(b.thumbnail || inProgress(b)) && (
                     <span className="relative shrink-0">

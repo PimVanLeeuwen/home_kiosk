@@ -154,7 +154,7 @@ export function NewsPage() {
                     <GlowDot tone="accent" size="sm" className={cn('mt-2', isRead(a) && 'invisible')} />
                     <span className="min-w-0">
                       <span className={cn('block', isRead(a) ? 'text-muted' : 'font-medium')}>{a.title}</span>
-                      <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-caption text-faint">
+                      <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-small text-faint">
                         <Tag size="micro" colour={colourOf(a.group_id)}>
                           {groupTitle(a.group_id)}
                         </Tag>

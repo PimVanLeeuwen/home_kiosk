@@ -56,7 +56,7 @@ export function Progress({ playing, colour, className }: { playing: Playing; col
           className="relative block h-full rounded-full bg-white shadow-[0_0_10px_var(--pc)] after:absolute after:top-[-4px] after:right-[-6px] after:size-[13px] after:rounded-full after:bg-white after:shadow-[0_0_12px_var(--pc)]"
         />
       </div>
-      <div className="mt-[7px] flex justify-between text-caption text-white/70">
+      <div className="mt-[7px] flex justify-between text-small text-white/70">
         <span>{minutes(at)}</span>
         <span>{minutes(playing.duration_ms)}</span>
       </div>
@@ -122,7 +122,7 @@ export function NowPlaying({ playing, onControl, onVolume, waiting = false }: Pr
         </div>
         {playing.device && (
           // On a phone the Devices list below says where it plays; the chip would cover the record.
-          <span className="hidden items-center gap-[7px] rounded-full border border-white/18 bg-white/12 px-3 py-1.5 text-caption whitespace-nowrap text-white backdrop-blur-[8px] sm:inline-flex">
+          <span className="hidden items-center gap-[7px] rounded-full border border-white/18 bg-white/12 px-3 py-1.5 text-small whitespace-nowrap text-white backdrop-blur-[8px] sm:inline-flex">
             <GlowDot tone="up" size="sm" />
             {playing.device.name}
           </span>
@@ -162,7 +162,7 @@ export function NowPlaying({ playing, onControl, onVolume, waiting = false }: Pr
       </div>
 
       {volume !== null && (
-        <label className="relative mt-4 flex items-center gap-2.5 text-caption text-white/75">
+        <label className="relative mt-4 flex items-center gap-2.5 text-small text-white/75">
           <Volume2 aria-hidden="true" className="size-4" />
           <span className="sr-only">Volume</span>
           <input
@@ -194,7 +194,7 @@ export function NothingPlaying({ last, defaultDevice }: { last: MusicItem | null
           <Cover item={last} className="size-[46px] flex-none rounded-control" />
           <div className="min-w-0">
             <b className="block truncate text-body">{last.title}</b>
-            <span className="block truncate text-caption text-muted">Played last{last.subtitle ? ` · ${last.subtitle}` : ''}</span>
+            <span className="block truncate text-small text-muted">Played last{last.subtitle ? ` · ${last.subtitle}` : ''}</span>
           </div>
         </div>
       )}

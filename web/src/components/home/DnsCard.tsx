@@ -40,7 +40,7 @@ export function DnsCard({ data: dns, error }: Props) {
           )}
           <div className="grid grid-cols-[minmax(0,1fr)_96px] items-center gap-4 sm:grid-cols-[minmax(0,1fr)_112px]">
             <div className="min-w-0">
-              <p className="text-giant leading-none font-semibold tracking-tight tabular-nums">
+              <p className="text-hero leading-none font-semibold tracking-tight tabular-nums">
                 <AnimatedNumber value={dns.blocked} format={(n) => formatCount(Math.round(n))} />
               </p>
               <p className="mt-2 text-small text-muted">
@@ -72,7 +72,7 @@ export function DnsCard({ data: dns, error }: Props) {
               </span>
             </p>
           )}
-          <p className="mt-3 text-caption text-faint">Updated {formatAgo(dns.as_of, now)} · AdGuard Home</p>
+          <p className="mt-3 text-small text-faint">Updated {formatAgo(dns.as_of, now)} · AdGuard Home</p>
           {dns.stale && !trouble && <StaleNote />}
         </>
       )}

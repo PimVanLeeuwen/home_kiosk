@@ -229,7 +229,7 @@ export function CommandPalette({ open, onClose }: Props) {
         </p>
       )}
       {documents && !documents.available && query.trim().length >= DOCUMENTS_FROM && (
-        <p className="border-t border-line-soft px-4 py-2 text-caption text-faint">Paperless: {documents.reason}</p>
+        <p className="border-t border-line-soft px-4 py-2 text-small text-faint">Paperless: {documents.reason}</p>
       )}
       {rows.length === 0 && (
         <p role="status" className="px-5 pt-1 pb-6 text-muted">

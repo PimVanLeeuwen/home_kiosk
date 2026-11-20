@@ -196,7 +196,7 @@ function NowPlaying({ room }: { room: Room & { playing: ApplePlaying } }) {
       )}
       <span className="min-w-0">
         <span className="block truncate text-body font-semibold">{p.title}</span>
-        <span className="block truncate text-caption text-muted">{details}</span>
+        <span className="block truncate text-small text-muted">{details}</span>
       </span>
       <span aria-hidden="true" className="flex h-4 items-end gap-0.5">
         {[0, -0.3, -0.6, -0.15].map((delay) => (
@@ -234,7 +234,7 @@ export function AppleCard({ data }: { data: AppleDevices | undefined }) {
   return (
     <Card title="Apple devices" actions={pill}>
       <Plan rooms={data.rooms} />
-      <div className="mt-2 flex flex-wrap justify-between gap-2.5 text-caption text-muted">
+      <div className="mt-2 flex flex-wrap justify-between gap-2.5 text-small text-muted">
         <span>
           <b className="font-medium text-fg">{devices.length - offline}</b> of {devices.length} online
         </span>

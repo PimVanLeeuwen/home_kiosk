@@ -28,12 +28,12 @@ export function StorageCard({ pools }: { pools: Pool[] }) {
               >
                 <ArcGauge pct={pool.used_pct} alertAt={POOL_FULL_PCT} label={pool.name} className="mx-auto w-full sm:w-[82%] sm:max-w-[200px]" />
                 <div className="min-w-0">
-                  <p className="font-mono text-caption font-semibold">{pool.name}</p>
-                  <p className="text-caption text-muted">
+                  <p className="font-mono text-small font-semibold">{pool.name}</p>
+                  <p className="text-small text-muted">
                     {formatBytes(pool.used_bytes)} of {formatBytes(pool.total_bytes)}
                   </p>
-                  <p className="text-caption text-muted">{formatBytes(pool.free_bytes)} free</p>
-                  <p className={shortRunway(pool) ? 'text-caption text-warn' : 'text-caption text-faint'}>{formatRunway(pool.projection_months)}</p>
+                  <p className="text-small text-muted">{formatBytes(pool.free_bytes)} free</p>
+                  <p className={shortRunway(pool) ? 'text-small text-warn' : 'text-small text-faint'}>{formatRunway(pool.projection_months)}</p>
                 </div>
               </li>
             ))}

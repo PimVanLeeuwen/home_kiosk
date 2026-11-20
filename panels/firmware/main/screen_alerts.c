@@ -15,6 +15,7 @@
 #include "lvgl.h"
 #include "backdrops.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -28,9 +29,9 @@ LV_IMAGE_DECLARE(glow_sky);
 #define RIPPLE 340
 #define RINGS 3
 
-#define GREEN 0x5fd39c
-#define AMBER 0xf0bd5a
-#define RED 0xff6b6b
+#define GREEN TOK_DESK_UP
+#define AMBER TOK_DATA_AMBER
+#define RED TOK_DESK_DOWN
 
 static lv_obj_t *sky, *title, *pill, *pill_text;
 static lv_obj_t *open_box, *icon, *severity_pill, *severity, *hero_title, *hero_body, *hero_line, *divider;
@@ -105,7 +106,7 @@ static void show_quiet(void)
     for (int d = 0; d < 7; d++) {
         char letter[2] = {shown.days[d].letter, '\0'};
         lv_label_set_text(day_letters[d], letter);
-        lv_obj_set_style_text_color(day_letters[d], lv_color_hex(shown.days[d].today ? 0xf1eff7 : 0x6c6a78), 0);
+        lv_obj_set_style_text_color(day_letters[d], lv_color_hex(shown.days[d].today ? TOK_DESK_FG : TOK_DESK_FAINT), 0);
         char alert = shown.days[d].alert;
         uint32_t dot = alert ? tone_colour(alert) : shown.days[d].future ? 0x1a1920 : 0x2c2a33;
         lv_obj_set_style_bg_color(day_dots[d], lv_color_hex(dot), 0);
@@ -181,11 +182,11 @@ static void build_open(lv_obj_t *screen)
     lv_obj_set_pos(hero_title, ICON + 28, 40);
 
     /* Under them: its first lines (three at most) and how long it has been open. */
-    hero_body = ui_text(open_box, &instrument_24, 0xc9c6d6);
+    hero_body = ui_text(open_box, &instrument_24, TOK_DESK_SOFT);
     lv_label_set_long_mode(hero_body, LV_LABEL_LONG_DOT);
     lv_obj_set_size(hero_body, WIDTH, 3 * lv_font_get_line_height(&instrument_24));
     lv_obj_set_pos(hero_body, 0, 150);
-    hero_line = ui_one_line(open_box, &instrument_24, 0x8a8794, WIDTH);
+    hero_line = ui_one_line(open_box, &instrument_24, TOK_DESK_MUTED, WIDTH);
     lv_obj_set_pos(hero_line, 0, 262);
 
     divider = ui_plain(open_box);
@@ -202,7 +203,7 @@ static void build_open(lv_obj_t *screen)
         lv_obj_set_style_radius(other_dots[i], 7, 0);
         lv_obj_set_style_bg_opa(other_dots[i], LV_OPA_COVER, 0);
         lv_obj_align(other_dots[i], LV_ALIGN_LEFT_MID, 2, 0);
-        other_titles[i] = ui_one_line(row, &instrument_28_bold, 0xf1eff7, WIDTH - 32);
+        other_titles[i] = ui_one_line(row, &instrument_28_bold, TOK_DESK_FG, WIDTH - 32);
         lv_obj_align(other_titles[i], LV_ALIGN_LEFT_MID, 32, 0);
     }
 }
@@ -247,7 +248,7 @@ static void build_quiet(lv_obj_t *screen)
     lv_obj_t *words = ui_text(quiet_box, &instrument_40, 0xffffff);
     lv_label_set_text(words, "All quiet");
     lv_obj_align(words, LV_ALIGN_TOP_MID, 0, RIPPLE + 6);
-    quiet_line = ui_one_line(quiet_box, &instrument_24, 0x8a8794, WIDTH);
+    quiet_line = ui_one_line(quiet_box, &instrument_24, TOK_DESK_MUTED, WIDTH);
     lv_obj_set_style_text_align(quiet_line, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(quiet_line, LV_ALIGN_TOP_MID, 0, RIPPLE + 62);
 
@@ -258,9 +259,9 @@ static void build_quiet(lv_obj_t *screen)
         lv_obj_set_size(day_dots[d], 18, 18);
         lv_obj_set_style_radius(day_dots[d], 9, 0);
         lv_obj_set_style_bg_opa(day_dots[d], LV_OPA_COVER, 0);
-        lv_obj_set_style_border_color(day_dots[d], lv_color_hex(0xf1eff7), 0);
+        lv_obj_set_style_border_color(day_dots[d], lv_color_hex(TOK_DESK_FG), 0);
         lv_obj_set_pos(day_dots[d], x - 9, RIPPLE + 122);
-        day_letters[d] = ui_text(quiet_box, &instrument_24, 0x6c6a78);
+        day_letters[d] = ui_text(quiet_box, &instrument_24, TOK_DESK_FAINT);
         lv_obj_set_width(day_letters[d], 40);
         lv_obj_set_style_text_align(day_letters[d], LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_set_pos(day_letters[d], x - 20, RIPPLE + 150);
@@ -282,7 +283,7 @@ void screen_alerts_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 50, 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
     pill = ui_plain(screen);

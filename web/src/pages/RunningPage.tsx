@@ -79,7 +79,7 @@ export function RunningPage() {
                   <h2 id="last-run" className="text-small font-semibold text-white/70">
                     Last run · {runWhen.format(new Date(last.start))}
                   </h2>
-                  <p className="-mt-1 text-[56px] leading-none font-semibold tracking-tight text-white">
+                  <p className="-mt-1 text-hero leading-none font-semibold tracking-tight text-white">
                     {km(last.distance_m ?? 0)}
                     <small className="ml-1 text-title font-medium text-white/70">km</small>
                   </p>
@@ -113,17 +113,17 @@ export function RunningPage() {
                 note={data.has_plan ? `${km(t.week_m)} of ${km(t.week_planned_m)} km` : `${km(t.week_m)} km`}
               >
                 <WeekColumns week={data.week} today={today} />
-                {!data.has_plan && <p className="mt-3 text-caption text-faint">Runna's plan shows here once its calendar feed is set (RUNNA_ICS_URL).</p>}
+                {!data.has_plan && <p className="mt-3 text-small text-faint">Runna's plan shows here once its calendar feed is set (RUNNA_ICS_URL).</p>}
               </Card>
 
               {data.next && (
                 <Card title={`Next: ${sessionDay(data.next, now)}, ${data.next.name}`}>
                   <SessionShape blocks={data.next.blocks} label={`${data.next.name} as blocks, from warm-up to cool-down`} />
-                  <p className="mt-2 text-caption text-muted">
+                  <p className="mt-2 text-small text-muted">
                     {[data.next.distance_m ? `${km(data.next.distance_m)} km` : null, data.next.estimate, data.next.time].filter(Boolean).join(' · ')}
                   </p>
                   {data.next.steps.length > 0 && (
-                    <ul className="mt-2 grid gap-0.5 text-caption text-faint">
+                    <ul className="mt-2 grid gap-0.5 text-small text-faint">
                       {data.next.steps.slice(0, 5).map((s) => (
                         <li key={s}>{s}</li>
                       ))}

@@ -33,7 +33,7 @@ export function TodoSettings() {
 
   return (
     <Surface padding="list">
-      <p className="pt-3 pb-2.5 text-caption text-faint">
+      <p className="pt-3 pb-2.5 text-small text-faint">
         Every day, one ntfy message lists the open todos, overdue ones marked. With nothing open there is no message. In quiet hours it arrives silently.
       </p>
       <p className="flex flex-wrap items-center gap-2 pb-3">
@@ -49,7 +49,7 @@ export function TodoSettings() {
         />
       </p>
       {error && (
-        <p role="alert" className="pb-3 text-caption text-down">
+        <p role="alert" className="pb-3 text-small text-down">
           {error}
         </p>
       )}

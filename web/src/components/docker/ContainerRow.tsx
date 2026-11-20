@@ -75,7 +75,7 @@ export function ContainerRow({ container: c, spark, updates, open, onToggle, cpu
           {c.mem_bytes == null ? '–' : formatBytes(c.mem_bytes)}
           {c.mem_bytes != null && <LoadBar share={c.mem_bytes / memTop} color="var(--color-data-blue)" />}
         </span>
-        <span className="col-span-3 text-caption whitespace-nowrap text-muted md:col-span-1 md:text-right">
+        <span className="col-span-3 text-small whitespace-nowrap text-muted md:col-span-1 md:text-right">
           {c.state !== 'running' ? (
             <span className="text-down">{exited(c.status)}</span>
           ) : c.rx_bps == null ? (
@@ -94,7 +94,7 @@ export function ContainerRow({ container: c, spark, updates, open, onToggle, cpu
 function Panel({ title, note, children }: { title: string; note: string; children: ReactNode }) {
   return (
     <div className="overflow-hidden rounded-tile border border-glass-line bg-glass px-3 pt-2.5">
-      <p className="flex justify-between gap-3 text-caption">
+      <p className="flex justify-between gap-3 text-small">
         <span className="text-muted">{title}</span>
         <span>{note}</span>
       </p>
@@ -126,7 +126,7 @@ function ContainerDetail({ id, container: c, updates }: { id: string; container:
         <dt className="text-muted">Status</dt>
         <dd>{c.status || c.state}</dd>
         <dt className="text-muted">Image</dt>
-        <dd className="truncate font-mono text-caption">{c.image}</dd>
+        <dd className="truncate font-mono text-small">{c.image}</dd>
         <dt className="text-muted">Last update</dt>
         <dd>{updates[0] ? formatWhen(updates[0].at) : 'None seen yet'}</dd>
       </dl>

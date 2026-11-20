@@ -28,12 +28,12 @@ export function StreetsCard({ data }: { data: RunningOverview }) {
         <h2 id="your-streets" className="text-title font-semibold text-white">
           Your streets, {year}
         </h2>
-        <p className="text-caption text-white/70">
+        <p className="text-small text-white/70">
           {t.runs_this_year} {t.runs_this_year === 1 ? 'run' : 'runs'} · {km(t.year_m, 0)} km
           {away > 0 && ` · ${away} ${away === 1 ? 'run' : 'runs'} elsewhere, not on this map`}
         </p>
         {!data.streets_at && (
-          <p className="mt-1 text-caption text-white/70">
+          <p className="mt-1 text-small text-white/70">
             The town's streets come in once fetched in{' '}
             <Link to="/settings/running" className="text-accent-fg hover:underline">
               Settings → Running

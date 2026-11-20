@@ -124,7 +124,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
             aria-pressed={category === key}
             onClick={() => setCategory(key)}
             className={cn(
-              'rounded-full border px-3 py-1 text-caption',
+              'rounded-full border px-3 py-1 text-small',
               category === key
                 ? 'border-accent-line/40 bg-accent/20 text-fg'
                 : 'border-glass-line bg-glass text-muted hover:text-fg',
@@ -144,7 +144,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
           return (
             <li key={m.id} className="relative border-t border-line-soft py-3 first:border-t-0 first:pt-0.5">
               <GlowDot tone={SEVERITY_TONE[m.severity]} size="sm" className="absolute top-[1.15rem] -left-[20.5px] in-[li:first-child]:top-[0.55rem]" />
-              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-faint">
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-small text-faint">
                 <span>{formatWhen(m.ts)}</span>
                 <Tag variant="glass" size="micro">
                   {sourceLabel(m.source)}
@@ -153,7 +153,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
               </p>
               <p className="mt-1 font-semibold">
                 {openedAt - new Date(m.ts).getTime() < PAGE_DAYS * 86_400_000 ? (
-                  <Link to={`/alerts/${m.id}`} viewTransition className="hover:text-accent-fg hover:underline">
+                  <Link to={`/alerts/${m.id}`} viewTransition className="hit hover:text-accent-fg hover:underline">
                     {m.title}
                   </Link>
                 ) : (
@@ -161,7 +161,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
                 )}
               </p>
               {m.body && <p className="mt-0.5 text-small whitespace-pre-line text-muted">{m.body}</p>}
-              <p className="mt-1 flex items-center gap-1.5 text-caption">
+              <p className="mt-1 flex items-center gap-1.5 text-small">
                 <span aria-hidden="true" className={d.markClass}>
                   {d.mark}
                 </span>

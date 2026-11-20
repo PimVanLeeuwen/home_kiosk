@@ -19,6 +19,7 @@
 #include "lvgl.h"
 #include "backdrops.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -34,11 +35,11 @@ LV_IMAGE_DECLARE(glow_round);
 #define SMALL 64 /* a tile below the incident card */
 #define SMALL_Y 512
 
-#define GREEN 0x5fd39c
-#define AMBER 0xf0bd5a
-#define RED 0xff6b6b
-#define VIOLET 0x8f80ff
-#define GREY 0x8a8794
+#define GREEN TOK_DESK_UP
+#define AMBER TOK_DATA_AMBER
+#define RED TOK_DESK_DOWN
+#define VIOLET TOK_ACCENT_LINE
+#define GREY TOK_DESK_MUTED
 #define SPARK_MS 40     /* 25 steps a second */
 #define SPARK_STEP 0.016f /* 2.5 s from a service to the check */
 
@@ -80,7 +81,7 @@ static tile_t tile_create(lv_obj_t *parent, int size)
     lv_image_set_scale(t.logo, 256 * size / 2 / 48);
     lv_obj_set_style_image_recolor_opa(t.logo, LV_OPA_COVER, 0);
     lv_obj_center(t.logo);
-    t.letter = ui_text(t.box, &instrument_28_bold, 0xf1eff7);
+    t.letter = ui_text(t.box, &instrument_28_bold, TOK_DESK_FG);
     lv_obj_center(t.letter);
     return t;
 }
@@ -174,7 +175,7 @@ static void show_incident(void)
             lv_label_set_text(steps[i], inc->steps[i].status);
             lv_label_set_text(step_times[i], inc->steps[i].time);
             lv_obj_set_style_bg_color(step_dots[i], lv_color_hex(i == 0 ? colour : 0x4a4856), 0);
-            lv_obj_set_style_text_color(steps[i], lv_color_hex(i == 0 ? 0xf1eff7 : GREY), 0);
+            lv_obj_set_style_text_color(steps[i], lv_color_hex(i == 0 ? TOK_DESK_FG : GREY), 0);
         }
     }
     /* The others, evenly spread below the card. */
@@ -218,7 +219,7 @@ static void tick(lv_timer_t *timer)
     lv_obj_set_style_border_color(pill, lv_color_hex(colour), 0);
     lv_obj_set_style_border_opa(pill, shown.tone == 'k' ? 150 : LV_OPA_COVER, 0);
     lv_obj_set_style_text_color(pill_text, lv_color_hex(colour), 0);
-    lv_obj_set_style_image_recolor(sky, lv_color_hex(shown.has_incident ? colour : 0x7c6cf2), 0);
+    lv_obj_set_style_image_recolor(sky, lv_color_hex(shown.has_incident ? colour : TOK_VIOLET), 0);
     lv_obj_set_flag(ring_view, LV_OBJ_FLAG_HIDDEN, shown.has_incident);
     lv_obj_set_flag(incident_view, LV_OBJ_FLAG_HIDDEN, !shown.has_incident);
     if (shown.has_incident) {
@@ -306,12 +307,12 @@ static void create_incident(lv_obj_t *screen)
     lv_obj_t *top = ui_plain(card);
     lv_obj_set_size(top, LV_PCT(100), CARD_TILE);
     card_tile = tile_create(top, CARD_TILE);
-    card_name = ui_text(top, &instrument_28_bold, 0xf1eff7);
+    card_name = ui_text(top, &instrument_28_bold, TOK_DESK_FG);
     lv_obj_set_pos(card_name, CARD_TILE + 20, 2);
     card_line = ui_text(top, &instrument_24, AMBER);
     lv_obj_set_pos(card_line, CARD_TILE + 20, 40);
 
-    card_title = ui_text(card, &instrument_24, 0xf1eff7);
+    card_title = ui_text(card, &instrument_24, TOK_DESK_FG);
     lv_obj_set_width(card_title, LV_PCT(100));
     lv_label_set_long_mode(card_title, LV_LABEL_LONG_DOT);
     lv_obj_set_style_max_height(card_title, 3 * 32, 0);
@@ -335,7 +336,7 @@ static void create_incident(lv_obj_t *screen)
         small[i] = tile_create(incident_view, SMALL);
         lv_obj_add_flag(small[i].box, LV_OBJ_FLAG_HIDDEN);
     }
-    others = ui_text(incident_view, &instrument_24, 0x6c6a78);
+    others = ui_text(incident_view, &instrument_24, TOK_DESK_FAINT);
     lv_obj_set_width(others, 648);
     lv_obj_set_style_text_align(others, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_pos(others, LEFT, SMALL_Y + SMALL + 24);
@@ -353,7 +354,7 @@ void screen_services_create(lv_obj_t *screen)
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);
     lv_obj_set_pos(sky, 0, 0);
-    lv_obj_set_style_image_recolor(sky, lv_color_hex(0x7c6cf2), 0);
+    lv_obj_set_style_image_recolor(sky, lv_color_hex(TOK_VIOLET), 0);
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 

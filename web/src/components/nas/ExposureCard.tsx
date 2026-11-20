@@ -97,8 +97,8 @@ export function ExposureCard() {
                 : 'Nothing public beyond the allowlist'}
             </p>
           )}
-          <p className="text-caption text-muted">
-            Public names in <span className="font-mono text-caption">{data.zone}</span> that lead to the house, from
+          <p className="text-small text-muted">
+            Public names in <span className="font-mono text-small">{data.zone}</span> that lead to the house, from
             Cloudflare&apos;s DNS and tunnel settings, each requested from outside. Checked {formatWhen(data.as_of)}.
           </p>
         </div>
@@ -122,13 +122,13 @@ export function ExposureCard() {
               )}
             >
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <span className="font-mono text-caption break-all">{host.hostname}</span>
-                <span className={cn('flex items-center gap-1.5 text-caption font-semibold', host.allowed ? 'text-up' : 'text-down')}>
+                <span className="font-mono text-small break-all">{host.hostname}</span>
+                <span className={cn('flex items-center gap-1.5 text-small font-semibold', host.allowed ? 'text-up' : 'text-down')}>
                   {!host.allowed && <GlowDot tone="down" halo size="sm" />}
                   {host.allowed ? 'Allowed' : 'Not allowed'}
                 </span>
               </div>
-              <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-caption text-muted">
+              <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-small text-muted">
                 <Tag size="micro" caps tone="accent" colour={host.source === 'tunnel' ? undefined : 'var(--color-data-blue)'}>
                   {host.source === 'tunnel' ? 'Tunnel' : 'DNS'}
                 </Tag>
@@ -139,7 +139,7 @@ export function ExposureCard() {
           ))}
         </ul>
       )}
-      <div className="mt-3.5 border-t border-line-soft pt-3 text-caption">
+      <div className="mt-3.5 border-t border-line-soft pt-3 text-small">
         <p className="mb-1.5 text-label eyebrow text-faint">Port scan from outside</p>
         <ScanLine scan={scan} />
       </div>

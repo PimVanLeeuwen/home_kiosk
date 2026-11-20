@@ -23,6 +23,7 @@
 #include "arrive.h"
 #include "backdrops.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_time);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -40,10 +41,10 @@ LV_IMAGE_DECLARE(glow_sky);
 #define RING_DOTS 12  /* the seal's turning ring: few, so a frame changes few areas */
 #define RING_MS 100
 
-#define GREEN 0x5fd39c
-#define AMBER 0xf0bd5a
-#define RED 0xff6b6b
-#define VIOLET 0x7c6cf2
+#define GREEN TOK_DESK_UP
+#define AMBER TOK_DATA_AMBER
+#define RED TOK_DESK_DOWN
+#define VIOLET TOK_VIOLET
 
 static lv_obj_t *sky, *title, *pill, *pill_text, *seal, *time_label, *line, *restore, *box;
 static lv_obj_t *flow_line, *light, *bars, *count_label, *slow_label, *last_label;
@@ -175,7 +176,7 @@ static void tick(lv_timer_t *timer)
     lv_label_set_text(time_label, shown.time);
     lv_label_set_text(line, shown.line);
     lv_label_set_text(restore, shown.restore);
-    uint32_t restore_colour = shown.restore_tone == 'o' ? GREEN : shown.restore_tone == 'f' ? RED : 0x8a8794;
+    uint32_t restore_colour = shown.restore_tone == 'o' ? GREEN : shown.restore_tone == 'f' ? RED : TOK_DESK_MUTED;
     lv_obj_set_style_text_color(restore, lv_color_hex(restore_colour), 0);
     lv_label_set_text(box, shown.box);
 
@@ -206,7 +207,7 @@ static lv_obj_t *chip(lv_obj_t *screen, const char *words)
     lv_obj_set_style_bg_color(obj, lv_color_hex(0x121119), 0);
     lv_obj_set_style_border_width(obj, 1, 0);
     lv_obj_set_style_border_color(obj, lv_color_hex(0x2a2833), 0);
-    lv_obj_t *label = ui_text(obj, &instrument_24, 0xf1eff7);
+    lv_obj_t *label = ui_text(obj, &instrument_24, TOK_DESK_FG);
     lv_label_set_text(label, words);
     return obj;
 }
@@ -226,7 +227,7 @@ void screen_backups_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 60, 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
     pill = ui_plain(screen);
@@ -256,11 +257,11 @@ void screen_backups_create(lv_obj_t *screen)
     }
     lv_timer_create(turn_ring, RING_MS, NULL);
     int text_x = LEFT + SEAL + 28, text_w = WIDTH - SEAL - 28;
-    time_label = ui_text(screen, &instrument_time, 0xf1eff7);
+    time_label = ui_text(screen, &instrument_time, TOK_DESK_FG);
     lv_obj_set_pos(time_label, text_x, HERO_TOP - 2);
-    line = ui_one_line(screen, &instrument_24, 0xc9c6d6, text_w);
+    line = ui_one_line(screen, &instrument_24, TOK_DESK_SOFT, text_w);
     lv_obj_set_pos(line, text_x, HERO_TOP + 80);
-    restore = ui_one_line(screen, &instrument_24, 0x8a8794, text_w);
+    restore = ui_one_line(screen, &instrument_24, TOK_DESK_MUTED, text_w);
     lv_obj_set_pos(restore, text_x, HERO_TOP + 116);
 
     /* NAS to Hetzner, encrypted, with one light on its way. */
@@ -294,7 +295,7 @@ void screen_backups_create(lv_obj_t *screen)
     lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
     lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
     lv_anim_start(&anim);
-    box = ui_one_line(screen, &instrument_24, 0x8a8794, WIDTH);
+    box = ui_one_line(screen, &instrument_24, TOK_DESK_MUTED, WIDTH);
     lv_obj_set_style_text_align(box, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_pos(box, LEFT, FLOW_TOP + 56);
 

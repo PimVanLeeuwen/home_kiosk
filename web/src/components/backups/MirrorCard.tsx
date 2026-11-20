@@ -14,7 +14,7 @@ function Tile({ value, label, bad }: { value: string; label: string; bad?: boole
       )}
     >
       <p className={cn('text-heading leading-tight font-semibold', bad && 'text-down')}>{value}</p>
-      <p className="truncate text-caption text-muted">{label}</p>
+      <p className="truncate text-small text-muted">{label}</p>
     </div>
   )
 }
@@ -45,9 +45,9 @@ export function MirrorCard({ mirror }: { mirror: GitHubMirror }) {
               <Tile value={formatBytes(last.bytes)} label="on the NAS" />
             </div>
           )}
-          <p className="mt-3 text-caption text-muted">
+          <p className="mt-3 text-small text-muted">
             A bare git copy of every repo of {mirror.owners.map((o) => o.login).join(' and ') || 'the mirrored owners'}{' '}
-            (no forks), kept in <span className="font-mono text-caption">/volume3/backups/github</span> and taken to Hetzner
+            (no forks), kept in <span className="font-mono text-small">/volume3/backups/github</span> and taken to Hetzner
             by the nightly backup. Repos deleted on GitHub are deleted here too.
           </p>
         </div>
@@ -83,7 +83,7 @@ export function MirrorCard({ mirror }: { mirror: GitHubMirror }) {
             </dl>
           )}
           {problems.length > 0 && (
-            <ul className="mt-3 space-y-1 rounded-control border border-down/40 bg-down/10 px-3 py-2 font-mono text-caption break-words text-fg">
+            <ul className="mt-3 space-y-1 rounded-control border border-down/40 bg-down/10 px-3 py-2 font-mono text-small break-words text-fg">
               {problems.map((p) => (
                 <li key={p}>{p}</li>
               ))}

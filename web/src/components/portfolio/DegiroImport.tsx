@@ -172,7 +172,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
                   return (
                     <label key={p.isin} className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center sm:gap-3">
                       <span>
-                        {p.product} <span className="font-mono text-caption text-faint">{p.isin}</span>
+                        {p.product} <span className="font-mono text-small text-faint">{p.isin}</span>
                       </span>
                       <select
                         value={current?.ignore ? LEAVE_OUT : current ? `${current.data_source}/${current.symbol}` : ''}
@@ -185,7 +185,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
                         <optgroup label="New holding in Ghostfolio">{p.candidates.filter((c) => !c.held).map(option)}</optgroup>
                       </select>
                       {picked && !picked.held && (
-                        <span role="alert" className="text-caption text-warn sm:col-start-2">
+                        <span role="alert" className="text-small text-warn sm:col-start-2">
                           This adds {picked.symbol} as a new holding. If you already hold this fund, choose it under You
                           hold, or it will count twice.
                         </span>
@@ -214,7 +214,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
             <table className="mb-5 w-full text-small">
               <caption className="mb-2 text-left text-small font-semibold text-muted">New trades</caption>
               <thead>
-                <tr className="text-left text-caption text-faint">
+                <tr className="text-left text-small text-faint">
                   <th scope="col" className="pb-2 font-medium">Date</th>
                   <th scope="col" className="pb-2 font-medium">Holding</th>
                   <th scope="col" className="pb-2 font-medium">Type</th>
@@ -226,7 +226,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
                 {fresh.map((r) => (
                   <tr key={r.line} className="border-t border-line-soft">
                     <td className="py-2 whitespace-nowrap">{formatDate(r.date)}</td>
-                    <td className="py-2 font-mono text-caption">{r.symbol}</td>
+                    <td className="py-2 font-mono text-small">{r.symbol}</td>
                     <td className="py-2">{r.type === 'BUY' ? 'Buy' : 'Sell'}</td>
                     <td className="py-2 text-right">{formatQuantity(r.quantity)}</td>
                     <td className="py-2 text-right whitespace-nowrap">{formatPrice(r.price, r.currency)}</td>

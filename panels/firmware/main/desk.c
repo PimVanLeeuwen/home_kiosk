@@ -42,6 +42,7 @@
 #include "pictures.h"
 #include "update.h"
 #include "sdkconfig.h"
+#include "tokens.h"
 
 /* A screen's new data takes a new version only when something in it changed: every screen
  * redraws on a new version, and all of them at once, every 30 s, held the LVGL task for most
@@ -674,7 +675,7 @@ static void parse_headlines(const cJSON *screen, desk_headlines_t *news)
 static uint32_t colour(const cJSON *from)
 {
     if (!cJSON_IsString(from) || from->valuestring[0] != '#') {
-        return 0x8f80ff;
+        return TOK_ACCENT_LINE;
     }
     return (uint32_t)strtoul(from->valuestring + 1, NULL, 16);
 }

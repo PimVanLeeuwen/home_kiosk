@@ -22,6 +22,7 @@
 #include "arrive.h"
 #include "backdrops.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -41,10 +42,10 @@ LV_IMAGE_DECLARE(glow_sky);
 #define DOT 14
 #define RIPPLE 46
 
-#define GREEN 0x5fd39c
+#define GREEN TOK_DESK_UP
 #define RED 0xff7d7d
-#define VIOLET 0x7c6cf2
-#define GREY 0x8a8794
+#define VIOLET TOK_VIOLET
+#define GREY TOK_DESK_MUTED
 
 static lv_obj_t *title, *pills, *today, *gain, *ticker, *name, *week, *price, *chart, *high, *low, *pulse,
     *ripple, *dot, *days[DESK_STOCK_DAYS], *dots[DESK_STOCKS];
@@ -124,8 +125,8 @@ static void draw_chart(const typeof(shown.stocks[0]) *s)
     int32_t base = y_of(s->base);
     for (int32_t x = 0; x < CHART_W; x++) {
         if (x % 14 < 8) {
-            paint(buf, x, base, 0xc9c6d6, 150);
-            paint(buf, x, base + 1, 0xc9c6d6, 150);
+            paint(buf, x, base, TOK_DESK_SOFT, 150);
+            paint(buf, x, base + 1, TOK_DESK_SOFT, 150);
         }
     }
 
@@ -145,7 +146,7 @@ static void draw_chart(const typeof(shown.stocks[0]) *s)
     lv_draw_rect_dsc_init(&mark);
     mark.radius = LV_RADIUS_CIRCLE;
     mark.bg_color = lv_color_black();
-    mark.border_color = lv_color_hex(0xf1eff7), mark.border_width = 3;
+    mark.border_color = lv_color_hex(TOK_DESK_FG), mark.border_width = 3;
     int16_t marks[2] = {s->high_at, s->low_at};
     for (int m = 0; m < 2; m++) {
         if (marks[m] < 0 || marks[m] >= s->count - 2) {
@@ -227,7 +228,7 @@ static void show(void)
     /* Which of the holdings this is, as dots. */
     for (int i = 0; i < DESK_STOCKS; i++) {
         lv_obj_set_flag(dots[i], LV_OBJ_FLAG_HIDDEN, i >= shown.count || shown.count < 2);
-        lv_obj_set_style_bg_color(dots[i], lv_color_hex(i == picked ? 0xf1eff7 : 0x3a3846), 0);
+        lv_obj_set_style_bg_color(dots[i], lv_color_hex(i == picked ? TOK_DESK_FG : 0x3a3846), 0);
     }
 }
 
@@ -328,14 +329,14 @@ void screen_stock_create(lv_obj_t *screen)
     today = make_pill(pills);
     gain = make_pill(pills);
 
-    ticker = ui_one_line(screen, &instrument_52_bold, 0xf1eff7, 340);
+    ticker = ui_one_line(screen, &instrument_52_bold, TOK_DESK_FG, 340);
     lv_obj_set_pos(ticker, LEFT, 84);
     name = ui_one_line(screen, &instrument_24, GREY, 360);
     lv_obj_set_pos(name, LEFT, 152);
     week = ui_text(screen, &instrument_52_bold, GREEN);
     arrive_count(week);
     lv_obj_align(week, LV_ALIGN_TOP_RIGHT, -LEFT, 84);
-    price = ui_text(screen, &instrument_24, 0xc9c6d6);
+    price = ui_text(screen, &instrument_24, TOK_DESK_SOFT);
     lv_obj_align(price, LV_ALIGN_TOP_RIGHT, -LEFT, 152);
 
     chart = lv_canvas_create(screen);
@@ -343,7 +344,7 @@ void screen_stock_create(lv_obj_t *screen)
     memset(lv_canvas_get_draw_buf(chart)->data, 0, lv_canvas_get_draw_buf(chart)->header.stride * CHART_H);
     lv_obj_set_pos(chart, 0, CHART_TOP);
     /* On the chart, so they appear as it draws in. */
-    high = ui_text(chart, &instrument_24, 0xf1eff7);
+    high = ui_text(chart, &instrument_24, TOK_DESK_FG);
     lv_obj_add_flag(high, LV_OBJ_FLAG_HIDDEN);
     low = ui_text(chart, &instrument_24, GREY);
     lv_obj_add_flag(low, LV_OBJ_FLAG_HIDDEN);

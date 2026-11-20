@@ -58,7 +58,7 @@ export function TodayCard({ data }: { data: Today | undefined }) {
             <li
               key={`${e.calendar_id}-${i}`}
               style={{ '--c': e.color } as CSSProperties}
-              className="rounded-full border border-(--c)/35 bg-(--c)/8 px-2.5 py-0.5 text-caption text-(--c)"
+              className="rounded-full border border-(--c)/35 bg-(--c)/8 px-2.5 py-0.5 text-small text-(--c)"
             >
               {e.title}
             </li>
@@ -106,10 +106,10 @@ export function TodayCard({ data }: { data: Today | undefined }) {
                 data-past={past || undefined}
                 className={cn('grid grid-cols-[46px_10px_minmax(0,1fr)_auto] items-center gap-2.5 border-glass-line py-1.5 text-small not-first:border-t', past && 'opacity-45')}
               >
-                <span className="text-caption text-muted">{formatTime(e.start!)}</span>
+                <span className="text-small text-muted">{formatTime(e.start!)}</span>
                 <GlowDot color={e.color} />
                 <span className={cn('truncate', past && 'line-through decoration-white/30')}>{e.title}</span>
-                <span className="text-caption text-faint">{e.calendar}</span>
+                <span className="text-small text-faint">{e.calendar}</span>
               </li>
             )
           })}
@@ -117,7 +117,7 @@ export function TodayCard({ data }: { data: Today | undefined }) {
       )}
 
       {Object.keys(today.errors).length > 0 && (
-        <p className="relative mt-3 text-caption text-warn">Not read just now: {Object.keys(today.errors).join(', ')}.</p>
+        <p className="relative mt-3 text-small text-warn">Not read just now: {Object.keys(today.errors).join(', ')}.</p>
       )}
       {today.stale && <StaleNote />}
     </Card>

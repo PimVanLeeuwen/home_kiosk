@@ -17,6 +17,7 @@
 #include "lvgl.h"
 #include "arrive.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_time);
 LV_FONT_DECLARE(instrument_52_bold);
@@ -34,7 +35,7 @@ LV_IMAGE_DECLARE(glow_round);
 #define LINE_Y 62      /* the line, inside the band */
 #define DOT_INSET 11
 
-static const uint32_t TONES[] = {0x5fd39c, 0xf0bd5a, 0xff6b6b}; /* up, warn, down */
+static const uint32_t TONES[] = {TOK_DESK_UP, TOK_DATA_AMBER, TOK_DESK_DOWN}; /* up, warn, down */
 
 static lv_obj_t *glow, *title, *column, *time_was, *time_now, *status, *sub_row, *sub, *platform_was, *platform;
 static lv_obj_t *ring, *ring_number, *ring_label, *box, *box_label, *box_main, *box_more, *route;
@@ -170,19 +171,19 @@ static void build_route(void)
         lv_obj_set_pos(dot, x[i] - size / 2, LINE_Y - size / 2);
         lv_obj_set_style_radius(dot, LV_RADIUS_CIRCLE, 0);
         lv_obj_set_style_bg_opa(dot, LV_OPA_COVER, 0);
-        lv_obj_set_style_bg_color(dot, lv_color_hex(first ? 0xf1eff7 : 0x000000), 0);
+        lv_obj_set_style_bg_color(dot, lv_color_hex(first ? TOK_DESK_FG : 0x000000), 0);
         lv_obj_set_style_border_width(dot, first ? 0 : 3, 0);
-        lv_obj_set_style_border_color(dot, lv_color_hex(skipped ? 0x4a4757 : last ? 0xf1eff7 : 0x8f80ff), 0);
+        lv_obj_set_style_border_color(dot, lv_color_hex(skipped ? 0x4a4757 : last ? TOK_DESK_FG : TOK_ACCENT_LINE), 0);
 
         lv_text_align_t align = first ? LV_TEXT_ALIGN_LEFT : last ? LV_TEXT_ALIGN_RIGHT : LV_TEXT_ALIGN_CENTER;
         /* The time sits over its dot, the ends at their dot's edge. */
-        lv_obj_t *at = ui_text(route, &instrument_24, shown.stops[i].shifted ? 0xf0bd5a : first ? tone : 0xb4b1c2);
+        lv_obj_t *at = ui_text(route, &instrument_24, shown.stops[i].shifted ? TOK_DATA_AMBER : first ? tone : TOK_DESK_SECONDARY);
         lv_label_set_text(at, shown.stops[i].time);
         lv_obj_update_layout(at);
         int time_w = lv_obj_get_width(at);
         lv_obj_set_pos(at, first ? x[i] - DOT_INSET : last ? x[i] + DOT_INSET - time_w : x[i] - time_w / 2, LINE_Y - 50);
 
-        lv_obj_t *name = ui_text(route, &instrument_24, skipped ? 0x6f6c7d : first || last ? 0xf1eff7 : 0xb4b1c2);
+        lv_obj_t *name = ui_text(route, &instrument_24, skipped ? 0x6f6c7d : first || last ? TOK_DESK_FG : TOK_DESK_SECONDARY);
         lv_label_set_long_mode(name, LV_LABEL_LONG_DOT);
         lv_obj_set_size(name, width[i], (rows ? 1 : 2) * lv_font_get_line_height(&instrument_24));
         lv_obj_set_style_text_align(name, align, 0);
@@ -208,12 +209,12 @@ static void show_box(void)
         lv_label_set_text(box_main, shown.next_departure);
         lv_label_set_text_fmt(box_more, "platform %s  ·  arrives %s", shown.next_platform, shown.next_arrives);
     } else if (shown.has_notice) {
-        lv_obj_set_style_border_color(box, lv_color_hex(0xf0bd5a), 0);
+        lv_obj_set_style_border_color(box, lv_color_hex(TOK_DATA_AMBER), 0);
         lv_obj_set_style_border_opa(box, 90, 0);
-        lv_obj_set_style_bg_color(box, lv_color_hex(0xf0bd5a), 0);
+        lv_obj_set_style_bg_color(box, lv_color_hex(TOK_DATA_AMBER), 0);
         lv_label_set_text(box_label, "ON THE ROUTE");
         lv_obj_set_style_text_font(box_main, &instrument_28_bold, 0);
-        lv_obj_set_style_text_color(box_main, lv_color_hex(0xf0bd5a), 0);
+        lv_obj_set_style_text_color(box_main, lv_color_hex(TOK_DATA_AMBER), 0);
         lv_label_set_text(box_main, shown.notice_title);
         lv_label_set_text(box_more, shown.notice_text);
     }
@@ -261,7 +262,7 @@ static void tick(lv_timer_t *timer)
         lv_label_set_text(time_was, now.departure);
         lv_obj_set_flag(time_was, LV_OBJ_FLAG_HIDDEN, now.departure_now[0] == '\0');
         lv_obj_set_style_text_decor(time_now, now.gone ? LV_TEXT_DECOR_STRIKETHROUGH : LV_TEXT_DECOR_NONE, 0);
-        lv_obj_set_style_text_color(time_now, lv_color_hex(now.gone ? 0x6f6c7d : 0xf1eff7), 0);
+        lv_obj_set_style_text_color(time_now, lv_color_hex(now.gone ? 0x6f6c7d : TOK_DESK_FG), 0);
 
         lv_label_set_text(status, now.status);
         lv_obj_set_style_text_color(status, lv_color_hex(tone), 0);
@@ -279,7 +280,7 @@ static void tick(lv_timer_t *timer)
         lv_obj_set_flag(platform_was, LV_OBJ_FLAG_HIDDEN, !moved);
         lv_label_set_text(platform_was, now.platform_was);
         lv_obj_set_style_bg_color(platform, lv_color_hex(moved ? 0x3a2f1a : 0x2a2833), 0);
-        lv_obj_set_style_text_color(platform, lv_color_hex(moved ? 0xf0bd5a : 0xf1eff7), 0);
+        lv_obj_set_style_text_color(platform, lv_color_hex(moved ? TOK_DATA_AMBER : TOK_DESK_FG), 0);
         lv_obj_set_style_border_width(platform, moved ? 2 : 0, 0);
 
         lv_obj_set_style_arc_color(ring, lv_color_hex(tone), LV_PART_INDICATOR);
@@ -310,7 +311,7 @@ void screen_train_create(lv_obj_t *screen)
     lv_obj_set_style_image_recolor_opa(glow, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(glow, 46, 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 24);
 
@@ -320,7 +321,7 @@ void screen_train_create(lv_obj_t *screen)
     lv_obj_set_flex_flow(column, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_row(column, 10, 0);
 
-    lv_obj_t *label = ui_text(column, &instrument_24, 0x8a8794);
+    lv_obj_t *label = ui_text(column, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(label, 2, 0);
     lv_label_set_text(label, "DEPARTURE");
 
@@ -340,7 +341,7 @@ void screen_train_create(lv_obj_t *screen)
     lv_obj_set_style_bg_opa(time_box, 12, 0);
     time_was = ui_text(time_box, &instrument_40, 0x6f6c7d);
     lv_obj_set_style_text_decor(time_was, LV_TEXT_DECOR_STRIKETHROUGH, 0);
-    time_now = ui_text(time_box, &instrument_time, 0xf1eff7);
+    time_now = ui_text(time_box, &instrument_time, TOK_DESK_FG);
 
     status = ui_text(column, &instrument_52_bold, TONES[0]);
     lv_label_set_long_mode(status, LV_LABEL_LONG_WRAP);
@@ -353,16 +354,16 @@ void screen_train_create(lv_obj_t *screen)
     lv_obj_set_flex_align(sub_row, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_column(sub_row, 10, 0);
     lv_obj_set_style_pad_row(sub_row, 6, 0);
-    sub = ui_text(sub_row, &instrument_24, 0xb4b1c2);
+    sub = ui_text(sub_row, &instrument_24, TOK_DESK_SECONDARY);
     lv_label_set_long_mode(sub, LV_LABEL_LONG_WRAP);
     platform_was = ui_text(sub_row, &instrument_24, 0x6f6c7d);
     lv_obj_set_style_text_decor(platform_was, LV_TEXT_DECOR_STRIKETHROUGH, 0);
-    platform = ui_text(sub_row, &instrument_28_bold, 0xf1eff7);
+    platform = ui_text(sub_row, &instrument_28_bold, TOK_DESK_FG);
     lv_obj_set_style_bg_opa(platform, LV_OPA_COVER, 0);
     lv_obj_set_style_radius(platform, 8, 0);
     lv_obj_set_style_pad_hor(platform, 10, 0);
     lv_obj_set_style_pad_ver(platform, 2, 0);
-    lv_obj_set_style_border_color(platform, lv_color_hex(0xf0bd5a), 0);
+    lv_obj_set_style_border_color(platform, lv_color_hex(TOK_DATA_AMBER), 0);
 
     /* Minutes to go: a ring that empties over the last hour. */
     ring = lv_arc_create(screen);
@@ -378,9 +379,9 @@ void screen_train_create(lv_obj_t *screen)
     lv_obj_set_style_arc_width(ring, 14, LV_PART_INDICATOR);
     lv_obj_set_style_arc_color(ring, lv_color_hex(0x232129), LV_PART_MAIN);
     lv_obj_set_style_arc_rounded(ring, true, LV_PART_INDICATOR);
-    ring_number = ui_text(ring, &instrument_52_bold, 0xf1eff7);
+    ring_number = ui_text(ring, &instrument_52_bold, TOK_DESK_FG);
     lv_obj_align(ring_number, LV_ALIGN_CENTER, 0, -12);
-    ring_label = ui_text(ring, &instrument_24, 0xb4b1c2);
+    ring_label = ui_text(ring, &instrument_24, TOK_DESK_SECONDARY);
     lv_obj_align(ring_label, LV_ALIGN_CENTER, 0, 34);
 
     /* The next direct train, or a disruption on the route. */
@@ -394,13 +395,13 @@ void screen_train_create(lv_obj_t *screen)
     lv_obj_set_style_bg_opa(box, 14, 0);
     lv_obj_set_flex_flow(box, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_row(box, 4, 0);
-    box_label = ui_text(box, &instrument_24, 0x8a8794);
+    box_label = ui_text(box, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(box_label, 2, 0);
     box_main = ui_text(box, &instrument_40, 0xffffff);
     /* NS's titles can list several stretches: wrap them inside the box. */
     lv_label_set_long_mode(box_main, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(box_main, WIDTH - 40);
-    box_more = ui_text(box, &instrument_24, 0xb4b1c2);
+    box_more = ui_text(box, &instrument_24, TOK_DESK_SECONDARY);
     lv_label_set_long_mode(box_more, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(box_more, WIDTH - 40);
     lv_obj_add_flag(box, LV_OBJ_FLAG_HIDDEN);

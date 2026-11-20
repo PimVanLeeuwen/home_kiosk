@@ -22,6 +22,7 @@
 #include "lvgl.h"
 #include "backdrops.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_time);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -42,12 +43,12 @@ LV_IMAGE_DECLARE(glow_sky);
 #define FLOW_MS 40      /* 25 steps a second */
 #define FLOW_STEP 0.02f /* two seconds along a line */
 
-#define VIOLET 0x8f80ff
+#define VIOLET TOK_ACCENT_LINE
 #define SOFT 0xb4a9ff
 #define DIM 0x2c2a36
-#define GREEN 0x3fb97f
-#define RED 0xe5646a
-#define AMBER 0xe0a23b
+#define GREEN TOK_UP
+#define RED TOK_DOWN
+#define AMBER TOK_WARN
 
 static lv_obj_t *sky, *canvas, *title, *number, *big, *first, *second, *commit, *meta;
 static lv_obj_t *self, *pulses[PULSES];
@@ -274,7 +275,7 @@ static void show_cards(void)
         lv_obj_set_flag(cards[i].count, LV_OBJ_FLAG_HIDDEN, j->count <= 1);
         lv_label_set_text_fmt(cards[i].count, "x%d", j->count);
         lv_label_set_text(cards[i].name, j->name);
-        lv_obj_set_style_text_color(cards[i].name, lv_color_hex(is(j->state, "queued") ? 0x8a8794 : 0xffffff), 0);
+        lv_obj_set_style_text_color(cards[i].name, lv_color_hex(is(j->state, "queued") ? TOK_DESK_MUTED : 0xffffff), 0);
         int line = lv_font_get_line_height(&instrument_24);
         bool stacked = boxes[i].w < NARROW && boxes[i].h >= 44 + 2 * line + 12;
         int name_width = stacked ? boxes[i].w - 24 : boxes[i].w - 58 - (wide && j->time[0] ? 70 : 0);
@@ -296,7 +297,7 @@ static void show_cards(void)
         }
         lv_obj_set_flag(cards[i].time, LV_OBJ_FLAG_HIDDEN, !wide || !j->time[0]);
         lv_label_set_text(cards[i].time, j->time);
-        lv_obj_set_style_text_color(cards[i].time, lv_color_hex(is(j->state, "failed") ? RED : 0x8a8794), 0);
+        lv_obj_set_style_text_color(cards[i].time, lv_color_hex(is(j->state, "failed") ? RED : TOK_DESK_MUTED), 0);
         lv_obj_set_flag(cards[i].track, LV_OBJ_FLAG_HIDDEN, !running || j->progress <= 0);
         lv_obj_set_size(cards[i].track, boxes[i].w - 28, 4);
         lv_obj_set_size(cards[i].bar, (boxes[i].w - 28) * j->progress / 1000, 4);
@@ -308,7 +309,7 @@ static void show_run(void)
 {
     desk_run_t *r = run();
     uint32_t glow = is(r->state, "success") ? GREEN : is(r->state, "failure") ? RED
-                    : is(r->state, "approval") ? AMBER : 0x7c6cf2;
+                    : is(r->state, "approval") ? AMBER : TOK_VIOLET;
     lv_obj_set_style_image_recolor(sky, lv_color_hex(glow), 0);
     lv_label_set_text(title, r->title);
     if (r->position[0]) {
@@ -321,7 +322,7 @@ static void show_run(void)
     } else {
         lv_label_set_text(number, r->number);
     }
-    lv_obj_set_style_text_color(number, lv_color_hex(is(r->state, "running") ? 0x8a8794 : r->colour), 0);
+    lv_obj_set_style_text_color(number, lv_color_hex(is(r->state, "running") ? TOK_DESK_MUTED : r->colour), 0);
     lv_label_set_text(big, r->big);
     lv_obj_set_style_text_color(big, lv_color_hex(is(r->state, "running") ? 0xffffff : r->colour), 0);
     lv_label_set_text(first, r->first);
@@ -383,14 +384,14 @@ void screen_pipeline_create(lv_obj_t *screen)
     lv_image_set_pivot(sky, 0, 0);
     lv_image_set_scale(sky, 512);
     lv_obj_set_pos(sky, 0, 0);
-    lv_obj_set_style_image_recolor(sky, lv_color_hex(0x7c6cf2), 0);
+    lv_obj_set_style_image_recolor(sky, lv_color_hex(TOK_VIOLET), 0);
     lv_obj_set_style_image_recolor_opa(sky, LV_OPA_COVER, 0);
     lv_obj_set_style_image_opa(sky, 80, 0);
 
-    title = ui_text(screen, &instrument_24, 0x8a8794);
+    title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
-    number = ui_text(screen, &instrument_24, 0x8a8794);
+    number = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(number, 2, 0);
     lv_obj_align(number, LV_ALIGN_TOP_RIGHT, -LEFT, 30);
 
@@ -421,7 +422,7 @@ void screen_pipeline_create(lv_obj_t *screen)
         cards[i].count = ui_text(card, &instrument_24, 0xa7a7b4);
         cards[i].name = ui_text(card, &instrument_24, 0xffffff);
         lv_label_set_long_mode(cards[i].name, LV_LABEL_LONG_DOT);
-        cards[i].time = ui_text(card, &instrument_24, 0x8a8794);
+        cards[i].time = ui_text(card, &instrument_24, TOK_DESK_MUTED);
         lv_obj_align(cards[i].time, LV_ALIGN_RIGHT_MID, -16, 0);
         cards[i].track = ui_plain(card);
         lv_obj_set_style_bg_color(cards[i].track, lv_color_hex(DIM), 0);
@@ -439,7 +440,7 @@ void screen_pipeline_create(lv_obj_t *screen)
     lv_obj_set_pos(big, LEFT - 4, 528);
     first = ui_text(screen, &instrument_28_bold, 0xa7a7b4);
     lv_obj_align(first, LV_ALIGN_TOP_RIGHT, -LEFT, 546);
-    second = ui_text(screen, &instrument_24, 0x8a8794);
+    second = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_align(second, LV_ALIGN_TOP_RIGHT, -LEFT, 588);
     lv_obj_t *rule = ui_plain(screen);
     lv_obj_set_size(rule, WIDTH, 2);
@@ -450,7 +451,7 @@ void screen_pipeline_create(lv_obj_t *screen)
     lv_label_set_long_mode(commit, LV_LABEL_LONG_DOT);
     lv_obj_set_size(commit, 430, lv_font_get_line_height(&instrument_24)); /* one line; its width per run */
     lv_obj_set_pos(commit, LEFT, 652);
-    meta = ui_text(screen, &instrument_24, 0x8a8794);
+    meta = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_align(meta, LV_ALIGN_TOP_RIGHT, -LEFT, 652);
 
     turned_at = lv_tick_get();

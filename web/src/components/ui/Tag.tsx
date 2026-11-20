@@ -2,7 +2,7 @@ import type { CSSProperties, HTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../lib/cn'
 import { TONE_OUTLINE, TONE_TINT, type Tone } from './tones'
 
-const SIZE = { micro: 'text-micro py-px', label: 'text-label py-0.5', caption: 'text-caption py-0.5' } as const
+const SIZE = { micro: 'text-label py-px', label: 'text-label py-0.5', caption: 'text-small py-0.5' } as const
 
 interface Props extends Omit<HTMLAttributes<HTMLSpanElement>, 'color'> {
   /** Tinted (a wash of its colour), outlined, or glass (neutral, for a name or a fact). */

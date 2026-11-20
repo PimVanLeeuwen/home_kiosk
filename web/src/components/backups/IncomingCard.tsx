@@ -11,7 +11,7 @@ function Tile({ value, label }: { value: string; label: string }) {
   return (
     <div className="min-w-0 rounded-control border border-glass-line bg-glass px-3 py-2">
       <p className="text-heading leading-tight font-semibold">{value}</p>
-      <p className="truncate text-caption text-muted">{label}</p>
+      <p className="truncate text-small text-muted">{label}</p>
     </div>
   )
 }
@@ -37,7 +37,7 @@ export function IncomingCard({ backup, stale, now }: { backup: IncomingBackup; s
               <Tile value={formatCount(backup.files ?? 0)} label="files" />
             </div>
           )}
-          <p className="mt-3 text-caption text-muted">
+          <p className="mt-3 text-small text-muted">
             A backup another NAS sends here{backup.at ? ` every night at ${backup.at}` : ''}, over Tailscale. It writes
             no report, so it counts as arrived when something in its folder changes.
           </p>
@@ -74,7 +74,7 @@ export function IncomingCard({ backup, stale, now }: { backup: IncomingBackup; s
             )}
           </dl>
           {!backup.present && (
-            <p className="mt-3 rounded-control border border-down/40 bg-down/10 px-3 py-2 font-mono text-caption break-words text-fg">
+            <p className="mt-3 rounded-control border border-down/40 bg-down/10 px-3 py-2 font-mono text-small break-words text-fg">
               The folder cannot be read{backup.error ? `: ${backup.error}` : ''}
             </p>
           )}

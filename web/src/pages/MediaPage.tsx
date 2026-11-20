@@ -33,9 +33,9 @@ function EpisodeRow({ episode, right }: { episode: MediaEpisode; right: ReactNod
         <p className="truncate text-small font-medium">
           {episode.series} <span className="font-normal text-muted">{episodeCode(episode)}</span>
         </p>
-        {episode.title && <p className="truncate text-caption text-muted">{episode.title}</p>}
+        {episode.title && <p className="truncate text-small text-muted">{episode.title}</p>}
       </div>
-      <span className="text-right text-caption whitespace-nowrap text-faint">{right}</span>
+      <span className="text-right text-small whitespace-nowrap text-faint">{right}</span>
     </li>
   )
 }
@@ -71,7 +71,7 @@ export function MediaPage() {
       {data && (
         <>
           {Object.entries(data.errors).map(([source, reason]) => (
-            <p key={source} role="status" className="-mt-3 mb-4 text-caption text-warn">
+            <p key={source} role="status" className="-mt-3 mb-4 text-small text-warn">
               {NAMES[source] ?? source} could not be read ({reason}); its part is missing below.
             </p>
           ))}
@@ -119,7 +119,7 @@ export function MediaPage() {
                   <Empty>Nothing missing</Empty>
                 )}
                 {data.missing_total > data.missing.length && (
-                  <p className="mt-2 text-caption text-faint">The newest {data.missing.length} of {data.missing_total}.</p>
+                  <p className="mt-2 text-small text-faint">The newest {data.missing.length} of {data.missing_total}.</p>
                 )}
               </Card>
 

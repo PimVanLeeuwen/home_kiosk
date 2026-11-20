@@ -15,6 +15,8 @@ import { Ring } from './Ring'
 import { RingMeter } from './RingMeter'
 import { RunDots } from './RunDots'
 import { Seal } from './Seal'
+import { Switch } from './Switch'
+import { iconButtonClass } from './buttonStyles'
 import { Tag } from './Tag'
 
 describe('ArcGauge', () => {
@@ -226,6 +228,26 @@ describe('Card', () => {
     expect([...right.children].map((c) => c.textContent)).toEqual(['Hetzner · encrypted', 'All safe', 'Details →'])
     expect(right.firstElementChild).toHaveClass('text-faint')
   })
+
+  it("gives its link a hit area, as small links are hard to tap", () => {
+    render(
+      <MemoryRouter>
+        <Card title="Weather" link={{ to: '/weather', label: 'Week and radar' }}>body</Card>
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('link', { name: /Week and radar/ })).toHaveClass('hit')
+  })
+})
+
+describe('tap targets', () => {
+  it('gives a switch a hit area beyond its 20px', () => {
+    render(<Switch checked={false} onChange={() => {}} label="Show forks" />)
+    expect(screen.getByRole('switch', { name: 'Show forks' })).toHaveClass('hit')
+  })
+
+  it('grows icon buttons to 44px on touch, as they sit too close for hit areas', () => {
+    expect(iconButtonClass.split(' ')).toEqual(expect.arrayContaining(['size-8', 'pointer-coarse:size-11']))
+  })
 })
 
 describe('Surface', () => {
@@ -334,7 +356,7 @@ describe('Tag', () => {
     )
 
     expect(screen.getByText('Error')).toHaveAttribute('data-tone', 'down')
-    expect(screen.getByText('Error')).toHaveClass('text-down', 'eyebrow', 'text-micro')
+    expect(screen.getByText('Error')).toHaveClass('text-down', 'eyebrow', 'text-label')
     expect(screen.getByText('Relay')).toHaveClass('border', 'text-accent-fg')
     expect(screen.getByText('Fork')).toHaveClass('bg-glass', 'text-muted')
     expect(screen.getByText('NVDA')).toHaveClass('font-mono', 'text-fg')

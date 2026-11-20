@@ -34,7 +34,7 @@ export function InstrumentCard({ title, now, detail, values, label, min = 0, max
       <p className={cn('-mt-2 text-stat leading-tight font-semibold tracking-tight md:text-display', tone === 'warn' && 'text-warn', tone === 'down' && 'text-down')}>
         {now}
       </p>
-      {detail && <p className="mt-0.5 text-label text-muted md:text-caption">{detail}</p>}
+      {detail && <p className="mt-0.5 text-label text-muted md:text-small">{detail}</p>}
       {known(values).length > 1 ? (
         <>
           <div className="-mx-5 mt-2.5 md:-mx-6">

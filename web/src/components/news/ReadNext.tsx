@@ -19,7 +19,7 @@ function Mini({ art, title, line, end, ...link }: { art: ReactNode; title: strin
       {art}
       <span className="min-w-0 flex-1">
         <span className="line-clamp-2 font-medium">{title}</span>
-        <span className="mt-0.5 block text-caption text-faint">{line}</span>
+        <span className="mt-0.5 block text-small text-faint">{line}</span>
       </span>
       {end}
     </>
@@ -81,7 +81,7 @@ export function ReadNext({ onGroup, isRead }: Props) {
             )}
             <span aria-hidden="true" className="absolute inset-0 bg-linear-to-b from-transparent from-30% to-black/80" />
             <span className="absolute inset-x-0 bottom-0 grid gap-1 p-4 md:p-5">
-              <span className="text-caption text-white/75">
+              <span className="text-small text-white/75">
                 Top story · {lead.group}
                 {feeds > 1 ? ` · ${feeds} feeds` : ` · ${lead.source}`}
               </span>

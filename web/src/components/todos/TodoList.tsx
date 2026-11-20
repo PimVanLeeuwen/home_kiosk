@@ -51,12 +51,12 @@ export function TodoList({ todos, today, onTick, onEdit, notes, limit, busy }: P
                   </Tag>
                 )}
               </p>
-              {notes && t.note && <p className="text-caption whitespace-pre-line text-muted">{t.note}</p>}
+              {notes && t.note && <p className="text-small whitespace-pre-line text-muted">{t.note}</p>}
             </div>
             {t.due && (
               <span
                 className={cn(
-                  'shrink-0 py-0.5 text-caption',
+                  'shrink-0 py-0.5 text-small',
                   t.state === 'overdue' ? 'font-medium text-down' : t.state === 'today' ? 'font-medium text-accent-fg' : 'text-muted',
                 )}
               >
@@ -71,7 +71,7 @@ export function TodoList({ todos, today, onTick, onEdit, notes, limit, busy }: P
           </li>
         ))}
       </ul>
-      {more > 0 && <p className="mt-2 text-caption text-faint">and {more} more</p>}
+      {more > 0 && <p className="mt-2 text-small text-faint">and {more} more</p>}
     </>
   )
 }

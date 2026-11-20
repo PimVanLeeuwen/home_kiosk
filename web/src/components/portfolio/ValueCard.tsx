@@ -44,7 +44,7 @@ export function ValueCard({ currency, total }: Props) {
       padding="chart"
       actions={<Segmented label="Period" options={RANGES.map(([r, label]) => [r, label])} value={range} onChange={setRange} />}
     >
-      <p className="-mt-1 text-display leading-tight font-semibold tracking-tight md:text-hero"><AnimatedNumber value={total} format={money} /></p>
+      <p className="-mt-1 text-display leading-tight font-semibold tracking-tight"><AnimatedNumber value={total} format={money} /></p>
       {!points && <div className="pb-5">{error ? <Unavailable what="The value history" /> : <Loading />}</div>}
       {points && (
         <>

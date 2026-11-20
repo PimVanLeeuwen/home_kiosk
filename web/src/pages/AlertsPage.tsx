@@ -72,7 +72,7 @@ export function AlertsPage() {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-3 text-caption text-faint">Answered in the two configured chats only.</p>
+                <p className="mt-3 text-small text-faint">Answered in the two configured chats only.</p>
               </Card>
             </div>
           </div>

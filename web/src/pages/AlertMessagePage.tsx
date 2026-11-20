@@ -84,7 +84,7 @@ function Message({ message }: { message: Shown }) {
   return (
     <>
       <BackLink />
-      <p className="mb-2 flex flex-wrap items-center gap-2 text-caption text-faint">
+      <p className="mb-2 flex flex-wrap items-center gap-2 text-small text-faint">
         <span>{formatWhen(message.ts, now)}</span>
         <Tag variant="glass" size="micro">
           {sourceLabel(message.source)}
@@ -109,7 +109,7 @@ function Message({ message }: { message: Shown }) {
               <TelegramText html={bodyHtml(message.html)} />
             </Surface>
           )}
-          <div className="hidden gap-0.5 text-caption text-faint lg:grid">
+          <div className="hidden gap-0.5 text-small text-faint lg:grid">
             <Foot message={message} delivered={delivered} />
           </div>
         </div>
@@ -117,7 +117,7 @@ function Message({ message }: { message: Shown }) {
           <Explanation message={message} />
           {message.links.length > 0 && <Links links={message.links} />}
           {message.earlier.length > 1 && <Earlier message={message} now={now} />}
-          <div className="grid gap-0.5 text-caption text-faint lg:hidden">
+          <div className="grid gap-0.5 text-small text-faint lg:hidden">
             <Foot message={message} delivered={delivered} />
           </div>
         </div>
@@ -189,11 +189,11 @@ function Explanation({ message }: { message: Shown }) {
     )
   return (
     <Card title="Explained">
-      <p className="text-caption font-semibold tracking-[0.04em] text-accent-fg">Likely cause</p>
+      <p className="text-small font-semibold tracking-[0.04em] text-accent-fg">Likely cause</p>
       <p className="mb-3">{kept.cause}</p>
-      <p className="text-caption font-semibold tracking-[0.04em] text-accent-fg">Try first</p>
+      <p className="text-small font-semibold tracking-[0.04em] text-accent-fg">Try first</p>
       <p>{kept.todo}</p>
-      <p className="mt-3 text-caption text-faint">Claude · asked {formatWhen(kept.asked_at)} · kept with this message</p>
+      <p className="mt-3 text-small text-faint">Claude · asked {formatWhen(kept.asked_at)} · kept with this message</p>
     </Card>
   )
 }
@@ -210,7 +210,7 @@ function Links({ links }: { links: MessageLink[] }) {
           return (
             <Link key={link.label} to={link.page} viewTransition className={row}>
               <span className="flex-1">{link.label}</span>
-              {link.hint && <span className="text-caption font-normal text-faint">{link.hint}</span>}
+              {link.hint && <span className="text-small font-normal text-faint">{link.hint}</span>}
             </Link>
           )
         const service = all.find((s) => s.id === link.service && (s.port || s.url))
@@ -218,7 +218,7 @@ function Links({ links }: { links: MessageLink[] }) {
         return (
           <a key={link.label} href={serviceHref({ ...service, path: link.path }, window.location.hostname, hosts.data)} target="_blank" rel="noreferrer" className={row}>
             <span className="flex-1">{link.label}</span>
-            {link.hint && <span className="text-caption font-normal text-faint">{link.hint}</span>}
+            {link.hint && <span className="text-small font-normal text-faint">{link.hint}</span>}
             <ExternalLink aria-hidden="true" className="size-4 text-faint" />
           </a>
         )
@@ -241,7 +241,7 @@ function Earlier({ message, now }: { message: Shown; now: Date }) {
                 {m.title}
               </Link>
             )}
-            <span className="block text-caption text-faint">
+            <span className="block text-small text-faint">
               {formatWhen(m.ts, now)}
               {m.id === message.id && ' · this message'}
             </span>

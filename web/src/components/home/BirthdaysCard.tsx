@@ -40,14 +40,14 @@ export function BirthdaysCard({ data, error }: { data: Birthdays | undefined; er
                     today ? 'border-accent-line/60 text-accent-fg' : 'border-line text-muted',
                   )}
                 >
-                  <span className="text-micro eyebrow">{weekday.format(date)}</span>
+                  <span className="text-label eyebrow">{weekday.format(date)}</span>
                   <span className="mt-0.5 text-title font-semibold text-fg">{date.getDate()}</span>
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-title font-medium">{b.name}</span>
-                  {b.turns !== null && <span className="block text-caption text-muted">turns {b.turns}</span>}
+                  {b.turns !== null && <span className="block text-small text-muted">turns {b.turns}</span>}
                 </span>
-                <span className={cn('shrink-0 text-caption', today ? 'font-semibold text-accent-fg' : 'text-faint')}>{when(b)}</span>
+                <span className={cn('shrink-0 text-small', today ? 'font-semibold text-accent-fg' : 'text-faint')}>{when(b)}</span>
               </li>
             )
           })}

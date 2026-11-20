@@ -99,7 +99,7 @@ export function DockerTiles({ overview, updates, memTotal }: Props) {
       <StatTile title="Updates, last 7 days" figure={recent} sub={recent === 1 ? 'image replaced' : 'images replaced'}>
         <p className="mt-2.5 flex items-end gap-1.5" aria-hidden="true">
           {days.map((d, i) => (
-            <span key={i} className="grid justify-items-center gap-0.5 text-micro text-faint">
+            <span key={i} className="grid justify-items-center gap-0.5 text-label text-faint">
               <b
                 className={cn('block w-2.5 rounded-mark', d.count ? 'bg-accent-line shadow-glow shadow-accent-line' : 'bg-accent-line/25')}
                 style={{ height: 6 + Math.min(d.count, 4) * 6 }}

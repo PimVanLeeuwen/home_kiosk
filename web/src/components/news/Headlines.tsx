@@ -96,12 +96,12 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
       <p className={cn(titleClass, 'mb-3 flex justify-between gap-3')}>
         <span id="headlines-title">{data.grouped ? 'Top stories' : 'Headlines'}</span>
         {data.grouped ? (
-          <span className="inline-flex items-center gap-1.5 text-caption font-normal text-faint">
+          <span className="inline-flex items-center gap-1.5 text-small font-normal text-faint">
             <Sparkles aria-hidden="true" className="size-3.5 text-accent-fg" />
             grouped by Claude
           </span>
         ) : (
-          <span className="truncate text-caption font-normal text-faint">{data.items.map((h) => h.group).join(' · ')}</span>
+          <span className="truncate text-small font-normal text-faint">{data.items.map((h) => h.group).join(' · ')}</span>
         )}
       </p>
       <ul
@@ -119,7 +119,7 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
             }
           >
             {lead.image === 'lead' && <img src={picture(lead, 'lead')} alt="" className="absolute inset-0 size-full object-cover" />}
-            <span className="relative z-[1] flex items-center gap-2 text-caption text-white/75">
+            <span className="relative z-[1] flex items-center gap-2 text-small text-white/75">
               <Source h={lead} colour={leadColour} />
               {formatAgo(lead.published)}
             </span>
@@ -132,7 +132,7 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
           </Link>
           <SaveButton h={lead} state={saves[lead.id]} onSave={() => save(lead)} onImage />
           {!!lead.sources?.length && (
-            <p className="flex flex-wrap items-center gap-1.5 px-1 text-caption text-muted">
+            <p className="flex flex-wrap items-center gap-1.5 px-1 text-small text-muted">
               Also in
               {lead.sources.map((s) => (
                 <Link key={s.id} to={`/news?a=${s.id}`} className="rounded-tag border border-line-soft bg-card px-2 py-0.5 font-medium text-fg hover:border-line">
@@ -150,7 +150,7 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
             >
               <Thumb h={h} colour={colourOf(h.group_id)} />
               <span className="min-w-0">
-                <span className="flex items-center gap-2 text-caption text-faint">
+                <span className="flex items-center gap-2 text-small text-faint">
                   <Source h={h} colour={colourOf(h.group_id)} />
                   {formatAgo(h.published)}
                 </span>

@@ -34,7 +34,7 @@ export function WeatherPage() {
       <div className="grid gap-3.5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] lg:gap-5">
         <WeatherCard onPage />
         <Card title={day && day.date !== today ? 'The first day of the forecast' : 'Today'} actions={
-            <a href="https://open-meteo.com" target="_blank" rel="noreferrer" className="text-caption text-muted hover:underline">
+            <a href="https://open-meteo.com" target="_blank" rel="noreferrer" className="hit text-small text-muted hover:underline">
               Open-Meteo
             </a>
           }
@@ -62,7 +62,7 @@ export function WeatherPage() {
                 : 'No rain expected in the next two hours: the radar shows here when rain is on its way.'}
             </p>
           )}
-          {now.data && !wet && <p className="mt-2 text-caption text-faint">The hub reads Buienradar's radar only while rain is coming, every 5 minutes.</p>}
+          {now.data && !wet && <p className="mt-2 text-small text-faint">The hub reads Buienradar's radar only while rain is coming, every 5 minutes.</p>}
         </Card>
       </div>
     </>

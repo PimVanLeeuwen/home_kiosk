@@ -150,10 +150,10 @@ export function AskPage() {
                       />
                     ))}
                     {entry.used.length > 0 && (
-                      <p className="flex flex-wrap items-center gap-1.5 text-caption text-faint">
+                      <p className="flex flex-wrap items-center gap-1.5 text-small text-faint">
                         Used
                         {entry.used.map((tool) => (
-                          <span key={tool} className="rounded-tag border border-line px-1.5 font-mono text-[11.5px] text-muted">
+                          <span key={tool} className="rounded-tag border border-line px-1.5 font-mono text-label text-muted">
                             {tool}
                           </span>
                         ))}
@@ -181,7 +181,7 @@ export function AskPage() {
             the bottom of the panel. */}
         <div className="sticky bottom-[calc(max(0.5rem,env(safe-area-inset-bottom))-3rem)] mt-auto bg-linear-to-t from-panel from-70% to-transparent pt-4 md:bottom-0 md:pb-1">
           <Composer busy={busy} disabled={Boolean(switchedOff)} onSend={send} />
-          <p className="mt-2 hidden justify-between text-caption text-faint md:flex">
+          <p className="mt-2 hidden justify-between text-small text-faint md:flex">
             <span>Enter to send, Shift+Enter for a new line</span>
             <span>Nothing is kept after New chat</span>
           </p>

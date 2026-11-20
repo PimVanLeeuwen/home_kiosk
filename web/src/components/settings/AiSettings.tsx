@@ -61,7 +61,7 @@ export function AiSettings() {
             pct={share}
             tone={ai.capped ? 'down' : share >= 80 ? 'warn' : 'accent'}
           />
-          <p className="mt-2 text-caption text-faint">
+          <p className="mt-2 text-small text-faint">
             {ai.capped
               ? 'The cap is reached: the hub asks Claude again on the 1st.'
               : 'Counted in dollars, so the hub stops a little before EUR\u00a05. A Telegram note at 80%.'}

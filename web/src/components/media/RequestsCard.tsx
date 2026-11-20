@@ -45,7 +45,7 @@ export function RequestsCard({ overview }: { overview: MediaOverview }) {
                   <Poster poster={r.poster} title={r.title} small />
                   <div className="min-w-0">
                     <p className="truncate text-small font-medium">{r.title}</p>
-                    <p className="truncate text-caption text-muted">
+                    <p className="truncate text-small text-muted">
                       {r.kind === 'movie' ? 'Movie' : 'Series'}
                       {r.year && ` · ${r.year}`} · {r.by}
                     </p>

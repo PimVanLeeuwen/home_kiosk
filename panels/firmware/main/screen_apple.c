@@ -19,6 +19,7 @@
 #include "esp_attr.h"
 #include "lvgl.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
@@ -29,8 +30,8 @@ LV_FONT_DECLARE(instrument_24);
 #define PLAN_H 420
 #define GAP 12
 #define ORB 88
-#define OFFLINE 0xe0a23b
-#define MESH 0xc3b9ff
+#define OFFLINE TOK_WARN
+#define MESH TOK_DATA_LAVENDER
 #define MAX_LINKS 10
 #define MAX_RINGS 8
 #define PULSE 10
@@ -104,7 +105,7 @@ static void paint(int i)
     lv_obj_set_style_shadow_opa(box, lit ? 120 : 0, 0);
     lv_obj_set_style_shadow_color(box, lv_color_hex(room->glow), 0);
     lv_label_set_text(rooms[i].name, room->name);
-    lv_obj_set_style_text_color(rooms[i].name, lv_color_hex(lit ? 0xffffff : 0xb4b1c2), 0);
+    lv_obj_set_style_text_color(rooms[i].name, lv_color_hex(lit ? 0xffffff : TOK_DESK_SECONDARY), 0);
 
     for (int d = 0; d < 4; d++) {
         lv_obj_set_flag(rooms[i].orbs[d], LV_OBJ_FLAG_HIDDEN, d >= room->devices);
@@ -341,7 +342,7 @@ static void tick(lv_timer_t *timer)
         lv_label_set_text(bar_title, "Nothing playing");
         lv_label_set_text(bar_where, "");
         lv_obj_set_style_bg_color(bar_stripe, lv_color_hex(0x2a2833), 0);
-        lv_obj_set_style_text_color(bar_title, lv_color_hex(0x8a8794), 0);
+        lv_obj_set_style_text_color(bar_title, lv_color_hex(TOK_DESK_MUTED), 0);
     }
 }
 
@@ -349,7 +350,7 @@ void screen_apple_create(lv_obj_t *screen)
 {
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
-    lv_obj_t *header = ui_text(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *header = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(header, 2, 0);
     lv_label_set_text(header, "APPLE DEVICES");
     lv_obj_set_pos(header, LEFT, 30);
@@ -368,7 +369,7 @@ void screen_apple_create(lv_obj_t *screen)
         lv_obj_set_style_radius(box, 22, 0);
         lv_obj_set_style_border_width(box, 2, 0);
         lv_obj_set_style_shadow_width(box, 40, 0);
-        rooms[i].name = ui_one_line(box, &instrument_28_bold, 0xb4b1c2, (WIDTH - GAP) / 2 - 48);
+        rooms[i].name = ui_one_line(box, &instrument_28_bold, TOK_DESK_SECONDARY, (WIDTH - GAP) / 2 - 48);
         lv_obj_set_pos(rooms[i].name, 22, 18);
 
         /* The devices, in a row in the middle of the room, under its name. */
@@ -425,7 +426,7 @@ void screen_apple_create(lv_obj_t *screen)
     lv_obj_set_style_bg_opa(bar_stripe, LV_OPA_COVER, 0);
     bar_title = ui_one_line(bar, &instrument_28_bold, 0xffffff, WIDTH - 72);
     lv_obj_set_pos(bar_title, 36, 28);
-    bar_where = ui_one_line(bar, &instrument_24, 0xb4b1c2, WIDTH - 72);
+    bar_where = ui_one_line(bar, &instrument_24, TOK_DESK_SECONDARY, WIDTH - 72);
     lv_obj_set_pos(bar_where, 36, 74);
 
     lv_timer_create(tick, 1000, NULL);

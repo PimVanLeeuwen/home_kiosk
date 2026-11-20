@@ -29,7 +29,7 @@ export function RecipeTimes({ recipe }: { recipe: RecipeSummary }) {
   const { prep_min: prep, cook_min: cook } = recipe.times
   if (!prep && !cook) return null
   return (
-    <span className="flex flex-wrap gap-x-2.5 text-caption">
+    <span className="flex flex-wrap gap-x-2.5 text-small">
       {!!prep && <span className="text-accent-fg">{duration(prep)} prep</span>}
       {!!cook && <span className="text-cook">{duration(cook)} cook</span>}
     </span>
@@ -49,7 +49,7 @@ export function RecipeCard({ recipe }: { recipe: RecipeSummary }) {
         <span className="text-title leading-snug font-semibold">{recipe.title}</span>
         <RecipeTimes recipe={recipe} />
         {(recipe.needs_review || recipe.tags.length > 0) && (
-          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-faint">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-small text-faint">
             {recipe.needs_review && <Pill tone="warn">Needs review</Pill>}
             {recipe.tags.slice(0, 4).map((tag) => (
               <span key={tag}>#{tag}</span>

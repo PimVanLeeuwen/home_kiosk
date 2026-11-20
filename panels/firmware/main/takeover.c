@@ -18,6 +18,7 @@
 #include "esp_attr.h"
 #include "lvgl.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_28_bold);
@@ -26,7 +27,7 @@ LV_IMAGE_DECLARE(glow_sky);
 
 #define PAD 56
 #define WIDTH (720 - 2 * PAD)
-#define RED 0xff6b6b
+#define RED TOK_DESK_DOWN
 #define RINGS 3
 #define RING 140        /* a ring's size before it grows */
 #define RING_MS 4200    /* one ring going out */

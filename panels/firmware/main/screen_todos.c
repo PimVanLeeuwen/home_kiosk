@@ -12,6 +12,7 @@
 #include "esp_attr.h"
 #include "lvgl.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_24);
@@ -31,12 +32,12 @@ LV_IMAGE_DECLARE(glow_sky);
 #define FADE_MS 220
 #define DOT 8
 
-#define GREY 0x8a8794
-#define FAINT 0x6c6a78
+#define GREY TOK_DESK_MUTED
+#define FAINT TOK_DESK_FAINT
 #define WHITE 0xf2f1f6
 #define VIOLET 0x9d8cff
-#define RED 0xff6b6b
-#define AMBER 0xf0bd5a
+#define RED TOK_DESK_DOWN
+#define AMBER TOK_DATA_AMBER
 
 static lv_obj_t *sky, *title, *dots[PAGES], *rows[ROWS], *rings[ROWS], *titles[ROWS];
 static lv_obj_t *tags[ROWS], *dues[ROWS], *more;

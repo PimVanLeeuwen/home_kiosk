@@ -39,12 +39,12 @@ export function DownloadTile({ item }: { item: MediaDownload }) {
             </Tag>
           )}
         </p>
-        <p className="text-caption text-muted">{item.detail}</p>
-        <p className="text-caption text-muted">
+        <p className="text-small text-muted">{item.detail}</p>
+        <p className="text-small text-muted">
           {formatBytes(item.size_bytes)}
           {item.client && ` · ${item.client}`}
         </p>
-        {item.message && <p className={cn('text-caption', bad ? 'text-down' : 'text-warn')}>{item.message}</p>}
+        {item.message && <p className={cn('text-small', bad ? 'text-down' : 'text-warn')}>{item.message}</p>}
         <div
           role="progressbar"
           aria-label={`${item.title} ${item.detail}`}
@@ -73,7 +73,7 @@ export function DownloadTile({ item }: { item: MediaDownload }) {
       <div className="text-right">
         <b className="block text-heading font-semibold">{Math.round(item.progress_pct)}%</b>
         {item.time_left_seconds != null && running && (
-          <span className="text-caption whitespace-nowrap text-muted">{formatDuration(item.time_left_seconds)} left</span>
+          <span className="text-small whitespace-nowrap text-muted">{formatDuration(item.time_left_seconds)} left</span>
         )}
       </div>
     </li>

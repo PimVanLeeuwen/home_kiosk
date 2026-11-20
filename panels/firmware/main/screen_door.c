@@ -25,6 +25,7 @@
 #include "esp_attr.h"
 #include "lvgl.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_time);
 LV_FONT_DECLARE(instrument_52_bold);
@@ -58,9 +59,9 @@ LV_FONT_DECLARE(instrument_24);
 #define DOT 8
 #define STALE_AFTER (20 * 60) /* the hub reads the weather every 5 minutes */
 
-#define GREY 0x8a8794
-#define FAINT 0x6c6a78
-#define RAIN_BLUE 0x5aa9ff
+#define GREY TOK_DESK_MUTED
+#define FAINT TOK_DESK_FAINT
+#define RAIN_BLUE TOK_DATA_DEEP_BLUE
 #define RAIN_LIGHT 0x9cc8ff
 #define VIOLET 0x9d8cff
 #define ROSE 0xf2b3cf

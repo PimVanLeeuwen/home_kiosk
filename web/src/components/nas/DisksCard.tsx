@@ -49,7 +49,7 @@ export function DisksCard({ nas }: { nas: Nas }) {
                 className="grid grid-cols-[14px_56px_minmax(0,1fr)_48px] items-center gap-2.5 rounded-control border border-glass-line bg-linear-to-r from-white/[0.04] to-white/[0.015] px-3 py-[9px] text-small sm:grid-cols-[14px_64px_minmax(0,1fr)_56px_74px]"
               >
                 <GlowDot tone={smart.tone} halo={disk.smart !== 'ok'} size="sm" />
-                <span className="font-mono text-caption">{disk.name}</span>
+                <span className="font-mono text-small">{disk.name}</span>
                 <span className="relative h-[5px] overflow-hidden rounded-full bg-raised" aria-hidden="true">
                   {disk.temp_c != null && (
                     <span
@@ -63,7 +63,7 @@ export function DisksCard({ nas }: { nas: Nas }) {
                   {disk.temp_c != null ? `${Math.round(disk.temp_c)} °C` : '–'}
                 </span>
                 {/* On a phone the LED carries the SMART state; the word is still read out. */}
-                <span className={cn('text-right text-caption font-semibold max-sm:sr-only', smart.text)}>{smart.label}</span>
+                <span className={cn('text-right text-small font-semibold max-sm:sr-only', smart.text)}>{smart.label}</span>
               </li>
             )
           })}
@@ -72,7 +72,7 @@ export function DisksCard({ nas }: { nas: Nas }) {
       <p className="mt-3.5 flex items-center gap-2.5 border-t border-line-soft pt-3 text-small">
         <GlowDot tone={allRunning ? 'up' : 'warn'} />
         Containers: {nas.containers.running} of {nas.containers.total} running
-        <Link to="/docker" className="ml-auto font-medium text-accent-fg hover:underline">
+        <Link to="/docker" className="hit ml-auto font-medium text-accent-fg hover:underline">
           Open Docker<span aria-hidden="true"> →</span>
         </Link>
       </p>

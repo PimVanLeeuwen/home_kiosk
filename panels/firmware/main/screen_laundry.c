@@ -21,6 +21,7 @@
 #include "lvgl.h"
 #include "arrive.h"
 #include "ui.h"
+#include "tokens.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
 LV_FONT_DECLARE(instrument_40);
@@ -189,7 +190,7 @@ void screen_laundry_create(lv_obj_t *screen)
     self = screen;
     lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
-    lv_obj_t *header = centred(screen, &instrument_24, 0x8a8794);
+    lv_obj_t *header = centred(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(header, 2, 0);
     lv_label_set_text(header, "LAUNDRY");
     lv_obj_set_pos(header, LEFT, 30);
@@ -256,15 +257,15 @@ void screen_laundry_create(lv_obj_t *screen)
         lv_line_set_points(ports[i].check, tick_points, 3);
         lv_obj_set_style_line_width(ports[i].check, 9, 0);
         lv_obj_set_style_line_rounded(ports[i].check, true, 0);
-        lv_obj_set_style_line_color(ports[i].check, lv_color_hex(0x3fb97f), 0);
+        lv_obj_set_style_line_color(ports[i].check, lv_color_hex(TOK_UP), 0);
         lv_obj_center(ports[i].check);
-        ports[i].mark = centred(door, &instrument_52_bold, 0xe5646a);
+        ports[i].mark = centred(door, &instrument_52_bold, TOK_DOWN);
         lv_label_set_text(ports[i].mark, "!");
         lv_obj_center(ports[i].mark);
 
         ports[i].name = centred(box, &instrument_40, 0xffffff);
         lv_obj_align(ports[i].name, LV_ALIGN_TOP_MID, 0, RING + 24);
-        ports[i].line = ui_one_line(box, &instrument_24, 0xb4b1c2, 300);
+        ports[i].line = ui_one_line(box, &instrument_24, TOK_DESK_SECONDARY, 300);
         lv_obj_set_style_text_align(ports[i].line, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_align(ports[i].line, LV_ALIGN_TOP_MID, 0, RING + 80);
         ports[i].status = ui_one_line(box, &instrument_24, 0xffffff, 300);
@@ -285,7 +286,7 @@ void screen_laundry_create(lv_obj_t *screen)
     lv_obj_set_style_border_opa(bar, 30, 0);
     bar_name = ui_text(bar, &instrument_24, 0xe6e3ef);
     lv_obj_align(bar_name, LV_ALIGN_LEFT_MID, 34, 0);
-    bar_state = ui_text(bar, &instrument_24, 0x8a8794);
+    bar_state = ui_text(bar, &instrument_24, TOK_DESK_MUTED);
     lv_obj_align(bar_state, LV_ALIGN_RIGHT_MID, -34, 0);
     lv_obj_add_flag(bar, LV_OBJ_FLAG_HIDDEN);
 
