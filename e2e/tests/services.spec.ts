@@ -32,7 +32,7 @@ test('lists services by group with status and links to the NAS', async ({ page }
   await page.route('**/api/services', (route) => route.fulfill({ json: SERVICES }))
   await page.route('**/api/hosts', (route) => route.fulfill({ json: HOSTS }))
   const shell = new Shell(page)
-  await page.goto('/services')
+  await page.goto('/house/services')
 
   await expect(shell.heading()).toHaveText('Services')
   await expect(page.getByText('2 of 3 running')).toBeVisible()
@@ -50,7 +50,7 @@ test('lists services by group with status and links to the NAS', async ({ page }
 
 test('shows a retry when the collector is down', async ({ page }) => {
   // No stub: the e2e stack has no collector, so Caddy answers 502.
-  await page.goto('/services')
+  await page.goto('/house/services')
 
   await expect(page.getByRole('alert')).toContainText('The hub API is not available right now')
   await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
@@ -67,7 +67,7 @@ const SITES = {
 test('Services shows my sites with their 30 days and a site that is down', async ({ page }) => {
   await page.route('**/api/services', (route) => route.fulfill({ json: SERVICES }))
   await page.route('**/api/sites', (route) => route.fulfill({ json: SITES }))
-  await page.goto('/services')
+  await page.goto('/house/services')
 
   const sites = page.getByRole('region', { name: 'My sites' })
   await expect(sites.getByRole('img', { name: '1 of 2 sites up' })).toBeVisible()

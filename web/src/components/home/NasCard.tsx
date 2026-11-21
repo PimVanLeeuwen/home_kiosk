@@ -11,6 +11,7 @@ import { MiniSparkline } from '../ui/MiniSparkline'
 import { Card } from '../ui/Card'
 import { Loading, StaleNote, Unavailable } from '../ui/states'
 import { BarMeter } from '../ui/BarMeter'
+import { PATHS } from '../../lib/paths'
 
 
 const UPS_LABEL: Record<Ups['status'], string> = {
@@ -42,7 +43,7 @@ export function NasCard({ nas, error }: Props) {
     <Card
       title="NAS"
       // No state pill: the NAS chip above the cards says it already.
-      link={{ to: '/nas', label: 'Details' }}
+      link={{ to: PATHS.nas, label: 'Details' }}
     >
       {!nas && (error ? <Unavailable what="NAS data" /> : <Loading />)}
       {nas && (

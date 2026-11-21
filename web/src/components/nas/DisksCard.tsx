@@ -5,6 +5,7 @@ import type { Nas } from '../../lib/types'
 import { Card } from '../ui/Card'
 import { GlowDot } from '../ui/GlowDot'
 import { Pill } from '../ui/Pill'
+import { PATHS } from '../../lib/paths'
 
 const SMART = {
   ok: { label: 'Healthy', text: 'text-up', tone: 'up' },
@@ -72,7 +73,7 @@ export function DisksCard({ nas }: { nas: Nas }) {
       <p className="mt-3.5 flex items-center gap-2.5 border-t border-line-soft pt-3 text-small">
         <GlowDot tone={allRunning ? 'up' : 'warn'} />
         Containers: {nas.containers.running} of {nas.containers.total} running
-        <Link to="/docker" className="hit ml-auto font-medium text-accent-fg hover:underline">
+        <Link to={PATHS.docker} className="hit ml-auto font-medium text-accent-fg hover:underline">
           Open Docker<span aria-hidden="true"> →</span>
         </Link>
       </p>

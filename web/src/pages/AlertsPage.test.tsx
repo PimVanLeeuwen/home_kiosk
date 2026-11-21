@@ -52,7 +52,7 @@ function setup(over: Record<string, unknown> = {}) {
 describe('AlertsPage', () => {
   it('shows the log with what happened to each message', async () => {
     setup()
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const log = await screen.findByRole('region', { name: 'Messages' })
     expect(await within(log).findByText('volume2 is 92% full')).toBeInTheDocument()
@@ -72,7 +72,7 @@ describe('AlertsPage', () => {
 
   it('filters the log by category', async () => {
     const fetchMock = setup()
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Hub alert rules' }))
 
@@ -84,7 +84,7 @@ describe('AlertsPage', () => {
 
   it('sends a message to the chosen chat', async () => {
     const fetchMock = setup({ 'POST /api/alerts/send': msg(9, { source: 'hub', category: 'manual', title: 'Hi' }) })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const form = await screen.findByRole('form', { name: 'Send a message' })
     fireEvent.change(within(form).getByLabelText('Message'), { target: { value: 'Hi\nfrom the hub' } })
@@ -99,7 +99,7 @@ describe('AlertsPage', () => {
 
   it('reports a message Telegram refused', async () => {
     setup({ 'POST /api/alerts/send': msg(9, { status: 'failed', error: 'No chat id set for nas' }) })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const form = await screen.findByRole('form', { name: 'Send a message' })
     fireEvent.change(within(form).getByLabelText('Message'), { target: { value: 'Hi' } })
@@ -110,7 +110,7 @@ describe('AlertsPage', () => {
 
   it('lists open alerts only', async () => {
     setup()
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const open = await screen.findByRole('region', { name: 'Open alerts' })
     expect(await within(open).findByText('volume2 is 92% full')).toBeInTheDocument()
@@ -130,7 +130,7 @@ describe('AlertsPage', () => {
         { ...INCIDENTS[1], opened_at: day(5), resolved_at: day(5, 10) },
       ],
     })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const card = await screen.findByRole('region', { name: 'Open alerts' })
     expect(await within(card).findByText('All quiet')).toBeInTheDocument()
@@ -142,7 +142,7 @@ describe('AlertsPage', () => {
 
   it('puts open alerts before the messages, for a phone', async () => {
     setup()
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
     const open = await screen.findByRole('region', { name: 'Open alerts' })
     const messages = screen.getByRole('region', { name: 'Messages' })
     expect(open.compareDocumentPosition(messages) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -150,7 +150,7 @@ describe('AlertsPage', () => {
 
   it('edits and saves rules', async () => {
     const fetchMock = setup({ 'PUT /api/alerts/rules': RULES })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const rules = await screen.findByRole('region', { name: 'Hub rules' })
     const save = await within(rules).findByRole('button', { name: 'Save rules' })
@@ -177,7 +177,7 @@ describe('AlertsPage', () => {
         labels: { train: 'Your train' },
       },
     })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const rules = await screen.findByRole('region', { name: 'Hub rules' })
     expect(await within(rules).findByLabelText(/The morning train late by/)).toHaveValue(3)
@@ -192,7 +192,7 @@ describe('AlertsPage', () => {
       },
       'PUT /api/alerts/rules': RULES,
     })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const rules = await screen.findByRole('region', { name: 'Hub rules' })
     const minutes = await within(rules).findByLabelText(/An Apple TV or HomePod offline for/)
@@ -212,7 +212,7 @@ describe('AlertsPage', () => {
         labels: { desk_panels: 'Desk panels' },
       },
     })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const rules = await screen.findByRole('region', { name: 'Hub rules' })
     expect(await within(rules).findByLabelText(/A desk panel that has not asked the hub for/)).toHaveValue(10)
@@ -220,7 +220,7 @@ describe('AlertsPage', () => {
 
   it('changes quiet hours and routing', async () => {
     const fetchMock = setup({ 'PUT /api/alerts/settings': SETTINGS })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const delivery = await screen.findByRole('region', { name: 'Delivery' })
     fireEvent.change(within(delivery).getByLabelText('From'), { target: { value: '22:30' } })
@@ -244,7 +244,7 @@ describe('AlertsPage', () => {
         msg(4, { title: 'Fell back', channel: 'telegram', error: 'ntfy failed: ntfy not reachable' }),
       ],
     })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const log = await screen.findByRole('region', { name: 'Messages' })
     expect(await within(log).findByText('Sent to your phone (ntfy)')).toBeInTheDocument()
@@ -263,17 +263,17 @@ describe('AlertsPage', () => {
         msg(8, { title: 'Old one', ts: new Date(Date.now() - 8 * 86_400_000).toISOString() }),
       ],
     })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const log = await screen.findByRole('region', { name: 'Messages' })
-    expect(await within(log).findByRole('link', { name: 'Fresh one' })).toHaveAttribute('href', '/alerts/9')
+    expect(await within(log).findByRole('link', { name: 'Fresh one' })).toHaveAttribute('href', '/house/alerts/9')
     expect(within(log).getByText('Old one').closest('a')).toBeNull()
   })
 
   it('switches ntfy off', async () => {
     const on = { ...SETTINGS, ntfy: { configured: true, enabled: true } }
     const fetchMock = setup({ '/api/alerts/settings': on, 'PUT /api/alerts/settings': on })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const delivery = await screen.findByRole('region', { name: 'Delivery' })
     const toggle = within(delivery).getByRole('switch', { name: 'Send through ntfy' })
@@ -287,7 +287,7 @@ describe('AlertsPage', () => {
 
   it('cannot switch ntfy on without a token', async () => {
     setup({ '/api/alerts/settings': { ...SETTINGS, ntfy: { configured: false, enabled: true } } })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     const delivery = await screen.findByRole('region', { name: 'Delivery' })
     const toggle = within(delivery).getByRole('switch', { name: 'Send through ntfy' })
@@ -298,7 +298,7 @@ describe('AlertsPage', () => {
 
   it('says what is missing from the setup', async () => {
     setup({ '/api/alerts/settings': { ...SETTINGS, token_set: false, chats: [{ key: 'nas', label: 'NAS alerts', configured: false }] } })
-    renderRoute('/alerts')
+    renderRoute('/house/alerts')
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Not set up yet: TELEGRAM_BOT_TOKEN, the chat id for NAS alerts.',

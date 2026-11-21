@@ -8,6 +8,7 @@ import { RememberedChoices } from './RememberedChoices'
 import { PageHeader } from '../PageHeader'
 import { Card } from '../ui/Card'
 import { buttonClass, inputClass, primaryButtonClass } from '../settings/fields'
+import { PATHS } from '../../lib/paths'
 
 type Product = DegiroPreview['unknown'][number]
 const MAX_BYTES = 2_000_000
@@ -104,7 +105,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
   const fresh = preview?.rows.filter((r) => r.status === 'new') ?? []
   return (
     <>
-      <Link to="/portfolio" className="mb-4 inline-flex items-center gap-1 text-small text-accent-fg hover:underline">
+      <Link to={PATHS.portfolio} className="mb-4 inline-flex items-center gap-1 text-small text-accent-fg hover:underline">
         <ChevronLeft aria-hidden="true" className="size-4" />
         Portfolio
       </Link>
@@ -262,7 +263,7 @@ export function DegiroImport({ onImported }: { onImported: () => void }) {
             {done.unknown > 0 && `; ${done.unknown} skipped without a symbol`}
             {done.ignored > 0 && `; ${done.ignored} left out`}. The portfolio refreshes in a moment.
           </p>
-          <Link to="/portfolio" className={`${buttonClass} mt-4`}>
+          <Link to={PATHS.portfolio} className={`${buttonClass} mt-4`}>
             Back to the portfolio
           </Link>
         </Card>

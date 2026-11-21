@@ -101,7 +101,7 @@ describe('MessageTemplates', () => {
     expect(within(reports).getByText('Customised')).toBeInTheDocument()
     expect(within(reports).getByText(/routed as Portfolio/)).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Alert rules' })).toHaveTextContent('Disk space description')
-    expect(screen.getByRole('link', { name: 'Alerts page' })).toHaveAttribute('href', '/alerts')
+    expect(screen.getByRole('link', { name: 'Alerts page' })).toHaveAttribute('href', '/house/alerts')
   })
 
   it('edits with clickable placeholders and a live preview, then saves', async () => {

@@ -14,6 +14,7 @@ import { inputClass } from '../ui/fieldStyles'
 import { GlowDot } from '../ui/GlowDot'
 import { SEVERITY_TONE } from '../../lib/status'
 import { Tag } from '../ui/Tag'
+import { alertPath } from '../../lib/paths'
 
 function delivery(m: AlertMessage, chatLabel: string): { text: string; className: string; mark: string; markClass: string } {
   switch (m.status) {
@@ -153,7 +154,7 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
               </p>
               <p className="mt-1 font-semibold">
                 {openedAt - new Date(m.ts).getTime() < PAGE_DAYS * 86_400_000 ? (
-                  <Link to={`/alerts/${m.id}`} viewTransition className="hit hover:text-accent-fg hover:underline">
+                  <Link to={alertPath(m.id)} viewTransition className="hit hover:text-accent-fg hover:underline">
                     {m.title}
                   </Link>
                 ) : (

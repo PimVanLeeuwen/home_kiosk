@@ -135,7 +135,7 @@ describe('HomePage', () => {
       expect.stringContaining('Jellyfin 12.1 lands'),
       expect.stringContaining('Old story'),
     ])
-    expect(links[0]).toHaveAttribute('href', '/news?a=a1')
+    expect(links[0]).toHaveAttribute('href', '/read/news?a=a1')
     expect(links[0]).toHaveTextContent('unread')
     expect(links[2]).not.toHaveTextContent('unread')
     // The group is a chip in its own colour before the source; the newest story leads.
@@ -252,7 +252,7 @@ describe('HomePage', () => {
     expect(chip('Services')).toHaveAttribute('data-tone', 'up')
     // Alerts has no card on Home: its chip goes to the page, shaped like the others.
     const alerts = screen.getByRole('link', { name: /^Alerts: volume2 98% full\. Go to Alerts$/ })
-    expect(alerts).toHaveAttribute('href', '/alerts')
+    expect(alerts).toHaveAttribute('href', '/house/alerts')
     expect(alerts.children).toHaveLength(chip('Services').children.length)
     expect(chip('Services').querySelector('.motion-safe\\:animate-halo')).toBeNull()
   })

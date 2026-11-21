@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { Shell } from './shell'
 
 const repo = (name: string, over: Record<string, unknown> = {}) => ({
   name, full_name: `PimVanLeeuwen/${name}`, url: `https://github.com/PimVanLeeuwen/${name}`,
@@ -20,13 +21,8 @@ test('Repos lists owners in tabs with forks behind a switch', async ({ page, isM
   await page.route('**/api/repos', (route) => route.fulfill({ json: REPOS }))
   await page.goto('/')
 
-  // Reachable from the sidebar on desktop and from More on mobile.
-  if (isMobile) {
-    await page.locator('nav.fixed').getByRole('link', { name: 'More' }).click()
-    await page.getByRole('main').getByRole('link', { name: /Repos/ }).click()
-  } else {
-    await page.locator('aside').getByRole('link', { name: 'Repos' }).click()
-  }
+  // A tab of the House space, on desktop and on a phone.
+  await new Shell(page).open('House', 'Repos', isMobile)
 
   await expect(page.getByRole('tab', { name: 'Mine 1', selected: true })).toBeVisible()
   await expect(page.getByRole('article')).toHaveCount(1)
@@ -52,7 +48,7 @@ test('Repos shows the backup status of mirrored owners', async ({ page }) => {
       },
     }),
   )
-  await page.goto('/repos')
+  await page.goto('/house/repos')
 
   await expect(page.getByRole('article', { name: /home_kiosk/ })).toContainText('Backed up')
   await expect(page.getByText(/Backed up nightly to the NAS and Hetzner: 1 repo,/)).toBeVisible()
@@ -65,7 +61,7 @@ test('Repos says when the tab\'s GitHub token expires', async ({ page }) => {
   await page.route('**/api/repos', (route) => route.fulfill({
     json: { ...REPOS, tokens: [{ owners: ['Mine', 'GEWIS'], expires_at: inDays(10.5), checked: true }] },
   }))
-  await page.goto('/repos')
+  await page.goto('/house/repos')
 
   await expect(page.getByText(/GitHub token \(Mine and GEWIS\) expires .* \(in 10 days\)/)).toBeVisible()
 })
@@ -91,7 +87,7 @@ test('Repos opens with the Code card: activity, builds and pull requests', async
       ],
     },
   }))
-  await page.goto('/repos')
+  await page.goto('/house/repos')
 
   const card = page.getByRole('region', { name: 'Code' })
   await expect(card.getByText('1 failing')).toBeVisible()

@@ -89,10 +89,6 @@ const dateLine = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numer
 /** Where the open card's pointer sits under its chip: a chip of 1fr per folded card and Alerts of 1.25fr. */
 const pointerAt = (id: FoldedCardId) => `${((FOLDED.indexOf(id) + 0.5) / (FOLDED.length + 1.25)) * 100}%`
 
-/** A fine grain over the page, so the dark has depth without a colour washing over the cards. */
-const GRAIN =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")"
-
 /** How long the page's one staggered reveal takes, after which cards that arrive just appear. */
 const REVEAL_MS = 1_200
 
@@ -263,17 +259,13 @@ export function HomePage() {
 
   return (
     <div className="relative">
-      {/* Two soft lights at the top that follow the time of day (red when something is down), and a fine grain. */}
+      {/* Two soft lights at the top that follow the time of day (red when something is down), faded out on every side;
+          the grain is the page's own. */}
       <div
         aria-hidden="true"
         data-testid="sky"
         style={{ '--sky': heroDown ? PROBLEM_LIGHT : sky1, '--sky2': sky2 } as CSSProperties}
-        className="pointer-events-none absolute -inset-x-4 -top-2 h-[560px] bg-[radial-gradient(50%_75%_at_12%_-8%,var(--sky),transparent_70%),radial-gradient(40%_60%_at_88%_-10%,var(--sky2),transparent_72%)] mask-[linear-gradient(#000_45%,transparent)] md:-inset-x-8 md:-top-8 lg:-inset-x-11 lg:-top-9"
-      />
-      <div
-        aria-hidden="true"
-        style={{ backgroundImage: GRAIN }}
-        className="pointer-events-none absolute -inset-x-4 -top-2 bottom-0 opacity-50 mix-blend-overlay md:-inset-x-8 md:-top-8 lg:-inset-x-11 lg:-top-9"
+        className="pointer-events-none absolute -inset-x-4 -top-2 h-[560px] bg-[radial-gradient(50%_75%_at_12%_-8%,var(--sky),transparent_70%),radial-gradient(40%_60%_at_88%_-10%,var(--sky2),transparent_72%)] [mask-composite:intersect] [mask-image:linear-gradient(transparent,#000_20%,#000_40%,transparent),linear-gradient(90deg,transparent,#000_20%,#000_80%,transparent)] md:-inset-x-8 md:-top-8 lg:-inset-x-11 lg:-top-9"
       />
       <div className="relative">
         <div style={header.style} className={header.className}>

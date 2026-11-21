@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { Shell } from './shell'
 
 const light = (id: string, name: string, on: boolean, brightness: number, kelvin: number | null) => ({ id, name, on, brightness, kelvin, reachable: true })
 
@@ -26,13 +27,8 @@ test('Lights switches the kitchen spots and picks a white', async ({ page, isMob
   })
   await page.goto('/')
 
-  // In the sidebar under Home, and on the More page on a phone.
-  if (isMobile) {
-    await page.locator('nav.fixed').getByRole('link', { name: 'More' }).click()
-    await page.getByRole('main').getByRole('link', { name: /Lights/ }).click()
-  } else {
-    await page.locator('aside').getByRole('link', { name: 'Lights' }).click()
-  }
+  // The Home space opens on Lights, on desktop and on a phone.
+  await new Shell(page).open('Home', undefined, isMobile)
 
   const kitchen = page.getByRole('region', { name: 'Kitchen spots' })
   await expect(page.getByText('5 of 5 on')).toBeVisible()

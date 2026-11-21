@@ -17,7 +17,7 @@ const radar = (wet: boolean) => ({ as_of: new Date().toISOString(), stale: false
 describe('WeatherPage', () => {
   it('shows today by the hour, the week as ranges, and no radar while dry', async () => {
     stubApi({ '/api/forecast': FORECAST, '/api/radar': radar(false) })
-    renderRoute('/weather')
+    renderRoute('/now/weather')
 
     expect(await screen.findByText('Dry for now')).toBeInTheDocument()
     const today = screen.getByRole('region', { name: 'Today' })
@@ -32,7 +32,7 @@ describe('WeatherPage', () => {
 
   it('shows the radar while rain is coming, and words when its picture is missing', async () => {
     stubApi({ '/api/forecast': FORECAST, '/api/radar': radar(true) })
-    renderRoute('/weather')
+    renderRoute('/now/weather')
 
     const card = await screen.findByRole('region', { name: 'Rain radar' })
     const picture = await within(card).findByRole('img', { name: /The rain radar round home at/ })
@@ -43,7 +43,7 @@ describe('WeatherPage', () => {
 
   it('says when the forecast is not available', async () => {
     stubApi({})
-    renderRoute('/weather')
+    renderRoute('/now/weather')
 
     expect(await within(screen.getByRole('region', { name: 'The week' })).findByText(/not available/i)).toBeInTheDocument()
   })

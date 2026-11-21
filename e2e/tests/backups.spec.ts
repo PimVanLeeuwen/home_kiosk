@@ -24,7 +24,7 @@ const HISTORY = {
 
 test('Backups shows per-volume results and the run history', async ({ page }) => {
   await page.route('**/api/backups', (route) => route.fulfill({ json: HISTORY }))
-  await page.goto('/backups')
+  await page.goto('/house/backups')
 
   await expect(page.getByRole('region', { name: 'volume3' })).toContainText('quota exceeded')
   await expect(page.getByRole('region', { name: 'Last night' }).getByRole('img', { name: 'Backup durations, last 3 nights' })).toBeVisible()
@@ -53,7 +53,7 @@ const MIRROR = {
 test('Backups shows the GitHub mirror and what failed', async ({ page }) => {
   await page.route('**/api/backups', (route) => route.fulfill({ json: HISTORY }))
   await page.route('**/api/github-mirror', (route) => route.fulfill({ json: MIRROR }))
-  await page.goto('/backups')
+  await page.goto('/house/backups')
 
   const card = page.getByRole('region', { name: 'GitHub mirror' })
   await expect(card).toContainText('Mine repos')
@@ -61,7 +61,7 @@ test('Backups shows the GitHub mirror and what failed', async ({ page }) => {
   await expect(card.getByText('failed', { exact: true })).toBeVisible()
   await expect(card).toContainText('Hubble-Community-Cafe/web: fatal: repository not found')
   await card.getByRole('link', { name: /Repos/ }).click()
-  await expect(page).toHaveURL(/\/repos$/)
+  await expect(page).toHaveURL(/\/house\/repos$/)
 })
 
 const DUMPS = {
@@ -89,7 +89,7 @@ const DUMPS = {
 test('Backups shows the database dumps and a failed one', async ({ page }) => {
   await page.route('**/api/backups', (route) => route.fulfill({ json: HISTORY }))
   await page.route('**/api/database-dumps', (route) => route.fulfill({ json: DUMPS }))
-  await page.goto('/backups')
+  await page.goto('/house/backups')
 
   const card = page.getByRole('region', { name: 'Database dumps' })
   await expect(card.getByRole('listitem')).toHaveCount(4)
@@ -116,7 +116,7 @@ const INCOMING = {
 test('Backups shows the backup another NAS sends here', async ({ page }) => {
   await page.route('**/api/backups', (route) => route.fulfill({ json: HISTORY }))
   await page.route('**/api/incoming-backups', (route) => route.fulfill({ json: INCOMING }))
-  await page.goto('/backups')
+  await page.goto('/house/backups')
 
   const card = page.getByRole('region', { name: 'Family NAS' })
   await expect(card).toContainText('On time')

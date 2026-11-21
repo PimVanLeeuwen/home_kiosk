@@ -30,15 +30,15 @@ function setup(path: string, over: Record<string, unknown> = {}) {
 
 describe('ReadNext', () => {
   it('on News: the top story not yet read, the saved one half read, and the busiest group', async () => {
-    const { fetchMock } = setup('/news')
+    const { fetchMock } = setup('/read/news')
 
     const pane = screen.getByRole('region', { name: 'Reader' })
     expect(await within(pane).findByText('Read next')).toBeInTheDocument()
     const top = await within(pane).findByRole('link', { name: /Kabinet presenteert Miljoenennota/ })
-    expect(top).toHaveAttribute('href', '/news?a=a1')
+    expect(top).toHaveAttribute('href', '/read/news?a=a1')
     expect(top).toHaveTextContent('Top story · Nederland · 2 feeds')
     const saved = await within(pane).findByRole('link', { name: /Saved: Why trains run late/ })
-    expect(saved).toHaveAttribute('href', '/saved?b=b1')
+    expect(saved).toHaveAttribute('href', '/read/saved?b=b1')
     expect(saved).toHaveTextContent('Blog · 4 min left')
 
     fireEvent.click(await within(pane).findByRole('button', { name: /Tech: 7 unread/ }))
@@ -48,16 +48,16 @@ describe('ReadNext', () => {
   })
 
   it('on Saved: the busiest group opens News on its unread articles', async () => {
-    setup('/saved')
+    setup('/read/saved')
 
     const pane = screen.getByRole('region', { name: 'Reader' })
-    expect(await within(pane).findByRole('link', { name: /Tech: 7 unread/ })).toHaveAttribute('href', '/news?group=tech')
+    expect(await within(pane).findByRole('link', { name: /Tech: 7 unread/ })).toHaveAttribute('href', '/read/news?group=tech')
     // Nothing is read on Saved's side: the first top story leads.
-    expect(await within(pane).findByRole('link', { name: /Old story/ })).toHaveAttribute('href', '/news?a=a3')
+    expect(await within(pane).findByRole('link', { name: /Old story/ })).toHaveAttribute('href', '/read/news?a=a3')
   })
 
   it('News opens on a group from the address', async () => {
-    setup('/news?group=tech')
+    setup('/read/news?group=tech')
 
     const filter = screen.getByRole('group', { name: 'Filter' })
     expect(await within(filter).findByRole('button', { name: /Tech/ })).toHaveAttribute('aria-pressed', 'true')
@@ -65,7 +65,7 @@ describe('ReadNext', () => {
   })
 
   it('says to pick an article when there is nothing to suggest', async () => {
-    setup('/news', { '/api/news/groups': [], '/api/news/headlines': { ...HEADLINES, items: [] }, '/api/saved?archived=false&limit=30&offset=0': { bookmarks: [], total: 0 } })
+    setup('/read/news', { '/api/news/groups': [], '/api/news/headlines': { ...HEADLINES, items: [] }, '/api/saved?archived=false&limit=30&offset=0': { bookmarks: [], total: 0 } })
 
     expect(await screen.findByText('Pick an article to read it here.')).toBeInTheDocument()
   })

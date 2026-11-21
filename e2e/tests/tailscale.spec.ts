@@ -21,7 +21,7 @@ const TAILNET = {
 
 test('Tailscale shows the tailnet, its health and every device', async ({ page }) => {
   await page.route('**/api/tailnet', (route) => route.fulfill({ json: TAILNET }))
-  await page.goto('/tailscale')
+  await page.goto('/house/network')
   const shell = new Shell(page)
 
   await expect(shell.heading()).toHaveText('Tailscale')
@@ -41,13 +41,8 @@ test('Tailscale is reachable from the navigation', async ({ page, isMobile }) =>
   const shell = new Shell(page)
   await page.goto('/')
 
-  if (isMobile) {
-    await shell.tabBar.getByRole('link', { name: 'More' }).click()
-    await shell.main.getByRole('link', { name: /Tailscale/ }).click()
-  } else {
-    await shell.sidebar.getByRole('link', { name: 'Tailscale' }).click()
-  }
+  await shell.open('House', 'Network', isMobile)
 
-  await expect(page).toHaveURL('/tailscale')
+  await expect(page).toHaveURL('/house/network')
   await expect(page).toHaveTitle('Tailscale · Home hub')
 })

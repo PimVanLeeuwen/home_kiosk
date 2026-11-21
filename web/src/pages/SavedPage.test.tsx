@@ -6,7 +6,7 @@ import { failWith, sentBody, stubApi } from '../test/stubApi'
 const LIST = { bookmarks: BOOKMARKS, total: 2 }
 const SAVED_CONTENT = { ...CONTENT, title: 'Why trains run late' }
 
-function setup(over: Record<string, unknown> = {}, path = '/saved') {
+function setup(over: Record<string, unknown> = {}, path = '/read/saved') {
   const fetchMock = stubApi({
     '/api/saved?archived=false&limit=30&offset=0': LIST,
     '/api/saved/b1/content': SAVED_CONTENT,
@@ -24,7 +24,7 @@ describe('SavedPage', () => {
     expect(await screen.findByText('2 in Readeck')).toBeInTheDocument()
     const list = screen.getByRole('region', { name: 'Bookmarks' })
     const [first, second] = within(list).getAllByRole('link')
-    expect(first).toHaveAttribute('href', '/saved?b=b1')
+    expect(first).toHaveAttribute('href', '/read/saved?b=b1')
     expect(first).toHaveTextContent('Blog · 6 min read')
     expect(first).toHaveTextContent('40% read')
     expect(first.querySelector('img')).toHaveAttribute('src', '/api/saved/b1/thumbnail')
@@ -54,7 +54,7 @@ describe('SavedPage', () => {
   })
 
   it('reads a bookmark and archives it', async () => {
-    const { fetchMock } = setup({}, '/saved?b=b1')
+    const { fetchMock } = setup({}, '/read/saved?b=b1')
 
     const reader = await screen.findByRole('article', { name: 'Why trains run late' })
     expect(within(reader).getByText('Het kabinet verlaagt de belasting voor middeninkomens.')).toBeInTheDocument()
@@ -65,7 +65,7 @@ describe('SavedPage', () => {
   })
 
   it('asks before deleting, then goes back to the list', async () => {
-    const { fetchMock, router } = setup({}, '/saved?b=b1')
+    const { fetchMock, router } = setup({}, '/read/saved?b=b1')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Delete' }))
     expect(fetchMock).not.toHaveBeenCalledWith('/api/saved/b1', expect.objectContaining({ method: 'DELETE' }))
@@ -82,7 +82,7 @@ describe('SavedPage', () => {
   it('reports read progress to Readeck once scrolling pauses, only forward', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {
-      const { fetchMock } = setup({}, '/saved?b=b1')
+      const { fetchMock } = setup({}, '/read/saved?b=b1')
       const reader = await screen.findByRole('article', { name: 'Why trains run late' })
       const body = within(reader).getByText('Het kabinet verlaagt de belasting voor middeninkomens.').parentElement!
 

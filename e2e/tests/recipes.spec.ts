@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { Shell } from './shell'
 
 // Made-up recipes; the photos are one grey pixel.
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
@@ -30,11 +31,10 @@ async function action(page: Page, isMobile: boolean, name: string) {
   }
 }
 
-test('Recipes opens from the tab bar or the Kitchen group, and searches and filters', async ({ page, isMobile }) => {
+test('Recipes opens from the Kitchen space (More on a phone), and searches and filters', async ({ page, isMobile }) => {
   await stub(page)
   await page.goto('/')
-  if (isMobile) await page.locator('nav.fixed').getByRole('link', { name: 'Recipes' }).click()
-  else await page.locator('aside').getByRole('link', { name: 'Recipes' }).click()
+  await new Shell(page).open('Kitchen', 'Recipes', isMobile)
 
   await expect(page).toHaveTitle('Recipes · Home hub')
   await expect(page.getByText('3 recipes · 1 to review')).toBeVisible()
@@ -63,7 +63,7 @@ test('Paste JSON shows what is wrong, then adds the recipe', async ({ page, isMo
     saved = r.request().postDataJSON()
     r.fulfill({ json: { saved: [{ id: 'dal', title: 'Dal met spinazie', result: 'added' }] } })
   })
-  await page.goto('/recipes')
+  await page.goto('/kitchen/recipes')
 
   await action(page, isMobile, 'Paste JSON')
   const dialog = page.getByRole('dialog', { name: 'Paste JSON' })
@@ -84,7 +84,7 @@ test('Copy all puts every recipe and the format on the clipboard', async ({ page
   await stub(page)
   const exported = { schema: 'hub-recipe/1', guide: 'These are my recipes', json_schema: {}, recipes: [{ id: 'kip-shoarma' }] }
   await page.route('**/api/recipes/export', (r) => r.fulfill({ json: exported }))
-  await page.goto('/recipes')
+  await page.goto('/kitchen/recipes')
 
   await action(page, isMobile, 'Copy all')
   await expect(page.getByText(/Copied 1 recipe and the format/)).toBeVisible()
@@ -108,7 +108,7 @@ const DETAIL = {
 test('a recipe shows what to get and check, scales, and puts the heat after the prep', async ({ page }) => {
   await stub(page)
   await page.route('**/api/recipes/kip-shoarma', (r) => r.fulfill({ json: DETAIL }))
-  await page.goto('/recipes')
+  await page.goto('/kitchen/recipes')
   await page.getByRole('list', { name: 'Recipes' }).getByRole('link', { name: /Kip shoarma/ }).click()
 
   await expect(page).toHaveTitle('Kip shoarma uit de oven · Home hub')
@@ -128,7 +128,7 @@ test('a photo from the device is shrunk in the browser and sent as JSON', async 
     sent = r.request().postDataJSON()
     r.fulfill({ json: DETAIL })
   })
-  await page.goto('/recipes/kip-shoarma')
+  await page.goto('/kitchen/recipes/kip-shoarma')
 
   await page.getByLabel('Photo').setInputFiles({ name: 'pan.png', mimeType: 'image/png', buffer: PNG })
   await expect(page.getByText('The photo is in.')).toBeVisible()
@@ -145,12 +145,12 @@ test('deleting a recipe asks once more, then goes back to the list', async ({ pa
     }
     return r.fulfill({ json: DETAIL })
   })
-  await page.goto('/recipes/kip-shoarma')
+  await page.goto('/kitchen/recipes/kip-shoarma')
 
   await page.getByRole('button', { name: 'Recipe actions' }).click()
   await page.getByRole('menuitem', { name: /Delete recipe/ }).click()
   await page.getByRole('alert').getByRole('button', { name: 'Delete for good' }).click()
-  await expect(page).toHaveURL('/recipes')
+  await expect(page).toHaveURL('/kitchen/recipes')
   await expect(page.getByText('Deleted "Kip shoarma uit de oven".')).toBeVisible()
   expect(deleted).toBe(true)
 })
@@ -158,7 +158,7 @@ test('deleting a recipe asks once more, then goes back to the list', async ({ pa
 test('cook mode goes phase by phase, pauses before the heat and keeps its place on a reload', async ({ page }) => {
   await page.route('**/api/recipes/kip-shoarma', (r) => r.fulfill({ json: DETAIL }))
   await page.route('**/api/recipes/kip-shoarma/photo/*', (r) => r.fulfill({ body: PNG, contentType: 'image/png' }))
-  await page.goto('/recipes/kip-shoarma')
+  await page.goto('/kitchen/recipes/kip-shoarma')
   await page.getByRole('button', { name: 'More persons' }).click()
   await page.getByRole('main').getByRole('link', { name: /^Cook/ }).filter({ visible: true }).click()
 
@@ -178,19 +178,20 @@ test('cook mode goes phase by phase, pauses before the heat and keeps its place 
   await page.getByRole('button', { name: 'Back to prep' }).click()
   await expect(cook.getByRole('button', { name: /Snijd de kip/ })).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('link', { name: 'Close cook mode' }).click()
-  await expect(page).toHaveURL('/recipes/kip-shoarma?persons=3')
+  await expect(page).toHaveURL('/kitchen/recipes/kip-shoarma?persons=3')
 })
 
 test('a recipe prints as a light page with only the recipe on it', async ({ page, isMobile }) => {
   await page.route('**/api/recipes/kip-shoarma', (r) => r.fulfill({ json: DETAIL }))
   await page.route('**/api/recipes/kip-shoarma/photo/*', (r) => r.fulfill({ body: PNG, contentType: 'image/png' }))
-  await page.goto('/recipes/kip-shoarma')
+  await page.goto('/kitchen/recipes/kip-shoarma')
   await expect(page.getByRole('heading', { level: 1, name: 'Kip shoarma uit de oven' })).toBeVisible()
 
   await page.emulateMedia({ media: 'print' })
   await expect(page.getByRole('button', { name: 'Recipe actions' })).toBeHidden()
   await expect(page.getByRole('button', { name: 'More persons' })).toBeHidden()
-  await expect(page.locator(isMobile ? 'nav.fixed' : 'aside')).toBeHidden()
+  await expect(page.getByRole('banner')).toBeHidden()
+  if (isMobile) await expect(page.locator('nav.fixed')).toBeHidden()
   await expect(page.getByRole('main').getByRole('link', { name: /^Cook/ }).filter({ visible: true })).toHaveCount(0)
   await expect(page.getByRole('region', { name: 'Oven, cook' })).toBeVisible()
   // The whole page runs on instead of scrolling inside the page area, in dark text on white.

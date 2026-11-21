@@ -31,7 +31,7 @@ const NAS = nasFixture({
 
 function setup(history: NasPoint[] = [point(0, { cpu: 8 }), point(10, { cpu: 35, temp: 66 }), point(20)]) {
   stubApi({ '/api/nas': NAS, '/api/nas/history': history })
-  renderRoute('/nas')
+  renderRoute('/house/nas')
 }
 
 describe('NasPage', () => {
@@ -66,19 +66,19 @@ describe('NasPage', () => {
         .getByRole('img', { name: 'CPU temperature, last 24 hours' })
         .querySelector('polyline')!
     stubApi({ '/api/nas': nasFixture({ cpu_temp_c: 48 }), '/api/nas/history': [point(0), point(10)] })
-    const { unmount } = renderRoute('/nas')
+    const { unmount } = renderRoute('/house/nas')
     expect(await screen.findByText('48 °C')).not.toHaveClass('text-warn')
     expect(line()).toHaveAttribute('stroke', 'var(--color-data-blue)')
     unmount()
 
     stubApi({ '/api/nas': nasFixture({ cpu_temp_c: 74 }), '/api/nas/history': [point(0), point(10)] })
-    const second = renderRoute('/nas')
+    const second = renderRoute('/house/nas')
     expect(await screen.findByText('74 °C')).toHaveClass('text-warn')
     expect(line()).toHaveAttribute('stroke', 'var(--color-warn)')
     second.unmount()
 
     stubApi({ '/api/nas': nasFixture({ cpu_temp_c: 83 }), '/api/nas/history': [point(0), point(10)] })
-    renderRoute('/nas')
+    renderRoute('/house/nas')
     expect(await screen.findByText('83 °C')).toHaveClass('text-down')
   })
 
@@ -119,7 +119,7 @@ describe('NasPage', () => {
     // The temperature bar fills from 25 °C to 60 °C: 42 °C is about half.
     expect((bays[0].querySelector('.absolute') as HTMLElement).style.width).toMatch(/^48\.57/)
     expect(within(disks).getByText(/Containers: 37 of 37 running/)).toBeInTheDocument()
-    expect(within(disks).getByRole('link', { name: 'Open Docker' })).toHaveAttribute('href', '/docker')
+    expect(within(disks).getByRole('link', { name: 'Open Docker' })).toHaveAttribute('href', '/house/docker')
   })
 
   it('explains an empty history', async () => {
@@ -130,7 +130,7 @@ describe('NasPage', () => {
 
   it('says when NAS data is not available', async () => {
     stubApi({})
-    renderRoute('/nas')
+    renderRoute('/house/nas')
 
     expect(await screen.findByText('NAS data is not available right now.')).toBeInTheDocument()
   })
@@ -147,7 +147,7 @@ describe('NasPage', () => {
 
   it('shows the UPS with its battery and the last power cuts', async () => {
     stubApi({ '/api/nas': NAS, '/api/ups': UPS })
-    renderRoute('/nas')
+    renderRoute('/house/nas')
 
     const card = await screen.findByRole('region', { name: 'UPS' })
     expect(within(card).getByText('Status').nextElementSibling).toHaveTextContent('On mains')
@@ -171,7 +171,7 @@ describe('NasPage', () => {
         outages: [{ started_at: new Date().toISOString(), ended_at: null, lowest_charge: 71, reached_low: false }],
       },
     })
-    renderRoute('/nas')
+    renderRoute('/house/nas')
 
     const card = await screen.findByRole('region', { name: 'UPS' })
     expect(within(card).getByText('Status').nextElementSibling).toHaveTextContent(/On battery since today/)
@@ -184,7 +184,7 @@ describe('NasPage', () => {
 
   it('leaves the UPS out when the hub has no UPS data', async () => {
     stubApi({ '/api/nas': NAS })
-    renderRoute('/nas')
+    renderRoute('/house/nas')
     await screen.findByRole('region', { name: 'Disks' })
     expect(screen.queryByRole('region', { name: 'UPS' })).not.toBeInTheDocument()
   })
@@ -198,7 +198,7 @@ describe('NasPage', () => {
 
   it('lists the public hostnames and flags one that is not allowed', async () => {
     stubApi({ '/api/nas': NAS, '/api/exposure': EXPOSURE })
-    renderRoute('/nas')
+    renderRoute('/house/nas')
 
     const card = await screen.findByRole('region', { name: 'Exposure' })
     const hosts = within(card).getAllByRole('listitem')
@@ -215,7 +215,7 @@ describe('NasPage', () => {
 
   it('shows a green shield when everything public is allowed', async () => {
     stubApi({ '/api/nas': NAS, '/api/exposure': { ...EXPOSURE, hosts: [EXPOSURE.hosts[0]] } })
-    renderRoute('/nas')
+    renderRoute('/house/nas')
 
     const card = await screen.findByRole('region', { name: 'Exposure' })
     expect(within(card).getByRole('img', { name: 'Nothing unexpected is public' })).toBeInTheDocument()
@@ -227,7 +227,7 @@ describe('NasPage', () => {
       '/api/nas': NAS,
       '/api/exposure': { ...EXPOSURE, hosts: [], error: 'No Cloudflare API token set (CLOUDFLARE_API_TOKEN)' },
     })
-    renderRoute('/nas')
+    renderRoute('/house/nas')
 
     const card = await screen.findByRole('region', { name: 'Exposure' })
     expect(within(card).getByRole('status')).toHaveTextContent('No Cloudflare API token set')
@@ -243,7 +243,7 @@ describe('NasPage', () => {
       '/api/nas': NAS, '/api/exposure': EXPOSURE,
       '/api/exposure/scan': { as_of: '2026-10-09T03:36:00Z', stale: false, runs: [scanRun([22, 32400])] },
     })
-    renderRoute('/nas')
+    renderRoute('/house/nas')
 
     const card = await screen.findByRole('region', { name: 'Exposure' })
     expect(within(card).getByText(/Open on the home IP: 22, 32400\./)).toHaveClass('text-down')
@@ -255,7 +255,7 @@ describe('NasPage', () => {
       '/api/nas': NAS, '/api/exposure': EXPOSURE,
       '/api/exposure/scan': { as_of: '2026-10-09T03:36:00Z', stale: false, runs: [scanRun([])] },
     })
-    const { unmount } = renderRoute('/nas')
+    const { unmount } = renderRoute('/house/nas')
     expect(await screen.findByText(/No open ports \(all 65\.535 checked\)/)).toBeInTheDocument()
     unmount()
 
@@ -263,12 +263,12 @@ describe('NasPage', () => {
       '/api/nas': NAS, '/api/exposure': EXPOSURE,
       '/api/exposure/scan': { as_of: '2026-10-09T03:36:00Z', stale: false, runs: [scanRun([], 'Could not get the home IP from the hub')] },
     })
-    const second = renderRoute('/nas')
+    const second = renderRoute('/house/nas')
     expect(await screen.findByText(/failed: Could not get the home IP from the hub/)).toHaveClass('text-warn')
     second.unmount()
 
     stubApi({ '/api/nas': NAS, '/api/exposure': EXPOSURE })
-    renderRoute('/nas')
+    renderRoute('/house/nas')
     expect(await screen.findByText(/No scan received yet/)).toBeInTheDocument()
   })
 })

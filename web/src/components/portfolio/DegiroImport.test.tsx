@@ -66,14 +66,14 @@ function setup(over: Record<string, unknown> = {}) {
     'POST /api/portfolio/degiro/import': { imported: 2, existing: 1, unknown: 0, ignored: 0 },
     ...over,
   })
-  return { fetchMock, ...renderRoute('/portfolio?import') }
+  return { fetchMock, ...renderRoute('/money/portfolio?import') }
 }
 
 describe('DegiroImport', () => {
   it('is reached from the Portfolio header', async () => {
     stubApi({ '/api/portfolio': PORTFOLIO_FULL })
-    renderRoute('/portfolio')
-    expect(await screen.findByRole('link', { name: 'Update from DEGIRO' })).toHaveAttribute('href', '/portfolio?import')
+    renderRoute('/money/portfolio')
+    expect(await screen.findByRole('link', { name: 'Update from DEGIRO' })).toHaveAttribute('href', '/money/portfolio?import')
   })
 
   it('previews the file, asks for unknown products and imports the new trades', async () => {

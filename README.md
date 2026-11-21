@@ -13,6 +13,8 @@ Tailscale only, with no login and nothing exposed to the internet.
 
 ## What it does
 
+The pages sit in six spaces in the top bar (Now, Home, House, Read, Money, Kitchen), each with its pages as tabs; on a phone, a tab bar holds Now, Home, House and Read, and More the rest. Ask is beside the spaces and Settings behind the menu. The addresses from before the spaces (`/nas`, `/alerts/<id>`) still lead to their page.
+
 | Section | What it does |
 |---------|--------------|
 | Home | Status at a glance: the washer and dryer while one runs or is done (ConnectLife), today's calendar (iCloud and subscribed calendars, the next event with a countdown and the day as a ribbon), NAS health, portfolio, latest news, last backup, services, the weather (rain in the next 2 hours, from Buienradar), and the outside services the house depends on; on train-day mornings (Monday to Friday unless changed in Settings, Train) my train to work until it leaves (NS: delay, platform, cancellation with the next direct train, works on the route), and the evening before when tomorrow's train has a problem, with Telegram warnings for both |
@@ -26,7 +28,7 @@ Tailscale only, with no login and nothing exposed to the internet.
 | Music | Spotify: what plays, the controls, my devices and favourites, and waking the living room Apple TV to play there |
 | Tailscale | The tailnet as a map around the NAS and every device on it: MagicDNS name, addresses, direct, relay or idle, exit node, last seen, and tailscaled's own health warnings (read-only, from the NAS's tailscaled) |
 | Repos | GitHub repos: mine, Hubble and GEWIS, with the backup status of each mirrored repo and when each token expires |
-| Alerts | Every message the hub sends and where it went (ntfy or Telegram), ntfy on or off, quiet hours, routing for Telegram, and the hub's own alert rules. Each message has its own page for 7 days (`/alerts/<id>`, where a tap on a notification leads): the full text, its picture, whether the problem is still open, an explanation on request, links onward and earlier messages |
+| Alerts | Every message the hub sends and where it went (ntfy or Telegram), ntfy on or off, quiet hours, routing for Telegram, and the hub's own alert rules. Each message has its own page for 7 days (`/house/alerts/<id>`, where a tap on a notification leads): the full text, its picture, whether the problem is still open, an explanation on request, links onward and earlier messages |
 | Settings | One page per section (`/settings/<section>`): service catalog, news feeds, which calendars show, Spotify and its favourites, which board is which desk panel, and the wording of every message (folded by group; templates with a live preview, the phone's ntfy banner beside it, and a test send) |
 
 The hub is also the household's one sender of alerts (backup reports, container updates, uptime,

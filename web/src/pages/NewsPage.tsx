@@ -19,6 +19,7 @@ import { buttonClass } from '../components/ui/buttonStyles'
 import { SearchField } from '../components/ui/SearchField'
 import { GlowDot } from '../components/ui/GlowDot'
 import { Tag } from '../components/ui/Tag'
+import { PATHS } from '../lib/paths'
 
 function useDebounced(value: string, ms: number): string {
   const [debounced, setDebounced] = useState(value)
@@ -142,7 +143,7 @@ export function NewsPage() {
               {articles.map((a) => (
                 <li key={a.id}>
                   <Link
-                    to={`/news?a=${a.id}`}
+                    to={`${PATHS.news}?a=${a.id}`}
                     aria-current={a.id === selected ? 'true' : undefined}
                     className={cn(
                       '-mx-3 flex gap-3 rounded-tile border border-transparent px-3 py-2.5 hover:bg-white/[0.03]',

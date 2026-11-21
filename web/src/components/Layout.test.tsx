@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { vi } from 'vitest'
 import { renderRoute } from '../test/renderRoute'
 
@@ -9,51 +9,66 @@ function stubNas(body: unknown, ok = true) {
   )
 }
 
-const sidebar = () => screen.getAllByRole('navigation', { name: 'Sections' })[0]
-const tabBar = () => screen.getAllByRole('navigation', { name: 'Sections' })[1]
+const topBar = () => screen.getByRole('banner')
+const spaces = () => screen.getAllByRole('navigation', { name: 'Spaces' })[0]
+const tabBar = () => screen.getAllByRole('navigation', { name: 'Spaces' })[1]
+const names = (nav: HTMLElement) => within(nav).getAllByRole('link').map((link) => link.textContent)
 
 describe('Layout', () => {
-  it('groups the sidebar into sections with headings', () => {
+  it('shows the six spaces in the top bar, with Ask beside them', () => {
     renderRoute('/')
 
-    const nav = within(sidebar())
-    for (const heading of ['Read', 'Money', 'Kitchen', 'House', 'Code', 'System']) {
-      expect(nav.getByText(heading)).toBeInTheDocument()
-    }
-    expect(nav.getAllByRole('link')).toHaveLength(21)
+    expect(names(spaces())).toEqual(['Now', 'Home', 'House', 'Read', 'Money', 'Kitchen'])
+    expect(within(topBar()).getByRole('link', { name: 'Ask' })).toHaveAttribute('href', '/ask')
   })
 
-  it('marks the current section in the sidebar', () => {
-    renderRoute('/backups')
+  it('marks the current space on any of its pages, and its tab', () => {
+    renderRoute('/house/backups')
 
-    expect(within(sidebar()).getByRole('link', { name: 'Backups' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
-    expect(within(sidebar()).getByRole('link', { name: 'Home' })).not.toHaveAttribute(
-      'aria-current',
-    )
+    expect(within(spaces()).getByRole('link', { name: 'House' })).toHaveAttribute('aria-current', 'page')
+    expect(within(spaces()).getByRole('link', { name: 'Now' })).not.toHaveAttribute('aria-current')
+    const tabs = screen.getByRole('navigation', { name: 'House pages' })
+    expect(names(tabs)).toEqual(['NAS', 'Docker', 'Services', 'Backups', 'Media', 'Network', 'Repos', 'Alerts'])
+    expect(within(tabs).getByRole('link', { name: 'Backups' })).toHaveAttribute('aria-current', 'page')
+    expect(within(tabs).getByRole('link', { name: 'NAS' })).not.toHaveAttribute('aria-current')
   })
 
-  it('shows four tabs plus More on mobile', () => {
+  it('shows no tabs for a space with one page, nor on Ask', () => {
+    renderRoute('/money/portfolio')
+    expect(screen.queryByRole('navigation', { name: /pages$/ })).toBeNull()
+  })
+
+  it('keeps Settings behind the menu', () => {
     renderRoute('/')
 
-    const names = within(tabBar())
-      .getAllByRole('link')
-      .map((link) => link.textContent)
-    expect(names).toEqual(['Home', 'Ask', 'News', 'Recipes', 'More'])
+    const menu = within(topBar()).getByRole('button', { name: 'Menu' })
+    expect(screen.queryByRole('link', { name: 'Settings' })).toBeNull()
+    fireEvent.click(menu)
+    expect(menu).toHaveAttribute('aria-expanded', 'true')
+    expect(within(topBar()).getByRole('link', { name: 'Settings' })).toHaveAttribute('href', '/settings')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(menu).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('highlights More while on a section that lives under it', () => {
-    renderRoute('/alerts')
+  it('shows four spaces plus More in the phone tab bar', () => {
+    renderRoute('/')
 
-    expect(within(tabBar()).getByRole('link', { name: 'More' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
-    expect(within(tabBar()).getByRole('link', { name: 'Home' })).not.toHaveAttribute(
-      'aria-current',
-    )
+    expect(names(tabBar())).toEqual(['Now', 'Home', 'House', 'Read', 'More'])
+    expect(within(tabBar()).getByRole('link', { name: 'Now' })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('marks a space in the tab bar on any of its pages', () => {
+    renderRoute('/house/alerts')
+
+    expect(within(tabBar()).getByRole('link', { name: 'House' })).toHaveAttribute('aria-current', 'page')
+    expect(within(tabBar()).getByRole('link', { name: 'More' })).not.toHaveAttribute('aria-current')
+  })
+
+  it('highlights More on a page that lives under it', () => {
+    renderRoute('/money/portfolio')
+
+    expect(within(tabBar()).getByRole('link', { name: 'More' })).toHaveAttribute('aria-current', 'page')
+    expect(within(tabBar()).getByRole('link', { name: 'Now' })).not.toHaveAttribute('aria-current')
   })
 
   it('shows the NAS host name under the brand once the collector answers', async () => {
@@ -61,7 +76,7 @@ describe('Layout', () => {
     // A page without data of its own, so only the layout reads /api/nas.
     renderRoute('/more')
 
-    expect(await within(sidebar().parentElement!).findByText('dev-minotaur')).toBeInTheDocument()
+    expect(await within(topBar()).findByText('dev-minotaur')).toBeInTheDocument()
     expect(fetch).toHaveBeenCalledWith('/api/nas', expect.anything())
   })
 
@@ -70,7 +85,7 @@ describe('Layout', () => {
     renderRoute('/more')
 
     await waitFor(() => expect(fetch).toHaveBeenCalled())
-    expect(screen.getAllByText('Home hub')).toHaveLength(2) // sidebar and mobile header
+    expect(within(topBar()).getByText('Home hub')).toBeInTheDocument()
     expect(screen.queryByText('dev-minotaur')).not.toBeInTheDocument()
   })
 
@@ -78,16 +93,9 @@ describe('Layout', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     // A malformed payload: /api/services without groups.
     stubNas({ host: 'dev-minotaur' })
-    renderRoute('/services')
+    renderRoute('/house/services')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Something went wrong' })).toBeInTheDocument()
-    expect(within(sidebar()).getByRole('link', { name: 'Home' })).toBeInTheDocument()
-  })
-
-  it('shows how the hub was reached', () => {
-    renderRoute('/')
-
-    // jsdom serves the page from localhost.
-    expect(screen.getAllByText('This computer').length).toBeGreaterThan(0)
+    expect(within(spaces()).getByRole('link', { name: 'House' })).toBeInTheDocument()
   })
 })

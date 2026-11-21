@@ -6,7 +6,7 @@ import { stubApi } from '../test/stubApi'
 describe('RunningPage', () => {
   it('shows the totals, the last run, the week against the plan, the next session and the bests', async () => {
     stubApi({ '/api/runs/overview': overview() })
-    renderRoute('/running')
+    renderRoute('/now/running')
 
     const totals = await screen.findByRole('region', { name: 'Totals' })
     expect(totals).toHaveTextContent('5,2 km')
@@ -35,7 +35,7 @@ describe('RunningPage', () => {
   it("lays the last run over its area's streets once they are fetched", async () => {
     const base = overview()
     stubApi({ '/api/runs/overview': overview({ last: { ...base.last!, streets_at: '2026-10-26T15:00:00Z' } }) })
-    renderRoute('/running')
+    renderRoute('/now/running')
 
     const last = await screen.findByRole('region', { name: /Last run/ })
     expect(within(last).getByRole('img', { name: 'The route of the last run, 10,4 km, over its streets' })).toBeInTheDocument()
@@ -51,7 +51,7 @@ describe('RunningPage', () => {
         bests: { '5k': null, '10k': null, half: null, longest: null },
       }),
     })
-    renderRoute('/running')
+    renderRoute('/now/running')
 
     expect(await screen.findByText(/No runs yet: they arrive from Apple Health/)).toBeInTheDocument()
     expect(screen.getByText(/Runna's plan shows here once its calendar feed is set/)).toBeInTheDocument()
@@ -60,7 +60,7 @@ describe('RunningPage', () => {
 
   it('says when it is not available', async () => {
     stubApi({})
-    renderRoute('/running')
+    renderRoute('/now/running')
     expect(await screen.findByText(/Running is not available/i)).toBeInTheDocument()
   })
 })

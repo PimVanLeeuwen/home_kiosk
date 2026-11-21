@@ -3,7 +3,7 @@ import { HISTORY, INDICES, NVDA, PORTFOLIO_FULL, WEEKS } from '../test/portfolio
 import { renderRoute } from '../test/renderRoute'
 import { stubApi } from '../test/stubApi'
 
-function setup(path = '/portfolio', over: Record<string, unknown> = {}) {
+function setup(path = '/money/portfolio', over: Record<string, unknown> = {}) {
   const fetchMock = stubApi({
     '/api/portfolio': PORTFOLIO_FULL,
     '/api/portfolio/history?range=year': HISTORY,
@@ -37,7 +37,7 @@ describe('PortfolioPage', () => {
   })
 
   it('charts the value with the gain apart from deposits, per period', async () => {
-    const { fetchMock } = setup('/portfolio', {
+    const { fetchMock } = setup('/money/portfolio', {
       '/api/portfolio/history?range=max': { ...HISTORY, range: 'max' },
     })
 
@@ -59,7 +59,7 @@ describe('PortfolioPage', () => {
 
   it('draws a falling period in red', async () => {
     const points = [...HISTORY.points].reverse().map((p, i) => ({ ...p, d: HISTORY.points[i].d }))
-    setup('/portfolio', { '/api/portfolio/history?range=year': { ...HISTORY, points } })
+    setup('/money/portfolio', { '/api/portfolio/history?range=year': { ...HISTORY, points } })
 
     const card = await screen.findByRole('region', { name: 'Value' })
     const chart = (await within(card).findByRole('img', { name: /Portfolio value, 1Y/ })).parentElement!
@@ -78,7 +78,7 @@ describe('PortfolioPage', () => {
     fireEvent.click(within(card).getByRole('radio', { name: 'Gain' }))
     expect(symbols()).toEqual(['NVDA', 'ASML.AS', 'XDWT.DE'])
 
-    expect(within(table).getAllByRole('link')[0]).toHaveAttribute('href', '/portfolio?h=YAHOO%2FNVDA')
+    expect(within(table).getAllByRole('link')[0]).toHaveAttribute('href', '/money/portfolio?h=YAHOO%2FNVDA')
     // Today as a tinted pill, and a thin bar for the weight against the biggest holding.
     const first = within(table).getAllByRole('row')[1]
     expect(within(first).getByText('+1,09%')).toHaveClass('text-up')
@@ -103,7 +103,7 @@ describe('PortfolioPage', () => {
   })
 
   it('opens a holding with its figures, price chart and transactions', async () => {
-    setup('/portfolio?h=YAHOO%2FNVDA')
+    setup('/money/portfolio?h=YAHOO%2FNVDA')
 
     expect(await screen.findByRole('heading', { name: 'NVDA', level: 1 })).toBeInTheDocument()
     expect(screen.getByText(/NVIDIA Corporation · held since 6 Nov 2023/)).toBeInTheDocument()
@@ -120,11 +120,11 @@ describe('PortfolioPage', () => {
     expect(within(rows[0]).getByText('Sell')).toHaveStyle({ color: 'var(--color-data-blue)' })
     expect(screen.getByText('+120,62% gain')).toHaveClass('text-up')
     expect(screen.getByRole('img', { name: /NVDA price since you first bought it/ }).parentElement).toHaveClass('-mx-5')
-    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Portfolio' })).toHaveAttribute('href', '/portfolio')
+    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Portfolio' })).toHaveAttribute('href', '/money/portfolio')
   })
 
   it('says when Ghostfolio is down', async () => {
-    setup('/portfolio', { '/api/portfolio': new Error('down') })
+    setup('/money/portfolio', { '/api/portfolio': new Error('down') })
     expect(await screen.findByText(/The portfolio is not available right now/)).toBeInTheDocument()
   })
 })

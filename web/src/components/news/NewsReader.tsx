@@ -7,6 +7,7 @@ import { useApi } from '../../lib/useApi'
 import { ArticleView, ReaderAction } from './ArticleView'
 import { Loading } from '../ui/states'
 import { Tag } from '../ui/Tag'
+import { PATHS } from '../../lib/paths'
 
 interface Props {
   id: string
@@ -66,7 +67,7 @@ export function NewsReader({ id, known, groupTitle, groupColour, onReadChange }:
       content={content}
       title={article.title}
       url={article.url}
-      back={{ to: '/news', label: 'News' }}
+      back={{ to: PATHS.news, label: 'News' }}
       meta={
         <>
           <Tag colour={groupColour(article.group_id)} className="mr-1">

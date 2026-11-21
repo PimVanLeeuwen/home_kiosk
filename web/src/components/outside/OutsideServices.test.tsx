@@ -18,7 +18,7 @@ describe('Outside services on Home', () => {
     expect(await within(card).findByText('All operational')).toBeInTheDocument()
     expect(within(card).getAllByRole('listitem')).toHaveLength(7)
     expect(within(card).getByText('Cloudflare: Operational')).toBeInTheDocument()
-    expect(within(card).getByRole('link', { name: /Details/ })).toHaveAttribute('href', '/services')
+    expect(within(card).getByRole('link', { name: /Details/ })).toHaveAttribute('href', '/house/services')
   })
 
   it('leads with the incident, its latest word and its timeline', async () => {
@@ -62,7 +62,7 @@ describe('Outside services on Home', () => {
 describe('Outside services on the Services page', () => {
   it('lists each service with its state and the open incidents in full', async () => {
     stubApi({ '/api/services': SERVICES, '/api/outside-services': outsideServices({ github: ACTIONS_DELAYED }) })
-    renderRoute('/services')
+    renderRoute('/house/services')
 
     const section = await screen.findByRole('region', { name: 'Outside services' })
     const tiles = await within(section).findAllByRole('link', { name: /Operational|Degraded/ })
@@ -81,7 +81,7 @@ describe('Outside services on the Services page', () => {
         },
       }),
     })
-    renderRoute('/services')
+    renderRoute('/house/services')
 
     const section = await screen.findByRole('region', { name: 'Outside services' })
     const card = await within(section).findByRole('article', { name: 'Cloudflare: AMS maintenance' })

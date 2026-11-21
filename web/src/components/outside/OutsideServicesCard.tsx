@@ -5,6 +5,7 @@ import { Loading, StaleNote, Unavailable } from '../ui/states'
 import { BrandLogo } from './BrandLogo'
 import { IncidentCard } from './IncidentCard'
 import { ReadNotes } from './ReadNotes'
+import { PATHS } from '../../lib/paths'
 
 /** All well: the services as a ring around a glowing check. */
 function Constellation({ services }: { services: OutsideService[] }) {
@@ -48,7 +49,7 @@ export function OutsideServicesCard({ data, error }: { data: OutsideServices | u
   const others = services.filter((s) => !problems.includes(s))
 
   return (
-    <Card title="Outside services" link={{ to: '/services', label: 'Details' }}>
+    <Card title="Outside services" link={{ to: PATHS.services, label: 'Details' }}>
       {!data && (error ? <Unavailable what="The status of outside services" /> : <Loading />)}
       {data && problems.length === 0 && (
         <>

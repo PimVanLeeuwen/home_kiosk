@@ -6,6 +6,7 @@ import { RainRing } from '../weather/RainRing'
 import { SunArc } from '../weather/SunArc'
 import { Card } from '../ui/Card'
 import { Loading, StaleNote, Unavailable } from '../ui/states'
+import { PATHS } from '../../lib/paths'
 
 const whole = (n: number) => Math.round(n)
 
@@ -18,7 +19,7 @@ export function WeatherCard({ onPage = false }: { onPage?: boolean }) {
   const now = new Date()
 
   return (
-    <Card title={onPage ? 'Now' : 'Weather'} link={onPage ? undefined : { to: '/weather', label: 'Week and radar' }}>
+    <Card title={onPage ? 'Now' : 'Weather'} link={onPage ? undefined : { to: PATHS.weather, label: 'Week and radar' }}>
       {!w && (error ? <Unavailable what="The weather" /> : <Loading />)}
       {w && (
         <>

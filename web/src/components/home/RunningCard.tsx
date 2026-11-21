@@ -2,6 +2,7 @@ import { clock, km, pace, type RunningOverview } from '../../lib/running'
 import { RouteArt } from '../running/RouteArt'
 import { SessionShape } from '../running/SessionShape'
 import { Card } from '../ui/Card'
+import { PATHS } from '../../lib/paths'
 
 /**
  * Running on Home on a day with a run or a session (plan.md M28): before the
@@ -14,7 +15,7 @@ export function RunningCard({ data }: { data: RunningOverview | undefined }) {
   const session = data.today.session
   if (data.today.ran && last) {
     return (
-      <Card title="Ran today" link={{ to: '/running', label: 'Running' }}>
+      <Card title="Ran today" link={{ to: PATHS.running, label: 'Running' }}>
         <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
           <span className="grid aspect-square place-items-center rounded-tile bg-[radial-gradient(80%_80%_at_50%_50%,#15131f,#08080c)]">
             <RouteArt points={last.route} width={120} height={120} pad={12} mini className="size-full" />
@@ -35,7 +36,7 @@ export function RunningCard({ data }: { data: RunningOverview | undefined }) {
   }
   if (!session) return null
   return (
-    <Card title={`Today: ${session.name}`} link={{ to: '/running', label: 'Running' }}>
+    <Card title={`Today: ${session.name}`} link={{ to: PATHS.running, label: 'Running' }}>
       <SessionShape blocks={session.blocks} label={`${session.name} as blocks, from warm-up to cool-down`} />
       <p className="mt-2 text-small text-muted">
         {[session.distance_m ? `${km(session.distance_m)} km` : null, session.estimate, session.time].filter(Boolean).join(' · ')}

@@ -216,7 +216,7 @@ describe('Card', () => {
   it('has a sentence-case title, and on the right a note, then the pill, then the link', () => {
     render(
       <MemoryRouter>
-        <Card title="Last night" note="Hetzner · encrypted" actions={<Pill tone="up">All safe</Pill>} link={{ to: '/backups', label: 'Details' }}>
+        <Card title="Last night" note="Hetzner · encrypted" actions={<Pill tone="up">All safe</Pill>} link={{ to: '/house/backups', label: 'Details' }}>
           body
         </Card>
       </MemoryRouter>,
@@ -232,7 +232,7 @@ describe('Card', () => {
   it("gives its link a hit area, as small links are hard to tap", () => {
     render(
       <MemoryRouter>
-        <Card title="Weather" link={{ to: '/weather', label: 'Week and radar' }}>body</Card>
+        <Card title="Weather" link={{ to: '/now/weather', label: 'Week and radar' }}>body</Card>
       </MemoryRouter>,
     )
     expect(screen.getByRole('link', { name: /Week and radar/ })).toHaveClass('hit')

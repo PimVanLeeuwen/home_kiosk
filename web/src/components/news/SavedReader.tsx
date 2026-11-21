@@ -8,6 +8,7 @@ import type { ArticleContent, Bookmark } from '../../lib/newsTypes'
 import { useApi } from '../../lib/useApi'
 import { ArticleView, ReaderAction } from './ArticleView'
 import { Tag } from '../ui/Tag'
+import { PATHS } from '../../lib/paths'
 
 interface Props {
   id: string
@@ -81,7 +82,7 @@ export function SavedReader({ id, known, onChange, onDeleted }: Props) {
     act(async () => {
       await sendJson('DELETE', `/api/saved/${id}`)
       onDeleted(id)
-      navigate('/saved')
+      navigate(PATHS.saved)
     })
 
   const icon = 'size-4'
@@ -92,7 +93,7 @@ export function SavedReader({ id, known, onChange, onDeleted }: Props) {
       title={title}
       url={known?.url ?? ''}
       bodyRef={attachBody}
-      back={{ to: '/saved', label: 'Saved' }}
+      back={{ to: PATHS.saved, label: 'Saved' }}
       meta={
         <>
           {archived && <Tag variant="glass" className="mr-1">Archived</Tag>}

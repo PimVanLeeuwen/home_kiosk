@@ -11,6 +11,7 @@ import { LineChart } from './LineChart'
 import { Loading, Unavailable } from '../ui/states'
 import { GlowDot } from '../ui/GlowDot'
 import { Tag } from '../ui/Tag'
+import { PATHS } from '../../lib/paths'
 
 const TYPES: Record<string, string> = {
   BUY: 'Buy',
@@ -43,7 +44,7 @@ export function HoldingView({ dataSource, symbol, currency }: Props) {
     `/api/portfolio/holdings/${dataSource}/${encodeURIComponent(symbol)}`,
   )
   const back = (
-    <Link to="/portfolio" className="mb-4 inline-flex items-center gap-1 text-small text-accent-fg hover:underline">
+    <Link to={PATHS.portfolio} className="mb-4 inline-flex items-center gap-1 text-small text-accent-fg hover:underline">
       <ChevronLeft aria-hidden="true" className="size-4" />
       Portfolio
     </Link>

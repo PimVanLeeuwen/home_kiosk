@@ -20,7 +20,7 @@ describe('the neo-minimal surfaces (M38)', () => {
   it('cuts a CellGrid into cells that each draw their own hairline', () => {
     inRouter(
       <CellGrid label="The NAS at a glance" columns={4}>
-        <Cell title="CPU" link={{ to: '/nas', label: 'NAS' }}>
+        <Cell title="CPU" link={{ to: '/house/nas', label: 'NAS' }}>
           17%
         </Cell>
         <Cell span={2}>bare</Cell>
@@ -30,7 +30,7 @@ describe('the neo-minimal surfaces (M38)', () => {
     expect(grid).toHaveClass('grid', 'gap-px', 'grid-cols-2', 'xl:grid-cols-4')
     const cpu = screen.getByRole('group', { name: 'CPU' })
     expect(cpu.className).toContain('shadow-[0_0_0_1px_var(--color-line-soft)]')
-    expect(screen.getByRole('link', { name: 'NAS →' })).toHaveAttribute('href', '/nas')
+    expect(screen.getByRole('link', { name: 'NAS →' })).toHaveAttribute('href', '/house/nas')
     expect(screen.getByText('bare')).toHaveClass('col-span-full', 'sm:col-span-2')
     expect(screen.getByText('bare')).not.toHaveAttribute('role')
   })
@@ -78,7 +78,7 @@ describe('the neo-minimal surfaces (M38)', () => {
   })
 
   it('folds everything healthy into one line', () => {
-    inRouter(<HealthyLine link={{ to: '/docker', label: 'Docker' }}>45 containers running, 4 volumes fine</HealthyLine>)
+    inRouter(<HealthyLine link={{ to: '/house/docker', label: 'Docker' }}>45 containers running, 4 volumes fine</HealthyLine>)
     expect(screen.getByText('45 containers running, 4 volumes fine')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Docker →' })).toHaveClass('hit')
   })

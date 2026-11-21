@@ -28,7 +28,7 @@ describe('TodosCard', () => {
     expect(screen.getAllByRole('checkbox')).toHaveLength(5)
     expect(card).toHaveTextContent('and 2 more')
     expect(card).not.toHaveTextContent('a note')
-    expect(screen.getByRole('link', { name: /All todos/ })).toHaveAttribute('href', '/todos')
+    expect(screen.getByRole('link', { name: /All todos/ })).toHaveAttribute('href', '/now/todos')
 
     fireEvent.click(screen.getByRole('checkbox', { name: 'Todo 2 done' }))
     expect(tick).toHaveBeenCalledWith(all[1])

@@ -11,6 +11,7 @@ import { TelegramText } from './TelegramText'
 import { Loading, Unavailable } from '../ui/states'
 import { Surface } from '../ui/Card'
 import { Tag } from '../ui/Tag'
+import { PATHS } from '../../lib/paths'
 
 const ENDPOINT = '/api/alerts/templates'
 const PREVIEW_DELAY_MS = 300
@@ -226,7 +227,7 @@ export function MessageTemplates() {
     <div className="space-y-4">
       <p className="text-muted">
         How the messages are worded{ntfy ? ': in Telegram, and as plain text through ntfy' : ' in Telegram'}. Who gets what, quiet hours and the rules themselves are on the{' '}
-        <Link to="/alerts" className="text-accent-fg hover:underline">
+        <Link to={PATHS.alerts} className="text-accent-fg hover:underline">
           Alerts page
         </Link>
         .

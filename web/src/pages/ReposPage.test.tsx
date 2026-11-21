@@ -52,7 +52,7 @@ const cards = () => screen.getAllByRole('article')
 describe('ReposPage', () => {
   it('shows the first owner with forks hidden and per-repo details', async () => {
     stubApi({ '/api/repos': REPOS })
-    renderRoute('/repos')
+    renderRoute('/house/repos')
 
     expect(await screen.findByRole('tab', { name: 'Mine 2', selected: true })).toBeInTheDocument()
     expect(cards().map((c) => within(c).getByRole('heading').textContent)).toEqual([
@@ -82,7 +82,7 @@ describe('ReposPage', () => {
 
   it('sums up the owner in four tiles, with failing builds across every tab in the header pill', async () => {
     stubApi({ '/api/repos': REPOS })
-    renderRoute('/repos')
+    renderRoute('/house/repos')
 
     const tile = async (name: string) => screen.findByRole('region', { name })
     expect(await tile('Repos')).toHaveTextContent('21 private · 1 forks hidden')
@@ -101,7 +101,7 @@ describe('ReposPage', () => {
 
   it('shows forks behind the switch', async () => {
     stubApi({ '/api/repos': REPOS })
-    renderRoute('/repos')
+    renderRoute('/house/repos')
 
     const toggle = await screen.findByRole('switch')
     expect(toggle).toHaveAttribute('aria-checked', 'false')
@@ -115,7 +115,7 @@ describe('ReposPage', () => {
 
   it('filters by name, description or language', async () => {
     stubApi({ '/api/repos': REPOS })
-    renderRoute('/repos')
+    renderRoute('/house/repos')
     const filter = await screen.findByRole('searchbox', { name: 'Filter repos' })
 
     fireEvent.change(filter, { target: { value: 'typescript' } })
@@ -128,7 +128,7 @@ describe('ReposPage', () => {
 
   it('switches owners, keeps the tab in the address, and shows owner errors', async () => {
     stubApi({ '/api/repos': REPOS })
-    const { router } = renderRoute('/repos')
+    const { router } = renderRoute('/house/repos')
 
     fireEvent.click(await screen.findByRole('tab', { name: /Hubble/ }))
     expect(router.state.location.search).toBe('?tab=Hubble')
@@ -151,7 +151,7 @@ describe('ReposPage', () => {
         ],
       },
     })
-    renderRoute('/repos')
+    renderRoute('/house/repos')
 
     const mine = await screen.findByText(/GitHub token \(Mine and GEWIS\) expires/)
     expect(mine).toHaveTextContent('(in 40 days)')
@@ -165,21 +165,21 @@ describe('ReposPage', () => {
 
   it('leaves the token line out until GitHub has answered with it', async () => {
     stubApi({ '/api/repos': { ...REPOS, tokens: [{ owners: ['Mine'], expires_at: null, checked: false }] } })
-    renderRoute('/repos')
+    renderRoute('/house/repos')
     await screen.findAllByRole('article')
     expect(screen.queryByText(/GitHub token/)).not.toBeInTheDocument()
   })
 
   it('opens the tab named in the address', async () => {
     stubApi({ '/api/repos': REPOS })
-    renderRoute('/repos?tab=GEWIS')
+    renderRoute('/house/repos?tab=GEWIS')
 
     expect(await screen.findByRole('tab', { name: /GEWIS/, selected: true })).toBeInTheDocument()
   })
 
   it('explains when the list is not there yet', async () => {
     stubApi({})
-    renderRoute('/repos')
+    renderRoute('/house/repos')
 
     expect(await screen.findByRole('alert')).toHaveTextContent('The repo list is not available right now')
   })
@@ -190,7 +190,7 @@ describe('ReposPage', () => {
       groups: [{ ...REPOS.groups[0], repos: [...REPOS.groups[0].repos, repo('brand-new')] }, ...REPOS.groups.slice(1)],
     }
     stubApi({ '/api/repos': withNew, '/api/github-mirror': MIRROR })
-    renderRoute('/repos')
+    renderRoute('/house/repos')
 
     const kiosk = await screen.findByRole('article', { name: /home_kiosk/ })
     expect(await within(kiosk).findByText('Backed up')).toHaveAttribute('title', expect.stringMatching(/^Mirrored /))
@@ -208,7 +208,7 @@ describe('ReposPage', () => {
 
   it('shows no backup status when the mirror is not answering', async () => {
     stubApi({ '/api/repos': REPOS })
-    renderRoute('/repos')
+    renderRoute('/house/repos')
 
     await screen.findByRole('article', { name: /home_kiosk/ })
     expect(screen.queryByText('Backed up')).not.toBeInTheDocument()

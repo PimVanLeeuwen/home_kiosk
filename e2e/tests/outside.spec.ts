@@ -54,7 +54,7 @@ test('Home leads with an outside incident and its timeline', async ({ page }) =>
 
 test('the Services page lists every outside service and the open incidents', async ({ page }) => {
   await serve(page, outside({ github: ACTIONS_DELAYED }))
-  await page.goto('/services')
+  await page.goto('/house/services')
 
   const section = page.getByRole('region', { name: 'Outside services' })
   await expect(section.getByRole('link', { name: /open the status page/ })).toHaveCount(7)

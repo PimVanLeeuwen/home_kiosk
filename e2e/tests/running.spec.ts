@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { Shell } from './shell'
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const now = new Date()
@@ -36,7 +37,7 @@ test('Running shows the last run and the next session, and Home has the card on 
   if (isMobile) {
     await card.getByRole('link', { name: /Running/ }).click()
   } else {
-    await page.locator('aside').getByRole('link', { name: 'Running' }).click()
+    await new Shell(page).tabs('Now').getByRole('link', { name: 'Running' }).click()
   }
   await expect(page).toHaveTitle('Running · Home hub')
   await expect(page.getByRole('region', { name: /Last run/ })).toContainText('10,4')
@@ -72,7 +73,7 @@ test("Home's streets are fetched in Settings and show under the year, with the r
   await expect(page.getByText(/44 streets and paths, 1 waters, 2 parks/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Fetch the streets: about 90 km north' })).toBeVisible()
 
-  await page.goto('/running')
+  await page.goto('/now/running')
   const card = page.getByRole('region', { name: /Your streets/ })
   await expect(card).toContainText('90 runs · 900 km · 2 runs elsewhere')
   await expect(card.getByRole('img')).toBeVisible()

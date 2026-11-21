@@ -19,7 +19,7 @@ describe('StockWeekCard', () => {
   it('shows a holding with its week, price, today and your gain', async () => {
     setup()
     const link = await screen.findByRole('link', { name: 'NVDA' })
-    expect(link).toHaveAttribute('href', '/portfolio?h=YAHOO%2FNVDA')
+    expect(link).toHaveAttribute('href', '/money/portfolio?h=YAHOO%2FNVDA')
     const c = within(card())
     expect(c.getByText('NVIDIA Corporation')).toBeInTheDocument()
     expect(c.getByText('+10,00%')).toHaveClass('text-up')

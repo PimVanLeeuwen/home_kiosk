@@ -10,7 +10,7 @@ describe('palette', () => {
     const rows = search(staticItems(), '', [])
 
     expect(rows[0]).toMatchObject({ heading: 'Actions', item: { label: 'Lights on' } })
-    expect(rows.find((r) => r.heading === 'Pages')!.item).toMatchObject({ label: 'Home', to: '/' })
+    expect(rows.find((r) => r.heading === 'Pages')!.item).toMatchObject({ label: 'Today', to: '/' })
     const settings = rows.find((r) => r.heading === 'Settings')!
     expect(settings.item).toMatchObject({ label: 'Services', to: '/settings/services' })
     expect(rows).toHaveLength(staticItems().length)
@@ -22,6 +22,10 @@ describe('palette', () => {
     expect(labels(rows).slice(0, 2)).toEqual(['Backups', 'News feeds'])
     expect(rows[0].heading).toBe('Recent')
     expect(labels(rows).filter((l) => l === 'Backups')).toHaveLength(1)
+  })
+
+  it('finds a page by its old name too (Network is Tailscale)', () => {
+    expect(labels(search(staticItems(), 'tailscale', []))[0]).toBe('Network')
   })
 
   it('finds by a few letters, best first', () => {
@@ -89,7 +93,7 @@ describe('palette data rows', () => {
     const rows = dataItems({ recipes: RECIPES }, 'nas').filter((r) => r.group === 'Recipes')
 
     expect(rows.map((r) => r.label)).toEqual(['Crème brûlée', 'Kip shoarma uit de oven', 'Dal met spinazie'])
-    expect(rows[0]).toMatchObject({ to: '/recipes/cr%C3%A8me-brulee', hint: 'Recipe · 4 h 40 min', searchOnly: true })
+    expect(rows[0]).toMatchObject({ to: '/kitchen/recipes/cr%C3%A8me-brulee', hint: 'Recipe · 4 h 40 min', searchOnly: true })
     expect(rows[2].hint).toBe('Recipe · 15 min · needs review')
     expect(search(rows, 'vega', []).map((r) => r.item.label)).toEqual(['Dal met spinazie'])
   })

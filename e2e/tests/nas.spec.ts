@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { Shell } from './shell'
 
 const NAS = {
   as_of: new Date().toISOString(), stale: false, host: 'dev-minotaur', uptime_seconds: 86 * 86_400,
@@ -21,13 +22,8 @@ test('the NAS page shows live figures, pools and disks', async ({ page, isMobile
   await page.route('**/api/nas/history', (route) => route.fulfill({ json: HISTORY }))
   await page.goto('/')
 
-  // On the phone NAS sits under More (the tab bar is Home, News, Portfolio and Recipes).
-  if (isMobile) {
-    await page.locator('nav.fixed').getByRole('link', { name: 'More' }).click()
-    await page.getByRole('main').getByRole('link', { name: /^NAS/ }).click()
-  } else {
-    await page.locator('aside').getByRole('link', { name: 'NAS' }).click()
-  }
+  // The House space opens on the NAS, on desktop and on a phone.
+  await new Shell(page).open('House', undefined, isMobile)
 
   await expect(page.getByText('dev-minotaur · up 86 days')).toBeVisible()
   await expect(page.getByRole('region', { name: 'CPU' }).getByText('Peak 30% in 24 hours')).toBeVisible()
@@ -45,7 +41,7 @@ test('the NAS page shows the UPS and its last power cut', async ({ page }) => {
   await page.route('**/api/nas', (route) => route.fulfill({ json: NAS }))
   await page.route('**/api/nas/history', (route) => route.fulfill({ json: HISTORY }))
   await page.route('**/api/ups', (route) => route.fulfill({ json: UPS }))
-  await page.goto('/nas')
+  await page.goto('/house/nas')
 
   const card = page.getByRole('region', { name: 'UPS' })
   await expect(card).toContainText('On mains')
@@ -69,7 +65,7 @@ test('the NAS page flags a public hostname that is not allowed', async ({ page }
     as_of: new Date().toISOString(), stale: false,
     runs: [{ started: new Date().toISOString(), finished: new Date().toISOString(), ports_checked: 65535, open: [], error: null }],
   } }))
-  await page.goto('/nas')
+  await page.goto('/house/nas')
 
   const card = page.getByRole('region', { name: 'Exposure' })
   await expect(card.getByRole('listitem')).toHaveCount(2)

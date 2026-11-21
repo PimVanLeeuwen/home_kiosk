@@ -29,7 +29,7 @@ test('Portfolio shows the summary and opens a holding', async ({ page }) => {
   await page.route('**/api/indices', (r) => r.fulfill({ json: { as_of: PORTFOLIO.as_of, stale: false, indices: [] } }))
   await page.route('**/api/portfolio/weeks', (r) => r.fulfill({ json: WEEKS }))
   await page.route('**/api/portfolio/holdings/YAHOO/NVDA', (r) => r.fulfill({ json: NVDA }))
-  await page.goto('/portfolio')
+  await page.goto('/money/portfolio')
 
   await expect(page.getByRole('region', { name: 'Value' })).toContainText('€ 9.143')
   await expect(page.getByRole('region', { name: 'Summary' })).toContainText('Total gain')
@@ -38,14 +38,14 @@ test('Portfolio shows the summary and opens a holding', async ({ page }) => {
   const week = page.getByRole('region', { name: 'This week' })
   await expect(week.getByRole('img', { name: 'NVDA over its last five trading days' })).toBeVisible()
   await expect(week).toContainText('+4,94%')
-  await expect(week.getByRole('link', { name: 'NVDA' })).toHaveAttribute('href', '/portfolio?h=YAHOO%2FNVDA')
+  await expect(week.getByRole('link', { name: 'NVDA' })).toHaveAttribute('href', '/money/portfolio?h=YAHOO%2FNVDA')
   await page.getByRole('region', { name: /^Holdings/ }).getByRole('link', { name: /NVDA/ }).filter({ visible: true }).click()
 
-  await expect(page).toHaveURL('/portfolio?h=YAHOO%2FNVDA')
+  await expect(page).toHaveURL('/money/portfolio?h=YAHOO%2FNVDA')
   await expect(page.getByRole('heading', { name: 'NVDA', level: 1 })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Transactions' })).toContainText('Sell')
   await page.getByRole('main').getByRole('link', { name: 'Portfolio' }).click()
-  await expect(page).toHaveURL('/portfolio')
+  await expect(page).toHaveURL('/money/portfolio')
 })
 
 for (const reduced of [false, true]) {
@@ -57,7 +57,7 @@ for (const reduced of [false, true]) {
     await page.route('**/api/indices', (r) => r.fulfill({ json: { as_of: PORTFOLIO.as_of, stale: false, indices: [] } }))
     await page.route('**/api/portfolio/weeks', (r) => r.fulfill({ json: WEEKS }))
   await page.route('**/api/portfolio/weeks', (r) => r.fulfill({ json: WEEKS }))
-    await page.goto('/portfolio')
+    await page.goto('/money/portfolio')
     await expect(page.getByRole('img', { name: /Portfolio value, 1Y/ })).toBeVisible()
 
     const names = await page.evaluate(() => document.getAnimations().map((a) => (a as CSSAnimation).animationName))

@@ -14,7 +14,7 @@ function wakeLock() {
   return { request, release }
 }
 
-function setup(path = '/recipes/kip-shoarma/cook?persons=4') {
+function setup(path = '/kitchen/recipes/kip-shoarma/cook?persons=4') {
   const fetchMock = stubApi({ [PATH]: detail() })
   return { fetchMock, ...renderRoute(path) }
 }
@@ -87,19 +87,19 @@ describe('CookPage', () => {
     const { router } = setup()
 
     fireEvent.click(await screen.findByRole('button', { name: 'Done' }))
-    await waitFor(() => expect(router.state.location.pathname).toBe('/recipes/kip-shoarma'))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/kitchen/recipes/kip-shoarma'))
     expect(router.state.location.search).toBe('?persons=4')
   })
 
   it('closes with Escape', async () => {
-    const { router } = setup('/recipes/kip-shoarma/cook')
+    const { router } = setup('/kitchen/recipes/kip-shoarma/cook')
     await screen.findByRole('heading', { name: 'Marinade' })
     // The effect that listens for Escape also sets the title: wait for it, or a slow
     // runner presses Escape before anyone listens.
     await waitFor(() => expect(document.title).toMatch(/^Cooking /))
 
     await act(async () => fireEvent.keyDown(window, { key: 'Escape' }))
-    await waitFor(() => expect(router.state.location.pathname).toBe('/recipes/kip-shoarma'))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/kitchen/recipes/kip-shoarma'))
     expect(router.state.location.search).toBe('')
   })
 })

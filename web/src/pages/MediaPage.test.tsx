@@ -40,7 +40,7 @@ function show(media: Media | null, overview: MediaOverview | null = null) {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 9, 14, 10, 0))
   stubApi({ ...(media ? { '/api/media': media } : {}), ...(overview ? { '/api/media/overview': overview } : {}) })
-  renderRoute('/media')
+  renderRoute('/house/media')
 }
 
 afterEach(() => vi.useRealTimers())

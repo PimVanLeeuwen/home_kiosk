@@ -2,12 +2,13 @@ import { Box, CookingPot, FileText, FolderGit2, LayoutGrid, Lightbulb, Lightbulb
 import { fold, fuzzyScore } from './fuzzy'
 import { iconUrl } from './icons'
 import { serviceHref } from './links'
-import { NAV_ITEMS } from './navigation'
+import { NAV_ITEMS, OLD_PATH } from './navigation'
 import { SETTINGS_SECTIONS } from './settingsSections'
 import { formatDate } from './format'
 import { duration } from './recipes'
 import type { RecipeList } from './recipeTypes'
 import type { DockerOverview, DocumentSearch, Hosts, ReposResponse, ServicesResponse } from './types'
+import { recipePath } from './paths'
 
 /** Something the command palette can go to. */
 export interface PaletteItem {
@@ -50,7 +51,16 @@ const RESULTS_MAX = 40
 /** The actions, every page and every Settings section: always there, whatever the hub answers. */
 export function staticItems(): PaletteItem[] {
   const pages = NAV_ITEMS.map(
-    (item): PaletteItem => ({ id: `page:${item.to}`, group: 'Pages', label: item.label, hint: item.description, icon: item.icon, to: item.to }),
+    // The id keeps a page's address from before the spaces, so recent choices stay.
+    (item): PaletteItem => ({
+      id: `page:${OLD_PATH[item.to] ?? item.to}`,
+      group: 'Pages',
+      label: item.label,
+      hint: item.description,
+      keywords: item.keywords,
+      icon: item.icon,
+      to: item.to,
+    }),
   )
   const settings = SETTINGS_SECTIONS.map(
     (s): PaletteItem => ({
@@ -201,7 +211,7 @@ export function dataItems({ services, repos, docker, hosts, recipes }: PaletteDa
       hint: ['Recipe', time > 0 && duration(time), r.needs_review && 'needs review'].filter(Boolean).join(' · '),
       keywords: ['recipe recept', ...r.tags].join(' '),
       icon: CookingPot,
-      to: `/recipes/${encodeURIComponent(r.id)}`,
+      to: recipePath(r.id),
       searchOnly: true,
     }
   })

@@ -34,7 +34,7 @@ async function stubNews(page: Page) {
 
 test('News opens an article in the reader and marks it read', async ({ page, isMobile }) => {
   const read = await stubNews(page)
-  await page.goto('/news')
+  await page.goto('/read/news')
 
   await expect(page.getByText('1 unread', { exact: true })).toBeVisible()
   await page.getByRole('link', { name: /Jellyfin 12.1 lands/ }).click()
@@ -42,13 +42,13 @@ test('News opens an article in the reader and marks it read', async ({ page, isM
   const reader = page.getByRole('article', { name: ARTICLE.title })
   await expect(reader.getByRole('heading', { name: 'Tone mapping' })).toBeVisible()
   await expect.poll(() => read).toEqual([{ read: true }])
-  await expect(page).toHaveURL('/news?a=a1')
+  await expect(page).toHaveURL('/read/news?a=a1')
 
   if (isMobile) {
     // The phone shows the reader alone, with a way back.
     await expect(page.getByRole('searchbox', { name: 'Search articles' })).toBeHidden()
     await reader.getByRole('link', { name: 'News' }).click()
-    await expect(page).toHaveURL('/news')
+    await expect(page).toHaveURL('/read/news')
     await expect(page.getByRole('searchbox', { name: 'Search articles' })).toBeVisible()
   } else {
     // The laptop keeps the list beside it.
@@ -62,7 +62,7 @@ test('Saved lists Readeck bookmarks and reads one', async ({ page }) => {
     published: null, description: null, reading_minutes: 6, progress: 0, archived: false, readable: true, thumbnail: false,
   }] } }))
   await page.route('**/api/saved/b1/content', (r) => r.fulfill({ json: { ...CONTENT, title: 'Why trains run late' } }))
-  await page.goto('/saved')
+  await page.goto('/read/saved')
 
   await expect(page.getByText('1 in Readeck')).toBeVisible()
   await page.getByRole('region', { name: 'Bookmarks' }).getByRole('link', { name: /Why trains run late/ }).click()
@@ -93,7 +93,7 @@ test('News opens with the headlines: one story per group, saved to Readeck from 
     saved.push(r.request().postDataJSON())
     return r.fulfill({ json: { saved: true, bookmark_id: 'b1' } })
   })
-  await page.goto('/news')
+  await page.goto('/read/news')
 
   const headlines = page.getByRole('region', { name: 'Headlines' })
   await expect(headlines.getByRole('heading', { name: 'Kabinet presenteert plannen' })).toBeVisible()
@@ -106,7 +106,7 @@ test('News opens with the headlines: one story per group, saved to Readeck from 
   expect(saved).toEqual([{ url: 'https://news.example/h3', title: 'Story h3' }])
 
   await headlines.getByRole('link', { name: /Jellyfin 12.1 lands/ }).click()
-  await expect(page).toHaveURL('/news?a=a1')
+  await expect(page).toHaveURL('/read/news?a=a1')
   await expect(page.getByRole('article', { name: ARTICLE.title }).getByRole('heading', { name: 'Tone mapping' })).toBeVisible()
 })
 
@@ -122,11 +122,11 @@ test('News leads with the top stories when Claude groups them', async ({ page })
       item('c', 'Tweakers'),
     ],
   } }))
-  await page.goto('/news')
+  await page.goto('/read/news')
 
   const top = page.getByRole('region', { name: 'Top stories' })
   await expect(top).toContainText('The cabinet presents a housing plan.')
-  await expect(top.getByRole('link', { name: 'NU.nl' })).toHaveAttribute('href', '/news?a=b')
+  await expect(top.getByRole('link', { name: 'NU.nl' })).toHaveAttribute('href', '/read/news?a=b')
 })
 
 test('Before an article is picked, the reader suggests what to read next', async ({ page, isMobile }) => {
@@ -139,12 +139,12 @@ test('Before an article is picked, the reader suggests what to read next', async
     id: 'b1', url: 'https://blog.example/trains', title: 'Why trains run late', site: 'Blog', created: now(), published: null,
     description: null, reading_minutes: 10, progress: 30, archived: false, readable: true, thumbnail: false }] } }))
   await page.route('**/api/saved/b1/content', (r) => r.fulfill({ json: { ...CONTENT, title: 'Why trains run late' } }))
-  await page.goto('/news')
+  await page.goto('/read/news')
 
   const pane = page.getByRole('region', { name: 'Reader' })
   await expect(pane.getByText('Read next')).toBeVisible()
   await expect(pane.getByRole('link', { name: /Top story · Self-hosted/ })).toBeVisible()
   await pane.getByRole('link', { name: /Saved: Why trains run late/ }).click()
-  await expect(page).toHaveURL(/\/saved\?b=b1$/)
+  await expect(page).toHaveURL(/\/read\/saved\?b=b1$/)
   await expect(page.getByRole('heading', { name: 'Why trains run late' })).toBeVisible()
 })

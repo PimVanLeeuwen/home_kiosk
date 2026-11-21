@@ -25,7 +25,7 @@ test('Reminders adds one and ticks today\'s off; Home shows them', async ({ page
   })
   await page.route('**/api/reminders/1/done', (route) => route.fulfill({ json: answer([BINS], true) }))
 
-  await page.goto('/reminders')
+  await page.goto('/now/reminders')
   await expect(page.getByRole('heading', { level: 1, name: 'Reminders' })).toBeVisible()
   await expect(page.getByText('Every 2 weeks · Message the evening before')).toBeVisible()
 
@@ -48,7 +48,7 @@ test('a long reminder keeps its buttons on the phone screen', async ({ page, isM
   test.skip(!isMobile, 'the phone layout')
   const long = { ...BINS, title: 'Buy tickets for the high school reunion before they are sold out' }
   await page.route('**/api/reminders', (route) => route.fulfill({ json: answer([long]) }))
-  await page.goto('/reminders')
+  await page.goto('/now/reminders')
   await expect(page.getByText(long.title).first()).toBeVisible()
 
   const width = page.viewportSize()!.width

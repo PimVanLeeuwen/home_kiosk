@@ -18,7 +18,7 @@ test('DEGIRO export is previewed, then imported', async ({ page }) => {
     imported.push(r.request().postDataJSON())
     return r.fulfill({ json: { imported: 1, existing: 1, unknown: 0 } })
   })
-  await page.goto('/portfolio?import')
+  await page.goto('/money/portfolio?import')
 
   await page.locator('input[type=file]').setInputFiles({
     name: 'Transactions.csv', mimeType: 'text/csv', buffer: Buffer.from('Date,ISIN,Quantity,Price\n'),

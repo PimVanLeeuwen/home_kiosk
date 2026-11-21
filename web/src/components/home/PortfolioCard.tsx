@@ -9,6 +9,7 @@ import { Loading, StaleNote, Unavailable } from '../ui/states'
 import { AnimatedNumber } from '../ui/AnimatedNumber'
 import { Tag } from '../ui/Tag'
 import type { Tone } from '../ui/tones'
+import { PATHS } from '../../lib/paths'
 
 const tone = (n: number) => (n > 0 ? 'text-up' : n < 0 ? 'text-down' : 'text-muted')
 const sign = (n: number): Tone => (n > 0 ? 'up' : n < 0 ? 'down' : 'muted')
@@ -33,7 +34,7 @@ export function PortfolioCard() {
   return (
     <Card
       title="Portfolio"
-      link={{ to: '/portfolio', label: 'Open' }}
+      link={{ to: PATHS.portfolio, label: 'Open' }}
       actions={today && <Pill tone={today.pct > 0 ? 'up' : today.pct < 0 ? 'down' : 'muted'}>{formatSignedPct(today.pct)} today</Pill>}
     >
       {!data && (error ? <Unavailable what="The portfolio" /> : <Loading />)}

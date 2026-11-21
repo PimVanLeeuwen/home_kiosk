@@ -12,7 +12,7 @@ const PATH = '/api/recipes/kip-shoarma'
 
 function setup(over: Record<string, unknown> = {}) {
   const fetchMock = stubApi({ [PATH]: detail(), '/api/recipes': RECIPES, ...over })
-  return { fetchMock, ...renderRoute('/recipes/kip-shoarma') }
+  return { fetchMock, ...renderRoute('/kitchen/recipes/kip-shoarma') }
 }
 
 const menu = async (name: RegExp) => {
@@ -52,7 +52,7 @@ describe('RecipePage', () => {
     expect(screen.getByRole('region', { name: 'To get' })).toHaveTextContent('kippendijen1 kg')
     expect(screen.getByRole('region', { name: 'Marinade, prep' })).toHaveTextContent('½ tl kaneel')
     const cookLinks = within(screen.getByRole('main')).getAllByRole('link', { name: /^Cook/ })
-    expect(cookLinks.map((l) => l.getAttribute('href'))).toEqual(['/recipes/kip-shoarma/cook?persons=4', '/recipes/kip-shoarma/cook?persons=4'])
+    expect(cookLinks.map((l) => l.getAttribute('href'))).toEqual(['/kitchen/recipes/kip-shoarma/cook?persons=4', '/kitchen/recipes/kip-shoarma/cook?persons=4'])
     for (let i = 0; i < 3; i++) fireEvent.click(screen.getByRole('button', { name: 'Fewer persons' }))
     expect(screen.getByRole('button', { name: 'Fewer persons' })).toBeDisabled()
     expect(screen.getByRole('region', { name: 'To get' })).toHaveTextContent('kippendijen250 g')
@@ -63,7 +63,7 @@ describe('RecipePage', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('It may have been deleted')
     expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull()
-    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Recipes' })).toHaveAttribute('href', '/recipes')
+    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Recipes' })).toHaveAttribute('href', '/kitchen/recipes')
   })
 
   it('copies the recipe as JSON, or with the prompt while it needs review', async () => {

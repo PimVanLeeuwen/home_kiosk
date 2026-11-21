@@ -66,7 +66,7 @@ describe('ServicesPage', () => {
 
   it('shows a loading state first', () => {
     stubApi({ '/api/services': () => new Promise(() => {}) as unknown })
-    renderRoute('/services')
+    renderRoute('/house/services')
 
     // The outside services section below has a loading state of its own.
     expect(screen.getAllByRole('status')[0]).toHaveTextContent('Loading services')
@@ -74,7 +74,7 @@ describe('ServicesPage', () => {
 
   it('groups services with their status and a count of running ones', async () => {
     stubApi({ '/api/services': SERVICES, '/api/hosts': HOSTS })
-    renderRoute('/services')
+    renderRoute('/house/services')
 
     const media = await screen.findByRole('region', { name: 'Media' })
     expect(screen.getByText('1 of 3 running')).toBeInTheDocument()
@@ -89,7 +89,7 @@ describe('ServicesPage', () => {
 
   it('sums up with a pill, a dot per service, and a tinted count and tile per problem', async () => {
     stubApi({ '/api/services': SERVICES, '/api/hosts': HOSTS })
-    renderRoute('/services')
+    renderRoute('/house/services')
 
     const media = await screen.findByRole('region', { name: 'Media' })
     expect(screen.getByText('2 need a look', { selector: '.eyebrow' })).toBeInTheDocument()
@@ -108,7 +108,7 @@ describe('ServicesPage', () => {
 
   it('links to the NAS LAN address when the hub runs on this computer', async () => {
     stubApi({ '/api/services': SERVICES, '/api/hosts': HOSTS })
-    renderRoute('/services')
+    renderRoute('/house/services')
 
     // jsdom serves the page from localhost, so the /api/hosts LAN address applies.
     const couchdb = await screen.findByRole('link', { name: /CouchDB/ })
@@ -138,7 +138,7 @@ describe('ServicesPage', () => {
       ],
     }
     stubApi({ '/api/services': withStats })
-    renderRoute('/services')
+    renderRoute('/house/services')
 
     const jellyfin = await screen.findByRole('link', { name: /Jellyfin/ })
     expect(jellyfin).toHaveTextContent('2 streaming · 1.812 movies')
@@ -167,7 +167,7 @@ describe('ServicesPage', () => {
       ],
     }
     stubApi({ '/api/services': withLink })
-    renderRoute('/services')
+    renderRoute('/house/services')
 
     const link = await screen.findByRole('link', { name: /TRaSH Guides/ })
     expect(link).toHaveAttribute('href', 'https://trash-guides.info')
@@ -177,14 +177,14 @@ describe('ServicesPage', () => {
 
   it('says when the container status is stale', async () => {
     stubApi({ '/api/services': { ...SERVICES, stale: true } })
-    renderRoute('/services')
+    renderRoute('/house/services')
 
     expect(await screen.findByText(/Status may be out of date/)).toBeInTheDocument()
   })
 
   it('offers a retry when the API does not answer', async () => {
     const fetchMock = stubApi({ '/api/services': new Error('offline') })
-    renderRoute('/services')
+    renderRoute('/house/services')
 
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('The hub API is not available right now')
@@ -200,7 +200,7 @@ describe('ServicesPage', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     let fail = false
     stubApi({ '/api/services': () => (fail ? new Error('offline') : SERVICES) })
-    renderRoute('/services')
+    renderRoute('/house/services')
     await screen.findByRole('region', { name: 'Media' })
 
     fail = true

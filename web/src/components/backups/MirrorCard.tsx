@@ -4,6 +4,7 @@ import { cn } from '../../lib/cn'
 import { formatBytes, formatCount, formatWhen } from '../../lib/format'
 import type { GitHubMirror } from '../../lib/types'
 import { RunDots } from '../ui/RunDots'
+import { PATHS } from '../../lib/paths'
 
 function Tile({ value, label, bad }: { value: string; label: string; bad?: boolean }) {
   return (
@@ -33,7 +34,7 @@ export function MirrorCard({ mirror }: { mirror: GitHubMirror }) {
   const removed = mirror.owners.flatMap((o) => o.removed)
 
   return (
-    <Card title="GitHub mirror" link={{ to: '/repos', label: 'Repos' }} className="mt-5">
+    <Card title="GitHub mirror" link={{ to: PATHS.repos, label: 'Repos' }} className="mt-5">
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-6">
         <div className="min-w-0">
           {last && (

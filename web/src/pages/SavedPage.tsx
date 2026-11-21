@@ -11,6 +11,7 @@ import { usePaged } from '../lib/usePaged'
 import { Loading } from '../components/ui/states'
 import { Segmented } from '../components/ui/Segmented'
 import { Ring } from '../components/ui/Ring'
+import { PATHS } from '../lib/paths'
 
 function details(b: Bookmark): string {
   return [
@@ -99,7 +100,7 @@ export function SavedPage() {
             {list.items.map((b) => (
               <li key={b.id}>
                 <Link
-                  to={`/saved?b=${b.id}`}
+                  to={`${PATHS.saved}?b=${b.id}`}
                   aria-current={b.id === selected ? 'true' : undefined}
                   className={cn(
                     '-mx-3 flex items-center gap-3 rounded-tile border border-transparent px-3 py-2.5 hover:bg-white/[0.03]',

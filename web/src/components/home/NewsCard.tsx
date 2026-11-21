@@ -9,6 +9,7 @@ import { Pill } from '../ui/Pill'
 import { Card } from '../ui/Card'
 import { Loading, Unavailable } from '../ui/states'
 import { Tag } from '../ui/Tag'
+import { PATHS } from '../../lib/paths'
 
 const SHOWN = 5
 
@@ -23,7 +24,7 @@ export function NewsCard() {
   return (
     <Card
       title="Latest news"
-      link={{ to: '/news', label: 'All' }}
+      link={{ to: PATHS.news, label: 'All' }}
       actions={unread > 0 && <Pill tone="accent">{unread} unread</Pill>}
     >
       {!data && (error ? <Unavailable what="News" /> : <Loading />)}
@@ -33,7 +34,7 @@ export function NewsCard() {
             const group = byId.get(a.group_id)
             return (
               <li key={a.id} className="border-t border-line-soft py-2.5 first:border-t-0 first:pt-0">
-                <Link to={`/news?a=${a.id}`} className="group flex gap-2.5">
+                <Link to={`${PATHS.news}?a=${a.id}`} className="group flex gap-2.5">
                   {a.read ? (
                     <span aria-hidden="true" className="mt-2 size-[7px] shrink-0" />
                   ) : (

@@ -20,7 +20,7 @@ test('Alerts lists messages and sends one', async ({ page }) => {
     sent.push(r.request().postDataJSON())
     return r.fulfill({ json: { id: 2, ts: new Date().toISOString(), source: 'hub', category: 'manual', severity: 'info', title: 'Hello', body: '', chat: 'nas', status: 'sent', error: null, sent_at: null } })
   })
-  await page.goto('/alerts')
+  await page.goto('/house/alerts')
 
   await expect(page.getByRole('region', { name: 'Messages' })).toContainText('NAS backup OK')
   await expect(page.getByRole('region', { name: 'Open alerts' })).toContainText('All quiet')
@@ -43,7 +43,7 @@ test('Alerts shows ntfy delivery and switches it off', async ({ page }) => {
     { id: 2, ts: new Date().toISOString(), source: 'rule.disk_space', category: 'rules', severity: 'warning', title: 'volume2 is 91% full', body: '500 GB left', chat: 'nas', status: 'sent', error: null, sent_at: null, channel: 'ntfy', ntfy_id: 'a1' },
     { id: 1, ts: new Date().toISOString(), source: 'backup', category: 'backup', severity: 'ok', title: 'NAS backup OK', body: '', chat: 'nas', status: 'sent', error: 'ntfy failed: ntfy not reachable', sent_at: null, channel: 'telegram' },
   ] }))
-  await page.goto('/alerts')
+  await page.goto('/house/alerts')
 
   const log = page.getByRole('region', { name: 'Messages' })
   await expect(log).toContainText('Sent to your phone (ntfy)')
@@ -71,7 +71,7 @@ test('a message opens on its own page and is explained there', async ({ page }) 
   // A tiny JPEG stands in for the painted picture.
   await page.route('**/api/alerts/messages/7/picture', (r) => r.fulfill({ contentType: 'image/jpeg', body: Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAACAAMDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDbooor5A9w/9k=', 'base64') }))
   await page.route('**/api/alerts/messages/7/explain', (r) => r.fulfill({ json: { cause: 'Killed for memory.', todo: 'Start it again.', asked_at: ago(0) } }))
-  await page.goto('/alerts/7')
+  await page.goto('/house/alerts/7')
 
   await expect(page.getByRole('heading', { name: 'sonarr is down' })).toBeVisible()
   await expect(page.getByText('Still open')).toBeVisible()
@@ -82,5 +82,5 @@ test('a message opens on its own page and is explained there', async ({ page }) 
   await page.getByRole('button', { name: 'Explain' }).click()
   await expect(page.getByRole('region', { name: 'Explained' })).toContainText('Killed for memory.')
   await page.getByRole('link', { name: 'Alerts', exact: true }).first().click()
-  await expect(page).toHaveURL(/\/alerts$/)
+  await expect(page).toHaveURL(/\/house\/alerts$/)
 })

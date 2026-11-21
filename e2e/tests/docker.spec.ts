@@ -23,7 +23,7 @@ test('Docker shows containers by stack and opens one for its history', async ({ 
       { t: '2026-10-01T10:10:00Z', cpu: 12.5, mem: 900_000_000 },
     ] }),
   )
-  await page.goto('/docker')
+  await page.goto('/house/docker')
 
   await expect(page.getByText('2 of 3 running')).toBeVisible()
   await expect(page.getByRole('region', { name: 'qbittorrent · 0/1' })).toBeVisible()

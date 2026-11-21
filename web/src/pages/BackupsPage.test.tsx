@@ -6,7 +6,7 @@ import { failWith, stubApi } from '../test/stubApi'
 describe('BackupsPage', () => {
   it('leads with last night: a seal, what failed, the route and three facts', async () => {
     stubApi({ '/api/backups': BACKUPS, '/api/database-dumps': DUMPS })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const hero = await screen.findByRole('region', { name: 'Last night' })
     expect(within(hero).getByRole('img', { name: 'Backup failed' })).toBeInTheDocument()
@@ -29,7 +29,7 @@ describe('BackupsPage', () => {
       '/api/backups': good,
       '/api/database-dumps': { ...DUMPS, restore_checks: [], last_verified: new Date(Date.now() - 3 * 86_400_000).toISOString() },
     })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const hero = await screen.findByRole('region', { name: 'Last night' })
     expect(within(hero).getByRole('img', { name: 'Backup succeeded' })).toBeInTheDocument()
@@ -40,7 +40,7 @@ describe('BackupsPage', () => {
 
   it('says the restore check has not run yet', async () => {
     stubApi({ '/api/backups': BACKUPS, '/api/database-dumps': { ...DUMPS, restore_checks: [], last_verified: null } })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const hero = await screen.findByRole('region', { name: 'Last night' })
     expect(await within(hero).findByText('Not checked yet')).toBeInTheDocument()
@@ -48,7 +48,7 @@ describe('BackupsPage', () => {
 
   it('shows each volume with its last success, changes and error', async () => {
     stubApi({ '/api/backups': BACKUPS })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const v1 = await screen.findByRole('region', { name: 'volume1' })
     expect(within(v1).getByText('Succeeded')).toBeInTheDocument()
@@ -66,7 +66,7 @@ describe('BackupsPage', () => {
 
   it('charts and lists the runs, failed ones marked', async () => {
     stubApi({ '/api/backups': BACKUPS })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const history = await screen.findByRole('region', { name: 'Last 3 runs' })
     const rows = within(history).getAllByRole('row').slice(1)
@@ -92,7 +92,7 @@ describe('BackupsPage', () => {
         },
       },
     })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const card = await screen.findByRole('region', { name: 'Storage box' })
     expect(within(card).getByText('945 GB of 1,1 TB · 155 GB free')).toBeInTheDocument()
@@ -104,21 +104,21 @@ describe('BackupsPage', () => {
 
   it('leaves the storage box out until a run has measured it', async () => {
     stubApi({ '/api/backups': BACKUPS })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
     await screen.findByRole('region', { name: 'Last night' })
     expect(screen.queryByRole('region', { name: 'Storage box' })).not.toBeInTheDocument()
   })
 
   it('explains that records start with the next run', async () => {
     stubApi({ '/api/backups': { ...BACKUPS, runs: [], volumes: [], next_due: null } })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     expect(await screen.findByText(/Run records start with the first backup/)).toBeInTheDocument()
   })
 
   it('shows the GitHub mirror with its failures and removals', async () => {
     stubApi({ '/api/backups': BACKUPS, '/api/github-mirror': MIRROR })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const card = await screen.findByRole('region', { name: 'GitHub mirror' })
     const value = (label: string) => within(card).getByText(label).nextElementSibling
@@ -134,7 +134,7 @@ describe('BackupsPage', () => {
     const dots = within(card).getByRole('img', { name: 'The last 2 mirror runs, oldest first' }).querySelectorAll('i')
     expect([...dots].map((d) => d.getAttribute('data-ok'))).toEqual(['true', 'false'])
     expect(within(card).getByText('Hubble-Community-Cafe/community-cafe-web: fatal: repository not found')).toBeInTheDocument()
-    expect(within(card).getByRole('link', { name: /Repos/ })).toHaveAttribute('href', '/repos')
+    expect(within(card).getByRole('link', { name: /Repos/ })).toHaveAttribute('href', '/house/repos')
   })
 
   it('says when the first mirror run is due, and flags stale data', async () => {
@@ -142,7 +142,7 @@ describe('BackupsPage', () => {
       '/api/backups': BACKUPS,
       '/api/github-mirror': { ...MIRROR, owners: [], runs: [], last_success: null, stale: true },
     })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const card = await screen.findByRole('region', { name: 'GitHub mirror' })
     expect(within(card).getByText(/No run yet. The first one is due/)).toBeInTheDocument()
@@ -151,14 +151,14 @@ describe('BackupsPage', () => {
 
   it('leaves the mirror out when it is off or not answering', async () => {
     stubApi({ '/api/backups': BACKUPS, '/api/github-mirror': { ...MIRROR, enabled: false } })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
     await screen.findByRole('region', { name: 'Last night' })
     expect(screen.queryByRole('region', { name: 'GitHub mirror' })).not.toBeInTheDocument()
   })
 
   it('shows each database dump, with the error of a failed one', async () => {
     stubApi({ '/api/backups': BACKUPS, '/api/database-dumps': DUMPS })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const card = await screen.findByRole('region', { name: 'Database dumps' })
     const items = within(card).getAllByRole('listitem')
@@ -184,7 +184,7 @@ describe('BackupsPage', () => {
         databases: [{ ...DUMPS.databases[3], ok: null, at: null, bytes: null, last_success: null }],
       },
     })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const card = await screen.findByRole('region', { name: 'Database dumps' })
     expect(within(card).getByText('Not run yet')).toBeInTheDocument()
@@ -209,7 +209,7 @@ describe('BackupsPage', () => {
         ],
       },
     })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const card = await screen.findByRole('region', { name: 'Restore check' })
     const value = (label: string) => within(card).getByText(label).nextElementSibling
@@ -223,7 +223,7 @@ describe('BackupsPage', () => {
 
   it('says how the restore check runs before the first one', async () => {
     stubApi({ '/api/backups': BACKUPS, '/api/database-dumps': DUMPS })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const card = await screen.findByRole('region', { name: 'Restore check' })
     expect(within(card).getByText(/No restore check recorded yet/)).toBeInTheDocument()
@@ -241,7 +241,7 @@ describe('BackupsPage', () => {
         return { state: 'requested', since: new Date().toISOString() }
       },
     })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const card = await screen.findByRole('region', { name: 'Restore check' })
     const button = await within(card).findByRole('button', { name: 'Run a check now' })
@@ -257,7 +257,7 @@ describe('BackupsPage', () => {
       '/api/backups/restore-check': { state: 'idle', since: null },
       'POST /api/backups/restore-check': failWith(409, { detail: 'A restore check ran less than an hour ago.' }),
     })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const card = await screen.findByRole('region', { name: 'Restore check' })
     fireEvent.click(await within(card).findByRole('button', { name: 'Run a check now' }))
@@ -270,7 +270,7 @@ describe('BackupsPage', () => {
       '/api/database-dumps': DUMPS,
       '/api/backups/restore-check': { state: 'running', since: null },
     })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const card = await screen.findByRole('region', { name: 'Restore check' })
     expect(await within(card).findByRole('status')).toHaveTextContent('Running on the NAS…')
@@ -279,14 +279,14 @@ describe('BackupsPage', () => {
 
   it('shows the mirror even before the first rclone run record', async () => {
     stubApi({ '/api/backups': { ...BACKUPS, runs: [], volumes: [], next_due: null }, '/api/github-mirror': MIRROR })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
     expect(await screen.findByRole('region', { name: 'GitHub mirror' })).toBeInTheDocument()
   })
 
   it('shows a backup another NAS sends here, on time, with its nights', async () => {
     const family = { ...INCOMING.sources[0], last_change: new Date(Date.now() - 11 * 3_600_000).toISOString() }
     stubApi({ '/api/backups': BACKUPS, '/api/incoming-backups': { ...INCOMING, sources: [family] } })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const card = await screen.findByRole('region', { name: 'Family NAS' })
     expect(within(card).getByText('On time')).toBeInTheDocument()
@@ -307,7 +307,7 @@ describe('BackupsPage', () => {
       last_change: null, bytes: null, files: null, nights: [],
     }
     stubApi({ '/api/backups': BACKUPS, '/api/incoming-backups': { ...INCOMING, sources: [old, unreadable] } })
-    renderRoute('/backups')
+    renderRoute('/house/backups')
 
     const family = await screen.findByRole('region', { name: 'Family NAS' })
     expect(within(family).getByText('Late')).toBeInTheDocument()

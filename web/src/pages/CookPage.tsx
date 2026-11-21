@@ -10,6 +10,7 @@ import { cookViews, loadCook, saveCook, stepKey, toggleTick, type CookState } fr
 import type { Recipe, RecipeDetail } from '../lib/recipeTypes'
 import { useApi } from '../lib/useApi'
 import { useWakeLock } from '../lib/useWakeLock'
+import { recipePath } from '../lib/paths'
 
 /** Over the whole hub, tab bar included: while cooking only the recipe is on screen. */
 const LAYER = 'fixed inset-0 z-40 flex flex-col bg-panel'
@@ -45,7 +46,7 @@ function Cook({ detail }: { detail: RecipeDetail }) {
   const views = useMemo(() => cookViews(recipe), [recipe])
   const [state, setState] = useState<CookState>(() => loadCook(recipe.id, detail.updated_at, views.length))
   const wake = useWakeLock()
-  const back = `/recipes/${encodeURIComponent(recipe.id)}${persons !== recipe.servings ? `?persons=${persons}` : ''}`
+  const back = `${recipePath(recipe.id)}${persons !== recipe.servings ? `?persons=${persons}` : ''}`
 
   useEffect(() => saveCook(recipe.id, state), [recipe.id, state])
   useEffect(() => {

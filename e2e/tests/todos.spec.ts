@@ -34,7 +34,7 @@ test('Todos adds one, ticks one off with Undo; Home shows them', async ({ page }
     return route.fulfill({ json: answer(open) })
   })
 
-  await page.goto('/todos')
+  await page.goto('/now/todos')
   await expect(page.getByRole('heading', { level: 1, name: 'Todos' })).toBeVisible()
   await expect(page.getByText('1 open, 1 today')).toBeVisible()
   await expect(page.getByText('the kitchen tap')).toBeVisible()
@@ -60,7 +60,7 @@ test('a long todo keeps its buttons on the phone screen', async ({ page, isMobil
   test.skip(!isMobile, 'the phone layout')
   const long = { ...PLUMBER, title: 'Ring the plumber about the kitchen tap that keeps dripping all night long' }
   await page.route('**/api/todos', (route) => route.fulfill({ json: answer([long]) }))
-  await page.goto('/todos')
+  await page.goto('/now/todos')
   await expect(page.getByText(long.title).first()).toBeVisible()
 
   const width = page.viewportSize()!.width

@@ -49,7 +49,7 @@ specific to that setup. The overview is in the [README](../README.md).
   Time Sensitive; in quiet hours the rest arrives silently instead of being held, and the morning
   briefing still sums up the night. Replies in Telegram (the bot, the explainers) stay there.
   Settings, Alerts has the switch to go back to Telegram only. A tap on a notification opens the
-  message's own page in the hub (`/alerts/<id>`, for 7 days): put `hub.url` (the hub's Tailscale
+  message's own page in the hub (`/alerts/<id>`, for 7 days, which leads on to `/house/alerts/<id>`): put `hub.url` (the hub's Tailscale
   address) in the NAS's config for that. ntfy's users and tokens (`hub`, `phone`, `kuma`), the
   iPhone's setup and Uptime Kuma's direct line are in the nas-docker README, *ntfy*; a new or
   restored phone needs the ntfy app, the server and the `phone` login again, and Tailscale on

@@ -43,10 +43,10 @@ describe('CommandPalette', () => {
     expect(palette().open).toBe(true)
   })
 
-  it('opens from the sidebar and the phone’s search button', () => {
+  it('opens from the top bar’s Jump to and the phone’s search button', () => {
     renderRoute('/')
 
-    fireEvent.click(screen.getByRole('button', { name: /^Search\s*(⌘K|Ctrl K)$/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^Jump to\s*(⌘K|Ctrl K)$/ }))
     expect(palette().open).toBe(true)
     act(() => palette().close())
     fireEvent.click(screen.getByRole('button', { name: 'Search' }))
@@ -67,7 +67,7 @@ describe('CommandPalette', () => {
     fireEvent.keyDown(field(), { key: 'ArrowDown' })
     fireEvent.keyDown(field(), { key: 'Enter' })
 
-    expect(router.state.location.pathname).toBe('/backups')
+    expect(router.state.location.pathname).toBe('/house/backups')
     expect(palette().open).toBe(false)
     expect(JSON.parse(localStorage.getItem(RECENT_KEY)!)).toEqual(['page:/backups'])
   })

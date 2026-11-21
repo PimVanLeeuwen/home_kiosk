@@ -1,6 +1,8 @@
-/** A holding's detail lives at /portfolio?h=<dataSource>/<symbol>. */
+import { PATHS } from './paths'
+
+/** A holding's detail lives at the Portfolio page's ?h=<dataSource>/<symbol>. */
 export function holdingPath(h: { data_source: string | null; symbol: string }): string {
-  return `/portfolio?h=${encodeURIComponent(`${h.data_source ?? 'YAHOO'}/${h.symbol}`)}`
+  return `${PATHS.portfolio}?h=${encodeURIComponent(`${h.data_source ?? 'YAHOO'}/${h.symbol}`)}`
 }
 
 /** The `h` parameter back into its parts; null when it is not one. */

@@ -4,6 +4,7 @@ import { cn } from '../../lib/cn'
 import type { Chip, ChipTone, Segment } from '../../lib/homeChips'
 import type { FoldedCardId } from '../../lib/homeOrder'
 import { GlowDot } from '../ui/GlowDot'
+import { PATHS } from '../../lib/paths'
 
 /** Glass while all is well; something that needs a look tints its chip. */
 const SURFACE: Record<ChipTone, string> = {
@@ -80,7 +81,7 @@ export function StatusStrip({ chips, folded, open, reveal, onToggle, onShow }: P
           return (
             <Link
               key={chip.id}
-              to="/alerts"
+              to={PATHS.alerts}
               data-tone={chip.tone}
               style={delay}
               aria-label={`${chip.label}: ${chip.value}. Go to Alerts`}

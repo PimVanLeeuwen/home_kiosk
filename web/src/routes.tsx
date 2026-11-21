@@ -1,7 +1,9 @@
 import type { ReactElement } from 'react'
-import type { RouteObject } from 'react-router'
+import { Navigate, type RouteObject } from 'react-router'
 import { Layout } from './components/Layout'
-import { NAV_ITEMS, MORE_ROUTE } from './lib/navigation'
+import { Moved } from './components/Moved'
+import { MORE_ROUTE, NAV_ITEMS, SPACES, spacePath } from './lib/navigation'
+import { MOVED, PATHS } from './lib/paths'
 import { AlertMessagePage } from './pages/AlertMessagePage'
 import { AlertsPage } from './pages/AlertsPage'
 import { AskPage } from './pages/AskPage'
@@ -33,27 +35,27 @@ import { WeatherPage } from './pages/WeatherPage'
 
 /** Sections that are built; the rest show their placeholder. */
 const PAGES: Record<string, ReactElement> = {
-  '/': <HomePage />,
-  '/ask': <AskPage />,
-  '/lights': <LightsPage />,
-  '/music': <MusicPage />,
-  '/weather': <WeatherPage />,
-  '/running': <RunningPage />,
-  '/reminders': <RemindersPage />,
-  '/todos': <TodosPage />,
-  '/services': <ServicesPage />,
-  '/settings': <SettingsPage />,
-  '/repos': <ReposPage />,
-  '/docker': <DockerPage />,
-  '/nas': <NasPage />,
-  '/backups': <BackupsPage />,
-  '/alerts': <AlertsPage />,
-  '/news': <NewsPage />,
-  '/saved': <SavedPage />,
-  '/portfolio': <PortfolioPage />,
-  '/tailscale': <TailscalePage />,
-  '/media': <MediaPage />,
-  '/recipes': <RecipesPage />,
+  [PATHS.today]: <HomePage />,
+  [PATHS.ask]: <AskPage />,
+  [PATHS.lights]: <LightsPage />,
+  [PATHS.music]: <MusicPage />,
+  [PATHS.weather]: <WeatherPage />,
+  [PATHS.running]: <RunningPage />,
+  [PATHS.reminders]: <RemindersPage />,
+  [PATHS.todos]: <TodosPage />,
+  [PATHS.services]: <ServicesPage />,
+  [PATHS.settings]: <SettingsPage />,
+  [PATHS.repos]: <ReposPage />,
+  [PATHS.docker]: <DockerPage />,
+  [PATHS.nas]: <NasPage />,
+  [PATHS.backups]: <BackupsPage />,
+  [PATHS.alerts]: <AlertsPage />,
+  [PATHS.news]: <NewsPage />,
+  [PATHS.saved]: <SavedPage />,
+  [PATHS.portfolio]: <PortfolioPage />,
+  [PATHS.network]: <TailscalePage />,
+  [PATHS.media]: <MediaPage />,
+  [PATHS.recipes]: <RecipesPage />,
 }
 
 export const BUILT_ROUTES = Object.keys(PAGES)
@@ -71,10 +73,13 @@ export const routes: RouteObject[] = [
             element: PAGES[item.to] ?? <SectionPage item={item} />,
           })),
           { path: '/settings/:section', element: <SettingsPage /> },
-          { path: '/alerts/:id', element: <AlertMessagePage /> },
-          { path: '/recipes/:id', element: <RecipePage /> },
-          { path: '/recipes/:id/cook', element: <CookPage /> },
+          { path: `${PATHS.alerts}/:id`, element: <AlertMessagePage /> },
+          { path: `${PATHS.recipes}/:id`, element: <RecipePage /> },
+          { path: `${PATHS.recipes}/:id/cook`, element: <CookPage /> },
           { path: MORE_ROUTE, element: <MorePage /> },
+          // A space's own address opens its first tab (/now is Today, at /).
+          ...SPACES.map((space) => ({ path: `/${space.id}`, element: <Navigate replace to={spacePath(space)} /> })),
+          ...Object.entries(MOVED).map(([from, to]) => ({ path: `${from}/*`, element: <Moved to={to} /> })),
           { path: '*', element: <NotFoundPage /> },
         ],
       },

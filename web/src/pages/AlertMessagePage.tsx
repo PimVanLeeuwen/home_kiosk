@@ -19,6 +19,7 @@ import { bodyHtml } from '../lib/phoneText'
 import { GlowDot } from '../components/ui/GlowDot'
 import { SEVERITY_TONE } from '../lib/status'
 import { Tag } from '../components/ui/Tag'
+import { PATHS, alertPath, movedPath } from '../lib/paths'
 
 const REFRESH_MS = 30_000
 
@@ -50,7 +51,7 @@ export function AlertMessagePage() {
 
 function BackLink() {
   return (
-    <Link to="/alerts" viewTransition className="mb-4 inline-flex items-center gap-1.5 text-small text-muted hover:text-fg">
+    <Link to={PATHS.alerts} viewTransition className="mb-4 inline-flex items-center gap-1.5 text-small text-muted hover:text-fg">
       <ArrowLeft aria-hidden="true" className="size-4" />
       Alerts
     </Link>
@@ -67,7 +68,7 @@ function Gone({ title, detail }: { title: string; detail: string }) {
         </span>
         <h1 className="text-title font-semibold">{title}</h1>
         <p className="text-muted">{detail}</p>
-        <Link to="/alerts" className={buttonClass('primary')}>
+        <Link to={PATHS.alerts} className={buttonClass('primary')}>
           Open Alerts
         </Link>
       </div>
@@ -208,7 +209,7 @@ function Links({ links }: { links: MessageLink[] }) {
       {links.map((link) => {
         if ('page' in link)
           return (
-            <Link key={link.label} to={link.page} viewTransition className={row}>
+            <Link key={link.label} to={movedPath(link.page)} viewTransition className={row}>
               <span className="flex-1">{link.label}</span>
               {link.hint && <span className="text-small font-normal text-faint">{link.hint}</span>}
             </Link>
@@ -237,7 +238,7 @@ function Earlier({ message, now }: { message: Shown; now: Date }) {
             {m.id === message.id ? (
               <span className="text-accent-fg">{m.title}</span>
             ) : (
-              <Link to={`/alerts/${m.id}`} className="hover:underline">
+              <Link to={alertPath(m.id)} className="hover:underline">
                 {m.title}
               </Link>
             )}

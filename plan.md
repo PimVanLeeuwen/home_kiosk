@@ -2342,6 +2342,19 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   its own line so a short row shows an empty cell), `Sparkline` (line over a fading wash),
   `Headline` (eyebrow, one or two lines, lead), `AttentionRow` and `HealthyLine`; steps 4 and 5
   put them to use.
+- Built 2026-11-21 (step 3), decided with the owner the same day: nested addresses with every
+  old one redirected (its query and hash kept), Media and Repos in House, Now's tabs Today,
+  Weather, Running, Reminders and Todos, and tabs only for pages that exist (Home: Lights, Music;
+  House: NAS, Docker, Services, Backups, Media, Network, Repos, Alerts; Read: News, Saved; Money
+  and Kitchen one page each, so no tabs). `lib/paths.ts` holds every address and `MOVED`, the old
+  ones (`/nas` to `/house/nas`, `/tailscale` to `/house/network`, `/alerts/:id`,
+  `/recipes/:id/cook`); `movedPath` rewrites the collector's old onward links in the browser, so
+  the collector is unchanged. The sidebar is gone: a top bar with the spaces, Jump to (the
+  palette), Ask and a menu (Settings, how the hub was reached); `SpaceTabs` above the page; on a
+  phone a floating tab bar (Now, Home, House, Read, More; More holds Portfolio, Recipes, Ask and
+  Settings). Today stays at `/`. The palette keeps recent choices under the old page ids. Not yet:
+  the dots on a space or tab while something there needs a look (step 4, with the attention data),
+  the overviews, and the Air, Laundry, Apple devices and Outside tabs (steps 4 and 5).
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

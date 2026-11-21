@@ -8,6 +8,7 @@ import type { Headline, HeadlinesResponse } from '../../lib/newsTypes'
 import { useApi } from '../../lib/useApi'
 import { StaleNote } from '../ui/states'
 import { titleClass } from '../ui/titleStyles'
+import { PATHS } from '../../lib/paths'
 
 type Colour = { bg: string; fg: string }
 type SaveState = 'saving' | 'saved' | 'failed'
@@ -110,7 +111,7 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
       >
         <li className="relative flex flex-col gap-2 md:row-[1/span_var(--rows)]" data-image={lead.image ?? 'none'}>
           <Link
-            to={`/news?a=${lead.id}`}
+            to={`${PATHS.news}?a=${lead.id}`}
             className="relative flex min-h-[230px] flex-1 flex-col justify-end overflow-hidden rounded-sheet border border-glass-line p-4 text-fg after:absolute after:inset-0 after:bg-linear-to-b after:from-[rgb(10_10_14/0.15)] after:via-[rgb(10_10_14/0.35)] after:to-[rgb(10_10_14/0.92)] md:min-h-[290px] md:px-[22px] md:py-5"
             style={
               lead.image === 'lead'
@@ -135,7 +136,7 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
             <p className="flex flex-wrap items-center gap-1.5 px-1 text-small text-muted">
               Also in
               {lead.sources.map((s) => (
-                <Link key={s.id} to={`/news?a=${s.id}`} className="rounded-tag border border-line-soft bg-card px-2 py-0.5 font-medium text-fg hover:border-line">
+                <Link key={s.id} to={`${PATHS.news}?a=${s.id}`} className="rounded-tag border border-line-soft bg-card px-2 py-0.5 font-medium text-fg hover:border-line">
                   {s.source}
                 </Link>
               ))}
@@ -145,7 +146,7 @@ export function Headlines({ colourOf }: { colourOf: (groupId: string) => Colour 
         {rest.map((h) => (
           <li key={h.id} className="relative" data-image={h.image ?? 'none'}>
             <Link
-              to={`/news?a=${h.id}`}
+              to={`${PATHS.news}?a=${h.id}`}
               className="grid h-full grid-cols-[76px_minmax(0,1fr)] items-center gap-3 rounded-card border border-line-soft bg-card bg-linear-to-b from-white/[0.025] to-transparent to-45% py-2.5 pr-11 pl-2.5 text-fg md:grid-cols-[104px_minmax(0,1fr)] md:gap-3.5 md:py-3 md:pr-12 md:pl-3"
             >
               <Thumb h={h} colour={colourOf(h.group_id)} />

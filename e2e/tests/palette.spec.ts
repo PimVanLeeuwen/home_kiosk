@@ -19,7 +19,7 @@ test('the command palette finds a page by a few letters and goes there', async (
   await expect(palette.getByRole('option', { selected: true })).toContainText('Backups')
   await field.press('Enter')
 
-  await expect(page).toHaveURL('/backups')
+  await expect(page).toHaveURL('/house/backups')
   await expect(palette).toBeHidden()
 })
 

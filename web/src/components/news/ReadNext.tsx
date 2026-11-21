@@ -8,6 +8,7 @@ import { goOnWith, minutesLeft } from '../../lib/readNext'
 import { useApi } from '../../lib/useApi'
 import { titleClass } from '../ui/titleStyles'
 import { Ring } from '../ui/Ring'
+import { PATHS } from '../../lib/paths'
 
 function ReadRing({ pct }: { pct: number }) {
   return <Ring aria-hidden="true" className="size-9 shrink-0" box={36} r={14} stroke={4} color="var(--color-accent-line)" fraction={pct / 100} />
@@ -71,7 +72,7 @@ export function ReadNext({ onGroup, isRead }: Props) {
       <div className="grid gap-3">
         {lead && (
           <Link
-            to={`/news?a=${lead.id}`}
+            to={`${PATHS.news}?a=${lead.id}`}
             className="pressable group relative block aspect-[2/1] overflow-hidden rounded-sheet border border-glass-line bg-[#16161d]"
           >
             {lead.image === 'lead' && !noPicture ? (
@@ -91,7 +92,7 @@ export function ReadNext({ onGroup, isRead }: Props) {
         )}
         {bookmark && (
           <Mini
-            to={`/saved?b=${bookmark.id}`}
+            to={`${PATHS.saved}?b=${bookmark.id}`}
             art={
               bookmark.thumbnail ? (
                 <img src={`/api/saved/${bookmark.id}/thumbnail`} alt="" className="size-14 shrink-0 rounded-control bg-[#16161d] object-cover" />
@@ -106,7 +107,7 @@ export function ReadNext({ onGroup, isRead }: Props) {
         )}
         {busiest && busiest.unread > 0 && busiestColour && (
           <Mini
-            {...(onGroup ? { onClick: () => onGroup(busiest.id) } : { to: `/news?group=${encodeURIComponent(busiest.id)}` })}
+            {...(onGroup ? { onClick: () => onGroup(busiest.id) } : { to: `${PATHS.news}?group=${encodeURIComponent(busiest.id)}` })}
             art={
               <span aria-hidden="true" className="grid size-14 shrink-0 place-items-center rounded-control" style={{ background: busiestColour.bg, color: busiestColour.fg }}>
                 <Newspaper className="size-6" strokeWidth={1.8} />

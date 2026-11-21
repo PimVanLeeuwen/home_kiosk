@@ -7,7 +7,7 @@ import { failWith, sentBody, stubApi } from '../test/stubApi'
 
 function setup(over: Record<string, unknown> = {}) {
   const fetchMock = stubApi({ '/api/recipes': RECIPES, ...over })
-  return { fetchMock, ...renderRoute('/recipes') }
+  return { fetchMock, ...renderRoute('/kitchen/recipes') }
 }
 
 const cards = () => within(screen.getByRole('list', { name: 'Recipes' })).getAllByRole('link')
@@ -26,7 +26,7 @@ describe('RecipesPage', () => {
 
     expect(await screen.findByText('3 recipes · 1 to review')).toBeInTheDocument()
     const [creme, kip, dal] = cards()
-    expect(creme).toHaveAttribute('href', '/recipes/cr%C3%A8me-brulee')
+    expect(creme).toHaveAttribute('href', '/kitchen/recipes/cr%C3%A8me-brulee')
     expect(creme).toHaveTextContent('20 min prep4 h 20 min cook')
     expect(creme.querySelector('img')?.getAttribute('src')).toMatch(/^\/api\/recipes\/cr%C3%A8me-brulee\/photo\/thumb\?v=/)
     expect(kip).toHaveTextContent('#oven#kip')

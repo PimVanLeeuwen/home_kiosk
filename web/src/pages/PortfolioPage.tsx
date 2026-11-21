@@ -18,6 +18,7 @@ import { Pill } from '../components/ui/Pill'
 import { StatTile, StatTiles } from '../components/ui/StatTile'
 import type { Tone } from '../components/ui/tones'
 import { AnimatedNumber } from '../components/ui/AnimatedNumber'
+import { PATHS } from '../lib/paths'
 
 const tone = (n: number | null | undefined): Tone | undefined => (!n ? undefined : n > 0 ? 'up' : 'down')
 
@@ -65,7 +66,7 @@ export function PortfolioPage() {
         status={<Pill tone={dayPct > 0 ? 'up' : dayPct < 0 ? 'down' : 'muted'}>{formatSignedPct(dayPct)} today</Pill>}
         actions={
           <Link
-            to="/portfolio?import"
+            to={`${PATHS.portfolio}?import`}
             aria-label="Update from DEGIRO"
             className={buttonClass()}
           >

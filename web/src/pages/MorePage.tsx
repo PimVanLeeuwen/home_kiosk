@@ -2,9 +2,10 @@ import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { MORE_ITEMS } from '../lib/navigation'
 import { PageHeader } from '../components/PageHeader'
+import { ConnectionBadge } from '../components/ConnectionBadge'
 import { Surface } from '../components/ui/Card'
 
-/** Mobile: the sections without their own tab. */
+/** The phone: the spaces without a tab of their own, Ask and Settings, and how the hub was reached. */
 export function MorePage() {
   return (
     <>
@@ -23,6 +24,7 @@ export function MorePage() {
           </li>
         ))}
       </Surface>
+      <ConnectionBadge showHost className="mt-5 px-1" />
     </>
   )
 }

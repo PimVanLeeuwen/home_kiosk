@@ -58,7 +58,7 @@ const names = (region: HTMLElement) =>
 describe('DockerPage', () => {
   it('sums up running containers, load and recent updates', async () => {
     setup()
-    renderRoute('/docker')
+    renderRoute('/house/docker')
 
     expect(await screen.findByText('4 of 5 running')).toBeInTheDocument()
     // One container stopped: the header says it needs a look.
@@ -82,7 +82,7 @@ describe('DockerPage', () => {
       '/api/docker': { ...OVERVIEW, containers: OVERVIEW.containers.filter((x) => x.state === 'running') },
       '/api/nas': { mem_total_bytes: 32e9 },
     })
-    renderRoute('/docker')
+    renderRoute('/house/docker')
 
     expect(await screen.findByText('All running')).toBeInTheDocument()
     expect(await within(screen.getByRole('region', { name: 'Memory, all containers' })).findByText('of 32 GB')).toBeInTheDocument()
@@ -90,7 +90,7 @@ describe('DockerPage', () => {
 
   it('groups containers by stack with a running count', async () => {
     setup()
-    renderRoute('/docker')
+    renderRoute('/house/docker')
 
     const torrents = await screen.findByRole('region', { name: 'qbittorrent · 1/2' })
     expect(names(torrents)).toEqual(['gluetun', 'transmission'])
@@ -101,7 +101,7 @@ describe('DockerPage', () => {
 
   it('marks a stopped container, its stack and when it exited', async () => {
     setup()
-    renderRoute('/docker')
+    renderRoute('/house/docker')
 
     const torrents = await screen.findByRole('region', { name: 'qbittorrent · 1/2' })
     const stopped = within(torrents).getByRole('button', { name: /transmission/ })
@@ -118,7 +118,7 @@ describe('DockerPage', () => {
 
   it('orders by CPU across stacks and filters', async () => {
     setup()
-    renderRoute('/docker')
+    renderRoute('/house/docker')
     await screen.findByText('4 of 5 running')
 
     fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Order' })).getByRole('radio', { name: 'CPU' }))
@@ -132,7 +132,7 @@ describe('DockerPage', () => {
 
   it('opens a container for its 24-hour charts and details', async () => {
     const fetchMock = setup()
-    renderRoute('/docker')
+    renderRoute('/house/docker')
 
     fireEvent.click(await screen.findByRole('button', { name: /jellyfin/ }))
 
@@ -147,7 +147,7 @@ describe('DockerPage', () => {
 
   it('lists image updates with short image ids', async () => {
     setup()
-    renderRoute('/docker')
+    renderRoute('/house/docker')
 
     const log = await screen.findByRole('region', { name: 'Image updates' })
     // The old and new image ids as chips, the new one lit; the newest entry's dot is lit too.
@@ -161,13 +161,13 @@ describe('DockerPage', () => {
 
   it('explains an empty update log and an unreachable collector', async () => {
     setup({ '/api/docker/updates': [] })
-    renderRoute('/docker')
+    renderRoute('/house/docker')
     expect(await screen.findByText(/No updates seen yet/)).toBeInTheDocument()
   })
 
   it('says when container data is not available', async () => {
     stubApi({})
-    renderRoute('/docker')
+    renderRoute('/house/docker')
     expect(await screen.findByText('Container data is not available right now.')).toBeInTheDocument()
   })
 })

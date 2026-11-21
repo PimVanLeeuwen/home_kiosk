@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { Shell } from './shell'
 
 const device = (id: string, name: string, active = false) => ({ id, name, type: 'tv', active, volume: 60, restricted: false })
 
@@ -29,12 +30,7 @@ test('Music starts a favourite on the Apple TV and shows it on Home', async ({ p
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Now playing' })).toHaveCount(0)
 
-  if (isMobile) {
-    await page.locator('nav.fixed').getByRole('link', { name: 'More' }).click()
-    await page.getByRole('main').getByRole('link', { name: /Music/ }).click()
-  } else {
-    await page.locator('aside').getByRole('link', { name: 'Music' }).click()
-  }
+  await new Shell(page).open('Home', 'Music', isMobile)
   await expect(page.getByRole('heading', { name: 'Nothing playing' })).toBeVisible()
   await page.getByRole('button', { name: 'Play Discover Weekly' }).click()
   await expect(page.getByRole('heading', { name: 'Midnight City' })).toBeVisible()
@@ -50,7 +46,7 @@ test('While Spotify pauses the hub, Music says until when and the controls wait'
   const until = Date.now() / 1000 + 600
   await page.route('**/api/music', (route) =>
     route.fulfill({ json: { ...music(false), stale: true, devices: [], paused_until: until } }))
-  await page.goto('/music')
+  await page.goto('/home/music')
 
   await expect(page.getByText(/Spotify paused the hub until .*\d\d:\d\d; the controls wait until then\./)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Play Discover Weekly' })).toBeDisabled()
@@ -81,7 +77,7 @@ test('Music plays one of the playlists and albums played lately', async ({ page 
     from = 'spotify:playlist:p9'
     return route.fulfill({ json: { ok: true, device_id: 'atv', seconds: 1.1 } })
   })
-  await page.goto('/music')
+  await page.goto('/home/music')
 
   const lately = page.getByRole('region', { name: 'Played lately' })
   await expect(lately.getByRole('button', { name: 'Play Low Tide' })).toBeVisible()
@@ -95,7 +91,7 @@ test('a long title stays inside the phone screen', async ({ page, isMobile }) =>
   await page.route('**/api/music', (route) => route.fulfill({ json: {
     ...music(false), last: { kind: 'track', title: long, subtitle: long, duration_ms: 200000, cover: null, colour: null },
   } }))
-  await page.goto('/music')
+  await page.goto('/home/music')
   await expect(page.getByText(long).first()).toBeVisible()
 
   const main = page.getByRole('main')

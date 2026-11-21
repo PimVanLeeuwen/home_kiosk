@@ -9,6 +9,7 @@ import { Seal } from '../ui/Seal'
 import { RestoreLine } from '../backups/RestoreLine'
 import { Card } from '../ui/Card'
 import { Loading, Unavailable } from '../ui/states'
+import { PATHS } from '../../lib/paths'
 
 /**
  * The latest nightly run with the nights before it: per volume from the run
@@ -24,7 +25,7 @@ export function BackupCard({ nas, error, history }: { nas: Nas | undefined; erro
   const pill = verdict && <Pill tone={verdict.tone}>{verdict.label}</Pill>
 
   return (
-    <Card title="Backups" link={{ to: '/backups', label: 'History' }} actions={pill}>
+    <Card title="Backups" link={{ to: PATHS.backups, label: 'History' }} actions={pill}>
       {last ? (
         <LastRun last={last} runs={runs} history={history!} dumps={dumps.data} now={now} />
       ) : (

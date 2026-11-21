@@ -29,7 +29,7 @@ const HEADLINES: HeadlinesResponse = {
   ],
 }
 
-function setup(over: Record<string, unknown> = {}, path = '/news') {
+function setup(over: Record<string, unknown> = {}, path = '/read/news') {
   const fetchMock = stubApi({
     '/api/news/groups': NEWS_GROUPS,
     '/api/news/articles?limit=50&offset=0': { articles: ARTICLES, total: ARTICLES.length },
@@ -56,7 +56,7 @@ describe('Headlines', () => {
     expect(items[1].querySelector('img')).toBeNull()
     expect(within(items[1]).getByText('T')).toBeInTheDocument()
     expect(items[2].querySelector('img')).toHaveAttribute('src', '/api/news/headlines/h3/image/thumb')
-    expect(within(items[1]).getByRole('link')).toHaveAttribute('href', '/news?a=h2')
+    expect(within(items[1]).getByRole('link')).toHaveAttribute('href', '/read/news?a=h2')
   })
 
   it('saves a story to Readeck and fills its bookmark', async () => {
@@ -91,7 +91,7 @@ describe('Headlines', () => {
   })
 
   it('hides with the list on a phone while an article is open', async () => {
-    setup({}, '/news?a=a1')
+    setup({}, '/read/news?a=a1')
 
     expect((await block()).parentElement).toHaveClass('hidden', 'lg:block')
   })
@@ -120,7 +120,7 @@ describe('Headlines, grouped by Claude', () => {
     expect(within(section).getByText('The cabinet presents a plan for 100,000 homes a year.')).toBeInTheDocument()
     expect(within(section).getByText('NOS +2')).toBeInTheDocument()
     expect(within(section).getByText('NU.nl +1')).toBeInTheDocument()
-    expect(within(section).getByRole('link', { name: 'Tweakers' })).toHaveAttribute('href', '/news?a=g1c')
+    expect(within(section).getByRole('link', { name: 'Tweakers' })).toHaveAttribute('href', '/read/news?a=g1c')
     expect(within(section).getAllByRole('listitem')).toHaveLength(4)
   })
 

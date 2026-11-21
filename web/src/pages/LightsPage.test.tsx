@@ -53,7 +53,7 @@ const tile = (name: string) => screen.findByRole('region', { name })
 describe('LightsPage', () => {
   it('shows the two groups with their state, whites and each light', async () => {
     stubApi({ '/api/lights': lights({ lampsOn: false, unreachable: true }) })
-    renderRoute('/lights')
+    renderRoute('/home/lights')
 
     expect(await screen.findByText('3 of 5 on')).toBeInTheDocument()
     const kitchen = await tile('Kitchen spots')
@@ -74,7 +74,7 @@ describe('LightsPage', () => {
       '/api/lights': lights(),
       'PUT /api/lights/ceiling': { ...lights({ lampsOn: false }), as_of: new Date(Date.now() + 1000).toISOString() },
     })
-    renderRoute('/lights')
+    renderRoute('/home/lights')
 
     fireEvent.click(within(await tile('Ceiling lamps')).getByRole('button', { pressed: true }))
 
@@ -85,7 +85,7 @@ describe('LightsPage', () => {
 
   it('picks a white for the spots', async () => {
     const fetchMock = stubApi({ '/api/lights': lights(), 'PUT /api/lights/kitchen': lights() })
-    renderRoute('/lights')
+    renderRoute('/home/lights')
 
     fireEvent.click(within(await tile('Kitchen spots')).getByRole('radio', { name: '2700 K' }))
 
@@ -94,7 +94,7 @@ describe('LightsPage', () => {
 
   it('sends a brightness once the slider rests', async () => {
     const fetchMock = stubApi({ '/api/lights': lights(), 'PUT /api/lights/kitchen': lights() })
-    renderRoute('/lights')
+    renderRoute('/home/lights')
     const slider = within(await tile('Kitchen spots')).getByRole('slider', { name: 'Kitchen spots brightness' })
 
     vi.useFakeTimers()
@@ -113,7 +113,7 @@ describe('LightsPage', () => {
 
   it('switches the whole room off, or on when all are off', async () => {
     const fetchMock = stubApi({ '/api/lights': lights(), 'POST /api/lights/room': lights() })
-    renderRoute('/lights')
+    renderRoute('/home/lights')
 
     fireEvent.click(await screen.findByRole('button', { name: 'All off' }))
     await vi.waitFor(() => expect(sentBody(fetchMock, 'POST', '/api/lights/room')).toEqual({ on: false }))
@@ -121,7 +121,7 @@ describe('LightsPage', () => {
 
   it('says why a change failed', async () => {
     stubApi({ '/api/lights': lights(), 'PUT /api/lights/kitchen': failWith(502, { detail: 'The bridge is not reachable' }) })
-    renderRoute('/lights')
+    renderRoute('/home/lights')
 
     fireEvent.click(within(await tile('Kitchen spots')).getByRole('button', { pressed: true }))
 
@@ -130,7 +130,7 @@ describe('LightsPage', () => {
 
   it('shows the last known state with the controls off while the bridge is away', async () => {
     stubApi({ '/api/lights': lights({ stale: true }) })
-    renderRoute('/lights')
+    renderRoute('/home/lights')
 
     expect(await screen.findByText(/Last known state/)).toBeInTheDocument()
     expect(within(await tile('Kitchen spots')).getByRole('slider')).toBeDisabled()
@@ -141,7 +141,7 @@ describe('LightsPage', () => {
   it('holds a switch while the bridge still answers with the old state, then follows it', async () => {
     let reported = lights()
     stubApi({ '/api/lights': () => reported, 'PUT /api/lights/ceiling': () => reported })
-    renderRoute('/lights')
+    renderRoute('/home/lights')
     const ceiling = await tile('Ceiling lamps')
 
     fireEvent.click(within(ceiling).getByRole('button', { pressed: true }))
@@ -167,7 +167,7 @@ describe('LightsPage', () => {
 
   it('keeps the dragged level after letting go until the bridge reports it', async () => {
     stubApi({ '/api/lights': lights(), 'PUT /api/lights/kitchen': lights() })
-    renderRoute('/lights')
+    renderRoute('/home/lights')
     const kitchen = await tile('Kitchen spots')
 
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
@@ -185,7 +185,7 @@ describe('LightsPage', () => {
 
   it('shows what the bridge has once a change is not confirmed in time', async () => {
     stubApi({ '/api/lights': lights(), 'PUT /api/lights/ceiling': lights() })
-    renderRoute('/lights')
+    renderRoute('/home/lights')
     const ceiling = await tile('Ceiling lamps')
 
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
@@ -202,7 +202,7 @@ describe('LightsPage', () => {
 
   it('explains when the lights are not read yet', async () => {
     stubApi({})
-    renderRoute('/lights')
+    renderRoute('/home/lights')
 
     expect(await screen.findByRole('alert')).toHaveTextContent('The lights are not available right now')
   })

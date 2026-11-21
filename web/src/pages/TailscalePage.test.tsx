@@ -11,7 +11,7 @@ const HOSTS = {
 describe('TailscalePage', () => {
   it('heads the page with the tailnet, the online count and Healthy', async () => {
     stubApi({ '/api/tailnet': TAILNET, '/api/hosts': HOSTS })
-    renderRoute('/tailscale')
+    renderRoute('/house/network')
 
     expect(await screen.findByText('tail1234 · 5 of 6 online')).toBeInTheDocument()
     expect(screen.getByText('Healthy')).toBeInTheDocument()
@@ -20,7 +20,7 @@ describe('TailscalePage', () => {
 
   it('draws the map with a line per connection', async () => {
     stubApi({ '/api/tailnet': TAILNET })
-    renderRoute('/tailscale')
+    renderRoute('/house/network')
 
     const map = await screen.findByRole('figure', { name: 'The NAS and 5 devices' })
     const kinds = [...map.querySelectorAll('[data-line]')].map((l) => l.getAttribute('data-line'))
@@ -32,7 +32,7 @@ describe('TailscalePage', () => {
 
   it("shows the NAS's own names, addresses and what it serves", async () => {
     stubApi({ '/api/tailnet': TAILNET, '/api/hosts': HOSTS })
-    renderRoute('/tailscale')
+    renderRoute('/house/network')
 
     const hero = await screen.findByRole('region', { name: 'Tailnet' })
     expect(within(hero).getByText('dev-minotaur.tail1234.ts.net')).toBeInTheDocument()
@@ -44,7 +44,7 @@ describe('TailscalePage', () => {
 
   it('lists online devices first, with how they connect, then offline ones with when they were seen', async () => {
     stubApi({ '/api/tailnet': TAILNET })
-    renderRoute('/tailscale')
+    renderRoute('/house/network')
 
     const online = await screen.findByRole('region', { name: /Online/ })
     expect(within(online).getAllByRole('listitem')).toHaveLength(4)
@@ -58,7 +58,7 @@ describe('TailscalePage', () => {
 
   it('opens one device at a time for its details', async () => {
     stubApi({ '/api/tailnet': TAILNET })
-    renderRoute('/tailscale')
+    renderRoute('/house/network')
 
     const mac = await screen.findByRole('button', { name: /pim-macbook/ })
     expect(mac).toHaveAttribute('aria-expanded', 'false')
@@ -75,7 +75,7 @@ describe('TailscalePage', () => {
 
   it('puts each health warning above the map and turns the pill amber', async () => {
     stubApi({ '/api/tailnet': { ...TAILNET, health: ["Tailscale can't reach the configured DNS servers."] } })
-    renderRoute('/tailscale')
+    renderRoute('/house/network')
 
     expect(await screen.findByRole('alert')).toHaveTextContent("Tailscale can't reach the configured DNS servers.")
     expect(screen.getByText('1 health issue')).toBeInTheDocument()
@@ -84,7 +84,7 @@ describe('TailscalePage', () => {
 
   it('marks a stale answer', async () => {
     stubApi({ '/api/tailnet': { ...TAILNET, stale: true } })
-    renderRoute('/tailscale')
+    renderRoute('/house/network')
 
     expect(await screen.findByText('Stale')).toHaveClass('text-warn')
     expect(screen.getByRole('status')).toHaveTextContent('this is the last known state')
@@ -92,7 +92,7 @@ describe('TailscalePage', () => {
 
   it('says so when Tailscale is not available, and loads first', async () => {
     stubApi({})
-    renderRoute('/tailscale')
+    renderRoute('/house/network')
 
     expect(screen.getByRole('status')).toHaveTextContent('Loading')
     expect(await screen.findByText('Tailscale is not available right now.')).toBeInTheDocument()
@@ -100,7 +100,7 @@ describe('TailscalePage', () => {
 
   it('says when the NAS is alone on the tailnet', async () => {
     stubApi({ '/api/tailnet': { ...TAILNET, peers: [] } })
-    renderRoute('/tailscale')
+    renderRoute('/house/network')
 
     expect(await screen.findByText('No other devices on the tailnet yet.')).toBeInTheDocument()
     expect(screen.getByText('tail1234 · 1 of 1 online')).toBeInTheDocument()

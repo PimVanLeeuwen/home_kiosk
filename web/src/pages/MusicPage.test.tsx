@@ -34,7 +34,7 @@ function music(over: Partial<Music> = {}): Music {
 describe('MusicPage', () => {
   it('shows what plays with its cover, progress, device and the favourites', async () => {
     stubApi({ '/api/music': music() })
-    renderRoute('/music')
+    renderRoute('/home/music')
 
     const now = await screen.findByRole('region', { name: 'Now playing' })
     expect(within(now).getByRole('heading', { name: 'Midnight City' })).toBeInTheDocument()
@@ -52,7 +52,7 @@ describe('MusicPage', () => {
 
   it('pauses at once and holds it while Spotify still reports playing', async () => {
     const fetchMock = stubApi({ '/api/music': music(), 'POST /api/music/control/pause': { ok: true } })
-    renderRoute('/music')
+    renderRoute('/home/music')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Pause' }))
 
@@ -63,7 +63,7 @@ describe('MusicPage', () => {
 
   it('shows no error for a skip Spotify took, and one only while a skip really fails', async () => {
     const fetchMock = stubApi({ '/api/music': music(), 'POST /api/music/control/next': { ok: true } })
-    renderRoute('/music')
+    renderRoute('/home/music')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Next' }))
     await vi.waitFor(() => expect(sentBody(fetchMock, 'POST', '/api/music/control/next')).toEqual({}))
@@ -80,7 +80,7 @@ describe('MusicPage', () => {
 
   it('moves playback to another device', async () => {
     const fetchMock = stubApi({ '/api/music': music(), 'POST /api/music/transfer': { ok: true } })
-    renderRoute('/music')
+    renderRoute('/home/music')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Move playback to MacBook Pro' }))
 
@@ -90,7 +90,7 @@ describe('MusicPage', () => {
 
   it('sends a volume once the slider rests', async () => {
     const fetchMock = stubApi({ '/api/music': music(), 'PUT /api/music/volume': { ok: true } })
-    renderRoute('/music')
+    renderRoute('/home/music')
     const slider = await screen.findByRole('slider', { name: 'Volume' })
 
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
@@ -111,7 +111,7 @@ describe('MusicPage', () => {
       '/api/music': music({ playing: null }),
       'POST /api/music/favourites/0/play': failWith(409, { detail: 'Apple TV Living Room is not available in Spotify: open Spotify on it first.' }),
     })
-    renderRoute('/music')
+    renderRoute('/home/music')
 
     expect(await screen.findByRole('heading', { name: 'Nothing playing' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Play Discover Weekly' }))
@@ -122,7 +122,7 @@ describe('MusicPage', () => {
 
   it('shows what played last when nothing plays, and the stale note', async () => {
     stubApi({ '/api/music': music({ playing: null, stale: true, last: { ...PLAYING, title: 'Wait' } }) })
-    renderRoute('/music')
+    renderRoute('/home/music')
 
     expect(await screen.findByText('Wait')).toBeInTheDocument()
     expect(screen.getByText('Showing the last known figures.')).toBeInTheDocument()
@@ -130,12 +130,12 @@ describe('MusicPage', () => {
 
   it('points to Settings while Spotify is not connected, and explains a failure', async () => {
     stubApi({ '/api/music': music({ connected: false, playing: null }) })
-    const { unmount } = renderRoute('/music')
+    const { unmount } = renderRoute('/home/music')
     expect(await screen.findByRole('link', { name: 'Settings → Music' })).toHaveAttribute('href', '/settings/music')
     unmount()
 
     stubApi({ '/api/music': failWith(503, { detail: 'Spotify is not set up (SPOTIFY_CLIENT_ID).' }) })
-    renderRoute('/music')
+    renderRoute('/home/music')
     expect(await screen.findByRole('alert')).toHaveTextContent('SPOTIFY_CLIENT_ID')
   })
 
@@ -144,7 +144,7 @@ describe('MusicPage', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 9, 25, 16, 40))
     stubApi({ '/api/music': music({ stale: true, paused_until: until }) })
-    renderRoute('/music')
+    renderRoute('/home/music')
 
     expect(await screen.findByText(/Spotify paused the hub until 16:52; the controls wait/)).toBeInTheDocument()
     expect(screen.queryByText('Showing the last known figures.')).not.toBeInTheDocument()
@@ -159,7 +159,7 @@ describe('MusicPage', () => {
 
   it('without a last answer while paused, still shows the favourites', async () => {
     stubApi({ '/api/music': music({ stale: true, playing: null, devices: [], paused_until: Date.now() / 1000 + 600 }) })
-    renderRoute('/music')
+    renderRoute('/home/music')
 
     expect(await screen.findByText('Your devices show again once Spotify lets the hub ask.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Play Discover Weekly' })).toBeDisabled()
@@ -174,7 +174,7 @@ describe('MusicPage', () => {
       '/api/music': music({ recent, playing: { ...PLAYING, context: 'spotify:playlist:p9' } }),
       'POST /api/music/recent/0/play': { ok: true },
     })
-    renderRoute('/music')
+    renderRoute('/home/music')
 
     const lately = await screen.findByRole('region', { name: 'Played lately' })
     expect(within(lately).getByRole('button', { name: 'Late Night: playing' })).toBeInTheDocument()
@@ -186,7 +186,7 @@ describe('MusicPage', () => {
 
   it('says when nothing was played lately', async () => {
     stubApi({ '/api/music': music({ recent: [] }) })
-    renderRoute('/music')
+    renderRoute('/home/music')
 
     const lately = await screen.findByRole('region', { name: 'Played lately' })
     expect(lately).toHaveTextContent('Nothing played lately')

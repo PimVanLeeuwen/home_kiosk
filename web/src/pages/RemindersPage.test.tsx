@@ -17,7 +17,7 @@ const DATA: Reminders = {
 describe('RemindersPage', () => {
   it("shows today's reminders and every reminder with how it repeats", async () => {
     stubApi({ '/api/reminders': DATA })
-    renderRoute('/reminders')
+    renderRoute('/now/reminders')
 
     expect(await screen.findByText('1 today')).toBeInTheDocument()
     const today = screen.getByRole('region', { name: 'Today' })
@@ -34,7 +34,7 @@ describe('RemindersPage', () => {
       'POST /api/reminders': DATA,
       'POST /api/reminders/1/done': { ...DATA, due: [{ ...DATA.due[0], done: true }] },
     })
-    renderRoute('/reminders')
+    renderRoute('/now/reminders')
     const form = await screen.findByRole('form', { name: 'Add a reminder' })
 
     fireEvent.change(within(form).getByLabelText('Title'), { target: { value: ' Water the plants ' } })
@@ -59,7 +59,7 @@ describe('RemindersPage', () => {
       'PUT /api/reminders/1': failWith(422, { detail: 'an hour before needs a time' }),
       'DELETE /api/reminders/1': { ...DATA, due: [], reminders: [] },
     })
-    renderRoute('/reminders')
+    renderRoute('/now/reminders')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Change Bins out' }))
     const form = screen.getByRole('form', { name: 'Change the reminder' })
@@ -76,7 +76,7 @@ describe('RemindersPage', () => {
 
   it('says when the reminders are not available', async () => {
     stubApi({ '/api/reminders': failWith(500, { detail: 'boom' }) })
-    renderRoute('/reminders')
+    renderRoute('/now/reminders')
     expect(await screen.findByText(/Reminders are not available right now/)).toBeInTheDocument()
   })
 })

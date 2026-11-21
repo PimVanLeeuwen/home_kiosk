@@ -6,6 +6,7 @@ import { Cover, Progress } from '../music/NowPlaying'
 import { Pill } from '../ui/Pill'
 import { cn } from '../../lib/cn'
 import { Card } from '../ui/Card'
+import { PATHS } from '../../lib/paths'
 
 interface Props {
   playing: Playing | null
@@ -26,7 +27,7 @@ export function NowPlayingCard({ playing, send, hero, pausedUntil = null }: Prop
   return (
     <Card
       title="Now playing"
-      link={{ to: '/music', label: 'Music' }}
+      link={{ to: PATHS.music, label: 'Music' }}
       actions={playing.device && <Pill tone="accent">On {playing.device.name}</Pill>}
     >
       <div

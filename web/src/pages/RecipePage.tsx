@@ -17,6 +17,7 @@ import { photoData } from '../lib/photoData'
 import { photoUrl } from '../lib/recipes'
 import type { RecipeDetail } from '../lib/recipeTypes'
 import { useApi } from '../lib/useApi'
+import { PATHS, cookPath } from '../lib/paths'
 
 /** What Copy with prompt puts above a recipe from Tandoor, after the format's guide. */
 const REWORK =
@@ -54,7 +55,7 @@ export function RecipePage() {
 
 function BackLink() {
   return (
-    <Link to="/recipes" viewTransition className="hit mb-4 inline-flex items-center gap-1.5 text-small text-muted hover:text-fg">
+    <Link to={PATHS.recipes} viewTransition className="hit mb-4 inline-flex items-center gap-1.5 text-small text-muted hover:text-fg">
       <ArrowLeft aria-hidden="true" className="size-4" />
       Recipes
     </Link>
@@ -73,7 +74,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
   const [notice, setNotice] = useState<{ ok: boolean; text: string }>()
   const fileInput = useRef<HTMLInputElement>(null)
   const factor = servings / recipe.servings
-  const cookPath = `/recipes/${encodeURIComponent(recipe.id)}/cook${servings !== recipe.servings ? `?persons=${servings}` : ''}`
+  const cookTo = `${cookPath(recipe.id)}${servings !== recipe.servings ? `?persons=${servings}` : ''}`
 
   async function act(work: () => Promise<string | void>, failed: string) {
     setBusy(true)
@@ -122,7 +123,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
   const remove = () =>
     act(async () => {
       await sendJson('DELETE', `/api/recipes/${encodeURIComponent(recipe.id)}`)
-      navigate('/recipes', { state: { notice: `Deleted "${recipe.title}".` }, viewTransition: true })
+      navigate(PATHS.recipes, { state: { notice: `Deleted "${recipe.title}".` }, viewTransition: true })
     }, 'Not deleted')
 
   const upload = (file: File) =>
@@ -156,7 +157,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
           </span>
           <ActionMenu label="Recipe actions" actions={actions} />
           <span className="hidden md:block">
-            <Link to={cookPath} viewTransition className={buttonClass('primary')}>
+            <Link to={cookTo} viewTransition className={buttonClass('primary')}>
               <Sun aria-hidden="true" className="size-4" />
               Cook
             </Link>
@@ -268,7 +269,7 @@ function Recipe({ detail, reload }: { detail: RecipeDetail; reload: () => void }
         {/* On the phone the way into cook mode stays in thumb reach all the way down the page. Sticky
             counts the page area's bottom padding (room for the tab bar), so 0 sits just above the bar. */}
         <div className="sticky bottom-0 z-10 order-5 md:hidden print:hidden">
-          <Link to={cookPath} viewTransition className={cn(buttonClass('primary'), 'h-12 w-full text-title shadow-[0_8px_30px_rgb(0_0_0/0.5)]')}>
+          <Link to={cookTo} viewTransition className={cn(buttonClass('primary'), 'h-12 w-full text-title shadow-[0_8px_30px_rgb(0_0_0/0.5)]')}>
             <Sun aria-hidden="true" className="size-5" />
             Cook · screen stays on
           </Link>

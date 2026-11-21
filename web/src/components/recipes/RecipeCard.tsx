@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { Pill } from '../ui/Pill'
 import { duration, photoUrl } from '../../lib/recipes'
 import type { RecipeSummary } from '../../lib/recipeTypes'
+import { recipePath } from '../../lib/paths'
 
 /** The photo, or the title's first letter on a dark tile when there is none (mockup, approved). */
 export function RecipePhoto({ recipe, className }: { recipe: RecipeSummary; className: string }) {
@@ -40,7 +41,7 @@ export function RecipeTimes({ recipe }: { recipe: RecipeSummary }) {
 export function RecipeCard({ recipe }: { recipe: RecipeSummary }) {
   return (
     <Link
-      to={`/recipes/${encodeURIComponent(recipe.id)}`}
+      to={recipePath(recipe.id)}
       viewTransition
       className="pressable grid h-full grid-cols-[88px_minmax(0,1fr)] items-center gap-3.5 overflow-hidden rounded-sheet border border-line-soft bg-card p-2 hover:border-line lg:flex lg:flex-col lg:items-stretch lg:gap-0 lg:p-0"
     >

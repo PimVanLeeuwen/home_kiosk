@@ -12,7 +12,7 @@ const later = (data: Partial<Todos>): Todos => ({ ...DATA, as_of: new Date(NOW.g
 describe('TodosPage', () => {
   it('lists the open todos with their note, due date and High', async () => {
     stubApi({ '/api/todos': DATA })
-    renderRoute('/todos')
+    renderRoute('/now/todos')
 
     expect(await screen.findByText('2 open, 1 overdue')).toBeInTheDocument()
     const open = screen.getByRole('region', { name: 'Open' })
@@ -23,7 +23,7 @@ describe('TodosPage', () => {
 
   it('adds a todo with a note, a due date and High', async () => {
     const fetchMock = stubApi({ '/api/todos': DATA, 'POST /api/todos': DATA })
-    renderRoute('/todos')
+    renderRoute('/now/todos')
     const form = await screen.findByRole('form', { name: 'Add a todo' })
 
     fireEvent.click(within(form).getByRole('button', { name: 'Add todo' }))
@@ -45,7 +45,7 @@ describe('TodosPage', () => {
       'DELETE /api/todos/2': later({ open: 1, todos: [TAX], removed: SHED }),
       'POST /api/todos/restore': later({}),
     })
-    renderRoute('/todos')
+    renderRoute('/now/todos')
 
     fireEvent.click(await screen.findByRole('checkbox', { name: 'Fix the shed done' }))
     const undo = await screen.findByRole('status')
@@ -60,7 +60,7 @@ describe('TodosPage', () => {
 
   it('changes a todo and says why a write failed', async () => {
     const fetchMock = stubApi({ '/api/todos': DATA, 'PUT /api/todos/1': failWith(422, { detail: 'At most 500 open todos.' }) })
-    renderRoute('/todos')
+    renderRoute('/now/todos')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Change Tax return' }))
     const form = screen.getByRole('form', { name: 'Change the todo' })
@@ -76,13 +76,13 @@ describe('TodosPage', () => {
 
   it('says when nothing is open, and when the hub does not answer', async () => {
     stubApi({ '/api/todos': { ...DATA, open: 0, overdue: 0, todos: [] } })
-    const { unmount } = renderRoute('/todos')
+    const { unmount } = renderRoute('/now/todos')
     expect(await screen.findByText('Nothing open')).toBeInTheDocument()
     expect(screen.getByText('Nothing to do. Enjoy it.')).toBeInTheDocument()
     unmount()
 
     stubApi({ '/api/todos': failWith(500, {}) })
-    renderRoute('/todos')
+    renderRoute('/now/todos')
     expect(await screen.findByText('Todos are not available right now.')).toBeInTheDocument()
   })
 })

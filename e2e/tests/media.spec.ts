@@ -14,7 +14,7 @@ const MEDIA = {
 
 test('Media shows downloads, what needs a look, and missing episodes', async ({ page }) => {
   await page.route('**/api/media', (route) => route.fulfill({ json: MEDIA }))
-  await page.goto('/media')
+  await page.goto('/house/media')
   const shell = new Shell(page)
 
   await expect(shell.heading()).toHaveText('Media')
@@ -31,13 +31,8 @@ test('Media is reachable from the navigation', async ({ page, isMobile }) => {
   const shell = new Shell(page)
   await page.goto('/')
 
-  if (isMobile) {
-    await shell.tabBar.getByRole('link', { name: 'More' }).click()
-    await shell.main.getByRole('link', { name: /Media/ }).click()
-  } else {
-    await shell.sidebar.getByRole('link', { name: 'Media' }).click()
-  }
-  await expect(page).toHaveURL('/media')
+  await shell.open('House', 'Media', isMobile)
+  await expect(page).toHaveURL('/house/media')
 })
 
 const OVERVIEW = {
@@ -51,7 +46,7 @@ const OVERVIEW = {
 test('Media adds requests, who watched and the library', async ({ page }) => {
   await page.route('**/api/media', (route) => route.fulfill({ json: MEDIA }))
   await page.route('**/api/media/overview', (route) => route.fulfill({ json: OVERVIEW }))
-  await page.goto('/media')
+  await page.goto('/house/media')
 
   const requests = page.getByRole('region', { name: 'Requests' })
   await expect(requests).toContainText('waiting for approval')

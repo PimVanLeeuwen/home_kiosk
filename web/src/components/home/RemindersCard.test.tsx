@@ -14,7 +14,7 @@ describe('RemindersCard', () => {
 
     expect(screen.getByRole('region', { name: 'Reminders' })).toHaveTextContent('Bins out07:30PlantsAll day')
     expect(screen.getByText('Plants')).toHaveClass('line-through')
-    expect(screen.getByRole('link', { name: /All reminders/ })).toHaveAttribute('href', '/reminders')
+    expect(screen.getByRole('link', { name: /All reminders/ })).toHaveAttribute('href', '/now/reminders')
     expect(screen.getByRole('status')).toHaveTextContent('last known')
   })
 

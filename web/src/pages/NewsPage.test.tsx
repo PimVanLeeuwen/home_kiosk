@@ -5,7 +5,7 @@ import { failWith, sentBody, stubApi } from '../test/stubApi'
 
 const LIST = { articles: ARTICLES, total: ARTICLES.length }
 
-function setup(over: Record<string, unknown> = {}, path = '/news') {
+function setup(over: Record<string, unknown> = {}, path = '/read/news') {
   const fetchMock = stubApi({
     '/api/news/groups': NEWS_GROUPS,
     '/api/news/articles?limit=50&offset=0': LIST,
@@ -56,7 +56,7 @@ describe('NewsPage', () => {
   })
 
   it('reads an article as text blocks and marks it read', async () => {
-    const { fetchMock } = setup({}, '/news?a=a1')
+    const { fetchMock } = setup({}, '/read/news?a=a1')
 
     const reader = await screen.findByRole('article', { name: CONTENT.title! })
     expect(within(reader).getByText('Het kabinet verlaagt de belasting voor middeninkomens.')).toBeInTheDocument()
@@ -75,7 +75,7 @@ describe('NewsPage', () => {
   })
 
   it('saves to Readeck and can mark the article unread again', async () => {
-    const { fetchMock } = setup({ 'POST /api/save': { saved: true, bookmark_id: 'x' } }, '/news?a=a1')
+    const { fetchMock } = setup({ 'POST /api/save': { saved: true, bookmark_id: 'x' } }, '/read/news?a=a1')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Save to Readeck' }))
     expect(await screen.findByRole('button', { name: 'Saved to Readeck' })).toBeDisabled()
@@ -87,14 +87,14 @@ describe('NewsPage', () => {
   })
 
   it('shows why Saving to Readeck failed', async () => {
-    setup({ 'POST /api/save': failWith(502, { detail: 'Readeck rejected the token' }) }, '/news?a=a1')
+    setup({ 'POST /api/save': failWith(502, { detail: 'Readeck rejected the token' }) }, '/read/news?a=a1')
 
     fireEvent.click(await screen.findByRole('button', { name: 'Save to Readeck' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Readeck rejected the token')
   })
 
   it('offers the original when a page does not read well', async () => {
-    setup({ '/api/news/articles/a1/content': UNREADABLE }, '/news?a=a1')
+    setup({ '/api/news/articles/a1/content': UNREADABLE }, '/read/news?a=a1')
 
     expect(await screen.findByText('No readable text (paywall or app-only page)')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Open the original/ })).toHaveAttribute('href', 'https://news.example/a1')
@@ -114,7 +114,7 @@ describe('NewsPage', () => {
   it('shows a leading image as the hero, a reading-progress line and the group in its colour', async () => {
     setup(
       { '/api/news/articles/a1/content': { ...CONTENT, blocks: [CONTENT.blocks[2], ...CONTENT.blocks.filter((_, i) => i !== 2)] } },
-      '/news?a=a1',
+      '/read/news?a=a1',
     )
 
     const reader = await screen.findByRole('article', { name: /Miljoenennota/ })
@@ -126,7 +126,7 @@ describe('NewsPage', () => {
   })
 
   it('leaves an image later in the article where it is', async () => {
-    setup({}, '/news?a=a1')
+    setup({}, '/read/news?a=a1')
     const reader = await screen.findByRole('article', { name: /Miljoenennota/ })
     const image = await within(reader).findByRole('img', { name: 'Prinsjesdag' })
     expect(image.closest('figure')?.previousElementSibling?.textContent).toBe('Wat verandert er')
