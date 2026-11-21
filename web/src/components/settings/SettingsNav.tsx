@@ -38,7 +38,7 @@ export function SettingsNav({ items }: { items: SettingsNavItem[] }) {
                   'lg:rounded-control lg:border-transparent lg:px-2.5 lg:py-2 lg:text-body',
                   isActive
                     ? 'border-accent-line bg-accent-soft text-accent-fg'
-                    : 'border-line-soft text-muted hover:bg-card hover:text-fg',
+                    : 'border-line-soft text-muted hover:bg-glass hover:text-fg',
                 )
               }
             >

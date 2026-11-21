@@ -26,7 +26,8 @@ export function Layout() {
 
   return (
     // On paper the page is one long column: no chrome, and no scroll area that cuts it off.
-    <div className="flex h-dvh bg-panel md:bg-canvas print:block print:h-auto print:bg-transparent">
+    <div className="isolate flex h-dvh bg-canvas print:block print:h-auto print:bg-transparent">
+      <div aria-hidden="true" className="grain fixed inset-0 -z-10 print:hidden" />
       <a
         href={`#${MAIN_ID}`}
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-20 focus:rounded-control focus:bg-accent focus:px-3 focus:py-2 focus:text-white"
@@ -36,7 +37,11 @@ export function Layout() {
 
       <Sidebar host={host} onSearch={() => setSearching(true)} />
 
-      <div className="flex min-w-0 flex-1 flex-col md:py-2 md:pr-2 print:block print:p-0">
+      <div className="relative isolate flex min-w-0 flex-1 flex-col md:border-l md:border-line-soft print:block print:border-0">
+        {/* One violet glow at the top, behind the phone's bar and the page; it stays as the page scrolls. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 overflow-hidden print:hidden">
+          <div className="page-glow absolute -top-56 left-1/2 h-130 w-[min(1000px,140%)] -translate-x-1/2" />
+        </div>
         {/* The insets keep the bar clear of the iPhone's status bar and notch in the installed app. */}
         <header className="flex items-center justify-between pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-2 pl-[max(1rem,env(safe-area-inset-left))] md:hidden print:hidden">
           <Brand host={null} />
@@ -57,7 +62,7 @@ export function Layout() {
           id={MAIN_ID}
           tabIndex={-1}
           style={{ viewTransitionName: 'page' }}
-          className="min-h-0 flex-1 overflow-y-auto pt-2 pr-[max(1rem,env(safe-area-inset-right))] pb-28 pl-[max(1rem,env(safe-area-inset-left))] focus:outline-none md:rounded-card md:border md:border-line-soft md:bg-panel md:px-8 md:py-8 lg:px-11 lg:py-9 print:overflow-visible print:border-0 print:bg-transparent print:p-0"
+          className="min-h-0 flex-1 overflow-y-auto pt-2 pr-[max(1rem,env(safe-area-inset-right))] pb-28 pl-[max(1rem,env(safe-area-inset-left))] focus:outline-none md:px-8 md:py-9 lg:px-11 lg:py-10 print:overflow-visible print:p-0"
         >
           <Outlet />
         </main>

@@ -51,7 +51,7 @@ export function Sidebar({ host, onSearch }: { host: string | null; onSearch: () 
                         'relative flex items-center gap-2.75 rounded-control px-2.5 py-2 font-medium transition-colors',
                         isActive
                           ? 'bg-accent-soft text-accent-fg before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-[3px] before:rounded-r-mark before:bg-accent-line'
-                          : 'text-muted hover:bg-card hover:text-fg',
+                          : 'text-muted hover:bg-glass hover:text-fg',
                       )
                     }
                   >

@@ -2,9 +2,9 @@
 #pragma once
 
 /* The hub's colours, shared with web/src/index.css. */
-#define TOK_CANVAS                     0x08090a /* page background and sidebar */
-#define TOK_PANEL                      0x101114 /* the raised content panel */
-#define TOK_CARD                       0x15161a
+#define TOK_CANVAS                     0x050506 /* page background and sidebar: near-black, under a faint grain and one violet glow */
+#define TOK_PANEL                      0x050506 /* what a page's content fades into (the composer, a cook layer); the page itself since M38 */
+#define TOK_CARD                       0x09090b /* a cell: flat, a hairline edge (line-soft), no sheen */
 #define TOK_RAISED                     0x1b1c21 /* controls and chips inside cards */
 #define TOK_LINE                       0x24262c
 #define TOK_LINE_SOFT                  0x1c1e23

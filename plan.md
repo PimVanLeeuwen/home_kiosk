@@ -2311,7 +2311,8 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   `Card`/`StatTile` mapped onto them so every page moves at once; (3) the spaces: top bar,
   phone tab bar, space tabs, redirects for every old route, the palette; (4) Now and each
   space's overview attention first; (5) page by page polish of the dense pages (Docker,
-  Alerts, Repos, Settings) and the folded-in fixes; (6) the panel screens, one panel at a
+  Alerts, Repos, Settings), the folded-in fixes, and the chart labels still under 12 px (moved
+  out of the scaled SVGs into HTML, see step 1); (6) the panel screens, one panel at a
   time, each tried on a real panel before it ships.
 - To settle while building: whether Home's current cards all fit the spaces as tabs or some
   become overview cells; how much grain and glow the panels can show (likely pre-rendered by
@@ -2331,7 +2332,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   a token use its macro; the compiled screens are byte for byte the same without debug info.
   Still under 12 px: labels drawn inside scaled SVG charts (the Weather day curve's axis, the
   quiet-hours and minutes rings, the UPS ring, the Services seal, the Apple map), which need
-  to move out of the SVG.
+  to move out of the SVG; the owner folded that into step 5 (2026-11-21).
+- Built 2026-11-21 (step 2): canvas and panel `#050506`, a card `#09090b` (tokens.json); the
+  page has a faint grain (`grain`) and one violet glow at the top (`page-glow`) behind the phone's
+  bar and the page, and the raised content panel is gone (a hairline beside the sidebar). Card and
+  Surface are flat cells with a hairline edge, no sheen; page grids and gaps stay. Page titles use
+  `headlineClass` (32 px, 40 px from md, white fading to grey, `fade-text`). StatTile figures are
+  medium weight. New in `components/ui`: `CellGrid` and `Cell` (shared hairlines, each cell draws
+  its own line so a short row shows an empty cell), `Sparkline` (line over a fading wash),
+  `Headline` (eyebrow, one or two lines, lead), `AttentionRow` and `HealthyLine`; steps 4 and 5
+  put them to use.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

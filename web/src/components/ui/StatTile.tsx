@@ -16,13 +16,13 @@ interface Props {
   children?: ReactNode
 }
 
-/** One of a page's headline numbers: a small card with a label, a large figure and what goes with it. */
+/** One of a page's headline numbers: a small card with a label, a large light figure and what goes with it. */
 export function StatTile({ title, figure, sub, tone, children }: Props) {
   return (
     <Card title={title} padding="tile">
       <div
         style={tone ? { color: TONE_COLOR[tone] } : undefined}
-        className="-mt-2 text-stat leading-tight font-semibold tracking-tight md:text-page"
+        className="-mt-2 text-stat leading-tight font-medium tracking-[-0.035em] md:text-page"
       >
         {typeof figure === 'number' ? <AnimatedNumber value={figure} /> : figure}
       </div>

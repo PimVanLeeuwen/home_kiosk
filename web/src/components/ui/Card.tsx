@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import { Link } from 'react-router'
 import { cn } from '../../lib/cn'
-import { titleClass } from './titleStyles'
+import { headerId, titleClass } from './titleStyles'
 
 /**
  * The paddings a surface comes in: a card, a list of rows, a compact group, a page's
@@ -17,14 +17,14 @@ const PADDING = {
 } as const
 
 /**
- * What a surface looks like: the card, a box that holds a problem or a warning, or bare
- * (rounded and edged, its background left to the caller: a photo, a picture of its own).
+ * What a surface looks like: the card (a flat neo-minimal cell, a hairline edge), a box that
+ * holds a problem or a warning, or bare (rounded and edged, its background left to the
+ * caller: a photo, a picture of its own).
  */
-const SHEEN = 'bg-linear-to-b from-white/[0.022] to-transparent to-40%'
 const LOOK = {
-  card: `border-line-soft bg-card ${SHEEN}`,
-  down: `border-down/40 bg-card ${SHEEN}`,
-  warn: `border-warn/30 bg-warn/5 ${SHEEN}`,
+  card: 'border-line-soft bg-card',
+  down: 'border-down/40 bg-card',
+  warn: 'border-warn/30 bg-warn/5',
   bare: 'border-line-soft',
 } as const
 
@@ -36,10 +36,7 @@ interface SurfaceProps extends HTMLAttributes<HTMLElement> {
   look?: keyof typeof LOOK
 }
 
-/**
- * The hub's card surface: rounded, a soft line, and a faint sheen at the top
- * as on the desk panels' glass. Every card-like box is one of these.
- */
+/** The hub's card surface: rounded, flat, a hairline edge. Every card-like box is one of these. */
 export function Surface({ as: Tag = 'div', padding = 'card', look = 'card', className, ...rest }: SurfaceProps) {
   // `className` is for layout (grid, margins, height); padding and colours come from the props.
   return (
@@ -51,7 +48,9 @@ export function Surface({ as: Tag = 'div', padding = 'card', look = 'card', clas
   )
 }
 
-interface Props {
+interface HeaderProps {
+  /** The id the surface's aria-labelledby points at. */
+  id: string
   title: string
   /** "Open →" style link to the full section. */
   link?: { to: string; label: string }
@@ -59,6 +58,31 @@ interface Props {
   note?: ReactNode
   /** Controls or a status pill at the right of the title, e.g. a period switch. */
   actions?: ReactNode
+}
+
+/** A card's or cell's header: a small sentence-case title, and on the right a note, actions and a link, in that order. */
+export function CardHeader({ id, title, link, note, actions }: HeaderProps) {
+  return (
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h2 id={id} className={titleClass}>
+        {title}
+      </h2>
+      {(note || actions || link) && (
+        <div className="flex flex-wrap items-center gap-3">
+          {note && <span className="text-small text-faint">{note}</span>}
+          {actions}
+          {link && (
+            <Link to={link.to} className="hit text-small font-medium text-accent-fg hover:underline">
+              {link.label} →
+            </Link>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface Props extends Omit<HeaderProps, 'id'> {
   /** The surface's padding: a card's own, a headline tile's, or a chart's (no bottom padding). */
   padding?: SurfacePadding
   /** For layout only (grid placement, margins); padding and colours come from the props. */
@@ -71,25 +95,10 @@ interface Props {
  * always in this order a note, actions (a pill or controls), and a link.
  */
 export function Card({ title, link, note, actions, padding, className, children }: Props) {
-  const id = `card-${title.toLowerCase().replace(/\W+/g, '-')}`
+  const id = headerId(title)
   return (
     <Surface as="section" aria-labelledby={id} padding={padding} className={className}>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 id={id} className={titleClass}>
-          {title}
-        </h2>
-        {(note || actions || link) && (
-          <div className="flex flex-wrap items-center gap-3">
-            {note && <span className="text-small text-faint">{note}</span>}
-            {actions}
-            {link && (
-              <Link to={link.to} className="hit text-small font-medium text-accent-fg hover:underline">
-                {link.label} →
-              </Link>
-            )}
-          </div>
-        )}
-      </div>
+      <CardHeader id={id} title={title} link={link} note={note} actions={actions} />
       {children}
     </Surface>
   )
