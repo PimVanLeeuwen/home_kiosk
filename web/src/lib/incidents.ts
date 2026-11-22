@@ -1,3 +1,4 @@
+import { sendJson } from './api'
 import { PATHS } from './paths'
 import type { Tone } from '../components/ui/tones'
 import type { FoldedCardId } from './homeOrder'
@@ -58,11 +59,11 @@ const RULE_PATH: Record<string, string> = {
 /** The page an incident is about. */
 export const incidentPath = (incident: Pick<Incident, 'rule'>): string => RULE_PATH[incident.rule] ?? PATHS.alerts
 
-/** What needs a look: open warnings and errors, errors first, then the longest open. */
+/** What needs a look: open warnings and errors nobody dismissed, errors first, then the longest open. */
 export function needsLook(incidents: Incident[] | undefined): Incident[] {
   if (!Array.isArray(incidents)) return []
   return incidents
-    .filter((i) => !i.resolved_at && (i.severity === 'error' || i.severity === 'warning'))
+    .filter((i) => !i.resolved_at && !i.dismissed_at && (i.severity === 'error' || i.severity === 'warning'))
     .sort((a, b) => (a.severity === b.severity ? a.opened_at.localeCompare(b.opened_at) : a.severity === 'error' ? -1 : 1))
 }
 
@@ -94,3 +95,7 @@ const RULE_CARD: Record<string, FoldedCardId> = {
 /** The folded cards an open incident already speaks for (plan.md M38: one badge per fact). */
 export const coveredCards = (open: Incident[]): Set<FoldedCardId> =>
   new Set(open.map((i) => RULE_CARD[i.rule]).filter((id): id is FoldedCardId => id !== undefined))
+
+/** Dismisses an open incident until it resolves (off the rows, dots, briefing and /status), or brings it back. */
+export const setDismissed = (key: string, dismissed: boolean) =>
+  sendJson<{ ok: boolean }>('POST', `/api/alerts/incidents/${dismissed ? 'dismiss' : 'undismiss'}`, { key })

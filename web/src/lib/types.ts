@@ -1001,6 +1001,8 @@ export interface Incident {
   opened_at: string
   last_seen_at: string
   resolved_at: string | null
+  /** Set while dismissed (in the hub or on a desk panel), until it resolves. */
+  dismissed_at?: string | null
 }
 
 /** Worst first is "outage"; "unknown" means the status page has never answered. */

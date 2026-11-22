@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS alert_incident (
     opened_at    TEXT NOT NULL,
     last_seen_at TEXT NOT NULL,
     resolved_at  TEXT,
-    dismissed_at TEXT  -- an error's takeover dismissed on a desk panel
+    dismissed_at TEXT  -- dismissed (on a desk panel or in the hub) until it resolves
 );
 """
 
@@ -591,6 +591,22 @@ def open_incidents(store: Store) -> dict[str, dict[str, Any]]:
     with store.connect() as conn:
         rows = conn.execute("SELECT * FROM alert_incident WHERE resolved_at IS NULL")
         return {r["key"]: dict(r) for r in rows}
+
+
+def active_incidents(store: Store) -> dict[str, dict[str, Any]]:
+    """Open incidents nobody dismissed: what a person is shown (the hub's pages, the briefing,
+    /status, the panels). The rules themselves keep using open_incidents."""
+    return {k: r for k, r in open_incidents(store).items() if not r.get("dismissed_at")}
+
+
+def set_dismissed(store: Store, key: str, when: datetime | None) -> bool:
+    """Dismisses an open incident until it resolves (`when`), or brings it back (None);
+    False when no incident by that key is open. A reopened incident starts undismissed."""
+    with store.connect() as conn:
+        done = conn.execute(
+            "UPDATE alert_incident SET dismissed_at = ? WHERE key = ? AND resolved_at IS NULL",
+            (when.isoformat() if when else None, key))
+        return done.rowcount > 0
 
 
 def incidents(store: Store, limit: int = 50) -> list[dict[str, Any]]:

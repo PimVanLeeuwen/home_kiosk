@@ -433,6 +433,34 @@ def test_rules_endpoints(rule_store):
     assert client.get("/api/alerts/incidents").json() == []
 
 
+def test_dismissing_an_incident_until_it_resolves(rule_store):
+    main.app.state.store = rule_store
+    client = TestClient(main.app, headers={"origin": "http://testserver"})
+    with rule_store.connect() as conn:
+        conn.execute("INSERT INTO alert_incident (key, rule, severity, title, body, opened_at, "
+                     "last_seen_at) VALUES ('outside_services:transip', 'outside_services', "
+                     "'warning', 'TransIP: TransNOC reports a problem', '', ?, ?)",
+                     (NOW.isoformat(), NOW.isoformat()))
+    key = {"key": "outside_services:transip"}
+
+    assert client.post("/api/alerts/incidents/dismiss", json=key).json() == {"ok": True}
+    assert client.get("/api/alerts/incidents").json()[0]["dismissed_at"] is not None
+    # Off what a person is shown; the rules still see it open, so nothing is sent again.
+    assert rules.active_incidents(rule_store) == {}
+    assert list(rules.open_incidents(rule_store)) == ["outside_services:transip"]
+
+    assert client.post("/api/alerts/incidents/undismiss", json=key).json() == {"ok": True}
+    assert list(rules.active_incidents(rule_store)) == ["outside_services:transip"]
+
+    # Only an open incident, and only same-origin JSON.
+    assert client.post("/api/alerts/incidents/dismiss", json={"key": "nope"}).status_code == 404
+    cross = TestClient(main.app, headers={"origin": "https://elsewhere.example"})
+    assert cross.post("/api/alerts/incidents/dismiss", json=key).status_code == 403
+    with rule_store.connect() as conn:
+        conn.execute("UPDATE alert_incident SET resolved_at = ?", (NOW.isoformat(),))
+    assert client.post("/api/alerts/incidents/dismiss", json=key).status_code == 404
+
+
 # --- Apple devices -----------------------------------------------------------------------
 
 

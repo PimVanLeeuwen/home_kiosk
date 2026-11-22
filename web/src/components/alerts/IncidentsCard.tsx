@@ -1,8 +1,11 @@
+import { useState } from 'react'
+import { ApiError } from '../../lib/api'
 import { cn } from '../../lib/cn'
 import { formatWhen } from '../../lib/format'
-import { lasted, weekOf } from '../../lib/incidents'
+import { lasted, setDismissed, weekOf } from '../../lib/incidents'
 import type { Incident } from '../../lib/types'
 import { Card } from '../ui/Card'
+import { buttonClass } from '../ui/buttonStyles'
 import { Loading } from '../ui/states'
 import { Pill } from '../ui/Pill'
 
@@ -38,9 +41,30 @@ const ICON = (
   </svg>
 )
 
-/** What is open now, or "All quiet" with slow ripples and the last seven days. */
-export function IncidentsCard({ incidents, now }: { incidents: Incident[] | undefined; now: Date }) {
-  const open = (incidents ?? []).filter((i) => !i.resolved_at)
+interface Props {
+  incidents: Incident[] | undefined
+  now: Date
+  /** After a dismissal or an undo: read the incidents again. */
+  onChange?: () => void
+}
+
+/**
+ * What is open now, each with Dismiss until it resolves, or "All quiet" with slow ripples and the
+ * last seven days; the dismissed ones still open sit below, with Undo.
+ */
+export function IncidentsCard({ incidents, now, onChange }: Props) {
+  const [failed, setFailed] = useState<string>()
+  const open = (incidents ?? []).filter((i) => !i.resolved_at && !i.dismissed_at)
+  const dismissed = (incidents ?? []).filter((i) => !i.resolved_at && i.dismissed_at)
+  async function toggle(incident: Incident, dismiss: boolean) {
+    setFailed(undefined)
+    try {
+      await setDismissed(incident.key, dismiss)
+    } catch (err) {
+      setFailed(err instanceof ApiError ? err.message : 'That did not work; try again.')
+    }
+    onChange?.()
+  }
   const lastEnd = Math.max(0, ...(incidents ?? []).map((i) => (i.resolved_at ? new Date(i.resolved_at).getTime() : 0)))
 
   return (
@@ -92,7 +116,18 @@ export function IncidentsCard({ incidents, now }: { incidents: Incident[] | unde
                     {ICON}
                   </span>
                   <div className="min-w-0">
-                    <Pill tone={error ? 'down' : i.severity === 'warning' ? 'warn' : 'accent'}>{i.severity}</Pill>
+                    <div className="flex items-start justify-between gap-2">
+                      <Pill tone={error ? 'down' : i.severity === 'warning' ? 'warn' : 'accent'}>{i.severity}</Pill>
+                      <button
+                        type="button"
+                        aria-label={`Dismiss: ${i.title}`}
+                        title="Dismiss until it resolves"
+                        onClick={() => toggle(i, true)}
+                        className="hit -mt-0.5 text-small font-medium text-muted hover:text-fg"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
                     <p className="mt-1 text-title leading-snug font-semibold">{i.title}</p>
                     {i.body && <p className="mt-0.5 text-small text-muted">{i.body}</p>}
                     <p className="mt-0.5 text-small text-faint">
@@ -108,6 +143,26 @@ export function IncidentsCard({ incidents, now }: { incidents: Incident[] | unde
             <span className="ml-auto text-label text-faint">last 7 days</span>
           </div>
         </>
+      )}
+      {dismissed.length > 0 && (
+        <div className="mt-4 border-t border-line-soft pt-3.5">
+          <p className="text-label eyebrow text-faint">Dismissed until they resolve</p>
+          <ul aria-label="Dismissed" className="mt-1.5">
+            {dismissed.map((i) => (
+              <li key={i.key} className="flex items-center gap-3 py-1.5 text-small">
+                <span className="min-w-0 flex-1 truncate text-muted">{i.title}</span>
+                <button type="button" onClick={() => toggle(i, false)} className={buttonClass('secondary', 'sm')}>
+                  Undo
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {failed && (
+        <p role="alert" className="mt-3 text-small text-down">
+          {failed}
+        </p>
       )}
     </Card>
   )

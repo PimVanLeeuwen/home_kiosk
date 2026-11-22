@@ -1,7 +1,8 @@
-import { ChevronRight, CircleAlert, CircleCheck, TriangleAlert } from 'lucide-react'
+import { ChevronRight, CircleAlert, CircleCheck, TriangleAlert, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { cn } from '../../lib/cn'
+import { iconButtonClass } from './buttonStyles'
 
 const TONE = {
   warn: { icon: TriangleAlert, look: 'border-warn/30 from-warn/8', color: 'text-warn' },
@@ -16,10 +17,12 @@ interface Props {
   detail?: ReactNode
   /** Where to go about it. */
   action?: { to: string; label: string }
+  /** Puts it away until it resolves. */
+  onDismiss?: () => void
 }
 
 /** One thing that needs a look, at the top of an overview: its state, what and where, and the way to it. */
-export function AttentionRow({ tone, title, detail, action }: Props) {
+export function AttentionRow({ tone, title, detail, action, onDismiss }: Props) {
   const { icon: Icon, look, color } = TONE[tone]
   return (
     <div
@@ -32,14 +35,23 @@ export function AttentionRow({ tone, title, detail, action }: Props) {
         <p className="font-medium">{title}</p>
         {detail && <p className="text-small text-muted">{detail}</p>}
       </div>
-      {action && (
-        <Link
-          to={action.to}
-          className="pressable ml-8.5 inline-flex min-h-10 items-center gap-1 rounded-control border border-line bg-glass px-3.5 text-small font-medium hover:border-faint sm:ml-auto pointer-coarse:min-h-11"
-        >
-          {action.label}
-          <ChevronRight aria-hidden="true" className="size-4" />
-        </Link>
+      {(action || onDismiss) && (
+        <div className="ml-8.5 flex items-center gap-1.5 sm:ml-auto">
+          {action && (
+            <Link
+              to={action.to}
+              className="pressable inline-flex min-h-10 items-center gap-1 rounded-control border border-line bg-glass px-3.5 text-small font-medium hover:border-faint pointer-coarse:min-h-11"
+            >
+              {action.label}
+              <ChevronRight aria-hidden="true" className="size-4" />
+            </Link>
+          )}
+          {onDismiss && (
+            <button type="button" aria-label={`Dismiss: ${title}`} title="Dismiss until it resolves" onClick={onDismiss} className={iconButtonClass}>
+              <X aria-hidden="true" className="size-4" />
+            </button>
+          )}
+        </div>
       )}
     </div>
   )

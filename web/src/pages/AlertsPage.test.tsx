@@ -108,6 +108,35 @@ describe('AlertsPage', () => {
     expect(await within(form).findByRole('alert')).toHaveTextContent('Not sent: No chat id set for nas')
   })
 
+  it('dismisses an open alert until it resolves and lists it below with Undo', async () => {
+    let dismissed: string | null = null
+    setup({
+      '/api/alerts/incidents': () => [{ ...INCIDENTS[0], dismissed_at: dismissed }, INCIDENTS[1]],
+      'POST /api/alerts/incidents/dismiss': () => {
+        dismissed = '2026-10-01T10:30:00Z'
+        return { ok: true }
+      },
+      'POST /api/alerts/incidents/undismiss': () => {
+        dismissed = null
+        return { ok: true }
+      },
+    })
+    renderRoute('/house/alerts')
+
+    const open = await screen.findByRole('region', { name: 'Open alerts' })
+    fireEvent.click(await within(open).findByRole('button', { name: 'Dismiss: volume2 is 92% full' }))
+
+    // Out of the count and the open list, still there below.
+    const below = await within(open).findByRole('list', { name: 'Dismissed' })
+    expect(below).toHaveTextContent('volume2 is 92% full')
+    expect(await within(open).findByText('All quiet')).toBeInTheDocument()
+    expect(screen.queryByText('1 open')).not.toBeInTheDocument()
+
+    fireEvent.click(within(below).getByRole('button', { name: 'Undo' }))
+    expect(await screen.findByText('1 open')).toBeInTheDocument()
+    expect(within(open).queryByRole('list', { name: 'Dismissed' })).not.toBeInTheDocument()
+  })
+
   it('lists open alerts only', async () => {
     setup()
     renderRoute('/house/alerts')

@@ -58,7 +58,7 @@ def status_text(store: Store, cfg: dict[str, Any]) -> str:
     if pools:
         lines.append("Fullest: " + ", ".join(
             f"{html.escape(p['name'])} {_nl(p['used_pct'], 0)}%" for p in pools))
-    open_now = rules.open_incidents(store)
+    open_now = rules.active_incidents(store)
     if open_now:
         lines.append(f"\n<b>{len(open_now)} open</b>")
         lines += [f"• {html.escape(i['title'])}" for i in open_now.values()]

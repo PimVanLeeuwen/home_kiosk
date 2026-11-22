@@ -9,6 +9,7 @@ import { Loading, Unavailable } from '../components/ui/states'
 import { PageHeader } from '../components/PageHeader'
 import { Pill } from '../components/ui/Pill'
 import { openTone } from '../lib/incidents'
+import { useOpenIncidents } from '../lib/openIncidents'
 import type { AlertSettings, Incident } from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { Tag } from '../components/ui/Tag'
@@ -23,7 +24,8 @@ export function AlertsPage() {
   const loaded = useApi<AlertSettings>('/api/alerts/settings')
   const incidents = useApi<Incident[]>('/api/alerts/incidents', 60_000)
   const now = new Date()
-  const openOnes = (incidents.data ?? []).filter((i) => !i.resolved_at)
+  const openOnes = (incidents.data ?? []).filter((i) => !i.resolved_at && !i.dismissed_at)
+  const { reload: reloadLayout } = useOpenIncidents()
   const open = openOnes.length
   const [saved, setSaved] = useState<AlertSettings>()
   const [sent, setSent] = useState(0)
@@ -56,7 +58,14 @@ export function AlertsPage() {
           {/* On a phone: open alerts, then the messages, then sending one and the settings. */}
           <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
             <div className="xl:col-start-2 xl:row-start-1">
-              <IncidentsCard incidents={incidents.data} now={now} />
+              <IncidentsCard
+                incidents={incidents.data}
+                now={now}
+                onChange={() => {
+                  incidents.reload()
+                  reloadLayout()
+                }}
+              />
             </div>
             <div className="min-w-0 xl:col-start-1 xl:row-span-2 xl:row-start-1">
               <MessageLog settings={settings} sent={sent} />

@@ -2381,6 +2381,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   and Services drop the "N of M running" subtitle and the "All running" pill (the Running tile
   has the count, the pill shows only what needs a look). The Alerts history leads, and sending a
   message is its own card beside it (`SendCard`). Section 1's Style and Navigation describe M38.
+- Built 2026-11-22 (asked between 5a and 5b): dismissing an alert in the hub, decided with the
+  owner: until it resolves (a reopened incident shows again), everywhere a person is shown it.
+  The collector's `rules.active_incidents` (open, not dismissed) feeds the briefing's House lines,
+  the bot's /status and the panels' NAS and Backups counts; the rules keep `open_incidents`, so
+  nothing is resent or resolved by a dismissal; the panels' Alerts screen still lists every open
+  one, as the hub's Alerts page does. `POST /api/alerts/incidents/dismiss` and `/undismiss`
+  (same-origin JSON) set `dismissed_at`, the column the panels' takeover dismissal already used.
+  In the hub: a Dismiss on each attention row (Undo under the rows) and on the Alerts page's open
+  alerts, which lists the dismissed ones below with Undo; `needsLook` leaves them out of the rows,
+  dots and counts.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

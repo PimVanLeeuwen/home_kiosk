@@ -115,9 +115,5 @@ def takeover(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any] | No
 
 
 def dismiss(store: Store, key: str, now: datetime) -> bool:
-    """Dismisses an open incident's takeover on every panel; False when none is open."""
-    with store.connect() as conn:
-        done = conn.execute(
-            "UPDATE alert_incident SET dismissed_at = ? WHERE key = ? AND resolved_at IS NULL",
-            (now.isoformat(), key))
-        return done.rowcount > 0
+    """Dismisses an open incident everywhere (the takeover too); False when none is open."""
+    return rules.set_dismissed(store, key, now)

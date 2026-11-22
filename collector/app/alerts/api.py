@@ -5,6 +5,7 @@ from __future__ import annotations
 import hmac
 import logging
 import re
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
@@ -289,6 +290,27 @@ def put_rules(body: dict[str, RuleSettings], request: Request) -> dict[str, Any]
 def list_incidents(request: Request) -> Any:
     """Open incidents first, then recently resolved ones."""
     return rules.incidents(request.app.state.store)
+
+
+class IncidentKey(BaseModel):
+    key: Annotated[str, Field(min_length=1, max_length=200)]
+
+
+@router.post("/alerts/incidents/dismiss", dependencies=write)
+def dismiss_incident(body: IncidentKey, request: Request) -> Any:
+    """Dismisses an open incident until it resolves: off the hub's pages, the briefing,
+    /status and the desk panels. It stays on the Alerts page, with Undo."""
+    if not rules.set_dismissed(request.app.state.store, body.key, datetime.now(UTC)):
+        raise HTTPException(404, "That alert is no longer open.")
+    return {"ok": True}
+
+
+@router.post("/alerts/incidents/undismiss", dependencies=write)
+def undismiss_incident(body: IncidentKey, request: Request) -> Any:
+    """Brings a dismissed incident back while it is still open."""
+    if not rules.set_dismissed(request.app.state.store, body.key, None):
+        raise HTTPException(404, "That alert is no longer open.")
+    return {"ok": True}
 
 
 # --- message templates (Settings → Messages) -----------------------------------------

@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { renderRoute } from '../test/renderRoute'
 import { PORTFOLIO, SERVICES, nasFixture } from '../test/fixtures'
 import { ARTICLES, NEWS_GROUPS } from '../test/newsFixtures'
@@ -71,6 +71,32 @@ describe('HomePage', () => {
     setup({ '/api/outside-services': outsideServices({ github: ACTIONS_DELAYED }) })
 
     expect(await screen.findByRole('region', { name: 'Outside services' })).toBeInTheDocument()
+  })
+
+  it('dismisses a row until it resolves, with Undo', async () => {
+    let dismissed: string | null = null
+    const sent: unknown[] = []
+    setup({
+      '/api/alerts/incidents': () => [{ ...incident('outside_services', 'warning', 'TransIP: TransNOC reports a problem'), dismissed_at: dismissed }],
+      'POST /api/alerts/incidents/dismiss': (body: unknown) => {
+        sent.push(body)
+        dismissed = '2026-11-22T09:00:00Z'
+        return { ok: true }
+      },
+      'POST /api/alerts/incidents/undismiss': () => {
+        dismissed = null
+        return { ok: true }
+      },
+    })
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Dismiss: TransIP: TransNOC reports a problem' }))
+    expect(await screen.findByText(/The house is quiet\./)).toBeInTheDocument()
+    expect(sent).toEqual([{ key: 'outside_services:x' }])
+    expect(screen.queryByRole('list', { name: 'Needs a look' })).not.toBeInTheDocument()
+    expect(screen.getByText(/^Dismissed “TransIP: TransNOC reports a problem” until it resolves\./)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(await screen.findByRole('list', { name: 'Needs a look' })).toHaveTextContent('TransIP')
   })
 
   it('leaves the link out of a row about Today itself', async () => {

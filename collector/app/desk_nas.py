@@ -47,7 +47,7 @@ def spark(values: list[float | None]) -> list[int]:
 
 
 def _open_problems(store: Store, names: tuple[str, ...]) -> int:
-    return sum(1 for r in rules.open_incidents(store).values() if r["rule"] in names
+    return sum(1 for r in rules.active_incidents(store).values() if r["rule"] in names
                and r["severity"] in ("warning", "error"))
 
 

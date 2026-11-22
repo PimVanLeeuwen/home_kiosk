@@ -32,7 +32,7 @@ export function Layout() {
 
   return (
     // On paper the page is one long column: no chrome, and no scroll area that cuts it off.
-    <OpenIncidents.Provider value={{ open, loaded }}>
+    <OpenIncidents.Provider value={{ open, loaded, reload: incidents.reload }}>
       <div className="isolate flex h-dvh flex-col bg-canvas print:block print:h-auto print:bg-transparent">
         <div aria-hidden="true" className="grain fixed inset-0 -z-10 print:hidden" />
         {/* One violet glow at the top, behind the bar and the page; it stays as the page scrolls. */}

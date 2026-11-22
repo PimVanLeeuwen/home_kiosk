@@ -164,6 +164,17 @@ def test_open_alerts_lead_the_house_but_train_alerts_stay_out(house):
     assert not any("Tomorrow" in f for f in briefing.facts(CFG, house, NOW))
 
 
+def test_a_dismissed_alert_stays_out_of_the_briefing(house):
+    open_incident(house, "outside:transip", "outside", "warning", "TransIP: incident")
+    open_incident(house, "smart:sdb", "smart", "error", "Disk sdb is failing")
+    with house.connect() as conn:
+        conn.execute("UPDATE alert_incident SET dismissed_at = ? WHERE key = 'outside:transip'",
+                     (NOW.isoformat(),))
+
+    alerts = [line for line in briefing.house(CFG, house, NOW) if line[0] in ("WARNING", "ERROR")]
+    assert alerts == [("ERROR", "Disk sdb is failing")]
+
+
 def test_works_on_the_route_in_ns_words(house):
     train = house.get_cache("train")
     house.put_cache("train", train | {"disruptions": [{

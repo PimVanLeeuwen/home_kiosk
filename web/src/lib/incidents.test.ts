@@ -39,6 +39,7 @@ describe('what needs a look', () => {
       at('smart', 'error', '2026-11-01T00:00:00Z', '2026-11-02T00:00:00Z'),
     ])
     expect(open.map((i) => i.rule)).toEqual(['backup_missing', 'outside_services', 'train'])
+    expect(needsLook([{ ...at('smart', 'error'), dismissed_at: '2026-11-22T09:00:00Z' }])).toEqual([])
     expect(needsLook(undefined)).toEqual([])
     expect(needsLook({ host: 'x' } as never)).toEqual([])
   })

@@ -59,8 +59,9 @@ SCHEMA = {
 
 def open_alerts(store: Store) -> list[dict[str, Any]]:
     """Open alerts as the briefing's House lists them: errors first, then the
-    oldest; train alerts stay out (the briefing has this morning's train)."""
-    return sorted((i for i in rules.open_incidents(store).values() if i["rule"] != "train"),
+    oldest; train alerts stay out (the briefing has this morning's train), and so do
+    dismissed ones."""
+    return sorted((i for i in rules.active_incidents(store).values() if i["rule"] != "train"),
                   key=lambda i: (i["severity"] != "error", i["opened_at"]))
 
 

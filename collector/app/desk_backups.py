@@ -85,7 +85,7 @@ def backups_screen(store: Store, zone: ZoneInfo, now: datetime) -> dict[str, Any
     last = max(runs, key=lambda r: r["started"])
     started = datetime.fromisoformat(last["started"]).astimezone(zone)
     copied = sum(v.get("bytes") or 0 for v in last.get("volumes") or [])
-    problems = sum(1 for r in rules.open_incidents(store).values()
+    problems = sum(1 for r in rules.active_incidents(store).values()
                    if r["rule"] in RULES and r["severity"] in ("warning", "error"))
     restore, restore_tone = _restore(store, zone, now)
     box = data.get("storage_box") or {}
