@@ -27,7 +27,10 @@ describe('WeatherPage', () => {
     const week = screen.getByRole('region', { name: 'The week' })
     expect(within(week).getAllByRole('listitem')).toHaveLength(7)
     expect(within(week).getByRole('listitem', { name: /^Today: Rain, 5° to 12°, 70% chance of rain$/ })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Rain radar' })).toHaveTextContent('No rain expected in the next two hours')
+    // While dry the radar is one quiet line, only as tall as it needs.
+    const quiet = screen.getByRole('region', { name: 'Rain radar' })
+    expect(quiet).toHaveTextContent(/^Rain radarDry for the next 2 hours: the radar shows here when rain is on its way\.$/)
+    expect(quiet).toHaveClass('self-start')
   })
 
   it('shows the radar while rain is coming, and words when its picture is missing', async () => {
@@ -46,5 +49,28 @@ describe('WeatherPage', () => {
     renderRoute('/now/weather')
 
     expect(await within(screen.getByRole('region', { name: 'The week' })).findByText(/not available/i)).toBeInTheDocument()
+  })
+
+  it('shows Now as a large temperature with the day beside it and three small figures', async () => {
+    const at = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString()
+    stubApi({
+      '/api/weather': {
+        as_of: at(0), stale: false, station: 'Meetstation Eindhoven', measured_at: at(-10),
+        description: 'Zwaar bewolkt', temperature: -1.2, feel_temperature: -5.4, wind_bft: 2, wind_direction: 'NO',
+        humidity: 96, rain_last_hour: 0, sunrise: at(-120), sunset: at(300),
+        rain: Array.from({ length: 24 }, (_, i) => ({ at: at(i * 5), mm_per_hour: 0 })),
+      },
+    })
+    renderRoute('/now/weather')
+
+    const now = await screen.findByRole('region', { name: 'Now' })
+    expect(await within(now).findByText('-1°')).toHaveClass('text-hero')
+    expect(within(now).getByText('Dry for the next 2 hours')).toBeInTheDocument()
+    expect(within(now).getByText('Eindhoven')).toBeInTheDocument()
+    const figures = [...now.querySelectorAll('dt')].map((dt) => `${dt.textContent}: ${dt.nextElementSibling!.textContent}`)
+    expect(figures).toEqual(['Feels like: -5 °C', 'Wind: 2 Bft NO', 'Humidity: 96%'])
+    expect(within(now).getByRole('img', { name: /^Sun up from/ })).toBeInTheDocument()
+    // No rain ring here: that stays on Today's Weather card.
+    expect(within(now).queryByRole('img', { name: 'Dry for the next 2 hours' })).toBeNull()
   })
 })

@@ -11,15 +11,15 @@ import { PATHS } from '../../lib/paths'
 const whole = (n: number) => Math.round(n)
 
 /**
- * Outside right now: the temperature inside a ring of the next two hours of rain, and the
- * sun's day. On Home it links to the Weather page; on that page it is its "Now".
+ * Outside right now, on Today: the temperature inside a ring of the next two hours of rain, and
+ * the sun's day, with the way to the Weather page (which has its own Now card).
  */
-export function WeatherCard({ onPage = false }: { onPage?: boolean }) {
+export function WeatherCard() {
   const { data: w, error } = useApi<Weather>('/api/weather', 300_000)
   const now = new Date()
 
   return (
-    <Card title={onPage ? 'Now' : 'Weather'} link={onPage ? undefined : { to: PATHS.weather, label: 'Week and radar' }}>
+    <Card title="Weather" link={{ to: PATHS.weather, label: 'Week and radar' }}>
       {!w && (error ? <Unavailable what="The weather" /> : <Loading />)}
       {w && (
         <>

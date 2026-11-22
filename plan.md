@@ -2391,6 +2391,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   In the hub: a Dismiss on each attention row (Undo under the rows) and on the Alerts page's open
   alerts, which lists the dismissed ones below with Undo; `needsLook` leaves them out of the rows,
   dots and counts.
+- Built 2026-11-22 (5b): Weather's Now is its own card (`components/weather/NowCard`): the
+  temperature large and light, Buienradar's words and the next two hours beside it, feels like,
+  wind and humidity as three small figures, and the sun's arc; the dashed ring is gone from the
+  page (Today's Weather card keeps its rain ring and lost its `onPage` mode). While dry the Rain
+  radar card is one line, as tall as it needs; the full card returns when rain is coming.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

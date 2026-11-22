@@ -1,13 +1,12 @@
 import { useState } from 'react'
-import { WeatherCard } from '../components/home/WeatherCard'
 import { PageHeader } from '../components/PageHeader'
 import { Card } from '../components/ui/Card'
 import { Pill } from '../components/ui/Pill'
 import { Loading, StaleNote, Unavailable } from '../components/ui/states'
 import { DayCurve } from '../components/weather/DayCurve'
+import { NowCard } from '../components/weather/NowCard'
 import { WeekRanges } from '../components/weather/WeekRanges'
 import { formatTime } from '../lib/format'
-import type { Weather } from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { stampTime, type Forecast, type Radar } from '../lib/weatherTypes'
 
@@ -17,7 +16,6 @@ const localDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).pa
 export function WeatherPage() {
   const forecast = useApi<Forecast>('/api/forecast', 600_000)
   const radar = useApi<Radar>('/api/radar', 300_000)
-  const now = useApi<Weather>('/api/weather', 300_000)
   const today = localDate(new Date())
   const day = forecast.data?.days.find((d) => d.date === today) ?? forecast.data?.days[0]
   const [failedFrame, setFailedFrame] = useState<string | null>(null)
@@ -32,7 +30,7 @@ export function WeatherPage() {
         status={radar.data && <Pill tone={radar.data.wet ? 'accent' : 'muted'}>{radar.data.wet ? 'Rain on the way' : 'Dry for now'}</Pill>}
       />
       <div className="grid gap-3.5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] lg:gap-5">
-        <WeatherCard onPage />
+        <NowCard />
         <Card title={day && day.date !== today ? 'The first day of the forecast' : 'Today'} actions={
             <a href="https://open-meteo.com" target="_blank" rel="noreferrer" className="hit text-small text-muted hover:underline">
               Open-Meteo
@@ -47,7 +45,12 @@ export function WeatherPage() {
           {!forecast.data && (forecast.error ? <Unavailable what="The forecast" /> : <Loading />)}
           {forecast.data && <WeekRanges days={forecast.data.days} today={today} />}
         </Card>
-        <Card title="Rain radar" note={wet && <>Buienradar · {formatTime(stampTime(radar.data!.stamp!).toISOString())}</>}>
+        {/* While dry the radar is one quiet line, as tall as it needs: the hub reads it only while rain is coming. */}
+        <Card
+          title="Rain radar"
+          note={wet && <>Buienradar · {formatTime(stampTime(radar.data!.stamp!).toISOString())}</>}
+          className={wet ? undefined : 'self-start'}
+        >
           {wet ? (
             <img
               src={`/api/radar/map?at=${radar.data!.stamp}`}
@@ -59,10 +62,9 @@ export function WeatherPage() {
             <p className="text-small text-muted">
               {(radar.error && !radar.data) || radar.data?.wet
                 ? 'The radar is not available right now.'
-                : 'No rain expected in the next two hours: the radar shows here when rain is on its way.'}
+                : 'Dry for the next 2 hours: the radar shows here when rain is on its way.'}
             </p>
           )}
-          {now.data && !wet && <p className="mt-2 text-small text-faint">The hub reads Buienradar's radar only while rain is coming, every 5 minutes.</p>}
         </Card>
       </div>
     </>
