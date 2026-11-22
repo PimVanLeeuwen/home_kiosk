@@ -6,7 +6,8 @@ import { formatAgo } from '../../lib/format'
 import type { Feed, FeedGroup } from '../../lib/newsTypes'
 import { useApi } from '../../lib/useApi'
 import { FeedForm, type FeedInput } from './FeedForm'
-import { buttonClass, iconButtonClass, inputClass, primaryButtonClass } from './fields'
+import { buttonClass, inputClass, primaryButtonClass } from './fields'
+import { RowActions } from '../ui/RowActions'
 import { Loading, Unavailable } from '../ui/states'
 import { Surface } from '../ui/Card'
 
@@ -122,12 +123,13 @@ export function FeedEditor() {
             ) : (
               <>
                 <h3 className="flex-1 text-small font-semibold text-muted">{group.title}</h3>
-                <button type="button" aria-label={`Rename group ${group.title}`} onClick={() => (setRenameTo(group.title), setEditing({ group: group.id }))} className={iconButtonClass}>
-                  <Pencil aria-hidden="true" className="size-4" />
-                </button>
-                <button type="button" aria-label={`Delete group ${group.title}`} onClick={() => setDeleting({ group })} className={iconButtonClass}>
-                  <Trash2 aria-hidden="true" className="size-4" />
-                </button>
+                <RowActions
+                  name={`group ${group.title}`}
+                  actions={[
+                    { label: `Rename group ${group.title}`, text: 'Rename', icon: Pencil, onClick: () => (setRenameTo(group.title), setEditing({ group: group.id })) },
+                    { label: `Delete group ${group.title}`, text: 'Delete', icon: Trash2, danger: true, onClick: () => setDeleting({ group }) },
+                  ]}
+                />
               </>
             )}
           </div>
@@ -158,14 +160,13 @@ export function FeedEditor() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center">
-                      <button type="button" aria-label={`Edit ${feedLabel(feed)}`} onClick={() => setEditing({ feed: feed.id })} className={iconButtonClass}>
-                        <Pencil aria-hidden="true" className="size-4" />
-                      </button>
-                      <button type="button" aria-label={`Delete ${feedLabel(feed)}`} onClick={() => setDeleting({ feed })} className={iconButtonClass}>
-                        <Trash2 aria-hidden="true" className="size-4" />
-                      </button>
-                    </div>
+                    <RowActions
+                      name={feedLabel(feed)}
+                      actions={[
+                        { label: `Edit ${feedLabel(feed)}`, text: 'Edit', icon: Pencil, onClick: () => setEditing({ feed: feed.id }) },
+                        { label: `Delete ${feedLabel(feed)}`, text: 'Delete', icon: Trash2, danger: true, onClick: () => setDeleting({ feed }) },
+                      ]}
+                    />
                   )}
                 </li>
               ),

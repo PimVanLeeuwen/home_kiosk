@@ -2409,6 +2409,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   builds (no "All passing", the CI tile says "All green"), and the Code card's pill only what is
   running. The Settings section heading is on the type scale (`text-heading`, was Tailwind's
   `text-lg`).
+- Built 2026-11-22 (5e): on a phone (under 640px) a Settings row with two or more actions shows one
+  "Actions for …" button that opens them as a menu (`components/ui/RowActions`: Move up, Move down,
+  Edit, Delete as words with their icons, 44px rows, the arrow keys, Escape and a tap outside
+  close it), so a row stays one line. Used for the Services editor's services and groups and the
+  News feeds' feeds and groups; a wide screen keeps the icon buttons. The menu is fixed to the
+  screen (the card clips), opens above its button near the bottom, and closes on scroll.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

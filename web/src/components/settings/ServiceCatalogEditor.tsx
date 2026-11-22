@@ -7,8 +7,9 @@ import type { CatalogService, ContainerList, ServiceInput, SettingsCatalog } fro
 import { useApi } from '../../lib/useApi'
 import { ServiceIcon } from '../ServiceIcon'
 import { ServiceForm } from './ServiceForm'
-import { buttonClass, iconButtonClass, inputClass, primaryButtonClass, dangerButtonClass } from './fields'
+import { buttonClass, inputClass, primaryButtonClass, dangerButtonClass } from './fields'
 import { Surface } from '../ui/Card'
+import { RowActions } from '../ui/RowActions'
 
 const ENDPOINT = '/api/settings/services'
 
@@ -119,15 +120,20 @@ export function ServiceCatalogEditor() {
             ) : (
               <>
                 <h3 className="flex-1 text-small font-semibold text-muted">{group.name}</h3>
-                <button type="button" aria-label={`Rename group ${group.name}`} onClick={() => setRenaming(group.name)} className={iconButtonClass}>
-                  <Pencil aria-hidden="true" className="size-4" />
-                </button>
-                <button type="button" aria-label={`Move group ${group.name} up`} disabled={gi === 0} onClick={() => reorder(moveGroup(services, group.name, -1), `${group.name} moved up`)} className={iconButtonClass}>
-                  <ChevronUp aria-hidden="true" className="size-4" />
-                </button>
-                <button type="button" aria-label={`Move group ${group.name} down`} disabled={gi === groups.length - 1} onClick={() => reorder(moveGroup(services, group.name, 1), `${group.name} moved down`)} className={iconButtonClass}>
-                  <ChevronDown aria-hidden="true" className="size-4" />
-                </button>
+                <RowActions
+                  name={`group ${group.name}`}
+                  actions={[
+                    { label: `Rename group ${group.name}`, text: 'Rename', icon: Pencil, onClick: () => setRenaming(group.name) },
+                    {
+                      label: `Move group ${group.name} up`, text: 'Move up', icon: ChevronUp, disabled: gi === 0,
+                      onClick: () => reorder(moveGroup(services, group.name, -1), `${group.name} moved up`),
+                    },
+                    {
+                      label: `Move group ${group.name} down`, text: 'Move down', icon: ChevronDown, disabled: gi === groups.length - 1,
+                      onClick: () => reorder(moveGroup(services, group.name, 1), `${group.name} moved down`),
+                    },
+                  ]}
+                />
               </>
             )}
           </div>
@@ -173,20 +179,18 @@ export function ServiceCatalogEditor() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center">
-                      <button type="button" aria-label={`Move ${service.name} up`} disabled={si === 0} onClick={() => move(-1, 'up')} className={iconButtonClass}>
-                        <ChevronUp aria-hidden="true" className="size-4" />
-                      </button>
-                      <button type="button" aria-label={`Move ${service.name} down`} disabled={si === group.items.length - 1} onClick={() => move(1, 'down')} className={iconButtonClass}>
-                        <ChevronDown aria-hidden="true" className="size-4" />
-                      </button>
-                      <button type="button" aria-label={`Edit ${service.name}`} onClick={() => setEditing(service.id)} className={iconButtonClass}>
-                        <Pencil aria-hidden="true" className="size-4" />
-                      </button>
-                      <button type="button" aria-label={`Delete ${service.name}`} onClick={() => setDeleting(service.id)} className={`${iconButtonClass} hover:text-down`}>
-                        <Trash2 aria-hidden="true" className="size-4" />
-                      </button>
-                    </div>
+                    <RowActions
+                      name={service.name}
+                      actions={[
+                        { label: `Move ${service.name} up`, text: 'Move up', icon: ChevronUp, disabled: si === 0, onClick: () => move(-1, 'up') },
+                        {
+                          label: `Move ${service.name} down`, text: 'Move down', icon: ChevronDown, disabled: si === group.items.length - 1,
+                          onClick: () => move(1, 'down'),
+                        },
+                        { label: `Edit ${service.name}`, text: 'Edit', icon: Pencil, onClick: () => setEditing(service.id) },
+                        { label: `Delete ${service.name}`, text: 'Delete', icon: Trash2, danger: true, onClick: () => setDeleting(service.id) },
+                      ]}
+                    />
                   )}
                 </li>
               )

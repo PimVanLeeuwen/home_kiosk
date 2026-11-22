@@ -37,7 +37,7 @@ test('adds a service from Settings', async ({ page }) => {
   expect(posted).toMatchObject({ name: 'Uptime Kuma', group: 'Monitoring', port: 3001 })
 })
 
-test('reorders with the move buttons', async ({ page }) => {
+test('reorders with the move buttons, from the row menu on a phone', async ({ page, isMobile }) => {
   let order: unknown
   await page.route('**/api/containers', (route) => route.fulfill({ status: 503, json: {} }))
   await page.route('**/api/settings/services', (route) => route.fulfill({ json: CATALOG }))
@@ -47,7 +47,14 @@ test('reorders with the move buttons', async ({ page }) => {
   })
 
   await page.goto('/settings')
-  await page.getByRole('button', { name: 'Move group Arr up' }).click()
+  if (isMobile) {
+    // On a phone a row's actions are one menu (M38, 5e).
+    await expect(page.getByRole('button', { name: 'Move group Arr up' })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Actions for group Arr' }).click()
+    await page.getByRole('menuitem', { name: 'Move group Arr up' }).click()
+  } else {
+    await page.getByRole('button', { name: 'Move group Arr up' }).click()
+  }
 
   await expect(page.getByRole('heading', { level: 3 })).toHaveText(['Arr', 'Media'])
   expect(order).toEqual({ ids: ['sonarr', 'jellyfin'] })
