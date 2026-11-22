@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { DeliveryCard } from '../components/alerts/DeliveryCard'
 import { IncidentsCard } from '../components/alerts/IncidentsCard'
 import { MessageLog } from '../components/alerts/MessageLog'
+import { SendCard } from '../components/alerts/SendCard'
 import { RulesCard } from '../components/alerts/RulesCard'
 import { Card } from '../components/ui/Card'
 import { Loading, Unavailable } from '../components/ui/states'
@@ -25,6 +26,7 @@ export function AlertsPage() {
   const openOnes = (incidents.data ?? []).filter((i) => !i.resolved_at)
   const open = openOnes.length
   const [saved, setSaved] = useState<AlertSettings>()
+  const [sent, setSent] = useState(0)
   const settings = saved ?? loaded.data
 
   const missing = settings && [
@@ -51,15 +53,16 @@ export function AlertsPage() {
               the NAS.
             </p>
           )}
-          {/* On a phone: open alerts, then the messages, then the settings. */}
+          {/* On a phone: open alerts, then the messages, then sending one and the settings. */}
           <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
             <div className="xl:col-start-2 xl:row-start-1">
               <IncidentsCard incidents={incidents.data} now={now} />
             </div>
             <div className="min-w-0 xl:col-start-1 xl:row-span-2 xl:row-start-1">
-              <MessageLog settings={settings} />
+              <MessageLog settings={settings} sent={sent} />
             </div>
             <div className="space-y-5 xl:col-start-2 xl:row-start-2">
+              <SendCard settings={settings} onSent={() => setSent((n) => n + 1)} />
               <RulesCard />
               {/* Keyed on the saved settings, so the form resets to what was stored. */}
               <DeliveryCard key={JSON.stringify(settings)} settings={settings} onSaved={setSaved} />

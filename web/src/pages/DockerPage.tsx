@@ -42,7 +42,6 @@ export function DockerPage() {
   const [open, setOpen] = useState<string | null>(null)
 
   const all = overview.data?.containers ?? []
-  const running = all.filter((c) => c.state === 'running').length
   const q = query.trim().toLowerCase()
   const rows = sortRows(all.filter((c) => !q || `${c.name} ${c.image} ${c.project ?? ''}`.toLowerCase().includes(q)), order)
   const updatesFor = (name: string) => (updates.data ?? []).filter((u) => u.name === name)
@@ -83,11 +82,9 @@ export function DockerPage() {
     <>
       <PageHeader
         title="Docker"
-        subtitle={overview.data ? `${running} of ${all.length} running` : 'Containers, their load and update history'}
-        status={
-          overview.data &&
-          (needLook ? <Pill tone="warn">{needLook} need{needLook === 1 ? 's' : ''} a look</Pill> : <Pill tone="up">All running</Pill>)
-        }
+        subtitle="Containers, their load and update history"
+        // One badge per fact (M38): the Running tile has the count; the pill only says what needs a look.
+        status={overview.data && needLook > 0 && <Pill tone="warn">{needLook} need{needLook === 1 ? 's' : ''} a look</Pill>}
       />
 
       {!overview.data && (overview.error ? <Unavailable what="Container data" /> : <Loading />)}

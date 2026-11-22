@@ -77,7 +77,7 @@ describe('ServicesPage', () => {
     renderRoute('/house/services')
 
     const media = await screen.findByRole('region', { name: 'Media' })
-    expect(screen.getByText('1 of 3 running')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Running' })).toHaveTextContent('1 / 3')
     expect(screen.getByRole('region', { name: 'Apps' })).toBeInTheDocument()
 
     const jellyfin = within(media).getByRole('link', { name: /Jellyfin/ })
@@ -172,7 +172,7 @@ describe('ServicesPage', () => {
     const link = await screen.findByRole('link', { name: /TRaSH Guides/ })
     expect(link).toHaveAttribute('href', 'https://trash-guides.info')
     expect(link).not.toHaveAccessibleName(/Status unknown/)
-    expect(screen.getByText('1 of 3 running')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Running' })).toHaveTextContent('1 / 3')
   })
 
   it('says when the container status is stale', async () => {

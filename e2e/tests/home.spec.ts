@@ -42,8 +42,9 @@ test('Today leads with what needs a look, folds the healthy rest into a line, th
   const row = page.getByRole('list', { name: 'Needs a look' }).getByRole('listitem')
   await expect(row).toContainText('volume2 is 98% full')
   await expect(page.getByRole('region', { name: 'Portfolio' })).toContainText('not available right now')
-  // The full pool unfolds the NAS card into a cell; Services is fine, so it is part of the healthy line.
-  await expect(page.getByRole('region', { name: 'NAS' }).getByRole('meter', { name: 'volume2' })).toBeVisible()
+  // The row already says the full pool, so the NAS card stays folded (one badge per fact);
+  // Services is fine, so it is part of the healthy line.
+  await expect(page.getByRole('region', { name: 'NAS' })).toHaveCount(0)
   await expect(page.getByRole('region', { name: 'Services' })).toHaveCount(0)
   await expect(page.getByText(/1 of 1 services up/)).toBeVisible()
   // The space and the row lead to the NAS page.

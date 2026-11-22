@@ -48,15 +48,9 @@ export function ServicesPage() {
     <>
       <PageHeader
         title="Services"
-        subtitle={
-          services.data
-            ? `${running} of ${onNas.length} running`
-            : 'Every app on the NAS, with status and links'
-        }
-        status={
-          services.data &&
-          (needLook ? <Pill tone="warn">{needLook} need{needLook === 1 ? 's' : ''} a look</Pill> : <Pill tone="up">All running</Pill>)
-        }
+        subtitle="Every app on the NAS, with status and links"
+        // One badge per fact (M38): the Running tile has the count; the pill only says what needs a look.
+        status={services.data && needLook > 0 && <Pill tone="warn">{needLook} need{needLook === 1 ? 's' : ''} a look</Pill>}
       />
 
       {services.loading && !services.data && (

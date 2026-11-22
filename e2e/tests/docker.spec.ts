@@ -25,7 +25,7 @@ test('Docker shows containers by stack and opens one for its history', async ({ 
   )
   await page.goto('/house/docker')
 
-  await expect(page.getByText('2 of 3 running')).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Running' })).toContainText('2 / 3')
   await expect(page.getByRole('region', { name: 'qbittorrent · 0/1' })).toBeVisible()
 
   await page.getByRole('button', { name: /jellyfin/ }).click()

@@ -23,9 +23,9 @@ repo in `~/Pictures/pr-screenshots/home_kiosk/2026-09-30-mockups/`.
 | Access | No login. The network is the boundary: LAN and Tailscale only, never through cloudflared. |
 | HTTPS | `tailscale serve` (nas-docker `tailscale/serve.json`): the hub on 443, each service on its port plus 10000, so the plain `http://100.x:<port>` addresses keep working. Links read the served ports from tailscaled. Transmission stays HTTP. |
 | Link hosts | Chosen in the browser from `location.hostname`: `*.ts.net` or `100.x` means Tailscale links, anything else means LAN links (`192.168.1.10`). |
-| Style | Dark first. "Calm graphite": near-black, darker sidebar, page in a raised rounded panel, violet accent (`#7C6CF2`), comfortable density. |
+| Style | Dark first, neo-minimal since M38: near-black (`#050506`) with a faint grain and one violet glow at the top, content in flat cells with hairline edges, large light figures, page titles fading to grey; violet accent (`#7C6CF2`), comfortable density. Tokens in `tokens/tokens.json`. |
 | Type | Instrument Sans with tabular figures for all numbers. JetBrains Mono only for technical values (container names, hosts, commands). Both self-hosted. |
-| Navigation | Laptop: fixed left sidebar with grouped sections (Home / Read / Money / House / System). Mobile: bottom tab bar (Home, News, Portfolio, Services, More; NAS until 2026-10-24). |
+| Navigation | Six spaces since M38 (Now, Home, House, Read, Money, Kitchen) in a top bar, each with its pages as tabs; Jump to (⌘K) and Ask on the right, Settings behind the menu; a dot where something needs a look. Phone: a floating tab bar (Now, Home, House, Read, More; More holds Money, Kitchen, Ask and Settings). Old addresses redirect. |
 | Brand | Text only: "Home hub" with the NAS host name as subtitle. No logo. |
 | Settings | Editable in the app, stored in SQLite. `config.yaml` only seeds defaults on first start. |
 | Article reading | Backend extraction with trafilatura, cached in SQLite; falls back to "Open original". Readeck stays as "Save for later". |
@@ -2371,6 +2371,16 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   its incidents, the rest in one line, then CPU, memory, containers and network with sparklines,
   storage per volume, and the house's messages of the last 24 hours. Not yet: one badge per
   fact (an outside problem is both a row and the unfolded Outside card), in step 5.
+- Step 5, decided with the owner 2026-11-22: besides the planned fixes, the headline tiles as
+  cells on every page, the Settings row actions in a menu on a phone, and the Air, Laundry, Apple
+  devices and Outside tabs; Weather's Now card a large figure with the day's line, the Rain radar
+  one quiet line while dry; on Today the row, not the card. Built in parts 5a to 5f, each its own
+  commit.
+- Built 2026-11-22 (5a): one badge per fact. A folded Today card stays folded while an incident
+  row speaks for it (`coveredCards`); Alerts says the open count once, in the page header; Docker
+  and Services drop the "N of M running" subtitle and the "All running" pill (the Running tile
+  has the count, the pill shows only what needs a look). The Alerts history leads, and sending a
+  message is its own card beside it (`SendCard`). Section 1's Style and Navigation describe M38.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

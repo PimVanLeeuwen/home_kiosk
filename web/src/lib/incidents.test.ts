@@ -1,4 +1,4 @@
-import { incidentPath, lookAt, needsLook, openTone, worstLook } from './incidents'
+import { coveredCards, incidentPath, lookAt, needsLook, openTone, worstLook } from './incidents'
 import type { Incident, Severity } from './types'
 
 const open = (severity: Severity): Incident => ({
@@ -52,5 +52,10 @@ describe('what needs a look', () => {
     expect(lookAt(open, '/')).toBe('warn')
     expect(worstLook(['warn', null, 'down'])).toBe('down')
     expect(worstLook([null])).toBeNull()
+  })
+
+  it('names the folded Today cards an incident speaks for', () => {
+    const covered = coveredCards(needsLook([at('outside_services', 'warning'), at('smart', 'error'), at('train', 'warning')]))
+    expect([...covered].sort()).toEqual(['nas', 'outside'])
   })
 })

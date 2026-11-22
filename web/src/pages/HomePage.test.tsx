@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/react'
 import { renderRoute } from '../test/renderRoute'
 import { PORTFOLIO, SERVICES, nasFixture } from '../test/fixtures'
 import { ARTICLES, NEWS_GROUPS } from '../test/newsFixtures'
+import { ACTIONS_DELAYED, outsideServices } from '../test/outsideFixtures'
 import { stubApi } from '../test/stubApi'
 
 function setup(over: Record<string, unknown> = {}) {
@@ -54,6 +55,22 @@ describe('HomePage', () => {
     expect(within(rows[0]).getByRole('link', { name: 'Backups' })).toHaveAttribute('href', '/house/backups')
     expect(within(rows[1]).getByRole('link', { name: 'Services' })).toHaveAttribute('href', '/house/services')
     expect(rows[1]).toHaveTextContent(/Degraded on their status page\. · since Fri 20 Nov/)
+  })
+
+  it('keeps a house card folded while a row already says its problem, and unfolds it otherwise', async () => {
+    setup({
+      '/api/outside-services': outsideServices({ github: ACTIONS_DELAYED }),
+      '/api/alerts/incidents': [incident('outside_services', 'warning', 'GitHub: Actions runs are delayed')],
+    })
+
+    expect(await screen.findByRole('list', { name: 'Needs a look' })).toHaveTextContent('GitHub: Actions runs are delayed')
+    expect(screen.queryByRole('region', { name: 'Outside services' })).not.toBeInTheDocument()
+  })
+
+  it('unfolds a house card with a problem no row covers', async () => {
+    setup({ '/api/outside-services': outsideServices({ github: ACTIONS_DELAYED }) })
+
+    expect(await screen.findByRole('region', { name: 'Outside services' })).toBeInTheDocument()
   })
 
   it('leaves the link out of a row about Today itself', async () => {

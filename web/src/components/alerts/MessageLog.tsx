@@ -1,7 +1,5 @@
-import { Send } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { ApiError, sendJson } from '../../lib/api'
 import { cn } from '../../lib/cn'
 import { formatWhen } from '../../lib/format'
 import type { AlertMessage, AlertSettings } from '../../lib/types'
@@ -9,8 +7,6 @@ import { useApi } from '../../lib/useApi'
 import { sourceLabel } from '../../lib/alertSources'
 import { Card } from '../ui/Card'
 import { SeverityPill } from './SeverityPill'
-import { buttonClass } from '../ui/buttonStyles'
-import { inputClass } from '../ui/fieldStyles'
 import { GlowDot } from '../ui/GlowDot'
 import { SEVERITY_TONE } from '../../lib/status'
 import { Tag } from '../ui/Tag'
@@ -38,34 +34,18 @@ function delivery(m: AlertMessage, chatLabel: string): { text: string; className
 const PAGE_DAYS = 7
 
 
-export function MessageLog({ settings }: { settings: AlertSettings }) {
+/** Everything the hub sent, newest first; `sent` counts the messages sent from the page, to show them at once. */
+export function MessageLog({ settings, sent = 0 }: { settings: AlertSettings; sent?: number }) {
   const [category, setCategory] = useState<string | null>(null)
   // Once, when the log opens: which messages still have their page.
   const [openedAt] = useState(() => Date.now())
   const path = `/api/alerts/messages?limit=100${category ? `&category=${category}` : ''}`
   const log = useApi<AlertMessage[]>(path, 30_000)
   const chats = Object.fromEntries(settings.chats.map((c) => [c.key, c.label]))
-
-  const [text, setText] = useState('')
-  const [chat, setChat] = useState(settings.chats[0]?.key ?? 'nas')
-  const [sending, setSending] = useState(false)
-  const [error, setError] = useState<string>()
-
-  async function send(event: FormEvent) {
-    event.preventDefault()
-    setSending(true)
-    setError(undefined)
-    try {
-      const sent = await sendJson<AlertMessage>('POST', '/api/alerts/send', { chat, text })
-      if (sent.status === 'failed') setError(`Not sent: ${sent.error}`)
-      else setText('')
-      log.reload()
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Sending failed.')
-    } finally {
-      setSending(false)
-    }
-  }
+  const { reload } = log
+  useEffect(() => {
+    if (sent) reload()
+  }, [sent, reload])
 
   const filters: [string | null, string][] = [
     [null, 'All'],
@@ -75,48 +55,6 @@ export function MessageLog({ settings }: { settings: AlertSettings }) {
 
   return (
     <Card title="Messages" note="Last 100">
-      <form onSubmit={send} aria-label="Send a message" className="mb-4 flex flex-wrap items-start gap-2">
-        <label className="min-w-0 flex-1 basis-64">
-          <span className="sr-only">Message</span>
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            required
-            maxLength={3000}
-            rows={1}
-            placeholder="Send a message… (first line is the title)"
-            className={cn(inputClass, 'block min-h-[40px] resize-y')}
-          />
-        </label>
-        <label className="flex items-center gap-2 text-small text-muted">
-          <span className="sr-only">To</span>
-          <select
-            value={chat}
-            onChange={(e) => setChat(e.target.value)}
-            className={cn(inputClass, 'w-auto')}
-          >
-            {settings.chats.map((c) => (
-              <option key={c.key} value={c.key}>
-                to {c.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="submit"
-          disabled={sending || !text.trim()}
-          className={buttonClass('primary')}
-        >
-          <Send aria-hidden="true" className="size-4" />
-          {sending ? 'Sending…' : 'Send'}
-        </button>
-        {error && (
-          <p role="alert" className="w-full text-small text-down">
-            {error}
-          </p>
-        )}
-      </form>
-
       <div role="group" aria-label="Show" className="mb-3 flex flex-wrap gap-1.5">
         {filters.map(([key, label]) => (
           <button

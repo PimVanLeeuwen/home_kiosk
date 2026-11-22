@@ -1,5 +1,6 @@
 import { PATHS } from './paths'
 import type { Tone } from '../components/ui/tones'
+import type { FoldedCardId } from './homeOrder'
 import type { Incident } from './types'
 
 const DAY = 86_400_000
@@ -78,3 +79,18 @@ export function lookAt(open: Incident[], path: string): 'down' | 'warn' | null {
 /** The worse of several looks. */
 export const worstLook = (looks: ('down' | 'warn' | null)[]): 'down' | 'warn' | null =>
   looks.includes('down') ? 'down' : looks.includes('warn') ? 'warn' : null
+
+/** The folded Today card an incident's rule is about: a card that stays folded while its row says it. */
+const RULE_CARD: Record<string, FoldedCardId> = {
+  disk_space: 'nas',
+  smart: 'nas',
+  container_health: 'services',
+  backup_missing: 'backups',
+  storage_box: 'backups',
+  outside_services: 'outside',
+  adguard: 'dns',
+}
+
+/** The folded cards an open incident already speaks for (plan.md M38: one badge per fact). */
+export const coveredCards = (open: Incident[]): Set<FoldedCardId> =>
+  new Set(open.map((i) => RULE_CARD[i.rule]).filter((id): id is FoldedCardId => id !== undefined))

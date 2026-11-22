@@ -35,7 +35,7 @@ test('lists services by group with status and links to the NAS', async ({ page }
   await page.goto('/house/services')
 
   await expect(shell.heading()).toHaveText('Services')
-  await expect(page.getByText('2 of 3 running')).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Running' })).toContainText('2 / 3')
   const media = page.getByRole('region', { name: 'Media' })
   await expect(media.getByRole('link')).toHaveCount(2)
   await expect(media.getByRole('link', { name: /Immich/ })).toHaveAccessibleName(/Unhealthy/)

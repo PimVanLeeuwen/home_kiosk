@@ -54,6 +54,7 @@ import {
 import { coverUrl } from '../lib/musicTypes'
 import type { Countdowns, PhotoOfTheDay } from '../lib/pieceTypes'
 import type { Reminders } from '../lib/reminders'
+import { coveredCards } from '../lib/incidents'
 import { useOpenIncidents } from '../lib/openIncidents'
 import { PATHS } from '../lib/paths'
 import type { RunningOverview } from '../lib/running'
@@ -139,6 +140,8 @@ export function HomePage() {
     outside: outsideState(outside.data),
     dns: dnsState(dns.data),
   }
+  // A house card whose problem an attention row already says stays folded: the row leads to its page.
+  for (const id of coveredCards(incidents.open)) if (states[id] === 'warn' || states[id] === 'down') states[id] = 'quiet'
   const latest = homeOrder(states, now)
 
   // The order waits while the pointer is over the cards, so nothing moves under a hand.

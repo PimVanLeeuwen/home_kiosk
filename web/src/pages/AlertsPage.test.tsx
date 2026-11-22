@@ -115,9 +115,9 @@ describe('AlertsPage', () => {
     const open = await screen.findByRole('region', { name: 'Open alerts' })
     expect(await within(open).findByText('volume2 is 92% full')).toBeInTheDocument()
     expect(within(open).queryByText('Disk sdb has SMART warnings')).not.toBeInTheDocument()
-    expect(within(open).getByText('1 open')).toBeInTheDocument()
-    // The card and the page header, both amber: the one open alert is a warning.
-    expect(screen.getAllByText('1 open').map((pill) => pill.classList.contains('text-warn'))).toEqual([true, true])
+    // Said once, in the page header, amber: the one open alert is a warning (one badge per fact, M38).
+    expect(within(open).queryByText('1 open')).not.toBeInTheDocument()
+    expect(screen.getAllByText('1 open').map((pill) => pill.classList.contains('text-warn'))).toEqual([true])
     // A warning card with a pulsing icon.
     expect(within(open).getAllByRole('listitem')[0].querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
   })

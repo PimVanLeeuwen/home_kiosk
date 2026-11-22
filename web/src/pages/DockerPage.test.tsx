@@ -60,9 +60,9 @@ describe('DockerPage', () => {
     setup()
     renderRoute('/house/docker')
 
-    expect(await screen.findByText('4 of 5 running')).toBeInTheDocument()
-    // One container stopped: the header says it needs a look.
-    expect(screen.getByText('1 needs a look')).toBeInTheDocument()
+    // One container stopped: the header says it needs a look; the Running tile has the count.
+    expect(await screen.findByText('1 needs a look')).toBeInTheDocument()
+    expect(screen.queryByText('4 of 5 running')).not.toBeInTheDocument()
     const tile = (name: string) => screen.getByRole('region', { name })
     expect(tile('Running')).toHaveTextContent('4 / 5')
     expect(tile('Running').querySelectorAll('[data-tone="down"]')).toHaveLength(1)
@@ -84,7 +84,9 @@ describe('DockerPage', () => {
     })
     renderRoute('/house/docker')
 
-    expect(await screen.findByText('All running')).toBeInTheDocument()
+    // All running: no pill, the Running tile says it.
+    expect(await screen.findByRole('region', { name: 'Running' })).toHaveTextContent(/(\d+) \/ \1/)
+    expect(screen.queryByText('All running')).not.toBeInTheDocument()
     expect(await within(screen.getByRole('region', { name: 'Memory, all containers' })).findByText('of 32 GB')).toBeInTheDocument()
   })
 
@@ -119,7 +121,7 @@ describe('DockerPage', () => {
   it('orders by CPU across stacks and filters', async () => {
     setup()
     renderRoute('/house/docker')
-    await screen.findByText('4 of 5 running')
+    await screen.findByText('1 needs a look')
 
     fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Order' })).getByRole('radio', { name: 'CPU' }))
     expect(screen.getByRole('radio', { name: 'CPU' })).toHaveAttribute('aria-checked', 'true')
