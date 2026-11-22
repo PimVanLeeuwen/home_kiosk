@@ -194,7 +194,10 @@ describe('RingMeter', () => {
     const ring = screen.getByRole('meter', { name: 'Battery' })
     expect(ring).toHaveAttribute('aria-valuenow', '64')
     expect(ring).toHaveAttribute('data-tone', 'warn')
-    expect(ring).toHaveTextContent('64%battery')
+    expect(ring).toHaveTextContent('64%')
+    // The caption is HTML over the ring, so it keeps 12px on a phone.
+    expect(screen.getByText('battery')).toHaveClass('text-label')
+    expect(screen.getByText('battery')).toHaveAttribute('aria-hidden', 'true')
     expect(container.querySelectorAll('circle')).toHaveLength(2)
 
     rerender(<RingMeter pct={0} tone="down" label="Battery" />)

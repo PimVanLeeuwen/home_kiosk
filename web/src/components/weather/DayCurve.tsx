@@ -1,11 +1,14 @@
 import { useId } from 'react'
 import { daySummary, hoursOf, type ForecastDay } from '../../lib/weatherTypes'
+import { SvgLabel } from '../ui/SvgLabel'
 
 const W = 600
 const CURVE_TOP = 26
 const CURVE_BOTTOM = 118
 const RAIN_TOP = 132
 const RAIN_BOTTOM = 170
+/** The drawing's height: the rain bars and the hours under them. */
+const H = RAIN_BOTTOM + 22
 
 const whole = (n: number) => Math.round(n)
 const hh = (hour: number) => `${String(hour).padStart(2, '0')}:00`
@@ -64,8 +67,13 @@ export function DayCurve({ day, now = null }: Props) {
   const bar = W / 24
 
   return (
-    <figure className="m-0">
-      <svg viewBox={`0 0 ${W} ${RAIN_BOTTOM + 22}`} role="img" aria-label={daySummary(day)} className="block w-full overflow-visible motion-safe:animate-reveal">
+    <figure className="relative m-0">
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        role="img"
+        aria-label={daySummary(day)}
+        className="block w-full overflow-visible motion-safe:animate-reveal"
+      >
         <defs>
           <linearGradient id={`${id}fill`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#f2a65a" stopOpacity="0.32" />
@@ -82,12 +90,6 @@ export function DayCurve({ day, now = null }: Props) {
         {set != null && <rect data-night x={set} y="0" width={W - set} height={CURVE_BOTTOM + 4} fill="#0c0c18" />}
         <path d={`${line} L${W} ${CURVE_BOTTOM} L0 ${CURVE_BOTTOM} Z`} fill={`url(#${id}fill)`} />
         <path d={line} fill="none" stroke={`url(#${id}line)`} strokeWidth="2.5" strokeLinecap="round" />
-        <text x={x(warmest.hour)} y={y(warmest.temperature) - 9} textAnchor="middle" fontSize="13" fontWeight="600" fill="#f1eff7">
-          {whole(warmest.temperature)}°
-        </text>
-        <text x={Math.max(14, Math.min(W - 14, x(coldest.hour)))} y={y(coldest.temperature) + 18} textAnchor="middle" fontSize="12" fill="#9a9ea7">
-          {whole(coldest.temperature)}°
-        </text>
 
         {/* The chance of rain by the hour. */}
         {hours.map((h) =>
@@ -108,11 +110,6 @@ export function DayCurve({ day, now = null }: Props) {
           ) : null,
         )}
         <line x1="0" x2={W} y1={RAIN_BOTTOM + 0.5} y2={RAIN_BOTTOM + 0.5} stroke="rgb(255 255 255 / 0.08)" />
-        {[0, 6, 12, 18, 23].map((h) => (
-          <text key={h} x={x(h)} y={RAIN_BOTTOM + 17} textAnchor={h === 0 ? 'start' : h === 23 ? 'end' : 'middle'} fontSize="11" fill="#7e828b">
-            {hh(h)}
-          </text>
-        ))}
 
         {nowHour != null && nowTemp != null && (
           <g data-now>
@@ -121,6 +118,32 @@ export function DayCurve({ day, now = null }: Props) {
           </g>
         )}
       </svg>
+      {/* The high, the low and the hours in HTML over the drawing, so they keep their size on a phone. */}
+      <SvgLabel x={x(warmest.hour)} y={y(warmest.temperature) - 13} w={W} h={H} className="text-small font-semibold">
+        {whole(warmest.temperature)}°
+      </SvgLabel>
+      <SvgLabel
+        x={Math.max(14, Math.min(W - 14, x(coldest.hour)))}
+        y={y(coldest.temperature) + 14}
+        w={W}
+        h={H}
+        className="text-label text-muted"
+      >
+        {whole(coldest.temperature)}°
+      </SvgLabel>
+      {[0, 6, 12, 18, 23].map((h) => (
+        <SvgLabel
+          key={h}
+          x={x(h)}
+          y={RAIN_BOTTOM + 13}
+          w={W}
+          h={H}
+          anchor={h === 0 ? 'start' : h === 23 ? 'end' : 'middle'}
+          className="text-label text-faint"
+        >
+          {hh(h)}
+        </SvgLabel>
+      ))}
     </figure>
   )
 }

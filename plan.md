@@ -2396,6 +2396,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   wind and humidity as three small figures, and the sun's arc; the dashed ring is gone from the
   page (Today's Weather card keeps its rain ring and lost its `onPage` mode). While dry the Rain
   radar card is one line, as tall as it needs; the full card returns when rain is coming.
+- Built 2026-11-22 (5c): no text under 12px anywhere (the in-page audit over every page, desktop
+  and phone, finds none). The labels that sat inside scaled SVGs are HTML over the drawing now
+  (`components/ui/SvgLabel`, placed by the drawing's own units, hidden from screen readers as the
+  SVG's label says it): the Weather day curve's high, low and hours, the minutes ring's "min
+  left", the UPS and ad blocking rings' caption, the websites' "Up", the quiet-hours ring (larger,
+  the four hours inside it) and the Apple devices plan's room names, and the Air ring's "ppm
+  CO₂". `theme.test.ts` fails on SVG text under 7 units; only a chart's large figure stays SVG.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

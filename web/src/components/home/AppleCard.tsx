@@ -6,6 +6,7 @@ import { Pill } from '../ui/Pill'
 import { Card } from '../ui/Card'
 import { StaleNote } from '../ui/states'
 import { GlowDot } from '../ui/GlowDot'
+import { SvgLabel } from '../ui/SvgLabel'
 
 const VIDEO = 'var(--color-data-deep-blue)'
 const MUSIC = 'var(--color-accent-fg)'
@@ -50,119 +51,142 @@ function Plan({ rooms }: { rooms: Room[] }) {
   const links = threadLinks(all)
   const broken = (o: Orb) => !o.device.online || o.device.thread === false
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={planLabel(rooms)} className="mx-auto block h-auto w-full max-w-[520px]">
-      <defs>
-        {zs.map(
-          (z) =>
-            z.room.playing && (
-              <radialGradient key={z.room.id} id={`apple-glow-${z.room.id}`} cx="50%" cy="45%" r="70%">
-                <stop offset="0" stopColor={colourOf(z.room.playing)} stopOpacity={z.room.playing.state === 'playing' ? 0.22 : 0.12} />
-                <stop offset="1" stopColor={colourOf(z.room.playing)} stopOpacity={0} />
-              </radialGradient>
-            ),
-        )}
-        <radialGradient id="apple-orb">
-          <stop offset="0" stopColor="rgb(255 255 255 / 0.22)" />
-          <stop offset="1" stopColor="rgb(255 255 255 / 0.03)" />
-        </radialGradient>
-        {[
-          ['video', VIDEO, 0.45],
-          ['music', MUSIC, 0.45],
-          ['amber', AMBER, 0.3],
-        ].map(([id, colour, opacity]) => (
-          <radialGradient key={id} id={`apple-halo-${id}`}>
-            <stop offset="0" stopColor={colour as string} stopOpacity={opacity} />
-            <stop offset="1" stopColor={colour as string} stopOpacity={0} />
+    <div className="relative mx-auto w-full max-w-[520px]">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={planLabel(rooms)} className="block h-auto w-full">
+        <defs>
+          {zs.map(
+            (z) =>
+              z.room.playing && (
+                <radialGradient key={z.room.id} id={`apple-glow-${z.room.id}`} cx="50%" cy="45%" r="70%">
+                  <stop offset="0" stopColor={colourOf(z.room.playing)} stopOpacity={z.room.playing.state === 'playing' ? 0.22 : 0.12} />
+                  <stop offset="1" stopColor={colourOf(z.room.playing)} stopOpacity={0} />
+                </radialGradient>
+              ),
+          )}
+          <radialGradient id="apple-orb">
+            <stop offset="0" stopColor="rgb(255 255 255 / 0.22)" />
+            <stop offset="1" stopColor="rgb(255 255 255 / 0.03)" />
           </radialGradient>
-        ))}
-      </defs>
+          {[
+            ['video', VIDEO, 0.45],
+            ['music', MUSIC, 0.45],
+            ['amber', AMBER, 0.3],
+          ].map(([id, colour, opacity]) => (
+            <radialGradient key={id} id={`apple-halo-${id}`}>
+              <stop offset="0" stopColor={colour as string} stopOpacity={opacity} />
+              <stop offset="1" stopColor={colour as string} stopOpacity={0} />
+            </radialGradient>
+          ))}
+        </defs>
 
-      {zs.map((z) => {
-        const colour = z.room.playing && colourOf(z.room.playing)
-        return (
-          <g key={z.room.id} data-room={z.room.id} data-playing={z.room.playing?.state ?? 'none'}>
-            <rect
-              x={z.x}
-              y={z.y}
-              width={z.w}
-              height={z.h}
-              rx={3.4}
-              fill={colour ? `url(#apple-glow-${z.room.id})` : 'rgb(255 255 255 / 0.025)'}
-              stroke={colour ? `color-mix(in srgb, ${colour} 40%, transparent)` : 'rgb(255 255 255 / 0.1)'}
-              strokeWidth={0.35}
-            />
-            <text
-              x={z.x + 2.6}
-              y={z.labelAt === 'top' ? z.y + 5.4 : z.y + z.h - 2.6}
-              fontSize={2.9}
-              letterSpacing={0.35}
-              fill={colour ?? '#7d7a8c'}
-              opacity={0.85}
-            >
-              {z.room.name.toUpperCase()}
-            </text>
-          </g>
-        )
-      })}
-
-      {links.map(([a, b]) => {
-        const d = curve(a, b)
-        const key = `${a.device.id}-${b.device.id}`
-        return broken(a) || broken(b) ? (
-          <path key={key} data-link="broken" d={d} fill="none" stroke="color-mix(in srgb, var(--color-data-amber) 50%, transparent)" strokeWidth={0.4} strokeDasharray=".8 1.6" />
-        ) : (
-          <g key={key} data-link="up">
-            <path d={d} fill="none" stroke="color-mix(in srgb, var(--color-accent-fg) 20%, transparent)" strokeWidth={0.45} />
-            <path d={d} fill="none" stroke="var(--color-data-lavender)" strokeWidth={0.8} strokeLinecap="round" strokeDasharray="2 30" className="motion-safe:animate-thread" />
-          </g>
-        )
-      })}
-
-      {all.map((o) => {
-        const p = o.room.playing
-        const ripple = plays(o)
-        const colour = ripple && p ? colourOf(p) : null
-        const up = o.device.online
-        return (
-          <g key={o.device.id} data-device={o.device.id} data-online={up}>
-            <title>{`${o.device.name}: ${up ? 'online' : 'offline'}`}</title>
-            {colour &&
-              [0, 1.8].map((delay) => (
-                <circle
-                  key={delay}
-                  cx={o.x}
-                  cy={o.y}
-                  r={6}
-                  fill="none"
-                  stroke={colour}
-                  strokeWidth={0.5}
-                  className="origin-center [transform-box:fill-box] motion-safe:animate-ripple"
-                  style={{ animationDelay: `${delay}s` }}
-                />
-              ))}
-            <circle
-              cx={o.x}
-              cy={o.y}
-              r={10}
-              fill={`url(#${!up ? 'apple-halo-amber' : colour === VIDEO ? 'apple-halo-video' : colour ? 'apple-halo-music' : 'apple-orb'})`}
-              opacity={up && !colour ? 0.5 : 1}
-            />
-            <circle
-              cx={o.x}
-              cy={o.y}
-              r={5}
-              fill="url(#apple-orb)"
-              stroke={!up ? AMBER : (colour ?? 'rgb(255 255 255 / 0.3)')}
-              strokeWidth={0.45}
-              strokeDasharray={up ? undefined : '1.2 1'}
-            />
-            <g color={up ? '#f1eff7' : AMBER}>
-              <Glyph o={o} />
+        {zs.map((z) => {
+          const colour = z.room.playing && colourOf(z.room.playing)
+          return (
+            <g key={z.room.id} data-room={z.room.id} data-playing={z.room.playing?.state ?? 'none'}>
+              <rect
+                x={z.x}
+                y={z.y}
+                width={z.w}
+                height={z.h}
+                rx={3.4}
+                fill={colour ? `url(#apple-glow-${z.room.id})` : 'rgb(255 255 255 / 0.025)'}
+                stroke={colour ? `color-mix(in srgb, ${colour} 40%, transparent)` : 'rgb(255 255 255 / 0.1)'}
+                strokeWidth={0.35}
+              />
             </g>
-          </g>
-        )
-      })}
-    </svg>
+          )
+        })}
+
+        {links.map(([a, b]) => {
+          const d = curve(a, b)
+          const key = `${a.device.id}-${b.device.id}`
+          return broken(a) || broken(b) ? (
+            <path
+              key={key}
+              data-link="broken"
+              d={d}
+              fill="none"
+              stroke="color-mix(in srgb, var(--color-data-amber) 50%, transparent)"
+              strokeWidth={0.4}
+              strokeDasharray=".8 1.6"
+            />
+          ) : (
+            <g key={key} data-link="up">
+              <path d={d} fill="none" stroke="color-mix(in srgb, var(--color-accent-fg) 20%, transparent)" strokeWidth={0.45} />
+              <path
+                d={d}
+                fill="none"
+                stroke="var(--color-data-lavender)"
+                strokeWidth={0.8}
+                strokeLinecap="round"
+                strokeDasharray="2 30"
+                className="motion-safe:animate-thread"
+              />
+            </g>
+          )
+        })}
+
+        {all.map((o) => {
+          const p = o.room.playing
+          const ripple = plays(o)
+          const colour = ripple && p ? colourOf(p) : null
+          const up = o.device.online
+          return (
+            <g key={o.device.id} data-device={o.device.id} data-online={up}>
+              <title>{`${o.device.name}: ${up ? 'online' : 'offline'}`}</title>
+              {colour &&
+                [0, 1.8].map((delay) => (
+                  <circle
+                    key={delay}
+                    cx={o.x}
+                    cy={o.y}
+                    r={6}
+                    fill="none"
+                    stroke={colour}
+                    strokeWidth={0.5}
+                    className="origin-center [transform-box:fill-box] motion-safe:animate-ripple"
+                    style={{ animationDelay: `${delay}s` }}
+                  />
+                ))}
+              <circle
+                cx={o.x}
+                cy={o.y}
+                r={10}
+                fill={`url(#${!up ? 'apple-halo-amber' : colour === VIDEO ? 'apple-halo-video' : colour ? 'apple-halo-music' : 'apple-orb'})`}
+                opacity={up && !colour ? 0.5 : 1}
+              />
+              <circle
+                cx={o.x}
+                cy={o.y}
+                r={5}
+                fill="url(#apple-orb)"
+                stroke={!up ? AMBER : (colour ?? 'rgb(255 255 255 / 0.3)')}
+                strokeWidth={0.45}
+                strokeDasharray={up ? undefined : '1.2 1'}
+              />
+              <g color={up ? '#f1eff7' : AMBER}>
+                <Glyph o={o} />
+              </g>
+            </g>
+          )
+        })}
+      </svg>
+      {/* The rooms' names in HTML over the plan, so they keep the type scale's size on a phone. */}
+      {zs.map((z) => (
+        <SvgLabel
+          key={z.room.id}
+          x={z.x + 2.6}
+          y={z.labelAt === 'top' ? z.y + 4.4 : z.y + z.h - 3.6}
+          w={W}
+          h={H}
+          anchor="start"
+          style={{ color: (z.room.playing && colourOf(z.room.playing)) || '#8b8898' }}
+          className="text-label eyebrow opacity-90"
+        >
+          {z.room.name}
+        </SvgLabel>
+      ))}
+    </div>
   )
 }
 
@@ -191,7 +215,9 @@ function NowPlaying({ room }: { room: Room & { playing: ApplePlaying } }) {
         <span
           aria-hidden="true"
           className="size-[46px] rounded-control border border-glass-line"
-          style={{ background: `radial-gradient(70% 80% at 40% 35%, ${colour}, transparent 70%), linear-gradient(160deg, #2a2440, #121118)` }}
+          style={{
+            background: `radial-gradient(70% 80% at 40% 35%, ${colour}, transparent 70%), linear-gradient(160deg, #2a2440, #121118)`,
+          }}
         />
       )}
       <span className="min-w-0">

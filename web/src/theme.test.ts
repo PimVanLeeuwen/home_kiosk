@@ -72,6 +72,14 @@ describe('design tokens', () => {
     expect(loose).toEqual([])
   })
 
+  it('leaves small labels out of SVG text, where a chart drawn small would shrink them (SvgLabel instead)', () => {
+    // SVG text scales with its drawing; only a chart's large figure belongs there (M38, 5c).
+    const tiny = sources.flatMap(([f, src]) =>
+      [...src.matchAll(/fontSize=\{?"?(\d+(?:\.\d+)?)/g)].filter((m) => Number(m[1]) < 7).map((m) => `${f}: ${m[0]}`),
+    )
+    expect(tiny).toEqual([])
+  })
+
   it('keeps the type scale to nine sizes, none below 12px', () => {
     const theme = css.slice(css.indexOf('@theme'), css.indexOf('@media print'))
     const sizes = [...theme.matchAll(/--text-([a-z]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], Number(m[2])] as const)

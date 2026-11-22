@@ -7,7 +7,10 @@ describe('QuietRing', () => {
   it('lights the quiet span across midnight', () => {
     render(<QuietRing start="23:00" end="07:00" enabled now={at(12)} />)
     const ring = screen.getByRole('img', { name: 'Quiet from 23:00 to 07:00' })
-    expect(ring).toHaveTextContent('23–07')
+    // The labels sit over the ring in HTML, on the type scale (M38, 5c).
+    expect(ring.parentElement).toHaveTextContent('23–07')
+    expect(screen.getByText('23–07')).toHaveClass('text-small')
+    expect(screen.getByText('quiet')).toHaveClass('text-label')
     // 8 of 24 hours, starting at 23 of 24.
     const span = screen.getByRole('img').querySelector('[data-arc]')!
     const c = 2 * Math.PI * 38
@@ -17,7 +20,7 @@ describe('QuietRing', () => {
 
   it('says off and lights nothing when quiet hours are off', () => {
     render(<QuietRing start="23:00" end="07:00" enabled={false} now={at(12)} />)
-    expect(screen.getByRole('img', { name: 'Quiet hours off' })).toHaveTextContent('off')
+    expect(screen.getByRole('img', { name: 'Quiet hours off' }).parentElement).toHaveTextContent('off')
     expect(screen.getByRole('img').querySelector('[data-arc]')).toBeNull()
   })
 })
