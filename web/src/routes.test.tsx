@@ -43,7 +43,7 @@ describe('routes', () => {
     ['/recipes/kip-shoarma/cook?persons=3', '/kitchen/recipes/kip-shoarma/cook?persons=3'],
     ['/portfolio?import', '/money/portfolio?import'],
     ['/news?a=a1#top', '/read/news?a=a1#top'],
-    ['/house', '/house/nas'],
+    ['/home', '/home/lights'],
     ['/now', '/'],
     ['/money', '/money/portfolio'],
   ])('moves the old address %s to %s', async (from, to) => {

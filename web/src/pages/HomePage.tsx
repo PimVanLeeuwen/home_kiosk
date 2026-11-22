@@ -18,26 +18,20 @@ import { PortfolioCard } from '../components/home/PortfolioCard'
 import { RemindersCard } from '../components/home/RemindersCard'
 import { TodosCard } from '../components/home/TodosCard'
 import { ServicesCard } from '../components/home/ServicesCard'
-import { OPENED_ID, StatusStrip } from '../components/home/StatusStrip'
 import { TodayCard } from '../components/home/TodayCard'
 import { TrainCard } from '../components/home/TrainCard'
 import { WeatherCard } from '../components/home/WeatherCard'
 import { OutsideServicesCard } from '../components/outside/OutsideServicesCard'
-import { PageHeader } from '../components/PageHeader'
+import { AttentionList } from '../components/AttentionList'
+import { HealthyLine } from '../components/ui/AttentionRow'
+import { CellGrid } from '../components/ui/CellGrid'
+import { CELL_SPAN } from '../components/ui/cellContext'
+import { Headline } from '../components/ui/Headline'
 import { TONE_COLOR } from '../components/ui/tones'
-import { attentionItems } from '../lib/attention'
 import { cn } from '../lib/cn'
 import { greeting } from '../lib/greeting'
-import { homeChips } from '../lib/homeChips'
-import {
-  FOLDED,
-  homeOrder,
-  type CardState,
-  type FoldedCardId,
-  type HomeCardId,
-  type HomeOrder,
-  type PlacedCard,
-} from '../lib/homeOrder'
+import { healthySummary, homeChips } from '../lib/homeChips'
+import { homeOrder, type CardState, type HomeCardId, type HomeOrder } from '../lib/homeOrder'
 import {
   appleState,
   backupsState,
@@ -60,6 +54,8 @@ import {
 import { coverUrl } from '../lib/musicTypes'
 import type { Countdowns, PhotoOfTheDay } from '../lib/pieceTypes'
 import type { Reminders } from '../lib/reminders'
+import { useOpenIncidents } from '../lib/openIncidents'
+import { PATHS } from '../lib/paths'
 import type { RunningOverview } from '../lib/running'
 import { PROBLEM_LIGHT, skyLights } from '../lib/sky'
 import { focusOf } from '../lib/today'
@@ -74,32 +70,31 @@ import type {
   Nas,
   OutsideServices,
   ServicesResponse,
-  Sites,
   Today,
   Train,
 } from '../lib/types'
 import { useApi } from '../lib/useApi'
 import { useFlip } from '../lib/useFlip'
 import { useHomeNowPlaying } from '../lib/useHomeNowPlaying'
-import { useMediaQuery } from '../lib/useMediaQuery'
 import { useTodos } from '../lib/useTodos'
 
 const dateLine = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-
-/** Where the open card's pointer sits under its chip: a chip of 1fr per folded card and Alerts of 1.25fr. */
-const pointerAt = (id: FoldedCardId) => `${((FOLDED.indexOf(id) + 0.5) / (FOLDED.length + 1.25)) * 100}%`
+const clock = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' })
 
 /** How long the page's one staggered reveal takes, after which cards that arrive just appear. */
 const REVEAL_MS = 1_200
 
 const orderKey = (o: HomeOrder) => [o.hero, ...o.cards.map((c) => `${c.id}:${c.column}`), '|', ...o.folded].join(',')
 
-/** Home's cards in the order of what matters now (lib/homeOrder): two stacks on a wide screen, one column on the phone. */
+/**
+ * Today (plan.md M38): the greeting, what needs a look (the hub's open incidents), the rest
+ * folded into one healthy line, then the cards as cells in the order of what matters now
+ * (lib/homeOrder): the hero across the full width, wide cards over two columns.
+ */
 export function HomePage() {
   const nas = useApi<Nas>('/api/nas', 60_000)
   const services = useApi<ServicesResponse>('/api/services', 30_000)
   const all = services.data?.groups.flatMap((g) => g.services)
-  const sites = useApi<Sites>('/api/sites', 60_000)
   const train = useApi<Train>('/api/train', 30_000)
   const today = useApi<Today>('/api/calendar', 60_000)
   const laundry = useApi<Laundry>('/api/laundry', 60_000)
@@ -115,13 +110,11 @@ export function HomePage() {
   const photo = useApi<PhotoOfTheDay>('/api/photo', 600_000)
   const running = useApi<RunningOverview>('/api/runs/overview', 300_000)
   const music = useHomeNowPlaying()
-  const wide = useMediaQuery('(min-width: 1024px)')
-  const [open, setOpen] = useState<FoldedCardId | null>(null)
+  const incidents = useOpenIncidents()
   const [pointerOver, setPointerOver] = useState(false)
   const [revealing, setRevealing] = useState(true)
   const page = useRef<HTMLDivElement>(null)
   const now = new Date()
-  const attention = attentionItems(nas.data, all ?? [], now, sites.data?.sites)
 
   const states: Record<HomeCardId, CardState> = {
     briefing: briefingState(briefing.data, now),
@@ -148,10 +141,10 @@ export function HomePage() {
   }
   const latest = homeOrder(states, now)
 
-  // The order waits while the pointer is over the cards or a chip is open, so nothing moves under a hand.
+  // The order waits while the pointer is over the cards, so nothing moves under a hand.
   const key = orderKey(latest)
   const [held, setHeld] = useState({ key, order: latest })
-  const hold = pointerOver || open !== null
+  const hold = pointerOver
   if (!hold && held.key !== key) setHeld({ key, order: latest })
   const order = hold ? held.order : latest
   // After the first reveal, a card that arrives rises in on its own; one that leaves fades out (CardSlot).
@@ -160,6 +153,10 @@ export function HomePage() {
   useEffect(() => {
     const timer = window.setTimeout(() => setRevealing(false), REVEAL_MS)
     return () => window.clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    document.title = 'Home · Home hub'
   }, [])
 
   const cards: Record<HomeCardId, ReactNode> = {
@@ -204,58 +201,46 @@ export function HomePage() {
     return id === 'laundry' && laundry.data?.machines.some((m) => m.state === 'done') ? 'up' : 'accent'
   }
 
-  // A chip only opens a card that is still folded; one that unfolded itself is on the page.
-  const opened = open && order.folded.includes(open) ? open : null
-  const chips = homeChips({ nas: nas.data, services: all, backups: backups.data, outside: outside.data, dns: dns.data, attention, now })
-
-  useEffect(() => {
-    if (!opened) return
-    const close = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(null)
-    window.addEventListener('keydown', close)
-    return () => window.removeEventListener('keydown', close)
-  }, [opened])
+  const chips = homeChips({ nas: nas.data, services: all, backups: backups.data, outside: outside.data, dns: dns.data, attention: [], now })
+  const healthy = healthySummary(chips, order.folded)
+  const open = incidents.open
 
   let step = 0
   const reveal = () =>
     revealing ? { className: 'motion-safe:animate-rise', style: { animationDelay: `${step++ * 55}ms` } } : { className: '', style: {} }
 
-  const stack = (placed: PlacedCard[]) => (
-    <div className="grid min-w-0 content-start gap-5">
-      {placed.map(({ id }) => {
-        const light = liveLight(id)
-        const r = reveal()
-        return (
-          <CardSlot key={id} id={id} layer={page} style={r.style} className={r.className}>
-            {cards[id]}
-            {light && (
-              <span
-                aria-hidden="true"
-                data-live={light}
-                className={cn(
-                  'pointer-events-none absolute inset-0 rounded-card ring-1',
-                  light === 'up'
-                    ? 'bg-[radial-gradient(80%_60%_at_100%_0%,--alpha(var(--color-up)/12%),transparent_70%)] ring-up/30'
-                    : 'bg-[radial-gradient(80%_60%_at_100%_0%,--alpha(var(--color-violet)/13%),transparent_70%)] ring-accent-line/30',
-                )}
-              />
+  /** One card as a cell: it slides with the order; a live one throws a faint light from its corner. */
+  const cell = (id: HomeCardId, span: keyof typeof CELL_SPAN, body: ReactNode) => {
+    const light = id === order.hero ? null : liveLight(id)
+    const r = reveal()
+    return (
+      <CardSlot key={id} id={id} layer={page} style={r.style} className={cn(CELL_SPAN[span], r.className)}>
+        {body}
+        {light && (
+          <span
+            aria-hidden="true"
+            data-live={light}
+            className={cn(
+              'pointer-events-none absolute inset-0',
+              light === 'up'
+                ? 'bg-[radial-gradient(80%_60%_at_100%_0%,--alpha(var(--color-up)/12%),transparent_70%)]'
+                : 'bg-[radial-gradient(80%_60%_at_100%_0%,--alpha(var(--color-violet)/13%),transparent_70%)]',
             )}
-          </CardSlot>
-        )
-      })}
-    </div>
-  )
+          />
+        )}
+      </CardSlot>
+    )
+  }
 
-  const summary =
-    !nas.data && !services.data
-      ? 'checking…'
-      : attention.length === 0
-        ? 'everything is running'
-        : `${attention.length} ${attention.length === 1 ? 'thing needs' : 'things need'} a look`
+  const second = !incidents.loaded
+    ? 'Checking the house…'
+    : open.length === 0
+      ? 'The house is quiet.'
+      : `${open.length} ${open.length === 1 ? 'thing needs' : 'things need'} a look.`
   const [sky1, sky2] = skyLights(now.getHours())
   const heroDown = order.hero !== null && states[order.hero] === 'down'
   const header = reveal()
   const hero = order.hero && heroLight(order.hero)
-  const heroReveal = reveal()
 
   return (
     <div className="relative">
@@ -269,48 +254,27 @@ export function HomePage() {
       />
       <div className="relative">
         <div style={header.style} className={header.className}>
-          <PageHeader title={greeting(now.getHours())} subtitle={`${dateLine.format(now)} · ${summary}`} documentTitle="Home" />
-        </div>
-        <StatusStrip
-          chips={chips}
-          folded={order.folded}
-          open={opened}
-          reveal={revealing}
-          onToggle={(id) => setOpen((current) => (current === id ? null : id))}
-          onShow={(id) => document.querySelector(`[data-card="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-        />
-        {opened && (
-          <div id={OPENED_ID} data-card={opened} className="relative -mt-1 mb-5 grid motion-safe:animate-rise">
-            {/* A small pointer up to the chip, where the chips sit in one row (2xl). */}
-            <span
-              aria-hidden="true"
-              style={{ left: pointerAt(opened) }}
-              className="absolute -top-[7px] z-10 hidden size-3.5 -translate-x-1/2 rotate-45 border-t border-l border-accent bg-[#191a21] 2xl:block"
-            />
-            <div className="grid rounded-card ring-1 ring-accent">{cards[opened]}</div>
-          </div>
-        )}
-        <div
-          ref={page}
-          className="relative"
-          onPointerEnter={(e) => e.pointerType === 'mouse' && setPointerOver(true)}
-          onPointerLeave={() => setPointerOver(false)}
-        >
-          {order.hero && hero && (
-            <CardSlot key={order.hero} id={order.hero} layer={page} style={heroReveal.style} className={cn('mb-5', heroReveal.className)}>
-              <HeroFrame light={hero.light} light2={hero.light2} backdrop={hero.backdrop}>
-                {cards[order.hero]}
-              </HeroFrame>
-            </CardSlot>
-          )}
-          {wide ? (
-            <div className="grid grid-cols-[1.35fr_1fr] items-start gap-5">
-              {stack(order.cards.filter((c) => c.column === 'wide'))}
-              {stack(order.cards.filter((c) => c.column === 'narrow'))}
+          <Headline lines={[`${greeting(now.getHours())}.`, second]} eyebrow={`${dateLine.format(now)} · ${clock.format(now)}`} />
+          <AttentionList incidents={open} here={PATHS.today} now={now} />
+          {healthy && (
+            <div className="mb-6">
+              <HealthyLine link={{ to: PATHS.house, label: 'House' }}>{healthy}</HealthyLine>
             </div>
-          ) : (
-            stack(order.cards)
           )}
+        </div>
+        <div ref={page} className="relative" onPointerEnter={(e) => e.pointerType === 'mouse' && setPointerOver(true)} onPointerLeave={() => setPointerOver(false)}>
+          <CellGrid label="The day's cards" columns={3} className="grid-flow-row-dense">
+            {order.hero &&
+              hero &&
+              cell(
+                order.hero,
+                'full',
+                <HeroFrame light={hero.light} light2={hero.light2} backdrop={hero.backdrop}>
+                  {cards[order.hero]}
+                </HeroFrame>,
+              )}
+            {order.cards.map(({ id, column }) => cell(id, column === 'wide' ? 2 : 1, cards[id]))}
+          </CellGrid>
         </div>
       </div>
     </div>

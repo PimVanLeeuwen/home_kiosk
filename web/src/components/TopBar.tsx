@@ -2,9 +2,12 @@ import { Menu, Search, Sparkles } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { cn } from '../lib/cn'
+import { lookAt, worstLook } from '../lib/incidents'
 import { ASK, SETTINGS, SPACES, spaceOf, spacePath } from '../lib/navigation'
+import { useOpenIncidents } from '../lib/openIncidents'
 import { shortcutLabel } from '../lib/palette'
 import { ConnectionBadge } from './ConnectionBadge'
+import { AttentionDot } from './ui/AttentionDot'
 
 export function Brand({ host }: { host: string | null }) {
   return (
@@ -74,6 +77,7 @@ function TopMenu() {
 export function TopBar({ host, onSearch }: { host: string | null; onSearch: () => void }) {
   const { pathname } = useLocation()
   const current = spaceOf(pathname)
+  const { open } = useOpenIncidents()
 
   return (
     // The insets keep the bar clear of the iPhone's status bar and notch in the installed app.
@@ -96,6 +100,7 @@ export function TopBar({ host, onSearch }: { host: string | null; onSearch: () =
                   className={cn(chip, active ? 'bg-glass text-fg ring-1 ring-glass-line' : 'text-muted hover:text-fg')}
                 >
                   {space.label}
+                  <AttentionDot level={worstLook(space.tabs.map((tab) => lookAt(open, tab.to)))} />
                 </Link>
               </li>
             )

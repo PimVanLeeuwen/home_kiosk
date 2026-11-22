@@ -10,7 +10,8 @@ test.describe('desktop navigation', () => {
     await expect(shell.tabBar).toBeHidden()
 
     await shell.spaces.getByRole('link', { name: 'House' }).click()
-    await expect(page).toHaveURL('/house/nas')
+    await expect(page).toHaveURL('/house')
+    await expect(shell.heading()).toHaveText('House')
     await shell.tabs('House').getByRole('link', { name: 'Backups' }).click()
 
     await expect(page).toHaveURL('/house/backups')

@@ -1,6 +1,7 @@
-import type { HTMLAttributes, ReactNode } from 'react'
+import { useContext, type HTMLAttributes, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { cn } from '../../lib/cn'
+import { InCellGrid } from './cellContext'
 import { headerId, titleClass } from './titleStyles'
 
 /**
@@ -36,15 +37,35 @@ interface SurfaceProps extends HTMLAttributes<HTMLElement> {
   look?: keyof typeof LOOK
 }
 
-/** The hub's card surface: rounded, flat, a hairline edge. Every card-like box is one of these. */
+/** In a CellGrid: no box of its own, a hairline drawn into the grid's gap; a problem keeps its tint. */
+const CELL = {
+  card: 'bg-card',
+  down: 'bg-card bg-linear-to-br from-down/8 to-transparent to-50%',
+  warn: 'bg-card bg-linear-to-br from-warn/8 to-transparent to-50%',
+  bare: '',
+} as const
+
+/**
+ * The hub's card surface: rounded, flat, a hairline edge. Every card-like box is one of these.
+ * Placed straight in a CellGrid it is one of the grid's cells instead (and what it holds is not).
+ */
 export function Surface({ as: Tag = 'div', padding = 'card', look = 'card', className, ...rest }: SurfaceProps) {
+  const inGrid = useContext(InCellGrid)
   // `className` is for layout (grid, margins, height); padding and colours come from the props.
   return (
-    <Tag
-      {...rest}
-      data-look={look === 'card' ? undefined : look}
-      className={cn('relative min-w-0 overflow-hidden rounded-card border', LOOK[look], PADDING[padding], className)}
-    />
+    <InCellGrid.Provider value={false}>
+      <Tag
+        {...rest}
+        data-look={look === 'card' ? undefined : look}
+        data-cell={inGrid || undefined}
+        className={cn(
+          'relative min-w-0 overflow-hidden',
+          inGrid ? `h-full shadow-[0_0_0_1px_var(--color-line-soft)] ${CELL[look]}` : `rounded-card border ${LOOK[look]}`,
+          PADDING[padding],
+          className,
+        )}
+      />
+    </InCellGrid.Provider>
   )
 }
 

@@ -1,13 +1,17 @@
 import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { cn } from '../lib/cn'
-import { spaceOf } from '../lib/navigation'
+import { lookAt } from '../lib/incidents'
+import { isSpaceRoot, spaceOf } from '../lib/navigation'
+import { useOpenIncidents } from '../lib/openIncidents'
+import { AttentionDot } from './ui/AttentionDot'
 
 /** The pages of the current space as tabs above the page; a space with one page has none. */
 export function SpaceTabs() {
   const { pathname } = useLocation()
   const space = spaceOf(pathname)
   const row = useRef<HTMLElement>(null)
+  const { open } = useOpenIncidents()
 
   // On a phone the current tab may sit past the edge: bring it into view, centred.
   useEffect(() => {
@@ -32,15 +36,17 @@ export function SpaceTabs() {
             <NavLink
               viewTransition
               to={tab.to}
-              end={tab.to === '/'}
+              end={isSpaceRoot(tab.to)}
               className={({ isActive }) =>
                 cn(
-                  '-mb-px flex min-h-10 items-center border-b whitespace-nowrap transition-colors pointer-coarse:min-h-11',
+                  '-mb-px flex min-h-10 items-center gap-1.5 border-b whitespace-nowrap transition-colors pointer-coarse:min-h-11',
                   isActive ? 'border-fg text-fg' : 'border-transparent text-muted hover:text-fg',
                 )
               }
             >
               {tab.label}
+              {/* The overview gathers the whole space: no dot of its own beside the tabs that have one. */}
+              {!isSpaceRoot(tab.to) && <AttentionDot level={lookAt(open, tab.to)} />}
             </NavLink>
           </li>
         ))}

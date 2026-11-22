@@ -1,17 +1,26 @@
-import { screen, within } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
+import type { OutsideServices } from '../../lib/types'
 import { ACTIONS_DELAYED, outsideServices } from '../../test/outsideFixtures'
 import { SERVICES } from '../../test/fixtures'
-import { openHomeCard } from '../../test/openHomeCard'
 import { renderRoute } from '../../test/renderRoute'
 import { stubApi } from '../../test/stubApi'
+import { OutsideServicesCard } from './OutsideServicesCard'
 
+/** The card as Today shows it once a service has a problem (it folds into the healthy line otherwise). */
 function home(outside: unknown) {
-  stubApi({ '/api/services': SERVICES, '/api/outside-services': outside })
-  renderRoute('/')
-  return openHomeCard('Outside services')
+  render(
+    <MemoryRouter>
+      <OutsideServicesCard
+        data={outside instanceof Error ? undefined : (outside as OutsideServices)}
+        error={outside instanceof Error ? outside : undefined}
+      />
+    </MemoryRouter>,
+  )
+  return screen.findByRole('region', { name: 'Outside services' })
 }
 
-describe('Outside services on Home', () => {
+describe('Outside services card (Today)', () => {
   it('shows every service around a check when all is well', async () => {
     const card = await home(outsideServices())
 
@@ -24,7 +33,6 @@ describe('Outside services on Home', () => {
   it('leads with the incident, its latest word and its timeline', async () => {
     await home(outsideServices({ github: ACTIONS_DELAYED }))
 
-    // An incident lifts the card to the top, so look it up once it is there.
     const incident = await screen.findByRole('article', { name: 'GitHub: Actions runs are delayed' })
     const card = screen.getByRole('region', { name: 'Outside services' })
     expect(within(incident).getByText('Degraded')).toBeInTheDocument()

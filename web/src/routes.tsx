@@ -11,6 +11,7 @@ import { BackupsPage } from './pages/BackupsPage'
 import { CookPage } from './pages/CookPage'
 import { DockerPage } from './pages/DockerPage'
 import { HomePage } from './pages/HomePage'
+import { HouseOverviewPage } from './pages/HouseOverviewPage'
 import { LightsPage } from './pages/LightsPage'
 import { MorePage } from './pages/MorePage'
 import { MediaPage } from './pages/MediaPage'
@@ -47,6 +48,7 @@ const PAGES: Record<string, ReactElement> = {
   [PATHS.settings]: <SettingsPage />,
   [PATHS.repos]: <ReposPage />,
   [PATHS.docker]: <DockerPage />,
+  [PATHS.house]: <HouseOverviewPage />,
   [PATHS.nas]: <NasPage />,
   [PATHS.backups]: <BackupsPage />,
   [PATHS.alerts]: <AlertsPage />,
@@ -78,7 +80,10 @@ export const routes: RouteObject[] = [
           { path: `${PATHS.recipes}/:id/cook`, element: <CookPage /> },
           { path: MORE_ROUTE, element: <MorePage /> },
           // A space's own address opens its first tab (/now is Today, at /).
-          ...SPACES.map((space) => ({ path: `/${space.id}`, element: <Navigate replace to={spacePath(space)} /> })),
+          ...SPACES.filter((space) => spacePath(space) !== `/${space.id}`).map((space) => ({
+            path: `/${space.id}`,
+            element: <Navigate replace to={spacePath(space)} />,
+          })),
           ...Object.entries(MOVED).map(([from, to]) => ({ path: `${from}/*`, element: <Moved to={to} /> })),
           { path: '*', element: <NotFoundPage /> },
         ],

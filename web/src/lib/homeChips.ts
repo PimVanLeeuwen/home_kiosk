@@ -132,3 +132,31 @@ function dnsValue(dns: DnsStats | undefined): string {
   if (!dns.protection) return 'Paused'
   return dns.share == null ? 'None yet' : formatPercent(dns.share)
 }
+
+/**
+ * Today's healthy line: the folded cards that have nothing to report, in one sentence
+ * ("The NAS is healthy, 19 of 19 services up, last backup today 03:03, ..."); null when none is.
+ */
+export function healthySummary(chips: Chip[], folded: FoldedCardId[]): string | null {
+  const phrase = (chip: Chip): string | null => {
+    if (chip.tone !== 'up' || !(folded as string[]).includes(chip.id)) return null
+    switch (chip.id) {
+      case 'nas':
+        return 'the NAS is healthy'
+      case 'services':
+        return `${chip.value.replace(' / ', ' of ').replace(/ up$/, '')} services up`
+      case 'backups':
+        return `last backup ${chip.value}`
+      case 'outside':
+        return 'outside services all clear'
+      case 'dns':
+        return chip.value.endsWith('%') ? `${chip.value} of lookups blocked` : 'ad blocking on'
+      default:
+        return null
+    }
+  }
+  const phrases = chips.map(phrase).filter((p): p is string => p !== null)
+  if (!phrases.length) return null
+  const line = `${phrases.join(', ')}.`
+  return line[0].toUpperCase() + line.slice(1)
+}

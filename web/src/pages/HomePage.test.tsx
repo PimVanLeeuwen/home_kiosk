@@ -1,8 +1,7 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import { renderRoute } from '../test/renderRoute'
-import { BACKUPS, PORTFOLIO, SERVICES, backupRun, nasFixture } from '../test/fixtures'
+import { PORTFOLIO, SERVICES, nasFixture } from '../test/fixtures'
 import { ARTICLES, NEWS_GROUPS } from '../test/newsFixtures'
-import { openHomeCard } from '../test/openHomeCard'
 import { stubApi } from '../test/stubApi'
 
 function setup(over: Record<string, unknown> = {}) {
@@ -12,37 +11,56 @@ function setup(over: Record<string, unknown> = {}) {
     '/api/portfolio': PORTFOLIO,
     '/api/news/articles?limit=5': { articles: ARTICLES, total: ARTICLES.length },
     '/api/news/groups': NEWS_GROUPS,
+    '/api/alerts/incidents': [],
     ...over,
   })
   renderRoute('/')
 }
 
 const card = (name: string) => screen.getByRole('region', { name })
+const incident = (rule: string, severity: 'info' | 'warning' | 'error', title: string, body = '') => ({
+  key: `${rule}:x`, rule, severity, title, body, opened_at: '2026-11-20T09:00:00Z', last_seen_at: '2026-11-21T08:00:00Z', resolved_at: null,
+})
 
 describe('HomePage', () => {
-  it('greets and says all is well when nothing needs attention', async () => {
+  it('greets, says the house is quiet and folds the healthy house cards into one line', async () => {
     setup()
 
-    expect(await screen.findByText(/everything is running/)).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^Good (night|morning|afternoon|evening)$/)
+    const heading = screen.getByRole('heading', { level: 1 })
+    expect(await within(heading).findByText(/The house is quiet\./)).toBeInTheDocument()
+    expect(heading).toHaveTextContent(/^Good (night|morning|afternoon|evening)\./)
     expect(document.title).toBe('Home · Home hub')
-    expect(screen.getByText(/^\d+ \/ \d+ up$/)).toBeInTheDocument()
-    expect(screen.getByText('None')).toBeInTheDocument()
-    // Only in the strip: the Backups card is folded into its chip while all is well.
-    expect(screen.getAllByText(/^today 0?\d:31$/)).toHaveLength(1)
+    expect(screen.queryByRole('list', { name: 'Needs a look' })).not.toBeInTheDocument()
+    // The house cards with nothing to report are one sentence that leads to House, not cards.
+    const healthy = await screen.findByText(/^The NAS is healthy, \d+ of \d+ services up, last backup today 0?\d:31/)
+    expect(healthy.parentElement!.querySelector('a')).toHaveAttribute('href', '/house')
     expect(screen.queryByRole('region', { name: 'Backups' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'NAS' })).not.toBeInTheDocument()
   })
 
-  it('counts a site that is down as something to look at', async () => {
+  it('raises each open incident as a row, errors first, with the way to its page', async () => {
     setup({
-      '/api/sites': {
-        as_of: new Date().toISOString(),
-        stale: false,
-        sites: [{ id: 43, name: 'Meteor Website', group: 'Hubble', up: false, down_since: null, ping_ms: null, uptime_pct: 99.9, days: [] }],
-      },
+      '/api/alerts/incidents': [
+        incident('outside_services', 'warning', 'TransIP: TransNOC reports a problem', 'Degraded on their status page.'),
+        incident('backup_missing', 'error', 'No good dump of the Tracearr database'),
+        incident('portfolio_move', 'info', 'Portfolio moved'),
+        { ...incident('smart', 'error', 'Disk sdb is failing'), resolved_at: '2026-11-21T07:00:00Z' },
+      ],
     })
 
-    expect(await screen.findByText(/1 thing needs a look/)).toBeInTheDocument()
+    expect(await screen.findByText(/2 things need a look\./)).toBeInTheDocument()
+    const rows = within(screen.getByRole('list', { name: 'Needs a look' })).getAllByRole('listitem')
+    expect(rows.map((r) => r.querySelector('p')!.textContent)).toEqual(['No good dump of the Tracearr database', 'TransIP: TransNOC reports a problem'])
+    expect(within(rows[0]).getByRole('link', { name: 'Backups' })).toHaveAttribute('href', '/house/backups')
+    expect(within(rows[1]).getByRole('link', { name: 'Services' })).toHaveAttribute('href', '/house/services')
+    expect(rows[1]).toHaveTextContent(/Degraded on their status page\. · since Fri 20 Nov/)
+  })
+
+  it('leaves the link out of a row about Today itself', async () => {
+    setup({ '/api/alerts/incidents': [incident('train', 'warning', 'Your 07:16 train is cancelled')] })
+
+    const row = await screen.findByText('Your 07:16 train is cancelled')
+    expect(row.closest('li')!.querySelector('a')).toBeNull()
   })
 
   it('shows portfolio value, day change and the top three holdings', async () => {
@@ -79,32 +97,6 @@ describe('HomePage', () => {
     expect(line).toHaveAttribute('stroke', 'var(--color-down)')
   })
 
-  it('shows the fullest pool on a dial, load with 24-hour lines and a dot per disk', async () => {
-    const point = (h: number, cpu: number, ram: number) => ({ t: new Date(2026, 9, 12, h).toISOString(), cpu, ram, temp: 44, rx_mbps: 1, tx_mbps: 1 })
-    setup({
-      '/api/nas/history': [point(8, 9, 23), point(9, 14, 24), point(10, 11, 24)],
-      '/api/ups': { as_of: '', stale: false, name: 'ups0', model: null, status: 'online', status_raw: 'OL', charge: 100, charge_low: 20, load: 12, outages: [] },
-    })
-
-    const nas = await openHomeCard('NAS')
-    // The fullest pool is the dial; the next one a thin bar.
-    expect(await within(nas).findByRole('meter', { name: 'volume3' })).toHaveAttribute('aria-valuenow', '36')
-    expect(within(nas).getByText('volume3 · 1,4 TB of 4,0 TB')).toBeInTheDocument()
-    expect(within(nas).getByText('No growth trend yet')).toBeInTheDocument()
-    expect(within(nas).getByRole('meter', { name: 'volume1' })).toBeInTheDocument()
-    // The chip above says how the NAS is; the card repeats no state pill.
-    expect(within(nas).queryByText('Healthy')).not.toBeInTheDocument()
-
-    expect(within(nas).getByText('CPU · 44 °C')).toBeInTheDocument()
-    expect(within(nas).getByText('11%')).toBeInTheDocument()
-    expect(await within(nas).findByRole('img', { name: 'CPU, last 24 hours' })).toBeInTheDocument()
-    expect(within(nas).getByRole('img', { name: 'Memory, last 24 hours' })).toBeInTheDocument()
-    expect(within(nas).getByText('1 of 1')).toBeInTheDocument()
-    expect(within(nas).getByRole('img', { name: 'sda: healthy' })).toBeInTheDocument()
-
-    expect(within(nas).getByText(/Network ↓ 19,2 Mbit\/s/)).toBeInTheDocument()
-    expect(await within(nas).findByText('UPS on mains · 100%')).toBeInTheDocument()
-  })
 
   it('flags a short runway and a failing disk in the NAS card', async () => {
     setup({
@@ -156,81 +148,12 @@ describe('HomePage', () => {
     expect(within(news).queryByText(/^\d+ unread$/)).not.toBeInTheDocument()
   })
 
-  it('shows the last backup and service tiles with stats', async () => {
-    setup()
 
-    expect(await within(await openHomeCard('Backups', 'Last backup')).findByText('Succeeded')).toBeInTheDocument()
-    const services = await openHomeCard('Services')
-    expect(await within(services).findByRole('link', { name: /Jellyfin/ })).toHaveTextContent('1 streaming')
-  })
 
-  it('shows a failed night with its seal, the failed volume and the nights before', async () => {
-    setup({ '/api/backups': BACKUPS })
 
-    const card = await openHomeCard('Backups', 'Last backup')
-    expect(await within(card).findByRole('img', { name: 'Backup failed' })).toBeInTheDocument()
-    expect(within(card).getAllByText('Failed')).toHaveLength(2) // the pill and the result
-    expect(within(card).getByText('volume3')).toBeInTheDocument()
-    expect(within(card).getByText('Failed · 19 min')).toBeInTheDocument()
-    expect(within(card).queryByText('volume1')).not.toBeInTheDocument() // fine volumes stay in the count
-    expect(within(card).getByText('2 volumes · 23 min · 2,5 GB')).toBeInTheDocument()
-    // The route stops moving after a failed night.
-    expect(within(card).getByRole('img', { name: 'NAS to Hetzner · encrypted' }).querySelector('i')).toBeNull()
-    const bars = within(card).getByRole('img', { name: 'Backup durations, last 3 nights' })
-    expect(bars.querySelectorAll('rect')[2]).toHaveAttribute('fill', 'var(--color-down)')
-    expect(within(card).getByText('last night: failed')).toBeInTheDocument()
-    expect(within(card).getByText(/Next run due/)).toBeInTheDocument()
-  })
 
-  it('names last night\'s failure under the bars, not an older slow night', async () => {
-    const run = (day: number, minutes: number, ok = true) => ({
-      ...backupRun(day, ok), finished: new Date(new Date(backupRun(day).started).getTime() + minutes * 60_000).toISOString(),
-    })
-    setup({ '/api/backups': { ...BACKUPS, runs: [run(28, 20, false), run(27, 20), run(26, 45), run(25, 20)] } })
 
-    const card = await openHomeCard('Backups', 'Last backup')
-    const label = await within(card).findByText('last night: failed')
-    expect(label).toHaveAttribute('data-tone', 'down')
-    expect(within(card).queryByText('slow')).not.toBeInTheDocument()
-  })
-
-  it('shows a good night as all safe, a slow night in grey and the restore check', async () => {
-    const night = (daysAgo: number, minutes: number) => {
-      const start = new Date()
-      start.setDate(start.getDate() - daysAgo)
-      start.setHours(Math.min(start.getHours(), 3), 0, 0, 0)
-      if (daysAgo === 0 && start > new Date()) start.setTime(Date.now() - 3_600_000)
-      return { ...backupRun(1), started: start.toISOString(), finished: new Date(start.getTime() + minutes * 60_000).toISOString() }
-    }
-    setup({
-      '/api/backups': { ...BACKUPS, runs: [night(0, 20), night(1, 21), night(2, 40), night(3, 20)] },
-      '/api/database-dumps': { as_of: '', stale: false, databases: [], runs: [], restore_checks: [], last_verified: new Date(Date.now() - 12 * 86_400_000).toISOString() },
-    })
-
-    const card = await openHomeCard('Backups', 'Last backup')
-    expect(await within(card).findByText('All safe')).toBeInTheDocument()
-    expect(within(card).getByRole('img', { name: 'Backup succeeded' })).toBeInTheDocument()
-    expect(await within(card).findByText('Restore verified 12 days ago')).toHaveClass('text-up')
-    expect(within(card).getByRole('img', { name: 'NAS to Hetzner · encrypted' }).querySelector('i')).not.toBeNull()
-    const rects = within(card).getByRole('img', { name: 'Backup durations, last 4 nights' }).querySelectorAll('rect')
-    expect(rects[1]).toHaveAttribute('fill', 'var(--color-faint)') // 40 min against a usual 20: slow, not a problem
-    expect(within(card).getByText('slow')).toBeInTheDocument()
-  })
-
-  it('warns when the newest restore check failed', async () => {
-    setup({
-      '/api/backups': BACKUPS,
-      '/api/database-dumps': {
-        as_of: '', stale: false, databases: [], runs: [], last_verified: '2026-09-01T05:20:00Z',
-        restore_checks: [{ started: new Date(Date.now() - 2 * 86_400_000).toISOString(), finished: new Date(Date.now() - 2 * 86_400_000).toISOString(), ok: false, checks: [] }],
-      },
-    })
-
-    const card = await openHomeCard('Backups', 'Last backup')
-    expect(await within(card).findByText('Last restore check failed 2 days ago')).toHaveClass('text-down')
-  })
-
-  it('raises what needs a look in the strip and the subtitle', async () => {
+  it('unfolds a house card with a problem into a cell, out of the healthy line', async () => {
     setup({
       '/api/nas': nasFixture({
         storage: {
@@ -240,27 +163,16 @@ describe('HomePage', () => {
       }),
     })
 
-    expect(await screen.findByText(/1 thing needs a look/)).toBeInTheDocument()
-    expect(screen.getByText('volume2 98% full')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^NAS: Needs a look/ })).toBeInTheDocument()
-    expect(within(card('NAS')).queryByText('Needs a look')).not.toBeInTheDocument()
-    expect(within(card('NAS')).getByRole('meter', { name: 'volume2' })).toBeInTheDocument()
-    // The chips that need a look are tinted and their dots pulse; the rest stay quiet.
-    const chip = (label: string) => screen.getByRole('button', { name: new RegExp(`^${label}:`) })
-    expect(chip('NAS')).toHaveAttribute('data-tone', 'warn')
-    expect(chip('NAS').querySelector('.motion-safe\\:animate-halo')).not.toBeNull()
-    expect(chip('Services')).toHaveAttribute('data-tone', 'up')
-    // Alerts has no card on Home: its chip goes to the page, shaped like the others.
-    const alerts = screen.getByRole('link', { name: /^Alerts: volume2 98% full\. Go to Alerts$/ })
-    expect(alerts).toHaveAttribute('href', '/house/alerts')
-    expect(alerts.children).toHaveLength(chip('Services').children.length)
-    expect(chip('Services').querySelector('.motion-safe\\:animate-halo')).toBeNull()
+    const nas = await screen.findByRole('region', { name: 'NAS' })
+    expect(nas).toHaveAttribute('data-cell', 'true')
+    expect(within(nas).getByRole('meter', { name: 'volume2' })).toBeInTheDocument()
+    expect(await screen.findByText(/services up/)).not.toHaveTextContent(/NAS/)
   })
 
   it('lights the top of the page in the colour of the time of day', async () => {
     setup()
 
-    await screen.findByText(/everything is running/)
+    await screen.findByText(/The house is quiet/)
     expect(screen.getByTestId('sky').style.getPropertyValue('--sky')).toMatch(/^rgb\(/)
   })
 
@@ -293,24 +205,16 @@ describe('HomePage', () => {
     setup({ '/api/portfolio': new Error('offline') })
 
     expect(await within(card('Portfolio')).findByText('The portfolio is not available right now.')).toBeInTheDocument()
-    expect(await within(await openHomeCard('NAS')).findByRole('meter', { name: 'volume3' })).toBeInTheDocument()
+    expect(await screen.findByText(/^The NAS is healthy/)).toBeInTheDocument()
   })
 
-  it('opens a folded house card from its chip, one at a time, and closes it with Escape', async () => {
+  it('lays the cards out as cells, the wide ones over two columns', async () => {
     setup()
 
-    const nasChip = await screen.findByRole('button', { name: /^NAS:/ })
-    expect(nasChip).toHaveAttribute('aria-expanded', 'false')
-    fireEvent.click(nasChip)
-    expect(nasChip).toHaveAttribute('aria-expanded', 'true')
-    expect(await screen.findByRole('region', { name: 'NAS' })).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: /^Services:/ }))
-    expect(await screen.findByRole('region', { name: 'Services' })).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'NAS' })).not.toBeInTheDocument()
-
-    fireEvent.keyDown(window, { key: 'Escape' })
-    expect(screen.queryByRole('region', { name: 'Services' })).not.toBeInTheDocument()
+    const news = await screen.findByRole('region', { name: 'Latest news' })
+    expect(news).toHaveAttribute('data-cell', 'true')
+    expect(news.closest('[data-card]')).toHaveClass('sm:col-span-2')
+    expect(screen.getByRole('region', { name: "The day's cards" })).toHaveClass('grid-flow-row-dense')
   })
 
   it('puts a failed backup first and running laundry before the calm cards', async () => {
@@ -324,10 +228,11 @@ describe('HomePage', () => {
     })
 
     await screen.findByRole('region', { name: 'Laundry' })
-    const regions = screen.getAllByRole('region').map((r) => r.getAttribute('aria-labelledby'))
+    const regions = screen.getAllByRole('region').map((r) => r.getAttribute('aria-labelledby')).filter(Boolean)
     expect(regions[0]).toBe('card-backups')
-    // The failed backup is the hero, in its own frame and light.
+    // The failed backup is the hero, in its own frame and light, across the full width.
     expect(screen.getByRole('region', { name: 'Backups' }).closest('[data-hero]')).not.toBeNull()
+    expect(screen.getByRole('region', { name: 'Backups' }).closest('[data-card]')).toHaveClass('col-span-full')
     expect(screen.getByRole('region', { name: 'Laundry' }).parentElement!.querySelector('[data-live="accent"]')).not.toBeNull()
     expect(regions.indexOf('card-laundry')).toBeLessThan(regions.indexOf('card-latest-news'))
   })

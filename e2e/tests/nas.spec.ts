@@ -22,8 +22,8 @@ test('the NAS page shows live figures, pools and disks', async ({ page, isMobile
   await page.route('**/api/nas/history', (route) => route.fulfill({ json: HISTORY }))
   await page.goto('/')
 
-  // The House space opens on the NAS, on desktop and on a phone.
-  await new Shell(page).open('House', undefined, isMobile)
+  // A tab of the House space, on desktop and on a phone.
+  await new Shell(page).open('House', 'NAS', isMobile)
 
   await expect(page.getByText('dev-minotaur · up 86 days')).toBeVisible()
   await expect(page.getByRole('region', { name: 'CPU' }).getByText('Peak 30% in 24 hours')).toBeVisible()

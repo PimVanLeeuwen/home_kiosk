@@ -27,7 +27,8 @@ export function AttentionRow({ tone, title, detail, action }: Props) {
       className={cn('flex flex-wrap items-center gap-x-3.5 gap-y-2 rounded-card border bg-linear-to-r to-transparent to-60% px-5 py-4', look)}
     >
       <Icon aria-hidden="true" className={cn('size-5 shrink-0', color)} strokeWidth={1.9} />
-      <div className="min-w-0 flex-1">
+      {/* On a phone the text takes the row and the action goes under it, in line with the text. */}
+      <div className="min-w-0 flex-1 basis-[calc(100%-2.25rem)] sm:basis-0">
         <p className="font-medium">{title}</p>
         {detail && <p className="text-small text-muted">{detail}</p>}
       </div>

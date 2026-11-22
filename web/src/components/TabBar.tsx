@@ -1,7 +1,10 @@
 import { Ellipsis } from 'lucide-react'
 import { Link, useLocation } from 'react-router'
 import { cn } from '../lib/cn'
+import { lookAt, worstLook } from '../lib/incidents'
 import { MORE_ITEMS, MORE_ROUTE, SPACES, TAB_SPACES, spaceOf, spacePath } from '../lib/navigation'
+import { useOpenIncidents } from '../lib/openIncidents'
+import { AttentionDot } from './ui/AttentionDot'
 
 const tabClass = (active: boolean) =>
   cn(
@@ -13,6 +16,7 @@ const tabClass = (active: boolean) =>
 export function TabBar() {
   const { pathname } = useLocation()
   const current = spaceOf(pathname)
+  const { open } = useOpenIncidents()
   const tabs = SPACES.filter((space) => TAB_SPACES.includes(space.id))
   const inMore =
     pathname === MORE_ROUTE || MORE_ITEMS.some((item) => pathname === item.to || pathname.startsWith(`${item.to}/`))
@@ -33,6 +37,10 @@ export function TabBar() {
         >
           <space.icon aria-hidden="true" className="size-[21px]" strokeWidth={1.8} />
           {space.label}
+          <AttentionDot
+            level={worstLook(space.tabs.map((tab) => lookAt(open, tab.to)))}
+            className="absolute top-2 left-[calc(50%+8px)]"
+          />
         </Link>
       ))}
       <Link to={MORE_ROUTE} viewTransition className={tabClass(inMore)} aria-current={inMore ? 'page' : undefined}>

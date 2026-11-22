@@ -1,3 +1,4 @@
+import { PATHS } from './paths'
 import type { Tone } from '../components/ui/tones'
 import type { Incident } from './types'
 
@@ -31,3 +32,49 @@ export function weekOf(incidents: Incident[], now: Date) {
     return { label: weekday.format(new Date(start)), worst, today: i === 6 }
   })
 }
+
+/**
+ * The page each alert rule is about (collector/app/alerts/rules.py), where its attention row
+ * leads and where the space and tab get their dot. A rule left out leads to Alerts.
+ */
+const RULE_PATH: Record<string, string> = {
+  disk_space: PATHS.nas,
+  smart: PATHS.nas,
+  exposure: PATHS.nas,
+  port_scan: PATHS.nas,
+  container_health: PATHS.docker,
+  outside_services: PATHS.services,
+  adguard: PATHS.services,
+  backup_missing: PATHS.backups,
+  storage_box: PATHS.backups,
+  token_expiry: PATHS.repos,
+  train: PATHS.today,
+  apple_offline: PATHS.today,
+  desk_panels: `${PATHS.settings}/desk-panels`,
+  portfolio_move: PATHS.portfolio,
+}
+
+/** The page an incident is about. */
+export const incidentPath = (incident: Pick<Incident, 'rule'>): string => RULE_PATH[incident.rule] ?? PATHS.alerts
+
+/** What needs a look: open warnings and errors, errors first, then the longest open. */
+export function needsLook(incidents: Incident[] | undefined): Incident[] {
+  if (!Array.isArray(incidents)) return []
+  return incidents
+    .filter((i) => !i.resolved_at && (i.severity === 'error' || i.severity === 'warning'))
+    .sort((a, b) => (a.severity === b.severity ? a.opened_at.localeCompare(b.opened_at) : a.severity === 'error' ? -1 : 1))
+}
+
+/** Whether a page (and everything under it) has something that needs a look, and how bad: for the dots. */
+export function lookAt(open: Incident[], path: string): 'down' | 'warn' | null {
+  const here = open.filter((i) => {
+    const to = incidentPath(i)
+    return path === '/' ? to === '/' : to === path || to.startsWith(`${path}/`)
+  })
+  if (!here.length) return null
+  return here.some((i) => i.severity === 'error') ? 'down' : 'warn'
+}
+
+/** The worse of several looks. */
+export const worstLook = (looks: ('down' | 'warn' | null)[]): 'down' | 'warn' | null =>
+  looks.includes('down') ? 'down' : looks.includes('warn') ? 'warn' : null

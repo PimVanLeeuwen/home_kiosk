@@ -25,25 +25,30 @@ const SERVICES = {
   ] }],
 }
 
-test('Home brings status, cards and services together', async ({ page }) => {
+const INCIDENT = {
+  key: 'disk_space:volume2', rule: 'disk_space', severity: 'warning', title: 'volume2 is 98% full', body: '87 GB free',
+  opened_at: new Date(Date.now() - 3_600_000).toISOString(), last_seen_at: new Date().toISOString(), resolved_at: null,
+}
+
+test('Today leads with what needs a look, folds the healthy rest into a line, then the cells', async ({ page }) => {
   await page.route('**/api/nas', (route) => route.fulfill({ json: NAS }))
   await page.route('**/api/services', (route) => route.fulfill({ json: SERVICES }))
+  await page.route('**/api/alerts/incidents', (route) => route.fulfill({ json: [INCIDENT] }))
   // Portfolio and news left unstubbed: the e2e stack has no collector (502).
   await page.goto('/')
 
   await expect(page).toHaveTitle('Home · Home hub')
-  await expect(page.getByText(/1 thing needs a look/)).toBeVisible()
-  await expect(page.getByText('volume2 98% full')).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('1 thing needs a look.')
+  const row = page.getByRole('list', { name: 'Needs a look' }).getByRole('listitem')
+  await expect(row).toContainText('volume2 is 98% full')
   await expect(page.getByRole('region', { name: 'Portfolio' })).toContainText('not available right now')
-  // The full pool unfolds the NAS card by itself; Services stays folded in its chip until opened.
+  // The full pool unfolds the NAS card into a cell; Services is fine, so it is part of the healthy line.
   await expect(page.getByRole('region', { name: 'NAS' }).getByRole('meter', { name: 'volume2' })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Services' })).toHaveCount(0)
-  const chip = page.getByRole('button', { name: /^Services: 1 \/ 1 up/ })
-  await chip.click()
-  await expect(chip).toHaveAttribute('aria-expanded', 'true')
-  await expect(page.getByRole('region', { name: 'Services' }).getByRole('link', { name: /Jellyfin/ })).toContainText('2 streaming')
-  await page.keyboard.press('Escape')
-  await expect(page.getByRole('region', { name: 'Services' })).toHaveCount(0)
+  await expect(page.getByText(/1 of 1 services up/)).toBeVisible()
+  // The space and the row lead to the NAS page.
+  await row.getByRole('link', { name: 'NAS' }).click()
+  await expect(page).toHaveURL('/house/nas')
 })
 
 test('Home shows the weather with the rain in the next two hours', async ({ page }) => {
@@ -193,24 +198,18 @@ const DNS = {
   top_blocked: 'doubleclick.net', top_blocked_count: 312,
 }
 
-test('Home folds ad blocking into its chip, and unfolds it when AdGuard stops answering', async ({ page }) => {
+test('Today folds ad blocking into the healthy line, and unfolds it when AdGuard stops answering', async ({ page }) => {
   await page.route('**/api/dns', (route) => route.fulfill({ json: DNS }))
   await page.goto('/')
 
-  const chip = page.getByRole('button', { name: /^Ads blocked: 12,3%/ })
-  await expect(chip).toBeVisible()
+  await expect(page.getByText(/12,3% of lookups blocked/)).toBeVisible()
   await expect(page.getByRole('region', { name: 'Ad blocking' })).toHaveCount(0)
-  await chip.click()
-  const card = page.getByRole('region', { name: 'Ad blocking' })
-  await expect(card).toContainText('1.530')
-  await expect(card).toContainText('doubleclick.net')
-  await page.keyboard.press('Escape')
 
   await page.unroute('**/api/dns')
   await page.route('**/api/dns', (route) => route.fulfill({ json: { ...DNS, answering: false, stale: true } }))
   await page.reload()
-  await expect(page.getByRole('button', { name: /^Ads blocked: Down/ })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Ad blocking' })).toContainText('AdGuard is not answering')
+  await expect(page.getByText(/lookups blocked/)).toHaveCount(0)
 })
 
 test('Home shows the morning digest until it is over', async ({ page }) => {

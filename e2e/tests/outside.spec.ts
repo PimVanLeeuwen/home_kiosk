@@ -31,15 +31,12 @@ const ACTIONS_DELAYED = {
 const serve = (page: Page, json: object) =>
   page.route('**/api/outside-services', (route) => route.fulfill({ json }))
 
-test('Home shows the outside services around a check when all is well', async ({ page }) => {
+test('Today folds the outside services into the healthy line when all is well', async ({ page }) => {
   await serve(page, outside())
   await page.goto('/')
-  // All clear: the card is folded into its chip in the status strip.
-  await page.getByRole('button', { name: /^Outside services: All clear/ }).click()
 
-  const card = page.getByRole('region', { name: 'Outside services' })
-  await expect(card).toContainText('All operational')
-  await expect(card.getByRole('listitem')).toHaveCount(7)
+  await expect(page.getByText(/outside services all clear/i)).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Outside services' })).toHaveCount(0)
 })
 
 test('Home leads with an outside incident and its timeline', async ({ page }) => {

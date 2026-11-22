@@ -10,6 +10,7 @@ export const PATHS = {
   todos: '/now/todos',
   lights: '/home/lights',
   music: '/home/music',
+  house: '/house',
   nas: '/house/nas',
   docker: '/house/docker',
   services: '/house/services',

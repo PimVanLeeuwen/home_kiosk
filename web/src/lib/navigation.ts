@@ -10,6 +10,7 @@ import {
   FolderGit2,
   Footprints,
   House,
+  LayoutDashboard,
   LayoutGrid,
   ListTodo,
   Lightbulb,
@@ -81,6 +82,7 @@ export const SPACES: Space[] = [
     label: 'House',
     icon: Server,
     tabs: [
+      item(PATHS.house, 'Overview', LayoutDashboard, 'What needs a look in the house, then its vital signs', 'M38'),
       item(PATHS.nas, 'NAS', Server, 'CPU, memory, storage and disk health', 'M3'),
       item(PATHS.docker, 'Docker', Box, 'Containers, their load and update history', 'M3'),
       item(PATHS.services, 'Services', LayoutGrid, 'Every app on the NAS, with status and links', 'M2'),
@@ -125,6 +127,9 @@ export const spacePath = (space: Space) => space.tabs[0].to
 
 const under = (pathname: string, to: string) =>
   to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`)
+
+/** Whether a tab is its space's own address (Today at /, House's overview at /house): current only there. */
+export const isSpaceRoot = (to: string) => to === '/' || SPACES.some((space) => to === `/${space.id}`)
 
 /** The space a page belongs to, if any (Ask, Settings and More belong to none). */
 export function spaceOf(pathname: string): Space | undefined {

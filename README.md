@@ -13,7 +13,7 @@ Tailscale only, with no login and nothing exposed to the internet.
 
 ## What it does
 
-The pages sit in six spaces in the top bar (Now, Home, House, Read, Money, Kitchen), each with its pages as tabs; on a phone, a tab bar holds Now, Home, House and Read, and More the rest. Ask is beside the spaces and Settings behind the menu. The addresses from before the spaces (`/nas`, `/alerts/<id>`) still lead to their page.
+The pages sit in six spaces in the top bar (Now, Home, House, Read, Money, Kitchen), each with its pages as tabs; on a phone, a tab bar holds Now, Home, House and Read, and More the rest. Ask is beside the spaces and Settings behind the menu. The addresses from before the spaces (`/nas`, `/alerts/<id>`) still lead to their page. Today and House's overview open with what needs a look (the hub's open alerts, each with the way to its page), the rest in one line; a dot on a space or tab marks where.
 
 | Section | What it does |
 |---------|--------------|

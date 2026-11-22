@@ -11,12 +11,12 @@ describe('navigation (the spaces, plan.md M38)', () => {
     expect(SPACES.map((s) => s.label)).toEqual(['Now', 'Home', 'House', 'Read', 'Money', 'Kitchen'])
     for (const space of SPACES) {
       for (const tab of space.tabs) {
-        if (tab.to !== '/') expect(tab.to.startsWith(`/${space.id}/`)).toBe(true)
+        if (tab.to !== '/' && tab.to !== `/${space.id}`) expect(tab.to.startsWith(`/${space.id}/`)).toBe(true)
         expect(spaceOf(tab.to)).toBe(space)
       }
     }
     expect(SPACES.find((s) => s.id === 'house')!.tabs.map((t) => t.label)).toEqual([
-      'NAS', 'Docker', 'Services', 'Backups', 'Media', 'Network', 'Repos', 'Alerts',
+      'Overview', 'NAS', 'Docker', 'Services', 'Backups', 'Media', 'Network', 'Repos', 'Alerts',
     ])
   })
 
@@ -32,7 +32,7 @@ describe('navigation (the spaces, plan.md M38)', () => {
   })
 
   it('opens a space on its first tab', () => {
-    expect(SPACES.map(spacePath)).toEqual(['/', PATHS.lights, PATHS.nas, PATHS.news, PATHS.portfolio, PATHS.recipes])
+    expect(SPACES.map(spacePath)).toEqual(['/', PATHS.lights, '/house', PATHS.news, PATHS.portfolio, PATHS.recipes])
   })
 
   it('puts four spaces in the phone tab bar and the rest, with Ask and Settings, under More', () => {

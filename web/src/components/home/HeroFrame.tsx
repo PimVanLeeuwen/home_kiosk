@@ -12,9 +12,9 @@ interface Props {
 }
 
 /**
- * The frame around Home's hero, the one thing that matters most right now:
- * full width, a little larger, with its own light. The card inside keeps its
- * content; the frame takes over its surface.
+ * The frame around Today's hero, the one thing that matters most right now:
+ * the full width of the cells, a little larger, with its own light. The card
+ * inside keeps its content; the frame takes over its surface.
  */
 export function HeroFrame({ light, light2, backdrop, children }: Props) {
   return (
@@ -22,9 +22,8 @@ export function HeroFrame({ light, light2, backdrop, children }: Props) {
       data-hero
       style={{ '--h': light, '--h2': light2 ?? light } as CSSProperties}
       className={cn(
-        'relative isolate overflow-hidden rounded-hero border border-white/[0.075]',
-        'bg-[radial-gradient(70%_140%_at_100%_0%,color-mix(in_srgb,var(--h)_24%,transparent),transparent_62%),radial-gradient(60%_120%_at_0%_100%,color-mix(in_srgb,var(--h2)_12%,transparent),transparent_70%),linear-gradient(180deg,#17181e,#121318)]',
-        'shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_24px_60px_-30px_color-mix(in_srgb,var(--h)_60%,transparent)]',
+        'relative isolate grid h-full overflow-hidden shadow-[0_0_0_1px_var(--color-line-soft)]',
+        'bg-[radial-gradient(70%_140%_at_100%_0%,color-mix(in_srgb,var(--h)_22%,transparent),transparent_62%),radial-gradient(60%_120%_at_0%_100%,color-mix(in_srgb,var(--h2)_11%,transparent),transparent_70%),var(--color-card)]',
         // The card inside gives up its own surface and grows a little.
         '[&>section]:border-0 [&>section]:bg-transparent [&>section]:bg-none [&>section]:md:px-7 [&>section]:md:py-6',
       )}
@@ -37,7 +36,7 @@ export function HeroFrame({ light, light2, backdrop, children }: Props) {
             aria-hidden="true"
             className="pointer-events-none absolute -inset-10 -z-10 size-[calc(100%+5rem)] max-w-none object-cover opacity-50 blur-[60px] saturate-[1.3]"
           />
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-r from-[#0e0f12]/85 to-[#0e0f12]/40" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-r from-card/85 to-card/40" />
         </>
       )}
       {children}

@@ -2355,6 +2355,22 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   Settings). Today stays at `/`. The palette keeps recent choices under the old page ids. Not yet:
   the dots on a space or tab while something there needs a look (step 4, with the attention data),
   the overviews, and the Air, Laundry, Apple devices and Outside tabs (steps 4 and 5).
+- Built 2026-11-22 (step 4), decided with the owner: "needs a look" is the hub's open incidents
+  (`/api/alerts/incidents`, warnings and errors), the same list as ntfy and Alerts; Today is
+  rebuilt in cells; House gets an Overview at `/house` as its first tab. The layout fetches the
+  incidents once (`lib/openIncidents`); `lib/incidents` maps each rule to its page
+  (`incidentPath`), which gives the attention rows their action and the spaces, tabs and the
+  phone's tab bar their dot (amber, red for an error; the overview tab has none of its own).
+  Today: the two-line greeting ("Good morning." and "2 things need a look."), one
+  `AttentionRow` per incident (no link when it is about Today itself), the folded house cards
+  with nothing to report as one `HealthyLine` to House, then the cards in a `CellGrid` (the hero
+  across the full width, wide cards over two columns, dense). A Card or Surface placed in a
+  CellGrid draws itself as a cell (`InCellGrid`), so the cards kept their code. The status strip
+  and its chips are gone, and so are the browser's own checks (`attentionItems`); a site down in
+  Uptime Kuma no longer counts on Today, as no rule opens an incident for it. House's overview:
+  its incidents, the rest in one line, then CPU, memory, containers and network with sparklines,
+  storage per volume, and the house's messages of the last 24 hours. Not yet: one badge per
+  fact (an outside problem is both a row and the unfolded Outside card), in step 5.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
