@@ -7,6 +7,7 @@ import { Card } from '../ui/Card'
 import { StaleNote } from '../ui/states'
 import { GlowDot } from '../ui/GlowDot'
 import { SvgLabel } from '../ui/SvgLabel'
+import { PATHS } from '../../lib/paths'
 
 const VIDEO = 'var(--color-data-deep-blue)'
 const MUSIC = 'var(--color-accent-fg)'
@@ -240,9 +241,10 @@ function NowPlaying({ room }: { room: Room & { playing: ApplePlaying } }) {
 /**
  * The Home panel's Apple devices screen in the hub: the house as lit rooms,
  * each Apple TV and HomePod an orb, the Thread border routers as one network,
- * and what plays per room below.
+ * and what plays per room below. On the Apple devices page (`onPage`) it is "The house",
+ * without its link.
  */
-export function AppleCard({ data }: { data: AppleDevices | undefined }) {
+export function AppleCard({ data, onPage = false }: { data: AppleDevices | undefined; onPage?: boolean }) {
   if (!data?.rooms.length) return null
   const devices = data.rooms.flatMap((r) => r.devices)
   const offline = devices.filter((d) => !d.online).length
@@ -258,7 +260,11 @@ export function AppleCard({ data }: { data: AppleDevices | undefined }) {
   else pill = <Pill tone="up">All online</Pill>
 
   return (
-    <Card title="Apple devices" actions={pill}>
+    <Card
+      title={onPage ? 'The house' : 'Apple devices'}
+      link={onPage ? undefined : { to: PATHS.apple, label: 'Details' }}
+      actions={pill}
+    >
       <Plan rooms={data.rooms} />
       <div className="mt-2 flex flex-wrap justify-between gap-2.5 text-small text-muted">
         <span>

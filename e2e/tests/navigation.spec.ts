@@ -100,6 +100,17 @@ test('an old address lands on its page in its space, query and all', async ({ pa
   await expect(page).toHaveURL('/read/news?group=tech')
 })
 
+test('Home\'s tabs reach the pages built from Today\'s cards', async ({ page, isMobile }) => {
+  const shell = new Shell(page)
+  await page.goto('/')
+
+  for (const [tab, url] of [['Air', '/home/air'], ['Laundry', '/home/laundry'], ['Apple devices', '/home/apple']]) {
+    await shell.open('Home', tab, isMobile)
+    await expect(page).toHaveURL(url)
+    await expect(shell.heading()).toHaveText(tab)
+  }
+})
+
 test('deep links and reloads land on the right section', async ({ page }) => {
   const shell = new Shell(page)
   await page.goto('/settings')

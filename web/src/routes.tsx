@@ -5,13 +5,16 @@ import { Moved } from './components/Moved'
 import { MORE_ROUTE, NAV_ITEMS, SPACES, spacePath } from './lib/navigation'
 import { MOVED, PATHS } from './lib/paths'
 import { AlertMessagePage } from './pages/AlertMessagePage'
+import { AirPage } from './pages/AirPage'
 import { AlertsPage } from './pages/AlertsPage'
+import { AppleDevicesPage } from './pages/AppleDevicesPage'
 import { AskPage } from './pages/AskPage'
 import { BackupsPage } from './pages/BackupsPage'
 import { CookPage } from './pages/CookPage'
 import { DockerPage } from './pages/DockerPage'
 import { HomePage } from './pages/HomePage'
 import { HouseOverviewPage } from './pages/HouseOverviewPage'
+import { LaundryPage } from './pages/LaundryPage'
 import { LightsPage } from './pages/LightsPage'
 import { MorePage } from './pages/MorePage'
 import { MediaPage } from './pages/MediaPage'
@@ -19,6 +22,7 @@ import { MusicPage } from './pages/MusicPage'
 import { NasPage } from './pages/NasPage'
 import { NewsPage } from './pages/NewsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { OutsidePage } from './pages/OutsidePage'
 import { PortfolioPage } from './pages/PortfolioPage'
 import { PageError } from './pages/PageError'
 import { RecipePage } from './pages/RecipePage'
@@ -40,6 +44,10 @@ const PAGES: Record<string, ReactElement> = {
   [PATHS.ask]: <AskPage />,
   [PATHS.lights]: <LightsPage />,
   [PATHS.music]: <MusicPage />,
+  [PATHS.air]: <AirPage />,
+  [PATHS.laundry]: <LaundryPage />,
+  [PATHS.apple]: <AppleDevicesPage />,
+  [PATHS.outside]: <OutsidePage />,
   [PATHS.weather]: <WeatherPage />,
   [PATHS.running]: <RunningPage />,
   [PATHS.reminders]: <RemindersPage />,

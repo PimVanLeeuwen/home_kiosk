@@ -39,7 +39,7 @@ export function SpaceTabs() {
               end={isSpaceRoot(tab.to)}
               className={({ isActive }) =>
                 cn(
-                  '-mb-px flex min-h-10 items-center gap-1.5 border-b whitespace-nowrap transition-colors pointer-coarse:min-h-11',
+                  '-mb-px flex min-h-10 min-w-6 items-center justify-center gap-1.5 border-b whitespace-nowrap transition-colors pointer-coarse:min-h-11',
                   isActive ? 'border-fg text-fg' : 'border-transparent text-muted hover:text-fg',
                 )
               }

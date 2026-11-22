@@ -1,24 +1,20 @@
 import { headline, STATE_LABEL, STATE_TEXT, troubled } from '../../lib/outside'
 import type { OutsideServices } from '../../lib/types'
-import { useApi } from '../../lib/useApi'
 import { BrandLogo } from './BrandLogo'
 import { IncidentCard } from './IncidentCard'
 import { ReadNotes } from './ReadNotes'
 import { Loading, StaleNote, Unavailable } from '../ui/states'
 import { Surface } from '../ui/Card'
 
-const REFRESH_MS = 60_000
-
-/** The Services page's full view: every outside service with its state and a
+/** The Outside page's full view (House, M38): every outside service with its state and a
  * link to its status page, then each open incident and running maintenance. */
-export function OutsideServicesSection() {
-  const { data, error } = useApi<OutsideServices>('/api/outside-services', REFRESH_MS)
+export function OutsideServicesSection({ data, error }: { data: OutsideServices | undefined; error: Error | undefined }) {
   const services = data?.services ?? []
   const open = troubled(services)
   const maintenance = services.filter((s) => s.state === 'maintenance')
 
   return (
-    <Surface as="section" aria-labelledby="group-outside" className="mt-5">
+    <Surface as="section" aria-labelledby="group-outside">
       <h2 id="group-outside" className="mb-1 text-small font-semibold text-muted">
         Outside services
       </h2>

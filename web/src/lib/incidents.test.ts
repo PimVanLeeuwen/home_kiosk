@@ -24,7 +24,8 @@ describe('what needs a look', () => {
   it('leads each rule to its page, and an unknown one to Alerts', () => {
     expect(incidentPath({ rule: 'smart' })).toBe('/house/nas')
     expect(incidentPath({ rule: 'container_health' })).toBe('/house/docker')
-    expect(incidentPath({ rule: 'outside_services' })).toBe('/house/services')
+    expect(incidentPath({ rule: 'outside_services' })).toBe('/house/outside')
+    expect(incidentPath({ rule: 'apple_offline' })).toBe('/home/apple')
     expect(incidentPath({ rule: 'train' })).toBe('/')
     expect(incidentPath({ rule: 'desk_panels' })).toBe('/settings/desk-panels')
     expect(incidentPath({ rule: 'something_new' })).toBe('/house/alerts')
@@ -46,7 +47,8 @@ describe('what needs a look', () => {
 
   it('finds the worst look under a page, the overview gathering its tabs', () => {
     const open = needsLook([at('outside_services', 'warning'), at('backup_missing', 'error'), at('train', 'warning')])
-    expect(lookAt(open, '/house/services')).toBe('warn')
+    expect(lookAt(open, '/house/outside')).toBe('warn')
+    expect(lookAt(open, '/house/services')).toBeNull()
     expect(lookAt(open, '/house/backups')).toBe('down')
     expect(lookAt(open, '/house')).toBe('down')
     expect(lookAt(open, '/house/nas')).toBeNull()

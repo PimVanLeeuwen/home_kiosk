@@ -16,8 +16,10 @@ describe('navigation (the spaces, plan.md M38)', () => {
       }
     }
     expect(SPACES.find((s) => s.id === 'house')!.tabs.map((t) => t.label)).toEqual([
-      'Overview', 'NAS', 'Docker', 'Services', 'Backups', 'Media', 'Network', 'Repos', 'Alerts',
+      'Overview', 'NAS', 'Docker', 'Services', 'Outside', 'Backups', 'Media', 'Network', 'Repos', 'Alerts',
     ])
+    // 5f: the Air, Laundry and Apple devices cards got pages of their own in Home.
+    expect(SPACES.find((s) => s.id === 'home')!.tabs.map((t) => t.label)).toEqual(['Lights', 'Music', 'Air', 'Laundry', 'Apple devices'])
   })
 
   it('finds the space of a page under a tab and of the space address itself', () => {

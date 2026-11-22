@@ -7,6 +7,7 @@ import { Card } from '../ui/Card'
 import { StaleNote } from '../ui/states'
 import { AnimatedNumber } from '../ui/AnimatedNumber'
 import { Ring } from '../ui/Ring'
+import { PATHS } from '../../lib/paths'
 
 const R = 44
 const MACHINE_COLOUR = { washer: 'var(--color-data-violet)', dryer: 'var(--color-data-deep-blue)' } as const
@@ -101,19 +102,26 @@ function headline(machines: Machine[]): ReactNode {
   if (machines.some((m) => m.state === 'paused')) return <Pill tone="warn">Paused</Pill>
   const running = machines.filter((m) => m.state === 'running')
   if (running.length > 1) return <Pill tone="accent">Both running</Pill>
-  return <Pill tone="accent">{running[0]?.kind === 'dryer' ? 'Dryer running' : 'Washer running'}</Pill>
+  if (running.length === 1) return <Pill tone="accent">{running[0].kind === 'dryer' ? 'Dryer running' : 'Washer running'}</Pill>
+  // Nothing to say (the Laundry page shows the machines while they are off too).
+  return null
 }
 
 /**
  * The washer and dryer on Home, the Home panel's laundry card: only while a
- * machine runs, is paused, has an error or is done (until its door opens).
+ * machine runs, is paused, has an error or is done (until its door opens). On the
+ * Laundry page (`onPage`) it always shows, as "Machines", without its link.
  */
-export function LaundryCard({ data }: { data: Laundry | undefined }) {
-  if (!data?.showing) return null
+export function LaundryCard({ data, onPage = false }: { data: Laundry | undefined; onPage?: boolean }) {
+  if (!data || (!data.showing && !onPage)) return null
   const now = new Date()
 
   return (
-    <Card title="Laundry" actions={headline(data.machines)}>
+    <Card
+      title={onPage ? 'Machines' : 'Laundry'}
+      link={onPage ? undefined : { to: PATHS.laundry, label: 'Details' }}
+      actions={headline(data.machines)}
+    >
       <ul className="grid grid-cols-2 gap-4.5">
         {data.machines.map((m) => {
           const [first, second] = lines(m)

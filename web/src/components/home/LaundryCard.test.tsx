@@ -41,6 +41,7 @@ describe('LaundryCard', () => {
     expect(w.querySelector('[data-water]')).toHaveClass('motion-safe:animate-drum')
     expect(await machine('Tumble dryer')).toHaveClass('opacity-45')
     expect(screen.getByText('Updated 1 min ago · ConnectLife')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Details →' })).toHaveAttribute('href', '/home/laundry')
   })
 
   it('says both are running', async () => {

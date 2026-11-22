@@ -49,7 +49,7 @@ export function OutsideServicesCard({ data, error }: { data: OutsideServices | u
   const others = services.filter((s) => !problems.includes(s))
 
   return (
-    <Card title="Outside services" link={{ to: PATHS.services, label: 'Details' }}>
+    <Card title="Outside services" link={{ to: PATHS.outside, label: 'Details' }}>
       {!data && (error ? <Unavailable what="The status of outside services" /> : <Loading />)}
       {data && problems.length === 0 && (
         <>
@@ -65,7 +65,7 @@ export function OutsideServicesCard({ data, error }: { data: OutsideServices | u
             <IncidentCard key={s.key} service={s} incident={headline(s)} />
           ))}
           {problems.length > 2 && (
-            <p className="text-small text-muted">And {problems.length - 2} more on the Services page.</p>
+            <p className="text-small text-muted">And {problems.length - 2} more on the Outside page.</p>
           )}
           <div className="mt-1 flex flex-wrap items-center gap-2">
             {others.map((s) => (

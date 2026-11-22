@@ -2415,6 +2415,17 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   close it), so a row stays one line. Used for the Services editor's services and groups and the
   News feeds' feeds and groups; a wide screen keeps the icon buttons. The menu is fixed to the
   screen (the card clips), opens above its button near the bottom, and closes on scroll.
+- Built 2026-11-22 (5f), decided with the owner the same day: Home's tabs Air (`/home/air`), Laundry
+  (`/home/laundry`) and Apple devices (`/home/apple`), and House's Outside (`/house/outside`), each
+  built from its Today card plus a detail list, with no collector changes (the API has nothing
+  beyond the cards' data). Air: the four readings as cells, then CO₂ as the ring beside its 8 hours,
+  wide. Laundry: both machines, also while off (the card's `onPage`), then per machine its state,
+  program, time left, door and ConnectLife. Apple devices: the house plan (`onPage`), then every
+  device per room with its kind, Thread role and state. Outside: the status pages and incidents,
+  moved off the Services page (one place per fact); its header pill only when something has a
+  problem. Today's Air, Laundry, Apple devices and Outside cards link to their page ("Details"),
+  and the outside_services and apple_offline incidents lead to Outside and Apple devices (so their
+  dots sit on those tabs). A short tab label gets a 24px target (`min-w-6`).
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

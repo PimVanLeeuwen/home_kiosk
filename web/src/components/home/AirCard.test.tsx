@@ -32,6 +32,7 @@ describe('AirCard', () => {
     expect(screen.getByText('Sensor says: Good')).toBeInTheDocument()
     expect(screen.getByText('Living room · outside 10°')).toBeInTheDocument()
     expect(screen.getByText('Updated 1 min ago · IKEA ALPSTUGA')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Details →' })).toHaveAttribute('href', '/home/air')
   })
 
   it('shows CO₂ as a ring with its word, and the last 8 hours as a curve', async () => {

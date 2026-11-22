@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { Shell } from './shell'
 
 const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
 const NAMES: [string, string][] = [
@@ -49,9 +50,12 @@ test('Home leads with an outside incident and its timeline', async ({ page }) =>
   await expect(page.getByText('The other 6 are operational')).toBeVisible()
 })
 
-test('the Services page lists every outside service and the open incidents', async ({ page }) => {
+test('House\'s Outside tab lists every outside service and the open incidents', async ({ page, isMobile }) => {
   await serve(page, outside({ github: ACTIONS_DELAYED }))
-  await page.goto('/house/services')
+  await page.goto('/')
+  await new Shell(page).open('House', 'Outside', isMobile)
+  await expect(page).toHaveURL('/house/outside')
+  await expect(page.getByText('1 with a problem')).toBeVisible()
 
   const section = page.getByRole('region', { name: 'Outside services' })
   await expect(section.getByRole('link', { name: /open the status page/ })).toHaveCount(7)

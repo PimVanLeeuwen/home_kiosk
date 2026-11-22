@@ -23,9 +23,13 @@ The pages sit in six spaces in the top bar (Now, Home, House, Read, Money, Kitch
 | Portfolio | Ghostfolio overview: value history, holdings, allocation, holding detail, markets; **Update from DEGIRO** imports new trades |
 | NAS, Docker, Backups | Live figures and history, the UPS and its power cuts, what is public on the internet, container load and image updates, rclone runs per volume, storage box space, database dumps, the GitHub mirror, and the backup another NAS sends here each night (late after 3 days) |
 | Media | What needs attention in the media stack, from Sonarr and Radarr: downloads with poster, progress and time left (stalled or failed ones with their reason), aired episodes that are missing, and what airs in the coming week; Seerr's requests and where they stand, who watched how much in 30 days (Tracearr) and the library's size |
-| Services | Links to every app, LAN or Tailscale depending on how the hub was opened, with live stats; my websites as 30-day uptime rings from Uptime Kuma; the status of GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP and Proton with any open incident |
+| Services | Links to every app, LAN or Tailscale depending on how the hub was opened, with live stats; my websites as 30-day uptime rings from Uptime Kuma |
+| Outside | The status of GitHub, Cloudflare, Docker Hub, Tailscale, Hetzner, TransIP and Proton with any open incident and running maintenance |
 | Lights | The living room's Hue lights through the bridge's local API: on, off, dim and white, live from the bridge |
 | Music | Spotify: what plays, the controls, my devices and favourites, and waking the living room Apple TV to play there |
+| Air | The living room's temperature, humidity, CO₂ and fine dust (IKEA ALPSTUGA), with CO₂ over the last 8 hours |
+| Laundry | The washer and dryer through ConnectLife, also while they are off: program, time left, door and connection |
+| Apple devices | The Apple TVs and HomePods per room, the Thread network between them, and what plays |
 | Tailscale | The tailnet as a map around the NAS and every device on it: MagicDNS name, addresses, direct, relay or idle, exit node, last seen, and tailscaled's own health warnings (read-only, from the NAS's tailscaled) |
 | Repos | GitHub repos: mine, Hubble and GEWIS, with the backup status of each mirrored repo and when each token expires |
 | Alerts | Every message the hub sends and where it went (ntfy or Telegram), ntfy on or off, quiet hours, routing for Telegram, and the hub's own alert rules; an open alert can be dismissed until it resolves (off the hub's pages, the dots, the briefing and /status, with Undo). Each message has its own page for 7 days (`/house/alerts/<id>`, where a tap on a notification leads): the full text, its picture, whether the problem is still open, an explanation on request, links onward and earlier messages |

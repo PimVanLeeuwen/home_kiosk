@@ -29,9 +29,11 @@ describe('Layout', () => {
     expect(within(spaces()).getByRole('link', { name: 'House' })).toHaveAttribute('aria-current', 'page')
     expect(within(spaces()).getByRole('link', { name: 'Now' })).not.toHaveAttribute('aria-current')
     const tabs = screen.getByRole('navigation', { name: 'House pages' })
-    expect(names(tabs)).toEqual(['Overview', 'NAS', 'Docker', 'Services', 'Backups', 'Media', 'Network', 'Repos', 'Alerts'])
+    expect(names(tabs)).toEqual(['Overview', 'NAS', 'Docker', 'Services', 'Outside', 'Backups', 'Media', 'Network', 'Repos', 'Alerts'])
     expect(within(tabs).getByRole('link', { name: 'Backups' })).toHaveAttribute('aria-current', 'page')
     expect(within(tabs).getByRole('link', { name: 'NAS' })).not.toHaveAttribute('aria-current')
+    // A short tab ("NAS", Home's "Air") is still a 24px target.
+    expect(within(tabs).getByRole('link', { name: 'NAS' })).toHaveClass('min-w-6')
     // The overview is current only on its own address, not on every House page.
     expect(within(tabs).getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current')
   })
@@ -127,8 +129,9 @@ describe('Layout', () => {
     renderRoute('/house/repos')
 
     const tabs = screen.getByRole('navigation', { name: 'House pages' })
-    expect(await within(tabs).findByRole('link', { name: 'Services, needs a look' })).toBeInTheDocument()
+    expect(await within(tabs).findByRole('link', { name: 'Outside, needs a look' })).toBeInTheDocument()
     expect(within(tabs).getByRole('link', { name: 'Overview' }).querySelector('[data-look]')).toBeNull()
     expect(within(tabs).getByRole('link', { name: 'Docker' }).querySelector('[data-look]')).toBeNull()
+    expect(within(tabs).getByRole('link', { name: 'Services' }).querySelector('[data-look]')).toBeNull()
   })
 })

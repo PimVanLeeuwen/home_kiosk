@@ -1,4 +1,3 @@
-import { OutsideServicesSection } from '../components/outside/OutsideServicesSection'
 import { PageHeader } from '../components/PageHeader'
 import { OutOf, StatTile, StatTiles } from '../components/ui/StatTile'
 import { MySitesSection } from '../components/sites/MySitesSection'
@@ -114,7 +113,6 @@ export function ServicesPage() {
       )}
 
       <MySitesSection />
-      <OutsideServicesSection />
     </>
   )
 }

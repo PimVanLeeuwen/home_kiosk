@@ -53,7 +53,7 @@ describe('HomePage', () => {
     const rows = within(screen.getByRole('list', { name: 'Needs a look' })).getAllByRole('listitem')
     expect(rows.map((r) => r.querySelector('p')!.textContent)).toEqual(['No good dump of the Tracearr database', 'TransIP: TransNOC reports a problem'])
     expect(within(rows[0]).getByRole('link', { name: 'Backups' })).toHaveAttribute('href', '/house/backups')
-    expect(within(rows[1]).getByRole('link', { name: 'Services' })).toHaveAttribute('href', '/house/services')
+    expect(within(rows[1]).getByRole('link', { name: 'Outside' })).toHaveAttribute('href', '/house/outside')
     expect(rows[1]).toHaveTextContent(/Degraded on their status page\. · since Fri 20 Nov/)
   })
 

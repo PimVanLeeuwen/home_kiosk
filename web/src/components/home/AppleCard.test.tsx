@@ -1,8 +1,13 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render as plain, screen, waitFor, within } from '@testing-library/react'
+import type { ReactNode } from 'react'
+import { MemoryRouter } from 'react-router'
 import type { AppleDevices, ApplePlaying } from '../../lib/types'
 import { stubApi } from '../../test/stubApi'
 import { AppleCard } from './AppleCard'
 import { useApi } from '../../lib/useApi'
+
+/** The card links to its page, so it needs a router. */
+const render = (ui: ReactNode) => plain(<MemoryRouter>{ui}</MemoryRouter>)
 
 /** The card as Home gives it its data. */
 function Fetched() {
@@ -47,6 +52,7 @@ describe('AppleCard', () => {
 
     const c = await card()
     expect(within(c).getByText('All online')).toBeInTheDocument()
+    expect(within(c).getByRole('link', { name: 'Details →' })).toHaveAttribute('href', '/home/apple')
     expect(c.querySelectorAll('[data-device]')).toHaveLength(6)
     expect(c.querySelectorAll('[data-link="up"]')).toHaveLength(5)
     expect(within(c).getByText('Thread · 5 of 5 border routers')).toBeInTheDocument()

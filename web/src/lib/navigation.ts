@@ -8,6 +8,7 @@ import {
   CookingPot,
   CloudUpload,
   FolderGit2,
+  Globe,
   Footprints,
   House,
   LayoutDashboard,
@@ -18,10 +19,13 @@ import {
   Network,
   Newspaper,
   Server,
+  Speaker,
   Sparkles,
   Settings,
   Sun,
   TrendingUp,
+  WashingMachine,
+  Wind,
   type LucideIcon,
 } from 'lucide-react'
 import { MOVED, PATHS } from './paths'
@@ -75,6 +79,9 @@ export const SPACES: Space[] = [
     tabs: [
       item(PATHS.lights, 'Lights', Lightbulb, 'The living room through the Hue Bridge', 'M17'),
       item(PATHS.music, 'Music', MusicIcon, 'Spotify: what plays, your devices and favourites', 'M18'),
+      item(PATHS.air, 'Air', Wind, "The living room's temperature, humidity, CO₂ and fine dust", 'M38', 'co2 temperature humidity'),
+      item(PATHS.laundry, 'Laundry', WashingMachine, 'The washer and dryer through ConnectLife', 'M38', 'washer dryer'),
+      item(PATHS.apple, 'Apple devices', Speaker, 'Apple TVs and HomePods per room, the Thread network and what plays', 'M38', 'homepod apple tv thread'),
     ],
   },
   {
@@ -86,6 +93,7 @@ export const SPACES: Space[] = [
       item(PATHS.nas, 'NAS', Server, 'CPU, memory, storage and disk health', 'M3'),
       item(PATHS.docker, 'Docker', Box, 'Containers, their load and update history', 'M3'),
       item(PATHS.services, 'Services', LayoutGrid, 'Every app on the NAS, with status and links', 'M2'),
+      item(PATHS.outside, 'Outside', Globe, 'The services the house depends on, from their status pages', 'M38', 'status transip'),
       item(PATHS.backups, 'Backups', CloudUpload, 'Nightly rclone runs to Hetzner', 'M4'),
       item(PATHS.media, 'Media', Clapperboard, 'What is downloading, missing and airing next', 'M20'),
       item(PATHS.network, 'Network', Network, 'The tailnet and every device on it', 'Backlog', 'tailscale tailnet'),
