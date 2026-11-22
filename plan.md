@@ -2403,6 +2403,12 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   left", the UPS and ad blocking rings' caption, the websites' "Up", the quiet-hours ring (larger,
   the four hours inside it) and the Apple devices plan's room names, and the Air ring's "ppm
   CO₂". `theme.test.ts` fails on SVG text under 7 units; only a chart's large figure stays SVG.
+- Built 2026-11-22 (5d): every page's headline tiles are one row of hairline cells (`StatTiles` is a
+  `CellGrid`: Docker, Repos, Services, Media, Portfolio, Running), two to a line on a phone, an odd
+  last tile across the full width. Repos says a failure once: the page's pill shows only failing
+  builds (no "All passing", the CI tile says "All green"), and the Code card's pill only what is
+  running. The Settings section heading is on the type scale (`text-heading`, was Tailwind's
+  `text-lg`).
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

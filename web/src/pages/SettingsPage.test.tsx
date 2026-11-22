@@ -236,7 +236,8 @@ describe('SettingsPage services', () => {
 describe('SettingsPage sections', () => {
   it('opens Services for plain /settings, with every section in the nav', async () => {
     setup()
-    expect(await screen.findByRole('heading', { level: 2, name: 'Services' })).toBeInTheDocument()
+    // On the hub's type scale (M38), not one of Tailwind's own sizes.
+    expect(await screen.findByRole('heading', { level: 2, name: 'Services' })).toHaveClass('text-heading')
     const nav = screen.getByRole('navigation', { name: 'Settings sections' })
     expect(within(nav).getAllByRole('link').map((a) => a.textContent)).toEqual([
       'Services',

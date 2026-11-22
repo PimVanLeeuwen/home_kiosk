@@ -57,7 +57,7 @@ export function SettingsPage() {
           <SettingsNav items={SECTIONS} />
         </div>
         <section aria-labelledby={headingId}>
-          <h2 id={headingId} className="mb-3 text-lg font-semibold">
+          <h2 id={headingId} className="mb-3 text-heading font-medium">
             {section.label}
           </h2>
           {section.element}

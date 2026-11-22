@@ -89,7 +89,8 @@ describe('CodeCard', () => {
   it('lists your and Hubble builds, a failing one first, and leaves GEWIS out', () => {
     render(<CodeCard data={data()} />)
 
-    expect(screen.getByText('1 failing')).toBeInTheDocument()
+    // One badge per fact (M38): the failure is the page's pill and the row, not this card's pill too.
+    expect(screen.queryByText('1 failing')).not.toBeInTheDocument()
     expect(screen.getByText('Mine · Hubble')).toBeInTheDocument()
     const builds = rows(/^Default branches/)
     expect(builds.map((b) => b.querySelector('b')!.textContent)).toEqual(['hubble-website', 'home_kiosk', 'old'])
@@ -122,18 +123,19 @@ describe('CodeCard', () => {
     expect(screen.getByText('PimVanLeeuwen')).toBeInTheDocument()
   })
 
-  it('says running in violet when nothing fails, and all green when nothing runs', () => {
+  it('says what is running in violet, and has no pill when nothing runs', () => {
     const calm = data()
-    calm.groups[1].repos[0].ci = 'passing'
     const { unmount } = render(<CodeCard data={calm} />)
     // Running is activity, not a problem: violet, never amber.
     expect(screen.getByText('1 running')).toHaveClass('text-accent-fg')
     unmount()
 
+    calm.groups[1].repos[0].ci = 'passing'
     calm.groups[0].repos[0].pulls = []
     calm.groups[1].repos[0].pulls = []
-    render(<CodeCard data={calm} />)
-    expect(screen.getByText('All green')).toBeInTheDocument()
+    const { container } = render(<CodeCard data={calm} />)
+    expect(container.querySelector('.eyebrow.rounded-full, [data-pill]')).toBeNull()
+    expect(screen.queryByText('All green')).not.toBeInTheDocument()
     expect(screen.getByText('No open pull requests.')).toBeInTheDocument()
   })
 

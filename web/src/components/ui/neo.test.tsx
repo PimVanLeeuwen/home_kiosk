@@ -6,6 +6,7 @@ import { Card } from './Card'
 import { Cell, CellGrid } from './CellGrid'
 import { Headline } from './Headline'
 import { Sparkline } from './Sparkline'
+import { StatTile, StatTiles } from './StatTile'
 
 const inRouter = (ui: React.ReactNode) => render(<MemoryRouter>{ui}</MemoryRouter>)
 
@@ -33,6 +34,23 @@ describe('the neo-minimal surfaces (M38)', () => {
     expect(screen.getByRole('link', { name: 'NAS →' })).toHaveAttribute('href', '/house/nas')
     expect(screen.getByText('bare')).toHaveClass('col-span-full', 'sm:col-span-2')
     expect(screen.getByText('bare')).not.toHaveAttribute('role')
+  })
+
+  it('puts a page\'s headline tiles in one row of cells, two to a line on a phone', () => {
+    inRouter(
+      <StatTiles label="Summary" count={3}>
+        <StatTile title="Downloads" figure={2} />
+        <StatTile title="Requests" figure={1} />
+        <StatTile title="Airing" figure={5} />
+      </StatTiles>,
+    )
+    const grid = screen.getByRole('region', { name: 'Summary' })
+    expect(grid).toHaveClass('gap-px', 'grid-cols-2', 'xl:grid-cols-3')
+    // The odd one out on a phone's last line takes the full width, not half of it beside a gap.
+    expect(grid.className).toContain('max-xl:[&>*:last-child:nth-child(odd)]:col-span-2')
+    const tile = screen.getByRole('region', { name: 'Airing' })
+    expect(tile).toHaveAttribute('data-cell', 'true')
+    expect(tile).not.toHaveClass('rounded-card')
   })
 
   it('draws a sparkline as a line over a fading wash, each with its own gradient', () => {

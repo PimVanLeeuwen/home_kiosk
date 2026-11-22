@@ -69,7 +69,8 @@ export function ReposPage() {
       <PageHeader
         title="Repos"
         subtitle={data ? `From GitHub, updated ${formatAgo(data.as_of)}` : 'GitHub repos: yours, Hubble and GEWIS'}
-        status={data && (failing ? <Pill tone="down">{failing} failing</Pill> : <Pill tone="up">All passing</Pill>)}
+        // One badge per fact (M38): only what needs a look; the CI tile says when all is green.
+        status={data && failing > 0 && <Pill tone="down">{failing} failing</Pill>}
       />
 
       {loading && !data && (

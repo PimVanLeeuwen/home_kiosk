@@ -172,17 +172,11 @@ export function CodeCard({ data }: { data: ReposResponse }) {
   const activity = data.activity
   if (!activity && buildRows.length === 0 && pullRows.length === 0) return null
 
-  const failing = own.filter((r) => r.ci === 'failing' && !r.fork).length
   const running = [...buildRows, ...pullRows].filter((r) => r.ci === 'running').length
   const open = own.reduce((n, r) => n + r.open_prs, 0)
   const labels = data.groups.filter((g) => g.own !== false).map((g) => g.label)
-  const pill = failing ? (
-    <Pill tone="down">{failing} failing</Pill>
-  ) : running ? (
-    <Pill tone="accent">{running} running</Pill>
-  ) : (
-    <Pill tone="up">All green</Pill>
-  )
+  // One badge per fact (M38): the page's pill says what fails; this one only what is building now.
+  const pill = running > 0 && <Pill tone="accent">{running} running</Pill>
 
   return (
     <Card title="Code" actions={pill} className="mb-5">

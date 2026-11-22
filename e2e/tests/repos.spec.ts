@@ -90,7 +90,9 @@ test('Repos opens with the Code card: activity, builds and pull requests', async
   await page.goto('/house/repos')
 
   const card = page.getByRole('region', { name: 'Code' })
-  await expect(card.getByText('1 failing')).toBeVisible()
+  // One badge per fact (M38): the page's pill says what fails, the card's only what is running.
+  await expect(page.getByRole('main').getByText('1 failing', { exact: true }).first()).toBeVisible()
+  await expect(card.getByText('1 running', { exact: true })).toBeVisible()
   await expect(card.getByRole('img', { name: '9 contributions in 16 weeks' })).toBeVisible()
   await expect(card.getByRole('link', { name: /home_kiosk main · fix: a thing Failed 12 min ago/ })).toBeVisible()
   await expect(card.getByRole('link', { name: /home_kiosk #41 Code card Running/ })).toBeVisible()

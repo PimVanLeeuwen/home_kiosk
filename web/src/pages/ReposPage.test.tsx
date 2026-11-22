@@ -99,6 +99,17 @@ describe('ReposPage', () => {
     expect(screen.getByText('1 failing', { selector: '.eyebrow' })).toBeInTheDocument()
   })
 
+  it('has no header pill while every build passes: the CI tile says so (one badge per fact)', async () => {
+    const green = structuredClone(REPOS)
+    for (const g of green.groups) for (const r of g.repos) if (r.ci === 'failing') r.ci = 'passing'
+    stubApi({ '/api/repos': green })
+    renderRoute('/house/repos')
+
+    expect(await screen.findByRole('region', { name: 'CI' })).toHaveTextContent('All green')
+    expect(screen.queryByText('All passing')).not.toBeInTheDocument()
+    expect(screen.queryByText(/failing/, { selector: '.eyebrow' })).not.toBeInTheDocument()
+  })
+
   it('shows forks behind the switch', async () => {
     stubApi({ '/api/repos': REPOS })
     renderRoute('/house/repos')

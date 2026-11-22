@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { cn } from '../../lib/cn'
 import { Card } from './Card'
+import { CellGrid } from './CellGrid'
 import { TONE_COLOR, type Tone } from './tones'
 import { AnimatedNumber } from './AnimatedNumber'
 
@@ -16,7 +16,7 @@ interface Props {
   children?: ReactNode
 }
 
-/** One of a page's headline numbers: a small card with a label, a large light figure and what goes with it. */
+/** One of a page's headline numbers: a cell with a label, a large light figure and what goes with it. */
 export function StatTile({ title, figure, sub, tone, children }: Props) {
   return (
     <Card title={title} padding="tile">
@@ -32,14 +32,19 @@ export function StatTile({ title, figure, sub, tone, children }: Props) {
   )
 }
 
-const COLUMNS = { 2: 'xl:grid-cols-2', 3: 'xl:grid-cols-3', 4: 'xl:grid-cols-4' } as const
-
-/** A page's headline numbers in one row: two per line on the phone, all in a row on a wide screen. */
-export function StatTiles({ label, count, children }: { label: string; count: keyof typeof COLUMNS; children: ReactNode }) {
+/**
+ * A page's headline numbers as one row of hairline cells (plan.md M38, 5d): two per line on a
+ * phone, all in a row on a wide screen; an odd one out on the last line takes the full width.
+ */
+export function StatTiles({ label, count, children }: { label: string; count: 2 | 3 | 4; children: ReactNode }) {
   return (
-    <section aria-label={label} className={cn('mb-5 grid grid-cols-2 gap-2.5 md:gap-4', COLUMNS[count])}>
+    <CellGrid
+      label={label}
+      columns={count}
+      className="mb-5 grid-cols-2 max-xl:[&>*:last-child:nth-child(odd)]:col-span-2"
+    >
       {children}
-    </section>
+    </CellGrid>
   )
 }
 
