@@ -1,14 +1,16 @@
 /* The House panel's Code screen (plan.md M20, chosen on 2026-10-21): your GitHub
  * contributions over 16 weeks as a grid, Monday at the top, in GitHub's quartiles
  * in violet, today outlined; under each column that week's total as a bar; then the
- * week so far, the streak and the busiest weekday. Words and numbers from the hub
- * (app/desk_code.py).
+ * week so far, the streak and the busiest weekday, since M38 one row of hairline cells
+ * with a figure each. Words and numbers from the hub (app/desk_code.py).
  *
  * The grid is painted into a canvas when the hub's answer changes: a hundred-odd
  * cells as LVGL shapes in one layer would stall its task queue. */
 
 #include "screen_code.h"
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "desk.h"
@@ -19,7 +21,7 @@
 #include "ui.h"
 #include "tokens.h"
 
-LV_FONT_DECLARE(instrument_28_bold);
+LV_FONT_DECLARE(instrument_40);
 LV_FONT_DECLARE(instrument_24);
 LV_IMAGE_DECLARE(glow_sky);
 
@@ -31,13 +33,16 @@ LV_IMAGE_DECLARE(glow_sky);
 #define GRID_HEIGHT (7 * STEP - GAP)
 #define GRID_X (LEFT + (648 - GRID_WIDTH) / 2)
 #define GRID_Y 136
-#define BASE 560        /* the bars stand on this line */
+#define BASE 544        /* the bars stand on this line */
 #define BAR_HIGH 150
+#define FACTS_TOP 592 /* the cells, under the city (or the bars), 36px off the bottom */
+#define FACTS_H 92
 
 /* GitHub's quartiles in the panels' violet, as on the hub's Code card. */
 static const uint32_t LEVELS[5] = {0x17161d, 0x2b2655, 0x4a4191, 0x8074d5, TOK_DATA_LAVENDER};
 
-static lv_obj_t *canvas, *title, *right, *months[6], *bars[16], *this_week, *streak, *busiest, *today_glow, *today_ring;
+static lv_obj_t *canvas, *title, *right, *months[6], *bars[16], *today_glow, *today_ring;
+static lv_obj_t *facts[3], *figures[3], *units[3];
 EXT_RAM_BSS_ATTR static desk_code_t shown; /* off the LVGL task's small stack */
 
 /* One pixel of the grid canvas (ARGB8888, stored blue first). */
@@ -63,6 +68,38 @@ static void cell(lv_draw_buf_t *buf, int x0, int y0, uint32_t colour, bool today
             paint(buf, x0 + x, y0 + y, rim ? 0xffffff : colour);
         }
     }
+}
+
+/* The figure in the hub's words: what follows the last space ("this week 133": "133";
+ * "busiest on Tuesdays": "Tue", a weekday cut to three letters). */
+static const char *tail(const char *words)
+{
+    const char *space = strrchr(words, ' ');
+    return space ? space + 1 : words;
+}
+
+/* A cell's figure and its small unit; the hub's words as they are when they do not fit. */
+static void fact(int i, const char *figure, const char *unit)
+{
+    lv_label_set_text(figures[i], figure);
+    lv_label_set_text(units[i], unit);
+    lv_obj_set_flag(units[i], LV_OBJ_FLAG_HIDDEN, unit[0] == '\0');
+}
+
+static void show_facts(void)
+{
+    fact(0, tail(shown.this_week), "");
+    int days = atoi(shown.streak); /* "9-day streak"; "" while there is none */
+    char number[8];
+    snprintf(number, sizeof number, "%d", days);
+    fact(1, days > 1 ? number : "None", days > 1 ? "days" : "");
+    const char *day = tail(shown.busiest);
+    char short_day[4] = {0};
+    if (strlen(day) > 3 && strstr(shown.busiest, "busiest on ") == shown.busiest) {
+        memcpy(short_day, day, 3);
+        day = short_day;
+    }
+    fact(2, day, "");
 }
 
 static void draw_grid(void)
@@ -119,9 +156,7 @@ static void tick(lv_timer_t *timer)
         lv_obj_set_style_bg_opa(bars[w], last ? LV_OPA_COVER : 90 + 165 * shown.weeks[w] / 1000, 0);
     }
     lv_obj_set_pos(today_glow, shown.city_x - 9, shown.city_y - 9);
-    lv_label_set_text(this_week, shown.this_week);
-    lv_label_set_text(streak, shown.streak);
-    lv_label_set_text(busiest, shown.busiest);
+    show_facts();
     draw_grid();
 }
 
@@ -205,12 +240,24 @@ void screen_code_create(lv_obj_t *screen)
     lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
     lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
     lv_anim_start(&anim);
-    this_week = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
-    lv_obj_align(this_week, LV_ALIGN_TOP_RIGHT, -LEFT, BASE + 16);
-    streak = ui_text(screen, &instrument_28_bold, 0xffffff);
-    lv_obj_set_pos(streak, LEFT, 640);
-    busiest = ui_text(screen, &instrument_24, 0xa7a7b4);
-    lv_obj_align(busiest, LV_ALIGN_TOP_RIGHT, -LEFT, 644);
+    /* This week, the streak and the busiest day: a cell each, its name over its figure. */
+    static const char *const NAMES[3] = {"THIS WEEK", "STREAK", "BUSIEST"};
+    ui_cells(screen, LEFT, FACTS_TOP, 648, FACTS_H, 3, facts);
+    for (int i = 0; i < 3; i++) {
+        lv_obj_t *name = ui_text(facts[i], &instrument_24, TOK_DESK_MUTED);
+        lv_obj_set_style_text_letter_space(name, 2, 0);
+        lv_label_set_text(name, NAMES[i]);
+        lv_obj_set_pos(name, 18, 10);
+        lv_obj_t *figure = ui_plain(facts[i]);
+        lv_obj_set_size(figure, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        lv_obj_set_flex_flow(figure, LV_FLEX_FLOW_ROW);
+        lv_obj_set_flex_align(figure, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
+        lv_obj_set_style_pad_column(figure, 6, 0);
+        lv_obj_set_pos(figure, 18, 38);
+        figures[i] = ui_text(figure, &instrument_40, TOK_DESK_FG);
+        units[i] = ui_text(figure, &instrument_24, TOK_DESK_MUTED);
+        lv_obj_set_style_pad_bottom(units[i], 5, 0);
+    }
 
     lv_timer_create(tick, 1000, NULL);
     tick(NULL);
