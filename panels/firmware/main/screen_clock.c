@@ -13,7 +13,9 @@
  * Lifted (plan.md M27): the hub paints the whole scene (app/paint_clock.py: clouds, the
  * light around the sun or moon, the stars, the bars) as a picture, which is copied into
  * the canvas instead; without it the panel draws the plainer scene itself. While it
- * rains, a few streaks fall through the sky: the one thing that moves. */
+ * rains, a few streaks fall through the sky: the one thing that moves.
+ *
+ * M38: the header's next sunset or sunrise only while the foot does not show both. */
 
 #include "screen_clock.h"
 
@@ -229,6 +231,8 @@ static void lay_out(void)
     bool day = shown.has_horizon && !shown.moon && shown.rise[0];
     lv_obj_set_flag(rise_label, LV_OBJ_FLAG_HIDDEN, wet || !day);
     lv_obj_set_flag(set_label, LV_OBJ_FLAG_HIDDEN, wet || !day);
+    /* One fact once (M38): while the foot has the sun's times, the header leaves them out. */
+    lv_obj_set_flag(sun, LV_OBJ_FLAG_HIDDEN, !wet && day);
 }
 
 /* The hub's painted scene, when a new one has come in: copied into the canvas (both are
