@@ -9,7 +9,11 @@
  * a hundred small shapes in one LVGL layer would stall its task queue.
  *
  * Lifted (plan.md M27): the hub paints a glow round the ring in the colour of the air
- * (app/paint_air.py), and a few motes drift slowly through the room while it shows. */
+ * (app/paint_air.py), and a few motes drift slowly through the room while it shows.
+ *
+ * M38: humidity, fine dust and the sensor's verdict are a column of cells under the
+ * temperature, a name and a value each, cut by 2px hairlines. The ring stays where the
+ * hub paints its glow. */
 
 #include "screen_air.h"
 
@@ -42,12 +46,15 @@ LV_IMAGE_DECLARE(glow_sky);
 #define CHART_WIDTH (720 - 2 * LEFT)
 #define CURVE_LOW 350    /* ppm at the canvas's bottom and top */
 #define CURVE_HIGH 1600
+#define FACTS_TOP 288     /* the column of cells, left of the ring */
+#define FACTS_W 360
+#define FACT_H 42
 #define MOTES 14
 #define MOTE_MS 66      /* about 15 steps a second: they drift slowly */
 
 static lv_obj_t *self, *motes[MOTES];
 static float mote_x[MOTES], mote_y[MOTES], mote_phase[MOTES];
-static lv_obj_t *ring, *canvas, *header, *outside, *temperature, *humidity, *dust, *quality, *co2, *unit,
+static lv_obj_t *ring, *canvas, *header, *outside, *temperature, *facts[3], *values[3], *co2, *unit,
     *word, *axis_start, *axis_end;
 EXT_RAM_BSS_ATTR static desk_air_t shown; /* off the LVGL task's small stack */
 
@@ -176,11 +183,13 @@ static void tick(lv_timer_t *timer)
     ui_upper(caps, sizeof caps, shown.outside);
     lv_label_set_text(outside, caps);
     lv_label_set_text(temperature, shown.temperature);
-    lv_label_set_text_fmt(humidity, "%s%s", shown.humidity, shown.humidity[0] ? "  humidity" : "");
-    /* Instrument Sans has no µ or ³, so the measure is named instead of its unit. */
-    /* No µ or ³: Instrument Sans has neither (the panel drew boxes, 2026-10-23). */
-    lv_label_set_text_fmt(dust, "%s%s", shown.pm25, shown.pm25[0] ? "  fine dust (PM2.5)" : "");
-    lv_label_set_text_fmt(quality, "%s%s", shown.quality[0] ? "Sensor says: " : "", shown.quality);
+    /* A cell per fact the sensor has; one it lacks leaves the column. No µ or ³ after the
+     * dust: Instrument Sans has neither (the panel drew boxes, 2026-10-23). */
+    const char *const said[3] = {shown.humidity, shown.pm25, shown.quality};
+    for (int i = 0; i < 3; i++) {
+        lv_label_set_text(values[i], said[i]);
+        lv_obj_set_flag(facts[i], LV_OBJ_FLAG_HIDDEN, said[i][0] == '\0');
+    }
     lv_obj_set_flag(co2, LV_OBJ_FLAG_HIDDEN, !shown.has_co2);
     lv_obj_set_flag(unit, LV_OBJ_FLAG_HIDDEN, !shown.has_co2);
     lv_label_set_text_fmt(co2, "%d", shown.co2);
@@ -245,15 +254,35 @@ void screen_air_create(lv_obj_t *screen)
     lv_obj_set_style_text_letter_space(outside, 2, 0);
     lv_obj_align(outside, LV_ALIGN_TOP_RIGHT, -LEFT, 30);
 
-    temperature = ui_text(screen, &instrument_clock, 0xffffff);
+    temperature = ui_text(screen, &instrument_clock, TOK_DESK_FG);
     arrive_count(temperature);
     lv_obj_set_pos(temperature, LEFT - 6, 104);
-    humidity = ui_text(screen, &instrument_28_bold, 0xd8d6e0);
-    lv_obj_set_pos(humidity, LEFT, 296);
-    dust = ui_text(screen, &instrument_28_bold, 0xd8d6e0);
-    lv_obj_set_pos(dust, LEFT, 340);
-    quality = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
-    lv_obj_set_pos(quality, LEFT, 384);
+    /* Humidity, fine dust and the sensor's word: a column of cells, the hairline colour
+     * showing between them. */
+    lv_obj_t *column = ui_plain(screen);
+    lv_obj_set_pos(column, LEFT, FACTS_TOP);
+    lv_obj_set_size(column, FACTS_W, LV_SIZE_CONTENT);
+    lv_obj_set_style_radius(column, 20, 0);
+    lv_obj_set_style_clip_corner(column, true, 0);
+    lv_obj_set_style_bg_color(column, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_bg_opa(column, LV_OPA_COVER, 0);
+    lv_obj_set_style_pad_all(column, 2, 0);
+    lv_obj_set_style_pad_row(column, 2, 0);
+    lv_obj_set_flex_flow(column, LV_FLEX_FLOW_COLUMN);
+    static const char *const NAMES[3] = {"HUMIDITY", "FINE DUST", "SENSOR"};
+    for (int i = 0; i < 3; i++) {
+        facts[i] = ui_plain(column);
+        lv_obj_set_size(facts[i], LV_PCT(100), FACT_H);
+        lv_obj_set_style_pad_hor(facts[i], 18, 0);
+        lv_obj_set_style_bg_color(facts[i], lv_color_hex(TOK_DESK_CELL), 0);
+        lv_obj_set_style_bg_opa(facts[i], LV_OPA_COVER, 0);
+        lv_obj_t *name = ui_text(facts[i], &instrument_24, TOK_DESK_MUTED);
+        lv_obj_set_style_text_letter_space(name, 2, 0);
+        lv_label_set_text(name, NAMES[i]);
+        lv_obj_align(name, LV_ALIGN_LEFT_MID, 0, 0);
+        values[i] = ui_text(facts[i], &instrument_28_bold, TOK_DESK_FG);
+        lv_obj_align(values[i], LV_ALIGN_RIGHT_MID, 0, 0);
+    }
 
     ring = lv_obj_create(screen);
     lv_obj_remove_style_all(ring);
@@ -261,7 +290,7 @@ void screen_air_create(lv_obj_t *screen)
     lv_obj_remove_flag(ring, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(ring, draw_ring, LV_EVENT_DRAW_MAIN, NULL);
     arrive_redraw(ring);
-    co2 = ui_text(screen, &instrument_52_bold, 0xffffff);
+    co2 = ui_text(screen, &instrument_52_bold, TOK_DESK_FG);
     arrive_count(co2);
     lv_obj_align(co2, LV_ALIGN_TOP_MID, CX - 360, CY - 40);
     unit = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
