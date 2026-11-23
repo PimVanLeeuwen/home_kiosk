@@ -2468,6 +2468,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   20px off a cell's edge; the running run's job cards are cells with a 2px hairline edge (a
   running, failed or waiting job's in its colour), the rule over the commit a hairline. The
   error takeover waits until it can be seen on a board.
+- Built 2026-11-23 (6, House: Lights): the tiles stay apart, glass over their pools of light
+  (one hairline box would hide the pools), with a cell's 20px corners and a hairline edge while
+  off; the count is a pill, warm while a light is on; Switch all off has no edge.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

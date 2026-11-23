@@ -9,7 +9,11 @@
  *
  * Lifted (plan.md M27): each lit group throws a pool of its own light behind its tile,
  * larger the brighter it is, and the tiles are glass over it. Drawn here, not by the hub,
- * so a tap changes the light at once. */
+ * so a tap changes the light at once.
+ *
+ * M38: the tiles stay apart (one hairline box would hide their pools), with a cell's 20px
+ * corners and a hairline edge while off; the count is a pill, warm while a light is on;
+ * the room's switch has no edge. */
 
 #include "screen_lights.h"
 
@@ -35,8 +39,9 @@ LV_IMAGE_DECLARE(glow_round);
 #define TILE_GAP 12
 #define TILE_HEIGHT 300
 #define WHITE 60
+#define WARM 0xffc98f /* the count's pill while a light is on */
 
-static lv_obj_t *title, *count, *whites_label, *whites_row, *room_button, *room_label;
+static lv_obj_t *title, *count, *count_pill, *whites_label, *whites_row, *room_button, *room_label;
 static struct {
     lv_obj_t *tile, *glow, *pool, *name, *line, *dot;
 } tiles[DESK_LIGHT_GROUPS];
@@ -58,11 +63,11 @@ static void paint_tile(int i)
     lv_obj_set_style_image_recolor(tiles[i].pool, lv_color_hex(tone), 0);
     lv_obj_set_style_image_opa(tiles[i].pool, (lv_opa_t)(90 + bright * 110 / 100), 0);
     lv_obj_set_flag(tiles[i].pool, LV_OBJ_FLAG_HIDDEN, !on || lv_obj_has_flag(tiles[i].tile, LV_OBJ_FLAG_HIDDEN));
-    lv_obj_set_style_border_color(tiles[i].tile, lv_color_hex(on ? tone : 0xffffff), 0);
-    lv_obj_set_style_border_opa(tiles[i].tile, on ? 110 : 30, 0);
+    lv_obj_set_style_border_color(tiles[i].tile, lv_color_hex(on ? tone : TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_border_opa(tiles[i].tile, on ? 110 : LV_OPA_COVER, 0);
     lv_obj_set_style_image_recolor(tiles[i].glow, lv_color_hex(tone), 0);
     lv_obj_set_flag(tiles[i].glow, LV_OBJ_FLAG_HIDDEN, !on);
-    lv_obj_set_style_text_color(tiles[i].name, lv_color_hex(on ? 0xffffff : TOK_DESK_MUTED), 0);
+    lv_obj_set_style_text_color(tiles[i].name, lv_color_hex(on ? TOK_DESK_FG : TOK_DESK_MUTED), 0);
     lv_obj_set_style_bg_color(tiles[i].dot, lv_color_hex(on ? tone : 0x3a3844), 0);
     lv_label_set_text(tiles[i].name, shown.groups[i].name);
     lv_label_set_text(tiles[i].line, shown.groups[i].line);
@@ -96,6 +101,7 @@ static void paint(void)
     lv_label_set_text(title, caps);
     ui_upper(caps, sizeof caps, shown.count);
     lv_label_set_text(count, caps);
+    ui_pill_tone(count_pill, count, shown.any_on ? WARM : TOK_DESK_MUTED);
     for (int i = 0; i < DESK_LIGHT_GROUPS; i++) {
         lv_obj_set_flag(tiles[i].tile, LV_OBJ_FLAG_HIDDEN, i >= shown.group_count);
         lv_obj_add_flag(tiles[i].pool, LV_OBJ_FLAG_HIDDEN); /* paint_tile lights it again */
@@ -224,9 +230,9 @@ void screen_lights_create(lv_obj_t *screen)
     title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 24);
-    count = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
-    lv_obj_set_style_text_letter_space(count, 2, 0);
-    lv_obj_align(count, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
+    count_pill = ui_pill(screen, &instrument_24, &count);
+    lv_obj_align(count_pill, LV_ALIGN_TOP_RIGHT, -LEFT, 20);
+    ui_pill_tone(count_pill, count, TOK_DESK_MUTED);
 
     /* Up to four tiles, two side by side. */
     int tile_width = (WIDTH - TILE_GAP) / 2;
@@ -247,7 +253,7 @@ void screen_lights_create(lv_obj_t *screen)
         lv_obj_set_size(tile, tile_width, i < 2 ? TILE_HEIGHT : TILE_HEIGHT / 2);
         lv_obj_set_pos(tile, LEFT + (i % 2) * (tile_width + TILE_GAP),
                        TILE_TOP + (i / 2) * (TILE_HEIGHT + TILE_GAP));
-        lv_obj_set_style_radius(tile, 28, 0);
+        lv_obj_set_style_radius(tile, 20, 0);
         lv_obj_set_style_clip_corner(tile, true, 0);
         lv_obj_set_style_bg_opa(tile, LV_OPA_COVER, 0);
         lv_obj_set_style_border_width(tile, 2, 0);
@@ -262,11 +268,11 @@ void screen_lights_create(lv_obj_t *screen)
         lv_obj_set_style_image_recolor_opa(tiles[i].glow, LV_OPA_COVER, 0);
         lv_obj_set_style_image_opa(tiles[i].glow, 110, 0);
 
-        tiles[i].name = ui_text(tile, &instrument_40, 0xffffff);
+        tiles[i].name = ui_text(tile, &instrument_40, TOK_DESK_FG);
         lv_label_set_long_mode(tiles[i].name, LV_LABEL_LONG_WRAP);
         lv_obj_set_width(tiles[i].name, tile_width - 72);
         lv_obj_set_pos(tiles[i].name, 26, 22);
-        tiles[i].line = ui_text(tile, &instrument_24, 0xd6d3df);
+        tiles[i].line = ui_text(tile, &instrument_24, TOK_DESK_SOFT);
         lv_obj_align(tiles[i].line, LV_ALIGN_BOTTOM_LEFT, 26, -24);
         tiles[i].dot = ui_plain(tile);
         lv_obj_set_size(tiles[i].dot, 18, 18);
@@ -306,10 +312,7 @@ void screen_lights_create(lv_obj_t *screen)
     lv_obj_align(room_button, LV_ALIGN_BOTTOM_MID, 0, -48);
     lv_obj_set_style_radius(room_button, 48, 0);
     lv_obj_set_style_bg_opa(room_button, LV_OPA_COVER, 0);
-    lv_obj_set_style_bg_color(room_button, lv_color_hex(0x1a1920), 0);
-    lv_obj_set_style_border_width(room_button, 2, 0);
-    lv_obj_set_style_border_color(room_button, lv_color_white(), 0);
-    lv_obj_set_style_border_opa(room_button, 30, 0);
+    lv_obj_set_style_bg_color(room_button, lv_color_hex(0x16161b), 0);
     lv_obj_add_flag(room_button, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_add_event_cb(room_button, on_room, LV_EVENT_CLICKED, NULL);
     room_label = ui_text(room_button, &instrument_28_bold, TOK_DESK_FG);
