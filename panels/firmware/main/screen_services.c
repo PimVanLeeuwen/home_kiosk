@@ -6,7 +6,10 @@
  * images/logos.c, a letter for a service without one.
  *
  * Lifted (plan.md M27), as a constellation: a fine line from each service to the check,
- * and light running inward along every line while the screen shows. */
+ * and light running inward along every line while the screen shows.
+ *
+ * M38: during an incident the card and the others are one box of two hairline cells (the
+ * card keeps its tint, loses its edge), and the pill is a tint. The ring stays as it is. */
 
 #include "screen_services.h"
 
@@ -33,7 +36,6 @@ LV_IMAGE_DECLARE(glow_round);
 #define BIG 88   /* a tile in the ring */
 #define CARD_TILE 72
 #define SMALL 64 /* a tile below the incident card */
-#define SMALL_Y 512
 
 #define GREEN TOK_DESK_UP
 #define AMBER TOK_DATA_AMBER
@@ -53,7 +55,7 @@ static lv_point_precise_t spoke_points[DESK_SERVICES][2];
 static float spark_at[DESK_SERVICES];
 static lv_obj_t *self;
 static tile_t ring[DESK_SERVICES];
-static lv_obj_t *incident_view, *card, *card_name, *card_line, *card_title, *steps[DESK_SERVICE_STEPS],
+static lv_obj_t *incident_view, *card, *others_row, *card_name, *card_line, *card_title, *steps[DESK_SERVICE_STEPS],
     *step_dots[DESK_SERVICE_STEPS], *step_times[DESK_SERVICE_STEPS], *step_rows[DESK_SERVICE_STEPS], *others;
 static tile_t card_tile, small[DESK_SERVICES];
 EXT_RAM_BSS_ATTR static desk_services_t shown; /* off the LVGL task's small stack */
@@ -162,7 +164,6 @@ static void show_incident(void)
     uint32_t colour = tone_colour(inc->state);
     uint32_t tint = inc->state == 'o' ? 0x1c0d0d : inc->state == 'm' ? 0x12101f : 0x17120a;
     lv_obj_set_style_bg_color(card, lv_color_hex(tint), 0);
-    lv_obj_set_style_border_color(card, lv_color_hex(colour), 0);
     tile_set(&card_tile, inc->key, inc->name, false);
     lv_label_set_text(card_name, inc->name);
     lv_label_set_text(card_line, inc->line);
@@ -178,12 +179,8 @@ static void show_incident(void)
             lv_obj_set_style_text_color(steps[i], lv_color_hex(i == 0 ? TOK_DESK_FG : GREY), 0);
         }
     }
-    /* The others, evenly spread below the card. */
-    int n = 0;
-    for (int i = 0; i < shown.count; i++) {
-        n += strcmp(shown.services[i].key, inc->key) != 0;
-    }
-    int step = n > 1 ? (648 - SMALL) / (n - 1) : 0, k = 0;
+    /* The others, in a row in the cell below the card. */
+    int k = 0;
     for (int i = 0; i < DESK_SERVICES; i++) {
         lv_obj_add_flag(small[i].box, LV_OBJ_FLAG_HIDDEN);
     }
@@ -193,7 +190,6 @@ static void show_incident(void)
         }
         tile_t *t = &small[k];
         lv_obj_remove_flag(t->box, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_set_pos(t->box, n > 1 ? LEFT + k * step : CX - SMALL / 2, SMALL_Y);
         bool trouble = shown.services[i].state != 'k';
         tile_set(t, shown.services[i].key, shown.services[i].name, false);
         lv_obj_set_style_border_color(t->box, lv_color_hex(trouble ? tone_colour(shown.services[i].state) : 0x24242c), 0);
@@ -216,9 +212,7 @@ static void tick(lv_timer_t *timer)
     uint32_t colour = tone_colour(shown.tone);
     lv_label_set_text(title, shown.title);
     lv_label_set_text(pill_text, shown.status);
-    lv_obj_set_style_border_color(pill, lv_color_hex(colour), 0);
-    lv_obj_set_style_border_opa(pill, shown.tone == 'k' ? 150 : LV_OPA_COVER, 0);
-    lv_obj_set_style_text_color(pill_text, lv_color_hex(colour), 0);
+    ui_pill_tone(pill, pill_text, colour);
     lv_obj_set_style_image_recolor(sky, lv_color_hex(shown.has_incident ? colour : TOK_VIOLET), 0);
     lv_obj_set_flag(ring_view, LV_OBJ_FLAG_HIDDEN, shown.has_incident);
     lv_obj_set_flag(incident_view, LV_OBJ_FLAG_HIDDEN, !shown.has_incident);
@@ -291,15 +285,22 @@ static void create_incident(lv_obj_t *screen)
     lv_obj_set_size(incident_view, 720, 720);
     lv_obj_add_flag(incident_view, LV_OBJ_FLAG_HIDDEN);
 
-    card = ui_plain(incident_view);
-    lv_obj_set_pos(card, LEFT, 96);
-    lv_obj_set_size(card, 648, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_all(card, 28, 0);
-    lv_obj_set_style_radius(card, 24, 0);
+    /* One box: the hairline colour behind two cells, the card and the others. */
+    lv_obj_t *box = ui_plain(incident_view);
+    lv_obj_set_pos(box, LEFT, 92);
+    lv_obj_set_size(box, 648, LV_SIZE_CONTENT);
+    lv_obj_set_style_radius(box, 20, 0);
+    lv_obj_set_style_clip_corner(box, true, 0);
+    lv_obj_set_style_bg_color(box, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_bg_opa(box, LV_OPA_COVER, 0);
+    lv_obj_set_style_pad_all(box, 2, 0);
+    lv_obj_set_style_pad_row(box, 2, 0);
+    lv_obj_set_flex_flow(box, LV_FLEX_FLOW_COLUMN);
+
+    card = ui_plain(box);
+    lv_obj_set_size(card, LV_PCT(100), LV_SIZE_CONTENT);
+    lv_obj_set_style_pad_all(card, 24, 0);
     lv_obj_set_style_bg_opa(card, LV_OPA_COVER, 0);
-    backdrops_glass(card);
-    lv_obj_set_style_border_width(card, 2, 0);
-    lv_obj_set_style_border_opa(card, 115, 0);
     lv_obj_set_layout(card, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(card, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_row(card, 14, 0);
@@ -332,14 +333,23 @@ static void create_incident(lv_obj_t *screen)
         lv_obj_align(step_times[i], LV_ALIGN_RIGHT_MID, 0, 0);
     }
 
+    lv_obj_t *lower = ui_plain(box);
+    lv_obj_set_size(lower, LV_PCT(100), LV_SIZE_CONTENT);
+    lv_obj_set_style_pad_all(lower, 24, 0);
+    lv_obj_set_style_pad_row(lower, 16, 0);
+    lv_obj_set_style_bg_color(lower, lv_color_hex(TOK_DESK_CELL), 0);
+    lv_obj_set_style_bg_opa(lower, LV_OPA_COVER, 0);
+    lv_obj_set_flex_flow(lower, LV_FLEX_FLOW_COLUMN);
+    others_row = ui_plain(lower);
+    lv_obj_set_size(others_row, LV_PCT(100), LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(others_row, LV_FLEX_FLOW_ROW_WRAP);
+    lv_obj_set_style_pad_gap(others_row, 16, 0);
     for (int i = 0; i < DESK_SERVICES; i++) {
-        small[i] = tile_create(incident_view, SMALL);
+        small[i] = tile_create(others_row, SMALL);
         lv_obj_add_flag(small[i].box, LV_OBJ_FLAG_HIDDEN);
     }
-    others = ui_text(incident_view, &instrument_24, TOK_DESK_FAINT);
-    lv_obj_set_width(others, 648);
-    lv_obj_set_style_text_align(others, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_pos(others, LEFT, SMALL_Y + SMALL + 24);
+    others = ui_text(lower, &instrument_24, TOK_DESK_MUTED);
+    lv_obj_set_width(others, LV_PCT(100));
 }
 
 void screen_services_create(lv_obj_t *screen)
@@ -361,15 +371,9 @@ void screen_services_create(lv_obj_t *screen)
     title = ui_text(screen, &instrument_24, GREY);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
-    pill = ui_plain(screen);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 4, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_border_width(pill, 2, 0);
-    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
-    pill_text = ui_text(pill, &instrument_24, GREEN);
-    lv_obj_set_style_text_letter_space(pill_text, 2, 0);
+    pill = ui_pill(screen, &instrument_24, &pill_text);
+    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 26);
+    ui_pill_tone(pill, pill_text, GREEN);
 
     create_ring(screen);
     create_incident(screen);

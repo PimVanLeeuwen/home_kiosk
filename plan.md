@@ -2450,6 +2450,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Built 2026-11-23 (6, House: Sites): the heartbeats and the 30-day strips stay; the tiles are one
   two-column grid of cells, an empty cell beside an odd last site (a full-width last cell left
   its strip short and its uptime far off), a down site's cell dark red; the pill a tint.
+- Built 2026-11-23 (6, House: Services): the ring of logos round the check, with its running
+  light, stays as it is. During an incident the card and the other services are one box of two
+  cells (the card keeps its tint, loses its edge; the others' tiles in a row over the hub's line
+  about them); the pill a tint. Open: the hub's painted light still sits at the ring's centre
+  during an incident, under the box (`paint_house.py`).
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
