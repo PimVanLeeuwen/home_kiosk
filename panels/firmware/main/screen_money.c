@@ -5,6 +5,9 @@
  * on the panel itself (nothing is sent). Today's change is in the pill. Words and points
  * from the hub (app/desk_money.py).
  *
+ * M38: the "%" small and muted after the figure, the switch a row of cells cut by 2px
+ * hairlines (the chosen one raised), the pill a tint.
+ *
  * The chart is drawn into a canvas when the answer or the period changes: its fill is
  * painted straight into the pixels, column by column, the line on top. */
 
@@ -37,8 +40,9 @@ LV_IMAGE_DECLARE(glow_sky);
 #define GREEN TOK_DESK_UP
 #define RED 0xff7d7d
 #define VIOLET TOK_VIOLET
+#define CHOSEN 0x17151f /* the chosen period's cell, a step up from a cell */
 
-static lv_obj_t *sky, *title, *pill, *pill_text, *change, *span, *chart, *high, *buttons[DESK_MONEY_PERIODS];
+static lv_obj_t *sky, *title, *pill, *pill_text, *change, *unit, *span, *chart, *high, *buttons[DESK_MONEY_PERIODS];
 static char chosen[4] = "1M"; /* the period on show, kept across answers */
 EXT_RAM_BSS_ATTR static desk_money_t shown; /* off the LVGL task's small stack */
 
@@ -124,7 +128,15 @@ static void show_period(void)
     char words[96];
     snprintf(words, sizeof words, "%s · %s", shown.title, caps);
     lv_label_set_text(title, words);
-    lv_label_set_text(change, p->change);
+    /* "+4.2%": the number large, the "%" small beside it. */
+    snprintf(words, sizeof words, "%s", p->change);
+    size_t length = strlen(words);
+    bool percent = length > 0 && words[length - 1] == '%';
+    if (percent) {
+        words[length - 1] = '\0';
+    }
+    lv_label_set_text(change, words);
+    lv_obj_set_flag(unit, LV_OBJ_FLAG_HIDDEN, !percent);
     lv_obj_set_style_text_color(change, lv_color_hex(p->up ? GREEN : RED), 0);
     snprintf(words, sizeof words, "%s to %s, deposits left out", p->from, p->to);
     lv_label_set_text(span, words);
@@ -146,7 +158,7 @@ static void show_period(void)
         if (here) {
             bool on = i == which;
             lv_label_set_text(lv_obj_get_child(buttons[i], 0), shown.periods[i].key);
-            lv_obj_set_style_bg_opa(buttons[i], on ? 60 : 0, 0);
+            lv_obj_set_style_bg_color(buttons[i], lv_color_hex(on ? CHOSEN : TOK_DESK_CELL), 0);
             lv_obj_set_style_text_color(lv_obj_get_child(buttons[i], 0), lv_color_hex(on ? 0xffffff : TOK_DESK_MUTED), 0);
         }
     }
@@ -175,8 +187,7 @@ static void tick(lv_timer_t *timer)
     lv_label_set_text(pill_text, shown.today);
     lv_obj_set_flag(pill, LV_OBJ_FLAG_HIDDEN, shown.today[0] == '\0');
     uint32_t tone = shown.today_up ? GREEN : RED;
-    lv_obj_set_style_border_color(pill, lv_color_hex(tone), 0);
-    lv_obj_set_style_text_color(pill_text, lv_color_hex(tone), 0);
+    ui_pill_tone(pill, pill_text, tone);
     show_period();
 }
 
@@ -197,19 +208,21 @@ void screen_money_create(lv_obj_t *screen)
     title = ui_one_line(screen, &instrument_24, TOK_DESK_MUTED, 420);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
-    pill = ui_plain(screen);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 4, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_border_width(pill, 2, 0);
-    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
-    pill_text = ui_text(pill, &instrument_24, GREEN);
-    lv_obj_set_style_text_letter_space(pill_text, 2, 0);
+    pill = ui_pill(screen, &instrument_24, &pill_text);
+    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 26);
+    ui_pill_tone(pill, pill_text, GREEN);
 
-    change = ui_text(screen, &instrument_52_bold, GREEN);
+    lv_obj_t *figure = ui_plain(screen);
+    lv_obj_set_size(figure, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(figure, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(figure, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
+    lv_obj_set_style_pad_column(figure, 6, 0);
+    lv_obj_set_pos(figure, LEFT, 96);
+    change = ui_text(figure, &instrument_52_bold, GREEN);
     arrive_count(change);
-    lv_obj_set_pos(change, LEFT, 96);
+    unit = ui_text(figure, &instrument_28_bold, TOK_DESK_MUTED);
+    lv_label_set_text(unit, "%");
+    lv_obj_set_style_pad_bottom(unit, 8, 0);
     span = ui_one_line(screen, &instrument_24, TOK_DESK_MUTED, WIDTH);
     lv_obj_set_pos(span, LEFT, 168);
 
@@ -221,23 +234,11 @@ void screen_money_create(lv_obj_t *screen)
     high = ui_text(screen, &instrument_24, TOK_DESK_FG);
     lv_obj_add_flag(high, LV_OBJ_FLAG_HIDDEN);
 
-    /* The switch: four equal parts, the chosen one lit. */
-    lv_obj_t *bar = ui_plain(screen);
-    lv_obj_set_size(bar, WIDTH, 64);
-    lv_obj_set_pos(bar, LEFT, SWITCH_TOP);
-    lv_obj_set_style_radius(bar, 32, 0);
-    lv_obj_set_style_bg_opa(bar, LV_OPA_COVER, 0);
-    lv_obj_set_style_bg_color(bar, lv_color_hex(0x121119), 0);
-    lv_obj_set_style_pad_all(bar, 6, 0);
-    lv_obj_set_flex_flow(bar, LV_FLEX_FLOW_ROW);
-    lv_obj_set_style_pad_column(bar, 6, 0);
+    /* The switch: a cell per period, the chosen one raised. */
+    ui_cells(screen, LEFT, SWITCH_TOP, WIDTH, 64, DESK_MONEY_PERIODS, buttons);
     for (int i = 0; i < DESK_MONEY_PERIODS; i++) {
-        lv_obj_t *button = buttons[i] = ui_plain(bar);
-        lv_obj_set_height(button, LV_PCT(100));
-        lv_obj_set_flex_grow(button, 1);
-        lv_obj_set_style_radius(button, 26, 0);
-        lv_obj_set_style_bg_color(button, lv_color_white(), 0);
-        lv_obj_add_flag(button, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);
+        lv_obj_t *button = buttons[i];
+        lv_obj_add_flag(button, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(button, on_period, LV_EVENT_CLICKED, (void *)(intptr_t)i);
         lv_obj_t *label = ui_text(button, &instrument_28_bold, TOK_DESK_MUTED);
         lv_obj_center(label);
