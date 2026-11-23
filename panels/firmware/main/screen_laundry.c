@@ -8,7 +8,10 @@
  * Lifted (plan.md M27): mostly only one machine is on, so then it alone is large, its
  * words beside it, the other as one glass line at the bottom; both side by side only when
  * both are on. The hub paints a chrome rim round each door (app/paint_laundry.py), a
- * highlight lies on the glass, and while it runs a few bubbles rise through the water. */
+ * highlight lies on the glass, and while it runs a few bubbles rise through the water.
+ *
+ * M38: the headline is the shared tinted pill and the other machine's line a cell with a
+ * 2px hairline edge; the portholes stay as they are. */
 
 #include "screen_laundry.h"
 
@@ -167,8 +170,7 @@ static void tick(lv_timer_t *timer)
     char caps[32];
     ui_upper(caps, sizeof caps, shown.headline);
     lv_label_set_text(pill_label, caps);
-    lv_obj_set_style_text_color(pill_label, lv_color_hex(shown.headline_colour), 0);
-    lv_obj_set_style_bg_color(pill, lv_color_hex(shown.headline_colour), 0);
+    ui_pill_tone(pill, pill_label, shown.headline_colour);
     /* Mostly only one machine is on: then it alone is large. */
     int which = active(0) && !active(1) ? 0 : (active(1) && !active(0) ? 1 : -1);
     solo = -2; /* lay out again: the machines may have changed */
@@ -194,15 +196,8 @@ void screen_laundry_create(lv_obj_t *screen)
     lv_obj_set_style_text_letter_space(header, 2, 0);
     lv_label_set_text(header, "LAUNDRY");
     lv_obj_set_pos(header, LEFT, 30);
-    pill = ui_plain(screen);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 6, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_bg_opa(pill, 50, 0);
-    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 22);
-    pill_label = centred(pill, &instrument_24, 0xffffff);
-    lv_obj_set_style_text_letter_space(pill_label, 1, 0);
+    pill = ui_pill(screen, &instrument_24, &pill_label);
+    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 26);
 
     for (int i = 0; i < 2; i++) {
         lv_obj_t *box = ports[i].box = ui_plain(screen);
@@ -245,7 +240,7 @@ void screen_laundry_create(lv_obj_t *screen)
         lv_obj_set_style_bg_color(shine, lv_color_white(), 0);
         lv_obj_set_style_bg_opa(shine, 12, 0);
 
-        ports[i].minutes = centred(door, &instrument_52_bold, 0xffffff);
+        ports[i].minutes = centred(door, &instrument_52_bold, TOK_DESK_FG);
         lv_obj_align(ports[i].minutes, LV_ALIGN_CENTER, 0, -12);
         ports[i].unit = centred(door, &instrument_24, 0xd6d3df);
         lv_label_set_text(ports[i].unit, "min");
@@ -263,28 +258,27 @@ void screen_laundry_create(lv_obj_t *screen)
         lv_label_set_text(ports[i].mark, "!");
         lv_obj_center(ports[i].mark);
 
-        ports[i].name = centred(box, &instrument_40, 0xffffff);
+        ports[i].name = centred(box, &instrument_40, TOK_DESK_FG);
         lv_obj_align(ports[i].name, LV_ALIGN_TOP_MID, 0, RING + 24);
         ports[i].line = ui_one_line(box, &instrument_24, TOK_DESK_SECONDARY, 300);
         lv_obj_set_style_text_align(ports[i].line, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_align(ports[i].line, LV_ALIGN_TOP_MID, 0, RING + 80);
-        ports[i].status = ui_one_line(box, &instrument_24, 0xffffff, 300);
+        ports[i].status = ui_one_line(box, &instrument_24, TOK_DESK_FG, 300);
         lv_obj_set_style_text_align(ports[i].status, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_align(ports[i].status, LV_ALIGN_TOP_MID, 0, RING + 116);
         lv_obj_add_flag(box, LV_OBJ_FLAG_HIDDEN);
     }
 
-    /* The other machine, as one glass line along the bottom. */
+    /* The other machine, as one cell along the bottom. */
     bar = ui_plain(screen);
     lv_obj_set_size(bar, 648, 76);
     lv_obj_set_pos(bar, LEFT, BAR_TOP);
-    lv_obj_set_style_radius(bar, 38, 0);
-    lv_obj_set_style_bg_opa(bar, 150, 0);
-    lv_obj_set_style_bg_color(bar, lv_color_hex(0x16151c), 0);
-    lv_obj_set_style_border_width(bar, 1, 0);
-    lv_obj_set_style_border_color(bar, lv_color_white(), 0);
-    lv_obj_set_style_border_opa(bar, 30, 0);
-    bar_name = ui_text(bar, &instrument_24, 0xe6e3ef);
+    lv_obj_set_style_radius(bar, 20, 0);
+    lv_obj_set_style_bg_opa(bar, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(bar, lv_color_hex(TOK_DESK_CELL), 0);
+    lv_obj_set_style_border_width(bar, 2, 0);
+    lv_obj_set_style_border_color(bar, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    bar_name = ui_text(bar, &instrument_24, TOK_DESK_FG);
     lv_obj_align(bar_name, LV_ALIGN_LEFT_MID, 34, 0);
     bar_state = ui_text(bar, &instrument_24, TOK_DESK_MUTED);
     lv_obj_align(bar_state, LV_ALIGN_RIGHT_MID, -34, 0);
