@@ -1,7 +1,9 @@
 /* The House panel's My sites screen (plan.md M20, tiles as chosen on 2026-10-21): a
  * tile per site in two columns, with its name, its response time (or how long it has
  * been down), the 30-day uptime below 100% and its 30 days as a strip. A site that is
- * down turns its tile red. Words from the hub (app/desk_sites.py).
+ * down turns its tile red. Since M38 the tiles are one grid of cells cut by 2px hairlines,
+ * an empty cell beside an odd last one, and the pill a tint. Words from the hub
+ * (app/desk_sites.py).
  *
  * Each strip is painted into its own small canvas: 30 bars as LVGL shapes per tile
  * would be a few hundred in one layer, which stalls its task queue.
@@ -26,9 +28,8 @@ LV_FONT_DECLARE(instrument_24);
 LV_IMAGE_DECLARE(glow_sky);
 
 #define LEFT 36
-#define TOP 96
-#define GAP 14
-#define TILE_W ((648 - GAP) / 2)
+#define TOP 92
+#define TILE_W ((648 - 3 * 2) / 2) /* a cell between 2px hairlines */
 #define TILE_H 138
 #define PAD 20
 #define BAR 7
@@ -39,7 +40,7 @@ LV_IMAGE_DECLARE(glow_sky);
 #define GREEN TOK_DESK_UP
 #define AMBER TOK_DATA_AMBER
 #define RED TOK_DESK_DOWN
-#define TILE 0x0d0d10
+#define TILE TOK_DESK_CELL
 #define TILE_DOWN 0x1f0c0d
 
 typedef struct {
@@ -59,7 +60,7 @@ static const float BEAT[][2] = {{0, 0},     {0.3f, 0},  {0.38f, -0.18f}, {0.44f,
                                 {0.56f, -1}, {0.62f, 0.4f}, {0.68f, 0},   {0.8f, -0.3f}, {0.9f, 0}, {1, 0}};
 #define BEAT_POINTS (sizeof BEAT / sizeof BEAT[0])
 
-static lv_obj_t *self, *sky, *title, *pill, *pill_text;
+static lv_obj_t *self, *sky, *title, *pill, *pill_text, *grid, *filler;
 static lv_point_precise_t trace_points[DESK_SITES][BEAT_POINTS];
 static float beat_at;
 static tile_t tiles[DESK_SITES];
@@ -117,12 +118,11 @@ static void tick(lv_timer_t *timer)
     bool any_down = shown.down > 0;
     lv_label_set_text(title, shown.title);
     lv_label_set_text(pill_text, shown.status);
-    uint32_t pill_colour = any_down ? RED : GREEN;
-    lv_obj_set_style_border_color(pill, lv_color_hex(pill_colour), 0);
-    lv_obj_set_style_border_opa(pill, any_down ? LV_OPA_COVER : 150, 0);
-    lv_obj_set_style_text_color(pill_text, lv_color_hex(any_down ? 0xff8a8a : GREEN), 0);
+    ui_pill_tone(pill, pill_text, any_down ? RED : GREEN);
     lv_obj_set_style_image_recolor(sky, lv_color_hex(any_down ? RED : TOK_VIOLET), 0);
 
+    /* An empty cell beside an odd last site, so the grid stays whole. */
+    lv_obj_set_flag(filler, LV_OBJ_FLAG_HIDDEN, shown.count % 2 == 0);
     for (int i = 0; i < DESK_SITES; i++) {
         tile_t *t = &tiles[i];
         lv_obj_set_flag(t->box, LV_OBJ_FLAG_HIDDEN, i >= shown.count);
@@ -132,7 +132,6 @@ static void tick(lv_timer_t *timer)
         const typeof(shown.sites[0]) *site = &shown.sites[i];
         bool down = site->state == 'd';
         lv_obj_set_style_bg_color(t->box, lv_color_hex(down ? TILE_DOWN : TILE), 0);
-        lv_obj_set_style_border_color(t->box, lv_color_hex(down ? 0x7a3333 : 0x1c1c22), 0);
         uint32_t dot = down ? RED : site->state == '?' ? TOK_DESK_FAINT : GREEN;
         lv_obj_set_style_bg_color(t->dot, lv_color_hex(dot), 0);
         lv_label_set_text(t->name, site->name);
@@ -199,25 +198,28 @@ void screen_sites_create(lv_obj_t *screen)
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
 
-    pill = ui_plain(screen);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 4, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_border_width(pill, 2, 0);
-    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
-    pill_text = ui_text(pill, &instrument_24, GREEN);
-    lv_obj_set_style_text_letter_space(pill_text, 2, 0);
+    pill = ui_pill(screen, &instrument_24, &pill_text);
+    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 26);
+    ui_pill_tone(pill, pill_text, GREEN);
+
+    /* The grid: the hairline colour behind cells that cover it but for 2px between them. */
+    grid = ui_plain(screen);
+    lv_obj_set_pos(grid, LEFT, TOP);
+    lv_obj_set_size(grid, 648, LV_SIZE_CONTENT);
+    lv_obj_set_style_radius(grid, 20, 0);
+    lv_obj_set_style_clip_corner(grid, true, 0);
+    lv_obj_set_style_bg_color(grid, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_bg_opa(grid, LV_OPA_COVER, 0);
+    lv_obj_set_style_pad_all(grid, 2, 0);
+    lv_obj_set_style_pad_gap(grid, 2, 0);
+    lv_obj_set_flex_flow(grid, LV_FLEX_FLOW_ROW_WRAP);
 
     for (int i = 0; i < DESK_SITES; i++) {
         tile_t *t = &tiles[i];
-        t->box = ui_plain(screen);
+        t->box = ui_plain(grid);
         lv_obj_set_size(t->box, TILE_W, TILE_H);
-        lv_obj_set_pos(t->box, LEFT + (i % 2) * (TILE_W + GAP), TOP + (i / 2) * (TILE_H + GAP));
-        lv_obj_set_style_radius(t->box, 18, 0);
         lv_obj_set_style_bg_opa(t->box, LV_OPA_COVER, 0);
-        backdrops_glass(t->box);
-        lv_obj_set_style_border_width(t->box, 1, 0);
+        lv_obj_set_style_bg_color(t->box, lv_color_hex(TILE), 0);
         lv_obj_add_flag(t->box, LV_OBJ_FLAG_HIDDEN);
 
         t->dot = ui_plain(t->box);
@@ -251,6 +253,12 @@ void screen_sites_create(lv_obj_t *screen)
         arrive_draw_in(t->strip, STRIP_W, STRIP_H);
         memset(lv_canvas_get_draw_buf(t->strip)->data, 0, lv_canvas_get_draw_buf(t->strip)->header.stride * STRIP_H);
     }
+
+    filler = ui_plain(grid);
+    lv_obj_set_size(filler, TILE_W, TILE_H);
+    lv_obj_set_style_bg_opa(filler, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(filler, lv_color_hex(TILE), 0);
+    lv_obj_add_flag(filler, LV_OBJ_FLAG_HIDDEN);
 
     lv_timer_create(beat, BEAT_MS, NULL);
     lv_timer_create(tick, 1000, NULL);

@@ -2447,6 +2447,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   day are one row of cells, a name over a figure ("7", "3 days", "Mon"), 36px off the bottom.
   The panel takes the figures from the hub's words ("this week 7", "3-day streak", "busiest on
   Mondays"), so the API is unchanged; a streak under two days reads "None".
+- Built 2026-11-23 (6, House: Sites): the heartbeats and the 30-day strips stay; the tiles are one
+  two-column grid of cells, an empty cell beside an odd last site (a full-width last cell left
+  its strip short and its uptime far off), a down site's cell dark red; the pill a tint.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
