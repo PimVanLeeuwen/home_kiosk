@@ -6,6 +6,8 @@
  * night amber, a failed one red, the last one bright. Words from the hub
  * (app/desk_backups.py).
  *
+ * M38: the flow is one row of hairline cells (NAS, the line, Hetzner), the pill a tint.
+ *
  * The seal and the bars are drawn once per answer into canvases; only the light moves.
  *
  * Lifted (plan.md M27): the seal's ring of dots turns slowly while the screen shows: a
@@ -34,9 +36,10 @@ LV_IMAGE_DECLARE(glow_sky);
 #define WIDTH 648
 #define SEAL 160
 #define HERO_TOP 92
-#define FLOW_TOP 300
-#define BARS_TOP 420
-#define BARS_H 180
+#define FLOW_TOP 310
+#define FLOW_H 64
+#define BARS_TOP 446
+#define BARS_H 164
 #define LIGHT 12
 #define RING_DOTS 12  /* the seal's turning ring: few, so a frame changes few areas */
 #define RING_MS 100
@@ -48,7 +51,7 @@ LV_IMAGE_DECLARE(glow_sky);
 
 static lv_obj_t *sky, *title, *pill, *pill_text, *seal, *time_label, *line, *restore, *box;
 static lv_obj_t *flow_line, *light, *bars, *count_label, *slow_label, *last_label;
-static lv_obj_t *self, *ring_dots[RING_DOTS];
+static lv_obj_t *self, *ring_dots[RING_DOTS], *flow[3];
 static float ring_turn;
 EXT_RAM_BSS_ATTR static desk_backups_t shown; /* off the LVGL task's small stack */
 
@@ -168,8 +171,7 @@ static void tick(lv_timer_t *timer)
     uint32_t tone = !shown.ok ? RED : shown.warn ? AMBER : GREEN;
     lv_label_set_text(title, shown.title);
     lv_label_set_text(pill_text, shown.status);
-    lv_obj_set_style_border_color(pill, lv_color_hex(shown.warn ? AMBER : GREEN), 0);
-    lv_obj_set_style_text_color(pill_text, lv_color_hex(shown.warn ? AMBER : GREEN), 0);
+    ui_pill_tone(pill, pill_text, shown.warn ? AMBER : GREEN);
     lv_obj_set_style_image_recolor(sky, lv_color_hex(tone == GREEN ? VIOLET : tone), 0);
 
     draw_seal(tone, !shown.ok);
@@ -196,20 +198,15 @@ static void tick(lv_timer_t *timer)
     }
 }
 
-static lv_obj_t *chip(lv_obj_t *screen, const char *words)
+/* An end of the flow: a cell as wide as its words. */
+static void end_cell(lv_obj_t *cell, const char *words)
 {
-    lv_obj_t *obj = ui_plain(screen);
-    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(obj, 18, 0);
-    lv_obj_set_style_pad_ver(obj, 8, 0);
-    lv_obj_set_style_radius(obj, 22, 0);
-    lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, 0);
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0x121119), 0);
-    lv_obj_set_style_border_width(obj, 1, 0);
-    lv_obj_set_style_border_color(obj, lv_color_hex(0x2a2833), 0);
-    lv_obj_t *label = ui_text(obj, &instrument_24, TOK_DESK_FG);
+    lv_obj_set_flex_grow(cell, 0);
+    lv_obj_set_width(cell, LV_SIZE_CONTENT);
+    lv_obj_set_style_pad_hor(cell, 20, 0);
+    lv_obj_t *label = ui_text(cell, &instrument_24, TOK_DESK_FG);
     lv_label_set_text(label, words);
-    return obj;
+    lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
 }
 
 void screen_backups_create(lv_obj_t *screen)
@@ -230,15 +227,9 @@ void screen_backups_create(lv_obj_t *screen)
     title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
-    pill = ui_plain(screen);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 4, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_border_width(pill, 2, 0);
-    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
-    pill_text = ui_text(pill, &instrument_24, GREEN);
-    lv_obj_set_style_text_letter_space(pill_text, 2, 0);
+    pill = ui_pill(screen, &instrument_24, &pill_text);
+    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 26);
+    ui_pill_tone(pill, pill_text, GREEN);
 
     /* The seal, and beside it when, how long, how much, and the restore check. */
     seal = lv_canvas_create(screen);
@@ -264,21 +255,19 @@ void screen_backups_create(lv_obj_t *screen)
     restore = ui_one_line(screen, &instrument_24, TOK_DESK_MUTED, text_w);
     lv_obj_set_pos(restore, text_x, HERO_TOP + 116);
 
-    /* NAS to Hetzner, encrypted, with one light on its way. */
-    lv_obj_t *from = chip(screen, "NAS");
-    lv_obj_set_pos(from, LEFT, FLOW_TOP);
-    lv_obj_t *to = chip(screen, "Hetzner · encrypted");
-    lv_obj_align(to, LV_ALIGN_TOP_RIGHT, -LEFT, FLOW_TOP);
+    /* NAS to Hetzner, encrypted, with one light on its way: three cells, the line between. */
+    ui_cells(screen, LEFT, FLOW_TOP, WIDTH, FLOW_H, 3, flow);
+    end_cell(flow[0], "NAS");
+    end_cell(flow[2], "Hetzner · encrypted");
     lv_obj_update_layout(screen);
-    int32_t line_x = lv_obj_get_x(from) + lv_obj_get_width(from) + 14;
-    int32_t line_w = lv_obj_get_x(to) - 14 - line_x;
-    int32_t mid = FLOW_TOP + lv_obj_get_height(from) / 2;
-    flow_line = ui_plain(screen);
+    int32_t line_x = 18, line_w = lv_obj_get_width(flow[1]) - 2 * 18;
+    int32_t mid = FLOW_H / 2;
+    flow_line = ui_plain(flow[1]);
     lv_obj_set_size(flow_line, line_w, 2);
     lv_obj_set_pos(flow_line, line_x, mid - 1);
     lv_obj_set_style_bg_opa(flow_line, 90, 0);
     lv_obj_set_style_bg_color(flow_line, lv_color_hex(GREEN), 0);
-    light = ui_plain(screen);
+    light = ui_plain(flow[1]);
     lv_obj_set_size(light, LIGHT, LIGHT);
     lv_obj_set_y(light, mid - LIGHT / 2);
     lv_obj_set_style_radius(light, LV_RADIUS_CIRCLE, 0);
@@ -297,7 +286,7 @@ void screen_backups_create(lv_obj_t *screen)
     lv_anim_start(&anim);
     box = ui_one_line(screen, &instrument_24, TOK_DESK_MUTED, WIDTH);
     lv_obj_set_style_text_align(box, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_pos(box, LEFT, FLOW_TOP + 56);
+    lv_obj_set_pos(box, LEFT, FLOW_TOP + FLOW_H + 18);
 
     /* The nights, the latest on the right. */
     bars = lv_canvas_create(screen);
@@ -306,13 +295,13 @@ void screen_backups_create(lv_obj_t *screen)
     lv_obj_set_pos(bars, LEFT, BARS_TOP);
     arrive_draw_in(bars, WIDTH, BARS_H);
     int under = BARS_TOP + BARS_H + 8;
-    count_label = ui_text(screen, &instrument_24, 0x7d7a8c);
+    count_label = ui_text(screen, &instrument_24, TOK_DESK_FAINT);
     lv_obj_set_pos(count_label, LEFT, under);
     slow_label = ui_text(screen, &instrument_24, AMBER);
     lv_label_set_text(slow_label, "slow");
     lv_obj_set_y(slow_label, under);
     lv_obj_add_flag(slow_label, LV_OBJ_FLAG_HIDDEN);
-    last_label = ui_text(screen, &instrument_24, 0x7d7a8c);
+    last_label = ui_text(screen, &instrument_24, TOK_DESK_FAINT);
     lv_label_set_text(last_label, "Latest");
     lv_obj_align(last_label, LV_ALIGN_TOP_RIGHT, -LEFT, under);
 
