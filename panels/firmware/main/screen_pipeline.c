@@ -9,7 +9,10 @@
  * smooth curves they would be hundreds of shapes in one LVGL layer.
  *
  * Lifted (plan.md M27): light flows along the lines into the jobs still to finish, one
- * small glowing dot per line, while the screen shows; the hub paints the light behind. */
+ * small glowing dot per line, while the screen shows; the hub paints the light behind.
+ *
+ * M38: the job cards are cells with a 2px hairline edge (a running, failed or waiting job's
+ * edge in its colour), the rule over the commit a hairline. */
 
 #include "screen_pipeline.h"
 
@@ -268,14 +271,14 @@ static void show_cards(void)
                                                       is(j->state, "approval");
         lv_obj_set_pos(cards[i].card, boxes[i].x, boxes[i].y);
         lv_obj_set_size(cards[i].card, boxes[i].w, boxes[i].h);
-        lv_obj_set_style_border_color(cards[i].card, lv_color_hex(loud ? job_colour(j->state) : DIM), 0);
+        lv_obj_set_style_border_color(cards[i].card, lv_color_hex(loud ? job_colour(j->state) : TOK_DESK_HAIRLINE), 0);
         lv_obj_set_style_border_width(cards[i].card, loud ? 3 : 2, 0);
         lv_obj_set_flag(cards[i].spinner, LV_OBJ_FLAG_HIDDEN, !running);
         lv_obj_invalidate(cards[i].icon);
         lv_obj_set_flag(cards[i].count, LV_OBJ_FLAG_HIDDEN, j->count <= 1);
         lv_label_set_text_fmt(cards[i].count, "x%d", j->count);
         lv_label_set_text(cards[i].name, j->name);
-        lv_obj_set_style_text_color(cards[i].name, lv_color_hex(is(j->state, "queued") ? TOK_DESK_MUTED : 0xffffff), 0);
+        lv_obj_set_style_text_color(cards[i].name, lv_color_hex(is(j->state, "queued") ? TOK_DESK_MUTED : TOK_DESK_FG), 0);
         int line = lv_font_get_line_height(&instrument_24);
         bool stacked = boxes[i].w < NARROW && boxes[i].h >= 44 + 2 * line + 12;
         int name_width = stacked ? boxes[i].w - 24 : boxes[i].w - 58 - (wide && j->time[0] ? 70 : 0);
@@ -324,7 +327,7 @@ static void show_run(void)
     }
     lv_obj_set_style_text_color(number, lv_color_hex(is(r->state, "running") ? TOK_DESK_MUTED : r->colour), 0);
     lv_label_set_text(big, r->big);
-    lv_obj_set_style_text_color(big, lv_color_hex(is(r->state, "running") ? 0xffffff : r->colour), 0);
+    lv_obj_set_style_text_color(big, lv_color_hex(is(r->state, "running") ? TOK_DESK_FG : r->colour), 0);
     lv_label_set_text(first, r->first);
     lv_label_set_text(second, r->second);
     lv_label_set_text(commit, r->commit);
@@ -402,10 +405,9 @@ void screen_pipeline_create(lv_obj_t *screen)
 
     for (int i = 0; i < DESK_PIPELINE_JOBS; i++) {
         lv_obj_t *card = cards[i].card = ui_plain(screen);
-        lv_obj_set_style_radius(card, 12, 0);
-        lv_obj_set_style_bg_color(card, lv_color_hex(0x121119), 0);
+        lv_obj_set_style_radius(card, 14, 0);
+        lv_obj_set_style_bg_color(card, lv_color_hex(TOK_DESK_CELL), 0);
         lv_obj_set_style_bg_opa(card, LV_OPA_COVER, 0);
-        backdrops_glass(card);
         lv_obj_set_style_border_opa(card, LV_OPA_COVER, 0);
         cards[i].icon = ui_plain(card);
         lv_obj_set_size(cards[i].icon, 30, 30);
@@ -419,8 +421,8 @@ void screen_pipeline_create(lv_obj_t *screen)
         lv_obj_set_style_arc_color(cards[i].spinner, lv_color_hex(DIM), LV_PART_MAIN);
         lv_obj_set_style_arc_color(cards[i].spinner, lv_color_hex(SOFT), LV_PART_INDICATOR);
         lv_obj_remove_flag(cards[i].spinner, LV_OBJ_FLAG_CLICKABLE);
-        cards[i].count = ui_text(card, &instrument_24, 0xa7a7b4);
-        cards[i].name = ui_text(card, &instrument_24, 0xffffff);
+        cards[i].count = ui_text(card, &instrument_24, TOK_DESK_SECONDARY);
+        cards[i].name = ui_text(card, &instrument_24, TOK_DESK_FG);
         lv_label_set_long_mode(cards[i].name, LV_LABEL_LONG_DOT);
         cards[i].time = ui_text(card, &instrument_24, TOK_DESK_MUTED);
         lv_obj_align(cards[i].time, LV_ALIGN_RIGHT_MID, -16, 0);
@@ -436,18 +438,18 @@ void screen_pipeline_create(lv_obj_t *screen)
         lv_obj_add_flag(card, LV_OBJ_FLAG_HIDDEN);
     }
 
-    big = ui_text(screen, &instrument_time, 0xffffff);
+    big = ui_text(screen, &instrument_time, TOK_DESK_FG);
     lv_obj_set_pos(big, LEFT - 4, 528);
-    first = ui_text(screen, &instrument_28_bold, 0xa7a7b4);
+    first = ui_text(screen, &instrument_28_bold, TOK_DESK_SECONDARY);
     lv_obj_align(first, LV_ALIGN_TOP_RIGHT, -LEFT, 546);
     second = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_align(second, LV_ALIGN_TOP_RIGHT, -LEFT, 588);
     lv_obj_t *rule = ui_plain(screen);
     lv_obj_set_size(rule, WIDTH, 2);
     lv_obj_set_pos(rule, LEFT, 634);
-    lv_obj_set_style_bg_color(rule, lv_color_white(), 0);
-    lv_obj_set_style_bg_opa(rule, 20, 0);
-    commit = ui_text(screen, &instrument_24, 0xffffff);
+    lv_obj_set_style_bg_color(rule, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_bg_opa(rule, LV_OPA_COVER, 0);
+    commit = ui_text(screen, &instrument_24, TOK_DESK_FG);
     lv_label_set_long_mode(commit, LV_LABEL_LONG_DOT);
     lv_obj_set_size(commit, 430, lv_font_get_line_height(&instrument_24)); /* one line; its width per run */
     lv_obj_set_pos(commit, LEFT, 652);

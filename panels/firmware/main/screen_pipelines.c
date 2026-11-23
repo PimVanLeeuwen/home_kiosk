@@ -1,7 +1,8 @@
 /* The House panel's pipelines card while nothing runs (plan.md M21), as in the
  * mockup: each watched repo with a dot and a line for its last result, and its
  * last ten runs on main as bars, as tall as they took (capped by the hub), red
- * for a failed run. Wording and colours from the hub (app/desk_pipelines.py). */
+ * for a failed run. Since M38 the repos are a column of cells cut by 2px hairlines.
+ * Wording and colours from the hub (app/desk_pipelines.py). */
 
 #include "screen_pipelines.h"
 
@@ -17,14 +18,14 @@ LV_FONT_DECLARE(instrument_24);
 LV_IMAGE_DECLARE(glow_sky);
 
 #define LEFT 36
-#define ROW_TOP 150
-#define ROW_STEP 160
-#define BARS_LEFT 444
+#define LIST_TOP 104
+#define ROW_H 156
+#define BARS_LEFT 392  /* in a row's cell: the newest bar 20px off its edge */
 #define BAR_WIDTH 16
 #define BAR_GAP 8
 #define BAR_LOW 8      /* the shortest bar */
 #define BAR_HIGH 70    /* added for the longest run */
-#define BAR_BOTTOM 78  /* below a row's top */
+#define BAR_BOTTOM 112 /* below a row's top */
 
 static struct {
     lv_obj_t *row, *dot, *name, *line, *bars[10];
@@ -87,19 +88,31 @@ void screen_pipelines_create(lv_obj_t *screen)
     lv_label_set_text(right, "LAST 10 RUNS ON MAIN");
     lv_obj_align(right, LV_ALIGN_TOP_RIGHT, -LEFT, 30);
 
+    /* A cell per repo; the hairline colour shows between them. */
+    lv_obj_t *list = ui_plain(screen);
+    lv_obj_set_pos(list, LEFT, LIST_TOP);
+    lv_obj_set_size(list, 648, LV_SIZE_CONTENT);
+    lv_obj_set_style_radius(list, 20, 0);
+    lv_obj_set_style_clip_corner(list, true, 0);
+    lv_obj_set_style_bg_color(list, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_bg_opa(list, LV_OPA_COVER, 0);
+    lv_obj_set_style_pad_all(list, 2, 0);
+    lv_obj_set_style_pad_row(list, 2, 0);
+    lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
     for (int i = 0; i < 3; i++) {
-        lv_obj_t *row = rows[i].row = ui_plain(screen);
-        lv_obj_set_size(row, 720, 120);
-        lv_obj_set_pos(row, 0, ROW_TOP + i * ROW_STEP);
+        lv_obj_t *row = rows[i].row = ui_plain(list);
+        lv_obj_set_size(row, LV_PCT(100), ROW_H);
+        lv_obj_set_style_bg_color(row, lv_color_hex(TOK_DESK_CELL), 0);
+        lv_obj_set_style_bg_opa(row, LV_OPA_COVER, 0);
         rows[i].dot = ui_plain(row);
         lv_obj_set_size(rows[i].dot, 20, 20);
-        lv_obj_set_pos(rows[i].dot, LEFT + 4, 10);
+        lv_obj_set_pos(rows[i].dot, 22, 30);
         lv_obj_set_style_radius(rows[i].dot, LV_RADIUS_CIRCLE, 0);
         lv_obj_set_style_bg_opa(rows[i].dot, LV_OPA_COVER, 0);
-        rows[i].name = ui_text(row, &instrument_28_bold, 0xffffff);
-        lv_obj_set_pos(rows[i].name, LEFT + 40, 0);
-        rows[i].line = ui_text(row, &instrument_24, TOK_DESK_MUTED);
-        lv_obj_set_pos(rows[i].line, LEFT + 40, 44);
+        rows[i].name = ui_one_line(row, &instrument_28_bold, TOK_DESK_FG, BARS_LEFT - 76);
+        lv_obj_set_pos(rows[i].name, 56, 20);
+        rows[i].line = ui_one_line(row, &instrument_24, TOK_DESK_MUTED, BARS_LEFT - 76);
+        lv_obj_set_pos(rows[i].line, 56, 64);
         for (int b = 0; b < 10; b++) {
             lv_obj_t *bar = rows[i].bars[b] = ui_plain(row);
             lv_obj_set_style_radius(bar, 4, 0);

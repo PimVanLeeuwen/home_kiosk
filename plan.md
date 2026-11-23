@@ -2464,6 +2464,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Built 2026-11-23 (6, House: Stock): the week's chart, its marks, the ripple and the holding
   dots stay; the today and yours pills are tints and the week's "%" is small and muted, as on
   Portfolio.
+- Built 2026-11-23 (6, House: pipelines): the idle card's repos are a column of cells, the bars
+  20px off a cell's edge; the running run's job cards are cells with a 2px hairline edge (a
+  running, failed or waiting job's in its colour), the rule over the commit a hairline. The
+  error takeover waits until it can be seen on a board.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
