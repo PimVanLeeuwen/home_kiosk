@@ -4,6 +4,9 @@
  * quiet with slow ripples round a green check, how long nothing has needed you and a
  * dot per day of this week. Words from the hub (app/desk_alerts.py).
  *
+ * M38: the icon calmer (a tint inside its edge, a softer pulse), the header pill a tint and
+ * the severity a coloured word beside it, not a second pill; the divider a hairline.
+ *
  * Only a few small objects move (the pulse, three rings), so LVGL redraws little. */
 
 #include "screen_alerts.h"
@@ -34,7 +37,7 @@ LV_IMAGE_DECLARE(glow_sky);
 #define RED TOK_DESK_DOWN
 
 static lv_obj_t *sky, *title, *pill, *pill_text;
-static lv_obj_t *open_box, *icon, *severity_pill, *severity, *hero_title, *hero_body, *hero_line, *divider;
+static lv_obj_t *open_box, *icon, *severity, *hero_title, *hero_body, *hero_line, *divider;
 static lv_obj_t *other_rows[DESK_ALERT_OTHERS], *other_dots[DESK_ALERT_OTHERS], *other_titles[DESK_ALERT_OTHERS];
 static lv_obj_t *quiet_box, *rings[RINGS], *quiet_line, *day_dots[7], *day_letters[7];
 EXT_RAM_BSS_ATTR static desk_alerts_t shown; /* off the LVGL task's small stack */
@@ -80,11 +83,10 @@ static void show_open(void)
     uint32_t colour = tone_colour(shown.tone);
     lv_obj_set_style_border_color(icon, lv_color_hex(colour), 0);
     lv_obj_set_style_shadow_color(icon, lv_color_hex(colour), 0);
-    lv_obj_set_style_bg_color(icon, lv_color_hex(shown.tone == 'e' ? 0x2a0f12 : 0x2a2010), 0);
+    lv_obj_set_style_bg_color(icon, lv_color_hex(colour), 0);
     for (uint32_t i = 0; i < lv_obj_get_child_count(icon); i++) {
         lv_obj_set_style_bg_color(lv_obj_get_child(icon, i), lv_color_hex(colour), 0);
     }
-    lv_obj_set_style_border_color(severity_pill, lv_color_hex(colour), 0);
     lv_obj_set_style_text_color(severity, lv_color_hex(colour), 0);
     lv_label_set_text(severity, shown.hero.severity);
     lv_label_set_text(hero_title, shown.hero.title);
@@ -128,8 +130,7 @@ static void tick(lv_timer_t *timer)
     uint32_t colour = tone_colour(shown.tone);
     lv_label_set_text(title, shown.title);
     lv_label_set_text(pill_text, shown.status);
-    lv_obj_set_style_border_color(pill, lv_color_hex(colour), 0);
-    lv_obj_set_style_text_color(pill_text, lv_color_hex(colour), 0);
+    ui_pill_tone(pill, pill_text, colour);
     lv_obj_set_style_image_recolor(sky, lv_color_hex(colour), 0);
     lv_obj_set_flag(open_box, LV_OBJ_FLAG_HIDDEN, !shown.has_hero);
     lv_obj_set_flag(quiet_box, LV_OBJ_FLAG_HIDDEN, shown.has_hero);
@@ -151,7 +152,7 @@ static void build_open(lv_obj_t *screen)
     icon = ui_plain(open_box);
     lv_obj_set_size(icon, ICON, ICON);
     lv_obj_set_style_radius(icon, 28, 0);
-    lv_obj_set_style_bg_opa(icon, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_opa(icon, 20, 0); /* a tint of its colour inside the edge */
     lv_obj_set_style_border_width(icon, 3, 0);
     lv_obj_set_style_shadow_width(icon, 40, 0);
     lv_obj_t *bar = ui_plain(icon);
@@ -164,22 +165,16 @@ static void build_open(lv_obj_t *screen)
     lv_obj_set_style_radius(dot, 6, 0);
     lv_obj_set_style_bg_opa(dot, LV_OPA_COVER, 0);
     lv_obj_align(dot, LV_ALIGN_CENTER, 0, 26);
-    start(icon, pulse, 30, 170, 1600, 0, true);
+    start(icon, pulse, 20, 110, 2000, 0, true);
 
-    /* Beside it: the severity and the title, two lines at most. */
-    severity_pill = ui_plain(open_box);
-    lv_obj_set_size(severity_pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(severity_pill, 12, 0);
-    lv_obj_set_style_pad_ver(severity_pill, 2, 0);
-    lv_obj_set_style_radius(severity_pill, 16, 0);
-    lv_obj_set_style_border_width(severity_pill, 2, 0);
-    lv_obj_set_pos(severity_pill, ICON + 28, 0);
-    severity = ui_text(severity_pill, &instrument_24, AMBER);
+    /* Beside it: the severity, a coloured word, and the title, two lines at most. */
+    severity = ui_text(open_box, &instrument_24, AMBER);
     lv_obj_set_style_text_letter_space(severity, 2, 0);
-    hero_title = ui_text(open_box, &instrument_40, 0xffffff);
+    lv_obj_set_pos(severity, ICON + 28, 0);
+    hero_title = ui_text(open_box, &instrument_40, TOK_DESK_FG);
     lv_label_set_long_mode(hero_title, LV_LABEL_LONG_DOT);
     lv_obj_set_size(hero_title, WIDTH - ICON - 28, 2 * lv_font_get_line_height(&instrument_40));
-    lv_obj_set_pos(hero_title, ICON + 28, 40);
+    lv_obj_set_pos(hero_title, ICON + 28, 34);
 
     /* Under them: its first lines (three at most) and how long it has been open. */
     hero_body = ui_text(open_box, &instrument_24, TOK_DESK_SOFT);
@@ -190,10 +185,10 @@ static void build_open(lv_obj_t *screen)
     lv_obj_set_pos(hero_line, 0, 262);
 
     divider = ui_plain(open_box);
-    lv_obj_set_size(divider, WIDTH, 1);
+    lv_obj_set_size(divider, WIDTH, 2);
     lv_obj_set_pos(divider, 0, 330);
     lv_obj_set_style_bg_opa(divider, LV_OPA_COVER, 0);
-    lv_obj_set_style_bg_color(divider, lv_color_hex(0x2a2833), 0);
+    lv_obj_set_style_bg_color(divider, lv_color_hex(TOK_DESK_HAIRLINE), 0);
     for (int i = 0; i < DESK_ALERT_OTHERS; i++) {
         lv_obj_t *row = other_rows[i] = ui_plain(open_box);
         lv_obj_set_size(row, WIDTH, 52);
@@ -245,7 +240,7 @@ static void build_quiet(lv_obj_t *screen)
     lv_obj_set_style_line_rounded(mark, true, 0);
     lv_obj_set_style_line_color(mark, lv_color_hex(GREEN), 0);
 
-    lv_obj_t *words = ui_text(quiet_box, &instrument_40, 0xffffff);
+    lv_obj_t *words = ui_text(quiet_box, &instrument_40, TOK_DESK_FG);
     lv_label_set_text(words, "All quiet");
     lv_obj_align(words, LV_ALIGN_TOP_MID, 0, RIPPLE + 6);
     quiet_line = ui_one_line(quiet_box, &instrument_24, TOK_DESK_MUTED, WIDTH);
@@ -286,15 +281,9 @@ void screen_alerts_create(lv_obj_t *screen)
     title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
-    pill = ui_plain(screen);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 4, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_border_width(pill, 2, 0);
-    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
-    pill_text = ui_text(pill, &instrument_24, GREEN);
-    lv_obj_set_style_text_letter_space(pill_text, 2, 0);
+    pill = ui_pill(screen, &instrument_24, &pill_text);
+    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 26);
+    ui_pill_tone(pill, pill_text, GREEN);
 
     build_open(screen);
     build_quiet(screen);

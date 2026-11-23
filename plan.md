@@ -2439,6 +2439,10 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   is a tint, and NAS to Hetzner is one row of cells (each end as wide as its words, the line and
   its moving light in the middle cell) instead of two chips. No "Last run" label over the time:
   the line under it already says "Last night".
+- Built 2026-11-23 (6, House: Alerts): the icon stays, calmer (a tint of its colour inside its
+  edge instead of a dark fill, a softer pulse); the severity is a coloured word over the title,
+  not a second pill, so the header's tinted pill is the screen's one badge; the divider is a
+  hairline. All quiet keeps its ripples and the week's dots.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
