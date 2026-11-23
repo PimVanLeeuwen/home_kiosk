@@ -2482,6 +2482,11 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   between them), glass over the hub's light, with a cell's 20px corners and a hairline edge
   while unlit; the pill is the shared tint and the playing bar a cell with a hairline edge
   over its stripe.
+- Built 2026-11-23 (6, House: Now playing and Music): the covers, the record, the controls and
+  the cover wall stay; where it plays is the shared pill in a soft tint (was white with an
+  edge). Music seen on the board; Now playing not yet, as the hub's Spotify answer stayed stale
+  with nothing playing while music played (no Spotify line in the hub's log: `music.latest`
+  falls back to the last answer without logging why).
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
