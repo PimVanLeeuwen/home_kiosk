@@ -172,19 +172,9 @@ void screen_playing_create(lv_obj_t *screen)
     lv_obj_add_flag(cover_picture.image, LV_OBJ_FLAG_HIDDEN);
 
     /* Where it plays, as a pill at the top right. */
-    lv_obj_t *pill = ui_plain(screen);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 6, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_bg_opa(pill, 40, 0);
-    lv_obj_set_style_bg_color(pill, lv_color_white(), 0);
-    lv_obj_set_style_border_width(pill, 2, 0);
-    lv_obj_set_style_border_color(pill, lv_color_white(), 0);
-    lv_obj_set_style_border_opa(pill, 50, 0);
+    lv_obj_t *pill = ui_pill(screen, &instrument_24, &label_device); /* the shared tint (M38) */
     lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 36);
-    label_device = ui_text(pill, &instrument_24, 0xe6e3ef);
-    lv_obj_set_style_text_letter_space(label_device, 1, 0);
+    ui_pill_tone(pill, label_device, TOK_DESK_SOFT);
 
     /* Title (two lines at most) and artist (one), stacked, so a short title keeps
      * its artist close. */
@@ -193,11 +183,11 @@ void screen_playing_create(lv_obj_t *screen)
     lv_obj_set_size(words, WIDTH, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(words, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_row(words, 8, 0);
-    title = ui_text(words, &instrument_52_bold, 0xffffff);
+    title = ui_text(words, &instrument_52_bold, TOK_DESK_FG);
     lv_label_set_long_mode(title, LV_LABEL_LONG_DOT);
     lv_obj_set_width(title, WIDTH);
     lv_obj_set_style_max_height(title, 124, 0);
-    subtitle = ui_one_line(words, &instrument_24, 0xc9c6d4, WIDTH); /* not into the progress bar */
+    subtitle = ui_one_line(words, &instrument_24, TOK_DESK_SOFT, WIDTH); /* not into the progress bar */
 
     progress = lv_bar_create(screen);
     lv_obj_set_size(progress, WIDTH, 8);

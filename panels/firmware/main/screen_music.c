@@ -128,19 +128,9 @@ void screen_music_create(lv_obj_t *screen)
     lv_obj_set_style_text_letter_space(header, 2, 0);
     lv_label_set_text(header, "MUSIC");
     lv_obj_set_pos(header, LEFT, 30);
-    lv_obj_t *pill = ui_plain(screen);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 6, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_bg_opa(pill, 40, 0);
-    lv_obj_set_style_bg_color(pill, lv_color_white(), 0);
-    lv_obj_set_style_border_width(pill, 2, 0);
-    lv_obj_set_style_border_color(pill, lv_color_white(), 0);
-    lv_obj_set_style_border_opa(pill, 50, 0);
-    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 22);
-    label_device = ui_text(pill, &instrument_24, 0xe6e3ef);
-    lv_obj_set_style_text_letter_space(label_device, 1, 0);
+    lv_obj_t *pill = ui_pill(screen, &instrument_24, &label_device); /* the shared tint (M38) */
+    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 26);
+    ui_pill_tone(pill, label_device, TOK_DESK_SOFT);
 
     static const char *const HEADINGS[2] = {"FAVOURITES", "PLAYED LATELY"};
     for (int row = 0; row < 2; row++) {
