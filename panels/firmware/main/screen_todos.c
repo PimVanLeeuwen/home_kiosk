@@ -4,7 +4,10 @@
  * which page is up, as on the Door panel's reminders. Read-only: ticking off stays in the
  * hub. Words from the hub (app/desk_todos.py); the panel only places them.
  *
- * Its light: the violet glow from the top turns red while a todo is overdue. */
+ * Its light: the violet glow from the top turns red while a todo is overdue.
+ *
+ * M38: the rows are a column of cells cut by 2px hairlines, an overdue one's cell tinted
+ * red; no pill for the late ones, as the header already counts them. */
 
 #include "screen_todos.h"
 
@@ -24,7 +27,8 @@ LV_IMAGE_DECLARE(glow_sky);
 #define PAGES ((DESK_TODOS + ROWS - 1) / ROWS)
 #define ROWS_TOP 92
 #define ROW_HEIGHT 128
-#define ROW_GAP 14
+#define ROW_GAP 2 /* the hairline between two cells */
+#define LATE_CELL 0x1a0e11 /* an overdue todo's cell */
 #define RING 30
 #define TEXT_X 80
 #define TAG_WIDTH 76
@@ -34,7 +38,6 @@ LV_IMAGE_DECLARE(glow_sky);
 
 #define GREY TOK_DESK_MUTED
 #define FAINT TOK_DESK_FAINT
-#define WHITE 0xf2f1f6
 #define VIOLET 0x9d8cff
 #define RED TOK_DESK_DOWN
 #define AMBER TOK_DATA_AMBER
@@ -72,7 +75,7 @@ static void show_page(void)
         lv_label_set_text(dues[i], t->due);
         lv_obj_set_style_text_color(dues[i], lv_color_hex(due_colour(t->state)), 0);
         lv_obj_set_x(dues[i], TEXT_X + (t->high ? TAG_WIDTH + 14 : 0));
-        lv_obj_set_style_border_color(rows[i], lv_color_hex(t->state == 'o' ? 0x4a2328 : 0x26232f), 0);
+        lv_obj_set_style_bg_color(rows[i], lv_color_hex(t->state == 'o' ? LATE_CELL : TOK_DESK_CELL), 0);
     }
     /* Past the twelve the hub sends: a line under the last page. */
     lv_obj_set_flag(more, LV_OBJ_FLAG_HIDDEN, shown.more == 0 || page != pages - 1);
@@ -174,15 +177,22 @@ void screen_todos_create(lv_obj_t *screen)
         lv_obj_add_flag(dots[i], LV_OBJ_FLAG_HIDDEN);
     }
 
+    /* The rows: the hairline colour behind a cell per todo. */
+    lv_obj_t *list = ui_plain(screen);
+    lv_obj_set_pos(list, LEFT, ROWS_TOP);
+    lv_obj_set_size(list, WIDTH, LV_SIZE_CONTENT);
+    lv_obj_set_style_radius(list, 20, 0);
+    lv_obj_set_style_clip_corner(list, true, 0);
+    lv_obj_set_style_bg_color(list, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_bg_opa(list, LV_OPA_COVER, 0);
+    lv_obj_set_style_pad_all(list, 2, 0);
+    lv_obj_set_style_pad_row(list, ROW_GAP, 0);
+    lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
     for (int i = 0; i < ROWS; i++) {
-        lv_obj_t *row = rows[i] = ui_plain(screen);
-        lv_obj_set_size(row, WIDTH, ROW_HEIGHT);
-        lv_obj_set_pos(row, LEFT, ROWS_TOP + i * (ROW_HEIGHT + ROW_GAP));
-        lv_obj_set_style_radius(row, 20, 0);
-        lv_obj_set_style_bg_color(row, lv_color_hex(0x15141c), 0);
+        lv_obj_t *row = rows[i] = ui_plain(list);
+        lv_obj_set_size(row, LV_PCT(100), ROW_HEIGHT);
+        lv_obj_set_style_bg_color(row, lv_color_hex(TOK_DESK_CELL), 0);
         lv_obj_set_style_bg_opa(row, LV_OPA_COVER, 0);
-        lv_obj_set_style_border_color(row, lv_color_hex(0x26232f), 0);
-        lv_obj_set_style_border_width(row, 1, 0);
         lv_obj_add_flag(row, LV_OBJ_FLAG_HIDDEN);
 
         /* An empty ring, as in the hub: a todo to tick off there. */
@@ -193,7 +203,7 @@ void screen_todos_create(lv_obj_t *screen)
         lv_obj_set_style_border_color(rings[i], lv_color_hex(0x55525f), 0);
         lv_obj_set_style_border_width(rings[i], 2, 0);
 
-        titles[i] = ui_one_line(row, &instrument_40, WHITE, WIDTH - TEXT_X - 28);
+        titles[i] = ui_one_line(row, &instrument_40, TOK_DESK_FG, WIDTH - 4 - TEXT_X - 28);
 
         tags[i] = ui_text(row, &instrument_24, AMBER);
         lv_label_set_text(tags[i], "HIGH");
@@ -212,7 +222,7 @@ void screen_todos_create(lv_obj_t *screen)
     }
 
     more = ui_text(screen, &instrument_24, FAINT);
-    lv_obj_set_pos(more, LEFT + 20, ROWS_TOP + ROWS * (ROW_HEIGHT + ROW_GAP) - 2);
+    lv_obj_set_pos(more, LEFT + 20, ROWS_TOP + 4 + ROWS * (ROW_HEIGHT + ROW_GAP) + 14);
     lv_obj_add_flag(more, LV_OBJ_FLAG_HIDDEN);
 
     lv_timer_create(tick, 1000, NULL);
