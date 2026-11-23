@@ -2455,6 +2455,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   cells (the card keeps its tint, loses its edge; the others' tiles in a row over the hub's line
   about them); the pill a tint. Open: the hub's painted light still sits at the ring's centre
   during an incident, under the box (`paint_house.py`).
+- Built 2026-11-23 (6, House: Tailnet): the map, its lines and the flowing lights stay; the list
+  of the NAS and the online devices is a column of cells, a row each (37px, so a lower device's
+  name keeps clear of it); the pill a tint.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

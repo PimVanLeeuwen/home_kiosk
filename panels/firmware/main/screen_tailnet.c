@@ -6,7 +6,9 @@
  * places from the hub (app/desk_tailnet.py).
  *
  * The lines are drawn once into a canvas, when the hub's answer changes; only one
- * small light per live line moves, from the NAS outwards (chosen 2026-10-22). */
+ * small light per live line moves, from the NAS outwards (chosen 2026-10-22).
+ *
+ * M38: the list is a column of cells cut by 2px hairlines, a row each; the pill a tint. */
 
 #include "screen_tailnet.h"
 
@@ -32,8 +34,8 @@ LV_IMAGE_DECLARE(glow_sky);
 #define SELF 96
 #define PEER 68
 #define NAME_W 320
-#define LIST_TOP 486
-#define ROW_H 40
+#define LIST_TOP 480
+#define ROW_H 37
 #define LIGHT 12
 #define PARTICLES 3 /* per live link: the traffic as a flow (plan.md M27) */
 
@@ -230,9 +232,7 @@ static void tick(lv_timer_t *timer)
     }
     lv_label_set_text(title, shown.title);
     lv_label_set_text(pill_text, shown.status);
-    lv_obj_set_style_border_color(pill, lv_color_hex(shown.warn ? AMBER : GREEN), 0);
-    lv_obj_set_style_border_opa(pill, shown.warn ? LV_OPA_COVER : 150, 0);
-    lv_obj_set_style_text_color(pill_text, lv_color_hex(shown.warn ? AMBER : GREEN), 0);
+    ui_pill_tone(pill, pill_text, shown.warn ? AMBER : GREEN);
     lv_obj_set_style_image_recolor(sky, lv_color_hex(shown.warn ? AMBER : NAS), 0);
     show_map();
     show_rows();
@@ -269,15 +269,9 @@ void screen_tailnet_create(lv_obj_t *screen)
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
 
-    pill = ui_plain(screen);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 4, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_border_width(pill, 2, 0);
-    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
-    pill_text = ui_text(pill, &instrument_24, GREEN);
-    lv_obj_set_style_text_letter_space(pill_text, 2, 0);
+    pill = ui_pill(screen, &instrument_24, &pill_text);
+    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 26);
+    ui_pill_tone(pill, pill_text, GREEN);
 
     /* The lines, under everything else on the map. */
     canvas = lv_canvas_create(screen);
@@ -310,11 +304,24 @@ void screen_tailnet_create(lv_obj_t *screen)
     lv_label_set_text(self_label, "NAS");
     lv_obj_center(self_label);
 
-    /* The NAS and the online devices: a dot, the name, the address, how it connects. */
+    /* The NAS and the online devices, a cell each: a dot, the name, the address, how it
+     * connects. The hairline colour shows between the cells. */
+    lv_obj_t *list = ui_plain(screen);
+    lv_obj_set_pos(list, LEFT, LIST_TOP);
+    lv_obj_set_size(list, MAP_W, LV_SIZE_CONTENT);
+    lv_obj_set_style_radius(list, 20, 0);
+    lv_obj_set_style_clip_corner(list, true, 0);
+    lv_obj_set_style_bg_color(list, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_bg_opa(list, LV_OPA_COVER, 0);
+    lv_obj_set_style_pad_all(list, 2, 0);
+    lv_obj_set_style_pad_row(list, 2, 0);
+    lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
     for (int i = 0; i < DESK_TAILNET_ROWS; i++) {
-        lv_obj_t *box = rows[i].box = ui_plain(screen);
-        lv_obj_set_size(box, MAP_W, ROW_H);
-        lv_obj_set_pos(box, LEFT, LIST_TOP + i * ROW_H);
+        lv_obj_t *box = rows[i].box = ui_plain(list);
+        lv_obj_set_size(box, LV_PCT(100), ROW_H);
+        lv_obj_set_style_pad_hor(box, 18, 0);
+        lv_obj_set_style_bg_color(box, lv_color_hex(TOK_DESK_CELL), 0);
+        lv_obj_set_style_bg_opa(box, LV_OPA_COVER, 0);
         lv_obj_add_flag(box, LV_OBJ_FLAG_HIDDEN);
         rows[i].dot = ui_plain(box);
         lv_obj_set_size(rows[i].dot, 12, 12);
@@ -322,11 +329,11 @@ void screen_tailnet_create(lv_obj_t *screen)
         lv_obj_set_style_bg_opa(rows[i].dot, LV_OPA_COVER, 0);
         lv_obj_set_style_shadow_width(rows[i].dot, 10, 0);
         lv_obj_align(rows[i].dot, LV_ALIGN_LEFT_MID, 2, 0);
-        rows[i].name = ui_one_line(box, &instrument_24, TOK_DESK_FG, 250);
+        rows[i].name = ui_one_line(box, &instrument_24, TOK_DESK_FG, 240);
         lv_obj_align(rows[i].name, LV_ALIGN_LEFT_MID, 28, 0);
         rows[i].ip = ui_one_line(box, &instrument_24, TOK_DESK_MUTED, 170);
-        lv_obj_align(rows[i].ip, LV_ALIGN_LEFT_MID, 290, 0);
-        rows[i].via = ui_one_line(box, &instrument_24, TOK_DESK_MUTED, 180);
+        lv_obj_align(rows[i].ip, LV_ALIGN_LEFT_MID, 280, 0);
+        rows[i].via = ui_one_line(box, &instrument_24, TOK_DESK_MUTED, 150);
         lv_obj_set_style_text_align(rows[i].via, LV_TEXT_ALIGN_RIGHT, 0);
         lv_obj_align(rows[i].via, LV_ALIGN_RIGHT_MID, 0, 0);
     }
