@@ -5,7 +5,8 @@
  * and your gain in the pills, in percentages only. The line runs nearly edge to edge,
  * glowing, with a fill fading down under it, a dashed line at the close before the week,
  * the trading days apart with faint lines, the high and the low marked, and a ripple on
- * the latest price. Words and points from the hub (app/desk_stock.py).
+ * the latest price. Words and points from the hub (app/desk_stock.py). Since M38 the pills
+ * are tints and the week's "%" is small and muted after its number.
  *
  * The chart is drawn into a canvas when the stock or the answer changes: the fill, the
  * dashes and the day lines painted straight into the pixels, the line on top. */
@@ -25,6 +26,7 @@
 #include "tokens.h"
 
 LV_FONT_DECLARE(instrument_52_bold);
+LV_FONT_DECLARE(instrument_28_bold);
 LV_FONT_DECLARE(instrument_24);
 LV_IMAGE_DECLARE(glow_sky);
 
@@ -47,7 +49,7 @@ LV_IMAGE_DECLARE(glow_sky);
 #define VIOLET TOK_VIOLET
 #define GREY TOK_DESK_MUTED
 
-static lv_obj_t *title, *pills, *today, *gain, *ticker, *name, *week, *price, *chart, *high, *low, *pulse,
+static lv_obj_t *title, *pills, *today, *gain, *ticker, *name, *week, *week_unit, *price, *chart, *high, *low, *pulse,
     *ripple, *dot, *days[DESK_STOCK_DAYS], *dots[DESK_STOCKS];
 static int picked = -1;
 static char picked_ticker[16];
@@ -181,9 +183,7 @@ static void show_pill(lv_obj_t *pill, const char *words, bool up)
     lv_obj_set_flag(pill, LV_OBJ_FLAG_HIDDEN, words[0] == '\0');
     lv_obj_t *label = lv_obj_get_child(pill, 0);
     lv_label_set_text(label, words);
-    uint32_t tone = up ? GREEN : RED;
-    lv_obj_set_style_border_color(pill, lv_color_hex(tone), 0);
-    lv_obj_set_style_text_color(label, lv_color_hex(tone), 0);
+    ui_pill_tone(pill, label, up ? GREEN : RED);
 }
 
 static void show(void)
@@ -200,7 +200,16 @@ static void show(void)
     show_pill(gain, s->gain, s->gain_up);
     lv_label_set_text(ticker, s->ticker);
     lv_label_set_text(name, s->name);
-    lv_label_set_text(week, s->week);
+    /* "-3.68%": the number large, the "%" small beside it. */
+    char number[24];
+    snprintf(number, sizeof number, "%s", s->week);
+    size_t length = strlen(number);
+    bool percent = length > 0 && number[length - 1] == '%';
+    if (percent) {
+        number[length - 1] = '\0';
+    }
+    lv_label_set_text(week, number);
+    lv_obj_set_flag(week_unit, LV_OBJ_FLAG_HIDDEN, !percent);
     lv_obj_set_style_text_color(week, lv_color_hex(colour), 0);
     lv_label_set_text(price, s->price);
 
@@ -292,14 +301,9 @@ static void grow(void *obj, int32_t at)
 
 static lv_obj_t *make_pill(lv_obj_t *parent)
 {
-    lv_obj_t *pill = ui_plain(parent);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 4, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_border_width(pill, 2, 0);
-    lv_obj_t *label = ui_text(pill, &instrument_24, GREEN);
-    lv_obj_set_style_text_letter_space(label, 2, 0);
+    lv_obj_t *label;
+    lv_obj_t *pill = ui_pill(parent, &instrument_24, &label);
+    ui_pill_tone(pill, label, GREEN);
     lv_obj_add_flag(pill, LV_OBJ_FLAG_HIDDEN);
     return pill;
 }
@@ -325,7 +329,7 @@ void screen_stock_create(lv_obj_t *screen)
     lv_obj_set_size(pills, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(pills, LV_FLEX_FLOW_ROW);
     lv_obj_set_style_pad_column(pills, 10, 0);
-    lv_obj_align(pills, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
+    lv_obj_align(pills, LV_ALIGN_TOP_RIGHT, -LEFT, 26);
     today = make_pill(pills);
     gain = make_pill(pills);
 
@@ -333,9 +337,17 @@ void screen_stock_create(lv_obj_t *screen)
     lv_obj_set_pos(ticker, LEFT, 84);
     name = ui_one_line(screen, &instrument_24, GREY, 360);
     lv_obj_set_pos(name, LEFT, 152);
-    week = ui_text(screen, &instrument_52_bold, GREEN);
+    lv_obj_t *figure = ui_plain(screen);
+    lv_obj_set_size(figure, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(figure, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(figure, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
+    lv_obj_set_style_pad_column(figure, 6, 0);
+    lv_obj_align(figure, LV_ALIGN_TOP_RIGHT, -LEFT, 84);
+    week = ui_text(figure, &instrument_52_bold, GREEN);
     arrive_count(week);
-    lv_obj_align(week, LV_ALIGN_TOP_RIGHT, -LEFT, 84);
+    week_unit = ui_text(figure, &instrument_28_bold, TOK_DESK_MUTED);
+    lv_label_set_text(week_unit, "%");
+    lv_obj_set_style_pad_bottom(week_unit, 8, 0);
     price = ui_text(screen, &instrument_24, TOK_DESK_SOFT);
     lv_obj_align(price, LV_ALIGN_TOP_RIGHT, -LEFT, 152);
 

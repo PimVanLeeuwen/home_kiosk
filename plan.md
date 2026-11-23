@@ -2461,6 +2461,9 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Built 2026-11-23 (6, House: Portfolio): the line, its fill and the best point stay; the "%" is
   small and muted after the figure (still 52 bold: the 84px font has no "+", "%" or point), the
   period switch a row of cells (the chosen one raised, `0x17151f`), the pill a tint.
+- Built 2026-11-23 (6, House: Stock): the week's chart, its marks, the ripple and the holding
+  dots stay; the today and yours pills are tints and the week's "%" is small and muted, as on
+  Portfolio.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,
