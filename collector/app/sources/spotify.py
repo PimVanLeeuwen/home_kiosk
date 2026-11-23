@@ -47,8 +47,10 @@ LOGIN_FOR = 600  # seconds a started login may take
 COVER_SIZE = 300
 FAVOURITES = 4
 # How long an answer from Spotify is reused: playback moves, devices and the
-# last played item hardly do.
-FRESH = {"player": 2.0, "devices": 10.0, "recent": 60.0}
+# last played item hardly do. Longer since 2026-11-23, when asking up to about 37 times a
+# minute around the clock got the hub paused by Spotify for 10.5 hours (a panel counts
+# the progress on by itself between answers).
+FRESH = {"player": 5.0, "devices": 30.0, "recent": 120.0}
 
 TABLES = """
 CREATE TABLE IF NOT EXISTS spotify_auth (

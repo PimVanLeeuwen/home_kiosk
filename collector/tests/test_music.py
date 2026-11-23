@@ -5,7 +5,9 @@ import base64
 import hashlib
 import io
 import json
+from datetime import datetime
 from urllib.parse import parse_qs, urlsplit
+from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
@@ -448,6 +450,42 @@ def test_the_panels_get_the_last_state_stale_while_spotify_is_limited(store, clo
     later = run(music.latest(CFG, store))
 
     assert later["stale"] is True and later["playing"]["title"] == "Midnight City"
+
+
+def test_the_log_says_once_why_spotify_fails_and_once_when_it_answers_again(
+        store, cloud, caplog, monkeypatch):
+    """A pause can last hours and the hub keeps its log in memory: one line when it starts
+    (with the reason, a pause with its end in the house's own time), none while it lasts,
+    one when Spotify answers again (2026-11-23, a 10-hour pause that left no trace)."""
+    clock = [1_795_430_000.0]
+    monkeypatch.setattr(spotify.time, "time", lambda: clock[0])
+    connect(store)
+    cloud.player = {"is_playing": True, "item": track(), "device": device("iPhone", True)}
+    run(music.latest(CFG, store))
+    caplog.set_level("INFO", logger="app.sources.music")
+
+    spotify.CLIENT.cache.clear()
+    spotify.CLIENT.transport = httpx.MockTransport(lambda r: httpx.Response(503))
+    run(music.latest(CFG, store))
+    spotify.CLIENT.cache.clear()
+    run(music.latest(CFG, store))  # the same failure again: nothing new to say
+    spotify.CLIENT.cache.clear()
+    spotify.CLIENT.transport = limited_for(3600)
+    run(music.latest(CFG, store))
+    run(music.latest(CFG, store))  # inside the pause: quiet
+    until = datetime.fromtimestamp(clock[0] + 3600, ZoneInfo("Europe/Amsterdam"))
+
+    clock[0] += 3601  # the pause is over
+    spotify.CLIENT.cache.clear()
+    spotify.CLIENT.transport = httpx.MockTransport(cloud.handler)
+    assert run(music.latest(CFG, store))["stale"] is False
+
+    lines = [r.getMessage() for r in caplog.records if r.name == "app.sources.music"]
+    assert lines == [
+        "music: Spotify answered 503; showing the last answer",
+        f"music: Spotify asked the hub to wait until {until:%a %H:%M}; showing the last answer",
+        "music: Spotify answers again",
+    ]
 
 
 def limited_for(seconds):

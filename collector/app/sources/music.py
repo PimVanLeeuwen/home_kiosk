@@ -9,13 +9,18 @@ Apple TV step, M18) may switch it on and open the app first.
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 from collections.abc import Awaitable, Callable
+from datetime import datetime
 from typing import Any
 
+from .. import config
 from ..store import Store
 from . import spotify
 from .spotify import CLIENT, SpotifyError
+
+log = logging.getLogger(__name__)
 
 # How long to wait for a woken Apple TV to show up in Spotify.
 WAKE_WAIT_SECONDS = 15
@@ -157,6 +162,31 @@ LAST: dict[str, Any] = {}
 LAST_KEY = "music_last"
 SAVE_EVERY = 30.0
 _saved_at = [0.0]
+# Why the last poll failed, so the log says it once when it starts and once when it ends,
+# not with every poll (a pause can last hours; the hub keeps its log in memory).
+_failing: list[str | None] = [None]
+
+
+def _why(cfg: dict[str, Any], exc: Exception, paused: float | None) -> str:
+    """A failure in words for the log: no personal data, just what went wrong."""
+    if paused is not None:
+        until = datetime.fromtimestamp(paused, config.zone(cfg))
+        return f"Spotify asked the hub to wait until {until:%a %H:%M}"
+    if isinstance(exc, SpotifyError):
+        return str(exc)  # its own words: "Spotify answered 503", never a token
+    return type(exc).__name__
+
+
+def _note_failure(why: str) -> None:
+    if _failing[0] != why:
+        log.warning("music: %s; showing the last answer", why)
+        _failing[0] = why
+
+
+def _note_success() -> None:
+    if _failing[0] is not None:
+        log.info("music: Spotify answers again")
+        _failing[0] = None
 
 
 async def latest(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
@@ -170,6 +200,7 @@ async def latest(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
         if isinstance(exc, SpotifyError) and exc.status == 401:
             raise
         paused = CLIENT.pause_end(store)
+        _note_failure(_why(cfg, exc, paused))
         last = LAST or store.get_cache(LAST_KEY)
         if last:
             return last | {"stale": True, "paused_until": paused}
@@ -177,6 +208,7 @@ async def latest(cfg: dict[str, Any], store: Store) -> dict[str, Any]:
             raise
         return await _waiting(cfg, store, paused)
     answer["paused_until"] = None
+    _note_success()
     LAST.clear()
     LAST.update(answer)
     if time.monotonic() - _saved_at[0] >= SAVE_EVERY or not _saved_at[0]:
@@ -190,6 +222,7 @@ def forget(store: Store) -> None:
     LAST.clear()
     store.put_cache(LAST_KEY, {})
     _saved_at[0] = 0.0
+    _failing[0] = None
 
 
 async def _waiting(cfg: dict[str, Any], store: Store, paused: float) -> dict[str, Any]:

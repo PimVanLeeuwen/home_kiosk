@@ -11,7 +11,9 @@ export interface ApiState<T> {
 /**
  * GET a hub API path, optionally re-fetching every `refreshMs`. A failed
  * refresh keeps the last data and sets `error`, so a page can show what it had
- * with a note instead of going blank.
+ * with a note instead of going blank. In a hidden tab it stops re-fetching, and
+ * fetches once as the tab shows again: a forgotten tab kept the hub asking Spotify
+ * around the clock until Spotify paused it (2026-11-23).
  */
 export function useApi<T>(path: string, refreshMs?: number): ApiState<T> {
   const [data, setData] = useState<T>()
@@ -35,10 +37,14 @@ export function useApi<T>(path: string, refreshMs?: number): ApiState<T> {
         },
       )
     load()
-    const timer = refreshMs ? window.setInterval(load, refreshMs) : undefined
+    /* On the interval, and as the tab shows again; never while it is hidden. */
+    const again = () => document.visibilityState !== 'hidden' && load()
+    const timer = refreshMs ? window.setInterval(again, refreshMs) : undefined
+    if (refreshMs) document.addEventListener('visibilitychange', again)
     return () => {
       controller.abort()
       window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', again)
     }
   }, [path, refreshMs, attempt])
 
