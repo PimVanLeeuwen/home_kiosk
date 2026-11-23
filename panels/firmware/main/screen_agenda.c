@@ -5,7 +5,9 @@
  * then what comes later. The events come from the hub (app/desk_agenda.py);
  * which one is "now or next" follows the panel's own clock, minute by minute.
  * Once today has nothing left, or had nothing, tomorrow's first events take the
- * room under "Nothing more today" (2026-10-23). */
+ * room under "Nothing more today" (2026-10-23).
+ *
+ * M38: what comes later is a column of cells cut by 2px hairlines, an event each. */
 
 #include "screen_agenda.h"
 
@@ -31,7 +33,7 @@ LV_IMAGE_DECLARE(glow_round);
 #define TEXT_X (LEFT + RING + 28)
 #define DAY_FROM (7 * 60)
 #define DAY_TO (23 * 60)
-#define ROW 42
+#define ROW 42 /* a later event's cell, 40px, and the hairline under it */
 #define BOTTOM 700
 #define TAIL 120 /* the now comet's tail */
 
@@ -185,7 +187,7 @@ static void show_ribbon(int y, int now_minute)
     const char *hours[] = {"07:00", "12:00", "17:00", "23:00"};
     const int at[] = {7, 12, 17, 23};
     for (int i = 0; i < 4; i++) {
-        lv_obj_t *label = ui_text(ribbon, &instrument_24, 0x7d7a8c);
+        lv_obj_t *label = ui_text(ribbon, &instrument_24, TOK_DESK_FAINT);
         lv_label_set_text(label, hours[i]);
         lv_obj_update_layout(label);
         int x = ribbon_x(at[i] * 60) - (i == 0 ? 0 : i == 3 ? lv_obj_get_width(label) : lv_obj_get_width(label) / 2);
@@ -198,29 +200,33 @@ static void show_later(int y, int focus, int64_t now)
 {
     lv_obj_clean(later);
     lv_obj_set_pos(later, LEFT, y);
-    /* Only the room left: reaching past the bottom edge made the screen
-     * scrollable, and LVGL drew a scrollbar at the right. */
-    lv_obj_set_height(later, y < BOTTOM ? BOTTOM - y : 0);
+    lv_obj_add_flag(later, LV_OBJ_FLAG_HIDDEN);
     if (focus < 0) {
         return; /* the day is done */
     }
+    /* As many as fit above the bottom edge (past it the screen would scroll, and LVGL
+     * draws a scrollbar), the box's 4px of hairline counted. */
     int rows = 0;
-    for (int i = focus + 1; i < shown.event_count && y + (rows + 1) * ROW <= BOTTOM; i++) {
+    for (int i = focus + 1; i < shown.event_count && y + 4 + (rows + 1) * ROW <= BOTTOM; i++) {
         if (shown.events[i].end_at <= now) {
             continue;
         }
-        int top = rows++ * ROW;
-        lv_obj_t *at = ui_text(later, &instrument_24, TOK_DESK_SECONDARY);
+        rows++;
+        lv_obj_t *row = ui_plain(later);
+        lv_obj_set_size(row, LV_PCT(100), ROW - 2);
+        lv_obj_set_style_pad_hor(row, 18, 0);
+        lv_obj_set_style_bg_color(row, lv_color_hex(TOK_DESK_CELL), 0);
+        lv_obj_set_style_bg_opa(row, LV_OPA_COVER, 0);
+        lv_obj_t *at = ui_text(row, &instrument_24, TOK_DESK_SECONDARY);
         lv_label_set_text(at, shown.events[i].start[0] ? shown.events[i].start : "     ");
-        lv_obj_set_pos(at, 0, top);
-        lv_obj_t *mark = dot(later, 12, shown.events[i].color);
-        lv_obj_set_pos(mark, 88, top + 10);
-        lv_obj_t *name = ui_text(later, &instrument_24, TOK_DESK_FG);
-        lv_label_set_long_mode(name, LV_LABEL_LONG_DOT);
-        lv_obj_set_width(name, WIDTH - 116);
+        lv_obj_align(at, LV_ALIGN_LEFT_MID, 0, 0);
+        lv_obj_t *mark = dot(row, 12, shown.events[i].color);
+        lv_obj_align(mark, LV_ALIGN_LEFT_MID, 86, 0);
+        lv_obj_t *name = ui_one_line(row, &instrument_24, TOK_DESK_FG, WIDTH - 4 - 36 - 112);
         lv_label_set_text(name, shown.events[i].title);
-        lv_obj_set_pos(name, 116, top);
+        lv_obj_align(name, LV_ALIGN_LEFT_MID, 112, 0);
     }
+    lv_obj_set_flag(later, LV_OBJ_FLAG_HIDDEN, rows == 0);
 }
 
 /* Tomorrow's first events: the time, a bar in the calendar's colour, the title and
@@ -416,8 +422,17 @@ void screen_agenda_create(lv_obj_t *screen)
 
     ribbon = ui_plain(screen);
     lv_obj_set_size(ribbon, WIDTH, 90);
+    /* What comes later: the hairline colour behind a cell per event. */
     later = ui_plain(screen);
-    lv_obj_set_size(later, WIDTH, 0);
+    lv_obj_set_size(later, WIDTH, LV_SIZE_CONTENT);
+    lv_obj_set_style_radius(later, 20, 0);
+    lv_obj_set_style_clip_corner(later, true, 0);
+    lv_obj_set_style_bg_color(later, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_bg_opa(later, LV_OPA_COVER, 0);
+    lv_obj_set_style_pad_all(later, 2, 0);
+    lv_obj_set_style_pad_row(later, 2, 0);
+    lv_obj_set_flex_flow(later, LV_FLEX_FLOW_COLUMN);
+    lv_obj_add_flag(later, LV_OBJ_FLAG_HIDDEN);
 
     next_head = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(next_head, 2, 0);
