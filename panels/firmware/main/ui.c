@@ -3,6 +3,7 @@
 #include "ui.h"
 
 #include "esp_heap_caps.h"
+#include "tokens.h"
 
 lv_obj_t *ui_plain(lv_obj_t *parent)
 {
@@ -27,6 +28,49 @@ lv_obj_t *ui_one_line(lv_obj_t *parent, const lv_font_t *font, uint32_t colour, 
     lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
     lv_obj_set_size(label, width, lv_font_get_line_height(font));
     return label;
+}
+
+lv_obj_t *ui_pill(lv_obj_t *parent, const lv_font_t *font, lv_obj_t **text)
+{
+    lv_obj_t *pill = ui_plain(parent);
+    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_style_pad_hor(pill, 16, 0);
+    lv_obj_set_style_pad_ver(pill, 3, 0);
+    lv_obj_set_style_radius(pill, 20, 0);
+    lv_obj_set_style_bg_opa(pill, 38, 0); /* about 15%, as the hub's tinted pills */
+    *text = ui_text(pill, font, TOK_DESK_MUTED);
+    lv_obj_set_style_text_letter_space(*text, 2, 0);
+    return pill;
+}
+
+void ui_pill_tone(lv_obj_t *pill, lv_obj_t *text, uint32_t colour)
+{
+    lv_obj_set_style_bg_color(pill, lv_color_hex(colour), 0);
+    lv_obj_set_style_text_color(text, lv_color_hex(colour), 0);
+}
+
+lv_obj_t *ui_cells(lv_obj_t *parent, int32_t x, int32_t y, int32_t width, int32_t height, int count,
+                   lv_obj_t **cells)
+{
+    /* The box is the hairline colour; the cells cover it but for 2px between and round them. */
+    lv_obj_t *box = ui_plain(parent);
+    lv_obj_set_pos(box, x, y);
+    lv_obj_set_size(box, width, height);
+    lv_obj_set_style_radius(box, 20, 0);
+    lv_obj_set_style_clip_corner(box, true, 0);
+    lv_obj_set_style_bg_color(box, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_bg_opa(box, LV_OPA_COVER, 0);
+    lv_obj_set_style_pad_all(box, 2, 0);
+    lv_obj_set_style_pad_column(box, 2, 0);
+    lv_obj_set_flex_flow(box, LV_FLEX_FLOW_ROW);
+    for (int i = 0; i < count; i++) {
+        cells[i] = ui_plain(box);
+        lv_obj_set_height(cells[i], LV_PCT(100));
+        lv_obj_set_flex_grow(cells[i], 1);
+        lv_obj_set_style_bg_color(cells[i], lv_color_hex(TOK_DESK_CELL), 0);
+        lv_obj_set_style_bg_opa(cells[i], LV_OPA_COVER, 0);
+    }
+    return box;
 }
 
 void ui_upper(char *to, size_t size, const char *from)

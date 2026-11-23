@@ -1,8 +1,8 @@
 /* The House panel's NAS screen (plan.md M20, the instrument design of 2026-10-10): a gauge
  * for the fullest pool, violet running into amber, with ticks and a red mark where it would
- * alert; its size and runway below; then tiles for CPU and memory with the day as
- * sparklines, and for the disks (a dot each) with the UPS. Words and numbers from the hub
- * (app/desk_nas.py).
+ * alert; its size and runway below; then one row of hairline cells (M38) for CPU and
+ * memory with the day as sparklines, and for the disks (a dot each) with the UPS. Words and
+ * numbers from the hub (app/desk_nas.py).
  *
  * The gauge and the sparklines are drawn once per answer into canvases: as LVGL shapes
  * they would be hundreds of objects in one layer. */
@@ -32,10 +32,9 @@ LV_IMAGE_DECLARE(glow_sky);
 #define GAUGE_H 290
 #define GAUGE_TOP 76
 #define R 200       /* the arc's outer radius */
-#define ARC 26      /* its width */
+#define ARC 16      /* its width: slimmer since M38 */
 #define TILE_TOP 470
-#define TILE_GAP 14
-#define TILE_W ((WIDTH - 2 * TILE_GAP) / 3)
+#define TILE_W ((WIDTH - 2 * 4) / 3) /* a cell, between 2px hairlines */
 #define TILE_H 200
 #define SPARK_W (TILE_W - 36)
 #define SPARK_H 56
@@ -46,7 +45,7 @@ LV_IMAGE_DECLARE(glow_sky);
 #define VIOLET TOK_VIOLET
 #define LINE 0xb4a9ff
 
-static lv_obj_t *sky, *title, *pill, *pill_text, *gauge, *percent, *size, *runway;
+static lv_obj_t *sky, *title, *pill, *pill_text, *gauge, *percent, *size, *runway, *cells[3];
 static lv_obj_t *cpu_value, *ram_value, *cpu_spark, *ram_spark, *disks_value, *disk_dots[DESK_NAS_DISKS], *ups;
 EXT_RAM_BSS_ATTR static desk_nas_t shown; /* off the LVGL task's small stack */
 
@@ -86,7 +85,7 @@ static void draw_gauge(int used, int limit)
         lv_draw_line_dsc_t tick;
         lv_draw_line_dsc_init(&tick);
         tick.color = lv_color_white();
-        tick.opa = i % 5 ? 45 : 100;
+        tick.opa = i % 5 ? 60 : 140;
         tick.width = 2;
         tick.p1.x = cx + (int)((R + 12) * cosf(a)), tick.p1.y = cy + (int)((R + 12) * sinf(a));
         tick.p2.x = cx + (int)(outer * cosf(a)), tick.p2.y = cy + (int)(outer * sinf(a));
@@ -97,7 +96,7 @@ static void draw_gauge(int used, int limit)
     used = used < 0 ? 0 : used > 100 ? 100 : used;
     float end = 180 + 180 * used / 100.0f;
     if (used > 0) {
-        arc(&layer, 180, end, ARC + 22, lv_color_hex(VIOLET), 36); /* the glow */
+        arc(&layer, 180, end, ARC + 16, lv_color_hex(VIOLET), 50); /* the glow */
         for (float a = 180; a < end; a += 2) {
             float to = a + 2 < end ? a + 2 : end;
             arc(&layer, a, to, ARC, along((a - 180) / 180), LV_OPA_COVER);
@@ -164,8 +163,7 @@ static void tick(lv_timer_t *timer)
     uint32_t tone = shown.warn ? AMBER : GREEN;
     lv_label_set_text(title, shown.title);
     lv_label_set_text(pill_text, shown.status);
-    lv_obj_set_style_border_color(pill, lv_color_hex(tone), 0);
-    lv_obj_set_style_text_color(pill_text, lv_color_hex(tone), 0);
+    ui_pill_tone(pill, pill_text, tone);
     lv_obj_set_style_image_recolor(sky, lv_color_hex(shown.warn ? AMBER : VIOLET), 0);
 
     /* The gauge takes about 0.7 s to draw, on the LVGL task: only when it changes, not with
@@ -180,8 +178,8 @@ static void tick(lv_timer_t *timer)
     lv_label_set_text(runway, shown.runway);
     lv_obj_set_flag(runway, LV_OBJ_FLAG_HIDDEN, shown.runway[0] == '\0');
 
-    lv_label_set_text_fmt(cpu_value, "%d%%", shown.cpu);
-    lv_label_set_text_fmt(ram_value, "%d%%", shown.ram);
+    lv_label_set_text_fmt(cpu_value, "%d", shown.cpu);
+    lv_label_set_text_fmt(ram_value, "%d", shown.ram);
     draw_spark(cpu_spark, shown.cpu_points, shown.cpu_count);
     draw_spark(ram_spark, shown.ram_points, shown.ram_count);
     lv_label_set_text(disks_value, shown.disks_line);
@@ -195,23 +193,26 @@ static void tick(lv_timer_t *timer)
     lv_obj_set_style_text_color(ups, lv_color_hex(shown.ups_ok ? TOK_DESK_MUTED : AMBER), 0);
 }
 
-static lv_obj_t *tile(lv_obj_t *screen, int i, const char *name, lv_obj_t **value)
+/* Cell `i`: its name, and its figure with a small muted unit after it ("%", or none). */
+static lv_obj_t *tile(int i, const char *name, const char *unit, lv_obj_t **value)
 {
-    lv_obj_t *box = ui_plain(screen);
-    lv_obj_set_size(box, TILE_W, TILE_H);
-    lv_obj_set_pos(box, LEFT + i * (TILE_W + TILE_GAP), TILE_TOP);
-    lv_obj_set_style_radius(box, 18, 0);
-    lv_obj_set_style_bg_opa(box, LV_OPA_COVER, 0);
-    backdrops_glass(box);
-    lv_obj_set_style_bg_color(box, lv_color_hex(0x0d0d10), 0);
-    lv_obj_set_style_border_width(box, 1, 0);
-    lv_obj_set_style_border_color(box, lv_color_hex(0x1c1c22), 0);
+    lv_obj_t *box = cells[i];
     lv_obj_t *label = ui_text(box, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(label, 2, 0);
     lv_label_set_text(label, name);
     lv_obj_set_pos(label, 18, 16);
-    *value = ui_text(box, &instrument_40, TOK_DESK_FG);
-    lv_obj_set_pos(*value, 18, 50);
+    lv_obj_t *figure = ui_plain(box);
+    lv_obj_set_size(figure, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(figure, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(figure, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
+    lv_obj_set_style_pad_column(figure, 4, 0);
+    lv_obj_set_pos(figure, 18, 50);
+    *value = ui_text(figure, &instrument_40, TOK_DESK_FG);
+    if (unit) {
+        lv_obj_t *small = ui_text(figure, &instrument_24, TOK_DESK_MUTED);
+        lv_label_set_text(small, unit);
+        lv_obj_set_style_pad_bottom(small, 5, 0);
+    }
     return box;
 }
 
@@ -243,15 +244,9 @@ void screen_nas_create(lv_obj_t *screen)
     title = ui_text(screen, &instrument_24, TOK_DESK_MUTED);
     lv_obj_set_style_text_letter_space(title, 2, 0);
     lv_obj_set_pos(title, LEFT, 30);
-    pill = ui_plain(screen);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 4, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_border_width(pill, 2, 0);
-    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 24);
-    pill_text = ui_text(pill, &instrument_24, GREEN);
-    lv_obj_set_style_text_letter_space(pill_text, 2, 0);
+    pill = ui_pill(screen, &instrument_24, &pill_text);
+    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 26);
+    ui_pill_tone(pill, pill_text, GREEN);
 
     gauge = lv_canvas_create(screen);
     lv_canvas_set_draw_buf(gauge, lv_draw_buf_create(GAUGE_W, GAUGE_H, LV_COLOR_FORMAT_ARGB8888, 0));
@@ -266,7 +261,7 @@ void screen_nas_create(lv_obj_t *screen)
     lv_obj_set_style_pad_column(number, 4, 0);
     lv_obj_align(number, LV_ALIGN_TOP_MID, 0, GAUGE_TOP + GAUGE_H - 20 - 96);
     percent = ui_text(number, &instrument_time, TOK_DESK_FG);
-    lv_obj_t *sign = ui_text(number, &instrument_40, TOK_DESK_SECONDARY);
+    lv_obj_t *sign = ui_text(number, &instrument_40, TOK_DESK_MUTED);
     lv_label_set_text(sign, "%");
     lv_obj_set_style_pad_bottom(sign, 8, 0);
 
@@ -277,9 +272,10 @@ void screen_nas_create(lv_obj_t *screen)
     lv_obj_set_style_text_align(runway, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_pos(runway, LEFT, GAUGE_TOP + GAUGE_H + 40);
 
-    cpu_spark = spark(tile(screen, 0, "CPU", &cpu_value));
-    ram_spark = spark(tile(screen, 1, "MEMORY", &ram_value));
-    lv_obj_t *disks = tile(screen, 2, "DISKS", &disks_value);
+    ui_cells(screen, LEFT, TILE_TOP, WIDTH, TILE_H, 3, cells);
+    cpu_spark = spark(tile(0, "CPU", "%", &cpu_value));
+    ram_spark = spark(tile(1, "MEMORY", "%", &ram_value));
+    lv_obj_t *disks = tile(2, "DISKS", NULL, &disks_value);
     lv_obj_t *row = ui_plain(disks);
     lv_obj_set_size(row, TILE_W - 36, 16);
     lv_obj_set_pos(row, 18, 116);

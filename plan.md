@@ -2426,6 +2426,15 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
   problem. Today's Air, Laundry, Apple devices and Outside cards link to their page ("Details"),
   and the outside_services and apple_offline incidents lead to Outside and Apple devices (so their
   dots sit on those tabs). A short tab label gets a 24px target (`min-w-6`).
+- Step 6, decided with the owner 2026-11-23: the panels follow the look in a balance, each
+  screen's own drawing kept (the NAS gauge, the Backups seal and flow, the Alerts icon, the train
+  ring, the rings, the charts and maps) and only its frame changed: tinted pills without an edge,
+  hairline cells instead of glass tiles, figures with small muted units. Mockups of all 31 screens
+  outside the repo. One panel at a time, House first, each screen tried on the board.
+- Built 2026-11-23 (6, House: NAS): `ui_pill` and `ui_pill_tone` (the hub's tinted pill) and
+  `ui_cells` (a row of cells cut by 2px hairlines, `TOK_DESK_CELL` and `TOK_DESK_HAIRLINE`) in
+  `ui.c`; the NAS screen's gauge is slimmer (16px) with brighter hairline ticks, its "%" muted,
+  and CPU, memory and disks one row of cells. The hub's painted light is unchanged.
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

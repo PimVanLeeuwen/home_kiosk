@@ -33,5 +33,7 @@
 #define TOK_DESK_SECONDARY             0xb4b1c2
 #define TOK_DESK_MUTED                 0x8a8794 /* labels and meta text */
 #define TOK_DESK_FAINT                 0x6c6a78
+#define TOK_DESK_CELL                  0x070709 /* a cell's face in a hairline grid (M38) */
+#define TOK_DESK_HAIRLINE              0x1f2127 /* the 2px lines between cells: 1px is 0.1 mm on these screens */
 #define TOK_DESK_UP                    0x5fd39c
 #define TOK_DESK_DOWN                  0xff6b6b
