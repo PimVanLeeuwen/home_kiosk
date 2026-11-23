@@ -2497,6 +2497,13 @@ resolved; quiet hours 23:00 to 07:00 hold non-errors for one digest at 07:00; se
 - Built 2026-11-23 (6, Now: Todos): the rows (ring, title, High, due date) and the page turning
   stay; the four cards are one column of cells, an overdue todo's cell tinted red (was a red
   edge). No "N late" pill: the header already says it.
+- Decided with the owner 2026-11-23 (6, Now): the pieces the hub paints (Run, Your week,
+  Streets, Night, Countdown, Radar, Art of the day) stay as they are; their words already take
+  the panel's header style, and restyling them would be collector work seen only after a deploy.
+  Your day stays too: it has no pill, tile or glass.
+- Built 2026-11-23 (6, Now: Headlines): the lead picture, its badge, the bookmarks and the taps
+  stay; a 2px hairline between the two other stories (a column of cells would push the second
+  past the bottom edge under the hub's painted picture).
 
 Order: M1, M2, M3 + M4, M5, M6, M7, M8. M9 slotted in after M2, M10 after M8, then M11. Then
 M12, M13, M14, M15, M16, M17, M18, M20 (M19 parked), M21, M22, M23, M24, M25, M26, M27, M28,

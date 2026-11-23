@@ -3,7 +3,10 @@
  * two more with square thumbnails. The stories come worded from the hub
  * (app/desk_headlines.py), the pictures from pictures.c. A tap on a story saves
  * it to Readeck (actions.c, with the board's device key): its bookmark fills at
- * once, and empties again when saving failed. A saved story stays saved. */
+ * once, and empties again when saving failed. A saved story stays saved.
+ *
+ * M38: a 2px hairline between the two rows (cells would push the second one past the bottom
+ * edge under the painted picture). */
 
 #include "screen_headlines.h"
 
@@ -33,7 +36,7 @@ LV_FONT_DECLARE(instrument_24);
 #define PAINTED_ROWS 466
 #define PAINTED_ROW 128
 
-static lv_obj_t *lead, *lead_image, *shade, *fade, *top, *badge, *lead_age, *lead_title;
+static lv_obj_t *lead, *lead_image, *shade, *fade, *top, *badge, *lead_age, *lead_title, *divider;
 static int laid_out = -1; /* painted (1) or not (0), as laid out */
 static struct {
     lv_obj_t *row, *image, *placeholder, *kicker, *title;
@@ -144,6 +147,9 @@ static void lay_out(bool painted)
     for (int i = 0; i < 2; i++) {
         lv_obj_set_pos(rows[i].row, LEFT, painted ? PAINTED_ROWS + i * PAINTED_ROW : ROW_TOP + i * ROW_HEIGHT);
     }
+    /* The hairline halfway between the two rows. */
+    int step = painted ? PAINTED_ROW : ROW_HEIGHT, first = painted ? PAINTED_ROWS : ROW_TOP;
+    lv_obj_set_pos(divider, LEFT, first + THUMB + (step - THUMB) / 2 - 1);
 }
 
 static void tick(lv_timer_t *timer)
@@ -190,6 +196,7 @@ static void tick(lv_timer_t *timer)
     lv_label_set_text(badge, shown.stories[0].source);
     lv_label_set_text(lead_age, shown.stories[0].age);
     lv_label_set_text(lead_title, shown.stories[0].title);
+    lv_obj_set_flag(divider, LV_OBJ_FLAG_HIDDEN, shown.count < 3);
     for (int i = 0; i < 2; i++) {
         bool there = shown.count > i + 1;
         lv_obj_set_flag(rows[i].row, LV_OBJ_FLAG_HIDDEN, !there);
@@ -261,7 +268,7 @@ void screen_headlines_create(lv_obj_t *screen)
     lv_obj_add_flag(lead, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_add_event_cb(lead, on_tap, LV_EVENT_CLICKED, (void *)0);
 
-    lead_title = ui_text(lead, &instrument_40, 0xffffff);
+    lead_title = ui_text(lead, &instrument_40, TOK_DESK_FG);
     lv_label_set_long_mode(lead_title, LV_LABEL_LONG_DOT);
     lv_obj_set_size(lead_title, WIDTH - 48, 3 * 48);
     lv_obj_set_style_text_line_space(lead_title, -2, 0);
@@ -296,6 +303,13 @@ void screen_headlines_create(lv_obj_t *screen)
         lv_obj_add_flag(row, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_EVENT_BUBBLE);
         lv_obj_add_event_cb(row, on_tap, LV_EVENT_CLICKED, (void *)(intptr_t)(i + 1));
     }
+
+    divider = ui_plain(screen);
+    lv_obj_set_size(divider, WIDTH, 2);
+    lv_obj_set_style_bg_color(divider, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_bg_opa(divider, LV_OPA_COVER, 0);
+    lv_obj_set_pos(divider, LEFT, ROW_TOP + THUMB + (ROW_HEIGHT - THUMB) / 2 - 1);
+    lv_obj_add_flag(divider, LV_OBJ_FLAG_HIDDEN);
 
     lv_timer_create(tick, 1000, NULL);
 }
