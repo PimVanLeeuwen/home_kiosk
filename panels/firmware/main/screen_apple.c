@@ -8,7 +8,10 @@
  * back to the first; a gentle curve per link, with a pulse of light running along it,
  * or dashed amber when a device at either end is offline or its Thread is down. Orbs
  * that play send out ripples. The curves are drawn once per answer into a canvas;
- * only the pulses and the rings move. */
+ * only the pulses and the rings move.
+ *
+ * M38: the rooms stay apart (the mesh runs between them), with a cell's 20px corners and
+ * a hairline edge while unlit; the pill is the shared tint, the bar a cell. */
 
 #include "screen_apple.h"
 
@@ -100,12 +103,12 @@ static void paint(int i)
     bool lit = room->glow != 0;
     lv_obj_set_style_bg_color(box, lv_color_hex(lit ? room->glow : 0x101015), 0);
     lv_obj_set_style_bg_opa(box, lit ? 46 : 170, 0); /* glass over the hub's light (plan.md M27) */
-    lv_obj_set_style_border_color(box, lv_color_hex(lit ? room->glow : 0xffffff), 0);
-    lv_obj_set_style_border_opa(box, lit ? 170 : 26, 0);
+    lv_obj_set_style_border_color(box, lv_color_hex(lit ? room->glow : TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_border_opa(box, lit ? 170 : LV_OPA_COVER, 0);
     lv_obj_set_style_shadow_opa(box, lit ? 120 : 0, 0);
     lv_obj_set_style_shadow_color(box, lv_color_hex(room->glow), 0);
     lv_label_set_text(rooms[i].name, room->name);
-    lv_obj_set_style_text_color(rooms[i].name, lv_color_hex(lit ? 0xffffff : TOK_DESK_SECONDARY), 0);
+    lv_obj_set_style_text_color(rooms[i].name, lv_color_hex(lit ? TOK_DESK_FG : TOK_DESK_SECONDARY), 0);
 
     for (int d = 0; d < 4; d++) {
         lv_obj_set_flag(rooms[i].orbs[d], LV_OBJ_FLAG_HIDDEN, d >= room->devices);
@@ -323,8 +326,7 @@ static void tick(lv_timer_t *timer)
     char caps[24];
     ui_upper(caps, sizeof caps, shown.headline);
     lv_label_set_text(pill_label, caps);
-    lv_obj_set_style_text_color(pill_label, lv_color_hex(shown.headline_colour), 0);
-    lv_obj_set_style_bg_color(pill, lv_color_hex(shown.headline_colour), 0);
+    ui_pill_tone(pill, pill_label, shown.headline_colour);
     place(shown.count);
     for (int i = 0; i < 3; i++) {
         lv_obj_set_flag(rooms[i].box, LV_OBJ_FLAG_HIDDEN, i >= shown.count);
@@ -337,7 +339,7 @@ static void tick(lv_timer_t *timer)
         lv_label_set_text(bar_title, shown.title);
         lv_label_set_text(bar_where, shown.where);
         lv_obj_set_style_bg_color(bar_stripe, lv_color_hex(shown.playing_colour), 0);
-        lv_obj_set_style_text_color(bar_title, lv_color_white(), 0);
+        lv_obj_set_style_text_color(bar_title, lv_color_hex(TOK_DESK_FG), 0);
     } else {
         lv_label_set_text(bar_title, "Nothing playing");
         lv_label_set_text(bar_where, "");
@@ -354,19 +356,12 @@ void screen_apple_create(lv_obj_t *screen)
     lv_obj_set_style_text_letter_space(header, 2, 0);
     lv_label_set_text(header, "APPLE DEVICES");
     lv_obj_set_pos(header, LEFT, 30);
-    pill = ui_plain(screen);
-    lv_obj_set_size(pill, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_hor(pill, 16, 0);
-    lv_obj_set_style_pad_ver(pill, 6, 0);
-    lv_obj_set_style_radius(pill, 20, 0);
-    lv_obj_set_style_bg_opa(pill, 50, 0);
-    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 22);
-    pill_label = ui_text(pill, &instrument_24, 0xffffff);
-    lv_obj_set_style_text_letter_space(pill_label, 1, 0);
+    pill = ui_pill(screen, &instrument_24, &pill_label);
+    lv_obj_align(pill, LV_ALIGN_TOP_RIGHT, -LEFT, 26);
 
     for (int i = 0; i < 3; i++) {
         lv_obj_t *box = rooms[i].box = ui_plain(screen);
-        lv_obj_set_style_radius(box, 22, 0);
+        lv_obj_set_style_radius(box, 20, 0);
         lv_obj_set_style_border_width(box, 2, 0);
         lv_obj_set_style_shadow_width(box, 40, 0);
         rooms[i].name = ui_one_line(box, &instrument_28_bold, TOK_DESK_SECONDARY, (WIDTH - GAP) / 2 - 48);
@@ -417,14 +412,17 @@ void screen_apple_create(lv_obj_t *screen)
     bar = ui_plain(screen);
     lv_obj_set_size(bar, WIDTH, 132);
     lv_obj_set_pos(bar, LEFT, TOP + PLAN_H + 24);
-    lv_obj_set_style_radius(bar, 22, 0);
+    lv_obj_set_style_radius(bar, 20, 0);
     lv_obj_set_style_clip_corner(bar, true, 0);
     lv_obj_set_style_bg_opa(bar, LV_OPA_COVER, 0);
-    lv_obj_set_style_bg_color(bar, lv_color_hex(0x101015), 0);
+    lv_obj_set_style_bg_color(bar, lv_color_hex(TOK_DESK_CELL), 0);
+    lv_obj_set_style_border_width(bar, 2, 0);
+    lv_obj_set_style_border_color(bar, lv_color_hex(TOK_DESK_HAIRLINE), 0);
+    lv_obj_set_style_border_post(bar, true, 0); /* the edge over the stripe */
     bar_stripe = ui_plain(bar);
     lv_obj_set_size(bar_stripe, 10, LV_PCT(100));
     lv_obj_set_style_bg_opa(bar_stripe, LV_OPA_COVER, 0);
-    bar_title = ui_one_line(bar, &instrument_28_bold, 0xffffff, WIDTH - 72);
+    bar_title = ui_one_line(bar, &instrument_28_bold, TOK_DESK_FG, WIDTH - 72);
     lv_obj_set_pos(bar_title, 36, 28);
     bar_where = ui_one_line(bar, &instrument_24, TOK_DESK_SECONDARY, WIDTH - 72);
     lv_obj_set_pos(bar_where, 36, 74);
